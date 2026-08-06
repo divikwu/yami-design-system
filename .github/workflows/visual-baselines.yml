@@ -1,0 +1,27 @@
+name: Generate visual baselines
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  baselines:
+    runs-on: ubuntu-latest
+    container: mcr.microsoft.com/playwright:v1.61.1-noble
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 11.10.0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - name: generate-linux-baselines
+        run: CI=1 pnpm exec playwright test --project=visual --update-snapshots
+      - uses: actions/upload-artifact@v4
+        with:
+          name: yami-canvas-linux-visual-baselines
+          path: tests/visual/canvas.visual.spec.ts-snapshots
+          if-no-files-found: error
+          retention-days: 7

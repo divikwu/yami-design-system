@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "name": "social-media-gallery",
+  "title": "SocialMediaGallery",
+  "type": "component",
+  "status": "stable",
+  "source": "components/SocialMediaGallery",
+  "files": [
+    "components/SocialMediaGallery/assets/product-1.png",
+    "components/SocialMediaGallery/assets/product-2.png",
+    "components/SocialMediaGallery/assets/product-3.png",
+    "components/SocialMediaGallery/assets/product-4.png",
+    "components/SocialMediaGallery/assets/product-5.png",
+    "components/SocialMediaGallery/assets/social-1.jpg",
+    "components/SocialMediaGallery/assets/social-2.jpg",
+    "components/SocialMediaGallery/assets/social-3.jpg",
+    "components/SocialMediaGallery/assets/social-4.jpg",
+    "components/SocialMediaGallery/assets/social-5.jpg",
+    "components/SocialMediaGallery/assets/social-6.jpg",
+    "components/SocialMediaGallery/fixtures.ts",
+    "components/SocialMediaGallery/index.ts",
+    "components/SocialMediaGallery/SocialMediaGallery.module.css",
+    "components/SocialMediaGallery/SocialMediaGallery.stories.module.css",
+    "components/SocialMediaGallery/SocialMediaGallery.tsx",
+    "components/SocialMediaGallery/SocialMediaGallery.types.ts",
+    "components/SocialMediaGallery/SocialVideoCard.tsx"
+  ]
+}

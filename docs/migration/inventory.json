@@ -2,7 +2,7 @@
   "sourceFiles": 669,
   "migratedDesignSystemFiles": 558,
   "migratedPrototypeFiles": 12,
-  "incubatorFiles": 64,
+  "incubatorFiles": 66,
   "components": 19,
   "stories": 29,
   "foundationStories": 10,
@@ -11,7 +11,7 @@
   "codeConnect": 14,
   "excluded": [
     "readiness-baseline.json",
-    "Design Labs identity manifests",
-    "committed generated token/catalog/registry artifacts"
+    "Design Labs identity schemas (rebuilt for this repository)",
+    "Design Labs generated token/catalog/registry artifacts (regenerated here)"
   ]
 }

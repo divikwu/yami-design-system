@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "name": "button",
+  "title": "Button",
+  "type": "component",
+  "status": "stable",
+  "source": "components/Button",
+  "files": [
+    "components/Button/Button.module.css",
+    "components/Button/Button.tsx",
+    "components/Button/index.ts",
+    "components/Button/RailNavigation.module.css",
+    "components/Button/RailNavigation.tsx"
+  ]
+}

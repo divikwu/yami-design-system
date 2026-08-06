@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "name": "tabs",
+  "title": "Tabs",
+  "type": "component",
+  "status": "beta",
+  "source": "components/Tabs",
+  "files": [
+    "components/Tabs/index.ts",
+    "components/Tabs/Tabs.module.css",
+    "components/Tabs/Tabs.tsx"
+  ]
+}

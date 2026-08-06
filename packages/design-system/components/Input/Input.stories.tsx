@@ -93,7 +93,7 @@ const resetButtonStyle: CSSProperties = {
   font: "inherit",
 }
 
-// Search icon from design-systems/yami/assets/icons/action/search.svg.
+// Search icon from packages/design-system/assets/icons/action/search.svg.
 // Inlined as a component so Storybook renders the canonical currentColor SVG
 // path without depending on bundler-specific SVG imports.
 function SearchIcon() {

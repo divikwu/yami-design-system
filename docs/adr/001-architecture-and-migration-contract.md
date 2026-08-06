@@ -35,7 +35,6 @@ it never owns application history.
 
 ## Storybook test policy
 
-Storybook Vitest runs every story and every `play` function in Chromium as a
-hard CI gate. Migrated story-level axe findings are reported as `todo` until
-triaged; the Canvas Playwright a11y suite remains a hard gate. Promote each
-Storybook finding to `error` when its owning component is remediated.
+Storybook Vitest runs every story, every `play` function and the a11y addon in
+Chromium as a hard CI gate. Canvas Playwright separately audits both the
+workbench shell and the rendered Ecommerce Home document.

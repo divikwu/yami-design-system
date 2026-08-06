@@ -10,7 +10,10 @@
     "./components/*": "./components/*/index.ts",
     "./components/*/fixtures": "./components/*/fixtures.ts",
     "./styles/base.css": "./styles/base.css",
-    "./tokens.css": "./generated/tokens.css"
+    "./styles/fonts.css": "./styles/fonts.css",
+    "./tokens.css": "./generated/tokens.css",
+    "./meta": "./design-system.meta.json",
+    "./manifest": "./manifest.json"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "name": "trending-searches",
+  "title": "TrendingSearches",
+  "type": "component",
+  "status": "stable",
+  "source": "components/TrendingSearches",
+  "files": [
+    "components/TrendingSearches/fixtures.ts",
+    "components/TrendingSearches/index.ts",
+    "components/TrendingSearches/TrendingSearches.module.css",
+    "components/TrendingSearches/TrendingSearches.stories.module.css",
+    "components/TrendingSearches/TrendingSearches.tsx",
+    "components/TrendingSearches/TrendingSearches.types.ts"
+  ]
+}

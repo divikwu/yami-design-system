@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite"
 
 import { Button } from "./Button"
 
-// Heart icon from design-systems/yami/assets/icons/action/heart.svg.
+// Heart icon from packages/design-system/assets/icons/action/heart.svg.
 // Inlined as a component so the showcase exercises the canonical SVG path
 // (currentColor inheritance, 20px viewBox at md size) instead of the ♥
 // text glyph — which has uncentered glyph metrics and misrepresents how

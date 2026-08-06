@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "name": "badge",
+  "title": "Badge",
+  "type": "component",
+  "status": "stable",
+  "source": "components/Badge",
+  "files": [
+    "components/Badge/Badge.module.css",
+    "components/Badge/Badge.tsx",
+    "components/Badge/index.ts"
+  ]
+}

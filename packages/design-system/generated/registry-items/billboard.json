@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "name": "billboard",
+  "title": "Billboard",
+  "type": "component",
+  "status": "stable",
+  "source": "components/Billboard",
+  "files": [
+    "components/Billboard/assets/new-user-offer.png",
+    "components/Billboard/assets/weekly-picks-zh-desktop.png",
+    "components/Billboard/Billboard.module.css",
+    "components/Billboard/Billboard.tsx",
+    "components/Billboard/Billboard.types.ts",
+    "components/Billboard/fixtures.ts",
+    "components/Billboard/index.ts"
+  ]
+}

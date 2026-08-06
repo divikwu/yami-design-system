@@ -16,7 +16,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "YAMI brand marks rendered from design-systems/yami/assets/logos. Exported from Figma `YAMI-UI-UX-Guidelines` — brand mark node `2279:2811` / `2279:2819`, UI lockup node `2013:13691`.",
+          "YAMI brand marks rendered from packages/design-system/assets/logos. Exported from Figma `YAMI-UI-UX-Guidelines` — brand mark node `2279:2811` / `2279:2819`, UI lockup node `2013:13691`.",
       },
     },
   },
@@ -43,7 +43,7 @@ type LogoSet = {
   logos: LogoEntry[]
 }
 
-const sourceRoot = "design-systems/yami/assets/logos"
+const sourceRoot = "packages/design-system/assets/logos"
 
 const logoSets: LogoSet[] = [
   {

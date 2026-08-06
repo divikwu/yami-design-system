@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "name": "radio-group",
+  "title": "RadioGroup",
+  "type": "component",
+  "status": "beta",
+  "source": "components/RadioGroup",
+  "files": [
+    "components/RadioGroup/index.ts",
+    "components/RadioGroup/RadioGroup.module.css",
+    "components/RadioGroup/RadioGroup.tsx"
+  ]
+}

@@ -8,7 +8,7 @@
   },
   "text": {
     "on-emphasis": { "$type": "color", "$value": "{color.white.1000}" },
-    "emphasis": { "$type": "color", "$value": "{color.red.400}" },
+    "emphasis": { "$type": "color", "$value": "{color.red.200}" },
     "emphasis-inverse": { "$type": "color", "$value": "{color.red.500}" },
     "primary": { "$type": "color", "$value": "{color.white.1000}" },
     "primary-inverse": { "$type": "color", "$value": "{color.black.1000}" },

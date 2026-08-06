@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "name": "card",
+  "title": "Card",
+  "type": "component",
+  "status": "stable",
+  "source": "components/Card",
+  "files": [
+    "components/Card/Card.module.css",
+    "components/Card/Card.tsx",
+    "components/Card/index.ts"
+  ]
+}

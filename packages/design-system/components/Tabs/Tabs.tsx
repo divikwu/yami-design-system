@@ -42,6 +42,7 @@ export interface TabsListProps extends HTMLAttributes<HTMLDivElement> {
 
 export interface TabsTriggerProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "type"> {
   value: TabsValue
+  controls?: string
   leftIcon?: ReactNode
   rightIcon?: ReactNode
   children?: ReactNode
@@ -266,6 +267,7 @@ export const TabsList = forwardRef<HTMLDivElement, TabsListProps>(function TabsL
 export const TabsTrigger = forwardRef<HTMLButtonElement, TabsTriggerProps>(function TabsTrigger(
   {
     value,
+    controls,
     disabled = false,
     leftIcon,
     rightIcon,
@@ -292,7 +294,7 @@ export const TabsTrigger = forwardRef<HTMLButtonElement, TabsTriggerProps>(funct
       className={cx(styles.trigger, className)}
       data-slot="tabs-trigger"
       aria-selected={selected}
-      aria-controls={panelId}
+      aria-controls={controls ?? panelId}
       aria-disabled={disabled || undefined}
       tabIndex={disabled ? -1 : selected || noSelectionYet ? 0 : -1}
       data-state={selected ? "active" : "inactive"}

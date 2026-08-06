@@ -66,13 +66,13 @@ export function Footer({
                   <ul className={styles.groupList}>
                     {group.links.map((link) => (
                       <li key={link.id}>
-                        <a
-                          className={styles.groupLink}
-                          href={link.href}
-                          data-slot="footer-link"
-                        >
-                          {link.label}
-                        </a>
+                        {link.href ? (
+                          <a className={styles.groupLink} href={link.href} data-slot="footer-link">
+                            {link.label}
+                          </a>
+                        ) : (
+                          <span className={styles.groupLink} data-slot="footer-link">{link.label}</span>
+                        )}
                       </li>
                     ))}
                   </ul>
@@ -99,12 +99,7 @@ export function Footer({
                 >
                   {socialLinks.map((social) => (
                     <li key={social.id}>
-                      <a
-                        className={styles.socialLink}
-                        href={social.href}
-                        aria-label={social.label}
-                        data-slot="footer-social-link"
-                      >
+                      {social.href ? <a className={styles.socialLink} href={social.href} aria-label={social.label} data-slot="footer-social-link">
                         <span
                           className={styles.socialIcon}
                           style={{
@@ -112,7 +107,9 @@ export function Footer({
                           }}
                           data-slot="footer-social-icon"
                         />
-                      </a>
+                      </a> : <span className={styles.socialLink} role="img" aria-label={social.label} data-slot="footer-social-link">
+                        <span className={styles.socialIcon} style={{ ['--footer-social-icon' as string]: `url("${social.icon.src}")` }} data-slot="footer-social-icon" />
+                      </span>}
                     </li>
                   ))}
                 </ul>
@@ -181,14 +178,11 @@ export function Footer({
           <ul className={styles.legalRow} aria-label={legalLabel} data-slot="footer-legal">
             {legalLinks.map((legal) => (
               <li key={legal.id}>
-                <a
-                  className={styles.legalLink}
-                  href={legal.href}
-                  aria-label={legal.ariaLabel}
-                  data-slot="footer-legal-link"
-                >
-                  {legal.label}
-                </a>
+                {legal.href ? (
+                  <a className={styles.legalLink} href={legal.href} aria-label={legal.ariaLabel} data-slot="footer-legal-link">{legal.label}</a>
+                ) : (
+                  <span className={styles.legalLink} data-slot="footer-legal-link">{legal.label}</span>
+                )}
               </li>
             ))}
           </ul>

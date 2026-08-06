@@ -11,6 +11,6 @@ export default defineConfig({
   projects: [
     { name: "e2e", testDir: "tests/e2e", use: { ...devices["Desktop Chrome"] } },
     { name: "a11y", testDir: "tests/a11y", use: { ...devices["Desktop Chrome"], reducedMotion: "reduce" } },
-    { name: "visual", testDir: "tests/visual", use: { ...devices["Desktop Chrome"] } }
+    { name: "visual", testDir: "tests/visual", use: { ...devices["Desktop Chrome"], reducedMotion: "reduce" } }
   ]
 });

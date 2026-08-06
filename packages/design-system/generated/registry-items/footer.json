@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "name": "footer",
+  "title": "Footer",
+  "type": "component",
+  "status": "beta",
+  "source": "components/Footer",
+  "files": [
+    "components/Footer/assets/payment/alipay.png",
+    "components/Footer/assets/payment/american-express.png",
+    "components/Footer/assets/payment/discover.png",
+    "components/Footer/assets/payment/inc-500.png",
+    "components/Footer/assets/payment/mastercard.png",
+    "components/Footer/assets/payment/paypal.png",
+    "components/Footer/assets/payment/ssl-site-seal.png",
+    "components/Footer/assets/payment/unionpay.png",
+    "components/Footer/assets/payment/visa.png",
+    "components/Footer/assets/payment/wechatpay.png",
+    "components/Footer/fixtures.ts",
+    "components/Footer/Footer.module.css",
+    "components/Footer/Footer.tsx",
+    "components/Footer/Footer.types.ts",
+    "components/Footer/FooterAppButton.tsx",
+    "components/Footer/FooterSubscribe.tsx",
+    "components/Footer/index.ts"
+  ]
+}

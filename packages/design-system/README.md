@@ -71,27 +71,27 @@ The **only** sanctioned upstream source of truth for token values is the DTCG JS
 
 ```bash
 # 1. Edit the DTCG JSON (primitives / semantic / typography)
-$EDITOR design-systems/yami/tokens/primitives/colors.tokens.json
+$EDITOR packages/design-system/tokens/primitives/colors.tokens.json
 
-# 2. Regenerate everything: tokens.json + composite tokens.css (with @font-face
-#    + @media + base.css splice) + tokens.flat.json + tokens.ts + tokens.md, all written
-#    directly under design-systems/yami/.
-pnpm build:tokens
+# 2. Regenerate tokens, catalog, registry and migration provenance.
+pnpm generate
 
 # 3. Verify
-pnpm check:yami
-# expect 5 green lines: principles-sync / tokens-in-docs / components-in-doc /
-#                       tokens-flat-sync / tokens-md
+pnpm check:generated
+pnpm check:boundaries
 
-# 4. Visual regression: open the relevant `preview/<component>.html` in a
-#    browser, screenshot before/after, attach to PR description.
+# 4. Visual regression: run Storybook interactions locally. Linux visual
+#    baselines are compared in CI.
+pnpm test:storybook
 
-# 5. Commit (husky's pre-commit hook will re-run pnpm check:yami).
-git add design-systems/yami/{tokens.json,tokens.css,tokens.ts,tokens.flat.json,tokens.md,tokens/}
+# 5. Commit source tokens and regenerated outputs together.
+git add packages/design-system/tokens packages/design-system/generated
 git commit
 ```
 
-**Behind the scenes.** `pnpm build:tokens` runs `pnpm tools-tokens tokens-json build --ds yami --commit && pnpm ds:sync yami`. The `--commit` flag tells `tools-tokens` to emit `tokens.json` plus the full composite `tokens.css` (`emitTokensCss` in `packages/tools-tokens/src/emit.ts`) directly under `<ds>/` — preserving `rgba()` colors, `var(--primitive)` semantic aliases, quoted font-family entries, `@media` overrides, and the `base.css` splice. Without `--commit`, the command writes `tokens.json` to `<ds>/generated/` for inspection.
+**Behind the scenes.** `tooling/tokens/build.mjs` reads only the DTCG tree and
+emits deterministic JSON, CSS, TypeScript, flat JSON, Markdown and digest files
+under `packages/design-system/generated/`.
 
 Adding a new token = minor version bump (`0.x.0`); renaming / removing = major bump (`x.0.0`). See [ADR-010](../../docs/decisions/ADR-010-dtcg-only-token-consumption.md) for the semver policy.
 

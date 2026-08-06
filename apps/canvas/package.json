@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start -p 3200",
     "typecheck": "tsc -p tsconfig.json",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run"
   },
   "dependencies": {
     "@yami/contracts": "workspace:*",

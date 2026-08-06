@@ -21,7 +21,7 @@ import styles from './Badge.module.css'
 
 /**
  * Flag prefix used by 'exclusive' (purple) + 'choice' (blue) types.
- * Mirrors design-systems/yami/assets/badges/flag-cap-{purple,blue}.svg
+ * Mirrors packages/design-system/assets/badges/flag-cap-{purple,blue}.svg
  * (26×20, fills color-purple-700 / color-blue-700 with white Y monogram).
  * Inlined here so the Badge ships self-contained — no SVG-loader assumption.
  */

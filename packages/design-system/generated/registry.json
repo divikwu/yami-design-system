@@ -1,0 +1,131 @@
+{
+  "schemaVersion": 1,
+  "name": "yami",
+  "visibility": "private",
+  "generatedFrom": [
+    "design-system.meta.json",
+    "components/*/meta.json"
+  ],
+  "items": [
+    {
+      "name": "yami-design-system",
+      "title": "YAMI Design System",
+      "type": "design-system",
+      "path": "registry-items/yami-design-system.json"
+    },
+    {
+      "name": "aspect-ratio",
+      "title": "AspectRatio",
+      "type": "component",
+      "path": "registry-items/aspect-ratio.json"
+    },
+    {
+      "name": "badge",
+      "title": "Badge",
+      "type": "component",
+      "path": "registry-items/badge.json"
+    },
+    {
+      "name": "billboard",
+      "title": "Billboard",
+      "type": "component",
+      "path": "registry-items/billboard.json"
+    },
+    {
+      "name": "brand-product-rail",
+      "title": "BrandProductRail",
+      "type": "component",
+      "path": "registry-items/brand-product-rail.json"
+    },
+    {
+      "name": "button",
+      "title": "Button",
+      "type": "component",
+      "path": "registry-items/button.json"
+    },
+    {
+      "name": "card",
+      "title": "Card",
+      "type": "component",
+      "path": "registry-items/card.json"
+    },
+    {
+      "name": "checkbox",
+      "title": "Checkbox",
+      "type": "component",
+      "path": "registry-items/checkbox.json"
+    },
+    {
+      "name": "divider",
+      "title": "Divider",
+      "type": "component",
+      "path": "registry-items/divider.json"
+    },
+    {
+      "name": "footer",
+      "title": "Footer",
+      "type": "component",
+      "path": "registry-items/footer.json"
+    },
+    {
+      "name": "header",
+      "title": "Header",
+      "type": "component",
+      "path": "registry-items/header.json"
+    },
+    {
+      "name": "hero-banner",
+      "title": "HeroBanner",
+      "type": "component",
+      "path": "registry-items/hero-banner.json"
+    },
+    {
+      "name": "input",
+      "title": "Input",
+      "type": "component",
+      "path": "registry-items/input.json"
+    },
+    {
+      "name": "product-card",
+      "title": "ProductCard",
+      "type": "component",
+      "path": "registry-items/product-card.json"
+    },
+    {
+      "name": "product-list",
+      "title": "ProductList",
+      "type": "component",
+      "path": "registry-items/product-list.json"
+    },
+    {
+      "name": "radio-group",
+      "title": "RadioGroup",
+      "type": "component",
+      "path": "registry-items/radio-group.json"
+    },
+    {
+      "name": "shortcut-rail",
+      "title": "ShortcutRail",
+      "type": "component",
+      "path": "registry-items/shortcut-rail.json"
+    },
+    {
+      "name": "social-media-gallery",
+      "title": "SocialMediaGallery",
+      "type": "component",
+      "path": "registry-items/social-media-gallery.json"
+    },
+    {
+      "name": "tabs",
+      "title": "Tabs",
+      "type": "component",
+      "path": "registry-items/tabs.json"
+    },
+    {
+      "name": "trending-searches",
+      "title": "TrendingSearches",
+      "type": "component",
+      "path": "registry-items/trending-searches.json"
+    }
+  ]
+}

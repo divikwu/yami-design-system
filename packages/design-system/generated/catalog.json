@@ -2420,12 +2420,12 @@
           "leadingIcon": {
             "type": "ReactNode",
             "required": false,
-            "description": "Icon/text rendered before the text stack. Use currentColor SVG assets from design-systems/yami/assets/icons."
+            "description": "Icon/text rendered before the text stack. Use currentColor SVG assets from packages/design-system/assets/icons."
           },
           "trailingIcon": {
             "type": "ReactNode",
             "required": false,
-            "description": "Icon/text/action rendered after the text stack. Use currentColor SVG assets from design-systems/yami/assets/icons and keep interactive actions controlled by component state."
+            "description": "Icon/text/action rendered after the text stack. Use currentColor SVG assets from packages/design-system/assets/icons and keep interactive actions controlled by component state."
           },
           "prefix": {
             "type": "ReactNode",
@@ -2481,7 +2481,7 @@
           },
           "assetSource": {
             "ruleId": "asset-source",
-            "note": "Clear and error icons are currentColor SVG paths from design-systems/yami/assets/icons/action."
+            "note": "Clear and error icons are currentColor SVG paths from packages/design-system/assets/icons/action."
           },
           "nativeSync": {
             "ruleId": "native-input-sync",
@@ -3928,12 +3928,12 @@
           "TabsTrigger.leftIcon": {
             "type": "ReactNode",
             "required": false,
-            "description": "Optional icon before label. Use currentColor SVGs from design-systems/yami/assets/icons."
+            "description": "Optional icon before label. Use currentColor SVGs from packages/design-system/assets/icons."
           },
           "TabsTrigger.rightIcon": {
             "type": "ReactNode",
             "required": false,
-            "description": "Optional icon after label. Use currentColor SVGs from design-systems/yami/assets/icons."
+            "description": "Optional icon after label. Use currentColor SVGs from packages/design-system/assets/icons."
           },
           "TabsContent.value": {
             "type": "string",
@@ -3961,7 +3961,7 @@
           },
           "icons": {
             "ruleId": "asset-source",
-            "note": "When icon slots are used, pass currentColor SVGs from design-systems/yami/assets/icons; do not use ad-hoc glyphs."
+            "note": "When icon slots are used, pass currentColor SVGs from packages/design-system/assets/icons; do not use ad-hoc glyphs."
           }
         },
         "tokens": [

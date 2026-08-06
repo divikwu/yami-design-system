@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "name": "product-list",
+  "title": "ProductList",
+  "type": "component",
+  "status": "stable",
+  "source": "components/ProductList",
+  "files": [
+    "components/ProductList/assets/atmospheric-mobile.jpg",
+    "components/ProductList/assets/atmospheric-pc.jpg",
+    "components/ProductList/assets/campaign-banner-mobile.png",
+    "components/ProductList/assets/mega-saver-banner.webp",
+    "components/ProductList/fixtures.ts",
+    "components/ProductList/index.ts",
+    "components/ProductList/ProductList.module.css",
+    "components/ProductList/ProductList.stories.module.css",
+    "components/ProductList/ProductList.tsx",
+    "components/ProductList/ProductList.types.ts"
+  ]
+}

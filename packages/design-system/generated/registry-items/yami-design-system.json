@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "name": "yami-design-system",
+  "title": "YAMI Design System",
+  "type": "design-system",
+  "source": "design-system.meta.json",
+  "files": [
+    "design-system.meta.json",
+    "manifest.json",
+    "DESIGN.compact.md",
+    "SKILL.md",
+    "styles/base.css",
+    "generated/tokens.css",
+    "generated/tokens.json"
+  ]
+}

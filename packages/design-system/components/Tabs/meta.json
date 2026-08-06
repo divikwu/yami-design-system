@@ -130,12 +130,12 @@
     "TabsTrigger.leftIcon": {
       "type": "ReactNode",
       "required": false,
-      "description": "Optional icon before label. Use currentColor SVGs from design-systems/yami/assets/icons."
+      "description": "Optional icon before label. Use currentColor SVGs from packages/design-system/assets/icons."
     },
     "TabsTrigger.rightIcon": {
       "type": "ReactNode",
       "required": false,
-      "description": "Optional icon after label. Use currentColor SVGs from design-systems/yami/assets/icons."
+      "description": "Optional icon after label. Use currentColor SVGs from packages/design-system/assets/icons."
     },
     "TabsContent.value": {
       "type": "string",
@@ -164,7 +164,7 @@
     },
     "icons": {
       "ruleId": "asset-source",
-      "note": "When icon slots are used, pass currentColor SVGs from design-systems/yami/assets/icons; do not use ad-hoc glyphs."
+      "note": "When icon slots are used, pass currentColor SVGs from packages/design-system/assets/icons; do not use ad-hoc glyphs."
     }
   },
 

@@ -1,19 +1,78 @@
 import { z } from "zod";
 import { TokenOverridesSchema } from "./tokens";
 
+const textValueSchema = z.union([z.string().max(240), z.number().finite()]);
+const assetPathSchema = z.string().max(500).refine(
+  (value) => /^\/(?!\/)(?!.*(?:^|\/)\.\.(?:\/|$))[^\\]*$/.test(value),
+  "Assets must use an emitted same-origin path",
+);
+const colorValueSchema = z.string().regex(/^#[0-9a-f]{6}(?:[0-9a-f]{2})?$/i);
+const imageSchema = z.object({ src: assetPathSchema, alt: z.string().max(240) }).strict();
 const linkSchema = z.object({ label: z.string().max(120), href: z.string().max(240).optional() }).strict();
 const headerPatchSchema = z.object({
+  logo: imageSchema.optional(),
+  mobileLogo: imageSchema.optional(),
+  darkLogo: imageSchema.optional(),
+  darkMobileLogo: imageSchema.optional(),
   homeHref: z.string().max(240).optional(),
+  halls: z.array(z.object({ id: z.string().min(1).max(120), label: z.string().max(120) }).strict()).max(8).optional(),
+  hallId: z.string().max(120).optional(),
+  zipcode: z.object({ code: z.string().max(24), label: z.string().max(120), href: z.string().max(240).optional() }).strict().optional(),
+  categories: z.array(z.object({
+    id: z.string().min(1).max(120), label: z.string().max(120), href: z.string().max(240).optional(), image: imageSchema.optional(),
+    badges: z.array(z.string().max(24)).max(4).optional(), startsGroup: z.boolean().optional(),
+  }).strict()).max(36).optional(),
   searchPlaceholder: z.string().max(120).optional(),
+  searchValue: z.string().max(200).optional(),
   ariaLabel: z.string().max(120).optional(),
+  hallsLabel: z.string().max(120).optional(),
+  categoriesLabel: z.string().max(120).optional(),
+  searchLabel: z.string().max(120).optional(),
+  scanLabel: z.string().max(120).optional(),
+  nextCategoriesLabel: z.string().max(120).optional(),
+  previousCategoriesLabel: z.string().max(120).optional(),
   account: linkSchema.optional(),
+  locale: z.object({ label: z.string().max(24), flag: imageSchema, href: z.string().max(240).optional() }).strict().optional(),
+  inbox: linkSchema.optional(),
   cart: z.object({ label: z.string().max(120), href: z.string().max(240).optional(), count: z.number().int().min(0).max(999).optional() }).strict().optional()
 }).strict();
+
+const heroItemBase = {
+  id: z.string().min(1).max(120),
+  href: z.string().min(1).max(240),
+  backgroundColor: colorValueSchema.optional(),
+};
+const heroProductsSchema = z.array(imageSchema).min(1).max(8);
+const heroItemSchema = z.union([
+  z.object({ ...heroItemBase, image: imageSchema }).strict(),
+  z.object({ ...heroItemBase, image: imageSchema, title: textValueSchema, description: textValueSchema.optional() }).strict(),
+  z.object({ ...heroItemBase, image: imageSchema, title: textValueSchema, description: textValueSchema.optional(), products: heroProductsSchema }).strict(),
+  z.object({ ...heroItemBase, title: textValueSchema, products: heroProductsSchema }).strict(),
+]);
 const heroPatchSchema = z.object({
-  ariaLabel: z.string().max(120).optional(), previousLabel: z.string().max(120).optional(), nextLabel: z.string().max(120).optional(), autoAdvance: z.boolean().optional(), autoAdvanceInterval: z.number().min(3).max(30).optional()
+  items: z.array(heroItemSchema).min(1).max(12).optional(),
+  ariaLabel: z.string().max(120).optional(), previousLabel: z.string().max(120).optional(), nextLabel: z.string().max(120).optional(),
+  imageLoading: z.enum(["eager", "lazy"]).optional(), autoAdvance: z.boolean().optional(), autoAdvanceInterval: z.number().min(3).max(30).optional(),
+  dividerPosition: z.enum(["top", "bottom", "none"]).optional(), dividerVariant: z.enum(["gray", "black"]).optional(),
 }).strict();
-const shortcutPatchSchema = z.object({ ariaLabel: z.string().max(120).optional(), previousLabel: z.string().max(120).optional(), nextLabel: z.string().max(120).optional(), lines: z.union([z.literal(1), z.literal(2)]).optional() }).strict();
-const footerPatchSchema = z.object({ appTitle: z.string().max(160).optional(), ariaLabel: z.string().max(120).optional(), socialLabel: z.string().max(120).optional(), legalLabel: z.string().max(120).optional() }).strict();
+const shortcutPatchSchema = z.object({
+  items: z.array(z.object({ id: z.string().min(1).max(120), label: textValueSchema, iconSrc: assetPathSchema, href: z.string().min(1).max(240) }).strict()).min(1).max(36).optional(),
+  ariaLabel: z.string().max(120).optional(), previousLabel: z.string().max(120).optional(), nextLabel: z.string().max(120).optional(), lines: z.union([z.literal(1), z.literal(2)]).optional(),
+}).strict();
+
+const footerPatchSchema = z.object({
+  columns: z.array(z.object({ id: z.string().min(1).max(120), groups: z.array(z.object({
+    id: z.string().min(1).max(120), title: z.string().max(120), links: z.array(z.object({ id: z.string().min(1).max(120), label: z.string().max(120), href: z.string().max(240).optional() }).strict()).max(20),
+  }).strict()).max(10) }).strict()).max(8).optional(),
+  subscribe: z.object({ title: z.string().max(160), label: z.string().max(120), placeholder: z.string().max(160).optional(), submitLabel: z.string().max(120), value: z.string().max(320).optional(), error: z.string().max(240).optional() }).strict().optional(),
+  socialLinks: z.array(z.object({ id: z.string().min(1).max(120), label: z.string().max(120), icon: imageSchema, href: z.string().max(240).optional() }).strict()).max(12).optional(),
+  appTitle: z.string().max(160).optional(),
+  appLinks: z.array(z.object({ id: z.string().min(1).max(120), label: z.string().max(120), icon: imageSchema.optional(), href: z.string().max(240).optional() }).strict()).max(8).optional(),
+  copyright: z.union([z.string().max(500), z.array(z.string().max(240)).max(8)]).optional(),
+  legalLinks: z.array(z.object({ id: z.string().min(1).max(120), label: z.string().max(120), href: z.string().max(240).optional(), ariaLabel: z.string().max(200).optional() }).strict()).max(16).optional(),
+  paymentMarks: z.array(z.object({ id: z.string().min(1).max(120), label: z.string().max(120), icon: imageSchema }).strict()).max(16).optional(),
+  ariaLabel: z.string().max(120).optional(), socialLabel: z.string().max(120).optional(), legalLabel: z.string().max(120).optional(), paymentLabel: z.string().max(120).optional(),
+}).strict();
 
 const sharedSectionProps = {
   title: z.string().max(160).optional(),
@@ -24,11 +83,6 @@ const sharedSectionProps = {
   nextLabel: z.string().max(120).optional()
 };
 
-const textValueSchema = z.union([z.string().max(240), z.number().finite()]);
-const assetPathSchema = z.string().max(500).refine(
-  (value) => /^\/(?!\/)(?!.*(?:^|\/)\.\.(?:\/|$))[^\\]*$/.test(value),
-  "Assets must use an emitted same-origin path",
-);
 const productSchema = z.object({
   id: z.string().min(1).max(120),
   title: textValueSchema,
@@ -145,11 +199,11 @@ export const CompleteHomeSectionPropsSchemas = {
 } as const;
 
 const sectionPatchSchemas = [
-  z.object({ id: z.string().min(1), kind: z.literal("products"), hidden: z.boolean().optional(), props: z.object({ ...sharedSectionProps, appearance: z.enum(["standard", "themed", "atmospheric"]).optional(), layout: z.enum(["rail", "waterfall"]).optional(), loadMoreLabel: z.string().max(120).optional() }).strict().optional() }).strict(),
-  z.object({ id: z.string().min(1), kind: z.literal("brands"), hidden: z.boolean().optional(), props: z.object(sharedSectionProps).strict().optional() }).strict(),
-  z.object({ id: z.string().min(1), kind: z.literal("social"), hidden: z.boolean().optional(), props: z.object(sharedSectionProps).strict().optional() }).strict(),
+  z.object({ id: z.string().min(1), kind: z.literal("products"), hidden: z.boolean().optional(), props: z.object({ ...sharedSectionProps, products: CompleteHomeSectionPropsSchemas.products.shape.products.optional(), appearance: z.enum(["standard", "themed", "atmospheric"]).optional(), layout: z.enum(["rail", "waterfall"]).optional(), loadMoreLabel: z.string().max(120).optional() }).strict().optional() }).strict(),
+  z.object({ id: z.string().min(1), kind: z.literal("brands"), hidden: z.boolean().optional(), props: z.object({ ...sharedSectionProps, campaigns: CompleteHomeSectionPropsSchemas.brands.shape.campaigns.optional() }).strict().optional() }).strict(),
+  z.object({ id: z.string().min(1), kind: z.literal("social"), hidden: z.boolean().optional(), props: z.object({ ...sharedSectionProps, cards: CompleteHomeSectionPropsSchemas.social.shape.cards.optional() }).strict().optional() }).strict(),
   z.object({ id: z.string().min(1), kind: z.literal("billboard"), hidden: z.boolean().optional(), props: z.object({ href: z.string().max(240).optional(), label: z.string().max(160).optional() }).strict().optional() }).strict(),
-  z.object({ id: z.string().min(1), kind: z.literal("searches"), hidden: z.boolean().optional(), props: z.object({ ...sharedSectionProps, seeAllLabel: z.string().max(120).optional(), defaultExpandedId: z.string().max(120).optional() }).strict().optional() }).strict()
+  z.object({ id: z.string().min(1), kind: z.literal("searches"), hidden: z.boolean().optional(), props: z.object({ ...sharedSectionProps, keywords: CompleteHomeSectionPropsSchemas.searches.shape.keywords.optional(), seeAllLabel: z.string().max(120).optional(), defaultExpandedId: z.string().max(120).optional() }).strict().optional() }).strict()
 ] as const;
 
 export const HomeSectionPatchSchema = z.discriminatedUnion("kind", sectionPatchSchemas);

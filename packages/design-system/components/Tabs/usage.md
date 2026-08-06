@@ -55,7 +55,7 @@ Use `TabsList inverse` only on `--surface-inverse` or another opposite-polarity 
 
 ## Icons
 
-Figma's WEB tab buttons include optional icon properties, but the reference Tabs examples keep icons off. If product needs an icon tab, pass `leftIcon` or `rightIcon` to `TabsTrigger` and use currentColor SVG assets from `design-systems/yami/assets/icons`.
+Figma's WEB tab buttons include optional icon properties, but the reference Tabs examples keep icons off. If product needs an icon tab, pass `leftIcon` or `rightIcon` to `TabsTrigger` and use currentColor SVG assets from `packages/design-system/assets/icons`.
 
 ```tsx
 <TabsTrigger value="search" leftIcon={<SearchIcon />}>

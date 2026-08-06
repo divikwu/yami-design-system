@@ -1,5 +1,10 @@
 # YAMI Decision History
 
+> Migration note: command and path references in historical entries describe
+> DL Source at the time of each decision. Current YAMI Canvas commands live in
+> the repository root `package.json`; the current token runbook is in
+> `README.md`.
+
 **M2 project memory** — the "why" behind major design decisions. Paired with `design.md` (what the rules are) and `CHANGELOG.md` (what changed when), this file answers "why did we decide this / what were we thinking".
 
 Read `docs/guides/writing-decision-records.md` for when to add an entry here vs an ADR vs a CHANGELOG note.
@@ -181,7 +186,7 @@ Each decision uses a structured block:
 - **Files added/changed (v0.2.0)**:
   - **Superseded local tokens**: the Figma-first token import removed the previous local-only rating-star, code, and bold token projections from the active token set.
   - **Refactored**: `components/ProductCard/ProductCard.module.css` + `meta.json` keep the scoped rating-star primitive exception; `styles/base.css` owns code/.mono and h1 bold as local element baselines.
-  - **New CI**: `packages/tools-tokens/src/cli.ts` `check` extended to verify all 3 artifacts; `design-systems/yami/package.json` adds `check:tokens-flat-sync` to validate chain.
+  - **Current CI**: `tooling/tokens/build.mjs --check` verifies all generated token artifacts from `packages/design-system/tokens`.
   - **New infra**: `.husky/pre-commit` (runs `pnpm check:yami`); root `package.json` adds `husky` devDep + `prepare` script. *(`.github/workflows/check.yml` was added in commit 0750b47 then removed post-merge — see Decision context above.)*
   - **Docs**: `README.md` adds `## Changing tokens` runbook; `decisions.md` adds this entry; `docs/decisions/ADR-010-dtcg-only-token-consumption.md` adds the policy ADR.
 

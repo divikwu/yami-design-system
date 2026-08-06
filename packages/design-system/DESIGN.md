@@ -45,7 +45,7 @@ tokens_source: ./tokens.css
 
 In Light, YAMI's product surfaces sit on a pure white canvas (`#FFFFFF`) with near-black ink. In Dark, page and component surfaces use neutral-950/900 with light reading colors. The operational red ramp carries action, promotion, and error semantics in both themes; brand red (`#FF0000`) remains Logo-only. **No decorative gradients; ProductList campaign artwork transitions and loading skeleton shimmer are documented functional exceptions.** **No box-shadow growth on hover.** **No emoji in product UI.** Numerals — every price, every count, every SKU — always render in **GT Walsheim**; CJK body text is **PingFang SC** on iOS / web and **Noto Sans SC** on Android, with embedded digits and Latin characters staying in GT Walsheim. The rhythm is dense but never noisy: an 8px base grid, five semantic radius slots (`4 / 8 / 8 / 12 / 9999`) covering every container, and a hard cap of **one emphasis button per screen** keeping conversion priority unambiguous.
 
-> **Two-file projection model**: this file (`DESIGN.md`) is the comprehensive spec + rules SSOT. For a 30-second brand entry (designers / PMs / stakeholders), read [`DESIGN.compact.md`](./DESIGN.compact.md) instead. CI's `pnpm check:yami` covers both.
+> **Two-file projection model**: this file (`DESIGN.md`) is the comprehensive spec + rules SSOT. For a 30-second brand entry (designers / PMs / stakeholders), read [`DESIGN.compact.md`](./DESIGN.compact.md) instead. Repository CI validates the migrated sources with `pnpm test`, `pnpm check:generated`, and `pnpm check:boundaries`.
 
 ---
 

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "yami",
+  "packages": {
+    "designSystem": "@yami/design-system",
+    "prototypes": "@yami/prototypes",
+    "contracts": "@yami/contracts"
+  },
+  "applications": {
+    "canvas": "@yami/canvas",
+    "storybook": "@yami/storybook"
+  },
+  "generated": {
+    "tokens": "generated/tokens.json",
+    "catalog": "generated/catalog.json",
+    "registry": "generated/registry.json"
+  },
+  "distribution": "private"
+}

@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "name": "aspect-ratio",
+  "title": "AspectRatio",
+  "type": "component",
+  "status": "stable",
+  "source": "components/AspectRatio",
+  "files": [
+    "components/AspectRatio/AspectRatio.module.css",
+    "components/AspectRatio/AspectRatio.tsx",
+    "components/AspectRatio/index.ts"
+  ]
+}

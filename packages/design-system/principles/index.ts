@@ -6,7 +6,7 @@
  *
  * Consumers:
  *   @yami/mcp-server — validate_design MCP tool (Phase 7)
- *   @yami/build-tools — checks/principles-sync (three-way consistency)
+ *   repository checks — principles and runtime-validator consistency
  *   @yami/harness — scorers/deterministic/validate-design (Phase 7.5)
  */
 

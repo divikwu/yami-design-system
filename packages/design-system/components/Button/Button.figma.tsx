@@ -114,7 +114,7 @@ figma.connect(Button, `${FIGMA_FILE}?node-id=5587-127574`, {
   },
   example: ({ variant, size, disabled }) => (
     <Button form="icon" variant={variant} size={size} disabled={disabled} aria-label="TODO">
-      {/* Replace with the SVG icon from design-systems/yami/assets/icons/ */}
+      {/* Replace with the SVG icon from packages/design-system/assets/icons/ */}
     </Button>
   ),
 })
@@ -128,7 +128,7 @@ figma.connect(Button, `${FIGMA_FILE}?node-id=5587-127965`, {
   },
   example: ({ variant, size, disabled }) => (
     <Button form="icon" inverse variant={variant} size={size} disabled={disabled} aria-label="TODO">
-      {/* Replace with the SVG icon from design-systems/yami/assets/icons/ */}
+      {/* Replace with the SVG icon from packages/design-system/assets/icons/ */}
     </Button>
   ),
 })

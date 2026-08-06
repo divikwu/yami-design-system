@@ -6,7 +6,7 @@ import "./globals.css";
 const yamiFont = localFont({
   src: [
     { path: "../../../packages/design-system/assets/fonts/GT-Walsheim-Regular.woff2", weight: "400" },
-    { path: "../../../packages/design-system/assets/fonts/GT-Walsheim-Medium.woff2", weight: "600" },
+    { path: "../../../packages/design-system/assets/fonts/GT-Walsheim-Medium.woff2", weight: "500" },
     { path: "../../../packages/design-system/assets/fonts/GT-Walsheim-Bold.woff2", weight: "700" }
   ],
   variable: "--font-yami",

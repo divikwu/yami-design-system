@@ -57,6 +57,7 @@ export function BrandProductRail({
   ...rest
 }: BrandProductRailProps) {
   const titleId = useId();
+  const listId = `${titleId}-campaigns`;
   const railRef = useRef<HTMLUListElement>(null);
   const [edges, setEdges] = useState({ atStart: true, atEnd: true });
   const firstTabValue = useMemo(
@@ -147,6 +148,7 @@ export function BrandProductRail({
                   <TabsTrigger
                     key={tab.value}
                     value={tab.value}
+                    controls={listId}
                     disabled={tab.disabled}
                   >
                     {tab.label}
@@ -158,6 +160,7 @@ export function BrandProductRail({
         </div>
 
         <ul
+          id={listId}
           ref={railRef}
           className={styles.list}
           data-slot="brand-product-rail-list"

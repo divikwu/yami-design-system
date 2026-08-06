@@ -1,0 +1,426 @@
+{
+  "designSystemId": "yami",
+  "revision": "sha256:bc7b3b29e313ea38346f8247d22fd05821369ff4b8da7d95d02ebe1c94f4185e",
+  "schemaVersion": "1.0.0",
+  "templates": [
+    {
+      "description": "Cart page with line items, quantity controls, promo code input, order summary, and checkout emphasis CTA. Single emphasis button: 'Checkout'.",
+      "id": "cart",
+      "intents": [
+        "cart",
+        "shopping"
+      ],
+      "pageKind": "cart",
+      "recipe": {
+        "description": "Cart page with line items, quantity controls, promo code input, order summary, and checkout emphasis CTA. Single emphasis button: 'Checkout'.",
+        "id": "cart",
+        "interactions": [
+          {
+            "action": "focus",
+            "expect": {
+              "visible": true
+            },
+            "name": "focus checkout action",
+            "selector": "button"
+          }
+        ],
+        "platforms": [
+          "web"
+        ],
+        "reference": "pages/templates/web/Cart.tsx",
+        "referencedComponents": [
+          "Card",
+          "Button",
+          "Input",
+          "Badge",
+          "Divider",
+          "ProductCard"
+        ],
+        "rules": [
+          "Exactly 1 emphasis button: Checkout. Quantity +/− are primary size=\"sm\" iconOnly. Remove item is tertiary iconOnly. Apply promo is primary size=\"md\".",
+          "Cart items use Card bordered=true (dense grid exception for card-no-border rule).",
+          "Divider strength=\"default\" between items.",
+          "Prices in GT Walsheim (numerals-font rule).",
+          "Empty state renders WITHOUT summary / checkout button / recommendations. Just the empty-state messaging + shopping CTA.",
+          "On mobile, order summary + checkout button are sticky at the bottom with surface color and spacing separation.",
+          "Free shipping threshold hint: if subtotal < $35, show helper text 'Add $X more for free shipping' — caller provides this copy in $data.summary.freeShippingHint."
+        ],
+        "slots": [
+          {
+            "description": "Page heading — 'Cart · 购物车' (from copy-library/ui/labels.i18n.json#section.cart).",
+            "name": "pageHeading",
+            "props": {
+              "text": "Cart · 购物车"
+            },
+            "required": true
+          },
+          {
+            "condition": "!$data.items || $data.items.length === 0",
+            "description": "Empty-cart message using copy from copy-library/ui/empty-states.i18n.json#emptyCart: title + subtitle + \"Start Shopping\" button.",
+            "name": "emptyState",
+            "props": {
+              "action": "$data.empty.action",
+              "subtitle": "$data.empty.subtitle",
+              "title": "$data.empty.title"
+            },
+            "required": false
+          },
+          {
+            "condition": "$data.items && $data.items.length > 0",
+            "description": "List of cart line items. Each item is a Card padding=\"md\" bordered with: image, brand+title, price, quantity stepper (2 Button iconOnly + Input number), remove Button tertiary iconOnly. Dividers between items.",
+            "name": "itemsList",
+            "props": {
+              "items": "$data.items"
+            },
+            "required": true
+          },
+          {
+            "component": "Input",
+            "description": "Promo code input. label='Promo Code · 优惠码' + 'Apply · 应用' suffix button. On apply, displays applied coupon as Badge color=\"red\" with remove button.",
+            "name": "promoInput",
+            "props": {
+              "label": "Promo Code · 优惠码",
+              "placeholder": "Enter code",
+              "suffix": "ApplyButton"
+            },
+            "required": false
+          },
+          {
+            "component": "Badge",
+            "condition": "$data.appliedCoupon",
+            "description": "Applied coupon pill. Badge color='red' size='md'. Shows savings amount in bilingual notification.",
+            "name": "appliedCoupon",
+            "props": {
+              "children": "$data.appliedCoupon.label",
+              "color": "red"
+            },
+            "required": false
+          },
+          {
+            "component": "Card",
+            "condition": "$data.items && $data.items.length > 0",
+            "description": "Order summary card — subtotal, shipping, tax, total. Card padding=\"md\". Total row uses --font-size-heading-sm --font-weight-emphasize. Price numbers in GT Walsheim.",
+            "name": "orderSummary",
+            "props": {
+              "padding": "md",
+              "shipping": "$data.summary.shipping",
+              "subtotal": "$data.summary.subtotal",
+              "tax": "$data.summary.tax",
+              "total": "$data.summary.total"
+            },
+            "required": true
+          },
+          {
+            "component": "Button",
+            "condition": "$data.items && $data.items.length > 0",
+            "description": "THE emphasis CTA. variant='emphasis' size='lg' fullWidth. Label: 'Checkout · 结账' (from copy-library#checkout). This is the single emphasis button on the page.",
+            "name": "checkoutCta",
+            "props": {
+              "children": "Checkout · 结账",
+              "fullWidth": true,
+              "size": "lg",
+              "variant": "emphasis"
+            },
+            "required": true
+          },
+          {
+            "component": "ProductCard",
+            "condition": "$data.recommendations",
+            "description": "'You may also like · 猜你喜欢' — horizontal product card rail. Shows up when cart has > 0 items, encourages add-on purchases.",
+            "name": "recommendations",
+            "props": {
+              "items": "$data.recommendations",
+              "layout": "scroll-x"
+            },
+            "required": false
+          }
+        ],
+        "title": "Shopping cart"
+      },
+      "recipeDigest": "sha256:aed7ba05241022fbd7f78d6804a4f186786e14cda77a31fa939578b19d65ff70",
+      "referencedComponents": [
+        "Badge",
+        "Button",
+        "Card",
+        "Divider",
+        "Input",
+        "ProductCard"
+      ],
+      "sourcePath": "pages/recipes/cart.recipe.ts",
+      "tags": [],
+      "title": "Shopping cart"
+    },
+    {
+      "description": "Product detail page (PDP). Image gallery + price + add-to-cart emphasis CTA + description + reviews + related products. The single emphasis CTA on the page is the Add-to-Cart button (design.md emphasis-limit).",
+      "id": "product-detail",
+      "intents": [
+        "detail",
+        "product"
+      ],
+      "pageKind": "product-detail",
+      "recipe": {
+        "description": "Product detail page (PDP). Image gallery + price + add-to-cart emphasis CTA + description + reviews + related products. The single emphasis CTA on the page is the Add-to-Cart button (design.md emphasis-limit).",
+        "id": "product-detail",
+        "platforms": [
+          "web"
+        ],
+        "reference": "pages/templates/web/ProductDetail.tsx",
+        "referencedComponents": [
+          "Card",
+          "Badge",
+          "Button",
+          "ProductCard",
+          "Input"
+        ],
+        "rules": [
+          "Exactly 1 emphasis button on the page — the Add-to-Cart (design.md emphasis-limit). Favorite / Share use tertiary or iconOnly variants.",
+          "Price current MUST use --text-emphasis (red). Never plain black — red is THE signal that this is a transactional page.",
+          "Badges on PDP show the SAME badges as the ProductCard on the list page (consistency across surfaces).",
+          "Image alt text required — PDP images are product identity, not decoration.",
+          "Rating always shown with count — \"4.8 (1.2k)\" — isolated \"4.8\" is semantically weak.",
+          "On mobile, Add-to-Cart is a sticky bottom bar separated with surface color and spacing, not shadow."
+        ],
+        "slots": [
+          {
+            "description": "Navigation breadcrumb trail. Bilingual — separate CN and EN breadcrumb rows per copy-patterns.md.",
+            "name": "breadcrumb",
+            "props": {
+              "trail": "$data.breadcrumb"
+            },
+            "required": false
+          },
+          {
+            "component": "Card",
+            "description": "Wrap a product image gallery in a Card. padding=\"none\" for edge-to-edge,. Gallery implementation (thumbnails, zoom) is template-level.",
+            "name": "imageGallery",
+            "props": {
+              "image": "$data.product.image",
+              "imageAlt": "$data.product.imageAlt",
+              "padding": "none"
+            },
+            "required": true
+          },
+          {
+            "description": "Brand + title + rating + price block. Use --font-size-heading-2xl for title, --font-size-price-md for current price. Price row uses --text-emphasis red for current, strike-through --text-secondary for original.",
+            "name": "productInfo",
+            "props": {
+              "brand": "$data.product.brand",
+              "priceCurrent": "$data.product.priceCurrent",
+              "priceOriginal": "$data.product.priceOriginal",
+              "rating": "$data.product.rating",
+              "ratingCount": "$data.product.ratingCount",
+              "title": "$data.product.title"
+            },
+            "required": true
+          },
+          {
+            "component": "Badge",
+            "condition": "$data.product.badges",
+            "description": "Up to 2 status/promo badges below the title. red for sale/urgency, blue/purple for NEW/BESTSELLER.",
+            "name": "badges",
+            "props": {
+              "items": "$data.product.badges"
+            },
+            "required": false
+          },
+          {
+            "condition": "$data.showQuantity",
+            "description": "Quantity stepper: − [input number] +. Built from two Button size=\"sm\" iconOnly + Input size=\"md\" type=\"number\". Template-level since no Stepper component exists yet.",
+            "name": "quantitySelector",
+            "props": {
+              "default": 1,
+              "max": "$data.product.maxQuantity",
+              "min": 1
+            },
+            "required": false
+          },
+          {
+            "component": "Button",
+            "description": "The canonical emphasis CTA. size=\"lg\" fullWidth on mobile (sticky footer), size=\"lg\" width=\"auto\" on desktop. Label from copy-library/ui/buttons.i18n.json#addToCart or #buyNow.",
+            "name": "addToCart",
+            "props": {
+              "children": "Add to Cart · 加入购物车",
+              "fullWidth": true,
+              "size": "lg",
+              "variant": "emphasis"
+            },
+            "required": true
+          },
+          {
+            "description": "Save to favorites / share buttons. Button variant=\"tertiary\" size=\"md\" iconOnly. Placed inline after or below addToCart.",
+            "name": "secondaryActions",
+            "props": {
+              "actions": [
+                "favorite",
+                "share"
+              ]
+            },
+            "required": false
+          },
+          {
+            "description": "Long product description. Rendered as HTML-safe content in a Card padding=\"lg\" surface=\"secondary\".",
+            "name": "description",
+            "props": {
+              "body": "$data.product.description"
+            },
+            "required": true
+          },
+          {
+            "component": "Card",
+            "condition": "$data.reviews",
+            "description": "Aggregate rating block — avg stars, count, distribution bars. Card padding=\"md\".",
+            "name": "reviewsSummary",
+            "props": {
+              "count": "$data.reviews.count",
+              "distribution": "$data.reviews.distribution",
+              "rating": "$data.reviews.average"
+            },
+            "required": false
+          },
+          {
+            "component": "ProductCard",
+            "condition": "$data.relatedProducts",
+            "description": "Horizontal scroll row or grid of related products. \"Just for You · 为你推荐\" section title leads this. Columns: 2 mobile / 4 desktop.",
+            "name": "relatedProducts",
+            "props": {
+              "items": "$data.relatedProducts",
+              "layout": "scroll-x"
+            },
+            "required": false
+          }
+        ],
+        "title": "Product detail"
+      },
+      "recipeDigest": "sha256:892807901581d91ca98a705d6e6fbda183c125c7dd3931c6eabd74d1f3b25071",
+      "referencedComponents": [
+        "Badge",
+        "Button",
+        "Card",
+        "Input",
+        "ProductCard"
+      ],
+      "sourcePath": "pages/recipes/product-detail.recipe.ts",
+      "tags": [],
+      "title": "Product detail"
+    },
+    {
+      "description": "Category browse, search results, \"Today's Deals\" — any page that displays a grid of products with optional filtering and sorting. Default columns: 2 on mobile, 3 tablet, 4 desktop.",
+      "id": "product-list",
+      "intents": [
+        "list",
+        "product"
+      ],
+      "pageKind": "product-list",
+      "recipe": {
+        "description": "Category browse, search results, \"Today's Deals\" — any page that displays a grid of products with optional filtering and sorting. Default columns: 2 on mobile, 3 tablet, 4 desktop.",
+        "id": "product-list",
+        "interactions": [
+          {
+            "action": "focus",
+            "expect": {
+              "visible": true
+            },
+            "name": "focus product-list action",
+            "selector": "button"
+          }
+        ],
+        "platforms": [
+          "web"
+        ],
+        "reference": "pages/templates/web/ProductList.tsx",
+        "referencedComponents": [
+          "Input",
+          "Button",
+          "ProductCard"
+        ],
+        "rules": [
+          "At most 1 Button variant=\"emphasis\" on screen (design.md emphasis-limit). The product grid has no emphasis buttons; each ProductCard uses primary small iconOnly Add buttons.",
+          "ProductCard onAddToCart stops event propagation — tapping the card navigates to PDP, tapping + adds to cart.",
+          "Categories rendered as Button secondary pills, NOT Badge (Badge is non-interactive).",
+          "Search, sort, and category filters are optional — the recipe gracefully renders with just [heading] + [grid] when no filter data is provided.",
+          "Page margin: --layout-page-margin-default (16 mobile / 48 desktop)."
+        ],
+        "slots": [
+          {
+            "description": "Section title using copy-patterns.md lead-with-action style (e.g. 'Shop by Category · 按分类购物'). Renders as <h1> with --font-size-heading-xl.",
+            "name": "pageHeading",
+            "props": {
+              "text": "$data.heading"
+            },
+            "required": true
+          },
+          {
+            "component": "Input",
+            "condition": "$data.showSearch",
+            "description": "Search input with prefix icon. Placeholder from copy-library/ui/labels.i18n.json#nav.search.",
+            "name": "search",
+            "props": {
+              "aria-label": "Search",
+              "fullWidth": true,
+              "placeholder": "Search YAMI · 搜索",
+              "type": "search"
+            },
+            "required": false
+          },
+          {
+            "condition": "$data.categories",
+            "description": "Horizontal scroll row of category pills. Each pill is a Button variant=\"secondary\" size=\"sm\" — clicking applies/removes the filter. Active state wraps with Badge color=\"neutral\" emphasis=\"primary\".",
+            "name": "categoryFilters",
+            "props": {
+              "activeCategory": "$data.activeCategory",
+              "categories": "$data.categories"
+            },
+            "required": false
+          },
+          {
+            "component": "Button",
+            "description": "Right-aligned sort dropdown trigger. variant='tertiary' size='sm' with text like 'Sort: Popular'. Clicking opens a menu (future <Menu> component; Phase 6 uses native <select> fallback).",
+            "name": "sortControl",
+            "props": {
+              "children": "Sort: $data.sortLabel",
+              "size": "sm",
+              "variant": "tertiary"
+            },
+            "required": false
+          },
+          {
+            "component": "ProductCard",
+            "description": "Responsive grid of ProductCard. columns: 2 (mobile) / 3 (tablet) / 4 (desktop-lg). Each item binds $data.products[i] to ProductCard props via template iteration.",
+            "name": "productGrid",
+            "props": {
+              "columns": {
+                "desktop-lg": 4,
+                "mobile": 2,
+                "tablet": 3
+              },
+              "items": "$data.products"
+            },
+            "required": true
+          },
+          {
+            "component": "Button",
+            "condition": "$data.hasMore",
+            "description": "Load-more CTA below the grid. Centered, size=\"lg\" variant=\"primary\".",
+            "name": "loadMore",
+            "props": {
+              "children": "Load More · 加载更多",
+              "size": "lg",
+              "variant": "primary"
+            },
+            "required": false
+          }
+        ],
+        "title": "Product list"
+      },
+      "recipeDigest": "sha256:657d2f5ce36e039885a9f4e53e4de1e886f9540fff49d71824a5938c09b3fcc1",
+      "referencedComponents": [
+        "Button",
+        "Input",
+        "ProductCard"
+      ],
+      "sourcePath": "pages/recipes/product-list.recipe.ts",
+      "tags": [],
+      "title": "Product list"
+    }
+  ]
+}

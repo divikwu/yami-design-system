@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "name": "input",
+  "title": "Input",
+  "type": "component",
+  "status": "stable",
+  "source": "components/Input",
+  "files": [
+    "components/Input/index.ts",
+    "components/Input/Input.module.css",
+    "components/Input/Input.tsx"
+  ]
+}

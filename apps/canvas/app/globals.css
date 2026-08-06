@@ -62,7 +62,7 @@ button:focus-visible, a:focus-visible, select:focus-visible { outline: 2px solid
 
 .preview-loading { min-height: 100vh; background: #f4f2ed; }
 .prototype-root { min-height: 100vh; --font-family-ios: var(--font-yami); --font-family-android: var(--font-yami); --font-family-win: var(--font-yami); }
-.prototype-root[data-theme="dark"] { color-scheme: dark; --background-primary: #161616; --surface-primary: #222; --surface-secondary: #2b2b2b; --text-primary: #fff; --text-secondary: #c7c7c7; --border-default: #454545; }
+.prototype-root.dark { color-scheme: dark; }
 .placeholder-route { min-height: 100vh; display: grid; align-content: center; justify-items: start; gap: 16px; padding: clamp(28px, 8vw, 100px); background: #f3f0e8; }
 .placeholder-route span { font: 11px/1 ui-monospace, monospace; letter-spacing: .12em; }
 .placeholder-route h1 { max-width: 12ch; margin: 0; font-size: clamp(48px, 10vw, 110px); line-height: .9; letter-spacing: -.06em; text-transform: capitalize; }

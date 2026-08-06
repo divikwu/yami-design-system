@@ -25,5 +25,5 @@ active theme. Light and Dark both provide default and inverse semantic values:
 | Dark | dark | light |
 
 When changing semantic colors, update both source files. The token resolver
-rejects missing or extra Dark keys, and `pnpm build:tokens` regenerates
+rejects missing or extra Dark keys, and `pnpm generate:tokens` regenerates
 `tokens.json`, `tokens.css`, `tokens.md`, `tokens.ts`, and `tokens.flat.json`.

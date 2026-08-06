@@ -18,7 +18,11 @@ function createSection(patch: HomeSectionPatch): EcommerceHomeSection {
 export function resolveEcommerceHome(locale: EcommerceHomeLocale, manifest: DirectionManifestV1 | null, navigate: Navigate): EcommerceHomeProps {
   const current = createEcommerceHomeFixture(locale);
   const overlay = manifest?.pages.home;
-  if (!overlay) return bindNavigation(current, navigate);
+  if (!overlay) {
+    const resolved = bindNavigation(current, navigate);
+    resolved.header.onSearchSubmit = (query) => navigate(`/search/${encodeURIComponent(query)}`);
+    return resolved;
+  }
 
   const patchIds = (overlay.sections ?? []).map((patch) => patch.id);
   if (new Set(patchIds).size !== patchIds.length) throw new Error("Section patch IDs must be unique");

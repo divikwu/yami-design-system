@@ -7,7 +7,7 @@
 @font-face {
   font-family: "GT Walsheim";
   src: url("/assets/fonts/GT-Walsheim-Medium.woff2") format("woff2");
-  font-weight: 600;
+  font-weight: 500;
   font-display: swap;
 }
 html, body, #storybook-root { min-height: 100%; }

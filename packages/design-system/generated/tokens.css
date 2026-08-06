@@ -304,11 +304,11 @@
   --fill-tertiary: var(--color-neutral-50);
   --fill-warning-primary: var(--color-yellow-500);
   --fill-warning-secondary: var(--color-amber-50);
-  --font-family-android: GT Walsheim;
-  --font-family-ios: GT Walsheim;
-  --font-family-win: GT Walsheim;
-  --font-weight-emphasize: Medium;
-  --font-weight-normal: Regular;
+  --font-family-android: 'GT Walsheim', 'Noto Sans SC', sans-serif;
+  --font-family-ios: 'GT Walsheim', 'Noto Sans SC', sans-serif;
+  --font-family-win: 'GT Walsheim', 'Noto Sans SC', sans-serif;
+  --font-weight-emphasize: 500;
+  --font-weight-normal: 400;
   --font-size-heading-2xl: 24px;
   --line-height-heading-2xl: 32px;
   --font-size-heading-3xl: 28px;
@@ -486,7 +486,7 @@
   --surface-secondary: var(--color-neutral-800);
   --text-disabled: var(--color-white-400);
   --text-disabled-inverse: var(--color-black-400);
-  --text-emphasis: var(--color-red-400);
+  --text-emphasis: var(--color-red-200);
   --text-emphasis-inverse: var(--color-red-500);
   --text-error: var(--color-red-400);
   --text-info: var(--color-blue-400);

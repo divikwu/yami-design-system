@@ -25,6 +25,8 @@ and import contract.
 - Canvas: http://localhost:3200
 - Storybook: http://localhost:6006
 
-The repository is private because the migrated snapshot contains licensed
-fonts, brand marks and product photography. Do not publish static assets to a
-public registry or an unprotected deployment.
+The source repository is public so GitHub Free can enforce CI rules on `main`.
+Packages remain private and Vercel remains preview-only and protected. Public
+repository visibility does not grant reuse or redistribution rights for the
+licensed fonts, brand marks or product photography; review the asset notices
+before forking, mirroring or packaging static assets.

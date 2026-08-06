@@ -3,9 +3,9 @@ GT Walsheim — Font License
 YAMI holds a commercial license for the GT Walsheim typeface from GrilliType.
 
 Files in this directory:
-- GT-Walsheim-Regular.woff2 (Phase 2 — migrated from legacy/fonts/)
-- GT-Walsheim-Medium.woff2 (Phase 2)
-- GT-Walsheim-Bold.woff2 (Phase 2)
+- GT-Walsheim-Regular.woff2
+- GT-Walsheim-Medium.woff2
+- GT-Walsheim-Bold.woff2
 
 Usage scope per YAMI's license:
 - Product UI (web + iOS + Android apps)
@@ -29,9 +29,3 @@ original purchase documentation. See https://www.grillitype.com/ for
 typeface information.
 
 GT Walsheim © GrilliType GmbH. Used under commercial license.
-
----
-
-NOTE (Phase 0): actual .woff2 files not yet migrated. They live in
-legacy/fonts/ until Phase 2 moves them here and generates @font-face
-declarations via @yami/build-tools build-fonts-css.

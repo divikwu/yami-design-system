@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "yami",
+  "name": "YAMI Design System",
+  "description": "Private YAMI ecommerce design system shared by Canvas and Storybook.",
+  "version": "0.1.0",
+  "status": "alpha",
+  "canonicalRepository": "https://github.com/divikwu/yami-canvas",
+  "package": "@yami/design-system",
+  "provenance": {
+    "sourceRole": "DL Source",
+    "sourceSha": "e22f1e14ac74d1e024d8dffc47935e8f43e115cf",
+    "sourceTreeOid": "babc3f8d006789d336cab13d880acd9298d2e8b8"
+  },
+  "entrypoints": {
+    "components": "components/index.ts",
+    "tokens": "generated/tokens.css",
+    "baseStyles": "styles/base.css",
+    "catalog": "generated/catalog.json",
+    "registry": "generated/registry.json"
+  },
+  "assets": {
+    "logo": "assets/logos/yami-icon-fill.svg",
+    "distribution": "private-protected-only"
+  }
+}

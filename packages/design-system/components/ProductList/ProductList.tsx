@@ -116,6 +116,7 @@ export function ProductList(props: ProductListProps) {
     ...rest
   } = props;
   const titleId = useId();
+  const listId = `${titleId}-products`;
   const railRef = useRef<HTMLDivElement>(null);
   const [railState, setRailState] = useState({
     atStart: true,
@@ -263,6 +264,7 @@ export function ProductList(props: ProductListProps) {
                 <TabsTrigger
                   key={tab.value}
                   value={tab.value}
+                  controls={listId}
                   disabled={tab.disabled}
                 >
                   {tab.label}
@@ -273,6 +275,7 @@ export function ProductList(props: ProductListProps) {
         )}
 
         <div
+          id={listId}
           ref={layout === "rail" ? railRef : undefined}
           className={styles.list}
           data-slot="product-list-items"

@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "fileKey": "6oOAy72DBff4P6NzJYc2hi",
+  "fileName": "YAMI UI/UX Guidelines",
+  "url": "https://www.figma.com/design/6oOAy72DBff4P6NzJYc2hi/YAMI-UI-UX-Guidelines",
+  "codeConnectGlob": "components/**/*.figma.tsx",
+  "sourceSnapshot": {
+    "lastSync": "2026-04-21T07:29:08Z",
+    "lastSyncCommit": "65c76b1e882775de3ed0446727803e9dd8583548",
+    "cacheFingerprint": "sha256:af3ed3ad355aa098"
+  },
+  "syncPolicy": "manual-reviewed"
+}

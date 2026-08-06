@@ -392,11 +392,11 @@ Generated from DTCG sources. Contextual values are listed separately.
 | `fill.warning-primary` | dark | color | `var(--color-yellow-400)` |
 | `fill.warning-secondary` | root | color | `var(--color-amber-50)` |
 | `fill.warning-secondary` | dark | color | `var(--color-amber-950)` |
-| `font-family.android` | root | fontFamily | `GT Walsheim` |
-| `font-family.ios` | root | fontFamily | `GT Walsheim` |
-| `font-family.win` | root | fontFamily | `GT Walsheim` |
-| `font-weight.emphasize` | root | fontWeight | `Medium` |
-| `font-weight.normal` | root | fontWeight | `Regular` |
+| `font-family.android` | root | fontFamily | `'GT Walsheim', 'Noto Sans SC', sans-serif` |
+| `font-family.ios` | root | fontFamily | `'GT Walsheim', 'Noto Sans SC', sans-serif` |
+| `font-family.win` | root | fontFamily | `'GT Walsheim', 'Noto Sans SC', sans-serif` |
+| `font-weight.emphasize` | root | fontWeight | `500` |
+| `font-weight.normal` | root | fontWeight | `400` |
 | `heading-2xl.font-size` | root | dimension | `24px` |
 | `heading-2xl.line-height` | root | dimension | `32px` |
 | `heading-3xl.font-size` | root | dimension | `28px` |
@@ -501,7 +501,7 @@ Generated from DTCG sources. Contextual values are listed separately.
 | `text.disabled-inverse` | root | color | `var(--color-white-400)` |
 | `text.disabled-inverse` | dark | color | `var(--color-black-400)` |
 | `text.emphasis` | root | color | `var(--color-red-500)` |
-| `text.emphasis` | dark | color | `var(--color-red-400)` |
+| `text.emphasis` | dark | color | `var(--color-red-200)` |
 | `text.emphasis-inverse` | root | color | `var(--color-red-400)` |
 | `text.emphasis-inverse` | dark | color | `var(--color-red-500)` |
 | `text.error` | root | color | `var(--color-red-500)` |

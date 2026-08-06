@@ -100,7 +100,7 @@ fill/text styles and never CSS opacity.
 
 ## Icon Slots
 
-Use YAMI SVG assets from `design-systems/yami/assets/icons` and keep them currentColor.
+Use YAMI SVG assets from `packages/design-system/assets/icons` and keep them currentColor.
 
 ```tsx
 <Input

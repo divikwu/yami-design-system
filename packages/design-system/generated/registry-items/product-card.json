@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "name": "product-card",
+  "title": "ProductCard",
+  "type": "component",
+  "status": "stable",
+  "source": "components/ProductCard",
+  "files": [
+    "components/ProductCard/index.ts",
+    "components/ProductCard/ProductCard.module.css",
+    "components/ProductCard/ProductCard.tsx",
+    "components/ProductCard/ProductCard.types.ts",
+    "components/ProductCard/ProductCardAddButton.module.css",
+    "components/ProductCard/ProductCardAddButton.tsx",
+    "components/ProductCard/ProductCardMedia.tsx",
+    "components/ProductCard/ProductCardOffer.tsx",
+    "components/ProductCard/ProductCardSummary.tsx"
+  ]
+}

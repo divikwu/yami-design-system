@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "name": "divider",
+  "title": "Divider",
+  "type": "component",
+  "status": "stable",
+  "source": "components/Divider",
+  "files": [
+    "components/Divider/Divider.module.css",
+    "components/Divider/Divider.tsx",
+    "components/Divider/index.ts"
+  ]
+}

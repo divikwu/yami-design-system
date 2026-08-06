@@ -1,12 +1,13 @@
 "use client";
 
-import { DirectionManifestV1Schema, type DirectionManifestV1 } from "@yami/contracts";
+import { DirectionManifestV1Schema, tokenOverridesToStyle, type DirectionManifestV1 } from "@yami/contracts";
 import { EcommerceHomeTemplate, resolveEcommerceHome } from "@yami/prototypes";
 import { motion, useReducedMotion } from "motion/react";
 import { useSearchParams } from "next/navigation";
-import { CSSProperties, useEffect, useMemo, useState } from "react";
+import { CSSProperties, useCallback, useEffect, useMemo, useState } from "react";
 import fixture from "../generated-direction.fixture.json";
 import { findDraft } from "../lib/drafts";
+import { getPreviewMotion, type PreviewTransition } from "../lib/motion";
 import "@yami/design-system/tokens.css";
 import "@yami/design-system/styles/base.css";
 
@@ -21,6 +22,8 @@ export function PreviewSurface() {
   const locale = params.get("locale") === "en" ? "en" : "zh";
   const theme = params.get("theme") === "dark" ? "dark" : "light";
   const direction = params.get("direction") || "current";
+  const transition: PreviewTransition = params.get("transition") === "path" ? "path" : params.get("transition") === "direction" ? "direction" : "none";
+  const navigate = useCallback((nextPath: string) => window.parent.postMessage({ type: "yami-canvas:v1:navigate", path: nextPath }, window.location.origin), []);
 
   useEffect(() => {
     setManifest(direction === "current" ? null : direction === fixed.id ? fixed : findDraft(direction));
@@ -38,15 +41,15 @@ export function PreviewSurface() {
     };
     document.addEventListener("click", interceptNavigation, true);
     return () => document.removeEventListener("click", interceptNavigation, true);
-  });
+  }, [navigate]);
 
-  const navigate = (nextPath: string) => window.parent.postMessage({ type: "yami-canvas:v1:navigate", path: nextPath }, window.location.origin);
-  const props = useMemo(() => ready && path === "/" ? resolveEcommerceHome(locale, manifest, navigate) : null, [ready, path, locale, manifest]);
-  const tokenStyle = (manifest?.pages.home?.tokenOverrides ?? {}) as CSSProperties;
+  const props = useMemo(() => ready && path === "/" ? resolveEcommerceHome(locale, manifest, navigate) : null, [ready, path, locale, manifest, navigate]);
+  const tokenStyle = tokenOverridesToStyle(manifest?.pages.home?.tokenOverrides ?? {}) as CSSProperties;
+  const { initial, duration } = getPreviewMotion(transition, Boolean(reduced));
 
   if (!ready) return <div className="preview-loading" aria-label="正在加载方向" />;
   return (
-    <motion.div className="prototype-root" data-theme={theme} style={tokenStyle} initial={{ opacity: 0, y: reduced ? 0 : 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reduced ? 0 : 0.3 }}>
+    <motion.div className={`prototype-root${theme === "dark" ? " dark" : ""}`} data-theme={theme} style={tokenStyle} initial={initial} animate={{ opacity: 1, y: 0 }} transition={{ duration }}>
       {props ? <EcommerceHomeTemplate {...props} /> : <PlaceholderRoute path={path} onBack={() => navigate("/")} />}
     </motion.div>
   );

@@ -11,7 +11,8 @@ Source: Figma `YAMI-UI-UX-Guidelines` (`6oOAy72DBff4P6NzJYc2hi`), Brand page `26
 | `yami-icon-fill.svg` | red disc + white Y | `2279:2811` |
 | `yami-icon-line.svg` | outlined ring + red Y | `2279:2819` |
 
-`yami-icon-fill.svg` is the canonical brand mark served by the daemon's `GET /api/design-systems/yami/logo` endpoint, declared via [`design-system.meta.json#/assets/logo`](../../design-system.meta.json).
+`yami-icon-fill.svg` is the canonical brand mark declared by
+[`design-system.meta.json#/assets/logo`](../../design-system.meta.json).
 
 `logo-ui` — icon + wordmark horizontal lockup, for App / Web headers. Figma `2013:13691`. Icon 32px (mobile) / 52px (PC).
 
@@ -40,7 +41,10 @@ lockup from `logo-icon` + `logo-text` to recolour the text — see
 
 ## Color binding
 
-Red fills are `#FF0000` = `--color-brand-red` token (defined in [`tokens.css`](../../tokens.css):49). Brand red is **Logo only**; CTA / promo / error use `--color-red-500` `#E00000`. See [`DESIGN.md` §red-usage](../../DESIGN.md).
+Red fills are `#FF0000` = `--color-brand-red` token (defined in
+[`generated/tokens.css`](../../generated/tokens.css)). Brand red is **Logo only**;
+CTA / promo / error use `--color-red-500` `#E00000`. See
+[`DESIGN.md` §red-usage](../../DESIGN.md).
 
 The UI-lockup wordmark uses `#222222` (Figma's neutral text color), or `#FFFFFF` in the `-inverse` files.
 

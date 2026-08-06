@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "name": "checkbox",
+  "title": "Checkbox",
+  "type": "component",
+  "status": "beta",
+  "source": "components/Checkbox",
+  "files": [
+    "components/Checkbox/Checkbox.module.css",
+    "components/Checkbox/Checkbox.tsx",
+    "components/Checkbox/index.ts"
+  ]
+}

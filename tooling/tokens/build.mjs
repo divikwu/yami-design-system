@@ -7,6 +7,7 @@ const root = process.cwd();
 const packageRoot = path.join(root, "packages/design-system");
 const sourceDir = path.join(packageRoot, "tokens");
 const outputDir = path.join(packageRoot, "generated");
+const contractsGeneratedPath = path.join(root, "packages/contracts/src/generated-token-references.ts");
 const check = process.argv.includes("--check");
 
 const contexts = [
@@ -52,10 +53,18 @@ function cssName(trail) {
   return `--${trail.join("-")}`;
 }
 
-function valueForCss(value) {
+function valueForCss(value, type) {
+  if (type === "fontFamily" && value && typeof value === "object" && !Array.isArray(value)) {
+    const families = [...new Set(Object.values(value).filter((item) => typeof item === "string"))];
+    return [...families.map((family) => family.includes(" ") ? `'${family}'` : family), "sans-serif"].join(", ");
+  }
   const selected = value && typeof value === "object" && !Array.isArray(value)
     ? value.EN ?? Object.values(value)[0]
     : value;
+  if (type === "fontWeight" && typeof selected === "string") {
+    const weights = { Regular: 400, Medium: 500, Bold: 700 };
+    if (weights[selected] !== undefined) return String(weights[selected]);
+  }
   if (typeof selected === "string" && /^\{[^}]+\}$/.test(selected)) {
     return `var(--${selected.slice(1, -1).replaceAll(".", "-")})`;
   }
@@ -71,7 +80,7 @@ function sourceContext(relativePath) {
 }
 
 function asValue(token, contextId) {
-  const cssValue = valueForCss(token.value);
+  const cssValue = valueForCss(token.value, token.type);
   return {
     contextId,
     rawValue: token.value,
@@ -85,7 +94,7 @@ function asValue(token, contextId) {
 
 function renderBlock(selector, tokens) {
   if (tokens.length === 0) return "";
-  return `${selector} {\n${tokens.map((token) => `  ${token.css}: ${valueForCss(token.value)};`).join("\n")}\n}\n`;
+  return `${selector} {\n${tokens.map((token) => `  ${token.css}: ${valueForCss(token.value, token.type)};`).join("\n")}\n}\n`;
 }
 
 const files = await list(sourceDir);
@@ -133,9 +142,9 @@ if (JSON.stringify(mobileTypography) !== JSON.stringify(tabletTypography)) {
   throw new Error("Tablet typography differs from mobile; add an explicit tablet runtime context before generating.");
 }
 
-const rootValues = new Map(byContext.get("root").map((token) => [token.id, valueForCss(token.value)]));
+const rootValues = new Map(byContext.get("root").map((token) => [token.id, valueForCss(token.value, token.type)]));
 const desktopLgOverrides = byContext.get("desktop-lg").filter(
-  (token) => rootValues.get(token.id) !== valueForCss(token.value),
+  (token) => rootValues.get(token.id) !== valueForCss(token.value, token.type),
 );
 const desktopLgIds = new Set(desktopLgOverrides.map((token) => token.id));
 byContext.set("desktop-lg", desktopLgOverrides);
@@ -168,6 +177,7 @@ const flatJson = `${JSON.stringify(flat, null, 2)}\n`;
 const json = `${JSON.stringify(tokenDocument, null, 2)}\n`;
 const digestInput = `${files.map((file) => path.relative(root, file)).join("\n")}\n${json}`;
 const digest = `${createHash("sha256").update(digestInput).digest("hex")}\n`;
+const contractReferences = `/* Generated from YAMI DTCG token sources. Do not edit. */\nexport const registeredTokenReferenceTypes = ${JSON.stringify(Object.fromEntries(records.map((token) => [token.id, token.type])), null, 2)} as const;\n`;
 const outputs = new Map([
   ["tokens.css", css],
   ["tokens.ts", ts],
@@ -190,6 +200,16 @@ for (const [name, content] of outputs) {
   } else {
     await fs.writeFile(target, content);
   }
+}
+
+if (check) {
+  const current = await fs.readFile(contractsGeneratedPath, "utf8").catch(() => "");
+  if (current !== contractReferences) {
+    console.error(`Generated token drift: ${path.relative(root, contractsGeneratedPath)}`);
+    drift = true;
+  }
+} else {
+  await fs.writeFile(contractsGeneratedPath, contractReferences);
 }
 
 if (drift) process.exitCode = 1;

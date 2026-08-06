@@ -16,7 +16,7 @@ const meta = {
     layout: "padded",
     docs: {
       description: {
-        component: "YAMI icon assets rendered from design-systems/yami/assets/icons and icons.meta.json.",
+        component: "YAMI icon assets rendered from packages/design-system/assets/icons and icons.meta.json.",
       },
     },
   },
@@ -43,7 +43,7 @@ type IconsMeta = {
 }
 
 const iconsMeta = iconsMetaSource as IconsMeta
-const sourceRoot = "design-systems/yami/assets/icons"
+const sourceRoot = "packages/design-system/assets/icons"
 
 function toImportKey(path: string) {
   return `./${path}`

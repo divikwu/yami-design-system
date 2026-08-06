@@ -10,35 +10,80 @@ permissions:
 
 jobs:
   quality:
+    name: ${{ matrix.check }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - check: yami-freeze
+            command: pnpm check:yami-freeze
+          - check: typecheck
+            command: pnpm typecheck
+          - check: lint
+            command: pnpm lint
+          - check: unit
+            command: pnpm test
+          - check: generated-drift
+            command: pnpm check:generated
+          - check: package-boundaries
+            command: pnpm check:boundaries
+          - check: build
+            command: pnpm --filter @yami/canvas build
+          - check: storybook
+            command: pnpm --filter @yami/storybook build
+          - check: storybook-interactions
+            command: pnpm test:storybook
+            installBrowser: true
+          - check: docgen
+            command: pnpm --filter @yami/storybook build && pnpm check:docgen
+          - check: changeset
+            command: pnpm changeset:status
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with: { version: 11.10.0 }
       - uses: actions/setup-node@v4
         with: { node-version: 24, cache: pnpm }
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm check:yami-freeze
-      - run: pnpm typecheck
-      - run: pnpm lint
-      - run: pnpm test
-      - run: pnpm check:generated
-      - run: pnpm check:boundaries
-      - run: pnpm build
-      - run: pnpm test:storybook
-      - run: pnpm check:docgen
-      - run: pnpm changeset:status
+      - name: install
+        run: pnpm install --frozen-lockfile
+      - name: install-storybook-browser
+        if: matrix.installBrowser == true
+        run: pnpm exec playwright install --with-deps chromium
+      - name: ${{ matrix.check }}
+        run: ${{ matrix.command }}
 
   browser:
+    name: ${{ matrix.check }}
     runs-on: ubuntu-latest
     container: mcr.microsoft.com/playwright:v1.61.1-noble
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - check: a11y
+            command: pnpm test:a11y
+          - check: e2e
+            command: pnpm test:e2e
+          - check: visual
+            command: pnpm test:visual
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with: { version: 11.10.0 }
       - uses: actions/setup-node@v4
         with: { node-version: 24, cache: pnpm }
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm test:a11y
-      - run: pnpm test:e2e
-      - run: pnpm test:visual
+      - name: install
+        run: pnpm install --frozen-lockfile
+      - name: ${{ matrix.check }}
+        run: ${{ matrix.command }}
+      - name: browser-artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-${{ matrix.check }}-results
+          path: |
+            playwright-report
+            test-results
+          if-no-files-found: ignore
+          retention-days: 7

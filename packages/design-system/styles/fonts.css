@@ -1,27 +1,22 @@
-/* YAMI design system — fonts.css
- * AUTO-GENERATED from packages/brand/design-system/fonts/*.woff2
- * by @yami/build-tools build-fonts-css (src/build-fonts-css.ts).
- * DO NOT EDIT — add/remove .woff2 files in fonts/ and re-run pnpm build.
- *
- * Concatenated into tokens.css BEFORE the :root block so @font-face
- * declarations are seen before any font-family reference resolves.
+/* YAMI design system font declarations for non-Next.js hosts.
+ * Font files remain private assets and must only be served by protected hosts.
  */
 
 @font-face {
   font-family: 'GT Walsheim';
-  src: url('./fonts/GT-Walsheim-Bold.woff2') format('woff2');
+  src: url('../assets/fonts/GT-Walsheim-Bold.woff2') format('woff2');
   font-weight: 700;
   font-display: swap;
 }
 @font-face {
   font-family: 'GT Walsheim';
-  src: url('./fonts/GT-Walsheim-Medium.woff2') format('woff2');
+  src: url('../assets/fonts/GT-Walsheim-Medium.woff2') format('woff2');
   font-weight: 500;
   font-display: swap;
 }
 @font-face {
   font-family: 'GT Walsheim';
-  src: url('./fonts/GT-Walsheim-Regular.woff2') format('woff2');
+  src: url('../assets/fonts/GT-Walsheim-Regular.woff2') format('woff2');
   font-weight: 400;
   font-display: swap;
 }

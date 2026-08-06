@@ -336,7 +336,7 @@ export function tokensFromTokensJson(
 
 export function normalizeSourcePath(sourcePath: string, assetId: string): string {
   if (sourcePath.startsWith("repo://")) return sourcePath.slice("repo://".length)
-  if (assetId === "yami" && sourcePath.startsWith("tokens/")) return `design-systems/yami/${sourcePath}`
+  if (assetId === "yami" && sourcePath.startsWith("tokens/")) return `packages/design-system/${sourcePath}`
   return sourcePath
 }
 

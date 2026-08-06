@@ -74,12 +74,12 @@
     "leadingIcon": {
       "type": "ReactNode",
       "required": false,
-      "description": "Icon/text rendered before the text stack. Use currentColor SVG assets from design-systems/yami/assets/icons."
+      "description": "Icon/text rendered before the text stack. Use currentColor SVG assets from packages/design-system/assets/icons."
     },
     "trailingIcon": {
       "type": "ReactNode",
       "required": false,
-      "description": "Icon/text/action rendered after the text stack. Use currentColor SVG assets from design-systems/yami/assets/icons and keep interactive actions controlled by component state."
+      "description": "Icon/text/action rendered after the text stack. Use currentColor SVG assets from packages/design-system/assets/icons and keep interactive actions controlled by component state."
     },
     "prefix": {
       "type": "ReactNode",
@@ -136,7 +136,7 @@
     },
     "assetSource": {
       "ruleId": "asset-source",
-      "note": "Clear and error icons are currentColor SVG paths from design-systems/yami/assets/icons/action."
+      "note": "Clear and error icons are currentColor SVG paths from packages/design-system/assets/icons/action."
     },
     "nativeSync": {
       "ruleId": "native-input-sync",

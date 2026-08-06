@@ -1,9 +1,9 @@
 "use client";
 
 import { DirectionManifestV1Schema, PreviewNavigateMessageSchema, type DirectionManifestV1 } from "@yami/contracts";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import fixture from "../generated-direction.fixture.json";
 import { readDrafts, upsertDraft, writeDrafts } from "../lib/drafts";
 
@@ -17,13 +17,25 @@ export function CanvasWorkbench() {
   const router = useRouter();
   const reduced = useReducedMotion();
   const fileInput = useRef<HTMLInputElement>(null);
+  const previewFrame = useRef<HTMLIFrameElement>(null);
   const [drafts, setDrafts] = useState<DirectionManifestV1[]>([]);
   const [notice, setNotice] = useState("");
-  const path = params.get("path") || "/";
+  const requestedPath = params.get("path") || "/";
+  const pathResult = PreviewNavigateMessageSchema.safeParse({ type: "yami-canvas:v1:navigate", path: requestedPath });
+  const path = pathResult.success ? pathResult.data.path : "/";
   const direction = params.get("direction") || "current";
   const locale = (params.get("locale") === "en" ? "en" : "zh") as Locale;
   const theme = (params.get("theme") === "dark" ? "dark" : "light") as Theme;
   const viewport = (["360", "768", "1440"].includes(params.get("viewport") ?? "") ? params.get("viewport") : "1440") as Viewport;
+  const previousPreviewState = useRef({ path, direction });
+  const pendingNavigationPath = useRef(path);
+  const transition = previousPreviewState.current.path !== path ? "path" : previousPreviewState.current.direction !== direction ? "direction" : "none";
+
+  const update = useCallback((next: Partial<{ path: string; direction: string; locale: Locale; theme: Theme; viewport: Viewport }>, mode: "push" | "replace" = "replace") => {
+    const query = new URLSearchParams(params.toString());
+    for (const [key, value] of Object.entries(next)) query.set(key, value);
+    router[mode](`/?${query.toString()}`);
+  }, [params, router]);
 
   useEffect(() => {
     const sync = () => setDrafts(readDrafts());
@@ -33,24 +45,35 @@ export function CanvasWorkbench() {
   }, []);
 
   useEffect(() => {
+    previousPreviewState.current = { path, direction };
+    pendingNavigationPath.current = path;
+  }, [path, direction]);
+
+  useEffect(() => {
     const onMessage = (event: MessageEvent) => {
       if (event.origin !== window.location.origin) return;
+      if (previewFrame.current && event.source !== previewFrame.current.contentWindow) return;
       const message = PreviewNavigateMessageSchema.safeParse(event.data);
       if (!message.success) return;
+      if (pendingNavigationPath.current === message.data.path) return;
+      pendingNavigationPath.current = message.data.path;
       update({ path: message.data.path }, "push");
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
-  });
+  }, [update]);
 
-  function update(next: Partial<{ path: string; direction: string; locale: Locale; theme: Theme; viewport: Viewport }>, mode: "push" | "replace" = "replace") {
-    const query = new URLSearchParams(params.toString());
-    for (const [key, value] of Object.entries(next)) query.set(key, value);
-    router[mode](`/?${query.toString()}`);
-  }
-
-  const previewQuery = useMemo(() => new URLSearchParams({ path, direction, locale, theme, viewport }).toString(), [path, direction, locale, theme, viewport]);
+  const previewQuery = useMemo(() => new URLSearchParams({ path, direction, locale, theme, viewport, transition }).toString(), [path, direction, locale, theme, viewport, transition]);
+  const previewSrc = `/preview?${previewQuery}`;
+  const initialPreviewSrc = useRef(previewSrc);
+  const lastPreviewSrc = useRef(previewSrc);
   const directions = [generatedFixture, ...drafts];
+
+  useEffect(() => {
+    if (lastPreviewSrc.current === previewSrc) return;
+    lastPreviewSrc.current = previewSrc;
+    previewFrame.current?.contentWindow?.location.replace(previewSrc);
+  }, [previewSrc]);
 
   function exportDraft() {
     const draft = directions.find((item) => item.id === direction);
@@ -102,7 +125,7 @@ export function CanvasWorkbench() {
         <section className="preview-stage" aria-label="原型预览区">
           <div className="stage-bar"><span><i /> LIVE PROTOTYPE</span><span>{viewport} PX · {theme.toUpperCase()} · {locale.toUpperCase()}</span></div>
           <div className="device-mat">
-            <AnimatePresence mode="wait" initial={false}><motion.div key={`${direction}:${path}`} className="preview-frame-wrap" style={{ width: `min(100%, ${viewport}px)` }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: reduced ? 0 : 0.2 }}><iframe title="YAMI 原型预览" src={`/preview?${previewQuery}`} /></motion.div></AnimatePresence>
+            <div className="preview-frame-wrap" style={{ width: `min(100%, ${viewport}px)` }}><iframe ref={previewFrame} title="YAMI 原型预览" src={initialPreviewSrc.current} /></div>
           </div>
         </section>
       </section>
