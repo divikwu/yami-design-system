@@ -2,109 +2,122 @@
 export const tokens = {
   "background.primary": {
     "$type": "color",
-    "$value": "{color.neutral.950}"
+    "$value": "{color.white.1000}",
+    "$description": "用于页面级主背景，作为整体页面与主要布局区域的基础画布。不用于组件内部表面层。"
   },
   "background.secondary": {
     "$type": "color",
-    "$value": "{color.neutral.900}"
+    "$value": "{color.neutral.100}",
+    "$description": "用于页面中的次级背景区域，区分页面分区与大块内容层级。不用于组件内部填充或交互状态背景。"
   },
   "badge.bg-primary-blue": {
     "$type": "color",
-    "$value": "{color.blue.400}"
+    "$value": "{color.blue.600}",
+    "$description": "用于信息类主标签背景，适用于提示、系统信息与说明状态。"
   },
   "badge.bg-primary-green": {
     "$type": "color",
-    "$value": "{color.emerald.400}"
+    "$value": "{color.emerald.600}",
+    "$description": "用于成功、完成与可用状态的主标签背景。"
   },
   "badge.bg-primary-neutral": {
     "$type": "color",
-    "$value": "{color.white.1000}"
+    "$value": "{color.black.900}",
+    "$description": "用于中性高对比标签背景，适用于信息密度高的状态标签。"
   },
   "badge.bg-primary-purple": {
     "$type": "color",
-    "$value": "{color.purple.400}"
+    "$value": "{color.purple.600}",
+    "$description": "用于营销、权益或活动类主标签背景。"
   },
   "badge.bg-primary-red": {
     "$type": "color",
-    "$value": "{color.red.400}"
+    "$value": "{color.red.500}",
+    "$description": "用于错误、失败或高风险提示的主标签背景。"
   },
   "badge.bg-primary-yellow": {
     "$type": "color",
-    "$value": "{color.amber.400}"
+    "$value": "{color.amber.600}",
+    "$description": "用于警示、提醒或高亮类主标签背景。"
   },
   "badge.bg-secondary-blue": {
     "$type": "color",
-    "$value": "{color.blue.950}"
+    "$value": "{color.blue.50}",
+    "$description": "用于信息类次级标签背景，适合轻量提示或辅助信息。"
   },
   "badge.bg-secondary-green": {
     "$type": "color",
-    "$value": "{color.emerald.950}"
+    "$value": "{color.emerald.50}",
+    "$description": "用于成功类次级标签背景，适合弱强调状态提示。"
   },
   "badge.bg-secondary-neutral": {
     "$type": "color",
-    "$value": "{color.neutral.800}"
+    "$value": "{color.white.1000}",
+    "$description": "用于中性次级标签背景，适合弱化标签与高密度信息场景。"
   },
   "badge.bg-secondary-purple": {
     "$type": "color",
-    "$value": "{color.purple.950}"
+    "$value": "{color.purple.50}",
+    "$description": "用于营销或权益类次级标签背景，适合辅助说明。"
   },
   "badge.bg-secondary-red": {
     "$type": "color",
-    "$value": "{color.red.950}"
+    "$value": "{color.red.50}",
+    "$description": "用于错误类次级标签背景，适合辅助提示或非阻断性警示。"
   },
   "badge.bg-secondary-yellow": {
     "$type": "color",
-    "$value": "{color.amber.950}"
+    "$value": "{color.amber.50}",
+    "$description": "用于警示类次级标签背景，适合不打断流程的提醒。"
   },
   "badge.bg-tertiary-neutral": {
     "$type": "color",
-    "$value": "{color.neutral.900}"
+    "$value": "{color.neutral.100}",
+    "$description": "用于最弱层级的中性标签背景，适合占位、弱状态或非决策型信息。"
   },
   "badge.fg-default": {
     "$type": "color",
-    "$value": "{color.white.1000}"
+    "$value": "{color.black.900}",
+    "$description": "用于中性或默认极性标签上的主要文字与图标，保证基础可读性。"
   },
   "badge.fg-default-inverse": {
     "$type": "color",
-    "$value": "{color.black.900}"
+    "$value": "{color.white.1000}",
+    "$description": "用于反向极性或高对比标签上的主要文字与图标。"
   },
   "badge.fg-primary-red": {
     "$type": "color",
-    "$value": "{color.black.900}"
+    "$value": "{color.white.1000}",
+    "$description": "用于红色主标签上的文字与图标，确保高对比与可读性。"
   },
   "badge.fg-secondary-blue": {
     "$type": "color",
-    "$value": "{color.blue.200}"
+    "$value": "{color.blue.700}",
+    "$description": "用于蓝色次级标签上的文字与图标，传达清晰的信息属性。"
   },
   "badge.fg-secondary-green": {
     "$type": "color",
-    "$value": "{color.emerald.200}"
+    "$value": "{color.emerald.700}",
+    "$description": "用于绿色次级标签上的文字与图标，表达正向反馈。"
   },
   "badge.fg-secondary-purple": {
     "$type": "color",
-    "$value": "{color.purple.200}"
+    "$value": "{color.purple.700}",
+    "$description": "用于紫色次级标签上的文字与图标，传达活动、权益或品牌属性。"
   },
   "badge.fg-secondary-red": {
     "$type": "color",
-    "$value": "{color.red.200}"
+    "$value": "{color.red.700}",
+    "$description": "用于红色次级标签上的文字与图标，适合错误或风险提示。"
   },
   "badge.fg-secondary-yellow": {
     "$type": "color",
-    "$value": "{color.amber.200}"
-  },
-  "body-md.font-family": {
-    "$type": "fontFamily",
-    "$value": "{font-family.ios}",
-    "$description": "用于次要说明文字、补充内容与小提示。适用于辅助阅读信息，不用于标题、按钮或价格信息。"
+    "$value": "{color.amber.700}",
+    "$description": "用于黄色次级标签上的文字与图标，强调注意与提醒。"
   },
   "body-md.font-size": {
     "$type": "dimension",
     "$value": "14px",
-    "$description": "用于次要说明文字、补充内容与小提示。适用于辅助阅读信息，不用于标题、按钮或价格信息。"
-  },
-  "body-md.font-weight": {
-    "$type": "fontWeight",
-    "$value": "{font-weight.normal}",
     "$description": "用于次要说明文字、补充内容与小提示。适用于辅助阅读信息，不用于标题、按钮或价格信息。"
   },
   "body-md.line-height": {
@@ -112,24 +125,9 @@ export const tokens = {
     "$value": "20px",
     "$description": "用于次要说明文字、补充内容与小提示。适用于辅助阅读信息，不用于标题、按钮或价格信息。"
   },
-  "body-md.paragraph-spacing": {
-    "$type": "dimension",
-    "$value": "4px",
-    "$description": "用于次要说明文字、补充内容与小提示。适用于辅助阅读信息，不用于标题、按钮或价格信息。"
-  },
-  "body-xl.font-family": {
-    "$type": "fontFamily",
-    "$value": "{font-family.ios}",
-    "$description": "用于主正文信息、内容描述与核心说明。适用于阅读型内容，不用于标题、按钮或价格信息。"
-  },
   "body-xl.font-size": {
     "$type": "dimension",
     "$value": "16px",
-    "$description": "用于主正文信息、内容描述与核心说明。适用于阅读型内容，不用于标题、按钮或价格信息。"
-  },
-  "body-xl.font-weight": {
-    "$type": "fontWeight",
-    "$value": "{font-weight.normal}",
     "$description": "用于主正文信息、内容描述与核心说明。适用于阅读型内容，不用于标题、按钮或价格信息。"
   },
   "body-xl.line-height": {
@@ -137,50 +135,55 @@ export const tokens = {
     "$value": "20px",
     "$description": "用于主正文信息、内容描述与核心说明。适用于阅读型内容，不用于标题、按钮或价格信息。"
   },
-  "body-xl.paragraph-spacing": {
-    "$type": "dimension",
-    "$value": "4px",
-    "$description": "用于主正文信息、内容描述与核心说明。适用于阅读型内容，不用于标题、按钮或价格信息。"
-  },
   "border.attention": {
     "$type": "color",
-    "$value": "{color.red.400}"
+    "$value": "{color.red.500}",
+    "$description": "用于需要引起用户注意的边框状态，如错误、风险提示或重要提醒。不用于默认结构边框。"
   },
   "border.attention-inverse": {
     "$type": "color",
-    "$value": "{color.red.500}"
+    "$value": "{color.red.500}",
+    "$description": "用于反向极性表面上的注意型边框状态，如错误、风险提示或重要提醒。不用于默认结构边框。"
   },
   "border.default": {
     "$type": "color",
-    "$value": "{color.white.200}"
+    "$value": "{color.black.200}",
+    "$description": "用于卡片、输入框与组件的默认结构边框，提供基础轮廓与分隔，不强调交互或状态。"
   },
   "border.default-inverse": {
     "$type": "color",
-    "$value": "{color.black.200}"
+    "$value": "{color.white.200}",
+    "$description": "用于反向极性或复杂表面上的默认结构边框，保持组件轮廓与分隔的可见性。"
   },
   "border.focus": {
     "$type": "color",
-    "$value": "{color.white.1000}"
+    "$value": "{color.black.900}",
+    "$description": "用于组件获得焦点或被选中时的边框状态，如输入框、选择器的聚焦反馈。"
   },
   "border.focus-inverse": {
     "$type": "color",
-    "$value": "{color.black.900}"
+    "$value": "{color.white.1000}",
+    "$description": "用于反向极性表面上的聚焦或选中边框，确保可见性与可访问性。"
   },
   "brand.inverse": {
     "$type": "color",
-    "$value": "{color.black.900}"
+    "$value": "{color.white.1000}",
+    "$description": "品牌反色，用于当前主题的反向极性表面或需要反转对比的品牌表达。"
   },
   "brand.primary": {
     "$type": "color",
-    "$value": "{color.brand.red}"
+    "$value": "{color.brand.red}",
+    "$description": "品牌主色，用于最核心的品牌识别与高优先级视觉表达。"
   },
   "brand.secondary": {
     "$type": "color",
-    "$value": "{color.white.900}"
+    "$value": "{color.neutral.900}",
+    "$description": "品牌辅助色，用于高对比品牌场景或需要增强对比度的品牌表达。"
   },
   "brand.tertiary": {
     "$type": "color",
-    "$value": "{color.red.950}"
+    "$value": "{color.red.50}",
+    "$description": "品牌弱化色，用于低强调品牌背景、装饰性区域或轻量品牌露出场景。"
   },
   "breakpoints.desktop": {
     "$type": "dimension",
@@ -204,89 +207,97 @@ export const tokens = {
   },
   "button.disabled": {
     "$type": "color",
-    "$value": "{color.white.400}"
+    "$value": "{color.neutral.200}",
+    "$description": "用于默认极性表面上不可点击或不可用状态的按钮。"
   },
   "button.disabled-inverse": {
     "$type": "color",
-    "$value": "{color.neutral.200}"
+    "$value": "{color.white.400}",
+    "$description": "用于反向极性表面上不可点击或不可用状态的按钮。"
   },
   "button.emphasis": {
     "$type": "color",
-    "$value": "{color.red.500}"
+    "$value": "{color.red.500}",
+    "$description": "用于页面中最高优先级的转化操作，如立即购买、提交订单等核心行为。"
   },
   "button.emphasis-active": {
     "$type": "color",
-    "$value": "{color.red.600}"
+    "$value": "{color.red.600}",
+    "$description": "用于强调按钮在按压或激活时的反馈状态。"
   },
   "button.emphasis-active-inverse": {
     "$type": "color",
-    "$value": "{color.red.600}"
+    "$value": "{color.red.600}",
+    "$description": "用于反向极性表面上强调按钮的按压或激活反馈状态。"
   },
   "button.emphasis-inverse": {
     "$type": "color",
-    "$value": "{color.red.500}"
+    "$value": "{color.red.500}",
+    "$description": "用于反向极性表面上的核心转化按钮，保持品牌识别与转化优先级。"
   },
   "button.primary": {
     "$type": "color",
-    "$value": "{color.white.1000}"
+    "$value": "{color.black.900}",
+    "$description": "用于页面中的主要操作按钮，优先级低于强调型按钮。"
   },
   "button.primary-active": {
     "$type": "color",
-    "$value": "{color.white.800}"
+    "$value": "{color.black.1000}",
+    "$description": "用于主按钮在按压或激活时的反馈状态。"
   },
   "button.primary-active-inverse": {
     "$type": "color",
-    "$value": "{color.black.1000}"
+    "$value": "{color.white.800}",
+    "$description": "用于反向极性表面上主按钮的按压或激活反馈状态。"
   },
   "button.primary-inverse": {
     "$type": "color",
-    "$value": "{color.black.900}"
+    "$value": "{color.white.1000}",
+    "$description": "用于反向极性表面上的主要操作按钮，确保对比度与可读性。"
   },
   "button.secondary": {
     "$type": "color",
-    "$value": "{color.white.200}"
+    "$value": "{color.black.100}",
+    "$description": "用于次要操作或辅助行为按钮，如取消、返回等。不承担页面主转化。"
   },
   "button.secondary-active": {
     "$type": "color",
-    "$value": "{color.white.300}"
+    "$value": "{color.black.200}",
+    "$description": "用于次要按钮在按压或激活时的反馈状态。"
   },
   "button.secondary-active-inverse": {
     "$type": "color",
-    "$value": "{color.black.200}"
+    "$value": "{color.white.300}",
+    "$description": "用于反向极性表面上次要按钮的按压或激活反馈状态。"
   },
   "button.secondary-inverse": {
     "$type": "color",
-    "$value": "{color.black.100}"
+    "$value": "{color.white.200}",
+    "$description": "用于反向极性表面上的次要操作按钮，降低视觉权重但保持可用性。"
   },
   "button.tertiary": {
     "$type": "color",
-    "$value": "{color.white.0}"
+    "$value": "{color.white.1000}",
+    "$description": "用于弱操作或低干扰按钮，常见于文本型或幽灵按钮样式。"
   },
   "button.tertiary-active": {
     "$type": "color",
-    "$value": "{color.white.100}"
+    "$value": "{color.neutral.100}",
+    "$description": "用于弱操作按钮的最小化交互反馈状态。"
   },
   "button.tertiary-active-inverse": {
     "$type": "color",
-    "$value": "{color.black.100}"
+    "$value": "{color.white.100}",
+    "$description": "用于反向极性表面上弱操作按钮的激活反馈状态。"
   },
   "button.tertiary-inverse": {
     "$type": "color",
-    "$value": "{color.black.0}"
-  },
-  "caption-md.font-family": {
-    "$type": "fontFamily",
-    "$value": "{font-family.ios}",
-    "$description": "用于附注、图文标签与补充说明。适用于辅助信息展示，不用于正文主信息或标题。"
+    "$value": "{color.white.0}",
+    "$description": "用于反向极性表面上的弱操作或幽灵按钮样式。"
   },
   "caption-md.font-size": {
     "$type": "dimension",
     "$value": "12px",
-    "$description": "用于附注、图文标签与补充说明。适用于辅助信息展示，不用于正文主信息或标题。"
-  },
-  "caption-md.font-weight": {
-    "$type": "fontWeight",
-    "$value": "{font-weight.normal}",
     "$description": "用于附注、图文标签与补充说明。适用于辅助信息展示，不用于正文主信息或标题。"
   },
   "caption-md.line-height": {
@@ -294,19 +305,9 @@ export const tokens = {
     "$value": "16px",
     "$description": "用于附注、图文标签与补充说明。适用于辅助信息展示，不用于正文主信息或标题。"
   },
-  "caption-sm.font-family": {
-    "$type": "fontFamily",
-    "$value": "{font-family.ios}",
-    "$description": "用于价格提示、状态文本与促销标签。适用于紧凑辅助信息，不用于正文主信息或正文链接。"
-  },
   "caption-sm.font-size": {
     "$type": "dimension",
     "$value": "10px",
-    "$description": "用于价格提示、状态文本与促销标签。适用于紧凑辅助信息，不用于正文主信息或正文链接。"
-  },
-  "caption-sm.font-weight": {
-    "$type": "fontWeight",
-    "$value": "{font-weight.normal}",
     "$description": "用于价格提示、状态文本与促销标签。适用于紧凑辅助信息，不用于正文主信息或正文链接。"
   },
   "caption-sm.line-height": {
@@ -1155,19 +1156,9 @@ export const tokens = {
     "$type": "color",
     "$value": "#432305"
   },
-  "display-md.font-family": {
-    "$type": "fontFamily",
-    "$value": "{font-family.ios}",
-    "$description": "用于次级展示标题，如 Banner 与专题引导。不用于常规模块标题或正文说明。"
-  },
   "display-md.font-size": {
     "$type": "dimension",
     "$value": "28px",
-    "$description": "用于次级展示标题，如 Banner 与专题引导。不用于常规模块标题或正文说明。"
-  },
-  "display-md.font-weight": {
-    "$type": "fontWeight",
-    "$value": "{font-weight.normal}",
     "$description": "用于次级展示标题，如 Banner 与专题引导。不用于常规模块标题或正文说明。"
   },
   "display-md.line-height": {
@@ -1175,19 +1166,9 @@ export const tokens = {
     "$value": "36px",
     "$description": "用于次级展示标题，如 Banner 与专题引导。不用于常规模块标题或正文说明。"
   },
-  "display-sm.font-family": {
-    "$type": "fontFamily",
-    "$value": "{font-family.ios}",
-    "$description": "用于展示型短标题与重点提示。不替代 heading，也不用于长正文。"
-  },
   "display-sm.font-size": {
     "$type": "dimension",
     "$value": "24px",
-    "$description": "用于展示型短标题与重点提示。不替代 heading，也不用于长正文。"
-  },
-  "display-sm.font-weight": {
-    "$type": "fontWeight",
-    "$value": "{font-weight.normal}",
     "$description": "用于展示型短标题与重点提示。不替代 heading，也不用于长正文。"
   },
   "display-sm.line-height": {
@@ -1195,19 +1176,9 @@ export const tokens = {
     "$value": "32px",
     "$description": "用于展示型短标题与重点提示。不替代 heading，也不用于长正文。"
   },
-  "display-xl.font-family": {
-    "$type": "fontFamily",
-    "$value": "{font-family.ios}",
-    "$description": "用于页面主视觉与核心营销文案。适用于首屏 Hero，不用于正文、按钮或价格信息。"
-  },
   "display-xl.font-size": {
     "$type": "dimension",
     "$value": "32px",
-    "$description": "用于页面主视觉与核心营销文案。适用于首屏 Hero，不用于正文、按钮或价格信息。"
-  },
-  "display-xl.font-weight": {
-    "$type": "fontWeight",
-    "$value": "{font-weight.normal}",
     "$description": "用于页面主视觉与核心营销文案。适用于首屏 Hero，不用于正文、按钮或价格信息。"
   },
   "display-xl.line-height": {
@@ -1217,99 +1188,123 @@ export const tokens = {
   },
   "divider.default": {
     "$type": "color",
-    "$value": "{color.white.200}"
+    "$value": "{color.black.100}",
+    "$description": "用于列表、卡片与内容区块之间的默认分割线，保持结构清晰但不抢视觉焦点。"
   },
   "divider.default-inverse": {
     "$type": "color",
-    "$value": "{color.black.100}"
+    "$value": "{color.white.200}",
+    "$description": "用于反向极性或复杂表面上的默认分割线，保持基础结构分隔的可见性。"
   },
   "divider.emphasis": {
     "$type": "color",
-    "$value": "{color.white.900}"
+    "$value": "{color.black.900}",
+    "$description": "用于模块、章节或重要内容区域之间的强调分割线。"
   },
   "divider.emphasis-inverse": {
     "$type": "color",
-    "$value": "{color.black.900}"
+    "$value": "{color.white.900}",
+    "$description": "用于反向极性表面上的强调分割线，清晰区分重要模块或内容区域。"
   },
   "divider.subtle": {
     "$type": "color",
-    "$value": "{color.white.400}"
+    "$value": "{color.black.400}",
+    "$description": "用于装饰性或低权重分隔场景，强调内容连续性而非边界。"
   },
   "divider.subtle-inverse": {
     "$type": "color",
-    "$value": "{color.black.400}"
+    "$value": "{color.white.400}",
+    "$description": "用于反向极性表面上的低干扰分割线，保持内容节奏而不强化边界。"
   },
   "fill.disabled": {
     "$type": "color",
-    "$value": "{color.neutral.700}"
+    "$value": "{color.neutral.300}",
+    "$description": "用于不可交互或禁用状态的填充背景，传达不可用语义。"
   },
   "fill.error-primary": {
     "$type": "color",
-    "$value": "{color.red.400}"
+    "$value": "{color.red.500}",
+    "$description": "用于错误状态的主填充，强调问题或阻断性反馈。不用于营销高亮。"
   },
   "fill.error-secondary": {
     "$type": "color",
-    "$value": "{color.red.950}"
+    "$value": "{color.red.50}",
+    "$description": "用于错误状态的弱填充背景，适合作为错误提示或说明区域的承载层。"
   },
   "fill.highlight": {
     "$type": "color",
-    "$value": "{color.yellow.400}"
+    "$value": "{color.yellow.500}",
+    "$description": "用于突出展示营销与内容推荐信息，如优惠、活动、卖点或运营强调内容。不用于系统状态反馈。"
   },
   "fill.info-primary": {
     "$type": "color",
-    "$value": "{color.blue.400}"
+    "$value": "{color.blue.500}",
+    "$description": "用于信息提示类场景的主填充，适用于中性说明、引导或提示信息。"
   },
   "fill.info-secondary": {
     "$type": "color",
-    "$value": "{color.blue.950}"
+    "$value": "{color.blue.50}",
+    "$description": "用于信息提示的弱填充背景，作为信息内容的承载层。"
   },
   "fill.inverse": {
     "$type": "color",
-    "$value": "{color.white.1000}"
+    "$value": "{color.neutral.900}",
+    "$description": "用于反向极性容器与高对比界面元素的填充。不用于页面级背景。"
   },
   "fill.primary": {
     "$type": "color",
-    "$value": "{color.neutral.900}"
+    "$value": "{color.white.1000}",
+    "$description": "用于默认状态下的基础填充，适用于常规组件和内容填充层。不用于页面级背景。"
   },
   "fill.promotion-primary": {
     "$type": "color",
-    "$value": "{color.red.400}"
+    "$value": "{color.red.500}",
+    "$description": "用于促销与运营强调信息的主填充，如限时、折扣与爆款场景。不用于错误反馈。"
   },
   "fill.promotion-secondary": {
     "$type": "color",
-    "$value": "{color.red.950}"
+    "$value": "{color.red.50}",
+    "$description": "用于弱促销或背景型营销信息，作为促销内容的承载层，不干扰主要内容。"
   },
   "fill.secondary": {
     "$type": "color",
-    "$value": "{color.neutral.800}"
+    "$value": "{color.neutral.100}",
+    "$description": "用于弱化层级的辅助填充，作为主填充的次级对比使用。不用于页面级背景。"
   },
   "fill.skeleton": {
     "$type": "color",
-    "$value": "{color.white.200}"
+    "$value": "{color.black.200}",
+    "$description": "用于默认极性表面上的骨架屏填充，占位但不表达具体内容。"
   },
   "fill.skeleton-inverse": {
     "$type": "color",
-    "$value": "{color.black.200}"
+    "$value": "{color.white.200}",
+    "$description": "用于反向极性表面上的骨架屏填充，占位但不表达具体内容。"
   },
   "fill.success-primary": {
     "$type": "color",
-    "$value": "{color.emerald.400}"
+    "$value": "{color.emerald.500}",
+    "$description": "用于成功状态的主视觉填充，如完成提示、成功反馈等。"
   },
   "fill.success-secondary": {
     "$type": "color",
-    "$value": "{color.emerald.950}"
+    "$value": "{color.emerald.50}",
+    "$description": "用于成功状态的弱填充背景，作为主成功色的辅助层级。"
   },
   "fill.tertiary": {
     "$type": "color",
-    "$value": "{color.neutral.950}"
+    "$value": "{color.neutral.50}",
+    "$description": "用于极弱背景填充，如商品占位、辅助区块或视觉降噪区域。不用于主要内容承载面。"
   },
   "fill.warning-primary": {
     "$type": "color",
-    "$value": "{color.yellow.400}"
+    "$value": "{color.yellow.500}",
+    "$description": "用于警示状态的主填充，提醒用户需要注意但不构成错误。"
   },
   "fill.warning-secondary": {
     "$type": "color",
-    "$value": "{color.amber.950}"
+    "$value": "{color.amber.50}",
+    "$description": "用于警示状态的弱填充背景，适合提示性或非阻断场景。"
   },
   "font-family.android": {
     "$type": "fontFamily",
@@ -1351,19 +1346,9 @@ export const tokens = {
     },
     "$description": "默认字重，适用于正文与说明信息。不用于强调信息、价格主信息或标题层级。"
   },
-  "heading-2xl.font-family": {
-    "$type": "fontFamily",
-    "$value": "{font-family.ios}",
-    "$description": "用于大标题与重点模块标题。适用于高层级内容分组，不用于首屏营销文案或正文说明。"
-  },
   "heading-2xl.font-size": {
     "$type": "dimension",
     "$value": "24px",
-    "$description": "用于大标题与重点模块标题。适用于高层级内容分组，不用于首屏营销文案或正文说明。"
-  },
-  "heading-2xl.font-weight": {
-    "$type": "fontWeight",
-    "$value": "{font-weight.emphasize}",
     "$description": "用于大标题与重点模块标题。适用于高层级内容分组，不用于首屏营销文案或正文说明。"
   },
   "heading-2xl.line-height": {
@@ -1371,19 +1356,9 @@ export const tokens = {
     "$value": "32px",
     "$description": "用于大标题与重点模块标题。适用于高层级内容分组，不用于首屏营销文案或正文说明。"
   },
-  "heading-3xl.font-family": {
-    "$type": "fontFamily",
-    "$value": "{font-family.ios}",
-    "$description": "用于页面级重点标题与核心分区标题。适用于页面主结构分层，不用于展示型营销文案。"
-  },
   "heading-3xl.font-size": {
     "$type": "dimension",
     "$value": "28px",
-    "$description": "用于页面级重点标题与核心分区标题。适用于页面主结构分层，不用于展示型营销文案。"
-  },
-  "heading-3xl.font-weight": {
-    "$type": "fontWeight",
-    "$value": "{font-weight.emphasize}",
     "$description": "用于页面级重点标题与核心分区标题。适用于页面主结构分层，不用于展示型营销文案。"
   },
   "heading-3xl.line-height": {
@@ -1391,19 +1366,9 @@ export const tokens = {
     "$value": "36px",
     "$description": "用于页面级重点标题与核心分区标题。适用于页面主结构分层，不用于展示型营销文案。"
   },
-  "heading-4xl.font-family": {
-    "$type": "fontFamily",
-    "$value": "{font-family.ios}",
-    "$description": "用于页面主标题与首屏核心标题。适用于页面最高层级标题，不用于 Banner、按钮或正文内容。"
-  },
   "heading-4xl.font-size": {
     "$type": "dimension",
     "$value": "32px",
-    "$description": "用于页面主标题与首屏核心标题。适用于页面最高层级标题，不用于 Banner、按钮或正文内容。"
-  },
-  "heading-4xl.font-weight": {
-    "$type": "fontWeight",
-    "$value": "{font-weight.emphasize}",
     "$description": "用于页面主标题与首屏核心标题。适用于页面最高层级标题，不用于 Banner、按钮或正文内容。"
   },
   "heading-4xl.line-height": {
@@ -1411,19 +1376,9 @@ export const tokens = {
     "$value": "40px",
     "$description": "用于页面主标题与首屏核心标题。适用于页面最高层级标题，不用于 Banner、按钮或正文内容。"
   },
-  "heading-md.font-family": {
-    "$type": "fontFamily",
-    "$value": "{font-family.ios}",
-    "$description": "用于模块副标题与分组说明。适用于内容结构分层，不用于页面主标题或展示型文案。"
-  },
   "heading-md.font-size": {
     "$type": "dimension",
     "$value": "18px",
-    "$description": "用于模块副标题与分组说明。适用于内容结构分层，不用于页面主标题或展示型文案。"
-  },
-  "heading-md.font-weight": {
-    "$type": "fontWeight",
-    "$value": "{font-weight.emphasize}",
     "$description": "用于模块副标题与分组说明。适用于内容结构分层，不用于页面主标题或展示型文案。"
   },
   "heading-md.line-height": {
@@ -1431,19 +1386,9 @@ export const tokens = {
     "$value": "24px",
     "$description": "用于模块副标题与分组说明。适用于内容结构分层，不用于页面主标题或展示型文案。"
   },
-  "heading-sm.font-family": {
-    "$type": "fontFamily",
-    "$value": "{font-family.ios}",
-    "$description": "用于结构辅助标题与子信息引导。适用于卡片、列表或表单内的小层级标题，不用于展示型强调文案。"
-  },
   "heading-sm.font-size": {
     "$type": "dimension",
     "$value": "16px",
-    "$description": "用于结构辅助标题与子信息引导。适用于卡片、列表或表单内的小层级标题，不用于展示型强调文案。"
-  },
-  "heading-sm.font-weight": {
-    "$type": "fontWeight",
-    "$value": "{font-weight.emphasize}",
     "$description": "用于结构辅助标题与子信息引导。适用于卡片、列表或表单内的小层级标题，不用于展示型强调文案。"
   },
   "heading-sm.line-height": {
@@ -1451,19 +1396,9 @@ export const tokens = {
     "$value": "20px",
     "$description": "用于结构辅助标题与子信息引导。适用于卡片、列表或表单内的小层级标题，不用于展示型强调文案。"
   },
-  "heading-xl.font-family": {
-    "$type": "fontFamily",
-    "$value": "{font-family.ios}",
-    "$description": "用于内容区块的一级标题与主要信息入口。适用于页面分区标题，不用于首屏营销文案或正文说明。"
-  },
   "heading-xl.font-size": {
     "$type": "dimension",
     "$value": "20px",
-    "$description": "用于内容区块的一级标题与主要信息入口。适用于页面分区标题，不用于首屏营销文案或正文说明。"
-  },
-  "heading-xl.font-weight": {
-    "$type": "fontWeight",
-    "$value": "{font-weight.emphasize}",
     "$description": "用于内容区块的一级标题与主要信息入口。适用于页面分区标题，不用于首屏营销文案或正文说明。"
   },
   "heading-xl.line-height": {
@@ -1471,19 +1406,9 @@ export const tokens = {
     "$value": "28px",
     "$description": "用于内容区块的一级标题与主要信息入口。适用于页面分区标题，不用于首屏营销文案或正文说明。"
   },
-  "heading-xs.font-family": {
-    "$type": "fontFamily",
-    "$value": "{font-family.ios}",
-    "$description": "用于最小层级标题与强调型标签。适用于列表项标题、表单标签或紧凑卡片标题，不用于正文或展示型文案。"
-  },
   "heading-xs.font-size": {
     "$type": "dimension",
     "$value": "14px",
-    "$description": "用于最小层级标题与强调型标签。适用于列表项标题、表单标签或紧凑卡片标题，不用于正文或展示型文案。"
-  },
-  "heading-xs.font-weight": {
-    "$type": "fontWeight",
-    "$value": "{font-weight.emphasize}",
     "$description": "用于最小层级标题与强调型标签。适用于列表项标题、表单标签或紧凑卡片标题，不用于正文或展示型文案。"
   },
   "heading-xs.line-height": {
@@ -1515,19 +1440,9 @@ export const tokens = {
     },
     "$description": "紧缩字距，适用于大标题和短品牌词。不建议用于长正文或复杂中英混排。"
   },
-  "link-md.font-family": {
-    "$type": "fontFamily",
-    "$value": "{font-family.ios}",
-    "$description": "用于正文中的主要跳转入口、可点击文案与 Link 按钮。适用于阅读流中的链接及 Link 类型按钮，不用于标题或价格信息。"
-  },
   "link-md.font-size": {
     "$type": "dimension",
     "$value": "14px",
-    "$description": "用于正文中的主要跳转入口、可点击文案与 Link 按钮。适用于阅读流中的链接及 Link 类型按钮，不用于标题或价格信息。"
-  },
-  "link-md.font-weight": {
-    "$type": "fontWeight",
-    "$value": "{font-weight.normal}",
     "$description": "用于正文中的主要跳转入口、可点击文案与 Link 按钮。适用于阅读流中的链接及 Link 类型按钮，不用于标题或价格信息。"
   },
   "link-md.line-height": {
@@ -1535,19 +1450,9 @@ export const tokens = {
     "$value": "20px",
     "$description": "用于正文中的主要跳转入口、可点击文案与 Link 按钮。适用于阅读流中的链接及 Link 类型按钮，不用于标题或价格信息。"
   },
-  "link-sm.font-family": {
-    "$type": "fontFamily",
-    "$value": "{font-family.ios}",
-    "$description": "用于紧凑场景中的辅助链接、次级跳转入口与 Link 按钮。适用于列表、注释或补充信息区域的链接及 Link 类型按钮，不用于正文主链接。"
-  },
   "link-sm.font-size": {
     "$type": "dimension",
     "$value": "12px",
-    "$description": "用于紧凑场景中的辅助链接、次级跳转入口与 Link 按钮。适用于列表、注释或补充信息区域的链接及 Link 类型按钮，不用于正文主链接。"
-  },
-  "link-sm.font-weight": {
-    "$type": "fontWeight",
-    "$value": "{font-weight.normal}",
     "$description": "用于紧凑场景中的辅助链接、次级跳转入口与 Link 按钮。适用于列表、注释或补充信息区域的链接及 Link 类型按钮，不用于正文主链接。"
   },
   "link-sm.line-height": {
@@ -1555,19 +1460,9 @@ export const tokens = {
     "$value": "16px",
     "$description": "用于紧凑场景中的辅助链接、次级跳转入口与 Link 按钮。适用于列表、注释或补充信息区域的链接及 Link 类型按钮，不用于正文主链接。"
   },
-  "link-xl.font-family": {
-    "$type": "fontFamily",
-    "$value": "{font-family.ios}",
-    "$description": "用于正文中的主要跳转入口、可点击文案与 Link 按钮。适用于 body-xl 层级的阅读流链接及 Link 类型按钮，不用于标题或价格信息。"
-  },
   "link-xl.font-size": {
     "$type": "dimension",
     "$value": "16px",
-    "$description": "用于正文中的主要跳转入口、可点击文案与 Link 按钮。适用于 body-xl 层级的阅读流链接及 Link 类型按钮，不用于标题或价格信息。"
-  },
-  "link-xl.font-weight": {
-    "$type": "fontWeight",
-    "$value": "{font-weight.normal}",
     "$description": "用于正文中的主要跳转入口、可点击文案与 Link 按钮。适用于 body-xl 层级的阅读流链接及 Link 类型按钮，不用于标题或价格信息。"
   },
   "link-xl.line-height": {
@@ -1577,25 +1472,17 @@ export const tokens = {
   },
   "overlay.default": {
     "$type": "color",
-    "$value": "{color.black.300}"
+    "$value": "{color.black.300}",
+    "$description": "用于轻度遮罩背景，弱化页面干扰但不阻断用户对背景内容的感知，常见于浮层、卡片悬浮或非强制态场景。"
   },
   "overlay.scrim": {
     "$type": "color",
-    "$value": "{color.black.700}"
-  },
-  "price-md.font-family": {
-    "$type": "fontFamily",
-    "$value": "{font-family.ios}",
-    "$description": "用于 PDP 核心售价与价格信息。适用于商品详情页主价格，不用于正文数字、统计值或按钮文案。"
+    "$value": "{color.black.700}",
+    "$description": "用于强遮罩背景，显著降低背景存在感以突出前景内容，常用于模态弹窗、全屏浮层或强聚焦交互场景。"
   },
   "price-md.font-size": {
     "$type": "dimension",
     "$value": "20px",
-    "$description": "用于 PDP 核心售价与价格信息。适用于商品详情页主价格，不用于正文数字、统计值或按钮文案。"
-  },
-  "price-md.font-weight": {
-    "$type": "fontWeight",
-    "$value": "{font-weight.emphasize}",
     "$description": "用于 PDP 核心售价与价格信息。适用于商品详情页主价格，不用于正文数字、统计值或按钮文案。"
   },
   "price-md.line-height": {
@@ -1603,19 +1490,9 @@ export const tokens = {
     "$value": "28px",
     "$description": "用于 PDP 核心售价与价格信息。适用于商品详情页主价格，不用于正文数字、统计值或按钮文案。"
   },
-  "price-sm.font-family": {
-    "$type": "fontFamily",
-    "$value": "{font-family.ios}",
-    "$description": "用于 PLP 紧凑售价与列表价格信息。适用于商品卡片与列表，不用于 PDP 主价格或正文数字。"
-  },
   "price-sm.font-size": {
     "$type": "dimension",
     "$value": "16px",
-    "$description": "用于 PLP 紧凑售价与列表价格信息。适用于商品卡片与列表，不用于 PDP 主价格或正文数字。"
-  },
-  "price-sm.font-weight": {
-    "$type": "fontWeight",
-    "$value": "{font-weight.emphasize}",
     "$description": "用于 PLP 紧凑售价与列表价格信息。适用于商品卡片与列表，不用于 PDP 主价格或正文数字。"
   },
   "price-sm.line-height": {
@@ -1625,31 +1502,38 @@ export const tokens = {
   },
   "product-card-add.border": {
     "$type": "color",
-    "$value": "{color.black.200}"
+    "$value": "{color.black.200}",
+    "$description": "商品图片上加购按钮的轻量轮廓。"
   },
   "product-card-add.icon": {
     "$type": "color",
-    "$value": "{color.black.900}"
+    "$value": "{color.black.900}",
+    "$description": "商品图片上默认加购按钮的图标颜色。"
   },
   "product-card-add.icon-active": {
     "$type": "color",
-    "$value": "{color.white.1000}"
+    "$value": "{color.white.1000}",
+    "$description": "桌面端品牌强调加购按钮上的图标颜色。"
   },
   "product-card-add.shadow": {
     "$type": "color",
-    "$value": "{color.black.200}"
+    "$value": "{color.black.200}",
+    "$description": "商品图片上加购按钮的静态轻量投影；交互态不改变投影。"
   },
   "product-card-add.surface": {
     "$type": "color",
-    "$value": "{color.white.900}"
+    "$value": "{color.white.900}",
+    "$description": "商品图片上的默认加购按钮表面；由图片承载环境决定，不随页面主题极性翻转。"
   },
   "product-card-add.surface-active-desktop": {
     "$type": "color",
-    "$value": "{color.red.500}"
+    "$value": "{color.red.500}",
+    "$description": "桌面端加购按钮悬停与按压时的品牌强调表面。"
   },
   "product-card-add.surface-active-mobile": {
     "$type": "color",
-    "$value": "{color.neutral.100}"
+    "$value": "{color.neutral.100}",
+    "$description": "移动端加购按钮按压反馈。"
   },
   "radius.button.emphasis": {
     "$type": "dimension",
@@ -1781,19 +1665,9 @@ export const tokens = {
     "$value": "64px",
     "$description": "页面级大留白。适用于大区块之间的明显分隔。"
   },
-  "strike-md.font-family": {
-    "$type": "fontFamily",
-    "$value": "{font-family.ios}",
-    "$description": "用于 PDP 划线价与原价信息。仅用于价格对比，不用于普通删除线文本或正文强调。"
-  },
   "strike-md.font-size": {
     "$type": "dimension",
     "$value": "14px",
-    "$description": "用于 PDP 划线价与原价信息。仅用于价格对比，不用于普通删除线文本或正文强调。"
-  },
-  "strike-md.font-weight": {
-    "$type": "fontWeight",
-    "$value": "{font-weight.normal}",
     "$description": "用于 PDP 划线价与原价信息。仅用于价格对比，不用于普通删除线文本或正文强调。"
   },
   "strike-md.line-height": {
@@ -1801,19 +1675,9 @@ export const tokens = {
     "$value": "20px",
     "$description": "用于 PDP 划线价与原价信息。仅用于价格对比，不用于普通删除线文本或正文强调。"
   },
-  "strike-sm.font-family": {
-    "$type": "fontFamily",
-    "$value": "{font-family.ios}",
-    "$description": "用于 PLP 划线价与紧凑原价信息。仅用于列表价格对比，不用于普通删除线文本或正文强调。"
-  },
   "strike-sm.font-size": {
     "$type": "dimension",
     "$value": "12px",
-    "$description": "用于 PLP 划线价与紧凑原价信息。仅用于列表价格对比，不用于普通删除线文本或正文强调。"
-  },
-  "strike-sm.font-weight": {
-    "$type": "fontWeight",
-    "$value": "{font-weight.normal}",
     "$description": "用于 PLP 划线价与紧凑原价信息。仅用于列表价格对比，不用于普通删除线文本或正文强调。"
   },
   "strike-sm.line-height": {
@@ -1835,66 +1699,82 @@ export const tokens = {
   },
   "surface.inverse": {
     "$type": "color",
-    "$value": "{color.white.1000}"
+    "$value": "{color.neutral.900}",
+    "$description": "与当前主题默认表面极性相反的组件表面。Light 中通常为深表面，Dark 中通常为浅表面。"
   },
   "surface.primary": {
     "$type": "color",
-    "$value": "{color.neutral.900}"
+    "$value": "{color.white.1000}",
+    "$description": "用于承载主要内容的组件表面，如卡片、列表和模块主体。不用于页面级背景。"
   },
   "surface.secondary": {
     "$type": "color",
-    "$value": "{color.neutral.800}"
+    "$value": "{color.neutral.100}",
+    "$description": "用于次级或嵌套内容的组件表面，用于区分容器内部层级但不抢占主视觉。不用于页面级背景。"
   },
   "text.disabled": {
     "$type": "color",
-    "$value": "{color.white.400}"
+    "$value": "{color.black.400}",
+    "$description": "用于不可交互或不可用状态的文本，表达弱化和不可操作语义。"
   },
   "text.disabled-inverse": {
     "$type": "color",
-    "$value": "{color.black.400}"
+    "$value": "{color.white.400}",
+    "$description": "用于反向极性表面上的禁用文本状态，保持状态一致性与对比度。"
   },
   "text.emphasis": {
     "$type": "color",
-    "$value": "{color.red.400}"
+    "$value": "{color.red.500}",
+    "$description": "用于强调文本，如价格、促销数值或核心行动提示。"
   },
   "text.emphasis-inverse": {
     "$type": "color",
-    "$value": "{color.red.500}"
+    "$value": "{color.red.400}",
+    "$description": "用于反向极性表面上的强调文本，如价格、促销数值或核心行动提示。"
   },
   "text.error": {
     "$type": "color",
-    "$value": "{color.red.400}"
+    "$value": "{color.red.500}",
+    "$description": "用于表示错误、失败或阻断性问题的文本信息，通常需要用户处理或修正。"
   },
   "text.info": {
     "$type": "color",
-    "$value": "{color.blue.400}"
+    "$value": "{color.blue.500}",
+    "$description": "用于中性信息提示与说明性文本，如配送说明、系统提示或状态补充信息。"
   },
   "text.on-emphasis": {
     "$type": "color",
-    "$value": "{color.white.1000}"
+    "$value": "{color.white.1000}",
+    "$description": "用于操作红强调背景上的文字与图标，在所有主题和表面极性中保持白色。"
   },
   "text.primary": {
     "$type": "color",
-    "$value": "{color.white.1000}"
+    "$value": "{color.black.900}",
+    "$description": "默认正文文本颜色，用于页面中最主要、最高阅读优先级的文字内容。"
   },
   "text.primary-inverse": {
     "$type": "color",
-    "$value": "{color.black.1000}"
+    "$value": "{color.white.1000}",
+    "$description": "用于反向极性表面上的主要正文文本，确保反色场景的可读性。"
   },
   "text.secondary": {
     "$type": "color",
-    "$value": "{color.white.600}"
+    "$value": "{color.black.600}",
+    "$description": "次级说明文本颜色，用于辅助信息、描述性文案或层级较低的文字内容。"
   },
   "text.secondary-inverse": {
     "$type": "color",
-    "$value": "{color.black.600}"
+    "$value": "{color.white.600}",
+    "$description": "用于反向极性表面上的次级说明文本，适合信息密度较低的辅助内容。"
   },
   "text.success": {
     "$type": "color",
-    "$value": "{color.emerald.400}"
+    "$value": "{color.emerald.700}",
+    "$description": "用于表示成功、完成或正向结果的文本信息，如操作成功、状态已生效。"
   },
   "text.warning": {
     "$type": "color",
-    "$value": "{color.yellow.400}"
+    "$value": "{color.yellow.600}",
+    "$description": "用于需要用户注意的风险或提醒性文本，但不代表错误或失败状态。"
   }
 } as const;

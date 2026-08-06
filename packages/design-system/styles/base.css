@@ -34,6 +34,12 @@
 }
 
 /* ============ SEMANTIC ELEMENT BASELINES ============ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 html,
 body {
   font-family: var(--font-cn-ios);

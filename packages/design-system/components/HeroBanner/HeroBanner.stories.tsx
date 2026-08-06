@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { waitFor } from "storybook/test";
 
 import { HeroBanner } from "./HeroBanner";
 import { HeroBannerImageOnlyCard } from "./HeroBannerImageOnlyCard";
@@ -420,9 +421,13 @@ export const Showcase: Story = {
       throw new Error("Products Only title is not vertically centered");
     }
 
-    const lightCard = canvasElement.querySelector<HTMLElement>(
-      '[data-slot="hero-banner-item"][data-foreground="light"]',
-    );
+    let lightCard: HTMLElement | null = null;
+    await waitFor(() => {
+      lightCard = canvasElement.querySelector<HTMLElement>(
+        '[data-slot="hero-banner-item"][data-foreground="light"]',
+      );
+      if (!lightCard) throw new Error("Waiting for sampled Hero Banner palette");
+    });
     const lightSurface = lightCard
       ?.querySelector<HTMLElement>('[data-slot="hero-banner-copy"]')
       ?.parentElement;
@@ -431,7 +436,7 @@ export const Showcase: Story = {
       !lightSurface ||
       getComputedStyle(lightCard).color !== "rgb(255, 255, 255)"
     ) {
-      throw new Error("Light Hero Banner campaigns must render white copy");
+      throw new Error(`Light Hero Banner campaigns must render white copy, got ${lightCard ? getComputedStyle(lightCard).color : "missing card"}`);
     }
 
     const serializedSurface = getComputedStyle(lightSurface).backgroundColor;

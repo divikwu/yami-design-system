@@ -9,9 +9,10 @@ projects are private and protected.
 | `yami-canvas-storybook` | `apps/storybook` | All Deployments + Vercel Authentication |
 
 Before the first asset-bearing deployment, verify anonymous requests to the
-Canvas, Storybook, font URLs and `/api/directions/generate` are rejected. Canvas
-alone receives `OPENAI_API_KEY`; Storybook must have no AI secret. Preview and
-production use the same protection level.
+Canvas, Storybook and font URLs must reject anonymous access. Neither project
+receives an AI secret: Codex or Kiro creates a Direction Manifest locally, and
+Canvas validates imported JSON. Preview and production use the same protection
+level.
 
 Creating/linking projects, setting secrets and deploying remain separate user
 authorization steps.

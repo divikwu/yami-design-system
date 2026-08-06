@@ -11,6 +11,17 @@ pnpm dev
 pnpm dev:storybook
 ```
 
+## AI workflow
+
+YAMI Canvas does not call a model at runtime. Generate a `DirectionManifestV1`
+JSON file in Codex or Kiro, then import it from the Canvas control panel. The
+browser validates the schema before saving the direction to local storage.
+
+No API key, login, or database is required.
+
+See [`docs/ai-workflow.md`](docs/ai-workflow.md) for the reusable agent prompt
+and import contract.
+
 - Canvas: http://localhost:3200
 - Storybook: http://localhost:6006
 

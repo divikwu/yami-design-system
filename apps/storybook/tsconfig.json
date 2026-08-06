@@ -1,5 +1,5 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": { "types": ["vite/client"] },
-  "files": [".storybook/main.ts", ".storybook/manager.ts", ".storybook/preview.tsx"]
+  "files": [".storybook/main.ts", ".storybook/manager.ts", ".storybook/preview.tsx", "vitest.config.ts"]
 }

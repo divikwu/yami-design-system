@@ -258,7 +258,7 @@ export const Showcase: Story = {
         inverseShowcase.getBoundingClientRect().right > showcaseStack.getBoundingClientRect().right + 0.5 ||
         inverseShowcase.scrollWidth > inverseShowcase.clientWidth
       ) {
-        throw new Error("Tabs inverse showcase overflows a 370px mobile content width")
+        throw new Error(`Tabs inverse showcase overflows a 370px mobile content width: outer ${showcaseStack.getBoundingClientRect().width}px, inverse ${inverseShowcase.getBoundingClientRect().width}px, scroll ${inverseShowcase.scrollWidth}/${inverseShowcase.clientWidth}`)
       }
     } finally {
       showcaseStack.style.width = initialWidth

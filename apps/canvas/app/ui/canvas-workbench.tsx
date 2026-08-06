@@ -12,25 +12,13 @@ type Theme = "light" | "dark";
 type Viewport = "360" | "768" | "1440";
 const generatedFixture = DirectionManifestV1Schema.parse(fixture);
 
-function clientId() {
-  const key = "yami-canvas:client-id:v1";
-  const stored = localStorage.getItem(key);
-  if (stored) return stored;
-  const value = crypto.randomUUID();
-  localStorage.setItem(key, value);
-  return value;
-}
-
 export function CanvasWorkbench() {
   const params = useSearchParams();
   const router = useRouter();
   const reduced = useReducedMotion();
   const fileInput = useRef<HTMLInputElement>(null);
   const [drafts, setDrafts] = useState<DirectionManifestV1[]>([]);
-  const [prompt, setPrompt] = useState("");
-  const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
-  const [cooldown, setCooldown] = useState(0);
   const path = params.get("path") || "/";
   const direction = params.get("direction") || "current";
   const locale = (params.get("locale") === "en" ? "en" : "zh") as Locale;
@@ -55,12 +43,6 @@ export function CanvasWorkbench() {
     return () => window.removeEventListener("message", onMessage);
   });
 
-  useEffect(() => {
-    if (!cooldown) return;
-    const timer = window.setInterval(() => setCooldown((value) => Math.max(0, value - 1)), 1000);
-    return () => window.clearInterval(timer);
-  }, [cooldown]);
-
   function update(next: Partial<{ path: string; direction: string; locale: Locale; theme: Theme; viewport: Viewport }>, mode: "push" | "replace" = "replace") {
     const query = new URLSearchParams(params.toString());
     for (const [key, value] of Object.entries(next)) query.set(key, value);
@@ -69,19 +51,6 @@ export function CanvasWorkbench() {
 
   const previewQuery = useMemo(() => new URLSearchParams({ path, direction, locale, theme, viewport }).toString(), [path, direction, locale, theme, viewport]);
   const directions = [generatedFixture, ...drafts];
-
-  async function generate() {
-    if (!prompt.trim() || busy || cooldown) return;
-    setBusy(true); setNotice("");
-    try {
-      const response = await fetch("/api/directions/generate", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ prompt, locale, clientId: clientId() }) });
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error ?? "生成失败");
-      const manifest = DirectionManifestV1Schema.parse(payload.manifest);
-      upsertDraft(manifest); setPrompt(""); setCooldown(10); update({ direction: manifest.id }); setNotice("新方向已保存到本地草稿");
-    } catch (error) { setNotice(error instanceof Error ? error.message : "生成失败"); }
-    finally { setBusy(false); }
-  }
 
   function exportDraft() {
     const draft = directions.find((item) => item.id === direction);
@@ -127,7 +96,7 @@ export function CanvasWorkbench() {
           <fieldset><legend>设备</legend><div className="segmented">{(["360", "768", "1440"] as const).map((value) => <button key={value} className={viewport === value ? "active" : ""} onClick={() => update({ viewport: value })}>{value === "360" ? "手机" : value === "768" ? "平板" : "桌面"}</button>)}</div></fieldset>
           <div className="path-readout"><span>当前路径</span><code>{path}</code></div>
           <div className="draft-actions"><button onClick={exportDraft} disabled={direction === "current"}>导出</button><button onClick={() => fileInput.current?.click()}>导入</button><button onClick={renameDraft} disabled={!drafts.some((item) => item.id === direction)}>重命名</button><button onClick={deleteDraft} disabled={!drafts.some((item) => item.id === direction)}>删除</button><input ref={fileInput} type="file" accept="application/json" hidden onChange={importDraft} /></div>
-          <div className="ai-composer"><div className="panel-heading"><span>生成新方向</span><small>STRUCTURED</small></div><textarea value={prompt} onChange={(event) => setPrompt(event.target.value)} maxLength={2000} placeholder="例如：更克制的编辑感，减少圆角，突出本周精选…" /><div className="composer-footer"><small>{prompt.length} / 2000</small><button className="primary" onClick={generate} disabled={busy || !prompt.trim() || cooldown > 0}>{busy ? "生成中…" : cooldown ? `${cooldown}s` : "AI 生成"}</button></div>{notice && <p className="notice" role="status">{notice}</p>}</div>
+          <div className="ai-composer"><div className="panel-heading"><span>AI 设计工作流</span><small>CODEX / KIRO</small></div><p>在 Codex 或 Kiro 中生成 Direction Manifest V1 JSON，再导入 Canvas 进行校验、切换和评审。</p><button className="primary" onClick={() => fileInput.current?.click()}>导入 AI 方案</button>{notice && <p className="notice" role="status">{notice}</p>}</div>
         </motion.aside>
 
         <section className="preview-stage" aria-label="原型预览区">

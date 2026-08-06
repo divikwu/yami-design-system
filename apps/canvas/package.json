@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start -p 3200",
     "typecheck": "tsc -p tsconfig.json",
-    "test": "vitest run"
+    "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
     "@yami/contracts": "workspace:*",
@@ -15,10 +15,8 @@
     "@yami/prototypes": "workspace:*",
     "motion": "12.42.2",
     "next": "16.2.10",
-    "openai": "7.4.0",
     "react": "19.2.7",
-    "react-dom": "19.2.7",
-    "zod": "4.4.3"
+    "react-dom": "19.2.7"
   },
   "devDependencies": {
     "@types/react": "19.2.14",

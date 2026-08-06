@@ -5,15 +5,15 @@
   --canvas-panel: #fbfaf6;
   --canvas-line: #d8d4cb;
   --canvas-muted: #5f5b54;
-  --canvas-red: #ed2d2d;
+  --canvas-red: #d92b2b;
 }
 
 * { box-sizing: border-box; }
 html, body { min-height: 100%; }
 body { margin: 0; background: var(--canvas-paper); color: var(--canvas-ink); font-family: var(--font-yami), Arial, sans-serif; }
-button, select, textarea { font: inherit; }
+button, select { font: inherit; }
 button, a, select { -webkit-tap-highlight-color: transparent; }
-button:focus-visible, a:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--canvas-red); outline-offset: 2px; }
+button:focus-visible, a:focus-visible, select:focus-visible { outline: 2px solid var(--canvas-red); outline-offset: 2px; }
 
 .app-loading { display: grid; min-height: 100vh; place-items: center; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; }
 .canvas-shell { min-height: 100vh; }
@@ -48,9 +48,7 @@ button:focus-visible, a:focus-visible, select:focus-visible, textarea:focus-visi
 .draft-actions button { min-height: 32px; border: 1px solid var(--canvas-line); background: #fff; cursor: pointer; font-size: 11px; }
 .draft-actions button:disabled { opacity: .4; cursor: not-allowed; }
 .ai-composer { margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--canvas-line); }
-.ai-composer textarea { width: 100%; min-height: 112px; resize: vertical; padding: 10px; border: 1px solid var(--canvas-line); border-radius: 0; background: #fff; color: var(--canvas-ink); font-size: 12px; line-height: 1.5; }
-.composer-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
-.composer-footer small { color: var(--canvas-muted); font: 10px/1 ui-monospace, monospace; }
+.ai-composer p { margin: 0 0 12px; color: var(--canvas-muted); font-size: 11px; line-height: 1.6; }
 .primary { min-width: 92px; height: 34px; border: 0; background: var(--canvas-red); color: #fff; cursor: pointer; font-size: 12px; font-weight: 600; }
 .primary:disabled { background: #aaa; cursor: not-allowed; }
 .notice { margin: 10px 0 0; color: var(--canvas-muted); font-size: 11px; line-height: 1.5; }

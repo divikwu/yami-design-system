@@ -420,6 +420,7 @@ export function TokenCard({
       {showSwatch ? (
         <div
           aria-label={`${item.token} swatch`}
+          role="img"
           style={{
             background: hasTransparentSwatch ? "#fff" : swatchFill,
             backgroundImage: hasTransparentSwatch ? checkerboardBackground : undefined,
