@@ -26,5 +26,8 @@ required if the license owner does not separately approve this repository.
 - Public forks and mirrors are technically possible but are not granted asset
   reuse rights by this repository.
 - GitHub rulesets can require the named CI jobs without a paid plan.
+- The canonical ruleset payload is stored in
+  `docs/deployment/main-ruleset.json`; apply it only after every named check has
+  completed successfully on the commit that will become `main`.
 - Package publication and Vercel deployment remain separate authorization
   boundaries.

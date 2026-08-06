@@ -1,0 +1,42 @@
+{
+  "name": "YAMI Canvas main protection",
+  "target": "branch",
+  "enforcement": "active",
+  "conditions": {
+    "ref_name": {
+      "include": ["~DEFAULT_BRANCH"],
+      "exclude": []
+    }
+  },
+  "rules": [
+    {
+      "type": "deletion"
+    },
+    {
+      "type": "non_fast_forward"
+    },
+    {
+      "type": "required_status_checks",
+      "parameters": {
+        "do_not_enforce_on_create": false,
+        "strict_required_status_checks_policy": true,
+        "required_status_checks": [
+          { "context": "typecheck" },
+          { "context": "lint" },
+          { "context": "unit" },
+          { "context": "storybook" },
+          { "context": "storybook-interactions" },
+          { "context": "docgen" },
+          { "context": "generated-drift" },
+          { "context": "package-boundaries" },
+          { "context": "a11y" },
+          { "context": "e2e" },
+          { "context": "visual" },
+          { "context": "build" },
+          { "context": "changeset" },
+          { "context": "yami-freeze" }
+        ]
+      }
+    }
+  ]
+}
