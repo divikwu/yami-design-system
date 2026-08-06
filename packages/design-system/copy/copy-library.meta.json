@@ -1,0 +1,18 @@
+{
+  "$schema": "../design-system/schema/copy-library-meta.json",
+  "name": "yami-copy-library",
+  "version": "0.1.0",
+  "description": "YAMI actual copy strings — i18n (CN + EN) for UI and marketing contexts",
+  "locales": ["en", "zh-CN"],
+  "defaultLocale": "en",
+  "owners": ["content-team@yami.internal", "product-ops@yami.internal"],
+  "categories": [
+    {
+      "id": "ui",
+      "description": "UI labels, errors, empty states, notifications — basic building blocks",
+      "path": "ui/",
+      "phase": 1.5
+    }
+  ],
+  "notes": "Phase 1.5 creates ui/ category with 5 initial files (buttons / errors / empty-states / notifications / labels). marketing/ category deferred per YAGNI until first campaign page needs dedicated copy."
+}

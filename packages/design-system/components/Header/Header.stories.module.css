@@ -1,0 +1,26 @@
+.canvas {
+  min-height: 100vh;
+  background: var(--background-primary);
+}
+
+/* The band swaps anatomy at --breakpoints-desktop, so the preview must track
+ * the toolbar viewport rather than pin a width. Only the PC band gets the
+ * 1024px floor that keeps its rail overflow and paging controls behaving as
+ * they do at 1440. */
+.frame {
+  overflow-x: auto;
+}
+
+@media (min-width: 1024px) {
+  .frame > * {
+    min-width: 1024px;
+  }
+}
+
+.note {
+  padding: var(--space-300) var(--space-600);
+  color: var(--text-secondary);
+  font-family: var(--font-family-ios);
+  font-size: var(--font-size-body-md);
+  line-height: var(--line-height-body-md);
+}

@@ -1,0 +1,327 @@
+{
+  "$schema": "../../../schema/component.json",
+  "name": "Header",
+  "category": "composite",
+  "semanticCategories": ["navigation"],
+  "status": "beta",
+  "version": "0.2.0",
+  "description": "YAMI global navigation band. At and above 1024px: brand lockup, storefront hall switcher, locale, deliver-to, search, account / cart, and a category rail whose entries are campaign artwork rather than icon components. Below 1024px it swaps to the mobile chrome — a 56px brand bar (lockup, deliver-to, inbox) over a 36px search field with visual search. The two are different anatomies, not a reflow.",
+  "figma": {
+    "fileKey": "6oOAy72DBff4P6NzJYc2hi",
+    "nodeId": "5777:562353",
+    "componentNodes": {
+      "pc": "5777:562353",
+      "mobile": "2725:151904"
+    },
+    "notes": "PC geometry and token bindings were reconciled against the production www.yami.com/en header at 1480px, because the Figma node was not reachable when this component was built. The mobile band is measured directly from node 2725:151904."
+  },
+  "exports": [
+    "Header",
+    "HeaderAccount",
+    "HeaderCart",
+    "HeaderCategory",
+    "HeaderCategoryRail",
+    "HeaderCategoryRailProps",
+    "HeaderHall",
+    "HeaderImage",
+    "HeaderInbox",
+    "HeaderLocale",
+    "HeaderProps",
+    "HeaderSearch",
+    "HeaderSearchProps",
+    "HeaderZipcode"
+  ],
+  "composes": [],
+  "props": {
+    "logo": {
+      "type": "HeaderImage",
+      "required": true,
+      "description": "Brand lockup artwork. PC renders the assets/logos/yami-ui-<lang>-pc-fill.svg lockup at 52px tall."
+    },
+    "mobileLogo": {
+      "type": "HeaderImage",
+      "required": false,
+      "description": "Brand lockup below 1024px. Renders the assets/logos/yami-ui-<lang>-mobile-fill.svg lockup at 32px tall — a distinct Figma variant with its own mark / wordmark proportions, not the PC file scaled down. Falls back to logo."
+    },
+    "darkLogo": {
+      "type": "HeaderImage",
+      "required": false,
+      "description": "Brand lockup on dark surfaces. Renders assets/logos/yami-ui-<lang>-pc-fill-inverse.svg — the same locked lockup with a white wordmark, since Fill's #222222 wordmark is invisible on a dark band. Swapped by the .dark class in CSS, not JS. Omit and the band keeps logo in dark mode."
+    },
+    "darkMobileLogo": {
+      "type": "HeaderImage",
+      "required": false,
+      "description": "Dark-surface counterpart to mobileLogo, from assets/logos/yami-ui-<lang>-mobile-fill-inverse.svg. Omit to keep mobileLogo."
+    },
+    "homeHref": {
+      "type": "string",
+      "required": false,
+      "description": "Destination for the brand lockup. Defaults to the site root."
+    },
+    "halls": {
+      "type": "HeaderHall[]",
+      "required": false,
+      "default": "[]",
+      "description": "Storefront halls rendered as an inline radiogroup left of the search field (All | Beauty). These scope the storefront, not the search query. EN-only: the CN storefront ships no hall switcher, so omit this there — Header then separates the lockup from the locale / deliver-to group with a rule instead."
+    },
+    "hallId": {
+      "type": "string",
+      "required": false,
+      "description": "Controlled active hall id. Uncontrolled selection falls back to the first hall."
+    },
+    "onHallChange": {
+      "type": "(hallId: string) => void",
+      "required": false,
+      "description": "Fires on hall selection."
+    },
+    "zipcode": {
+      "type": "HeaderZipcode",
+      "required": false,
+      "description": "Deliver-to control beside the locale switcher and before the search field. Omit to hide it."
+    },
+    "categories": {
+      "type": "HeaderCategory[]",
+      "required": true,
+      "description": "Category rail entries in display order. Each entry's image renders as a 24px <img>, never an icon component; omitting image yields the built-in grid glyph used by the leading Categories entry."
+    },
+    "searchPlaceholder": {
+      "type": "string",
+      "required": false,
+      "default": "Search",
+      "description": "Localized placeholder for the query field. Production rotates hot searches through this slot; rotation is the caller's concern."
+    },
+    "searchValue": {
+      "type": "string",
+      "required": false,
+      "description": "Controlled query. Leave undefined for an uncontrolled field."
+    },
+    "onSearchValueChange": {
+      "type": "(value: string) => void",
+      "required": false,
+      "description": "Fires on every query keystroke."
+    },
+    "onSearchSubmit": {
+      "type": "(query: string) => void",
+      "required": false,
+      "description": "Fires on form submit with the current query."
+    },
+    "onScan": {
+      "type": "() => void",
+      "required": false,
+      "description": "Visual search, mobile field only. Omit while the entry is not configured."
+    },
+    "account": {
+      "type": "HeaderAccount",
+      "required": true,
+      "description": "Account entry point. Its label is rendered visibly beside the glyph and is also the accessible name."
+    },
+    "locale": {
+      "type": "HeaderLocale",
+      "required": true,
+      "description": "Country flag artwork rendered at 20px, plus a short locale code such as EN. It lives in the left brand group immediately before deliver-to. Use the maintained DS icons in assets/icons/area/."
+    },
+    "cart": {
+      "type": "HeaderCart",
+      "required": true,
+      "description": "Cart entry point. The count is folded into the accessible name only — the chrome renders no visible count."
+    },
+    "inbox": {
+      "type": "HeaderInbox",
+      "required": false,
+      "description": "Message centre entry in the mobile brand bar, below 1024px only. The PC band routes messages through the account menu, so this has no desktop counterpart. Omit to hide it."
+    },
+    "ariaLabel": {
+      "type": "string",
+      "required": false,
+      "default": "YAMI",
+      "description": "Localized accessible name for the banner landmark."
+    },
+    "hallsLabel": {
+      "type": "string",
+      "required": false,
+      "default": "Storefront",
+      "description": "Localized accessible name for the hall radiogroup."
+    },
+    "categoriesLabel": {
+      "type": "string",
+      "required": false,
+      "default": "Shop by category",
+      "description": "Localized accessible name for the category rail navigation region."
+    },
+    "searchLabel": {
+      "type": "string",
+      "required": false,
+      "default": "Search",
+      "description": "Localized accessible name for the search landmark, field, and submit control."
+    },
+    "scanLabel": {
+      "type": "string",
+      "required": false,
+      "default": "Search by photo",
+      "description": "Localized accessible name for the mobile field's visual-search control. The control is mobile-only."
+    },
+    "nextCategoriesLabel": {
+      "type": "string",
+      "required": false,
+      "default": "More categories",
+      "description": "Localized accessible name for the rail's forward paging control."
+    },
+    "previousCategoriesLabel": {
+      "type": "string",
+      "required": false,
+      "default": "Previous categories",
+      "description": "Localized accessible name for the rail's backward paging control."
+    }
+  },
+  "rules": {
+    "redUsage": {
+      "ruleId": "red-usage",
+      "note": "Category promotion badges are the only red in the chrome and use --text-emphasis. Counts and promotion flags such as NEW qualify; decorative labels do not."
+    },
+    "semanticColorOnly": {
+      "ruleId": "semantic-color-only",
+      "note": "No non-semantic hue is baked into the CSS. The band resolves to --surface-primary and exposes no tinting escape hatch."
+    },
+    "tapTarget": {
+      "ruleId": "tap-target",
+      "note": "Account, locale, cart, and category entries clear 44px. The 18px hall text controls and the 40px deliver-to control keep their visual size and gain a transparent 44px hit area."
+    },
+    "focus": {
+      "ruleId": "focus-style",
+      "note": "Brand, halls, deliver-to, account, locale, cart, category links, rail paging, and the submit button expose a 2px --border-focus outline at 2px offset."
+    },
+    "radius": {
+      "ruleId": "no-custom-radii",
+      "note": "Only semantic radius slots. Production's 20px / 16px / 18px pills are all fully-rounded boxes, so they map to --radius-button-primary; focusable text controls use --radius-component-default."
+    },
+    "typeHierarchy": {
+      "ruleId": "type-hierarchy",
+      "note": "Three levels in the chrome: link-md (halls, deliver-to, account), body-md (query field), caption-sm (category labels and promotion badges), plus link-sm for the locale code."
+    },
+    "numeralsFont": {
+      "ruleId": "numerals-font",
+      "note": "The deliver-to postal code and promotion counts inherit --font-family-ios from the header root."
+    },
+    "elevationOnPress": {
+      "ruleId": "elevation-on-press",
+      "note": "Hover changes background-color only. The rail paging controls separate from scrolling content with a 1px --border-default ring rather than a shadow, matching production."
+    },
+    "noOpacityDisabled": {
+      "ruleId": "no-opacity-disabled",
+      "note": "Rail paging controls unmount at the boundaries rather than dimming, matching production's display:none, so no disabled styling is required."
+    },
+    "borderStrength": {
+      "ruleId": "border-strength",
+      "note": "Production uses #000 for the search ring, 17% black for the cart ring and rail divider, #f5f5f5 for the row rule, and #222 for the closing rule. The DS caps borders at three strengths, so these map to --border-focus, --border-default / --divider-subtle, --border-default, and --divider-emphasis respectively."
+    }
+  },
+  "tokens": [
+    "--surface-primary",
+    "--text-primary",
+    "--text-primary-inverse",
+    "--text-secondary",
+    "--text-emphasis",
+    "--border-default",
+    "--border-focus",
+    "--divider-subtle",
+    "--divider-emphasis",
+    "--button-primary",
+    "--button-primary-active",
+    "--button-secondary",
+    "--button-tertiary-active",
+    "--radius-button-primary",
+    "--radius-component-default",
+    "--stroke-default",
+    "--stroke-thick",
+    "--font-family-ios",
+    "--font-weight-normal",
+    "--font-weight-emphasize",
+    "--font-size-body-md",
+    "--line-height-body-md",
+    "--font-size-link-md",
+    "--line-height-link-md",
+    "--font-size-link-sm",
+    "--line-height-link-sm",
+    "--font-size-caption-sm",
+    "--line-height-caption-sm",
+    "--space-025",
+    "--space-050",
+    "--space-100",
+    "--space-150",
+    "--space-200",
+    "--space-300",
+    "--space-400",
+    "--space-600"
+  ],
+  "tokenBindings": {
+    "--surface-primary": {
+      "property": "background",
+      "selector": ".root fallback, .search, .railControl"
+    },
+    "--space-600": {
+      "property": "padding-inline / left / right",
+      "selector": ".utilityRow, .rail, .railControl edge inset"
+    },
+    "--divider-emphasis": {
+      "property": "background",
+      "selector": ".root::after viewport-wide closing rule at --stroke-thick"
+    },
+    "--border-default": {
+      "property": "background / border-color",
+      "selector": ".utilityRow::after row rule, .cart, .railControl"
+    },
+    "--border-focus": {
+      "property": "border-color",
+      "selector": ".search ring at --stroke-thick; outline-color on every focusable slot"
+    },
+    "--divider-subtle": {
+      "property": "background",
+      "selector": ".hallDivider, .railGroupDivider"
+    },
+    "--radius-button-primary": {
+      "property": "border-radius",
+      "selector": ".search, .searchSubmit, .zipcode, .account, .locale, .cart, .railControl"
+    },
+    "--radius-component-default": {
+      "property": "border-radius",
+      "selector": ".brand, .category, .hallButton"
+    },
+    "--button-primary": {
+      "property": "background",
+      "selector": ".searchSubmit"
+    },
+    "--text-emphasis": {
+      "property": "color",
+      "selector": ".categoryBadge"
+    },
+    "--font-size-caption-sm": {
+      "property": "font-size",
+      "selector": ".categoryLabel, .categoryBadge"
+    },
+    "--font-size-link-md": {
+      "property": "font-size",
+      "selector": ".hallButton, .zipcode, .account"
+    },
+    "--font-weight-emphasize": {
+      "property": "font-weight",
+      "selector": ".hallButton[data-selected], .categoryBadge"
+    }
+  },
+  "accessibility": {
+    "role": "banner landmark containing a search landmark and a category navigation region",
+    "wcagLevel": "AA",
+    "tapTargetMin": 44,
+    "keyboardNav": ["tab", "shift+tab", "enter", "space"],
+    "ariaPattern": "header banner + role=search form + nav with a list of category links; halls form an exclusive radiogroup",
+    "structure": "Category artwork carries the category name as alt and repeats it as a visible label. The leading Categories entry uses a decorative glyph and relies on its visible label. The account control shows its label visibly. The locale control names itself via aria-label and hides the short code from assistive technology. The cart folds its item count into aria-label because the chrome shows no visible count.",
+    "interaction": "The category rail scrolls natively; paging controls page by one viewport minus a single anchor entry and unmount at the boundaries. Reduced motion switches paging to immediate scrolling. Promotion badges sit in the category entry's top-right corner and are clipped to one line so a multi-badge entry cannot change the row height.",
+    "notes": "PC only. Below 1024px the rail scrolls rather than reflowing — the mobile header is a separate component."
+  },
+  "dependencies": {
+    "runtime": ["react"],
+    "peer": [],
+    "devOnly": []
+  },
+  "usageRef": "./usage.md",
+  "examples": ["./examples.tsx#PcHeader"]
+}

@@ -1,0 +1,69 @@
+{
+  "$description": "Form field labels + section/heading titles. Form-label pattern: noun + optional (unit). Section-title pattern: lead with action verb. See copy-patterns.md. Form labels don't include the required '*' marker — that's a rendering concern applied to the label component.",
+
+  "form": {
+    "phone":          { "en": "Phone",           "zh-CN": "电话" },
+    "email":          { "en": "Email",           "zh-CN": "邮箱" },
+    "password":       { "en": "Password",        "zh-CN": "密码" },
+    "confirmPassword":{ "en": "Confirm Password","zh-CN": "确认密码" },
+    "firstName":      { "en": "First Name",      "zh-CN": "名" },
+    "lastName":       { "en": "Last Name",       "zh-CN": "姓" },
+    "fullName":       { "en": "Full Name",       "zh-CN": "姓名" },
+
+    "address":        { "en": "Address",         "zh-CN": "地址" },
+    "address2":       { "en": "Apt, Suite, etc.", "zh-CN": "门牌号等" },
+    "city":           { "en": "City",            "zh-CN": "城市" },
+    "state":          { "en": "State",           "zh-CN": "州/省" },
+    "zip":            { "en": "ZIP",             "zh-CN": "邮编" },
+    "country":        { "en": "Country",         "zh-CN": "国家/地区" },
+
+    "deliveryNotes":  { "en": "Delivery Notes",  "zh-CN": "配送备注" },
+    "promoCode":      { "en": "Promo Code",      "zh-CN": "优惠码" },
+    "quantity":       { "en": "Quantity",        "zh-CN": "数量" },
+
+    "optional":       { "en": "Optional",        "zh-CN": "选填" },
+    "required":       { "en": "Required",        "zh-CN": "必填" }
+  },
+
+  "section": {
+    "featuredProducts":  { "en": "Featured Products",    "zh-CN": "精选商品" },
+    "justForYou":        { "en": "Just for You",         "zh-CN": "为你推荐" },
+    "todaysDeals":       { "en": "Today's Deals",        "zh-CN": "今日特惠" },
+    "shopByCategory":    { "en": "Shop by Category",     "zh-CN": "按分类购物" },
+    "newArrivals":       { "en": "New Arrivals",         "zh-CN": "新品上架" },
+    "bestSellers":       { "en": "Best Sellers",         "zh-CN": "畅销商品" },
+    "recentlyViewed":    { "en": "Recently Viewed",      "zh-CN": "最近浏览" },
+
+    "cart":              { "en": "Cart",                 "zh-CN": "购物车" },
+    "shipping":          { "en": "Shipping",             "zh-CN": "配送地址" },
+    "payment":           { "en": "Payment",              "zh-CN": "付款方式" },
+    "review":            { "en": "Review",               "zh-CN": "确认订单" },
+    "orderSummary":      { "en": "Order Summary",        "zh-CN": "订单汇总" },
+
+    "myOrders":          { "en": "My Orders",            "zh-CN": "我的订单" },
+    "myFavorites":       { "en": "My Favorites",         "zh-CN": "我的收藏" },
+    "myAccount":         { "en": "My Account",           "zh-CN": "我的账户" },
+    "myAddresses":       { "en": "My Addresses",         "zh-CN": "我的地址" },
+    "myCoupons":         { "en": "My Coupons",           "zh-CN": "我的优惠券" }
+  },
+
+  "nav": {
+    "home":     { "en": "Home",     "zh-CN": "首页" },
+    "category": { "en": "Category", "zh-CN": "分类" },
+    "cart":     { "en": "Cart",     "zh-CN": "购物车" },
+    "me":       { "en": "Me",       "zh-CN": "我的" },
+    "search":   { "en": "Search",   "zh-CN": "搜索" },
+    "deals":    { "en": "Deals",    "zh-CN": "优惠" }
+  },
+
+  "meta": {
+    "inStock":      { "en": "In Stock",       "zh-CN": "有货" },
+    "lowStock":     { "en": "Low Stock",      "zh-CN": "库存紧张" },
+    "outOfStock":   { "en": "Out of Stock",   "zh-CN": "已售罄" },
+    "freeShipping": { "en": "Free Shipping",  "zh-CN": "免运费" },
+    "new":          { "en": "New",            "zh-CN": "新品" },
+    "sale":         { "en": "Sale",           "zh-CN": "促销" },
+    "limited":      { "en": "Limited",        "zh-CN": "限时" },
+    "bestseller":   { "en": "Bestseller",     "zh-CN": "畅销" }
+  }
+}

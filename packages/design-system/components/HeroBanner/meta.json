@@ -1,0 +1,177 @@
+{
+  "$schema": "../../../schema/component.json",
+  "name": "HeroBanner",
+  "category": "composite",
+  "status": "stable",
+  "version": "0.3.0",
+  "description": "Responsive YAMI homepage campaign rail composed from four explicit content cards: image only, image and text, image text and products, or products only.",
+  "figma": {
+    "fileKey": "6oOAy72DBff4P6NzJYc2hi",
+    "nodeId": "3053:7724",
+    "componentNodes": {
+      "pc": "3053:7724",
+      "mobile": "3056:37111",
+      "mobilePage": "6962:102970"
+    }
+  },
+  "exports": [
+    "HeroBanner",
+    "HeroBannerImageOnlyCard",
+    "HeroBannerImageOnlyCardProps",
+    "HeroBannerImageOnlyItem",
+    "HeroBannerImageTextCard",
+    "HeroBannerImageTextCardProps",
+    "HeroBannerImageTextItem",
+    "HeroBannerImageTextProductsCard",
+    "HeroBannerImageTextProductsCardProps",
+    "HeroBannerImageTextProductsItem",
+    "HeroBannerImage",
+    "HeroBannerItem",
+    "HeroBannerProduct",
+    "HeroBannerProductsOnlyCard",
+    "HeroBannerProductsOnlyCardProps",
+    "HeroBannerProductsOnlyItem",
+    "HeroBannerProps"
+  ],
+  "composes": ["Button"],
+  "props": {
+    "items": {
+      "type": "HeroBannerItem[]",
+      "required": true,
+      "description": "Ordered campaign cards. Their image, copy, and product fields select one of the four public card subcomponents."
+    },
+    "ariaLabel": {
+      "type": "string",
+      "required": false,
+      "default": "Featured promotions",
+      "description": "Localized accessible name for the campaign region."
+    },
+    "previousLabel": {
+      "type": "string",
+      "required": false,
+      "default": "Previous promotions",
+      "description": "Localized accessible name for the desktop previous-page button."
+    },
+    "nextLabel": {
+      "type": "string",
+      "required": false,
+      "default": "Next promotions",
+      "description": "Localized accessible name for the desktop next-page button."
+    },
+    "imageLoading": {
+      "type": "ImgHTMLAttributes['loading']",
+      "required": false,
+      "default": "lazy",
+      "description": "Native loading mode for non-leading campaign images. The first image is always eager/high priority."
+    },
+    "dividerPosition": {
+      "type": "\"top\" | \"bottom\" | \"none\"",
+      "required": false,
+      "default": "none",
+      "description": "Places the optional desktop section boundary above, below, or removes it; ignored below 1024px."
+    },
+    "dividerVariant": {
+      "type": "\"gray\" | \"black\"",
+      "required": false,
+      "default": "gray",
+      "description": "Gray uses the existing 1px structural separator; black uses the theme-aware 2px emphasis separator."
+    }
+  },
+  "rules": {
+    "tapTarget": {
+      "ruleId": "tap-target",
+      "note": "Desktop paging composes 36px YAMI icon Buttons whose transparent hit area reaches 44px."
+    },
+    "focus": {
+      "ruleId": "focus-style",
+      "note": "Campaign links and paging buttons remain keyboard reachable with visible focus."
+    },
+    "radius": {
+      "ruleId": "no-custom-radii",
+      "note": "Campaign cards use --radius-lg (12px); product thumbnails use --radius-md (8px), matching the Figma component."
+    },
+    "motion": {
+      "ruleId": "elevation-on-press",
+      "note": "Paging respects prefers-reduced-motion and does not animate card geometry."
+    },
+    "gradient": {
+      "ruleId": "no-gradient",
+      "note": "The 24px gradient is a functional Figma-specified artwork-to-campaign-surface transition using the sampled bottom-edge image color."
+    }
+  },
+  "tokens": [
+    "--background-primary",
+    "--surface-primary",
+    "--surface-secondary",
+    "--color-white-1000",
+    "--text-primary",
+    "--border-default",
+    "--border-focus",
+    "--divider-default",
+    "--divider-emphasis",
+    "--stroke-default",
+    "--stroke-thick",
+    "--radius-md",
+    "--radius-lg",
+    "--font-family-ios",
+    "--font-weight-normal",
+    "--font-weight-emphasize",
+    "--font-size-heading-xl",
+    "--font-size-body-md",
+    "--line-height-heading-xl",
+    "--line-height-body-md",
+    "--layout-page-margin-card",
+    "--space-025",
+    "--space-050",
+    "--space-100",
+    "--space-150",
+    "--space-200",
+    "--space-300",
+    "--space-400",
+    "--space-600"
+  ],
+  "tokenBindings": {
+    "--radius-lg": {
+      "property": "border-radius",
+      "selector": ".card"
+    },
+    "--radius-md": {
+      "property": "border-radius",
+      "selector": ".product"
+    },
+    "--font-size-heading-xl": {
+      "property": "font-size",
+      "selector": ".title"
+    },
+    "--font-size-body-md": {
+      "property": "font-size",
+      "selector": ".description, .progress"
+    },
+    "--layout-page-margin-card": {
+      "property": "padding-inline",
+      "selector": ".root below 1024px"
+    },
+    "--space-600": {
+      "property": "padding-inline",
+      "selector": ".root at or above 1024px"
+    }
+  },
+  "accessibility": {
+    "role": "region containing a list of campaign links",
+    "wcagLevel": "AA",
+    "tapTargetMin": 44,
+    "keyboardNav": ["tab", "shift+tab", "enter"],
+    "ariaPattern": "labelled region with list/listitem campaign links and optional paging buttons",
+    "structure": "Campaign images require semantic alt text. Image-only cards use the image alt as the link accessible name.",
+    "interaction": "Mobile uses native horizontal scrolling. Desktop paging buttons reuse ProductList rail navigation and disable at boundaries, while the progress track and aria-live count report how many banners have been revealed through the current viewport against the total banner count."
+  },
+  "dependencies": {
+    "runtime": ["react", "./Button"],
+    "peer": [],
+    "devOnly": []
+  },
+  "usageRef": "./usage.md",
+  "examples": [
+    "./examples.tsx#ResponsiveHeroBanner"
+  ]
+}

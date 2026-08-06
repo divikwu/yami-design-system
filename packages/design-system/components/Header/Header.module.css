@@ -1,0 +1,719 @@
+/* Header — YAMI PC global navigation band.
+ *
+ * Geometry is measured from the production www.yami.com/en header at 1480px:
+ * 64px utility row + 1px rule, then 63.6px category rail + 2px rule = 130.6px.
+ *
+ * Where production uses a value the DS does not sanction, the DS wins and the
+ * deviation is recorded in meta.json → rules:
+ *   · hall weight 700        → --font-weight-emphasize (500); no bold token
+ *   · search border #000     → --border-focus (87% black)
+ *   · cart / divider 17%     → --border-default (8%) / --divider-subtle (29%)
+ *   · row rules #f5f5f5,#222 → --border-default / --divider-emphasis
+ */
+
+/* The band runs full-bleed — the white surface and both rules span the
+ * window. Only the content stops at 1920px: each row's inline padding grows
+ * past that width so the content lands in the same centered 1920 box (48px
+ * gutter inside it) that every other section uses. */
+.root {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+
+  /* Distance from the band's edge to the content box's 48px gutter — plain
+   * 48px below 1920, 48px plus half the overflow above it. Declared on .rail
+   * as well: HeaderCategoryRail also ships standalone, where no .root ancestor
+   * exists to inherit from. */
+  --header-gutter-outer: max(
+    var(--space-600),
+    calc((100% - 1920px) / 2 + var(--space-600))
+  );
+  /* Reserve the closing-rule height; ::after paints the viewport-wide rule
+   * once. A transparent border prevents the semi-transparent color from
+   * compositing twice on the same pixels. */
+  border-bottom: var(--stroke-thick) solid transparent;
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  font-family: var(--font-family-ios);
+}
+
+.root::after {
+  position: absolute;
+  bottom: calc(-1 * var(--stroke-thick));
+  left: 50%;
+  width: 100vw;
+  height: var(--stroke-thick);
+  background: var(--divider-emphasis);
+  content: '';
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+/* ---------------------------------------------------------------- row 1 */
+
+.utilityRow {
+  position: relative;
+  display: flex;
+  height: 64px;
+  box-sizing: content-box;
+  align-items: center;
+  /* Once the search field hits its 880px cap, the slack has to land between the
+   * groups rather than after the last one — otherwise the cart drifts inward
+   * off the page margin at wide viewports. */
+  justify-content: space-between;
+  padding-inline: var(--header-gutter-outer);
+  /* Reserve the row-rule height; ::after is the single visible paint layer. */
+  border-bottom: var(--stroke-default) solid transparent;
+}
+
+.utilityRow::after {
+  position: absolute;
+  bottom: calc(-1 * var(--stroke-default));
+  left: 50%;
+  width: 100vw;
+  height: var(--stroke-default);
+  background: var(--border-default);
+  content: '';
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.brandGroup {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-component-default);
+  text-decoration: none;
+}
+
+.brand:focus-visible,
+.hallButton:focus-visible,
+.zipcode:focus-visible,
+.account:focus-visible,
+.locale:focus-visible,
+.cart:focus-visible,
+.category:focus-visible,
+.railControl:focus-visible,
+.searchSubmit:focus-visible,
+.mobileBrand:focus-visible,
+.mobileAction:focus-visible,
+.searchScan:focus-visible {
+  outline: var(--stroke-thick) solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+.logo {
+  display: block;
+  width: auto;
+  height: 52px;
+}
+
+/* Separates the lockup from the deliver-to control on storefronts without a
+ * hall switcher, where the two would otherwise sit flush. Production renders
+ * this rule on the CN storefront and drops it on EN, where the hall switcher
+ * already provides the separation. */
+.brandDivider {
+  width: var(--stroke-default);
+  height: var(--space-300);
+  margin-left: var(--space-150);
+  margin-right: var(--space-100);
+  background: var(--divider-default);
+}
+
+/* ------------------------------------------------------- hall switcher */
+
+.halls {
+  display: flex;
+  align-items: center;
+  margin-inline: var(--space-200);
+  gap: var(--space-200);
+}
+
+.hallButton {
+  position: relative;
+  border: 0;
+  border-radius: var(--radius-component-default);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--font-size-link-md);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-link-md);
+  padding: 0;
+}
+
+.hallButton + .hallButton::before {
+  position: absolute;
+  top: 50%;
+  left: calc(-1 * var(--space-200) / 2);
+  width: var(--stroke-default);
+  height: var(--space-200);
+  background: var(--divider-subtle);
+  content: '';
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
+.hallButton[data-selected] {
+  color: var(--text-primary);
+  font-weight: var(--font-weight-emphasize);
+}
+
+/* Transparent hit area lifts the text control to the 44px minimum without
+ * growing the visible affordance (rule `tap-target`). */
+.hallButton::after,
+.zipcode::after,
+.locale::after {
+  position: absolute;
+  content: '';
+  inset: 50% 0 auto;
+  min-height: 44px;
+  transform: translateY(-50%);
+}
+
+/* ------------------------------------------------------------ zipcode */
+
+.locationGroup {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--space-025);
+}
+
+.zipcode {
+  position: relative;
+  display: inline-flex;
+  height: 36px;
+  align-items: center;
+  gap: var(--space-050);
+  padding-inline: var(--space-100);
+  border-radius: var(--radius-button-primary);
+  color: var(--text-primary);
+  font-size: var(--font-size-link-md);
+  line-height: var(--line-height-link-md);
+  text-decoration: none;
+}
+
+.zipcodeIcon {
+  display: block;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  background: currentColor;
+  -webkit-mask: var(--zipcode-icon) center / contain no-repeat;
+  mask: var(--zipcode-icon) center / contain no-repeat;
+}
+
+.zipcode:hover,
+.account:hover,
+.locale:hover {
+  background: var(--button-secondary);
+}
+
+/* ------------------------------------------------------------- search */
+
+.search {
+  display: flex;
+  min-width: 0;
+  max-width: 880px;
+  height: 40px;
+  box-sizing: border-box;
+  flex: 1 1 880px;
+  align-items: center;
+  margin-inline: var(--space-100);
+  padding: var(--space-025);
+  border: var(--stroke-thick) solid var(--border-focus);
+  border-radius: var(--radius-button-primary);
+  background: var(--surface-primary);
+}
+
+.searchField {
+  min-width: 0;
+  flex: 1 1 auto;
+  padding-inline: var(--space-150);
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: var(--font-size-body-md);
+  line-height: var(--line-height-body-md);
+  outline: none;
+}
+
+.searchField::placeholder {
+  color: var(--text-secondary);
+}
+
+.searchField::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.searchSubmit {
+  display: inline-flex;
+  width: 52px;
+  height: 32px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--radius-button-primary);
+  background: var(--button-primary);
+  color: var(--text-primary-inverse);
+  cursor: pointer;
+}
+
+.searchSubmit:hover {
+  background: var(--button-primary-active);
+}
+
+/* ------------------------------------------------------------ actions */
+
+.actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+}
+
+.account {
+  display: inline-flex;
+  height: 40px;
+  align-items: center;
+  gap: var(--space-050);
+  padding-inline: var(--space-100);
+  border-radius: var(--radius-button-primary);
+  color: var(--text-primary);
+  font-size: var(--font-size-link-md);
+  line-height: var(--line-height-link-md);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.accountIcon {
+  display: block;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  background: currentColor;
+  -webkit-mask: var(--account-icon) center / contain no-repeat;
+  mask: var(--account-icon) center / contain no-repeat;
+}
+
+.locale {
+  position: relative;
+  display: inline-flex;
+  height: 36px;
+  align-items: center;
+  gap: var(--space-025);
+  padding-inline: var(--space-100);
+  border-radius: var(--radius-button-primary);
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.flag {
+  display: block;
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.localeLabel {
+  font-size: var(--font-size-link-sm);
+  line-height: var(--line-height-link-sm);
+}
+
+.cart {
+  display: inline-flex;
+  width: 75px;
+  height: 36px;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  margin-left: var(--space-050);
+  border: var(--stroke-default) solid var(--border-default);
+  border-radius: var(--radius-button-primary);
+  background: transparent;
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.cartIcon {
+  display: block;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  background: currentColor;
+  -webkit-mask: var(--cart-icon) center / contain no-repeat;
+  mask: var(--cart-icon) center / contain no-repeat;
+}
+
+.cart:hover {
+  background: var(--button-tertiary-active);
+}
+
+/* ---------------------------------------------------------------- row 2 */
+
+.rail {
+  position: relative;
+  display: flex;
+  height: 63.6px;
+  align-items: center;
+
+  --header-gutter-outer: max(
+    var(--space-600),
+    calc((100% - 1920px) / 2 + var(--space-600))
+  );
+
+  padding-inline: var(--header-gutter-outer);
+}
+
+.railList {
+  display: flex;
+  min-width: 0;
+  /* Full row height, not content height: `overflow-x: auto` forces the
+   * vertical axis to clip as well, and a content-height box would shear the
+   * promotion badges off the top of the entries. */
+  height: 100%;
+  flex: 1 1 auto;
+  align-items: stretch;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+
+.railList::-webkit-scrollbar {
+  display: none;
+}
+
+.railItem {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+}
+
+.railGroupDivider {
+  width: var(--stroke-default);
+  height: var(--space-400);
+  margin-inline: var(--space-100);
+  background: var(--divider-subtle);
+}
+
+.category {
+  position: relative;
+  display: flex;
+  min-width: 72px;
+  box-sizing: border-box;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-050);
+  padding: var(--space-150) var(--space-100) var(--space-100);
+  border-radius: 0;
+  color: var(--text-primary);
+  text-align: center;
+  text-decoration: none;
+}
+
+.category:hover {
+  background: var(--button-secondary);
+}
+
+.categoryMedia {
+  display: block;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+}
+
+.categoryBuiltinIcon {
+  display: block;
+  width: 24px;
+  height: 24px;
+  background: currentColor;
+  -webkit-mask: var(--category-icon) center / contain no-repeat;
+  mask: var(--category-icon) center / contain no-repeat;
+}
+
+.categoryImage {
+  display: block;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+/* Promotion counts and flags only — never a decorative accent
+ * (rule `red-usage`). Anchored to the entry's top-right corner and clipped to
+ * one line so a multi-badge entry cannot change the row height. */
+.categoryBadges {
+  position: absolute;
+  top: var(--space-050);
+  right: var(--space-050);
+  display: flex;
+  height: var(--line-height-caption-sm);
+  flex-direction: column;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.categoryBadge {
+  color: var(--text-emphasis);
+  font-size: var(--font-size-caption-sm);
+  font-weight: var(--font-weight-emphasize);
+  line-height: var(--line-height-caption-sm);
+  white-space: nowrap;
+}
+
+.categoryLabel {
+  display: block;
+  max-width: 76px;
+  overflow: hidden;
+  font-size: var(--font-size-caption-md);
+  line-height: var(--line-height-caption-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (min-width: 1440px) {
+  .categoryLabel {
+    font-size: var(--font-size-caption-sm);
+  }
+}
+
+.railControlMask {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  width: var(--space-800);
+  background: linear-gradient(
+    90deg,
+    var(--surface-primary) calc(100% - var(--space-400)),
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+.railControlMaskPrevious {
+  left: var(--header-gutter-outer);
+}
+
+.railControlMaskNext {
+  right: var(--header-gutter-outer);
+  transform: scaleX(-1);
+}
+
+.railControl {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  display: inline-flex;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  border: var(--stroke-default) solid var(--border-default);
+  border-radius: var(--radius-button-primary);
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+
+.railControl:hover {
+  background: var(--button-tertiary-active);
+}
+
+.railControlPrevious {
+  left: var(--header-gutter-outer);
+}
+
+.railControlNext {
+  right: var(--header-gutter-outer);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .railList {
+    scroll-behavior: auto;
+  }
+}
+
+/* ------------------------------------------------- mobile band (<1024px)
+ *
+ * A different anatomy from the PC band, not a reflow of it — Figma
+ * `2725:151904`: a 56px brand bar (lockup · deliver-to · inbox) over a 36px
+ * search field on its own row, with an 8px page inset. Both trees render and
+ * the `--breakpoints-desktop` query picks one, so the component needs no width
+ * probe and stays server-renderable.
+ */
+
+.mobileBand {
+  display: none;
+  padding-inline: var(--space-100);
+}
+
+.mobileBar {
+  display: flex;
+  height: 56px;
+  align-items: center;
+  gap: var(--space-200);
+  padding-inline: var(--space-050);
+}
+
+.mobileBrand {
+  display: inline-flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-items: center;
+  border-radius: var(--radius-component-default);
+  text-decoration: none;
+}
+
+.mobileLogo {
+  display: block;
+  width: auto;
+  height: 32px;
+}
+
+.mobileActions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--space-050);
+}
+
+.mobileAction {
+  display: inline-flex;
+  width: 40px;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.mobileActionIcon {
+  display: block;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  background: currentColor;
+  -webkit-mask: var(--mobile-action-icon) center / contain no-repeat;
+  mask: var(--mobile-action-icon) center / contain no-repeat;
+}
+
+.mobileActionLabel {
+  font-size: var(--font-size-caption-sm);
+  /* 12px rather than --line-height-caption-sm (14px): the Figma action box is
+   * a 24px icon over a 12px label = 36px, which 14px would overrun. */
+  line-height: 12px;
+  text-align: center;
+}
+
+.mobileSearchRow {
+  display: flex;
+  padding-bottom: var(--space-100);
+}
+
+/* Mobile search field — 36px pill, one row below the brand bar. */
+
+.searchMobile {
+  width: 100%;
+  max-width: none;
+  height: 36px;
+  flex: 1 1 auto;
+  gap: var(--space-050);
+  margin-inline: 0;
+  padding: var(--space-050);
+  padding-right: var(--space-025);
+}
+
+.searchMobile .searchField {
+  padding-inline: var(--space-100);
+  font-size: var(--font-size-caption-md);
+  line-height: var(--line-height-caption-md);
+}
+
+.searchMobile .searchSubmit {
+  width: 48px;
+  height: 28px;
+}
+
+.searchScan {
+  display: inline-flex;
+  width: 40px;
+  height: 32px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--radius-button-primary);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.searchScanIcon {
+  display: block;
+  width: 20px;
+  height: 20px;
+  background: currentColor;
+  -webkit-mask: var(--scan-icon) center / contain no-repeat;
+  mask: var(--scan-icon) center / contain no-repeat;
+}
+
+/* The two bands are mutually exclusive. Below --breakpoints-desktop the PC
+ * utility row, category rail, and the band's closing rule all drop out —
+ * production ships no rule under the mobile header. */
+@media (max-width: 1023.98px) {
+  .mobileBand {
+    display: block;
+  }
+
+  .utilityRow,
+  .railRow {
+    display: none;
+  }
+
+  /* No band of its own: mobile stacks white cards on a grey page, and the
+   * header sits on that canvas rather than laying a white sheet over it. */
+  .root {
+    border-bottom-width: 0;
+    background: transparent;
+  }
+
+  .root::after {
+    content: none;
+  }
+}
+
+/* Dark-surface lockup swap.
+ *
+ * The Fill lockup's wordmark is #222222 and disappears on a dark band, so a
+ * white-wordmark counterpart is served instead. Only the file varies — the
+ * lockup itself stays a locked asset (brand rule: never assemble the mark and
+ * wordmark in code). `.dark` is the theme hook from tokens.css, so the swap is
+ * pure CSS and survives SSR. `display: none` also drops the hidden lockup from
+ * the accessibility tree, so only one alt is ever exposed. */
+
+.logoDark {
+  display: none;
+}
+
+:global(.dark) .logoLight {
+  display: none;
+}
+
+:global(.dark) .logoDark {
+  display: block;
+}

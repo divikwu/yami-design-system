@@ -1,0 +1,353 @@
+/* yami-validate-disable: no-gradient */
+/* The top and bottom media gradients preserve creator and caption legibility
+ * over caller-provided video imagery, matching the Figma video-card layers. */
+
+.root {
+  box-sizing: border-box;
+  width: 100%;
+  overflow: hidden;
+  border-top: var(--stroke-default) solid var(--divider-default);
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  font-family: var(--font-family-ios);
+}
+
+.container {
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1920px;
+  margin-inline: auto;
+  flex-direction: column;
+  gap: var(--space-200);
+  padding: var(--space-400) var(--space-600);
+}
+
+/* Row layout and the shared mobile inset come from SectionHeading. */
+.heading {
+  box-sizing: border-box;
+}
+
+/* Row layout and the desktop/mobile title swap come from SectionHeading. */
+
+/* The view-all pair comes from SectionHeading. */
+/* Size comes from RailNavigation, which every rail in the system shares. This
+ * used to pin 32px here and was the only consumer that resized it, so the
+ * control read a step smaller than the identical one on ProductList. */
+.railButton {
+  color: var(--text-primary);
+}
+
+.list {
+  display: flex;
+  min-width: 0;
+  width: 100%;
+  gap: var(--space-200);
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
+  list-style: none;
+  overscroll-behavior-inline: contain;
+  scroll-behavior: smooth;
+  scroll-snap-type: inline mandatory;
+  scrollbar-width: none;
+}
+
+.list::-webkit-scrollbar {
+  display: none;
+}
+
+/* Desktop shows a whole number of cards per view — 4 from 1024, 5 from 1280,
+ * 6 from 1440 — so a row never ends on a sliced card. The width follows from
+ * the count rather than the other way round: a 240px floor used to win below
+ * ~1520 and left the last card cut off mid-view. */
+.item {
+  min-width: 0;
+  flex: 0 0 calc((100% - 3 * var(--space-200)) / 4);
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+@media (min-width: 1280px) {
+  .item {
+    flex-basis: calc((100% - 4 * var(--space-200)) / 5);
+  }
+}
+
+@media (min-width: 1440px) {
+  .item {
+    flex-basis: calc((100% - 5 * var(--space-200)) / 6);
+  }
+}
+
+/* The card is a query container so its footer can size its thumbnail row
+ * against the card's own width. The viewport is the wrong signal here: the
+ * rail's per-view count makes card width non-monotonic — 256px at 1439,
+ * 211px at 1440 — so a viewport rule would show three thumbnails on the
+ * narrower card and two on the wider one. */
+.card {
+  display: flex;
+  min-width: 0;
+  width: 100%;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--radius-component-default);
+  background: var(--surface-secondary);
+  container: social-video-card / inline-size;
+}
+
+.media {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+}
+
+.mediaLink {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.mediaLink:focus-visible {
+  outline: var(--stroke-thick) solid var(--border-focus-inverse);
+  outline-offset: calc(-1 * var(--stroke-thick));
+}
+
+.poster {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.identity {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-050);
+  padding: var(--space-300) var(--space-150) var(--space-100);
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(0, 0, 0, 0.5)
+  );
+  color: var(--color-white-1000);
+  font-size: var(--font-size-body-md);
+  line-height: var(--line-height-body-md);
+  pointer-events: none;
+}
+
+.platform {
+  display: block;
+  width: var(--space-300);
+  height: var(--space-300);
+  flex: 0 0 auto;
+  border-radius: var(--radius-full);
+  background: var(--color-white-1000);
+  object-fit: contain;
+}
+
+.handle {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.products {
+  display: flex;
+  height: 72px;
+  box-sizing: border-box;
+  align-items: center;
+  gap: var(--space-050);
+  padding: var(--space-100);
+  background: var(--surface-secondary);
+  color: var(--color-black-900);
+}
+
+.card[data-product-mode="single"] .products {
+  gap: var(--space-100);
+}
+
+/* Two thumbnails and the count by default; the third joins once the card can
+ * seat it. 228px is that threshold, measured rather than chosen: 8px of footer
+ * padding either side, three 56px thumbnails, three 4px gaps and the count's
+ * 31px natural width come to 227. A container query cannot read a custom
+ * property, so the number is literal — recompute it if the thumbnail or gap
+ * sizes move. */
+.productRowWide,
+.productRowNarrow {
+  display: contents;
+}
+
+.productRowWide {
+  display: none;
+}
+
+@container social-video-card (min-width: 228px) {
+  .productRowWide {
+    display: contents;
+  }
+
+  .productRowNarrow {
+    display: none;
+  }
+}
+
+.productLink {
+  display: block;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border-radius: var(--radius-tag-primary);
+  background: var(--color-white-1000);
+}
+
+.productLink:focus-visible {
+  outline: var(--stroke-thick) solid var(--border-focus);
+  outline-offset: var(--space-025);
+}
+
+.productImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: contain;
+}
+
+.card[data-product-mode="single"] .productLink,
+.card[data-product-mode="single"] .products > .productImage {
+  width: 56px;
+  height: 56px;
+}
+
+.card[data-product-mode="multiple"] .productLink,
+.card[data-product-mode="multiple"] .products > .productImage {
+  width: 56px;
+  height: 56px;
+  flex: 0 0 56px;
+  aspect-ratio: 1;
+}
+
+.card[data-product-mode="multiple"] .products > .productImage {
+  background: var(--color-white-1000);
+}
+
+/* Two lines before the ellipsis — a single line clipped most of these product
+ * names mid-word. Two 20px lines still clear the 72px footer, so the row's
+ * height does not move. Same clamp .footerText already uses. */
+.productTitle {
+  display: -webkit-box;
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  color: var(--color-black-900);
+  font-size: var(--font-size-body-md);
+  line-height: var(--line-height-body-md);
+  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.moreProducts {
+  display: grid;
+  width: auto;
+  min-width: 0;
+  height: 56px;
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  place-items: center;
+  padding-inline: var(--space-100);
+  border-radius: var(--radius-tag-primary);
+  background: var(--color-white-1000);
+  color: var(--color-black-900);
+  font-size: var(--font-size-body-md);
+  line-height: var(--line-height-body-md);
+}
+
+.footerText {
+  display: -webkit-box;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  margin: 0;
+  padding: 0 var(--space-050) var(--space-050);
+  overflow: hidden;
+  color: var(--color-black-900);
+  font-size: var(--font-size-body-md);
+  line-height: var(--line-height-body-md);
+  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+:global(.dark) .footerText {
+  color: var(--color-white-1000);
+}
+
+:global(.dark) .productTitle {
+  color: var(--color-white-1000);
+}
+
+@media (max-width: 1023px) {
+  /* Inset to a card like ProductList and ShortcutRail. The radius was already
+   * here but the section still spanned the viewport, so the corners were cut
+   * off by the screen edge and the rounding never showed. */
+  .root {
+    width: calc(
+      100% - var(--layout-page-margin-card) - var(--layout-page-margin-card)
+    );
+    margin-inline: var(--layout-page-margin-card);
+    border-top: 0;
+    border-radius: var(--radius-surface-default);
+  }
+
+  .container {
+    gap: var(--space-025);
+    padding: var(--space-100);
+  }
+
+  /* Match ProductList's mobile sequence: 8px container, shared heading row,
+   * then a small gap before the horizontal rail. */
+  .heading {
+    min-width: 0;
+  }
+
+  /* Two classes, so this wins over SectionHeading's base rule no matter which
+   * stylesheet the bundler emits first. */
+  .heading .actions {
+    display: none;
+  }
+
+  .list {
+    box-sizing: border-box;
+    width: calc(
+      100% + var(--space-100) + var(--space-100)
+    );
+    gap: var(--space-100);
+    margin-inline: calc(-1 * var(--space-100));
+    padding: var(--space-100) var(--space-100) 0;
+    scroll-padding-inline: var(--space-100);
+  }
+
+  .item {
+    flex-basis: 240px;
+  }
+
+  .identity {
+    padding-inline: var(--space-100);
+  }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .list {
+    scroll-behavior: auto;
+  }
+}

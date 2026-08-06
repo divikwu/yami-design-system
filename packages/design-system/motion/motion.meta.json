@@ -1,0 +1,25 @@
+{
+  "$schema": "../schema/motion-meta.json",
+  "name": "yami-motion",
+  "version": "0.1.0",
+  "description": "YAMI motion / animation spec — easing, durations, patterns",
+  "files": [
+    {
+      "path": "easing.md",
+      "category": "easing",
+      "summary": "Single-family easing: cubic-bezier(0.2, 0, 0, 1). 4 variants (default / enter / exit / linear). No bounces, no spring physics."
+    },
+    {
+      "path": "durations.md",
+      "category": "duration",
+      "summary": "6-tier duration scale: instant/fast(100)/base(150)/medium(200)/slow(300)/crawl(500)ms. Faster is better."
+    },
+    {
+      "path": "patterns.md",
+      "category": "pattern",
+      "summary": "Concrete patterns: button hover/press, modal open/close, dropdown, toast, page transition, loading, focus ring. Respects prefers-reduced-motion."
+    }
+  ],
+  "relatedSkill": "yami-motion (Phase 9+ if motion diverges enough to warrant its own skill)",
+  "notes": "Phase 0 spec based on Framer Motion + CSS transitions defaults observed in Claude Design export. Authoritative motion spec matures after live app feedback; rule-ids may be added to ../design.md in later phases."
+}

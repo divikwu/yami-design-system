@@ -1,0 +1,18 @@
+/* Mobile stacks white cards on a grey page, and the rail is one of those
+ * cards — on Storybook's white canvas its surface and inset were invisible.
+ * Same canvas ProductList and BrandProductRail already use, so the three read
+ * alike side by side. Above the desktop breakpoint the rail is a full-bleed
+ * band again and the canvas steps out of the way. */
+.pageCanvas {
+  box-sizing: border-box;
+  min-height: 100vh;
+  padding-top: var(--space-100);
+  background: var(--background-secondary);
+}
+
+@media (min-width: 1024px) {
+  .pageCanvas {
+    padding-top: 0;
+    background: transparent;
+  }
+}

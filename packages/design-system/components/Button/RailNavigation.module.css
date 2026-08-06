@@ -1,0 +1,25 @@
+.root {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--space-100);
+}
+
+.button {
+  width: calc(var(--space-400) + var(--space-050));
+  height: calc(var(--space-400) + var(--space-050));
+  background-color: var(--color-white-900);
+  box-shadow: inset 0 0 0 var(--stroke-default) var(--border-default);
+}
+
+.button:not([aria-disabled="true"]):hover {
+  background-color: var(--button-secondary);
+}
+
+.button:not([aria-disabled="true"]):active {
+  background-color: var(--button-secondary-active);
+}
+
+.button[aria-disabled="true"] {
+  background-color: var(--color-white-900);
+}

@@ -1,0 +1,482 @@
+/* Two layouts from one tree. Everything below 1024px is the ranked accordion;
+ * the desktop block at the bottom turns the same markup into a rail of open
+ * keyword cards. Each breakpoint hides the other's chrome with `display: none`,
+ * which also removes it from the accessibility tree — a reader gets a list of
+ * toggles on a phone and a set of links on a desktop, never a mix. */
+
+.root {
+  box-sizing: border-box;
+  width: 100%;
+  color: var(--text-primary);
+  font-family: var(--font-family-ios);
+}
+
+/* Below 1024px the page stacks white cards on a grey canvas, and this section
+ * is one of them — the same gutter and corner ProductList and ShortcutRail
+ * take, so the sections line up down the page. */
+.container {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-025);
+  margin-inline: var(--layout-page-margin-card);
+  border-radius: var(--radius-surface-default);
+  background: var(--surface-primary);
+  padding: var(--space-100);
+}
+
+/* The card pads once, at 8, and nothing inside pads again — SocialMediaGallery's
+ * mobile sequence: 8px container, the shared heading row, then a small gap
+ * before the content. The heading is SectionHeading either way; giving it its
+ * own inset was what made the two sections look unrelated at the same width. */
+.heading {
+  min-width: 0;
+}
+
+/* Paging belongs to the desktop rail. The mobile accordion has no rail to page
+ * through — its rows are the navigation. */
+.railActions {
+  display: none;
+}
+
+.rail {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  flex-direction: column;
+  list-style: none;
+}
+
+.item {
+  min-width: 0;
+}
+
+.item + .item .toggle {
+  border-top: var(--stroke-default) solid var(--divider-default);
+}
+
+.toggle {
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  align-items: center;
+  gap: var(--space-150);
+  border: 0;
+  background: none;
+  padding: var(--space-100) var(--space-050);
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.toggle:focus-visible {
+  outline: var(--stroke-thick) solid var(--border-focus);
+  outline-offset: -2px;
+}
+
+/* A fixed 24px column, digit centred: the rows are a ranked list, and a rank
+ * that shrinks to fit its digit puts every thumbnail after it on a different
+ * line once the list reaches 10. */
+.rank {
+  width: var(--space-300);
+  flex: 0 0 auto;
+  color: var(--text-secondary);
+  font-size: var(--font-size-body-md);
+  line-height: var(--line-height-body-md);
+  text-align: center;
+}
+
+/* The row thumbnail composites the way ProductCard's media does: a tile with
+ * the fill behind, and the shot multiplied onto it, so a catalogue photo's
+ * white ground takes the tile's grey instead of covering it. `isolation`
+ * keeps the blend inside the tile rather than letting it reach the card. */
+.thumbnail {
+  display: block;
+  box-sizing: border-box;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background-color: var(--fill-tertiary);
+}
+
+.thumbnailImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  mix-blend-mode: multiply;
+  object-fit: cover;
+}
+
+/* Multiply against a dark tile would sink the product into it. */
+:global(.dark) .thumbnailImage {
+  mix-blend-mode: normal;
+}
+
+.keyword {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  font-size: var(--font-size-body-md);
+  font-weight: var(--font-weight-emphasize);
+  line-height: var(--line-height-body-md);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevron {
+  flex: 0 0 auto;
+  color: var(--text-secondary);
+  transition: transform 150ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.item[data-expanded="true"] .chevronDown {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chevron {
+    transition: none;
+  }
+}
+
+/* Title and description travel together. The wrapper carries the same gap the
+ * panel does, so grouping them changed the structure and not the spacing. */
+.cardTop {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-150);
+}
+
+/* The desktop card header, and the panel's own visibility, are the two things
+ * the breakpoints genuinely disagree about. */
+.cardHeader {
+  display: none;
+}
+
+.panel {
+  display: none;
+}
+
+.item[data-expanded="true"] .panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-150);
+  padding-bottom: var(--space-100);
+}
+
+.tagline {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-100);
+  margin: 0;
+  border-radius: var(--radius-component-default);
+  background: var(--badge-bg-secondary-purple);
+  padding: var(--space-100) var(--space-150);
+  font-size: var(--font-size-body-md);
+  line-height: var(--line-height-body-md);
+}
+
+/* Two lines, always: bounded so a long line cannot push the products out of
+ * the card, and reserved so a one-line term's products start level with a
+ * two-line term's. The frame drew every tagline on one line at 1920 and never
+ * met the problem; at 1280 three of six wrap and the product rows sat 20px
+ * apart across the row. */
+.taglineText {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.sparkle {
+  flex: 0 0 auto;
+  margin-top: var(--space-025);
+  color: var(--badge-bg-primary-purple);
+}
+
+/* Bleeds to the card's edges so a result can scroll flush with it, the way the
+ * gallery's rail does — the container's 8px is given back as the rail's own
+ * padding rather than fencing the scroll in. */
+.products {
+  box-sizing: border-box;
+  display: flex;
+  width: calc(100% + var(--space-100) + var(--space-100));
+  gap: var(--space-100);
+  margin: 0 calc(-1 * var(--space-100));
+  padding: 0 var(--space-100);
+  overflow-x: auto;
+  list-style: none;
+  overscroll-behavior-inline: contain;
+  scroll-padding-inline: var(--space-100);
+  scrollbar-width: none;
+}
+
+.products::-webkit-scrollbar {
+  display: none;
+}
+
+.product {
+  min-width: 0;
+  flex: 0 0 155px;
+}
+
+.explore {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  height: var(--space-400);
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-050);
+  border-radius: var(--radius-component-default);
+  background: var(--surface-secondary);
+  padding: 0 var(--space-150);
+  color: var(--text-primary);
+  font-size: var(--font-size-body-md);
+  line-height: var(--line-height-body-md);
+  text-decoration: none;
+}
+
+.explore::before {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  height: 44px;
+  transform: translateY(-50%);
+  content: "";
+}
+
+.explore:focus-visible {
+  outline: var(--stroke-thick) solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* The containing block for .srOnly. Without it the span positions against the
+ * document, escapes the rail's clipping, and holds the page open to the
+ * static position of whatever card it sits in — the sixth card put it at
+ * x≈2400 and gave the whole page a horizontal scrollbar. */
+.seeAll {
+  position: relative;
+}
+
+@media (min-width: 1024px) {
+  /* A full-bleed band whose content stops at the page box, like every other
+   * section on the page. */
+  .container {
+    box-sizing: border-box;
+    display: flex;
+    width: 100%;
+    max-width: 1920px;
+    margin-inline: auto;
+    flex-direction: column;
+    gap: var(--space-300);
+    border-radius: 0;
+    background: none;
+    padding: var(--space-400) var(--space-600);
+  }
+
+  .heading {
+    padding-inline: 0;
+  }
+
+  .railActions {
+    display: inline-flex;
+  }
+
+  .railButton {
+    color: var(--text-primary);
+  }
+
+  .rail {
+    flex-direction: row;
+    gap: var(--space-200);
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-behavior: smooth;
+    scroll-snap-type: inline mandatory;
+    scrollbar-width: none;
+  }
+
+  .rail::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Two cards through 1279, three through 1679, then four — n cards and n-1
+   * gaps filling the row exactly. */
+  .item {
+    display: flex;
+    box-sizing: border-box;
+    flex: 0 0 calc((100% - var(--space-200)) / 2);
+    flex-direction: column;
+    row-gap: var(--space-050);
+    column-gap: var(--space-150);
+    border-radius: var(--radius-surface-default);
+    background: var(--surface-secondary);
+    padding: var(--space-100);
+    scroll-snap-align: start;
+  }
+
+  .cardTop {
+    gap: var(--space-050);
+    padding: var(--space-050);
+  }
+
+  .item + .item .toggle {
+    border-top: 0;
+  }
+
+  .toggle {
+    display: none;
+  }
+
+  /* Centred, not baseline-aligned: the see-all link is caption-sized against a
+   * heading-sized term, and sharing a baseline hung it low in the row. */
+  .cardHeader {
+    display: flex;
+    align-items: center;
+    gap: var(--space-100);
+  }
+
+  /* Keep every desktop term aligned after a fixed, centred rank column. */
+  .rank {
+    width: var(--space-200);
+    flex: 0 0 var(--space-200);
+    font-size: var(--font-size-heading-xl);
+    line-height: var(--line-height-heading-xl);
+    text-align: center;
+  }
+
+  .keyword {
+    flex: 0 1 auto;
+    font-size: var(--font-size-heading-xl);
+    line-height: var(--line-height-heading-xl);
+  }
+
+  .seeAll {
+    margin-inline-start: auto;
+    flex: 0 0 auto;
+    color: var(--text-primary);
+    font-size: var(--font-size-caption-md);
+    line-height: var(--line-height-caption-md);
+    text-decoration: underline;
+  }
+
+  /* The link's own box is 41x20 — caption type, sized to read beside a heading
+   * rather than to be hit. A transparent overlay makes up the 44px pointer
+   * target without growing the visual, the same way SectionHeading's mobile
+   * view-all does. `max()` so the target never ends up narrower than the words
+   * it covers when the label is longer than 44px. */
+  .seeAll::before {
+    position: absolute;
+    inset: 50%;
+    width: max(100%, 44px);
+    height: 44px;
+    content: "";
+    transform: translate(-50%, -50%);
+  }
+
+  .seeAll:focus-visible {
+    outline: var(--stroke-thick) solid var(--border-focus);
+    outline-offset: 2px;
+  }
+
+  /* Every card is open on desktop, whatever the accordion state says — the
+   * state belongs to the mobile layout, and the toggle that sets it is not
+   * rendered here. */
+  .panel,
+  .item[data-expanded="true"] .panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-050);
+    padding: 0;
+  }
+
+  .tagline {
+    border-radius: 0;
+    background: none;
+    padding: 0;
+  }
+
+  /* Reserving the second line is a desktop concern: it is what keeps the six
+   * cards' product rows on one line. Mobile opens one term at a time, with
+   * nothing beside it to align to, so its pill hugs the copy. */
+  .taglineText {
+    min-height: calc(2 * var(--line-height-body-md));
+  }
+
+  /* Back inside the card: the mobile rail's edge-to-edge bleed has no meaning
+   * in a two-column grid that does not scroll. */
+  .products {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+  }
+
+  /* The card is a fixed-height preview of what the term returns, so it shows
+   * the leading two results. The rest stay in the data for mobile, which
+   * scrolls them. */
+  .product:nth-child(n + 3) {
+    display: none;
+  }
+
+  /* The card is ProductCard as the seasonal band renders it — the cell only
+   * places it. */
+  .product {
+    flex: initial;
+  }
+
+  /* ProductCard's media defaults to a near-white a shade off the white card
+   * around it, which reads as a second surface inside the tile — and reads
+   * louder here, where the tile already sits on a tinted keyword card and the
+   * eye is counting surfaces. The themed and atmospheric lists settle this by
+   * painting the media pure white to match their tile; taking no background at
+   * all reaches the same pixel and stays right if the tile's surface changes.
+   * This is the only thing the section says about ProductCard. */
+  .product :global([data-slot="product-card-image"]) {
+    background-color: transparent;
+  }
+
+  .explore {
+    display: none;
+  }
+}
+
+/* Card-count breakpoints follow the viewport contract: 2 below 1280, 3 below
+ * 1680, and 4 from 1680 onward. */
+@media (min-width: 1280px) {
+  .item {
+    flex-basis: calc((100% - var(--space-400)) / 3);
+  }
+}
+
+@media (min-width: 1440px) {
+  /* Desktop-LG increases heading-xl to 24px. Step the keyword down one token
+   * so its rendered size remains 20px across the whole desktop range. */
+  .keyword {
+    font-size: var(--font-size-heading-md);
+    line-height: var(--line-height-heading-md);
+  }
+}
+
+@media (min-width: 1680px) {
+  .item {
+    flex-basis: calc((100% - var(--space-600)) / 4);
+  }
+}

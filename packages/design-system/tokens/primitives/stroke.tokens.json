@@ -1,0 +1,17 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "stroke": {
+    "none": {
+      "$type": "dimension",
+      "$value": "0"
+    },
+    "default": {
+      "$type": "dimension",
+      "$value": "1px"
+    },
+    "thick": {
+      "$type": "dimension",
+      "$value": "2px"
+    }
+  }
+}

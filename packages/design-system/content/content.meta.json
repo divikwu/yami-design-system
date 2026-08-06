@@ -1,0 +1,38 @@
+{
+  "$schema": "../schema/content-meta.json",
+  "name": "yami-content",
+  "version": "0.1.0",
+  "description": "YAMI content writing standards — voice, bilingual parity, casing, writing structure, signature copy patterns",
+  "files": [
+    {
+      "path": "voice.md",
+      "category": "tone",
+      "summary": "Voice attributes: direct, action-oriented, commerce-native. Low cuteness, zero emoji, spec-led."
+    },
+    {
+      "path": "bilingual.md",
+      "category": "localization",
+      "summary": "CN+EN parity on every surface. Inline (middle dot), stacked, or side-by-side pairing patterns."
+    },
+    {
+      "path": "writing-standards.md",
+      "category": "structure",
+      "summary": "Three-layer writing: Summary (what) → Definition (scope) → Rules (exactly how). Use 必须/不得/可以."
+    },
+    {
+      "path": "casing-numerals.md",
+      "category": "mechanics",
+      "summary": "Title Case for EN CTAs, full-width CN punctuation, all numerals in GT Walsheim."
+    },
+    {
+      "path": "copy-patterns.md",
+      "category": "patterns",
+      "summary": "Signature UI copy templates: navigation, section titles, errors, empty states, badges, product cards, checkout."
+    }
+  ],
+  "relatedSkill": "yami-content",
+  "crossLink": {
+    "copyLibrary": "../../copy-library/",
+    "rationale": "Content spec (this dir) defines HOW to write. Copy library stores WHAT is written."
+  }
+}

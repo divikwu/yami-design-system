@@ -1,0 +1,22 @@
+.canvas {
+  min-height: 100vh;
+  background: var(--background-secondary);
+}
+
+.cardCanvas {
+  box-sizing: border-box;
+  width: min(100%, calc(240px + 2 * var(--space-200)));
+  padding: var(--space-200);
+  background: var(--surface-primary);
+}
+
+@media (min-width: 1024px) {
+  .canvas {
+    background: var(--surface-primary);
+  }
+
+  .cardCanvas {
+    width: 320px;
+    padding: var(--space-400);
+  }
+}

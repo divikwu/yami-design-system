@@ -1,0 +1,317 @@
+/* yami-validate-disable: no-gradient */
+/* The 24px overlay is functional: it blends campaign artwork into the
+ * bottom-edge color sampled by the component. */
+
+.root {
+  --section-divider-color: var(--border-default);
+  --section-divider-width: var(--stroke-default);
+
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1920px;
+  margin-inline: auto;
+  border: 0;
+  padding-inline: var(--layout-page-margin-card);
+  font-family: var(--font-family-ios);
+}
+
+.root[data-divider-variant="black"] {
+  --section-divider-color: var(--divider-emphasis);
+  --section-divider-width: var(--stroke-thick);
+}
+
+.list {
+  display: flex;
+  width: 100%;
+  gap: var(--space-100);
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-padding-inline: var(--layout-page-margin-card);
+  scroll-snap-type: inline mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.list::-webkit-scrollbar {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  .list {
+    box-sizing: border-box;
+    width: calc(
+      100% + var(--layout-page-margin-card) +
+        var(--layout-page-margin-card)
+    );
+    margin-inline: calc(-1 * var(--layout-page-margin-card));
+    padding-inline: var(--layout-page-margin-card);
+  }
+
+  /* A products-only card is a "keep shopping" tail, not a campaign — it has no
+   * artwork to carry a small screen, so it drops out entirely below 1024px. */
+  .productsOnlyItem {
+    display: none;
+  }
+}
+
+.item {
+  min-width: 0;
+  flex: 0 0 320px;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+.card {
+  --hero-banner-surface-color: var(
+    --hero-banner-item-color,
+    var(--surface-secondary)
+  );
+
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 8 / 9;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: var(--surface-primary);
+  box-shadow: 0 2px 16px var(--divider-default);
+  color: var(--color-black-900);
+  text-decoration: none;
+}
+
+.card[data-foreground="light"] {
+  color: var(--color-white-1000);
+}
+
+.card:focus-visible {
+  outline: var(--stroke-thick) solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+.image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 150ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.image:hover {
+  transform: scale(1.03);
+}
+
+.content {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.gradient {
+  width: 100%;
+  height: var(--space-300);
+  flex: 0 0 auto;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    var(--hero-banner-surface-color)
+  );
+}
+
+.surface {
+  display: flex;
+  flex-direction: column;
+  background: var(--hero-banner-surface-color);
+}
+
+.productsOnlySurface {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  justify-content: center;
+  background: var(--hero-banner-surface-color);
+}
+
+.copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--space-025);
+  padding: var(--space-100) var(--space-150) var(--space-150);
+}
+
+.productsOnlySurface .copy {
+  flex: 1 1 auto;
+  justify-content: center;
+  padding-block: calc(var(--space-100) + var(--space-050)) var(--space-100);
+}
+
+.title,
+.description {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.title {
+  font-size: var(--font-size-heading-xl);
+  font-weight: var(--font-weight-emphasize);
+  line-height: var(--line-height-heading-xl);
+}
+
+.description {
+  font-size: var(--font-size-body-md);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-body-md);
+}
+
+.products {
+  display: grid;
+  gap: var(--space-100);
+  padding: 0 var(--space-100) var(--space-100);
+}
+
+.products[data-layout="strip"] {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.products[data-layout="grid"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.product {
+  display: block;
+  min-width: 0;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: var(--background-primary);
+}
+
+.product img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 150ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.product:hover img {
+  transform: scale(1.03);
+}
+
+.controls {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .root[data-divider-position="top"] {
+    border-top: var(--section-divider-width) solid var(--section-divider-color);
+  }
+
+  .root[data-divider-position="bottom"] {
+    border-bottom: var(--section-divider-width) solid var(--section-divider-color);
+  }
+
+  .root {
+    padding: var(--space-200) var(--space-600);
+  }
+
+  /* Desktop scrolls by gesture too — trackpad, touchscreen, drag — not only
+   * through the paging buttons. The rail was already a scroll container
+   * (scrollRail writes scrollLeft, which works even under overflow: hidden),
+   * so only the direct manipulation was withheld. The scrollbar stays hidden.
+   *
+   * The buttons and the auto-advance each travel exactly one banner, which is
+   * what the counter reading "N / 7" describes. Gestures inherit the base
+   * `scroll-snap-stop: always`, which quantises them the same way: every
+   * scroll step lands on the next banner rather than gliding a momentum-
+   * dependent distance. It bounds a step, not a whole gesture — a six-notch
+   * wheel flick is six steps and travels several banners (measured: 4, where
+   * `normal` coasted 2). On touch, where a swipe is one operation, it is
+   * exactly one banner. The product rail deliberately keeps `normal`: it is a
+   * browsing list where a hard flick should carry. */
+  .list {
+    /* One declaration of the gap, consumed by both `gap` and the card width
+     * below, so the two can no longer disagree. */
+    --hero-banner-gap: var(--space-200);
+    gap: var(--hero-banner-gap);
+    scroll-padding-inline: 0;
+  }
+
+  /* n cards and n-1 gaps fill the rail exactly. Deriving the width from the
+   * count keeps that identity true for any gap or count — the previous form
+   * hard-coded the subtrahend (--space-400 for 3-up, --space-600 for 4-up),
+   * which silently overflowed if the gap ever changed. Only the count varies
+   * per breakpoint now. */
+  .item {
+    --hero-banner-per-view: 3;
+
+    flex-basis: calc(
+      (100% - (var(--hero-banner-per-view) - 1) * var(--hero-banner-gap)) /
+        var(--hero-banner-per-view)
+    );
+  }
+
+
+  .controls {
+    display: flex;
+    width: min(400px, 100%);
+    align-items: center;
+    gap: var(--space-200);
+    margin: var(--space-200) auto 0;
+  }
+
+  .progressLine {
+    position: relative;
+    overflow: hidden;
+    height: var(--stroke-thick);
+    flex: 1 1 auto;
+    background: var(--divider-default);
+  }
+
+  .progressFill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: var(--divider-emphasis);
+    transition: width 150ms cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  .progress {
+    flex: 0 0 auto;
+    color: var(--text-primary);
+    font-size: var(--font-size-body-md);
+    line-height: var(--line-height-body-md);
+  }
+
+  .actions {
+    display: inline-flex;
+  }
+}
+
+@media (min-width: 1440px) {
+  .item {
+    --hero-banner-per-view: 4;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .list {
+    scroll-behavior: auto;
+  }
+
+  .image,
+  .product img,
+  .progressFill {
+    transition: none;
+  }
+
+  .image:hover,
+  .product:hover img {
+    transform: none;
+  }
+}

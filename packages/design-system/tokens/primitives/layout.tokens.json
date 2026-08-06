@@ -1,0 +1,23 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "layout": {
+    "page-margin-default": {
+      "$type": "dimension",
+      "$value": "{space.200}",
+      "$extensions": {
+        "com.yami.breakpoints": {
+          "desktop": "{space.600}"
+        }
+      }
+    },
+    "page-margin-card": {
+      "$type": "dimension",
+      "$value": "{space.100}",
+      "$extensions": {
+        "com.yami.breakpoints": {
+          "desktop": "{space.600}"
+        }
+      }
+    }
+  }
+}

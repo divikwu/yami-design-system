@@ -1,0 +1,593 @@
+/* yami-validate-disable: no-gradient, token-exists */
+/* ProductList campaign surfaces intentionally blend supplied artwork into its
+ * caller-provided dominant color, and skeletons use a loading shimmer.
+ * The product-list custom properties are runtime inputs, not system tokens. */
+
+.root {
+  --section-divider-color: var(--border-default);
+  --section-divider-width: var(--stroke-default);
+
+  box-sizing: border-box;
+  width: 100%;
+  overflow: hidden;
+  color: var(--text-primary);
+  background: var(--surface-primary);
+  border: 0;
+  font-family: var(--font-family-ios);
+}
+
+.root[data-divider-variant="black"] {
+  --section-divider-color: var(--divider-emphasis);
+  --section-divider-width: var(--stroke-thick);
+}
+
+.root[data-appearance="themed"] {
+  --product-list-theme-color-active: var(
+    --product-list-theme-color-mobile,
+    var(--product-list-theme-color, var(--surface-secondary))
+  );
+
+  /* Containing block for the desktop divider overlay, as atmospheric already
+   * had — without it the rule would position against the page. */
+  position: relative;
+  background: var(--product-list-theme-color-active);
+  border-radius: var(--radius-xl);
+}
+
+/* Campaign artwork is always light, so the heading ink stays black on it in
+ * either theme. These reach SectionHeading's elements through the data-slots
+ * it renders for this section. */
+.root[data-appearance="themed"] .title,
+.root[data-appearance="atmospheric"] .title,
+.root[data-appearance="themed"] [data-slot="product-list-view-all"],
+.root[data-appearance="atmospheric"] [data-slot="product-list-view-all"],
+.root[data-appearance="themed"] [data-slot="product-list-view-all-mobile"],
+.root[data-appearance="atmospheric"] [data-slot="product-list-view-all-mobile"] {
+  color: var(--color-black-900);
+}
+
+.root[data-appearance="themed"] [data-slot="product-list-view-all-mobile"],
+.root[data-appearance="atmospheric"] [data-slot="product-list-view-all-mobile"] {
+  background-color: var(--color-black-100);
+}
+
+.root[data-appearance="themed"] [data-slot="product-list-view-all-mobile"]:hover,
+.root[data-appearance="atmospheric"] [data-slot="product-list-view-all-mobile"]:hover,
+.root[data-appearance="themed"] [data-slot="product-list-view-all-mobile"]:active,
+.root[data-appearance="atmospheric"] [data-slot="product-list-view-all-mobile"]:active {
+  background-color: var(--color-black-200);
+}
+
+.root[data-appearance="themed"] .tabsList,
+.root[data-appearance="atmospheric"] .tabsList {
+  --text-primary: var(--color-black-900);
+  --text-primary-inverse: var(--color-white-1000);
+}
+
+.root[data-appearance="themed"] .railButton,
+.root[data-appearance="atmospheric"] .railButton {
+  --border-default: var(--color-black-200);
+  --border-focus: var(--color-black-900);
+  --button-secondary: var(--color-black-100);
+  --button-secondary-active: var(--color-black-200);
+
+  color: var(--color-black-900);
+}
+
+/* Two layers, unlike the other appearances.
+ *
+ * `.root` is a full-bleed band that paints nothing: it exists to span the page
+ * so the section rule can sit on the boundary between this band and whatever
+ * precedes it. The campaign panel — tint, artwork, rounding — is `.container`,
+ * inset inside that band. The inset used to be applied by the page, which left
+ * the component with no box on the boundary and therefore no way to draw its
+ * own rule; the page drew it instead, from a layer nobody thinks to look in.
+ */
+.root[data-appearance="atmospheric"] {
+  position: relative;
+  background: transparent;
+}
+
+.root[data-appearance="atmospheric"] .container {
+  position: relative;
+  /* Stacking context, so the artwork fade below stays behind this panel's own
+   * content and cannot escape behind the band. */
+  z-index: 0;
+  background-color: var(
+    --product-list-background-color,
+    var(--surface-secondary)
+  );
+  background-image: var(
+    --product-list-background-image-mobile,
+    var(--product-list-background-image, none)
+  );
+  background-position: top center;
+  background-repeat: no-repeat;
+  background-size: 100% auto;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+
+.root[data-appearance="atmospheric"] .container::before {
+  position: absolute;
+  /* Above the panel's background, below its content. */
+  z-index: -1;
+  top: 0;
+  left: 0;
+  width: 100%;
+  aspect-ratio: 4 / 1;
+  background: linear-gradient(
+    to bottom,
+    transparent 50%,
+    var(--product-list-background-color, var(--surface-secondary)) 100%
+  );
+  content: "";
+  pointer-events: none;
+}
+
+.banner {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.root[data-appearance="themed"] .banner::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 50%;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    var(--product-list-theme-color-active) 100%
+  );
+}
+
+.banner img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 192px;
+  object-fit: cover;
+}
+
+.banner picture {
+  display: block;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-025);
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1920px;
+  margin-inline: auto;
+  padding: var(--space-100);
+}
+
+.root .tabsList {
+  box-sizing: border-box;
+  width: calc(
+    100% + var(--space-100) + var(--space-100)
+  );
+  max-width: none;
+  margin-inline: calc(-1 * var(--space-100));
+  padding-inline: var(--space-100);
+  scroll-padding-inline: var(--space-100);
+}
+
+/* SectionHeading owns the shared mobile heading inset. Keep this hook for the
+ * component-level heading class and themed overrides below. */
+.heading {
+  box-sizing: border-box;
+}
+
+/* Title layout and the xl -> 2xl type ramp come from SectionHeading; only the
+ * themed/atmospheric recolours below are this component's. */
+/* .actions comes from SectionHeading; .railActions is the nested paging group. */
+.railActions {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: var(--space-100);
+}
+
+/* The view-all pair comes from SectionHeading. */
+.railActions {
+  display: none;
+}
+
+.list {
+  min-width: 0;
+  width: 100%;
+}
+
+.root[data-layout="rail"] .list {
+  display: flex;
+  box-sizing: border-box;
+  width: calc(
+    100% + var(--space-100) + var(--space-100)
+  );
+  margin-inline: calc(-1 * var(--space-100));
+  gap: var(--space-100);
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  padding: var(--space-025) var(--space-100);
+  scroll-padding-inline: var(--space-100);
+  scroll-snap-type: inline mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.root[data-layout="rail"] .list::-webkit-scrollbar {
+  display: none;
+}
+
+.root[data-layout="rail"] .item,
+.root[data-layout="rail"] .skeletonItem {
+  flex: 0 0 152px;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+/* Below the desktop breakpoint the feed steps through fixed counts rather than
+ * auto-filling: a tablet should show fewer, larger cards, and auto-fill would
+ * run 1023px out to six columns.
+ *
+ * The thresholds are set from the card, not the device. Each is the width at
+ * which the next count still leaves a card of about 176px — the size two
+ * columns give on a 375px phone. Three columns from 440px, the obvious
+ * round number, would have handed 440px screens a 136px card: narrower than
+ * the 152px card the horizontal rails use, and a third smaller than the 207px
+ * card the same screen gets at two columns one pixel earlier. */
+.root[data-layout="waterfall"] .list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-100);
+  align-items: start;
+}
+
+@media (min-width: 560px) and (max-width: 1023.98px) {
+  .root[data-layout="waterfall"] .list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  .root[data-layout="waterfall"] .list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.item {
+  min-width: 0;
+}
+
+.root[data-appearance="themed"] .item,
+.root[data-appearance="atmospheric"] .item {
+  background: var(--surface-primary);
+  border-radius: var(--radius-component-default);
+}
+
+.root[data-appearance="themed"][data-layout="rail"]
+  [data-slot="product-card-image"],
+.root[data-appearance="atmospheric"][data-layout="rail"]
+  [data-slot="product-card-image"] {
+  background-color: var(--color-white-1000);
+}
+
+.loadMore {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.loadMore > * {
+  width: min(480px, 100%);
+}
+
+.skeletonItem {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--space-100);
+  padding: var(--space-050);
+  border-radius: var(--radius-component-default);
+  background: var(--surface-primary);
+}
+
+.skeletonMedia,
+.skeletonLine,
+.skeletonLineShort,
+.skeletonLineMedium,
+.skeletonPrice {
+  display: block;
+  overflow: hidden;
+  background: var(--fill-skeleton);
+}
+
+.skeletonMedia,
+.skeletonLine,
+.skeletonLineShort,
+.skeletonLineMedium,
+.skeletonPrice {
+  background-image: linear-gradient(
+    90deg,
+    transparent,
+    var(--fill-skeleton-inverse),
+    transparent
+  );
+  background-position: 200% 0;
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s linear infinite;
+}
+
+.skeletonMedia {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--radius-component-default);
+}
+
+.skeletonContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-100);
+}
+
+.skeletonLine,
+.skeletonLineShort,
+.skeletonLineMedium,
+.skeletonPrice {
+  height: var(--space-200);
+  border-radius: var(--radius-tag-primary);
+}
+
+.skeletonLine {
+  width: 100%;
+}
+
+.skeletonLineShort {
+  width: 42%;
+}
+
+.skeletonLineMedium {
+  width: 72%;
+}
+
+.skeletonPrice {
+  width: 36%;
+  height: var(--space-250);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@keyframes skeleton-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (max-width: 1023px) {
+  .root,
+  .root[data-appearance="themed"] {
+    width: calc(
+      100% - var(--layout-page-margin-card) -
+        var(--layout-page-margin-card)
+    );
+    margin-inline: var(--layout-page-margin-card);
+    border-top: 0;
+    border-radius: var(--radius-surface-default);
+  }
+
+  /* The band stays full width and the panel inside it takes the card inset,
+   * so the two-layer split holds at every size. */
+  .root[data-appearance="atmospheric"] {
+    width: 100%;
+    margin-inline: 0;
+    border-top: 0;
+    border-radius: 0;
+  }
+
+  .root[data-appearance="atmospheric"] .container {
+    box-sizing: border-box;
+    width: calc(
+      100% - var(--layout-page-margin-card) -
+        var(--layout-page-margin-card)
+    );
+    margin-inline: var(--layout-page-margin-card);
+    border-radius: var(--radius-surface-default);
+  }
+
+  .root[data-layout="waterfall"] {
+    width: 100%;
+    margin-inline: 0;
+    border-radius: var(--radius-xl);
+  }
+}
+
+@media (min-width: 1024px) {
+  .root[data-divider-position="top"] {
+    border-top: var(--section-divider-width) solid var(--section-divider-color);
+  }
+
+  .root[data-divider-position="bottom"] {
+    border-bottom: var(--section-divider-width) solid var(--section-divider-color);
+  }
+
+  /* The campaign appearances are rounded panels, so a border on their edge
+   * follows the 16px radius and curves at both ends — themed shipped exactly
+   * that, so it draws the rule as a clipped overlay: a straight hairline the
+   * panel's own rounding trims at the corners.
+   *
+   * Standard and atmospheric keep the border. Both are square full-bleed
+   * bands — atmospheric holds its rounding on the panel inside it — so the
+   * rule lands on the page boundary and reads as a true section rule. All
+   * three answer the same dividerPosition prop, and all of it lives in this
+   * desktop query: mobile draws nothing. */
+  .root[data-appearance="themed"][data-divider-position="top"] {
+    border-top: 0;
+  }
+
+  .root[data-appearance="themed"][data-divider-position="bottom"] {
+    border-bottom: 0;
+  }
+
+  .root[data-appearance="themed"][data-divider-position="top"]::after,
+  .root[data-appearance="themed"][data-divider-position="bottom"]::after {
+    position: absolute;
+    z-index: 2;
+    right: 0;
+    left: 0;
+    height: var(--section-divider-width);
+    background: var(--section-divider-color);
+    content: "";
+    pointer-events: none;
+  }
+
+  .root[data-appearance="themed"][data-divider-position="top"]::after {
+    top: 0;
+  }
+
+  .root[data-appearance="themed"][data-divider-position="bottom"]::after {
+    bottom: 0;
+  }
+
+  .root[data-appearance="themed"] {
+    --product-list-theme-color-active: var(
+      --product-list-theme-color,
+      var(--surface-secondary)
+    );
+  }
+
+  .root[data-appearance="atmospheric"] .container {
+    background-image: var(
+      --product-list-background-image,
+      var(--product-list-background-image-mobile, none)
+    );
+    /* The inset the page used to apply. It belongs here: the band spans the
+     * page, the panel sits inside it. */
+    box-sizing: border-box;
+    width: calc(100% - var(--space-600) - var(--space-600));
+    max-width: calc(1920px - var(--space-600) - var(--space-600));
+    margin-block: var(--space-400);
+    margin-inline: auto;
+  }
+
+  .root[data-appearance="atmospheric"] .container::before {
+    aspect-ratio: 12 / 1;
+  }
+
+  .container {
+    gap: var(--space-100);
+    padding: var(--space-400) var(--space-600);
+  }
+
+  .root[data-appearance="themed"] .container,
+  .root[data-appearance="atmospheric"] .container {
+    padding: var(--space-200);
+  }
+
+  .heading {
+    padding-inline-start: var(--space-050);
+  }
+
+  .root .tabsList {
+    width: max-content;
+    max-width: 100%;
+    margin-inline: 0;
+    padding-inline: 0;
+  }
+
+  .railActions {
+    display: inline-flex;
+  }
+
+  .root[data-layout="rail"] .item,
+  .root[data-layout="rail"] .skeletonItem {
+    /* PC starts with four equal columns at the 1024px minimum. */
+    flex-basis: calc((100% - 36px) / 4);
+  }
+
+  /* Desktop scrolls by gesture too — trackpad, touchscreen, drag — not only
+   * through the paging buttons, the same unlock HeroBanner's rail got. The
+   * rail was already a scroll container (scrollRail writes scrollLeft, which
+   * works even under overflow: hidden), so only direct manipulation was
+   * withheld. The scrollbar stays hidden.
+   *
+   * Snap survives alongside the buttons once the cards stop demanding a stop
+   * at every one: `scroll-snap-stop: always` caps any scroll at the next card,
+   * which would cut a button paging a whole view down to one product. This
+   * rail does not loop — it is a finite collection with a real end, so the
+   * buttons keep their disabled states. */
+  .root[data-layout="rail"] .list {
+    width: 100%;
+    margin-inline: 0;
+    gap: var(--space-150);
+    padding-inline: 0;
+    /* Follows the inline padding to zero. Left at the mobile 8px it offset
+     * every snap point by that much, settling each card 8px short of the edge
+     * and leaving a sliver of its predecessor. */
+    scroll-padding-inline: 0;
+  }
+
+  .root[data-layout="rail"] .item {
+    scroll-snap-stop: normal;
+  }
+
+  .root[data-layout="waterfall"] .list {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--space-200);
+  }
+}
+
+@media (min-width: 1200px) {
+  .root[data-layout="rail"] .item,
+  .root[data-layout="rail"] .skeletonItem {
+    flex-basis: calc((100% - 48px) / 5);
+  }
+}
+
+@media (min-width: 1440px) {
+  .root[data-layout="rail"] .item,
+  .root[data-layout="rail"] .skeletonItem {
+    flex-basis: calc((100% - 60px) / 6);
+  }
+}
+
+@media (min-width: 1680px) {
+  .root[data-layout="rail"] .item,
+  .root[data-layout="rail"] .skeletonItem {
+    flex-basis: calc((100% - 72px) / 7);
+  }
+}
+
+@media (min-width: 1920px) {
+  .root[data-layout="rail"] .item,
+  .root[data-layout="rail"] .skeletonItem {
+    /* Eight equal cards plus seven 12px gaps fill the content area. */
+    flex-basis: calc((100% - 84px) / 8);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeletonMedia,
+  .skeletonLine,
+  .skeletonLineShort,
+  .skeletonLineMedium,
+  .skeletonPrice {
+    animation: none;
+  }
+}

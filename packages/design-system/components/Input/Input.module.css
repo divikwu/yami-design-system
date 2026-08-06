@@ -1,0 +1,262 @@
+/* Input.module.css
+ *
+ * YAMI Input Field from Figma `↪ 表单输入 Forms`.
+ * Visual contract:
+ *   - Mobile field: 320 × 48, error row total 68
+ *   - PC field:     320 × 56, error row total 77
+ *   - Embedded label + value stack, with responsive label/value typography
+ */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 320px;
+  max-width: 100%;
+  font-family: var(--font-family-ios);
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.field {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: var(--space-600);
+  gap: var(--space-0);
+  padding-inline: var(--space-050);
+
+  background: var(--background-primary);
+  border: 0;
+  border-radius: var(--radius-component-default);
+  box-shadow: inset 0 0 0 var(--stroke-default) var(--border-default);
+  color: var(--text-primary);
+  cursor: text;
+}
+
+.root[data-state="focused"] .field,
+.root[data-state="typing"] .field {
+  box-shadow: inset 0 0 0 var(--stroke-thick) var(--border-focus);
+}
+
+.root[data-state="error"] .field {
+  box-shadow: inset 0 0 0 var(--stroke-thick) var(--border-attention);
+}
+
+.root[data-state="disabled-filled"] .field,
+.root[data-state="disabled-empty"] .field {
+  background: var(--fill-tertiary);
+  cursor: not-allowed;
+}
+
+.root[data-leading="true"] .field {
+  padding-inline: var(--space-150);
+}
+
+.textStack {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding-inline: var(--space-100);
+}
+
+.root[data-leading="true"] .textStack {
+  padding-inline-start: var(--space-100);
+  padding-inline-end: 0;
+}
+
+.label {
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: var(--font-size-body-md);
+  line-height: var(--line-height-body-md);
+  font-weight: var(--font-weight-normal);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.root[data-floating="true"] .label {
+  font-size: var(--font-size-caption-md);
+  line-height: var(--line-height-caption-md);
+}
+
+.root[data-state="focused"] .label,
+.root[data-state="typing"] .label,
+.root[data-state="error"] .label {
+  color: var(--text-primary);
+}
+
+.root[data-state="disabled-filled"] .label,
+.root[data-state="disabled-empty"] .label {
+  color: var(--text-secondary);
+}
+
+.requiredMarker {
+  margin-inline-start: var(--space-025);
+  color: var(--text-emphasis);
+}
+
+.optionalHint {
+  margin-inline-start: var(--space-050);
+  color: var(--text-secondary);
+  font-size: var(--font-size-caption-md);
+  line-height: var(--line-height-caption-md);
+}
+
+.valueRow {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.root[data-label="true"]:not([data-floating="true"]) .valueRow {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.control {
+  width: 100%;
+  min-width: 0;
+  flex: 1 1 auto;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: var(--font-size-body-md);
+  line-height: var(--line-height-body-md);
+  letter-spacing: var(--letter-spacing-normal);
+}
+
+.control::placeholder {
+  color: var(--text-secondary);
+}
+
+.control:disabled {
+  color: var(--text-secondary);
+  cursor: not-allowed;
+}
+
+.leading,
+.trailing {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+}
+
+.leading svg,
+.trailing svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.clearButton {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-500);
+  height: var(--space-500);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-disabled);
+  cursor: pointer;
+}
+
+.clearButton svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.clearButton:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: -2px;
+  border-radius: var(--radius-component-default);
+}
+
+.helperText,
+.errorText {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: var(--space-050);
+  width: 100%;
+  font-size: var(--font-size-caption-md);
+  line-height: var(--line-height-caption-md);
+  font-weight: var(--font-weight-normal);
+}
+
+.helperText {
+  margin-top: var(--space-050);
+  color: var(--text-secondary);
+}
+
+.errorText {
+  margin-top: var(--space-050);
+  color: var(--text-emphasis);
+}
+
+.errorIcon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: var(--line-height-caption-md);
+  color: currentColor;
+}
+
+.errorIcon svg {
+  width: 12px;
+  height: 12px;
+  display: block;
+}
+
+@media (min-width: 1024px) {
+  .field {
+    height: 56px;
+    gap: var(--space-100);
+    padding-inline: var(--space-150);
+  }
+
+  .textStack {
+    padding-inline: 0;
+  }
+
+  .root[data-floating="true"] .label {
+    font-size: var(--font-size-body-md);
+    line-height: var(--line-height-body-md);
+  }
+
+  .control {
+    font-size: var(--font-size-body-xl);
+    line-height: var(--line-height-body-xl);
+  }
+
+  .errorText {
+    margin-top: var(--space-025);
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  .errorIcon {
+    display: none;
+  }
+}

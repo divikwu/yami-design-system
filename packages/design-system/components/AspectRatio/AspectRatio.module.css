@@ -1,0 +1,4 @@
+.root {
+  position: relative;
+  aspect-ratio: var(--aspect-ratio);
+}

@@ -1,0 +1,265 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "display-xl": {
+    "font-family": {
+      "$type": "fontFamily",
+      "$value": "{font-family.ios}",
+      "$description": "用于页面主视觉与核心营销文案。适用于首屏 Hero，不用于正文、按钮或价格信息。"
+    },
+    "font-weight": {
+      "$type": "fontWeight",
+      "$value": "{font-weight.normal}",
+      "$description": "用于页面主视觉与核心营销文案。适用于首屏 Hero，不用于正文、按钮或价格信息。"
+    }
+  },
+  "display-md": {
+    "font-family": {
+      "$type": "fontFamily",
+      "$value": "{font-family.ios}",
+      "$description": "用于次级展示标题，如 Banner 与专题引导。不用于常规模块标题或正文说明。"
+    },
+    "font-weight": {
+      "$type": "fontWeight",
+      "$value": "{font-weight.normal}",
+      "$description": "用于次级展示标题，如 Banner 与专题引导。不用于常规模块标题或正文说明。"
+    }
+  },
+  "display-sm": {
+    "font-family": {
+      "$type": "fontFamily",
+      "$value": "{font-family.ios}",
+      "$description": "用于展示型短标题与重点提示。不替代 heading，也不用于长正文。"
+    },
+    "font-weight": {
+      "$type": "fontWeight",
+      "$value": "{font-weight.normal}",
+      "$description": "用于展示型短标题与重点提示。不替代 heading，也不用于长正文。"
+    }
+  },
+  "heading-4xl": {
+    "font-family": {
+      "$type": "fontFamily",
+      "$value": "{font-family.ios}",
+      "$description": "用于页面主标题与首屏核心标题。适用于页面最高层级标题，不用于 Banner、按钮或正文内容。"
+    },
+    "font-weight": {
+      "$type": "fontWeight",
+      "$value": "{font-weight.emphasize}",
+      "$description": "用于页面主标题与首屏核心标题。适用于页面最高层级标题，不用于 Banner、按钮或正文内容。"
+    }
+  },
+  "heading-3xl": {
+    "font-family": {
+      "$type": "fontFamily",
+      "$value": "{font-family.ios}",
+      "$description": "用于页面级重点标题与核心分区标题。适用于页面主结构分层，不用于展示型营销文案。"
+    },
+    "font-weight": {
+      "$type": "fontWeight",
+      "$value": "{font-weight.emphasize}",
+      "$description": "用于页面级重点标题与核心分区标题。适用于页面主结构分层，不用于展示型营销文案。"
+    }
+  },
+  "heading-2xl": {
+    "font-family": {
+      "$type": "fontFamily",
+      "$value": "{font-family.ios}",
+      "$description": "用于大标题与重点模块标题。适用于高层级内容分组，不用于首屏营销文案或正文说明。"
+    },
+    "font-weight": {
+      "$type": "fontWeight",
+      "$value": "{font-weight.emphasize}",
+      "$description": "用于大标题与重点模块标题。适用于高层级内容分组，不用于首屏营销文案或正文说明。"
+    }
+  },
+  "heading-xl": {
+    "font-family": {
+      "$type": "fontFamily",
+      "$value": "{font-family.ios}",
+      "$description": "用于内容区块的一级标题与主要信息入口。适用于页面分区标题，不用于首屏营销文案或正文说明。"
+    },
+    "font-weight": {
+      "$type": "fontWeight",
+      "$value": "{font-weight.emphasize}",
+      "$description": "用于内容区块的一级标题与主要信息入口。适用于页面分区标题，不用于首屏营销文案或正文说明。"
+    }
+  },
+  "heading-md": {
+    "font-family": {
+      "$type": "fontFamily",
+      "$value": "{font-family.ios}",
+      "$description": "用于模块副标题与分组说明。适用于内容结构分层，不用于页面主标题或展示型文案。"
+    },
+    "font-weight": {
+      "$type": "fontWeight",
+      "$value": "{font-weight.emphasize}",
+      "$description": "用于模块副标题与分组说明。适用于内容结构分层，不用于页面主标题或展示型文案。"
+    }
+  },
+  "heading-sm": {
+    "font-family": {
+      "$type": "fontFamily",
+      "$value": "{font-family.ios}",
+      "$description": "用于结构辅助标题与子信息引导。适用于卡片、列表或表单内的小层级标题，不用于展示型强调文案。"
+    },
+    "font-weight": {
+      "$type": "fontWeight",
+      "$value": "{font-weight.emphasize}",
+      "$description": "用于结构辅助标题与子信息引导。适用于卡片、列表或表单内的小层级标题，不用于展示型强调文案。"
+    }
+  },
+  "heading-xs": {
+    "font-family": {
+      "$type": "fontFamily",
+      "$value": "{font-family.ios}",
+      "$description": "用于最小层级标题与强调型标签。适用于列表项标题、表单标签或紧凑卡片标题，不用于正文或展示型文案。"
+    },
+    "font-weight": {
+      "$type": "fontWeight",
+      "$value": "{font-weight.emphasize}",
+      "$description": "用于最小层级标题与强调型标签。适用于列表项标题、表单标签或紧凑卡片标题，不用于正文或展示型文案。"
+    }
+  },
+  "body-xl": {
+    "font-family": {
+      "$type": "fontFamily",
+      "$value": "{font-family.ios}",
+      "$description": "用于主正文信息、内容描述与核心说明。适用于阅读型内容，不用于标题、按钮或价格信息。"
+    },
+    "font-weight": {
+      "$type": "fontWeight",
+      "$value": "{font-weight.normal}",
+      "$description": "用于主正文信息、内容描述与核心说明。适用于阅读型内容，不用于标题、按钮或价格信息。"
+    },
+    "paragraph-spacing": {
+      "$type": "dimension",
+      "$value": "4px",
+      "$description": "用于主正文信息、内容描述与核心说明。适用于阅读型内容，不用于标题、按钮或价格信息。"
+    }
+  },
+  "body-md": {
+    "font-family": {
+      "$type": "fontFamily",
+      "$value": "{font-family.ios}",
+      "$description": "用于次要说明文字、补充内容与小提示。适用于辅助阅读信息，不用于标题、按钮或价格信息。"
+    },
+    "font-weight": {
+      "$type": "fontWeight",
+      "$value": "{font-weight.normal}",
+      "$description": "用于次要说明文字、补充内容与小提示。适用于辅助阅读信息，不用于标题、按钮或价格信息。"
+    },
+    "paragraph-spacing": {
+      "$type": "dimension",
+      "$value": "4px",
+      "$description": "用于次要说明文字、补充内容与小提示。适用于辅助阅读信息，不用于标题、按钮或价格信息。"
+    }
+  },
+  "caption-md": {
+    "font-family": {
+      "$type": "fontFamily",
+      "$value": "{font-family.ios}",
+      "$description": "用于附注、图文标签与补充说明。适用于辅助信息展示，不用于正文主信息或标题。"
+    },
+    "font-weight": {
+      "$type": "fontWeight",
+      "$value": "{font-weight.normal}",
+      "$description": "用于附注、图文标签与补充说明。适用于辅助信息展示，不用于正文主信息或标题。"
+    }
+  },
+  "caption-sm": {
+    "font-family": {
+      "$type": "fontFamily",
+      "$value": "{font-family.ios}",
+      "$description": "用于价格提示、状态文本与促销标签。适用于紧凑辅助信息，不用于正文主信息或正文链接。"
+    },
+    "font-weight": {
+      "$type": "fontWeight",
+      "$value": "{font-weight.normal}",
+      "$description": "用于价格提示、状态文本与促销标签。适用于紧凑辅助信息，不用于正文主信息或正文链接。"
+    }
+  },
+  "link-xl": {
+    "font-family": {
+      "$type": "fontFamily",
+      "$value": "{font-family.ios}",
+      "$description": "用于正文中的主要跳转入口、可点击文案与 Link 按钮。适用于 body-xl 层级的阅读流链接及 Link 类型按钮，不用于标题或价格信息。"
+    },
+    "font-weight": {
+      "$type": "fontWeight",
+      "$value": "{font-weight.normal}",
+      "$description": "用于正文中的主要跳转入口、可点击文案与 Link 按钮。适用于 body-xl 层级的阅读流链接及 Link 类型按钮，不用于标题或价格信息。"
+    }
+  },
+  "link-md": {
+    "font-family": {
+      "$type": "fontFamily",
+      "$value": "{font-family.ios}",
+      "$description": "用于正文中的主要跳转入口、可点击文案与 Link 按钮。适用于阅读流中的链接及 Link 类型按钮，不用于标题或价格信息。"
+    },
+    "font-weight": {
+      "$type": "fontWeight",
+      "$value": "{font-weight.normal}",
+      "$description": "用于正文中的主要跳转入口、可点击文案与 Link 按钮。适用于阅读流中的链接及 Link 类型按钮，不用于标题或价格信息。"
+    }
+  },
+  "link-sm": {
+    "font-family": {
+      "$type": "fontFamily",
+      "$value": "{font-family.ios}",
+      "$description": "用于紧凑场景中的辅助链接、次级跳转入口与 Link 按钮。适用于列表、注释或补充信息区域的链接及 Link 类型按钮，不用于正文主链接。"
+    },
+    "font-weight": {
+      "$type": "fontWeight",
+      "$value": "{font-weight.normal}",
+      "$description": "用于紧凑场景中的辅助链接、次级跳转入口与 Link 按钮。适用于列表、注释或补充信息区域的链接及 Link 类型按钮，不用于正文主链接。"
+    }
+  },
+  "strike-md": {
+    "font-family": {
+      "$type": "fontFamily",
+      "$value": "{font-family.ios}",
+      "$description": "用于 PDP 划线价与原价信息。仅用于价格对比，不用于普通删除线文本或正文强调。"
+    },
+    "font-weight": {
+      "$type": "fontWeight",
+      "$value": "{font-weight.normal}",
+      "$description": "用于 PDP 划线价与原价信息。仅用于价格对比，不用于普通删除线文本或正文强调。"
+    }
+  },
+  "strike-sm": {
+    "font-family": {
+      "$type": "fontFamily",
+      "$value": "{font-family.ios}",
+      "$description": "用于 PLP 划线价与紧凑原价信息。仅用于列表价格对比，不用于普通删除线文本或正文强调。"
+    },
+    "font-weight": {
+      "$type": "fontWeight",
+      "$value": "{font-weight.normal}",
+      "$description": "用于 PLP 划线价与紧凑原价信息。仅用于列表价格对比，不用于普通删除线文本或正文强调。"
+    }
+  },
+  "price-md": {
+    "font-family": {
+      "$type": "fontFamily",
+      "$value": "{font-family.ios}",
+      "$description": "用于 PDP 核心售价与价格信息。适用于商品详情页主价格，不用于正文数字、统计值或按钮文案。"
+    },
+    "font-weight": {
+      "$type": "fontWeight",
+      "$value": "{font-weight.emphasize}",
+      "$description": "用于 PDP 核心售价与价格信息。适用于商品详情页主价格，不用于正文数字、统计值或按钮文案。"
+    }
+  },
+  "price-sm": {
+    "font-family": {
+      "$type": "fontFamily",
+      "$value": "{font-family.ios}",
+      "$description": "用于 PLP 紧凑售价与列表价格信息。适用于商品卡片与列表，不用于 PDP 主价格或正文数字。"
+    },
+    "font-weight": {
+      "$type": "fontWeight",
+      "$value": "{font-weight.emphasize}",
+      "$description": "用于 PLP 紧凑售价与列表价格信息。适用于商品卡片与列表，不用于 PDP 主价格或正文数字。"
+    }
+  }
+}

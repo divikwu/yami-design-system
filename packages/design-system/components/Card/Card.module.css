@@ -1,0 +1,67 @@
+/* Card.module.css
+ *
+ * Surface primitive. No border by default (rule: card-no-border) —
+ * use surface and spacing for separation.
+ *
+ * Rules enforced:
+ *   - card-no-border (default border: none)
+ *   - no-custom-radii (radius: --radius-surface-default only)
+ *   - interactive cards change background color on hover
+ */
+
+.card {
+  background-color: var(--surface-primary);
+  border-radius: var(--radius-surface-default);
+  border: 0;
+  overflow: hidden;
+}
+
+/* ─── Padding variants ──────────────────────────────────────────── */
+
+.pad-none {
+  padding: 0;
+}
+.pad-sm {
+  padding: var(--space-150);
+}
+.pad-md {
+  padding: var(--space-200);
+}
+.pad-lg {
+  padding: var(--space-300);
+}
+
+/* ─── Surfaces ──────────────────────────────────────────────────── */
+
+.surface-primary {
+  background-color: var(--surface-primary);
+}
+.surface-secondary {
+  background-color: var(--surface-secondary);
+}
+.surface-inverse {
+  background-color: var(--surface-inverse);
+  color: var(--text-primary-inverse);
+}
+
+/* ─── Bordered (explicit opt-in; overrides card-no-border default)
+ *    Use only in dense listing grids per design.md card-no-border
+ *    exception clause. */
+.bordered {
+  border: 1px solid var(--border-default);
+}
+
+/* ─── Interactive ───────────────────────────────────────────────── */
+/* Interaction changes background color only. */
+
+.interactive {
+  cursor: pointer;
+  transition: background-color 150ms cubic-bezier(0.2, 0, 0, 1);
+}
+.interactive:hover {
+  background-color: var(--surface-secondary);
+}
+.interactive:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}

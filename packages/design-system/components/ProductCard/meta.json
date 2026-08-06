@@ -1,0 +1,328 @@
+{
+  "$schema": "../../../schema/component.json",
+  "name": "ProductCard",
+  "category": "composite",
+  "status": "stable",
+  "version": "0.2.0",
+
+  "description": "Figma-backed YAMI product tile. Rich remains the default and preserves the existing DOM contract; minimal and compact presentations support image-first and horizontal list contexts.",
+
+  "figma": {
+    "fileKey": "6oOAy72DBff4P6NzJYc2hi",
+    "nodeId": "2443:16213",
+    "notes": "Product Card - Desktop, Style=Grid - Standard with BG, Page=Homepage. ProductCardAddButton remains separately connected to 2410:30647."
+  },
+
+  "exports": [
+    "ProductCard",
+    "ProductCardAddButton",
+    "ProductCardPresentation"
+  ],
+
+  "composes": ["Card", "AspectRatio", "Badge", "ProductCardAddButton"],
+
+  "props": {
+    "presentation": {
+      "type": "\"rich\" | \"minimal\" | \"compact\"",
+      "required": false,
+      "default": "rich",
+      "description": "Non-breaking visual presentation. Rich preserves the original full product anatomy, minimal shows image with price badge and quick add, and compact uses a left-image horizontal row."
+    },
+    "image": {
+      "type": "string",
+      "required": false,
+      "description": "Image URL. When provided, imageAlt is required. When absent, the theme-aware neutral placeholder is rendered."
+    },
+    "imageAlt": {
+      "type": "string",
+      "required": "when image is provided",
+      "description": "Alt text. For decorative product cards in a list where title carries the product identity, pass empty string."
+    },
+    "imageLoading": {
+      "type": "ImgHTMLAttributes['loading']",
+      "required": false,
+      "default": "lazy",
+      "description": "Native image loading strategy. Set eager for above-fold cards."
+    },
+    "imageFetchPriority": {
+      "type": "ImgHTMLAttributes['fetchPriority']",
+      "required": false,
+      "description": "Native fetch priority. Use high only for an above-fold LCP candidate."
+    },
+    "brand": {
+      "type": "ReactNode",
+      "required": false,
+      "description": "Brand name above title (GT Walsheim 500, caption-md)."
+    },
+    "brandHref": {
+      "type": "string",
+      "required": "when brand is provided",
+      "description": "Brand destination used by the trailing-arrow link."
+    },
+    "title": {
+      "type": "ReactNode",
+      "required": true,
+      "description": "Product title. 2-line ellipsis clamp."
+    },
+    "priceCurrent": {
+      "type": "ReactNode",
+      "required": true,
+      "description": "Display string for current price. Colored --text-emphasis (red)."
+    },
+    "priceOriginal": {
+      "type": "ReactNode",
+      "required": false,
+      "description": "Original price with strike-through. Omit when no discount."
+    },
+    "unitPrice": {
+      "type": "ReactNode",
+      "required": false,
+      "description": "Unit or bundle price text, including pack information when relevant."
+    },
+    "ranking": {
+      "type": "ReactNode",
+      "required": false,
+      "description": "Ranking signal rendered as a yellow secondary Badge."
+    },
+    "rating": {
+      "type": "number",
+      "required": false,
+      "description": "0-5 star rating, rendered to 1 decimal (4.8). Omit to hide rating row."
+    },
+    "ratingCount": {
+      "type": "ReactNode",
+      "required": false,
+      "description": "Review count (e.g. '1.2k'). Rendered in parens."
+    },
+    "soldCount": {
+      "type": "ReactNode",
+      "required": false,
+      "description": "Sold count displayed after rating metadata."
+    },
+    "promotions": {
+      "type": "ProductCardPromotion[]",
+      "required": false,
+      "description": "Ordered loyalty and campaign rows below pricing."
+    },
+    "countdown": {
+      "type": "ReactNode",
+      "required": false,
+      "description": "Campaign countdown copy."
+    },
+    "badges": {
+      "type": "ProductBadge[]",
+      "required": false,
+      "description": "Product-image badges arranged top-left. Only sale, low-price, discount, new, hot, exclusive, and choice are allowed. Max 2 rendered; invalid types are ignored and extras are truncated."
+    },
+    "onAddToCart": {
+      "type": "MouseEventHandler",
+      "required": false,
+      "description": "Callback for the independent ProductCardAddButton. Omit to hide the child action."
+    },
+    "addButtonAriaLabel": {
+      "type": "string",
+      "required": false,
+      "default": "Add to cart",
+      "description": "Accessible name for ProductCardAddButton. Defaults to Add to cart."
+    },
+    "href": {
+      "type": "string",
+      "required": true,
+      "description": "Product destination used by the title link. Rating, pricing, promotion, and countdown content remain independently targetable."
+    }
+  },
+
+  "rules": {
+    "redUsage": {
+      "ruleId": "red-usage",
+      "note": "priceCurrent uses --text-emphasis (red) per the 'promotion / urgency' allowed category."
+    },
+    "numerals": {
+      "ruleId": "numerals-font",
+      "note": "Prices + rating number render in var(--font-family-ios) = GT Walsheim."
+    },
+    "noEmoji": {
+      "ruleId": "no-emoji",
+      "note": "Rating and action icons are SVG; campaign and badge copy remains text-only."
+    },
+    "cardBorder": {
+      "ruleId": "card-no-border",
+      "note": "Outer Card uses default (no border). For grid density, the parent ProductGrid may add a hairline divider."
+    },
+    "typeHierarchy": {
+      "ruleId": "type-hierarchy",
+      "note": "Uses exactly 4 levels: brand caption / title body / price price / rating caption. No hierarchy overflow."
+    },
+    "quickAdd": {
+      "ruleId": "tap-target",
+      "note": "ProductCardAddButton follows Figma 2410:30647: 40px visual size at every width with a 44px minimum pointer target. Compact rows place it beside price; rich and minimal cards retain the media overlay. Its colors are theme-independent semantics, not inverse-mode aliases."
+    }
+  },
+
+  "tokens": [
+    "--fill-tertiary",
+    "--border-default",
+    "--stroke-default",
+    "--text-primary",
+    "--text-emphasis",
+    "--text-secondary",
+    "--text-primary-inverse",
+    "--color-amber-100",
+    "--color-neutral-900",
+    "--badge-bg-primary-red",
+    "--border-focus-inverse",
+    "--radius-component-default",
+    "--radius-full",
+    "--product-card-add-surface",
+    "--product-card-add-surface-active-mobile",
+    "--product-card-add-surface-active-desktop",
+    "--product-card-add-icon",
+    "--product-card-add-icon-active",
+    "--product-card-add-border",
+    "--product-card-add-shadow",
+    "--border-focus",
+    "--button-disabled",
+    "--font-family-ios",
+    "--font-weight-emphasize",
+    "--font-size-caption-md",
+    "--font-size-body-md",
+    "--font-size-price-sm",
+    "--font-size-strike-sm",
+    "--line-height-caption-md",
+    "--line-height-body-md",
+    "--line-height-price-sm",
+    "--line-height-strike-sm",
+    "--space-050",
+    "--space-100"
+  ],
+
+  "tokenBindings": {
+    "--fill-tertiary": {
+      "property": "background-color",
+      "selector": ".imageWrap"
+    },
+    "--border-default": {
+      "property": "color",
+      "selector": ".placeholderPattern"
+    },
+    "--text-primary": {
+      "property": "color",
+      "selector": ".brand, .title, .ratingRow, .promotion"
+    },
+    "--text-emphasis": {
+      "property": "color",
+      "selector": ".priceSale, .ratingStar, .promotion[data-tone='emphasis']"
+    },
+    "--text-secondary": {
+      "property": "color",
+      "selector": ".priceOriginal, .ratingCount, .sold, .unitPrice, .countdown, .imagePlaceholder"
+    },
+    "--product-card-add-surface": {
+      "property": "background-color",
+      "selector": ".root"
+    },
+    "--product-card-add-surface-active-mobile": {
+      "property": "background-color",
+      "selector": ".root:not(:disabled):hover, .root:not(:disabled):active"
+    },
+    "--product-card-add-surface-active-desktop": {
+      "property": "background-color",
+      "selector": ".root:not(:disabled):hover, .root:not(:disabled):active at desktop"
+    },
+    "--product-card-add-icon": { "property": "color", "selector": ".root" },
+    "--product-card-add-icon-active": {
+      "property": "color",
+      "selector": ".root:not(:disabled):hover, .root:not(:disabled):active at desktop"
+    },
+    "--product-card-add-border": {
+      "property": "border-color",
+      "selector": ".root"
+    },
+    "--product-card-add-shadow": {
+      "property": "box-shadow",
+      "selector": ".root"
+    },
+    "--border-focus": {
+      "property": "outline-color",
+      "selector": ".brand:focus-visible, .cardLink:focus-visible, .root:focus-visible"
+    },
+    "--button-disabled": {
+      "property": "background-color",
+      "selector": ".root:disabled"
+    },
+    "--font-family-ios": {
+      "property": "font-family",
+      "selector": ".brand, .title, .priceCurrent, .priceSale, .priceOriginal, .ratingSoldRow, .unitPrice, .promotion, .countdown"
+    },
+    "--font-weight-emphasize": {
+      "property": "font-weight",
+      "selector": ".priceCurrent, .priceSale, .campaignBadge"
+    },
+    "--font-size-caption-md": {
+      "property": "font-size",
+      "selector": ".brand, .ratingSoldRow, .unitPrice, .promotion, .countdown"
+    },
+    "--font-size-body-md": { "property": "font-size", "selector": ".title" },
+    "--font-size-price-sm": {
+      "property": "font-size",
+      "selector": ".priceCurrent, .priceSale"
+    },
+    "--font-size-strike-sm": {
+      "property": "font-size",
+      "selector": ".priceOriginal"
+    },
+    "--line-height-caption-md": {
+      "property": "line-height",
+      "selector": ".brand, .ratingSoldRow, .unitPrice, .promotion, .countdown"
+    },
+    "--line-height-body-md": {
+      "property": "line-height",
+      "selector": ".title"
+    },
+    "--line-height-price-sm": {
+      "property": "line-height",
+      "selector": ".priceCurrent, .priceSale"
+    },
+    "--line-height-strike-sm": {
+      "property": "line-height",
+      "selector": ".priceOriginal"
+    },
+    "--space-050": {
+      "property": "gap",
+      "selector": ".badgeStack, .ratingSoldRow, .sold, .promotions"
+    },
+    "--space-100": { "property": "padding", "selector": ".content" }
+  },
+
+  "accessibility": {
+    "wcagLevel": "AA",
+    "tapTargetMin": 44,
+    "keyboardNav": ["tab", "enter", "space"],
+    "ariaPattern": "article containing a required product-title link and an independent optional quick-add button",
+    "structure": "Image with alt (required when src) or aria-hidden placeholder. Badges use semantic <span>. Rating has aria-label 'Rating X out of 5'.",
+    "interaction": "Only the product title navigates to the product destination. Brand and Add remain independent controls; Add has a required aria-label."
+  },
+
+  "dependencies": {
+    "runtime": [
+      "react",
+      "./Card",
+      "./AspectRatio",
+      "./Badge",
+      "./ProductCardAddButton"
+    ],
+    "peer": [],
+    "devOnly": []
+  },
+
+  "usageRef": "./usage.md",
+  "examples": [
+    "./examples.tsx#BasicProductCard",
+    "./examples.tsx#SaleProductCard",
+    "./examples.tsx#MultiBadgeProductCard",
+    "./examples.tsx#NoImageProductCard",
+    "./examples.tsx#NoRatingProductCard",
+    "./examples.tsx#LinkProductCard",
+    "./examples.tsx#GridOfProductCardsExample"
+  ]
+}

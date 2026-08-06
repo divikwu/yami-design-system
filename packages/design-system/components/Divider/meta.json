@@ -1,0 +1,115 @@
+{
+  "$schema": "../../../schema/component.json",
+  "name": "Divider",
+  "category": "layout",
+  "status": "stable",
+  "version": "0.1.0",
+
+  "description": "Hairline separator (1px). 3 strengths per design.md border-strength rule, plus inverse variants for opposite-polarity surfaces. Horizontal renders as <hr>, vertical as <span role=\"separator\">.",
+
+  "figma": { "nodeId": null, "componentKey": null },
+
+  "variants": {
+    "strength": [
+      "default",
+      "subtle",
+      "emphasis",
+      "default-inverse",
+      "subtle-inverse",
+      "emphasis-inverse"
+    ],
+    "orientation": ["horizontal", "vertical"]
+  },
+
+  "props": {
+    "strength": {
+      "type": "enum",
+      "values": [
+        "default",
+        "subtle",
+        "emphasis",
+        "default-inverse",
+        "subtle-inverse",
+        "emphasis-inverse"
+      ],
+      "required": false,
+      "default": "default",
+      "description": "Border-strength tier. default=8% / subtle=29% / emphasis=87% (+ inverse variants for opposite-polarity surfaces)."
+    },
+    "orientation": {
+      "type": "enum",
+      "values": ["horizontal", "vertical"],
+      "required": false,
+      "default": "horizontal"
+    }
+  },
+
+  "rules": {
+    "borderStrength": {
+      "ruleId": "border-strength",
+      "note": "Only 3 strengths exist — no arbitrary opacities. Pick default for most cases."
+    }
+  },
+
+  "tokens": [
+    "--divider-default",
+    "--divider-default-inverse",
+    "--divider-subtle",
+    "--divider-subtle-inverse",
+    "--divider-emphasis",
+    "--divider-emphasis-inverse"
+  ],
+
+  "tokenBindings": {
+    "--divider-default": {
+      "property": "border-color",
+      "selector": ".horizontal.default, .vertical.default"
+    },
+    "--divider-default-inverse": {
+      "property": "border-color",
+      "selector": ".horizontal.default-inverse, .vertical.default-inverse"
+    },
+    "--divider-subtle": {
+      "property": "border-color",
+      "selector": ".horizontal.subtle, .vertical.subtle"
+    },
+    "--divider-subtle-inverse": {
+      "property": "border-color",
+      "selector": ".horizontal.subtle-inverse, .vertical.subtle-inverse"
+    },
+    "--divider-emphasis": {
+      "property": "border-color",
+      "selector": ".horizontal.emphasis, .vertical.emphasis"
+    },
+    "--divider-emphasis-inverse": {
+      "property": "border-color",
+      "selector": ".horizontal.emphasis-inverse, .vertical.emphasis-inverse"
+    }
+  },
+
+  "accessibility": {
+    "role": "separator",
+    "wcagLevel": "AA",
+    "tapTargetMin": 0,
+    "keyboardNav": [],
+    "ariaPattern": "separator",
+    "notes": "Non-interactive — tapTargetMin=0, keyboardNav=[]. <hr> is inherently role=separator. Vertical variant sets role+aria-orientation manually."
+  },
+
+  "dependencies": {
+    "runtime": ["react"],
+    "peer": [],
+    "devOnly": []
+  },
+
+  "usageRef": "./usage.md",
+  "examples": [
+    "./examples.tsx#DefaultDivider",
+    "./examples.tsx#SubtleDivider",
+    "./examples.tsx#EmphasisDivider",
+    "./examples.tsx#VerticalDivider",
+    "./examples.tsx#InverseDivider",
+    "./examples.tsx#BetweenSectionsExample",
+    "./examples.tsx#InlineInfoRowExample"
+  ]
+}

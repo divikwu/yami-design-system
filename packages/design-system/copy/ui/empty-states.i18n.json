@@ -1,0 +1,41 @@
+{
+  "$description": "Empty state copy. Pattern: current state (first line) + primary action (button). See copy-patterns.md. Each key has a 'title' plus optional 'subtitle' and 'action' — consumer components pick which to render.",
+
+  "emptyCart": {
+    "title":    { "en": "Your cart is empty",           "zh-CN": "购物车是空的" },
+    "subtitle": { "en": "Start shopping to fill it up.", "zh-CN": "开始购物添加商品。" },
+    "action":   { "en": "Start Shopping",                "zh-CN": "开始购物" }
+  },
+  "noOrders": {
+    "title":    { "en": "No orders yet",                 "zh-CN": "暂无订单" },
+    "subtitle": { "en": "Start shopping to see orders here.", "zh-CN": "开始购物后可在此查看订单。" },
+    "action":   { "en": "Start Shopping",                "zh-CN": "开始购物" }
+  },
+  "noResults": {
+    "title":    { "en": "No results found",              "zh-CN": "未找到结果" },
+    "subtitle": { "en": "Try a different keyword or browse categories.", "zh-CN": "尝试其他关键词或浏览分类。" },
+    "action":   { "en": "Back to Home",                  "zh-CN": "返回首页" }
+  },
+  "noFavorites": {
+    "title":    { "en": "No favorites yet",              "zh-CN": "暂无收藏" },
+    "subtitle": { "en": "Tap the heart to save items for later.", "zh-CN": "点击心形图标收藏商品。" },
+    "action":   { "en": "Browse Products",               "zh-CN": "浏览商品" }
+  },
+  "noAddresses": {
+    "title":    { "en": "No saved addresses",            "zh-CN": "暂无保存的地址" },
+    "subtitle": { "en": "Add an address to speed up checkout.", "zh-CN": "添加地址以加快结账。" },
+    "action":   { "en": "Add Address",                   "zh-CN": "添加地址" }
+  },
+  "noCoupons": {
+    "title":    { "en": "No coupons available",          "zh-CN": "暂无可用优惠券" },
+    "subtitle": { "en": "Check back during sales and promotions.", "zh-CN": "促销期间回来查看。" }
+  },
+  "noNotifications": {
+    "title":    { "en": "You're all caught up",          "zh-CN": "消息已全部查看" },
+    "subtitle": { "en": "New notifications will appear here.", "zh-CN": "新消息会显示在此处。" }
+  },
+  "noReviews": {
+    "title":    { "en": "No reviews yet",                "zh-CN": "暂无评价" },
+    "subtitle": { "en": "Be the first to review this item.", "zh-CN": "成为第一位评价的顾客。" }
+  }
+}

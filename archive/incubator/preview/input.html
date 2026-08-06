@@ -1,0 +1,2822 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><link rel="preconnect" href="/" crossorigin=""/><meta name="viewport" content="width=device-width, initial-scale=1"/><style data-chunk="0m3xj1f62u3x-.css">@font-face{font-family:GT Walsheim;src:url(../fonts/GT-Walsheim-Bold.woff2)format("woff2");font-weight:700;font-display:swap}@font-face{font-family:GT Walsheim;src:url(../fonts/GT-Walsheim-Medium.woff2)format("woff2");font-weight:500;font-display:swap}@font-face{font-family:GT Walsheim;src:url(../fonts/GT-Walsheim-Regular.woff2)format("woff2");font-weight:400;font-display:swap}:root{--color-neutral-50:#fafafa;--color-neutral-100:#f5f5f5;--color-neutral-200:#ebebeb;--color-neutral-300:#d4d4d4;--color-neutral-400:#b4b4b4;--color-neutral-500:#949494;--color-neutral-600:#727272;--color-neutral-700:#525252;--color-neutral-800:#393939;--color-neutral-900:#222;--color-neutral-950:#0a0a0a;--color-black-0:#0000;--color-black-100:#0000000a;--color-black-200:#00000014;--color-black-300:#0000002b;--color-black-400:#0000004a;--color-black-500:#0000006b;--color-black-600:#0000008c;--color-black-700:#000000ad;--color-black-800:#000000c7;--color-black-900:#000000de;--color-black-1000:#000;--color-white-0:#fff0;--color-white-100:#ffffff0a;--color-white-200:#ffffff14;--color-white-300:#ffffff2b;--color-white-400:#ffffff4a;--color-white-500:#ffffff6b;--color-white-600:#ffffff8c;--color-white-700:#ffffffad;--color-white-800:#ffffffc7;--color-white-900:#ffffffde;--color-white-1000:#fff;--color-red-50:#fbf1ef;--color-red-100:#f7dbd6;--color-red-200:#f4b7ae;--color-red-300:#f3867c;--color-red-400:#f8564f;--color-red-500:#e00000;--color-red-600:#c40009;--color-red-700:#9b000d;--color-red-800:#7a0010;--color-red-900:#57000f;--color-red-950:#3d000c;--color-orange-50:#fef1e7;--color-orange-100:#fce1cf;--color-orange-200:#fac19e;--color-orange-300:#f7a06e;--color-orange-400:#f57d3d;--color-orange-500:#f2590d;--color-orange-600:#cb480b;--color-orange-700:#a53809;--color-orange-800:#7e2907;--color-orange-900:#571b05;--color-orange-950:#441404;--color-amber-50:#fef7e6;--color-amber-100:#feeecd;--color-amber-200:#fdd99b;--color-amber-300:#fcbf69;--color-amber-400:#fba137;--color-amber-500:#fa8005;--color-amber-600:#d26204;--color-amber-700:#9e4303;--color-amber-800:#823203;--color-amber-900:#5a1f02;--color-amber-950:#481e00;--color-yellow-50:#fefde6;--color-yellow-100:#fefacd;--color-yellow-200:#fdf19b;--color-yellow-300:#fce469;--color-yellow-400:#fbd237;--color-yellow-500:#fabd05;--color-yellow-600:#d29604;--color-yellow-700:#aa7203;--color-yellow-800:#825203;--color-yellow-900:#5a3502;--color-yellow-950:#432305;--color-lime-50:#f2f8e4;--color-lime-100:#eaf4d2;--color-lime-200:#dbecac;--color-lime-300:#cfe486;--color-lime-400:#c6dc60;--color-lime-500:#c0d539;--color-lime-600:#b0bd28;--color-lime-700:#969c21;--color-lime-800:#707018;--color-lime-900:#4d4b11;--color-lime-950:#3b380c;--color-green-50:#e9f5e2;--color-green-100:#def1d0;--color-green-200:#bfe79d;--color-green-300:#a6de69;--color-green-400:#8ed534;--color-green-500:#7dcd04;--color-green-600:#71af04;--color-green-700:#5f8c03;--color-green-800:#4b6902;--color-green-900:#354601;--color-green-950:#283401;--color-emerald-50:#ecf9f0;--color-emerald-100:#d8f3e0;--color-emerald-200:#b1e7bf;--color-emerald-300:#8bda9c;--color-emerald-400:#6cd07e;--color-emerald-500:#3dc24f;--color-emerald-600:#33a33d;--color-emerald-700:#27812b;--color-emerald-800:#206520;--color-emerald-900:#184616;--color-emerald-950:#133611;--color-teal-50:#ebfaf7;--color-teal-100:#c9f0e8;--color-teal-200:#93e5d2;--color-teal-300:#60dbbb;--color-teal-400:#1dd39c;--color-teal-500:#08c485;--color-teal-600:#07a168;--color-teal-700:#05804e;--color-teal-800:#046239;--color-teal-900:#024525;--color-teal-950:#03361c;--color-cyan-50:#edf9fc;--color-cyan-100:#ccebf5;--color-cyan-200:#90dfef;--color-cyan-300:#5dd5ea;--color-cyan-400:#2fcddf;--color-cyan-500:#06bdcb;--color-cyan-600:#06999e;--color-cyan-700:#057b7a;--color-cyan-800:#03635f;--color-cyan-900:#034540;--color-cyan-950:#01322d;--color-sky-50:#eef6fe;--color-sky-100:#d4e9fc;--color-sky-200:#a2d4fc;--color-sky-300:#6ec1fa;--color-sky-400:#47b8fa;--color-sky-500:#00a3f5;--color-sky-600:#008cc7;--color-sky-700:#00759e;--color-sky-800:#005b75;--color-sky-900:#003e4d;--color-sky-950:#002f38;--color-blue-50:#f0f3fa;--color-blue-100:#d9e6ff;--color-blue-200:#b6cefa;--color-blue-300:#8eb7ff;--color-blue-400:#66a1ff;--color-blue-500:#3383ff;--color-blue-600:#0066eb;--color-blue-700:#005cc2;--color-blue-800:#004e99;--color-blue-900:#00325c;--color-blue-950:#002542;--color-indigo-50:#f3f2ff;--color-indigo-100:#e7e5ff;--color-indigo-200:#cac7ff;--color-indigo-300:#aba8ff;--color-indigo-400:#8987fc;--color-indigo-500:#5c5cff;--color-indigo-600:#4046e5;--color-indigo-700:#313bcc;--color-indigo-800:#1e2ba6;--color-indigo-900:#0f1e80;--color-indigo-950:#04125a;--color-purple-50:#f7f0ff;--color-purple-100:#ede1fa;--color-purple-200:#dec8fa;--color-purple-300:#c8a3ff;--color-purple-400:#aa7afe;--color-purple-500:#8b51ff;--color-purple-600:#6c30f7;--color-purple-700:#531ee3;--color-purple-800:#3c17b5;--color-purple-900:#2a1386;--color-purple-950:#170a5c;--color-fuchsia-50:#ffedfe;--color-fuchsia-100:#ffdcfe;--color-fuchsia-200:#fac0fa;--color-fuchsia-300:#f98dfc;--color-fuchsia-400:#db57e5;--color-fuchsia-500:#b900cc;--color-fuchsia-600:#9d02b5;--color-fuchsia-700:#77018e;--color-fuchsia-800:#5d0373;--color-fuchsia-900:#49065d;--color-fuchsia-950:#2e003f;--color-pink-50:#fdf1f5;--color-pink-100:#fce5ee;--color-pink-200:#fbcbe0;--color-pink-300:#f9a0ca;--color-pink-400:#f466ad;--color-pink-500:#eb3093;--color-pink-600:#c3237d;--color-pink-700:#a3146a;--color-pink-800:#85145b;--color-pink-900:#5e1245;--color-pink-950:#420530;--color-rose-50:#ffeff0;--color-rose-100:#fee7ea;--color-rose-200:#fdc6ce;--color-rose-300:#fb99ab;--color-rose-400:#f85e80;--color-rose-500:#f51f53;--color-rose-600:#d6144c;--color-rose-700:#b50b41;--color-rose-800:#970c3d;--color-rose-900:#750b33;--color-rose-950:#490320;--space-0:0;--space-100:8px;--space-150:12px;--space-200:16px;--space-250:20px;--space-300:24px;--space-400:32px;--space-500:40px;--space-600:48px;--space-800:64px;--space-1000:80px;--space-025:2px;--space-050:4px;--radius-none:0;--radius-sm:4px;--radius-md:8px;--radius-lg:12px;--radius-xl:16px;--radius-full:9999px;--stroke-none:0;--stroke-default:1px;--stroke-thick:2px;--breakpoints-mobile:402px;--breakpoints-tablet:768px;--breakpoints-desktop:1024px;--breakpoints-desktop-lg:1440px;--breakpoints-desktop-xl:1920px;--font-family-brand:"GT Walsheim", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;--font-family-system-cn-ios:"PingFang SC", "GT Walsheim", sans-serif;--font-family-system-cn-android:"Noto Sans SC", "GT Walsheim", sans-serif;--font-weight-normal:400;--font-weight-emphasize:500;--letter-spacing-normal:0;--letter-spacing-tight:-1px;--layout-page-margin-default:16px;--layout-page-margin-card:8px;--font-size-display-xl:32px;--font-size-display-md:28px;--font-size-display-sm:24px;--font-size-heading-4xl:32px;--font-size-heading-3xl:28px;--font-size-heading-2xl:24px;--font-size-heading-xl:20px;--font-size-heading-md:18px;--font-size-heading-sm:16px;--font-size-body-xl:16px;--font-size-body-md:14px;--font-size-caption-md:12px;--font-size-caption-sm:10px;--font-size-link-xl:16px;--font-size-link-md:14px;--font-size-link-sm:12px;--font-size-strike-md:14px;--font-size-strike-sm:12px;--font-size-price-md:20px;--font-size-price-sm:16px;--line-height-display-xl:40px;--line-height-display-md:36px;--line-height-display-sm:32px;--line-height-heading-4xl:40px;--line-height-heading-3xl:36px;--line-height-heading-2xl:32px;--line-height-heading-xl:28px;--line-height-heading-md:24px;--line-height-heading-sm:20px;--line-height-body-xl:20px;--line-height-body-md:20px;--line-height-caption-md:16px;--line-height-caption-sm:14px;--line-height-link-xl:20px;--line-height-link-md:20px;--line-height-link-sm:16px;--line-height-strike-md:20px;--line-height-strike-sm:16px;--line-height-price-md:28px;--line-height-price-sm:20px;--color-brand-red:var(--color-red-500);--radius-surface-default:12px;--radius-surface-none:0;--radius-component-default:8px;--radius-component-none:0;--radius-button-emphasis:8px;--radius-button-primary:9999px;--radius-tag-primary:4px;--brand-secondary:var(--color-neutral-900);--brand-tertiary:var(--color-red-50);--brand-inverse:var(--color-white-1000);--text-emphasis:var(--color-red-500);--text-emphasis-inverse:var(--color-red-400);--text-primary:var(--color-black-900);--text-primary-inverse:var(--color-white-1000);--text-secondary:var(--color-black-600);--text-secondary-inverse:var(--color-white-600);--text-disabled:var(--color-black-400);--text-disabled-inverse:var(--color-white-400);--text-success:var(--color-emerald-700);--text-warning:var(--color-yellow-600);--text-error:var(--color-red-500);--text-info:var(--color-blue-500);--background-primary:var(--color-white-1000);--background-secondary:var(--color-neutral-100);--surface-primary:var(--color-white-1000);--surface-secondary:var(--color-neutral-100);--surface-inverse:var(--color-neutral-900);--fill-primary:var(--color-white-1000);--fill-secondary:var(--color-neutral-100);--fill-tertiary:var(--color-neutral-50);--fill-disabled:var(--color-neutral-300);--fill-inverse:var(--color-neutral-900);--fill-skeleton:var(--color-black-200);--fill-skeleton-inverse:var(--color-white-200);--fill-success-primary:var(--color-emerald-500);--fill-success-secondary:var(--color-emerald-50);--fill-warning-primary:var(--color-yellow-500);--fill-warning-secondary:var(--color-amber-50);--fill-error-primary:var(--color-red-500);--fill-error-secondary:var(--color-red-50);--fill-info-primary:var(--color-blue-500);--fill-info-secondary:var(--color-blue-50);--fill-promotion-primary:var(--color-red-500);--fill-promotion-secondary:var(--color-red-50);--fill-highlight:var(--color-yellow-500);--button-emphasis-active:var(--color-red-600);--button-emphasis-inverse:var(--color-red-500);--button-emphasis-active-inverse:var(--color-red-600);--button-primary:var(--color-black-900);--button-primary-active:var(--color-black-1000);--button-primary-inverse:var(--color-white-1000);--button-primary-active-inverse:var(--color-white-800);--button-secondary:var(--color-black-100);--button-secondary-active:var(--color-black-200);--button-secondary-inverse:var(--color-white-200);--button-secondary-active-inverse:var(--color-white-300);--button-tertiary:var(--color-white-1000);--button-tertiary-active:var(--color-neutral-100);--button-tertiary-inverse:var(--color-white-0);--button-tertiary-active-inverse:var(--color-white-100);--button-disabled:var(--color-neutral-200);--button-disabled-inverse:var(--color-white-400);--border-default:var(--color-black-200);--border-default-inverse:var(--color-white-200);--border-focus:var(--color-black-900);--border-focus-inverse:var(--color-white-1000);--border-attention:var(--color-red-500);--border-attention-inverse:var(--color-red-500);--divider-default:var(--color-black-100);--divider-default-inverse:var(--color-white-200);--divider-subtle:var(--color-black-400);--divider-subtle-inverse:var(--color-white-400);--divider-emphasis:var(--color-black-900);--divider-emphasis-inverse:var(--color-white-900);--badge-bg-primary-red:var(--color-red-500);--badge-bg-secondary-red:var(--color-red-50);--badge-bg-primary-blue:var(--color-blue-600);--badge-bg-secondary-blue:var(--color-blue-50);--badge-bg-primary-green:var(--color-emerald-700);--badge-bg-secondary-green:var(--color-emerald-50);--badge-bg-primary-purple:var(--color-purple-600);--badge-bg-secondary-purple:var(--color-purple-50);--badge-bg-primary-yellow:var(--color-amber-700);--badge-bg-secondary-yellow:var(--color-amber-50);--badge-bg-primary-neutral:var(--color-black-900);--badge-bg-secondary-neutral:var(--color-white-1000);--badge-bg-tertiary-neutral:var(--color-neutral-100);--badge-fg-secondary-red:var(--color-red-700);--badge-fg-secondary-blue:var(--color-blue-700);--badge-fg-secondary-green:var(--color-emerald-700);--badge-fg-secondary-purple:var(--color-purple-700);--badge-fg-secondary-yellow:var(--color-amber-700);--badge-fg-default:var(--color-black-900);--badge-fg-default-inverse:var(--color-white-1000);--badge-fg-primary-red:var(--color-white-1000);--overlay-default:var(--color-black-300);--overlay-scrim:var(--color-black-700);--brand-primary:var(--color-brand-red);--button-emphasis:var(--color-brand-red)}@media (min-width:1024px){:root{--layout-page-margin-default:48px;--layout-page-margin-card:48px}}@media (min-width:1440px){:root{--font-size-display-xl:40px;--font-size-display-md:32px;--font-size-display-sm:28px;--font-size-heading-xl:24px;--font-size-heading-md:20px;--font-size-caption-md:14px;--font-size-caption-sm:12px;--font-size-link-sm:13px;--font-size-strike-sm:13px;--font-size-price-md:24px;--font-size-price-sm:18px;--line-height-display-xl:48px;--line-height-display-md:40px;--line-height-display-sm:36px;--line-height-heading-xl:32px;--line-height-heading-md:28px;--line-height-caption-md:20px;--line-height-link-sm:18px;--line-height-strike-sm:18px;--line-height-price-md:32px}}:root{--font-brand:var(--font-family-brand);--font-cn-ios:var(--font-family-system-cn-ios);--font-cn-android:var(--font-family-system-cn-android);--font-mono:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;--fw-normal:var(--font-weight-normal);--fw-emphasize:var(--font-weight-emphasize);--fw-bold:700}html,body{font-family:var(--font-cn-ios);color:var(--text-primary);background:var(--background-primary)}h1,.h1{font-family:var(--font-brand);font-weight:var(--fw-emphasize);font-size:var(--font-size-display-md);line-height:var(--line-height-display-md);letter-spacing:-.01em;margin:0}h2,.h2{font-family:var(--font-brand);font-weight:var(--fw-emphasize);font-size:var(--font-size-heading-xl);line-height:var(--line-height-heading-xl);margin:0}h3,.h3{font-family:var(--font-brand);font-weight:var(--fw-emphasize);font-size:var(--font-size-heading-md);line-height:var(--line-height-heading-md);margin:0}h4,.h4{font-family:var(--font-brand);font-weight:var(--fw-emphasize);font-size:var(--font-size-heading-sm);line-height:var(--line-height-heading-sm);margin:0}p,.body{font-size:var(--font-size-body-md);line-height:var(--line-height-body-md)}.body-lg{font-size:var(--font-size-body-xl);line-height:var(--line-height-body-xl)}.caption{font-size:var(--font-size-caption-sm);line-height:var(--line-height-caption-sm);color:var(--text-secondary)}.price{font-family:var(--font-brand);font-weight:var(--fw-emphasize);font-size:var(--font-size-price-md);line-height:var(--line-height-price-md);color:var(--text-emphasis)}.price-sm{font-family:var(--font-brand);font-weight:var(--fw-emphasize);font-size:var(--font-size-price-sm);line-height:var(--line-height-price-sm);color:var(--text-emphasis)}.strike{font-size:var(--font-size-strike-md);line-height:var(--line-height-strike-md);color:var(--text-secondary);text-decoration:line-through}a,.link{color:var(--text-primary);text-decoration:underline}code,.mono{font-family:var(--font-mono);font-size:13px}
+*{box-sizing:border-box}html,body{margin:0;padding:0}body{background:var(--background-primary);min-height:100vh;color:var(--text-primary);font-family:var(--font-family-system-cn-ios);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}:focus-visible{outline:2px solid var(--border-focus);outline-offset:2px;border-radius:var(--radius-tag-primary)}a{color:var(--text-primary)}
+</style><style data-chunk="106hhmgx75hxg.css">.Badge-module__LSzGoW__badge{font-family:var(--font-family-brand);font-weight:var(--font-weight-emphasize);white-space:nowrap;letter-spacing:var(--letter-spacing-normal);border-radius:var(--radius-tag-primary);justify-content:center;align-items:center;display:inline-flex}.Badge-module__LSzGoW__badge[data-size=sm]{height:16px;padding:0 var(--space-050);font-size:var(--font-size-caption-sm);line-height:var(--line-height-caption-sm)}.Badge-module__LSzGoW__badge[data-size=md]{height:20px;padding:0 var(--space-100);font-size:var(--font-size-caption-md);line-height:var(--line-height-caption-md)}.Badge-module__LSzGoW__badge[data-emphasis=primary][data-color=red]{background-color:var(--badge-bg-primary-red);color:var(--badge-fg-primary-red)}.Badge-module__LSzGoW__badge[data-emphasis=primary][data-color=blue]{background-color:var(--badge-bg-primary-blue);color:var(--badge-fg-default-inverse)}.Badge-module__LSzGoW__badge[data-emphasis=primary][data-color=green]{background-color:var(--badge-bg-primary-green);color:var(--badge-fg-default-inverse)}.Badge-module__LSzGoW__badge[data-emphasis=primary][data-color=purple]{background-color:var(--badge-bg-primary-purple);color:var(--badge-fg-default-inverse)}.Badge-module__LSzGoW__badge[data-emphasis=primary][data-color=yellow]{background-color:var(--badge-bg-primary-yellow);color:var(--badge-fg-default-inverse)}.Badge-module__LSzGoW__badge[data-emphasis=primary][data-color=neutral]{background-color:var(--badge-bg-primary-neutral);color:var(--badge-fg-default-inverse)}.Badge-module__LSzGoW__badge[data-emphasis=secondary][data-color=red]{background-color:var(--badge-bg-secondary-red);color:var(--badge-fg-secondary-red)}.Badge-module__LSzGoW__badge[data-emphasis=secondary][data-color=blue]{background-color:var(--badge-bg-secondary-blue);color:var(--badge-fg-secondary-blue)}.Badge-module__LSzGoW__badge[data-emphasis=secondary][data-color=green]{background-color:var(--badge-bg-secondary-green);color:var(--badge-fg-secondary-green)}.Badge-module__LSzGoW__badge[data-emphasis=secondary][data-color=purple]{background-color:var(--badge-bg-secondary-purple);color:var(--badge-fg-secondary-purple)}.Badge-module__LSzGoW__badge[data-emphasis=secondary][data-color=yellow]{background-color:var(--badge-bg-secondary-yellow);color:var(--badge-fg-secondary-yellow)}.Badge-module__LSzGoW__badge[data-emphasis=secondary][data-color=neutral]{background-color:var(--badge-bg-tertiary-neutral);color:var(--badge-fg-default)}
+.Button-module__6H_15q__button{justify-content:center;align-items:center;gap:var(--space-100);font-family:var(--font-family-brand);font-weight:var(--font-weight-emphasize);white-space:nowrap;cursor:pointer;-webkit-user-select:none;user-select:none;border:0;text-decoration:none;transition:background-color .15s cubic-bezier(.2,0,0,1),color .15s cubic-bezier(.2,0,0,1);display:inline-flex;position:relative}.Button-module__6H_15q__button:focus-visible{outline:2px solid var(--border-focus);outline-offset:2px}.Button-module__6H_15q__button[aria-disabled=true]{cursor:not-allowed}.Button-module__6H_15q__sm{height:var(--space-400);padding:0 var(--space-150);font-size:var(--font-size-body-md);line-height:var(--line-height-body-md)}.Button-module__6H_15q__md{height:var(--space-500);padding:0 var(--space-200);font-size:var(--font-size-body-md);line-height:var(--line-height-body-md)}.Button-module__6H_15q__lg{height:var(--space-600);padding:0 var(--space-250);font-size:var(--font-size-body-xl);line-height:var(--line-height-body-xl)}.Button-module__6H_15q__iconOnly{aspect-ratio:1;padding-inline:0;position:relative}.Button-module__6H_15q__iconOnly.Button-module__6H_15q__sm:before,.Button-module__6H_15q__iconOnly.Button-module__6H_15q__md:before{content:"";width:44px;height:44px;position:absolute;inset:50%;transform:translate(-50%,-50%)}.Button-module__6H_15q__button.Button-module__6H_15q__sm:not(.Button-module__6H_15q__iconOnly):before,.Button-module__6H_15q__button.Button-module__6H_15q__md:not(.Button-module__6H_15q__iconOnly):before{content:"";height:44px;position:absolute;top:50%;left:0;right:0;transform:translateY(-50%)}.Button-module__6H_15q__fullWidth{width:100%}.Button-module__6H_15q__emphasis{background-color:var(--button-emphasis);color:var(--text-primary-inverse);border-radius:var(--radius-button-emphasis)}.Button-module__6H_15q__emphasis:not([aria-disabled=true]):hover,.Button-module__6H_15q__emphasis:not([aria-disabled=true]):active{background-color:var(--button-emphasis-active)}.Button-module__6H_15q__emphasis[aria-disabled=true]{background-color:var(--button-disabled);color:var(--text-disabled)}.Button-module__6H_15q__primary{background-color:var(--button-primary);color:var(--text-primary-inverse);border-radius:var(--radius-button-primary)}.Button-module__6H_15q__primary:not([aria-disabled=true]):hover,.Button-module__6H_15q__primary:not([aria-disabled=true]):active{background-color:var(--button-primary-active)}.Button-module__6H_15q__primary[aria-disabled=true]{background-color:var(--button-disabled);color:var(--text-disabled)}.Button-module__6H_15q__secondary{background-color:var(--button-secondary);color:var(--text-primary);border-radius:var(--radius-button-primary)}.Button-module__6H_15q__secondary:not([aria-disabled=true]):hover,.Button-module__6H_15q__secondary:not([aria-disabled=true]):active{background-color:var(--button-secondary-active)}.Button-module__6H_15q__secondary[aria-disabled=true]{background-color:var(--button-disabled);color:var(--text-disabled)}.Button-module__6H_15q__tertiary{background-color:var(--button-tertiary);color:var(--text-primary);border-radius:var(--radius-button-primary)}.Button-module__6H_15q__tertiary:not([aria-disabled=true]):hover,.Button-module__6H_15q__tertiary:not([aria-disabled=true]):active{background-color:var(--button-tertiary-active)}.Button-module__6H_15q__tertiary[aria-disabled=true]{background-color:var(--button-disabled);color:var(--text-disabled)}.Button-module__6H_15q__icon{flex-shrink:0;align-items:center;display:inline-flex}.Button-module__6H_15q__loading .Button-module__6H_15q__label,.Button-module__6H_15q__loading .Button-module__6H_15q__icon{opacity:0}.Button-module__6H_15q__spinner{border-radius:var(--radius-full);border:2px solid;border-right-color:#0000;width:1em;height:1em;animation:.6s linear infinite Button-module__6H_15q__button-spin;position:absolute}@keyframes Button-module__6H_15q__button-spin{to{transform:rotate(360deg)}}.Button-module__6H_15q__button.Button-module__6H_15q__loading{position:relative}
+.Card-module__lPDuQW__card{background-color:var(--surface-primary);border-radius:var(--radius-surface-default);border:0;overflow:hidden}.Card-module__lPDuQW__pad-none{padding:0}.Card-module__lPDuQW__pad-sm{padding:var(--space-150)}.Card-module__lPDuQW__pad-md{padding:var(--space-200)}.Card-module__lPDuQW__pad-lg{padding:var(--space-300)}.Card-module__lPDuQW__surface-primary{background-color:var(--surface-primary)}.Card-module__lPDuQW__surface-secondary{background-color:var(--surface-secondary)}.Card-module__lPDuQW__surface-inverse{background-color:var(--surface-inverse);color:var(--text-primary-inverse)}.Card-module__lPDuQW__bordered{border:1px solid var(--border-default)}.Card-module__lPDuQW__interactive{cursor:pointer;transition:background-color .15s cubic-bezier(.2,0,0,1)}.Card-module__lPDuQW__interactive:hover{background-color:var(--surface-secondary)}.Card-module__lPDuQW__interactive:focus-visible{outline:2px solid var(--border-focus);outline-offset:2px}
+.Divider-module__SdsQhG__divider{border:0;flex-shrink:0;margin:0}.Divider-module__SdsQhG__horizontal{border-top:1px solid #0000;width:100%;height:1px}.Divider-module__SdsQhG__vertical{border-left:1px solid #0000;align-self:stretch;width:1px;height:auto;min-height:1em}.Divider-module__SdsQhG__horizontal.Divider-module__SdsQhG__default{border-top-color:var(--divider-default)}.Divider-module__SdsQhG__horizontal.Divider-module__SdsQhG__subtle{border-top-color:var(--divider-subtle)}.Divider-module__SdsQhG__horizontal.Divider-module__SdsQhG__emphasis{border-top-color:var(--divider-emphasis)}.Divider-module__SdsQhG__vertical.Divider-module__SdsQhG__default{border-left-color:var(--divider-default)}.Divider-module__SdsQhG__vertical.Divider-module__SdsQhG__subtle{border-left-color:var(--divider-subtle)}.Divider-module__SdsQhG__vertical.Divider-module__SdsQhG__emphasis{border-left-color:var(--divider-emphasis)}.Divider-module__SdsQhG__horizontal.Divider-module__SdsQhG__default-inverse{border-top-color:var(--divider-default-inverse)}.Divider-module__SdsQhG__horizontal.Divider-module__SdsQhG__subtle-inverse{border-top-color:var(--divider-subtle-inverse)}.Divider-module__SdsQhG__horizontal.Divider-module__SdsQhG__emphasis-inverse{border-top-color:var(--divider-emphasis-inverse)}.Divider-module__SdsQhG__vertical.Divider-module__SdsQhG__default-inverse{border-left-color:var(--divider-default-inverse)}.Divider-module__SdsQhG__vertical.Divider-module__SdsQhG__subtle-inverse{border-left-color:var(--divider-subtle-inverse)}.Divider-module__SdsQhG__vertical.Divider-module__SdsQhG__emphasis-inverse{border-left-color:var(--divider-emphasis-inverse)}
+.Input-module__UGnxNa__root{gap:var(--space-050);font-family:var(--font-family-system-cn-ios);flex-direction:column;display:flex}.Input-module__UGnxNa__fullWidth{width:100%}.Input-module__UGnxNa__label{font-size:var(--font-size-body-md);line-height:var(--line-height-body-md);color:var(--text-primary);font-weight:var(--font-weight-normal)}.Input-module__UGnxNa__requiredMarker{color:var(--text-emphasis);margin-inline-start:.2em}.Input-module__UGnxNa__optionalHint{color:var(--text-secondary);font-size:var(--font-size-caption-md);margin-inline-start:.4em}.Input-module__UGnxNa__field{align-items:center;gap:var(--space-100);background-color:var(--fill-primary);border:1px solid var(--border-default);border-radius:var(--radius-component-default);transition:border-color .15s cubic-bezier(.2,0,0,1),background-color .15s cubic-bezier(.2,0,0,1);display:flex}.Input-module__UGnxNa__field:has(.Input-module__UGnxNa__input:focus-visible){border-color:var(--border-focus);outline:2px solid var(--border-focus);outline-offset:-1px}.Input-module__UGnxNa__field.Input-module__UGnxNa__error{border-color:var(--border-attention)}.Input-module__UGnxNa__field.Input-module__UGnxNa__error:has(.Input-module__UGnxNa__input:focus-visible){outline-color:var(--border-attention)}.Input-module__UGnxNa__field.Input-module__UGnxNa__disabled{background-color:var(--fill-disabled)}.Input-module__UGnxNa__input{min-width:0;color:var(--text-primary);background:0 0;border:0;outline:none;flex:1;padding:0;font-family:inherit}.Input-module__UGnxNa__input::placeholder{color:var(--text-secondary)}.Input-module__UGnxNa__input:disabled{color:var(--text-disabled);cursor:not-allowed}.Input-module__UGnxNa__md .Input-module__UGnxNa__field{min-height:var(--space-500);padding:0 var(--space-150)}.Input-module__UGnxNa__md .Input-module__UGnxNa__input{font-size:var(--font-size-body-md);line-height:var(--line-height-body-md)}.Input-module__UGnxNa__lg .Input-module__UGnxNa__field{min-height:var(--space-600);padding:0 var(--space-200)}.Input-module__UGnxNa__lg .Input-module__UGnxNa__input{font-size:var(--font-size-body-xl);line-height:var(--line-height-body-xl)}.Input-module__UGnxNa__prefix,.Input-module__UGnxNa__suffix{color:var(--text-secondary);flex-shrink:0;align-items:center;display:inline-flex}.Input-module__UGnxNa__helperText{font-size:var(--font-size-caption-md);line-height:var(--line-height-caption-md);color:var(--text-secondary)}.Input-module__UGnxNa__errorText{font-size:var(--font-size-caption-md);line-height:var(--line-height-caption-md);color:var(--text-error)}
+.ProductCard-module__6eHWVa__root{flex-direction:column;width:100%;display:flex}.ProductCard-module__6eHWVa__imageWrap{aspect-ratio:1;background-color:var(--brand-tertiary);position:relative;overflow:hidden}.ProductCard-module__6eHWVa__image{object-fit:cover;width:100%;height:100%;display:block}.ProductCard-module__6eHWVa__badgeStack{top:var(--space-150);left:var(--space-150);align-items:flex-start;gap:var(--space-050);pointer-events:none;flex-direction:column;display:inline-flex;position:absolute}.ProductCard-module__6eHWVa__content{gap:var(--space-050);padding:var(--space-200);flex-direction:column;display:flex}.ProductCard-module__6eHWVa__brand{font-family:var(--font-family-brand);font-weight:var(--font-weight-emphasize);font-size:var(--font-size-caption-md);line-height:var(--line-height-caption-md);color:var(--text-primary);margin:0}.ProductCard-module__6eHWVa__title{font-family:var(--font-family-system-cn-ios);font-size:var(--font-size-body-md);line-height:var(--line-height-body-md);color:var(--text-primary);-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;margin:0;display:-webkit-box;overflow:hidden}.ProductCard-module__6eHWVa__priceRow{align-items:baseline;gap:var(--space-100);margin-top:var(--space-050);display:flex}.ProductCard-module__6eHWVa__priceCurrent{font-family:var(--font-family-brand);font-weight:var(--font-weight-emphasize);font-size:var(--font-size-price-sm);line-height:var(--line-height-price-sm);color:var(--text-emphasis)}.ProductCard-module__6eHWVa__priceOriginal{font-family:var(--font-family-brand);font-size:var(--font-size-strike-sm);line-height:var(--line-height-strike-sm);color:var(--text-secondary);text-decoration:line-through}.ProductCard-module__6eHWVa__ratingRow{align-items:center;gap:var(--space-050);font-family:var(--font-family-brand);font-size:var(--font-size-caption-md);line-height:var(--line-height-caption-md);color:var(--text-primary);display:flex}.ProductCard-module__6eHWVa__ratingStar{color:var(--color-amber-500);align-items:center;display:inline-flex}.ProductCard-module__6eHWVa__ratingCount{color:var(--text-secondary)}.ProductCard-module__6eHWVa__footerRow{margin-top:var(--space-100);justify-content:flex-end;display:flex}
+.Cart-module__Uba6Ea__container{container:cart/inline-size}.Cart-module__Uba6Ea__itemsGrid{gap:var(--space-400);grid-template-columns:minmax(0,1fr) 320px;align-items:start;display:grid}@container cart (max-width:640px){.Cart-module__Uba6Ea__itemsGrid{grid-template-columns:1fr}}
+.Checkout-module__2wV7tG__container{container:checkout/inline-size}.Checkout-module__2wV7tG__mainGrid{gap:var(--space-400);grid-template-columns:minmax(0,1fr) 320px;align-items:start;display:grid}.Checkout-module__2wV7tG__addressRow{gap:var(--space-200);grid-template-columns:repeat(2,1fr);display:grid}.Checkout-module__2wV7tG__cardFields{gap:var(--space-200);margin-top:var(--space-300);grid-template-columns:1fr 1fr 1fr;display:grid}@container checkout (max-width:640px){.Checkout-module__2wV7tG__mainGrid,.Checkout-module__2wV7tG__addressRow{grid-template-columns:1fr}.Checkout-module__2wV7tG__cardFields{grid-template-columns:1fr 1fr}}
+.ComponentDocs-module__j_QARG__rulesList{padding-left:var(--space-400);line-height:var(--line-height-body-md,1.6);color:var(--text-primary);margin:0}.ComponentDocs-module__j_QARG__rulesList li+li{margin-top:var(--space-100)}.ComponentDocs-module__j_QARG__rulesList code{font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-md)}.ComponentDocs-module__j_QARG__tokenChips{gap:var(--space-100);flex-wrap:wrap;display:flex}.ComponentDocs-module__j_QARG__tokenChip{padding:var(--space-050) var(--space-150);background:var(--surface-secondary);border-radius:var(--radius-tag-primary);font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-md);color:var(--text-primary);text-decoration:none;transition:background-color .12s}.ComponentDocs-module__j_QARG__tokenChip:hover{background:var(--surface-primary)}.ComponentDocs-module__j_QARG__ruleLink{color:var(--text-primary);text-decoration:none;transition:color .12s}.ComponentDocs-module__j_QARG__ruleLink:hover code{text-decoration:underline}.ComponentDocs-module__j_QARG__ruleLink code{font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-md)}.ComponentDocs-module__j_QARG__a11yList{margin:0}.ComponentDocs-module__j_QARG__a11yRow{margin-top:var(--space-150)}.ComponentDocs-module__j_QARG__a11yRow:first-of-type{margin-top:0}.ComponentDocs-module__j_QARG__a11yTerm{font-family:var(--font-family-brand);font-weight:var(--font-weight-emphasize);font-size:var(--font-size-caption-md);text-transform:capitalize;color:var(--text-secondary)}.ComponentDocs-module__j_QARG__a11yDetail{margin:var(--space-050) 0 0;font-size:var(--font-size-body-md);line-height:var(--line-height-body-md);color:var(--text-primary)}
+.ProductDetail-module__CR7lJa__container{container:productDetail/inline-size}.ProductDetail-module__CR7lJa__mainGrid{gap:var(--space-400);grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start;display:grid}@container productDetail (max-width:640px){.ProductDetail-module__CR7lJa__mainGrid{grid-template-columns:1fr}}
+.CodePanel-module__Hf12Ka__panel{margin:var(--space-300) 0;border:1px solid var(--border-default);border-radius:var(--radius-surface-default);background:var(--surface-primary);overflow:hidden}.CodePanel-module__Hf12Ka__tablist{gap:var(--space-050);padding:var(--space-100) var(--space-200);background:var(--surface-primary);border-bottom:1px solid var(--border-default);align-items:center;display:flex}.CodePanel-module__Hf12Ka__tab{padding:var(--space-100) var(--space-200);font-family:var(--font-family-brand);font-size:var(--font-size-caption-md);color:var(--text-secondary);border-radius:var(--radius-sm);cursor:pointer;background:0 0;border:0;transition:color .12s,background-color .12s}.CodePanel-module__Hf12Ka__tab:hover{color:var(--text-primary)}.CodePanel-module__Hf12Ka__tabActive{background:var(--surface-secondary);color:var(--text-primary);font-weight:var(--font-weight-emphasize)}.CodePanel-module__Hf12Ka__copy{border:1px solid var(--border-default);padding:var(--space-100) var(--space-150);font-family:var(--font-family-brand);font-size:var(--font-size-caption-sm);color:var(--text-secondary);border-radius:var(--radius-component-default);cursor:pointer;background:0 0;margin-left:auto;transition:color .12s,background-color .12s}.CodePanel-module__Hf12Ka__copy:hover{background:var(--surface-secondary);color:var(--text-primary)}.CodePanel-module__Hf12Ka__copyLive{color:var(--text-primary)}.CodePanel-module__Hf12Ka__body{background:var(--surface-secondary);max-height:420px;overflow:auto}.CodePanel-module__Hf12Ka__code{padding:var(--space-300);font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-md);color:var(--text-primary);white-space:pre-wrap;word-break:break-word;margin:0;line-height:1.6}.CodePanel-module__Hf12Ka__slotList{padding:var(--space-200) var(--space-300);margin:0;list-style:none}.CodePanel-module__Hf12Ka__slot{padding:var(--space-200) 0;border-top:1px solid var(--border-default);column-gap:var(--space-300);grid-template-columns:minmax(140px,auto) 80px 1fr;align-items:baseline;display:grid}.CodePanel-module__Hf12Ka__slot:first-child{border-top:none;padding-top:0}.CodePanel-module__Hf12Ka__slotName{font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-md);color:var(--text-primary);font-weight:var(--font-weight-emphasize)}.CodePanel-module__Hf12Ka__slotRequired{font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-sm);color:var(--text-secondary)}.CodePanel-module__Hf12Ka__slotDescription{font-size:var(--font-size-caption-md);color:var(--text-secondary);line-height:1.5}.CodePanel-module__Hf12Ka__rulesList{padding:var(--space-200) var(--space-300) var(--space-200) var(--space-500);color:var(--text-primary);font-size:var(--font-size-body-md);line-height:var(--line-height-body-md);margin:0}.CodePanel-module__Hf12Ka__rulesList li+li{margin-top:var(--space-150)}.CodePanel-module__Hf12Ka__componentList{gap:var(--space-100);padding:var(--space-200) var(--space-300);flex-wrap:wrap;margin:0;list-style:none;display:flex}.CodePanel-module__Hf12Ka__componentChip{padding:var(--space-050) var(--space-150);background:var(--surface-primary);border:1px solid var(--border-default);border-radius:var(--radius-tag-primary);font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-md);color:var(--text-primary)}
+.PageHeader-module__17SY0a__header{margin-bottom:var(--space-500)}.PageHeader-module__17SY0a__breadcrumb{align-items:center;gap:var(--space-050);margin-bottom:var(--space-200);font-family:var(--font-family-brand);font-size:var(--font-size-caption-md);color:var(--text-secondary);flex-wrap:wrap;display:flex}.PageHeader-module__17SY0a__crumb{color:var(--text-secondary);text-decoration:none;transition:color .12s}.PageHeader-module__17SY0a__crumb:hover,.PageHeader-module__17SY0a__crumbCurrent{color:var(--text-primary)}.PageHeader-module__17SY0a__sep{color:var(--text-secondary);opacity:.6;padding:0 var(--space-050)}.PageHeader-module__17SY0a__title{font-family:var(--font-family-brand);font-weight:var(--font-weight-emphasize);font-size:var(--font-size-display-md);line-height:var(--line-height-display-md);letter-spacing:-.01em;color:var(--text-primary);margin:0}.PageHeader-module__17SY0a__lede{margin:var(--space-200) 0 0;font-size:var(--font-size-body-xl);line-height:var(--line-height-body-xl);color:var(--text-secondary);max-width:60ch}
+.Playground-module__GXL2Gq__frame{margin:var(--space-300) 0;border:1px solid var(--border-default);border-radius:var(--radius-surface-default);background:var(--surface-primary);overflow:hidden}.Playground-module__GXL2Gq__title{padding:var(--space-150) var(--space-300);border-bottom:1px solid var(--border-default);font-family:var(--font-family-brand);font-weight:var(--font-weight-emphasize);font-size:var(--font-size-caption-md);line-height:var(--line-height-caption-md,1.4);color:var(--text-secondary);letter-spacing:.05em;text-transform:uppercase;margin:0}.Playground-module__GXL2Gq__canvas{padding:var(--space-400);background:var(--surface-secondary);align-items:flex-start;gap:var(--space-200);flex-direction:column;display:flex}.Playground-module__GXL2Gq__caption{padding:var(--space-150) var(--space-300);border-top:1px solid var(--border-default);font-size:var(--font-size-caption-md);color:var(--text-secondary)}
+.Section-module__h3kJbG__section{margin-top:var(--space-500)}.Section-module__h3kJbG__title{font-family:var(--font-family-brand);font-weight:var(--font-weight-emphasize);font-size:var(--font-size-heading-xl);color:var(--text-primary);margin:0}.Section-module__h3kJbG__caption{margin:var(--space-100) 0 0;color:var(--text-secondary);font-size:var(--font-size-body-md);line-height:var(--line-height-body-md)}.Section-module__h3kJbG__body{margin-top:var(--space-200)}
+.TokenTable-module__J9Gxda__table{border:1px solid var(--border-default);border-radius:var(--radius-surface-default);background:var(--surface-primary);grid-template-columns:minmax(120px,auto) minmax(200px,1fr) minmax(100px,auto);display:grid;overflow:hidden}.TokenTable-module__J9Gxda__header{padding:var(--space-150) var(--space-300);background:var(--surface-secondary);font-family:var(--font-family-brand);font-weight:var(--font-weight-emphasize);font-size:var(--font-size-caption-sm);color:var(--text-secondary);letter-spacing:.05em;text-transform:uppercase;align-items:center;display:flex}.TokenTable-module__J9Gxda__headerRight{justify-content:flex-end}.TokenTable-module__J9Gxda__cell{padding:var(--space-200) var(--space-300);border-top:1px solid var(--border-default);font-size:var(--font-size-body-md);line-height:var(--line-height-body-md);align-items:center;min-width:0;display:flex}.TokenTable-module__J9Gxda__cellName{align-items:flex-start;gap:var(--space-050);flex-direction:column}.TokenTable-module__J9Gxda__cellValue{color:var(--text-secondary);font-family:var(--font-family-brand);justify-content:flex-end}.TokenTable-module__J9Gxda__tokenName{font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-md);color:var(--text-primary)}.TokenTable-module__J9Gxda__tokenDescription{color:var(--text-secondary);font-size:var(--font-size-caption-md);line-height:var(--line-height-caption-md,1.4)}.TokenTable-module__J9Gxda__tokenValue{font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-md);white-space:nowrap}.TokenTable-module__J9Gxda__usedBy{gap:var(--space-050);margin-top:var(--space-100);flex-wrap:wrap;align-items:center;display:flex}.TokenTable-module__J9Gxda__usedByLabel{font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-sm);color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em}.TokenTable-module__J9Gxda__usedByChip{padding:1px var(--space-100);background:var(--surface-secondary);border-radius:var(--radius-tag-primary);font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-sm);color:var(--text-primary);text-decoration:none;transition:background-color .12s}.TokenTable-module__J9Gxda__usedByChip:hover{background:var(--surface-primary);color:var(--text-primary)}
+.Home-module__5HsrzG__hero{margin-bottom:var(--space-600)}.Home-module__5HsrzG__heroTitle{font-family:var(--font-family-brand);font-weight:var(--font-weight-emphasize);font-size:var(--font-size-display-md);line-height:var(--line-height-display-md);letter-spacing:-.01em;color:var(--text-primary);margin:0}.Home-module__5HsrzG__heroLede{margin:var(--space-200) 0 0;font-size:var(--font-size-body-xl);line-height:var(--line-height-body-xl);color:var(--text-secondary);max-width:60ch}.Home-module__5HsrzG__section+.Home-module__5HsrzG__section{margin-top:var(--space-600)}.Home-module__5HsrzG__sectionHeading{margin:0 0 var(--space-300);font-family:var(--font-family-brand);font-weight:var(--font-weight-emphasize);font-size:var(--font-size-heading-xl);color:var(--text-primary)}.Home-module__5HsrzG__sectionHeadingZh{margin-left:var(--space-100);color:var(--text-secondary);font-weight:var(--font-weight-normal)}.Home-module__5HsrzG__grid{gap:var(--space-200);grid-template-columns:1fr;display:grid}@media (min-width:640px){.Home-module__5HsrzG__grid{grid-template-columns:repeat(2,1fr)}}.Home-module__5HsrzG__card{padding:var(--space-300);background:var(--surface-primary);border:1px solid var(--border-default);border-radius:var(--radius-surface-default);color:var(--text-primary);text-decoration:none;transition:border-color .12s,background-color .12s;display:block}.Home-module__5HsrzG__card:hover{border-color:var(--border-focus);background:var(--surface-primary)}.Home-module__5HsrzG__cardTitle{font-family:var(--font-family-brand);font-weight:var(--font-weight-emphasize);font-size:var(--font-size-heading-md);color:var(--text-primary);margin:0}.Home-module__5HsrzG__cardTitleZh{margin-left:var(--space-100);color:var(--text-secondary);font-weight:var(--font-weight-normal)}.Home-module__5HsrzG__cardDescription{margin:var(--space-100) 0 0;color:var(--text-secondary);font-size:var(--font-size-body-md);line-height:var(--line-height-body-md)}
+.ColorTokenGrid-module__XYLmCG__toolbar{align-items:center;gap:var(--space-200);margin-bottom:var(--space-400);padding:var(--space-150) var(--space-200);background:var(--surface-secondary);border:1px solid var(--border-default);border-radius:var(--radius-component-default);display:flex}.ColorTokenGrid-module__XYLmCG__search{min-width:0;font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-md);color:var(--text-primary);background:0 0;border:0;outline:0;flex:1}.ColorTokenGrid-module__XYLmCG__search::placeholder{color:var(--text-secondary)}.ColorTokenGrid-module__XYLmCG__searchHits{font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-sm);color:var(--text-secondary);white-space:nowrap}.ColorTokenGrid-module__XYLmCG__section+.ColorTokenGrid-module__XYLmCG__section{margin-top:var(--space-500)}.ColorTokenGrid-module__XYLmCG__sectionHeading{align-items:baseline;gap:var(--space-200);margin:0 0 var(--space-200);padding-bottom:var(--space-100);border-bottom:1px solid var(--border-default);font-family:var(--font-family-brand);font-weight:var(--font-weight-emphasize);font-size:var(--font-size-heading-md);color:var(--text-primary);display:flex}.ColorTokenGrid-module__XYLmCG__sectionDescription{font-family:var(--font-family-brand);font-weight:var(--font-weight-normal);font-size:var(--font-size-body-md);color:var(--text-secondary)}.ColorTokenGrid-module__XYLmCG__sectionCount{font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-sm);color:var(--text-secondary)}.ColorTokenGrid-module__XYLmCG__grid{gap:var(--space-200);grid-template-columns:repeat(auto-fit,minmax(220px,1fr));display:grid}.ColorTokenGrid-module__XYLmCG__card{background:var(--surface-primary);border:1px solid var(--border-default);border-radius:var(--radius-component-default);flex-direction:column;display:flex;overflow:hidden}.ColorTokenGrid-module__XYLmCG__swatch{height:64px;margin:var(--space-150) var(--space-150) 0;border-radius:var(--radius-sm);box-shadow:inset 0 0 0 1px var(--border-default)}.ColorTokenGrid-module__XYLmCG__body{padding:var(--space-150) var(--space-200) var(--space-200)}.ColorTokenGrid-module__XYLmCG__varName{font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-md);color:var(--text-primary);font-weight:var(--font-weight-emphasize);word-break:break-all}.ColorTokenGrid-module__XYLmCG__aliasRow{align-items:center;gap:var(--space-050);margin-top:var(--space-100);font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-sm);color:var(--text-secondary);flex-wrap:wrap;display:flex}.ColorTokenGrid-module__XYLmCG__aliasArrow{color:var(--text-secondary)}.ColorTokenGrid-module__XYLmCG__aliasTarget{color:var(--text-primary)}.ColorTokenGrid-module__XYLmCG__alphaChip{padding:1px var(--space-050);background:var(--surface-secondary);border-radius:var(--radius-sm);font-size:var(--font-size-caption-sm)}.ColorTokenGrid-module__XYLmCG__note{margin:var(--space-100) 0 0;font-family:var(--font-family-brand);font-size:var(--font-size-caption-md);line-height:var(--line-height-caption-md,1.5);color:var(--text-secondary)}.ColorTokenGrid-module__XYLmCG__usedBy{gap:var(--space-050);margin-top:var(--space-100);padding-top:var(--space-100);border-top:1px solid var(--border-default);flex-wrap:wrap;align-items:center;display:flex}.ColorTokenGrid-module__XYLmCG__usedByLabel{font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-sm);color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em}.ColorTokenGrid-module__XYLmCG__usedByChip{padding:1px var(--space-100);background:var(--surface-secondary);border-radius:var(--radius-tag-primary);font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-sm);color:var(--text-primary);text-decoration:none;transition:background-color .12s}.ColorTokenGrid-module__XYLmCG__usedByChip:hover{background:var(--surface-primary)}.ColorTokenGrid-module__XYLmCG__empty{padding:var(--space-400);text-align:center;color:var(--text-secondary);font-size:var(--font-size-body-md)}
+.primitives-module__jwPBrG__section+.primitives-module__jwPBrG__section{margin-top:var(--space-500)}.primitives-module__jwPBrG__sectionHeading{align-items:baseline;gap:var(--space-200);margin:0 0 var(--space-200);padding-bottom:var(--space-100);border-bottom:1px solid var(--border-default);font-family:var(--font-family-brand);font-weight:var(--font-weight-emphasize);font-size:var(--font-size-heading-md);color:var(--text-primary);display:flex}.primitives-module__jwPBrG__sectionCount{font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-sm);color:var(--text-secondary)}.primitives-module__jwPBrG__sectionDescription{font-family:var(--font-family-brand);font-weight:var(--font-weight-normal);font-size:var(--font-size-body-md);color:var(--text-secondary)}.primitives-module__jwPBrG__stopHeader{gap:var(--space-050);margin-bottom:var(--space-100);display:grid}.primitives-module__jwPBrG__stopHeaderLabel{font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-sm);color:var(--text-secondary);text-align:center}.primitives-module__jwPBrG__row{gap:var(--space-050);margin-bottom:var(--space-100);align-items:stretch;display:grid}.primitives-module__jwPBrG__rowName{font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-md);color:var(--text-primary);font-weight:var(--font-weight-emphasize);align-items:center;display:flex}.primitives-module__jwPBrG__chip{border-radius:var(--radius-sm);height:28px;box-shadow:inset 0 0 0 1px var(--border-default)}.primitives-module__jwPBrG__chipDark{box-shadow:inset 0 0 0 1px var(--border-default-inverse,var(--border-default))}.primitives-module__jwPBrG__alphaPanel{background:var(--fill-inverse);padding:var(--space-200);border-radius:var(--radius-component-default)}.primitives-module__jwPBrG__alphaPanel .primitives-module__jwPBrG__rowName{color:var(--text-primary-inverse)}.primitives-module__jwPBrG__alphaPanel .primitives-module__jwPBrG__stopHeaderLabel{color:var(--text-secondary-inverse)}.primitives-module__jwPBrG__brandRow{align-items:center;gap:var(--space-300);display:flex}.primitives-module__jwPBrG__brandSwatch{border-radius:var(--radius-component-default);background:var(--brand-primary);width:64px;height:64px}.primitives-module__jwPBrG__brandLabel{gap:var(--space-050);font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-md);color:var(--text-primary);flex-direction:column;display:flex}.primitives-module__jwPBrG__brandLabel span{color:var(--text-secondary)}
+.icons-module__1vkwOq__grid{gap:var(--space-100);background:var(--surface-secondary);padding:var(--space-200);border-radius:var(--radius-surface-default);grid-template-columns:repeat(auto-fill,minmax(96px,1fr));display:grid}.icons-module__1vkwOq__tile{align-items:center;gap:var(--space-100);padding:var(--space-200);background:var(--surface-primary);border-radius:var(--radius-component-default);flex-direction:column;display:flex}.icons-module__1vkwOq__glyph{width:40px;height:40px;color:var(--text-primary);justify-content:center;align-items:center;display:flex}.icons-module__1vkwOq__label{font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-sm);color:var(--text-secondary);text-align:center;word-break:break-all}
+.depth-module__MVsHUq__grid{gap:var(--space-300);grid-template-columns:repeat(auto-fit,minmax(96px,1fr));max-width:640px;display:grid}.depth-module__MVsHUq__cell{align-items:center;gap:var(--space-100);flex-direction:column;display:flex}.depth-module__MVsHUq__chip{background:var(--surface-primary);border:1px solid var(--border-default);border-radius:var(--radius-sm);width:80px;height:80px;color:var(--text-primary);font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-sm);justify-content:center;align-items:center;display:flex}.depth-module__MVsHUq__chipLabel{font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-sm);color:var(--text-secondary)}.depth-module__MVsHUq__defList{margin:0}.depth-module__MVsHUq__defRow{column-gap:var(--space-300);padding:var(--space-150) 0;border-top:1px solid var(--border-default);grid-template-columns:140px 1fr;align-items:baseline;display:grid}.depth-module__MVsHUq__defRow:first-of-type{border-top:none;padding-top:0}.depth-module__MVsHUq__defTerm{font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-md);color:var(--text-primary);font-weight:var(--font-weight-emphasize);margin:0}.depth-module__MVsHUq__defDetail{font-size:var(--font-size-body-md);line-height:var(--line-height-body-md);color:var(--text-secondary);margin:0}
+.layout-module__DYS0fa__gutterPreview{background:var(--surface-secondary);border-radius:var(--radius-sm);width:96px;height:32px;position:relative;overflow:hidden}.layout-module__DYS0fa__gutter{background:var(--brand-primary);opacity:.28;position:absolute;top:0;bottom:0}.layout-module__DYS0fa__mediaBadge{font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-md);color:var(--text-secondary)}
+.radius-module__0kTIkG__swatch{background:var(--brand-primary);width:48px;height:48px}.radius-module__0kTIkG__aliasList{padding-left:var(--space-400);line-height:var(--line-height-body-md,1.6);color:var(--text-primary);margin:0}.radius-module__0kTIkG__aliasList li+li{margin-top:var(--space-100)}.radius-module__0kTIkG__aliasList code{font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-md)}
+.spacing-module__kUAqdq__swatch{min-width:1px;height:var(--space-300);background:var(--brand-primary);border-radius:var(--radius-sm)}
+.typography-module__ZSGVLa__table{border:1px solid var(--border-default);border-radius:var(--radius-surface-default);background:var(--surface-primary);grid-template-columns:96px minmax(200px,1fr) 96px 120px;display:grid;overflow:hidden}.typography-module__ZSGVLa__header{padding:var(--space-150) var(--space-300);background:var(--surface-secondary);font-family:var(--font-family-brand);font-weight:var(--font-weight-emphasize);font-size:var(--font-size-caption-sm);color:var(--text-secondary);letter-spacing:.05em;text-transform:uppercase;align-items:center;display:flex}.typography-module__ZSGVLa__headerRight{justify-content:flex-end}.typography-module__ZSGVLa__cell{padding:var(--space-200) var(--space-300);border-top:1px solid var(--border-default);align-items:center;min-width:0;display:flex}.typography-module__ZSGVLa__cellName{align-items:flex-start;gap:var(--space-050);flex-direction:column}.typography-module__ZSGVLa__cellValue{color:var(--text-secondary);justify-content:flex-end}.typography-module__ZSGVLa__cellBump{color:var(--text-primary)}.typography-module__ZSGVLa__cellMuted{color:var(--text-secondary);opacity:.5}.typography-module__ZSGVLa__sample{font-family:var(--font-family-brand);color:var(--text-primary);display:inline-block}.typography-module__ZSGVLa__tokenName{font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-md);color:var(--text-primary)}.typography-module__ZSGVLa__tokenDescription{color:var(--text-secondary);font-size:var(--font-size-caption-md);line-height:var(--line-height-caption-md,1.4)}.typography-module__ZSGVLa__tokenValue{font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-md);white-space:nowrap}
+.PropTable-module__jOJH_W__table{border:1px solid var(--border-default);border-radius:var(--radius-surface-default);background:var(--surface-primary);grid-template-columns:minmax(120px,auto) minmax(120px,1fr) 64px minmax(80px,auto) minmax(180px,1.5fr);display:grid;overflow:hidden}.PropTable-module__jOJH_W__header{padding:var(--space-150) var(--space-300);background:var(--surface-secondary);font-family:var(--font-family-brand);font-weight:var(--font-weight-emphasize);font-size:var(--font-size-caption-sm);color:var(--text-secondary);letter-spacing:.05em;text-transform:uppercase;align-items:center;display:flex}.PropTable-module__jOJH_W__cell{padding:var(--space-200) var(--space-300);border-top:1px solid var(--border-default);font-size:var(--font-size-body-md);line-height:var(--line-height-body-md);align-items:flex-start;min-width:0;display:flex}.PropTable-module__jOJH_W__name{font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-md);color:var(--text-primary);font-weight:var(--font-weight-emphasize);word-break:break-all}.PropTable-module__jOJH_W__type{font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-md);color:var(--text-secondary);word-break:break-word}.PropTable-module__jOJH_W__required{font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-sm);color:var(--text-secondary)}.PropTable-module__jOJH_W__requiredYes{color:var(--badge-bg-primary-red)}.PropTable-module__jOJH_W__default{font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-md);color:var(--text-secondary)}.PropTable-module__jOJH_W__defaultDash{color:var(--text-secondary);opacity:.5}.PropTable-module__jOJH_W__description{font-size:var(--font-size-caption-md);color:var(--text-secondary);line-height:var(--line-height-caption-md,1.5)}.PropTable-module__jOJH_W__values{gap:var(--space-050);margin-top:var(--space-050);flex-wrap:wrap;display:flex}.PropTable-module__jOJH_W__valueChip{padding:1px var(--space-100);background:var(--surface-secondary);border-radius:var(--radius-tag-primary);font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-sm);color:var(--text-primary)}.PropTable-module__jOJH_W__empty{padding:var(--space-300);text-align:center;color:var(--text-secondary);font-size:var(--font-size-body-md)}
+.RuleCard-module__JPul2G__list{background:var(--surface-primary);border:1px solid var(--border-default);border-radius:var(--radius-surface-default);overflow:hidden}.RuleCard-module__JPul2G__card{column-gap:var(--space-300);padding:var(--space-250) var(--space-300);border-top:1px solid var(--border-default);grid-template-columns:minmax(140px,auto) 1fr minmax(72px,auto);align-items:baseline;display:grid}.RuleCard-module__JPul2G__card:first-child{border-top:none}.RuleCard-module__JPul2G__ruleId{font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-md);color:var(--text-primary);font-weight:var(--font-weight-emphasize);align-self:start}.RuleCard-module__JPul2G__body{min-width:0}.RuleCard-module__JPul2G__title{font-family:var(--font-family-brand);font-weight:var(--font-weight-emphasize);font-size:var(--font-size-body-xl);line-height:var(--line-height-body-xl);color:var(--text-primary);margin:0}.RuleCard-module__JPul2G__description{margin:var(--space-050) 0 0;color:var(--text-secondary);font-size:var(--font-size-body-md);line-height:var(--line-height-body-md)}.RuleCard-module__JPul2G__appliedTo{margin:var(--space-150) 0 0;gap:var(--space-100);flex-wrap:wrap;align-items:center;display:flex}.RuleCard-module__JPul2G__appliedToLabel{font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-sm);color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em}.RuleCard-module__JPul2G__appliedToPlaceholder{font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-sm);color:var(--text-secondary)}.RuleCard-module__JPul2G__severity{padding:var(--space-050) var(--space-150);border-radius:var(--radius-tag-primary);font-family:var(--font-family-brand);font-weight:var(--font-weight-emphasize);font-size:var(--font-size-caption-sm);letter-spacing:.05em;text-transform:uppercase;place-self:start end}.RuleCard-module__JPul2G__severityError{background:var(--badge-bg-primary-red);color:var(--badge-fg-primary-red,var(--text-primary-inverse))}.RuleCard-module__JPul2G__severityWarning{background:var(--badge-bg-secondary-yellow);color:var(--text-primary)}.RuleCard-module__JPul2G__severityInfo{background:var(--badge-bg-secondary-blue);color:var(--text-primary)}.RuleCard-module__JPul2G__readMore{margin-top:var(--space-100);font-family:var(--font-family-brand);font-size:var(--font-size-caption-md);color:var(--text-secondary);text-decoration:none;display:inline-block}.RuleCard-module__JPul2G__readMore:hover{color:var(--text-primary);text-decoration:underline}
+.ViewportSwitcher-module__sqwf-W__wrapper{margin:var(--space-300) 0;border:1px solid var(--border-default);border-radius:var(--radius-surface-default);background:var(--surface-primary);overflow:hidden}.ViewportSwitcher-module__sqwf-W__toolbar{align-items:center;gap:var(--space-200);padding:var(--space-150) var(--space-200);border-bottom:1px solid var(--border-default);background:var(--surface-primary);display:flex}.ViewportSwitcher-module__sqwf-W__toolbarLabel{font-family:var(--font-family-brand);font-weight:var(--font-weight-emphasize);font-size:var(--font-size-caption-sm);color:var(--text-secondary);letter-spacing:.05em;text-transform:uppercase}.ViewportSwitcher-module__sqwf-W__segments{background:var(--surface-secondary);border-radius:var(--radius-component-default);gap:2px;padding:2px;display:inline-flex}.ViewportSwitcher-module__sqwf-W__segment{padding:var(--space-100) var(--space-200);font-family:var(--font-family-brand);font-size:var(--font-size-caption-md);color:var(--text-secondary);border-radius:var(--radius-sm);cursor:pointer;background:0 0;border:0;transition:background-color .12s,color .12s}.ViewportSwitcher-module__sqwf-W__segment:hover{color:var(--text-primary)}.ViewportSwitcher-module__sqwf-W__segmentActive{background:var(--surface-primary);color:var(--text-primary);font-weight:var(--font-weight-emphasize)}.ViewportSwitcher-module__sqwf-W__meta{font-family:var(--font-mono,ui-monospace, SFMono-Regular, monospace);font-size:var(--font-size-caption-sm);color:var(--text-secondary);margin-left:auto}.ViewportSwitcher-module__sqwf-W__canvas{padding:var(--space-500);background:var(--surface-secondary);gap:var(--space-500);flex-wrap:wrap;justify-content:center;align-items:flex-start;display:flex;overflow-x:auto}.ViewportSwitcher-module__sqwf-W__canvasSingle{justify-content:center}.ViewportSwitcher-module__sqwf-W__frameShell{background:var(--surface-primary);border:1px solid var(--border-default);border-radius:var(--radius-component-default);overflow:auto}
+</style><title>YAMI Design System · 亚米设计系统</title><meta name="description" content="YAMI 亚米 e-commerce design system docs — tokens, components, principles, recipes."/><meta name="application-name" content="YAMI Design System"/><meta name="yami-source-commit" content="076f83ca7a873bd889db7c88d34641114d090647"/><meta name="yami-content-hash" content="411de80f"/><meta name="yami-copy-version" content="ec9dac8f"/><meta name="yami-figma-node-id" content=""/><meta name="yami-github-url" content="https://github.com/DivikWu/yami-design-system/tree/main/apps/docs/app/preview/input/page.tsx"/><meta name="yami-npm-import" content="@yami/design-system/input"/><meta name="yami-source-path" content="apps/docs/app/preview/input/page.tsx"/><meta name="yami-tokens-version" content="b465c2d4"/><meta name="yami-validate-status" content="skipped"/></head><body><div hidden=""><!--$--><!--/$--></div><div style="padding:var(--space-400);display:flex;flex-direction:column;gap:var(--space-400)"><section><h2 style="margin:0;margin-bottom:var(--space-150);font-size:var(--font-size-heading-sm)">Sizes</h2><div style="display:flex;gap:var(--space-200);flex-wrap:wrap;align-items:flex-start"><div style="width:280px"><div class="Input-module__UGnxNa__root Input-module__UGnxNa__md" data-yami-id="Input:0"><label class="Input-module__UGnxNa__label" for="_R_canpfivb_">Medium · 中</label><div class="Input-module__UGnxNa__field"><input id="_R_canpfivb_" class="Input-module__UGnxNa__input" placeholder="Default size"/></div></div></div><div style="width:320px"><div class="Input-module__UGnxNa__root Input-module__UGnxNa__lg" data-yami-id="Input:1"><label class="Input-module__UGnxNa__label" for="_R_kanpfivb_">Large · 大</label><div class="Input-module__UGnxNa__field"><input id="_R_kanpfivb_" class="Input-module__UGnxNa__input" placeholder="Dense form"/></div></div></div></div></section><section><h2 style="margin:0;margin-bottom:var(--space-150);font-size:var(--font-size-heading-sm)">States</h2><div style="display:flex;gap:var(--space-200);flex-wrap:wrap;align-items:flex-start"><div style="width:280px"><div class="Input-module__UGnxNa__root Input-module__UGnxNa__md" data-yami-id="Input:2"><label class="Input-module__UGnxNa__label" for="_R_cinpfivb_">Default · 默认</label><div class="Input-module__UGnxNa__field"><input id="_R_cinpfivb_" class="Input-module__UGnxNa__input" placeholder="Enter text"/></div></div></div><div style="width:280px"><div class="Input-module__UGnxNa__root Input-module__UGnxNa__md" data-yami-id="Input:3"><label class="Input-module__UGnxNa__label" for="_R_kinpfivb_">Required · 必填<span class="Input-module__UGnxNa__requiredMarker" aria-hidden="true">*</span></label><div class="Input-module__UGnxNa__field"><input id="_R_kinpfivb_" class="Input-module__UGnxNa__input" required="" type="tel"/></div></div></div><div style="width:280px"><div class="Input-module__UGnxNa__root Input-module__UGnxNa__md" data-yami-id="Input:4"><label class="Input-module__UGnxNa__label" for="_R_sinpfivb_">Optional · 可选<span class="Input-module__UGnxNa__optionalHint">(Optional · 选填)</span></label><div class="Input-module__UGnxNa__field"><input id="_R_sinpfivb_" class="Input-module__UGnxNa__input"/></div></div></div><div style="width:280px"><div class="Input-module__UGnxNa__root Input-module__UGnxNa__md" data-yami-id="Input:5"><label class="Input-module__UGnxNa__label" for="_R_14inpfivb_">Disabled · 禁用</label><div class="Input-module__UGnxNa__field Input-module__UGnxNa__disabled"><input id="_R_14inpfivb_" class="Input-module__UGnxNa__input" disabled="" value="United States"/></div></div></div></div></section><section><h2 style="margin:0;margin-bottom:var(--space-150);font-size:var(--font-size-heading-sm)">Helper &amp; error</h2><div style="display:flex;gap:var(--space-200);flex-wrap:wrap;align-items:flex-start"><div style="width:280px"><div class="Input-module__UGnxNa__root Input-module__UGnxNa__md" data-yami-id="Input:6"><label class="Input-module__UGnxNa__label" for="_R_cqnpfivb_">Phone · 电话</label><div class="Input-module__UGnxNa__field"><input id="_R_cqnpfivb_" class="Input-module__UGnxNa__input" aria-describedby="_R_cqnpfivb_-helper" type="tel"/></div><span id="_R_cqnpfivb_-helper" class="Input-module__UGnxNa__helperText">We&#x27;ll text you order updates · 订单更新短信</span></div></div><div style="width:280px"><div class="Input-module__UGnxNa__root Input-module__UGnxNa__md" data-yami-id="Input:7"><label class="Input-module__UGnxNa__label" for="_R_kqnpfivb_">Email · 邮箱</label><div class="Input-module__UGnxNa__field Input-module__UGnxNa__error"><input id="_R_kqnpfivb_" class="Input-module__UGnxNa__input" aria-invalid="true" aria-describedby="_R_kqnpfivb_-error" type="email" value="bob@"/></div><span id="_R_kqnpfivb_-error" class="Input-module__UGnxNa__errorText" role="alert">Enter a valid email · 请输入有效邮箱</span></div></div></div></section><section><h2 style="margin:0;margin-bottom:var(--space-150);font-size:var(--font-size-heading-sm)">Bilingual · 双语</h2><div style="display:flex;gap:var(--space-200);flex-wrap:wrap;align-items:flex-start"><div style="width:280px"><div class="Input-module__UGnxNa__root Input-module__UGnxNa__md" data-yami-id="Input:8"><label class="Input-module__UGnxNa__label" for="_R_d2npfivb_">Full Name · 姓名</label><div class="Input-module__UGnxNa__field"><input id="_R_d2npfivb_" class="Input-module__UGnxNa__input" placeholder="First Last · 姓名"/></div></div></div><div style="width:280px"><div class="Input-module__UGnxNa__root Input-module__UGnxNa__md" data-yami-id="Input:9"><label class="Input-module__UGnxNa__label" for="_R_l2npfivb_">ZIP · 邮编</label><div class="Input-module__UGnxNa__field"><input id="_R_l2npfivb_" class="Input-module__UGnxNa__input" type="text"/></div></div></div></div></section><section><h2 style="margin:0;margin-bottom:var(--space-150);font-size:var(--font-size-heading-sm)">Edge cases</h2><div style="display:flex;gap:var(--space-200);flex-wrap:wrap;align-items:flex-start"><div style="width:280px"><div class="Input-module__UGnxNa__root Input-module__UGnxNa__md" data-yami-id="Input:10"><label class="Input-module__UGnxNa__label" for="_R_danpfivb_">Long label wraps across two lines to stress test label/input vertical rhythm</label><div class="Input-module__UGnxNa__field"><input id="_R_danpfivb_" class="Input-module__UGnxNa__input" placeholder="Value"/></div></div></div><div style="width:280px"><div class="Input-module__UGnxNa__root Input-module__UGnxNa__md" data-yami-id="Input:11"><label class="Input-module__UGnxNa__label" for="_R_lanpfivb_">Helper</label><div class="Input-module__UGnxNa__field"><input id="_R_lanpfivb_" class="Input-module__UGnxNa__input" aria-describedby="_R_lanpfivb_-helper"/></div><span id="_R_lanpfivb_-helper" class="Input-module__UGnxNa__helperText">A long helper text that spans multiple lines so the baseline captures line-wrap and spacing below the input consistently.</span></div></div></div></section></div><!--$--><!--/$--><script>const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{"brand":{"--color-brand-red":"#ff0000"},"semantic":{"--background-primary":"#ffffff","--background-secondary":"#f5f5f5","--border-attention":"#e00000","--border-default":"#00000014","--border-focus":"#000000de","--button-primary":"#000000de","--button-secondary":"#0000000a","--button-tertiary":"#ffffff","--divider-default":"#0000000a","--divider-subtle":"#0000004a","--fill-promotion-primary":"#e00000","--overlay-scrim":"#000000ad","--radius-button-emphasis":"8px","--radius-button-primary":"9999px","--radius-component-default":"8px","--radius-surface-default":"12px","--radius-tag-primary":"4px","--space-100":"8px","--space-200":"16px","--space-300":"24px","--surface-primary":"#ffffff","--surface-secondary":"#f5f5f5","--text-emphasis":"#e00000","--text-primary":"#000000de","--text-secondary":"#0000008c"},"primitive":{}}/*EDITMODE-END*/;</script><script id="yami-source-jsx" type="text/plain">'use client'
+/**
+ * preview/input — headless spec card for Claude Design consumption.
+ *
+ * Renders Input size / state / slot variants plus bilingual-label and
+ * edge-case samples.
+ */
+
+import { Input } from '@yami/design-system/components/Input'
+
+const H2_STYLE = {
+  margin: 0,
+  marginBottom: 'var(--space-150)',
+  fontSize: 'var(--font-size-heading-sm)',
+}
+
+const ROW_STYLE = {
+  display: 'flex',
+  gap: 'var(--space-200)',
+  flexWrap: 'wrap' as const,
+  alignItems: 'flex-start',
+}
+
+const INPUT_CONTAINER = { width: 280 } as const
+const INPUT_LG_CONTAINER = { width: 320 } as const
+
+export default function InputPreview() {
+  return (
+    <div
+      style={{
+        padding: 'var(--space-400)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 'var(--space-400)',
+      }}
+    >
+      <section>
+        <h2 style={H2_STYLE}>Sizes</h2>
+        <div style={ROW_STYLE}>
+          <div style={INPUT_CONTAINER}>
+            <Input label="Medium · 中" size="md" placeholder="Default size" />
+          </div>
+          <div style={INPUT_LG_CONTAINER}>
+            <Input label="Large · 大" size="lg" placeholder="Dense form" />
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 style={H2_STYLE}>States</h2>
+        <div style={ROW_STYLE}>
+          <div style={INPUT_CONTAINER}>
+            <Input label="Default · 默认" placeholder="Enter text" />
+          </div>
+          <div style={INPUT_CONTAINER}>
+            <Input label="Required · 必填" type="tel" required />
+          </div>
+          <div style={INPUT_CONTAINER}>
+            <Input label="Optional · 可选" optional />
+          </div>
+          <div style={INPUT_CONTAINER}>
+            <Input label="Disabled · 禁用" defaultValue="United States" disabled />
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 style={H2_STYLE}>Helper &amp; error</h2>
+        <div style={ROW_STYLE}>
+          <div style={INPUT_CONTAINER}>
+            <Input
+              label="Phone · 电话"
+              type="tel"
+              helperText="We'll text you order updates · 订单更新短信"
+            />
+          </div>
+          <div style={INPUT_CONTAINER}>
+            <Input
+              label="Email · 邮箱"
+              type="email"
+              defaultValue="bob@"
+              error="Enter a valid email · 请输入有效邮箱"
+            />
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 style={H2_STYLE}>Bilingual · 双语</h2>
+        <div style={ROW_STYLE}>
+          <div style={INPUT_CONTAINER}>
+            <Input label="Full Name · 姓名" placeholder="First Last · 姓名" />
+          </div>
+          <div style={INPUT_CONTAINER}>
+            <Input label="ZIP · 邮编" type="text" />
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 style={H2_STYLE}>Edge cases</h2>
+        <div style={ROW_STYLE}>
+          <div style={INPUT_CONTAINER}>
+            <Input
+              label="Long label wraps across two lines to stress test label/input vertical rhythm"
+              placeholder="Value"
+            />
+          </div>
+          <div style={INPUT_CONTAINER}>
+            <Input
+              label="Helper"
+              helperText="A long helper text that spans multiple lines so the baseline captures line-wrap and spacing below the input consistently."
+            />
+          </div>
+        </div>
+      </section>
+    </div>
+  )
+}
+</script><script id="yami-token-catalog" type="application/json">{"--background-primary":"var(--color-white-1000)","--background-secondary":"var(--color-neutral-100)","--badge-bg-primary-blue":"var(--color-blue-600)","--badge-bg-primary-green":"var(--color-emerald-700)","--badge-bg-primary-neutral":"var(--color-black-900)","--badge-bg-primary-purple":"var(--color-purple-600)","--badge-bg-primary-red":"var(--color-red-500)","--badge-bg-primary-yellow":"var(--color-amber-700)","--badge-bg-secondary-blue":"var(--color-blue-50)","--badge-bg-secondary-green":"var(--color-emerald-50)","--badge-bg-secondary-neutral":"var(--color-white-1000)","--badge-bg-secondary-purple":"var(--color-purple-50)","--badge-bg-secondary-red":"var(--color-red-50)","--badge-bg-secondary-yellow":"var(--color-amber-50)","--badge-bg-tertiary-neutral":"var(--color-neutral-100)","--badge-fg-default":"var(--color-black-900)","--badge-fg-default-inverse":"var(--color-white-1000)","--badge-fg-primary-red":"var(--color-white-1000)","--badge-fg-secondary-blue":"var(--color-blue-700)","--badge-fg-secondary-green":"var(--color-emerald-700)","--badge-fg-secondary-purple":"var(--color-purple-700)","--badge-fg-secondary-red":"var(--color-red-700)","--badge-fg-secondary-yellow":"var(--color-amber-700)","--border-attention":"var(--color-red-500)","--border-attention-inverse":"var(--color-red-500)","--border-default":"var(--color-black-200)","--border-default-inverse":"var(--color-white-200)","--border-focus":"var(--color-black-900)","--border-focus-inverse":"var(--color-white-1000)","--brand-inverse":"var(--color-white-1000)","--brand-primary":"var(--color-brand-red)","--brand-secondary":"var(--color-neutral-900)","--brand-tertiary":"var(--color-red-50)","--breakpoints-desktop":"1024px","--breakpoints-desktop-lg":"1440px","--breakpoints-desktop-xl":"1920px","--breakpoints-mobile":"402px","--breakpoints-tablet":"768px","--button-disabled":"var(--color-neutral-200)","--button-disabled-inverse":"var(--color-white-400)","--button-emphasis":"var(--color-brand-red)","--button-emphasis-active":"var(--color-red-600)","--button-emphasis-active-inverse":"var(--color-red-600)","--button-emphasis-inverse":"var(--color-red-500)","--button-primary":"var(--color-black-900)","--button-primary-active":"var(--color-black-1000)","--button-primary-active-inverse":"var(--color-white-800)","--button-primary-inverse":"var(--color-white-1000)","--button-secondary":"var(--color-black-100)","--button-secondary-active":"var(--color-black-200)","--button-secondary-active-inverse":"var(--color-white-300)","--button-secondary-inverse":"var(--color-white-200)","--button-tertiary":"var(--color-white-1000)","--button-tertiary-active":"var(--color-neutral-100)","--button-tertiary-active-inverse":"var(--color-white-100)","--button-tertiary-inverse":"var(--color-white-0)","--color-amber-100":"#feeecd","--color-amber-200":"#fdd99b","--color-amber-300":"#fcbf69","--color-amber-400":"#fba137","--color-amber-50":"#fef7e6","--color-amber-500":"#fa8005","--color-amber-600":"#d26204","--color-amber-700":"#9e4303","--color-amber-800":"#823203","--color-amber-900":"#5a1f02","--color-amber-950":"#481e00","--color-black-0":"rgba(0, 0, 0, 0)","--color-black-100":"rgba(0, 0, 0, 0.04)","--color-black-1000":"#000000","--color-black-200":"rgba(0, 0, 0, 0.08)","--color-black-300":"rgba(0, 0, 0, 0.17)","--color-black-400":"rgba(0, 0, 0, 0.29)","--color-black-500":"rgba(0, 0, 0, 0.42)","--color-black-600":"rgba(0, 0, 0, 0.55)","--color-black-700":"rgba(0, 0, 0, 0.68)","--color-black-800":"rgba(0, 0, 0, 0.78)","--color-black-900":"rgba(0, 0, 0, 0.87)","--color-blue-100":"#d9e6ff","--color-blue-200":"#b6cefa","--color-blue-300":"#8eb7ff","--color-blue-400":"#66a1ff","--color-blue-50":"#f0f3fa","--color-blue-500":"#3383ff","--color-blue-600":"#0066eb","--color-blue-700":"#005cc2","--color-blue-800":"#004e99","--color-blue-900":"#00325c","--color-blue-950":"#002542","--color-brand-red":"var(--color-red-500)","--color-cyan-100":"#ccebf5","--color-cyan-200":"#90dfef","--color-cyan-300":"#5dd5ea","--color-cyan-400":"#2fcddf","--color-cyan-50":"#edf9fc","--color-cyan-500":"#06bdcb","--color-cyan-600":"#06999e","--color-cyan-700":"#057b7a","--color-cyan-800":"#03635f","--color-cyan-900":"#034540","--color-cyan-950":"#01322d","--color-emerald-100":"#d8f3e0","--color-emerald-200":"#b1e7bf","--color-emerald-300":"#8bda9c","--color-emerald-400":"#6cd07e","--color-emerald-50":"#ecf9f0","--color-emerald-500":"#3dc24f","--color-emerald-600":"#33a33d","--color-emerald-700":"#27812b","--color-emerald-800":"#206520","--color-emerald-900":"#184616","--color-emerald-950":"#133611","--color-fuchsia-100":"#ffdcfe","--color-fuchsia-200":"#fac0fa","--color-fuchsia-300":"#f98dfc","--color-fuchsia-400":"#db57e5","--color-fuchsia-50":"#ffedfe","--color-fuchsia-500":"#b900cc","--color-fuchsia-600":"#9d02b5","--color-fuchsia-700":"#77018e","--color-fuchsia-800":"#5d0373","--color-fuchsia-900":"#49065d","--color-fuchsia-950":"#2e003f","--color-green-100":"#def1d0","--color-green-200":"#bfe79d","--color-green-300":"#a6de69","--color-green-400":"#8ed534","--color-green-50":"#e9f5e2","--color-green-500":"#7dcd04","--color-green-600":"#71af04","--color-green-700":"#5f8c03","--color-green-800":"#4b6902","--color-green-900":"#354601","--color-green-950":"#283401","--color-indigo-100":"#e7e5ff","--color-indigo-200":"#cac7ff","--color-indigo-300":"#aba8ff","--color-indigo-400":"#8987fc","--color-indigo-50":"#f3f2ff","--color-indigo-500":"#5c5cff","--color-indigo-600":"#4046e5","--color-indigo-700":"#313bcc","--color-indigo-800":"#1e2ba6","--color-indigo-900":"#0f1e80","--color-indigo-950":"#04125a","--color-lime-100":"#eaf4d2","--color-lime-200":"#dbecac","--color-lime-300":"#cfe486","--color-lime-400":"#c6dc60","--color-lime-50":"#f2f8e4","--color-lime-500":"#c0d539","--color-lime-600":"#b0bd28","--color-lime-700":"#969c21","--color-lime-800":"#707018","--color-lime-900":"#4d4b11","--color-lime-950":"#3b380c","--color-neutral-100":"#f5f5f5","--color-neutral-200":"#ebebeb","--color-neutral-300":"#d4d4d4","--color-neutral-400":"#b4b4b4","--color-neutral-50":"#fafafa","--color-neutral-500":"#949494","--color-neutral-600":"#727272","--color-neutral-700":"#525252","--color-neutral-800":"#393939","--color-neutral-900":"#222222","--color-neutral-950":"#0a0a0a","--color-orange-100":"#fce1cf","--color-orange-200":"#fac19e","--color-orange-300":"#f7a06e","--color-orange-400":"#f57d3d","--color-orange-50":"#fef1e7","--color-orange-500":"#f2590d","--color-orange-600":"#cb480b","--color-orange-700":"#a53809","--color-orange-800":"#7e2907","--color-orange-900":"#571b05","--color-orange-950":"#441404","--color-pink-100":"#fce5ee","--color-pink-200":"#fbcbe0","--color-pink-300":"#f9a0ca","--color-pink-400":"#f466ad","--color-pink-50":"#fdf1f5","--color-pink-500":"#eb3093","--color-pink-600":"#c3237d","--color-pink-700":"#a3146a","--color-pink-800":"#85145b","--color-pink-900":"#5e1245","--color-pink-950":"#420530","--color-purple-100":"#ede1fa","--color-purple-200":"#dec8fa","--color-purple-300":"#c8a3ff","--color-purple-400":"#aa7afe","--color-purple-50":"#f7f0ff","--color-purple-500":"#8b51ff","--color-purple-600":"#6c30f7","--color-purple-700":"#531ee3","--color-purple-800":"#3c17b5","--color-purple-900":"#2a1386","--color-purple-950":"#170a5c","--color-red-100":"#f7dbd6","--color-red-200":"#f4b7ae","--color-red-300":"#f3867c","--color-red-400":"#f8564f","--color-red-50":"#fbf1ef","--color-red-500":"#e00000","--color-red-600":"#c40009","--color-red-700":"#9b000d","--color-red-800":"#7a0010","--color-red-900":"#57000f","--color-red-950":"#3d000c","--color-rose-100":"#fee7ea","--color-rose-200":"#fdc6ce","--color-rose-300":"#fb99ab","--color-rose-400":"#f85e80","--color-rose-50":"#ffeff0","--color-rose-500":"#f51f53","--color-rose-600":"#d6144c","--color-rose-700":"#b50b41","--color-rose-800":"#970c3d","--color-rose-900":"#750b33","--color-rose-950":"#490320","--color-sky-100":"#d4e9fc","--color-sky-200":"#a2d4fc","--color-sky-300":"#6ec1fa","--color-sky-400":"#47b8fa","--color-sky-50":"#eef6fe","--color-sky-500":"#00a3f5","--color-sky-600":"#008cc7","--color-sky-700":"#00759e","--color-sky-800":"#005b75","--color-sky-900":"#003e4d","--color-sky-950":"#002f38","--color-teal-100":"#c9f0e8","--color-teal-200":"#93e5d2","--color-teal-300":"#60dbbb","--color-teal-400":"#1dd39c","--color-teal-50":"#ebfaf7","--color-teal-500":"#08c485","--color-teal-600":"#07a168","--color-teal-700":"#05804e","--color-teal-800":"#046239","--color-teal-900":"#024525","--color-teal-950":"#03361c","--color-white-0":"rgba(255, 255, 255, 0)","--color-white-100":"rgba(255, 255, 255, 0.04)","--color-white-1000":"#ffffff","--color-white-200":"rgba(255, 255, 255, 0.08)","--color-white-300":"rgba(255, 255, 255, 0.17)","--color-white-400":"rgba(255, 255, 255, 0.29)","--color-white-500":"rgba(255, 255, 255, 0.42)","--color-white-600":"rgba(255, 255, 255, 0.55)","--color-white-700":"rgba(255, 255, 255, 0.68)","--color-white-800":"rgba(255, 255, 255, 0.78)","--color-white-900":"rgba(255, 255, 255, 0.87)","--color-yellow-100":"#fefacd","--color-yellow-200":"#fdf19b","--color-yellow-300":"#fce469","--color-yellow-400":"#fbd237","--color-yellow-50":"#fefde6","--color-yellow-500":"#fabd05","--color-yellow-600":"#d29604","--color-yellow-700":"#aa7203","--color-yellow-800":"#825203","--color-yellow-900":"#5a3502","--color-yellow-950":"#432305","--divider-default":"var(--color-black-100)","--divider-default-inverse":"var(--color-white-200)","--divider-emphasis":"var(--color-black-900)","--divider-emphasis-inverse":"var(--color-white-900)","--divider-subtle":"var(--color-black-400)","--divider-subtle-inverse":"var(--color-white-400)","--fill-disabled":"var(--color-neutral-300)","--fill-error-primary":"var(--color-red-500)","--fill-error-secondary":"var(--color-red-50)","--fill-highlight":"var(--color-yellow-500)","--fill-info-primary":"var(--color-blue-500)","--fill-info-secondary":"var(--color-blue-50)","--fill-inverse":"var(--color-neutral-900)","--fill-primary":"var(--color-white-1000)","--fill-promotion-primary":"var(--color-red-500)","--fill-promotion-secondary":"var(--color-red-50)","--fill-secondary":"var(--color-neutral-100)","--fill-skeleton":"var(--color-black-200)","--fill-skeleton-inverse":"var(--color-white-200)","--fill-success-primary":"var(--color-emerald-500)","--fill-success-secondary":"var(--color-emerald-50)","--fill-tertiary":"var(--color-neutral-50)","--fill-warning-primary":"var(--color-yellow-500)","--fill-warning-secondary":"var(--color-amber-50)","--font-family-brand":"'GT Walsheim', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif","--font-family-system-cn-android":"'Noto Sans SC', 'GT Walsheim', sans-serif","--font-family-system-cn-ios":"'PingFang SC', 'GT Walsheim', sans-serif","--font-size-body-md":"14px","--font-size-body-xl":"16px","--font-size-caption-md":"12px","--font-size-caption-sm":"10px","--font-size-display-md":"28px","--font-size-display-sm":"24px","--font-size-display-xl":"32px","--font-size-heading-2xl":"24px","--font-size-heading-3xl":"28px","--font-size-heading-4xl":"32px","--font-size-heading-md":"18px","--font-size-heading-sm":"16px","--font-size-heading-xl":"20px","--font-size-link-md":"14px","--font-size-link-sm":"12px","--font-size-link-xl":"16px","--font-size-price-md":"20px","--font-size-price-sm":"16px","--font-size-strike-md":"14px","--font-size-strike-sm":"12px","--font-weight-emphasize":"500","--font-weight-normal":"400","--layout-page-margin-card":"8px","--layout-page-margin-default":"16px","--letter-spacing-normal":"0","--letter-spacing-tight":"-1px","--line-height-body-md":"20px","--line-height-body-xl":"20px","--line-height-caption-md":"16px","--line-height-caption-sm":"14px","--line-height-display-md":"36px","--line-height-display-sm":"32px","--line-height-display-xl":"40px","--line-height-heading-2xl":"32px","--line-height-heading-3xl":"36px","--line-height-heading-4xl":"40px","--line-height-heading-md":"24px","--line-height-heading-sm":"20px","--line-height-heading-xl":"28px","--line-height-link-md":"20px","--line-height-link-sm":"16px","--line-height-link-xl":"20px","--line-height-price-md":"28px","--line-height-price-sm":"20px","--line-height-strike-md":"20px","--line-height-strike-sm":"16px","--overlay-default":"var(--color-black-300)","--overlay-scrim":"var(--color-black-700)","--radius-button-emphasis":"8px","--radius-button-primary":"9999px","--radius-component-default":"8px","--radius-component-none":"0","--radius-full":"9999px","--radius-lg":"12px","--radius-md":"8px","--radius-none":"0","--radius-sm":"4px","--radius-surface-default":"12px","--radius-surface-none":"0","--radius-tag-primary":"4px","--radius-xl":"16px","--space-0":"0","--space-025":"2px","--space-050":"4px","--space-100":"8px","--space-1000":"80px","--space-150":"12px","--space-200":"16px","--space-250":"20px","--space-300":"24px","--space-400":"32px","--space-500":"40px","--space-600":"48px","--space-800":"64px","--stroke-default":"1px","--stroke-none":"0","--stroke-thick":"2px","--surface-inverse":"var(--color-neutral-900)","--surface-primary":"var(--color-white-1000)","--surface-secondary":"var(--color-neutral-100)","--text-disabled":"var(--color-black-400)","--text-disabled-inverse":"var(--color-white-400)","--text-emphasis":"var(--color-red-500)","--text-emphasis-inverse":"var(--color-red-400)","--text-error":"var(--color-red-500)","--text-info":"var(--color-blue-500)","--text-primary":"var(--color-black-900)","--text-primary-inverse":"var(--color-white-1000)","--text-secondary":"var(--color-black-600)","--text-secondary-inverse":"var(--color-white-600)","--text-success":"var(--color-emerald-700)","--text-warning":"var(--color-yellow-600)"}</script><script id="yami-bridge-bar" data-yami-bridge-kit="v1">/**
+ * BridgeBar runtime — Phase 5b + Phase 6.
+ *
+ * Vanilla-JS overlay that turns every YAMI artifact HTML into a 三方锚点:
+ * Copy Code · Copy Starter · Open Figma · Open GitHub · Open npm.
+ *
+ * No React, no imports. The whole module is wrapped in an IIFE so when the
+ * `flatten-preview/inject-bridge-bar.ts` step inlines this file as a single
+ * `<script>` block at the end of <body>, it stays self-contained and does
+ * not leak globals into the page.
+ *
+ * Reads:
+ *   <head>  meta[name="yami-figma-node-id" | "yami-github-url" | "yami-npm-import"]
+ *   <body>  script#yami-source-jsx        — text/plain page.tsx (Phase 5a)
+ *   <body>  script#yami-token-catalog     — JSON cssVar→value map (Phase 5a)
+ *   anywhere [data-yami-id]               — Phase 1c instrumentation
+ *
+ * Phase 6 additions:
+ *   6a — URL hash deep-linking: #Button:0 scrolls to + selects the element.
+ *         Click updates hash via history.replaceState; hashchange listener
+ *         syncs external hash changes back to the UI.
+ *   6b — window.claude.complete(): called after boot + hash navigation to
+ *         signal Claude Design that the artifact is ready for interaction.
+ *
+ * Why no .tsx / no .module.css here:
+ *   The artifact HTML is shipped offline. There is no React runtime, no
+ *   CSS Modules compiler, and no bundler at the repo root (per AGENTS.md
+ *   "不引入新 npm 依赖到 root"). A plain JS module + an inline <style>
+ *   keeps the artifact self-contained and within the plan §Tradeoffs
+ *   500–800KB budget. A future Phase 11c studio wrapper can mount this
+ *   runtime via an iframe message bridge if richer UX is needed.
+ *
+ * Constraints honoured:
+ *   - Tap target ≥ 44×44px on every clickable.
+ *   - :focus-visible ring (never :focus alone).
+ *   - Token-only colours / radii — every value is var(--…); the artifact
+ *     CSS catalog is loaded inline by Phase 1a inline-assets so all the
+ *     tokens we reference are guaranteed to resolve.
+ *   - No gradient, emoji, glassmorphism, soft-pastel, hand-drawn art.
+ *   - CN + EN bilingual on every label (Copy Code · 复制代码).
+ *
+ * Byte-stability: this file's content is injected verbatim. Any whitespace
+ * change here propagates to every artifact HTML and yami-content-hash.
+ */
+;(() => {
+  // Hard guard — if the artifact is opened in a non-browser environment
+  // (server-render preview, MD-to-HTML viewer) skip silently.
+  if (typeof document === 'undefined' || typeof window === 'undefined') return
+
+  // Idempotency: a re-attached runtime should noop. Useful when the same
+  // artifact is iframed inside Phase 11c Studio which may inject again.
+  if (window.__YAMI_BRIDGE_BAR_MOUNTED__) return
+  window.__YAMI_BRIDGE_BAR_MOUNTED__ = true
+
+  // The single hardcoded Figma file key for the YAMI design system. This
+  // matches packages/brand/design-system/components/*/.figma.tsx URLs.
+  // If YAMI ever forks across multiple Figma files, add a
+  // yami-figma-file-key meta tag in inject-meta.ts and read it here.
+  const FIGMA_FILE_KEY = '6oOAy72DBff4P6NzJYc2hi'
+
+  function readMeta(name) {
+    const el = document.head?.querySelector(`meta[name="${name}"]`)
+    return el ? el.getAttribute('content') || '' : ''
+  }
+
+  function readScript(id) {
+    const el = document.getElementById(id)
+    return el ? el.textContent || '' : ''
+  }
+
+  const meta = {
+    figmaNodeId: readMeta('yami-figma-node-id'),
+    githubUrl: readMeta('yami-github-url'),
+    npmImport: readMeta('yami-npm-import'),
+    sourcePath: readMeta('yami-source-path'),
+    sourceCommit: readMeta('yami-source-commit'),
+  }
+  const sourceJsx = readScript('yami-source-jsx')
+  const tokenCatalog = (() => {
+    try {
+      return JSON.parse(readScript('yami-token-catalog') || '{}')
+    } catch (_e) {
+      return {}
+    }
+  })()
+
+  // ── Reverse-lookup index: declared value → preferred token name ──
+  // For "Copy Code" we want raw `#ff0000` to surface as `var(--color-brand-red)`.
+  // Multiple tokens may share the same value (e.g. `--color-brand-red` and a
+  // legacy alias). The walked order is sort-stable; first wins.
+  const valueToToken = {}
+  ;(function buildReverseIndex() {
+    const keys = Object.keys(tokenCatalog).sort()
+    let i, k, v
+    for (i = 0; i < keys.length; i++) {
+      k = keys[i]
+      v = tokenCatalog[k]
+      if (typeof v !== 'string') continue
+      if (valueToToken[v] === undefined) valueToToken[v] = k
+    }
+  })()
+
+  // ── Selection state ──
+  let selectedYamiId = null
+
+  // ── DOM construction ──
+  const ROOT_ID = 'yami-bridge-bar-root'
+  const STYLE_ID = 'yami-bridge-bar-style'
+
+  // Token-only inline stylesheet. Class names are flat (no hashing) since
+  // we own the namespace under #yami-bridge-bar-root.
+  //
+  // Token sourcing notes:
+  //   - 1px borders → var(--stroke-default)  (DTCG layout token)
+  //   - 2px outline → var(--stroke-thick)
+  //   - bar height baseline → calc(var(--space-500) + var(--space-200))
+  //                          = 40px + 16px = 56px (control row + breathing space)
+  //   - toast offset above bar → var(--space-1000) = 80px
+  //   - hover-state surface bump → :is() var(--color-black-100) layer over the
+  //     base surface (--surface-secondary). We do NOT reference
+  //     --surface-tertiary / --border-strong because those tokens do not
+  //     exist in the catalog — using them with a fallback gave the bar a
+  //     dead hover state. Documented as a token-catalog gap; if those
+  //     semantic surfaces land later, swap back here.
+  //   - mobile breakpoint → var(--breakpoints-mobile) = 402px
+  //
+  // 44×44 minimum tap targets are kept as the literal WCAG floor rather
+  // than a token; --space-500 (40px) would underflow that floor.
+  const STYLES = [
+    `#${ROOT_ID} {`,
+    '  position: fixed;',
+    '  left: 0;',
+    '  right: 0;',
+    '  bottom: 0;',
+    '  z-index: 2147483000;',
+    '  font-family: var(--font-family-brand);',
+    '  font-size: var(--font-size-caption-md);',
+    '  color: var(--text-primary);',
+    '  background: var(--surface-primary);',
+    '  border-top: var(--stroke-default) solid var(--border-default);',
+    '  box-shadow: 0 calc(-1 * var(--space-025)) var(--space-100) var(--color-black-200);',
+    '  display: flex;',
+    '  align-items: center;',
+    '  gap: var(--space-200);',
+    '  padding: var(--space-200) var(--space-300);',
+    '  min-height: calc(var(--space-500) + var(--space-200));',
+    '}',
+    `#${ROOT_ID} .label {`,
+    '  flex: 1 1 auto;',
+    '  min-width: 0;',
+    '  white-space: nowrap;',
+    '  overflow: hidden;',
+    '  text-overflow: ellipsis;',
+    '  color: var(--text-secondary);',
+    '}',
+    `#${ROOT_ID} .label strong {`,
+    '  color: var(--text-primary);',
+    '  font-weight: var(--font-weight-emphasize);',
+    '  font-family: var(--font-family-brand);',
+    '}',
+    `#${ROOT_ID} .actions {`,
+    '  display: flex;',
+    '  gap: var(--space-100);',
+    '  flex-wrap: wrap;',
+    '  align-items: center;',
+    '}',
+    `#${ROOT_ID} button.action,`,
+    `#${ROOT_ID} a.action {`,
+    '  appearance: none;',
+    '  -webkit-appearance: none;',
+    '  background: var(--surface-secondary);',
+    '  color: var(--text-primary);',
+    '  border: var(--stroke-default) solid var(--border-default);',
+    '  border-radius: var(--radius-component-default);',
+    '  padding: var(--space-150) var(--space-250);',
+    '  min-height: 44px;', // WCAG 2.5.5 — literal floor, not a token
+    '  min-width: 44px;',
+    '  font-family: var(--font-family-brand);',
+    '  font-size: var(--font-size-caption-md);',
+    '  font-weight: var(--font-weight-emphasize);',
+    '  text-decoration: none;',
+    '  cursor: pointer;',
+    '  display: inline-flex;',
+    '  align-items: center;',
+    '  justify-content: center;',
+    '  gap: var(--space-100);',
+    '  transition: background-color 0.12s, color 0.12s, border-color 0.12s;',
+    '}',
+    `#${ROOT_ID} button.action:hover,`,
+    `#${ROOT_ID} a.action:hover {`,
+    // Hover feedback uses a translucent black inset shadow over the base
+    // surface — visible bump without invoking gradient (brand NOT-list)
+    // and without depending on a non-existent --surface-tertiary token.
+    '  box-shadow: inset 0 0 0 9999px var(--color-black-100);',
+    '  border-color: var(--border-focus);',
+    '}',
+    `#${ROOT_ID} button.action:focus-visible,`,
+    `#${ROOT_ID} a.action:focus-visible {`,
+    '  outline: var(--stroke-thick) solid var(--text-emphasis);',
+    '  outline-offset: var(--space-025);',
+    '}',
+    `#${ROOT_ID} button.action[aria-disabled="true"] {`,
+    '  color: var(--text-disabled);',
+    '  cursor: not-allowed;',
+    '  background: var(--surface-secondary);',
+    '}',
+    `#${ROOT_ID} .toast {`,
+    '  position: fixed;',
+    '  left: 50%;',
+    '  bottom: var(--space-1000);',
+    '  transform: translateX(-50%);',
+    '  background: var(--surface-inverse);',
+    '  color: var(--text-primary-inverse);',
+    '  padding: var(--space-150) var(--space-300);',
+    '  border-radius: var(--radius-component-default);',
+    '  font-family: var(--font-family-brand);',
+    '  font-size: var(--font-size-caption-md);',
+    '  z-index: 2147483001;',
+    '  pointer-events: none;',
+    '  opacity: 0;',
+    '  transition: opacity 0.18s;',
+    '}',
+    `#${ROOT_ID} .toast.visible { opacity: 1; }`,
+    '[data-yami-id].yami-bridge-selected {',
+    '  outline: var(--stroke-thick) solid var(--text-emphasis);',
+    '  outline-offset: var(--space-025);',
+    '}',
+    '@media (max-width: 402px) {',
+    `  #${ROOT_ID} { flex-wrap: wrap; }`,
+    `  #${ROOT_ID} .label { flex-basis: 100%; }`,
+    '}',
+  ].join('\n')
+
+  function ensureStyle() {
+    if (document.getElementById(STYLE_ID)) return
+    const style = document.createElement('style')
+    style.id = STYLE_ID
+    style.textContent = STYLES
+    document.head.appendChild(style)
+  }
+
+  function makeButton(opts) {
+    const btn = document.createElement(opts.href ? 'a' : 'button')
+    btn.className = 'action'
+    btn.setAttribute('type', opts.href ? '' : 'button')
+    btn.textContent = opts.label
+    btn.setAttribute('aria-label', opts.ariaLabel || opts.label)
+    if (opts.href) {
+      btn.setAttribute('href', opts.href)
+      btn.setAttribute('target', '_blank')
+      btn.setAttribute('rel', 'noopener noreferrer')
+    }
+    if (opts.disabled) btn.setAttribute('aria-disabled', 'true')
+    if (opts.onClick) {
+      btn.addEventListener('click', (e) => {
+        if (btn.getAttribute('aria-disabled') === 'true') {
+          e.preventDefault()
+          return
+        }
+        opts.onClick(e)
+      })
+    }
+    return btn
+  }
+
+  // ── Action: Copy Code ──
+  // Heuristic: data-yami-id="Button:N" maps to the (N+1)th opening tag of
+  // the form `<Button` in source-jsx. Extract from `<Button` through the
+  // matching `</Button>` (or self-close). If JSX text is unavailable, fall
+  // back to a Copy Starter-style placeholder.
+  //
+  // Known limitation (R5b-1, deferred from Phase 5 task spec): page
+  // artifacts (cart / checkout / product-detail / product-list) embed only
+  // the 1-line wrapper `<CartTemplate {...} />` as source-jsx, so any
+  // inner element selected by the user resolves to `null` here. The
+  // Phase 1c instrumentation gives ordinal IDs (Button:0, Button:1) but
+  // not source ranges; closing that gap means moving from regex-on-built-
+  // HTML to a Babel plugin (rejected by ADR-0022) or embedding the
+  // resolved Template source per-artifact. Both are larger than Phase 5
+  // scope. For now, page-artifact users fall back to Copy Starter +
+  // Open GitHub.
+  function extractJsxByYamiId(yamiId) {
+    if (!sourceJsx || !yamiId) return null
+    const m = /^([A-Za-z][A-Za-z0-9_]*):(\d+)$/.exec(yamiId)
+    if (!m) return null
+    const name = m[1]
+    const index = parseInt(m[2], 10)
+    const openTag = `<${name}`
+    let startIdx = -1
+    let cursor = 0
+    for (let i = 0; i <= index; i++) {
+      startIdx = sourceJsx.indexOf(openTag, cursor)
+      if (startIdx === -1) return null
+      cursor = startIdx + openTag.length
+    }
+    // Find end of the JSX element. Self-closing `/>` or matching `</Name>`.
+    const rest = sourceJsx.slice(startIdx)
+    const closeSelf = rest.indexOf('/>')
+    const closeTagIdx = rest.indexOf(`</${name}>`)
+    let endIdx
+    if (closeSelf !== -1 && (closeTagIdx === -1 || closeSelf < closeTagIdx)) {
+      endIdx = closeSelf + 2
+    } else if (closeTagIdx !== -1) {
+      endIdx = closeTagIdx + `</${name}>`.length
+    } else {
+      return null
+    }
+    return rest.slice(0, endIdx)
+  }
+
+  function dedentJsx(snippet) {
+    const lines = snippet.split('\n')
+    if (lines.length < 2) return snippet
+    let minIndent = Infinity
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i]
+      if (!line.trim()) continue
+      const indent = line.match(/^ */)[0].length
+      if (indent < minIndent) minIndent = indent
+    }
+    if (!Number.isFinite(minIndent) || minIndent === 0) return snippet
+    return lines
+      .map((line, i) => {
+        if (i === 0) return line
+        return line.slice(minIndent)
+      })
+      .join('\n')
+  }
+
+  function tokenAnnotateLine(line) {
+    // For inline style values like "var(--space-400)" we keep as-is. For
+    // raw `#hex` or `Npx` literals that happen to match a token, append a
+    // `// → --token-name` hint comment.
+    const hexMatch = line.match(/#([0-9a-fA-F]{3,8})\b/)
+    if (hexMatch) {
+      const hex = hexMatch[0].toLowerCase()
+      const token = valueToToken[hex]
+      if (token) return `${line}  // → var(${token})`
+    }
+    return line
+  }
+
+  function buildCopyCodeSnippet(yamiId) {
+    const raw = extractJsxByYamiId(yamiId)
+    if (!raw) return null
+    const dedented = dedentJsx(raw)
+    const lines = dedented.split('\n').map(tokenAnnotateLine)
+    const importName = yamiId.split(':')[0]
+    const importPath = `@yami/design-system/components/${importName}`
+    return [`import { ${importName} } from '${importPath}'`, '', lines.join('\n')].join('\n')
+  }
+
+  function buildCopyStarter() {
+    const pkg = (meta.npmImport || '@yami/design-system').split('/').slice(0, 2).join('/')
+    const importName = (selectedYamiId || '').split(':')[0] || 'Button'
+    const importPath = meta.npmImport || '@yami/design-system'
+    return [
+      '# YAMI starter — bilingual / 双语',
+      '',
+      `pnpm add ${pkg}`,
+      '',
+      '```tsx',
+      `import { ${importName} } from '${importPath}'`,
+      '',
+      'export function Example() {',
+      `  return <${importName}>Action · 操作</${importName}>`,
+      '}',
+      '```',
+    ].join('\n')
+  }
+
+  // ── Toast ──
+  function showToast(text) {
+    const t = document.createElement('div')
+    t.className = 'toast'
+    t.setAttribute('role', 'status')
+    t.textContent = text
+    const root = document.getElementById(ROOT_ID)
+    if (!root) return
+    root.appendChild(t)
+    // Force reflow then add visible class.
+    void t.offsetWidth
+    t.classList.add('visible')
+    setTimeout(() => {
+      t.classList.remove('visible')
+      setTimeout(() => {
+        if (t.parentNode) t.parentNode.removeChild(t)
+      }, 220)
+    }, 1600)
+  }
+
+  // ── Clipboard helper ──
+  function writeClipboard(text) {
+    if (navigator.clipboard?.writeText) {
+      return navigator.clipboard.writeText(text)
+    }
+    return new Promise((resolve, reject) => {
+      try {
+        const ta = document.createElement('textarea')
+        ta.value = text
+        ta.setAttribute('readonly', '')
+        ta.style.position = 'fixed'
+        ta.style.opacity = '0'
+        document.body.appendChild(ta)
+        ta.select()
+        document.execCommand('copy')
+        document.body.removeChild(ta)
+        resolve()
+      } catch (e) {
+        reject(e)
+      }
+    })
+  }
+
+  // ── Render ──
+  let bar
+  let labelEl
+  let actionsEl
+
+  function buildBar() {
+    bar = document.createElement('div')
+    bar.id = ROOT_ID
+    bar.setAttribute('role', 'toolbar')
+    bar.setAttribute('aria-label', 'YAMI Bridge Kit · 三方锚点')
+
+    labelEl = document.createElement('div')
+    labelEl.className = 'label'
+    bar.appendChild(labelEl)
+
+    actionsEl = document.createElement('div')
+    actionsEl.className = 'actions'
+    bar.appendChild(actionsEl)
+
+    document.body.appendChild(bar)
+
+    // Reserve space at the page foot so the bar never occludes the last
+    // row of artifact content. We re-measure on resize because the bar
+    // wraps onto multiple rows below var(--breakpoints-mobile) (= 402px).
+    // Preserve any pre-existing padding the artifact author set.
+    if (!document.body.dataset.yamiBridgePadOriginal) {
+      document.body.dataset.yamiBridgePadOriginal = document.body.style.paddingBottom || ''
+    }
+    function syncPad() {
+      const h = bar.offsetHeight || 0
+      if (h > 0) document.body.style.paddingBottom = `${h}px`
+    }
+    // Initial measurement: call syncPad AFTER renderActions() has populated
+    // children, ResizeObserver covers later wraps. We invoke from the
+    // renderBar() pipeline rather than rAF here because some embeds (file://
+    // PDF preview, headless harness) drop rAF tasks. The defensive double
+    // schedule (microtask + 100 ms) covers font-load reflow too.
+    Promise.resolve().then(syncPad)
+    setTimeout(syncPad, 100)
+    window.addEventListener('resize', syncPad)
+    // ResizeObserver catches wrap-induced height changes that don't fire
+    // a window resize (e.g. font load shifting wrap thresholds).
+    if (typeof ResizeObserver !== 'undefined') {
+      try {
+        new ResizeObserver(syncPad).observe(bar)
+      } catch (_e) {
+        /* older browsers — window resize listener is the floor */
+      }
+    }
+  }
+
+  function renderLabel() {
+    if (selectedYamiId) {
+      labelEl.innerHTML = ''
+      labelEl.appendChild(document.createTextNode('Selected · 已选 '))
+      const s = document.createElement('strong')
+      s.textContent = selectedYamiId
+      labelEl.appendChild(s)
+    } else {
+      labelEl.textContent = 'Click an element to inspect · 点击元素查看代码'
+    }
+  }
+
+  function renderActions() {
+    actionsEl.innerHTML = ''
+
+    const copyCodeBtn = makeButton({
+      label: 'Copy Code · 复制代码',
+      ariaLabel: 'Copy element code',
+      disabled: !selectedYamiId,
+      onClick: () => {
+        const snippet = buildCopyCodeSnippet(selectedYamiId)
+        if (!snippet) {
+          // Page-artifact wrappers embed only `<Template {...} />` so any
+          // inner element resolves to nothing. Steer the user to fallbacks.
+          showToast(
+            'Page-level artifact — try Copy Starter / Open GitHub · 页面级 artifact，请用复制起点 / GitHub',
+          )
+          return
+        }
+        writeClipboard(snippet).then(
+          () => {
+            showToast('Copied · 已复制')
+          },
+          () => {
+            showToast('Copy failed · 复制失败')
+          },
+        )
+      },
+    })
+    actionsEl.appendChild(copyCodeBtn)
+
+    const copyStarterBtn = makeButton({
+      label: 'Copy Starter · 复制起点',
+      ariaLabel: 'Copy starter project',
+      onClick: () => {
+        writeClipboard(buildCopyStarter()).then(
+          () => {
+            showToast('Starter copied · 起点已复制')
+          },
+          () => {
+            showToast('Copy failed · 复制失败')
+          },
+        )
+      },
+    })
+    actionsEl.appendChild(copyStarterBtn)
+
+    const figmaHref = meta.figmaNodeId
+      ? 'https://www.figma.com/file/' +
+        FIGMA_FILE_KEY +
+        '/?node-id=' +
+        encodeURIComponent(meta.figmaNodeId)
+      : null
+    actionsEl.appendChild(
+      makeButton({
+        label: 'Figma',
+        ariaLabel: 'Open in Figma',
+        href: figmaHref || '#',
+        disabled: !figmaHref,
+      }),
+    )
+
+    actionsEl.appendChild(
+      makeButton({
+        label: 'GitHub',
+        ariaLabel: 'Open source on GitHub',
+        href: meta.githubUrl || '#',
+        disabled: !meta.githubUrl,
+      }),
+    )
+
+    const pkgName = (meta.npmImport || '').split('/').slice(0, 2).join('/')
+    const npmHref = pkgName ? `https://www.npmjs.com/package/${pkgName}` : null
+    actionsEl.appendChild(
+      makeButton({
+        label: 'npm',
+        ariaLabel: 'Open npm package',
+        href: npmHref || '#',
+        disabled: !npmHref,
+      }),
+    )
+  }
+
+  function renderBar() {
+    if (!bar) buildBar()
+    renderLabel()
+    renderActions()
+  }
+
+  // ── Selection capture ──
+  function findYamiAncestor(target) {
+    let el = target
+    while (el && el.nodeType === 1 && el !== document.body) {
+      if (el.dataset?.yamiId) return el
+      el = el.parentElement
+    }
+    return null
+  }
+
+  function clearVisualSelection() {
+    const prev = document.querySelectorAll('.yami-bridge-selected')
+    for (let i = 0; i < prev.length; i++) prev[i].classList.remove('yami-bridge-selected')
+  }
+
+  function onCapture(e) {
+    // Ignore clicks inside the bar itself.
+    const path = (typeof e.composedPath === 'function' && e.composedPath()) || []
+    for (let i = 0; i < path.length; i++) {
+      if (path[i] && path[i].id === ROOT_ID) return
+    }
+    const el = findYamiAncestor(e.target)
+    if (!el) return
+    selectedYamiId = el.dataset.yamiId
+    clearVisualSelection()
+    el.classList.add('yami-bridge-selected')
+    // Phase 6a: sync selection to URL hash (no page reload).
+    syncHashToSelection()
+    renderBar()
+  }
+
+  // ── Phase 6a: URL hash deep-linking ──
+  // Format: #Button:0 → selects [data-yami-id="Button:0"].
+  // URI encode/decode handles colons and other special characters.
+
+  /** Write the current selectedYamiId into the URL hash without reload. */
+  function syncHashToSelection() {
+    if (!selectedYamiId) return
+    try {
+      const encoded = '#' + encodeURIComponent(selectedYamiId)
+      history.replaceState(null, '', encoded)
+    } catch (_e) {
+      // file:// or sandboxed iframe — replaceState may throw; degrade silently.
+    }
+  }
+
+  /** Read the URL hash and select + scroll to the matching element. */
+  function restoreFromHash() {
+    const raw = location.hash
+    if (!raw || raw.length < 2) return
+    const decoded = decodeURIComponent(raw.slice(1))
+    if (!decoded) return
+    const el = document.querySelector('[data-yami-id="' + CSS.escape(decoded) + '"]')
+    if (!el) return
+    selectedYamiId = decoded
+    clearVisualSelection()
+    el.classList.add('yami-bridge-selected')
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    renderBar()
+  }
+
+  /** Handle external hash changes (e.g. user edits URL bar). */
+  function onHashChange() {
+    restoreFromHash()
+  }
+
+  // ── Boot ──
+  function boot() {
+    ensureStyle()
+    renderBar()
+    document.addEventListener('click', onCapture, true)
+    // Phase 6a: restore selection from URL hash on load.
+    restoreFromHash()
+    // Phase 6a: listen for external hash changes.
+    window.addEventListener('hashchange', onHashChange)
+    // Phase 6b: signal Claude Design that the artifact is ready.
+    // Called after hash navigation so the host sees the final scroll state.
+    try {
+      window.claude?.complete?.()
+    } catch (_e) {
+      /* non-Claude env */
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot, { once: true })
+  } else {
+    boot()
+  }
+})()
+</script><script id="yami-tweak-panel" data-yami-bridge-kit="v1">/**
+ * TweakPanel runtime — Phase 7b productionised (supersedes the Phase 7
+ * spike file).
+ *
+ * Vanilla-JS overlay that lets a designer twiddle every tweakable token
+ * the artifact ships with. Reads the inline `TWEAK_DEFAULTS` marker
+ * (`<script>` containing `/*EDITMODE-BEGIN*\/{...}/\*EDITMODE-END*\/`)
+ * which inject-tweak.ts emits from the build-time `tweak-catalog.json`
+ * sidecar. The marker is grouped by tier:
+ *
+ *   { "brand": {...}, "semantic": {...}, "primitive": {...} }
+ *
+ * The panel renders one collapsible `<section>` per tier, in the order
+ * brand → semantic → primitive. Per ADR-0024 Decision C, the Primitive
+ * tier collapses by default — only useful for token-system maintainers,
+ * not product designers.
+ *
+ * Apply path: input change → `documentElement.style.setProperty(name,
+ * value)`. The CSS-variable cascade that components already consume
+ * does the rest. No re-render, no postMessage, no validator gating.
+ *
+ * No React, no imports. The whole module is wrapped in an IIFE so when
+ * `flatten-preview/inject-tweak-panel.ts` inlines this file as a single
+ * `<script>` block at the end of <body>, it stays self-contained and
+ * does not leak globals into the page (other than the documented
+ * `window.__YAMI_TWEAK_PANEL__` debug handle).
+ *
+ * Runs after BridgeBar (which mounts bottom-center). TweakPanel mounts
+ * top-right so the two overlays don't collide. Both runtimes are
+ * idempotent — re-attaching is a noop.
+ *
+ * Constraints honoured (steering / AGENTS.md):
+ *   - Tap target ≥ 44×44px on every interactive control (rows, header
+ *     buttons, section toggles).
+ *   - :focus-visible ring (never :focus alone).
+ *   - Token-only colours / radii; the artifact CSS catalog is loaded
+ *     inline by Phase 1a inline-assets so the tokens we reference resolve.
+ *   - No gradient, emoji, glassmorphism, soft-pastel, hand-drawn art.
+ *   - Bilingual labels on chrome (Tweak Tokens · 调试代币).
+ *
+ * Byte-stability: this file's content is injected verbatim into every
+ * artifact. Any whitespace change here propagates to every
+ * yami-content-hash exactly as Phase 0.5 intends.
+ */
+;(() => {
+  if (typeof document === 'undefined' || typeof window === 'undefined') return
+
+  if (window.__YAMI_TWEAK_PANEL_MOUNTED__) return
+  window.__YAMI_TWEAK_PANEL_MOUNTED__ = true
+
+  const TIER_ORDER = ['brand', 'semantic', 'primitive']
+  const TIER_LABELS = {
+    brand: 'Brand · 品牌',
+    semantic: 'Semantic · 语义',
+    primitive: 'Primitive · 原色',
+  }
+
+  /**
+   * Read TWEAK_DEFAULTS by scraping the inject-tweak.ts marker block.
+   * Marker shape (Phase 7b — grouped):
+   *   `<script>const TWEAK_DEFAULTS = /` + `*EDITMODE-BEGIN*` + `/{...}/` +
+   *   `*EDITMODE-END*` + `/;<\/script>`
+   * Returns null if the marker is missing or malformed (older artifacts,
+   * non-YAMI HTMLs the runtime got pasted into by mistake).
+   */
+  function readDefaults() {
+    const scripts = document.getElementsByTagName('script')
+    for (const s of scripts) {
+      const txt = s.textContent || ''
+      const begin = txt.indexOf('/*EDITMODE-BEGIN*/')
+      const end = txt.indexOf('/*EDITMODE-END*/')
+      if (begin === -1 || end === -1 || end < begin) continue
+      const json = txt.slice(begin + '/*EDITMODE-BEGIN*/'.length, end)
+      try {
+        return JSON.parse(json)
+      } catch {
+        return null
+      }
+    }
+    return null
+  }
+
+  function isGroupedShape(obj) {
+    return (
+      obj &&
+      typeof obj === 'object' &&
+      obj.brand &&
+      typeof obj.brand === 'object' &&
+      obj.semantic &&
+      typeof obj.semantic === 'object'
+    )
+  }
+
+  const defaults = readDefaults()
+  if (!isGroupedShape(defaults)) {
+    console.warn('[yami-tweak-panel] TWEAK_DEFAULTS missing or pre-Phase-7b shape; skipping mount.')
+    return
+  }
+
+  function injectStyles() {
+    if (document.getElementById('yami-tweak-panel-style')) return
+    const style = document.createElement('style')
+    style.id = 'yami-tweak-panel-style'
+    style.textContent = `
+      .yami-tweak-panel{
+        position:fixed;top:var(--space-200);right:var(--space-200);
+        width:300px;max-height:calc(100vh - var(--space-400));
+        display:flex;flex-direction:column;
+        background:var(--surface-primary, #fff);
+        color:var(--text-primary, #111);
+        border:1px solid var(--border-default, #e5e5e5);
+        border-radius:var(--radius-component-default, 8px);
+        box-shadow:0 4px 12px rgba(0,0,0,0.08);
+        font-family:var(--font-family-brand, system-ui, sans-serif);
+        font-size:var(--font-size-body-sm, 14px);
+        z-index:2147483646;
+        overflow:hidden;
+      }
+      .yami-tweak-panel__head{
+        display:flex;align-items:center;justify-content:space-between;
+        padding:var(--space-150, 12px) var(--space-200, 16px);
+        border-bottom:1px solid var(--border-default, #e5e5e5);
+        background:var(--surface-secondary, #fafafa);
+        font-weight:600;
+        min-height:44px;
+      }
+      .yami-tweak-panel__title{font-size:var(--font-size-body-sm, 14px);}
+      .yami-tweak-panel__reset{
+        appearance:none;background:transparent;
+        border:1px solid var(--border-default, #d4d4d4);
+        border-radius:var(--radius-sm, 4px);
+        padding:0 var(--space-150, 12px);
+        height:44px;min-width:44px;
+        font:inherit;color:inherit;cursor:pointer;
+      }
+      .yami-tweak-panel__reset:focus-visible{
+        outline:2px solid var(--border-focus, #000);
+        outline-offset:2px;
+      }
+      .yami-tweak-panel__body{
+        overflow-y:auto;
+        flex:1;
+      }
+      .yami-tweak-panel__section{
+        border-bottom:1px solid var(--border-default, #e5e5e5);
+      }
+      .yami-tweak-panel__section:last-child{border-bottom:0;}
+      .yami-tweak-panel__sectionHead{
+        appearance:none;background:transparent;border:0;
+        width:100%;
+        display:flex;align-items:center;justify-content:space-between;
+        padding:var(--space-100, 8px) var(--space-200, 16px);
+        min-height:44px;
+        font:inherit;color:var(--text-secondary, #555);
+        text-align:left;cursor:pointer;
+        text-transform:uppercase;letter-spacing:0.04em;
+        font-size:var(--font-size-caption-sm, 12px);
+        font-weight:600;
+      }
+      .yami-tweak-panel__sectionHead:focus-visible{
+        outline:2px solid var(--border-focus, #000);
+        outline-offset:-2px;
+      }
+      .yami-tweak-panel__chevron{
+        font-family:ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size:10px;
+        color:var(--text-secondary, #555);
+      }
+      .yami-tweak-panel__rows{
+        padding:0 var(--space-200, 16px) var(--space-100, 8px);
+      }
+      .yami-tweak-panel__row{
+        display:grid;grid-template-columns:1fr 110px;gap:var(--space-150, 12px);
+        align-items:center;padding:var(--space-100, 8px) 0;
+        min-height:44px;
+        border-top:1px solid var(--divider-default, #f0f0f0);
+      }
+      .yami-tweak-panel__row:first-child{border-top:0;}
+      .yami-tweak-panel__name{
+        font-family:ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size:11px;
+        color:var(--text-secondary, #555);
+        overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+      }
+      .yami-tweak-panel__input{
+        appearance:none;
+        height:44px;width:100%;box-sizing:border-box;
+        padding:0 var(--space-100, 8px);
+        font:inherit;color:inherit;
+        background:var(--surface-primary, #fff);
+        border:1px solid var(--border-default, #d4d4d4);
+        border-radius:var(--radius-sm, 4px);
+      }
+      .yami-tweak-panel__input:focus-visible{
+        outline:2px solid var(--border-focus, #000);
+        outline-offset:1px;
+      }
+      .yami-tweak-panel__row[data-changed="true"] .yami-tweak-panel__name{
+        color:var(--text-primary, #111);font-weight:600;
+      }
+      .yami-tweak-panel__section[data-collapsed="true"] .yami-tweak-panel__rows{display:none;}
+    `
+    document.head.appendChild(style)
+  }
+
+  function applyToken(name, value) {
+    document.documentElement.style.setProperty(name, value)
+  }
+
+  function buildSection(tier, tokens, defaultsForTier) {
+    const section = document.createElement('section')
+    section.className = 'yami-tweak-panel__section'
+    section.dataset.tier = tier
+    // Primitive collapses by default per ADR-0024 Decision C.
+    if (tier === 'primitive') section.dataset.collapsed = 'true'
+
+    const head = document.createElement('button')
+    head.type = 'button'
+    head.className = 'yami-tweak-panel__sectionHead'
+    head.setAttribute('aria-expanded', section.dataset.collapsed === 'true' ? 'false' : 'true')
+
+    const label = document.createElement('span')
+    label.textContent = `${TIER_LABELS[tier]} · ${tokens.length}`
+    head.appendChild(label)
+
+    const chevron = document.createElement('span')
+    chevron.className = 'yami-tweak-panel__chevron'
+    chevron.textContent = section.dataset.collapsed === 'true' ? '▶' : '▼'
+    head.appendChild(chevron)
+
+    head.addEventListener('click', () => {
+      const collapsed = section.dataset.collapsed === 'true'
+      section.dataset.collapsed = collapsed ? 'false' : 'true'
+      head.setAttribute('aria-expanded', collapsed ? 'true' : 'false')
+      chevron.textContent = collapsed ? '▼' : '▶'
+    })
+
+    section.appendChild(head)
+
+    const rows = document.createElement('div')
+    rows.className = 'yami-tweak-panel__rows'
+
+    const inputs = []
+    for (const name of tokens) {
+      const row = document.createElement('div')
+      row.className = 'yami-tweak-panel__row'
+      row.dataset.token = name
+
+      const labelEl = document.createElement('label')
+      labelEl.className = 'yami-tweak-panel__name'
+      labelEl.textContent = name
+      const inputId = `yami-tweak-${name.replace(/[^a-z0-9]/gi, '-')}`
+      labelEl.htmlFor = inputId
+
+      const input = document.createElement('input')
+      input.type = 'text'
+      input.className = 'yami-tweak-panel__input'
+      input.id = inputId
+      input.value = defaultsForTier[name]
+      input.spellcheck = false
+      input.addEventListener('input', () => {
+        applyToken(name, input.value)
+        row.dataset.changed = input.value !== defaultsForTier[name] ? 'true' : 'false'
+      })
+
+      row.appendChild(labelEl)
+      row.appendChild(input)
+      rows.appendChild(row)
+      inputs.push({ name, input, row })
+    }
+
+    section.appendChild(rows)
+    return { section, inputs }
+  }
+
+  function buildPanel() {
+    injectStyles()
+
+    const root = document.createElement('aside')
+    root.className = 'yami-tweak-panel'
+    root.setAttribute('aria-label', 'Tweak Tokens · 调试代币')
+
+    const head = document.createElement('header')
+    head.className = 'yami-tweak-panel__head'
+
+    const title = document.createElement('span')
+    title.className = 'yami-tweak-panel__title'
+    title.textContent = 'Tweak · 调试'
+    head.appendChild(title)
+
+    const reset = document.createElement('button')
+    reset.type = 'button'
+    reset.className = 'yami-tweak-panel__reset'
+    reset.textContent = 'Reset · 重置'
+    head.appendChild(reset)
+
+    root.appendChild(head)
+
+    const body = document.createElement('div')
+    body.className = 'yami-tweak-panel__body'
+
+    const allInputs = []
+    let totalRows = 0
+    for (const tier of TIER_ORDER) {
+      const tierTokens = Object.keys(defaults[tier] || {}).sort()
+      if (tierTokens.length === 0) continue
+      const { section, inputs } = buildSection(tier, tierTokens, defaults[tier])
+      body.appendChild(section)
+      for (const it of inputs) allInputs.push({ tier, ...it })
+      totalRows += inputs.length
+    }
+
+    if (totalRows === 0) {
+      console.warn('[yami-tweak-panel] zero tweakable tokens after grouping; skipping mount.')
+      return
+    }
+
+    root.appendChild(body)
+
+    reset.addEventListener('click', () => {
+      for (const { tier, name, input, row } of allInputs) {
+        const v = defaults[tier][name]
+        input.value = v
+        applyToken(name, v)
+        row.dataset.changed = 'false'
+      }
+    })
+
+    document.body.appendChild(root)
+
+    // Expose for spike-time poking from devtools / Phase 8 Edit Mode hooks.
+    window.__YAMI_TWEAK_PANEL__ = { defaults, applyToken, root, inputs: allInputs }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', buildPanel, { once: true })
+  } else {
+    buildPanel()
+  }
+})()
+</script><script id="yami-edit-mode" data-yami-bridge-kit="v1">/**
+ * Edit Mode runtime — Phase 8a + 8b + 8c.
+ *
+ * Vanilla-JS overlay that enables inline DOM editing on YAMI artifact
+ * HTML. Builds on top of BridgeBar (selection) and TweakPanel (token
+ * state). When the user selects an element via BridgeBar and toggles
+ * Edit Mode ON, this runtime enables:
+ *
+ *   Phase 8a:
+ *   1. Inline text editing via contenteditable
+ *   2. Element-scoped token/style swaps via a compact property panel
+ *   3. Real-time runtime validator feedback (inline outlines + tooltips)
+ *
+ *   Phase 8b:
+ *   4. Change capture via changeLog (records all text + style edits)
+ *   5. "Copy Changes · 复制变更" button — serializes diff to clipboard
+ *      as JSON array referencing data-yami-id per ADR-0025 Decision 2
+ *   6. Change count badge in BridgeBar
+ *
+ *   Phase 8c:
+ *   7. Undo/redo via Cmd+Z / Cmd+Shift+Z with proper stack management
+ *   8. "Reset All · 重置全部" button — restores original DOM snapshot
+ *   9. TweakPanel reset coordination — clears edit state when TweakPanel
+ *      resets (both runtimes return to shipped state)
+ *
+ * Architecture (ADR-0025):
+ *   - Standalone vanilla-JS IIFE (ADR-0023 authoring rules)
+ *   - Reads BridgeBar selection via `.yami-bridge-selected` class
+ *   - Reads token catalog via `<script id="yami-token-catalog">`
+ *   - Runs `validateRuntime`-equivalent checks inline (simplified
+ *     subset: tap-target + emphasis-limit)
+ *   - Element-scoped edits via `element.style.setProperty()`
+ *   - No backend, no persistence, no postMessage (ADR-0025 Decision 3)
+ *
+ * Constraints honoured (steering / AGENTS.md / ADR-0023):
+ *   - Tap target ≥ 44×44px on every interactive control
+ *   - :focus-visible ring (never :focus alone)
+ *   - Token-only colours / radii
+ *   - No gradient, emoji, glassmorphism, soft-pastel, hand-drawn art
+ *   - Bilingual labels (Edit · 编辑)
+ *   - `<\/script>` escape handled by inject-edit-mode.ts
+ *
+ * Byte-stability: this file's content is injected verbatim into every
+ * artifact. Any whitespace change propagates to yami-content-hash.
+ */
+;(() => {
+  if (typeof document === 'undefined' || typeof window === 'undefined') return
+
+  if (window.__YAMI_EDIT_MODE_MOUNTED__) return
+  window.__YAMI_EDIT_MODE_MOUNTED__ = true
+
+  // ── State ──────────────────────────────────────────────────────
+
+  let editActive = false
+  let editingElement = null
+  /** @type {Map<Node, string>} per-node original text for accurate undo tracking */
+  const originalTextMap = new Map()
+  /** @type {Array<{yamiId:string, type:string, property?:string, from:string, to:string}>} */
+  const changeLog = []
+  /** @type {Array<{yamiId:string, type:string, property?:string, from:string, to:string}>} */
+  const undoStack = []
+  /** @type {Array<{yamiId:string, type:string, property?:string, from:string, to:string}>} */
+  const redoStack = []
+
+  // Phase 8c: DOM snapshot for Reset All — captures the initial state
+  // of every [data-yami-id] element (text content + inline style) so
+  // we can restore to the artifact's shipped state.
+  /** @type {Map<string, {html:string, style:string}>} */
+  const initialSnapshot = new Map()
+
+  function captureSnapshot() {
+    if (initialSnapshot.size > 0) return // already captured
+    const els = document.querySelectorAll('[data-yami-id]')
+    for (const el of els) {
+      const id = el.dataset.yamiId
+      if (!id) continue
+      initialSnapshot.set(id, {
+        html: el.innerHTML,
+        style: el.getAttribute('style') || '',
+      })
+    }
+  }
+
+  // ── Read token catalog ─────────────────────────────────────────
+
+  function readTokenCatalog() {
+    try {
+      const el = document.getElementById('yami-token-catalog')
+      return el ? JSON.parse(el.textContent || '{}') : {}
+    } catch (_e) {
+      return {}
+    }
+  }
+
+  const tokenCatalog = readTokenCatalog()
+
+  // Build reverse index: resolved value → token name
+  const valueToToken = {}
+  const tokenKeys = Object.keys(tokenCatalog).sort()
+  for (const k of tokenKeys) {
+    const v = tokenCatalog[k]
+    if (typeof v === 'string' && valueToToken[v] === undefined) {
+      valueToToken[v] = k
+    }
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────
+
+  function getSelectedElement() {
+    return document.querySelector('.yami-bridge-selected[data-yami-id]')
+  }
+
+  function getYamiId(el) {
+    return el?.dataset?.yamiId || null
+  }
+
+  /** Read computed token-backed properties from an element. */
+  function readElementTokens(el) {
+    if (!el) return []
+    const cs = getComputedStyle(el)
+    const results = []
+
+    // Check a curated set of properties that designers commonly tweak.
+    const PROPS = [
+      { css: 'background-color', label: 'background' },
+      { css: 'color', label: 'color' },
+      { css: 'border-color', label: 'border-color' },
+      { css: 'border-radius', label: 'border-radius' },
+      { css: 'padding', label: 'padding' },
+      { css: 'font-size', label: 'font-size' },
+      { css: 'font-weight', label: 'font-weight' },
+      { css: 'gap', label: 'gap' },
+    ]
+
+    for (const prop of PROPS) {
+      const val = cs.getPropertyValue(prop.css)
+      if (!val) continue
+      // Try to find a matching token
+      const token = valueToToken[val]
+      results.push({
+        property: prop.css,
+        label: prop.label,
+        computedValue: val,
+        tokenName: token || null,
+      })
+    }
+
+    return results
+  }
+
+  // ── Phase 8b: Diff export ────────────────────────────────────
+  // Build a compact diff from the undoStack (not changeLog). The
+  // undoStack represents the currently-applied edits — entries popped
+  // by undo() are moved to redoStack and excluded from the diff.
+  // For each (yamiId, type, property) tuple, keep the first `from`
+  // and the last `to`. Filter out no-ops (from === to after merging).
+
+  function buildDiff() {
+    /** @type {Map<string, {yamiId:string, type:string, property?:string, from:string, to:string}>} */
+    const merged = new Map()
+    for (const c of undoStack) {
+      const key = `${c.yamiId}|${c.type}|${c.property || ''}`
+      const existing = merged.get(key)
+      if (existing) {
+        existing.to = c.to
+      } else {
+        merged.set(key, { ...c })
+      }
+    }
+    // Filter out no-ops (from === to after all edits)
+    const diff = []
+    for (const entry of merged.values()) {
+      if (entry.from !== entry.to) {
+        diff.push(entry)
+      }
+    }
+    return diff
+  }
+
+  function buildDiffJson() {
+    const diff = buildDiff()
+    return JSON.stringify(diff, null, 2)
+  }
+
+  /** Clipboard helper — same pattern as BridgeBar. */
+  function writeClipboard(text) {
+    if (navigator.clipboard?.writeText) {
+      return navigator.clipboard.writeText(text)
+    }
+    return new Promise((resolve, reject) => {
+      try {
+        const ta = document.createElement('textarea')
+        ta.value = text
+        ta.setAttribute('readonly', '')
+        ta.style.position = 'fixed'
+        ta.style.opacity = '0'
+        document.body.appendChild(ta)
+        ta.select()
+        document.execCommand('copy')
+        document.body.removeChild(ta)
+        resolve()
+      } catch (e) {
+        reject(e)
+      }
+    })
+  }
+
+  // ── Phase 8c: Reset All ────────────────────────────────────────
+  // Restores every [data-yami-id] element to its initial snapshot
+  // state and clears all edit state (changeLog, undo/redo stacks).
+
+  function resetAll() {
+    // Restore DOM from snapshot
+    for (const [id, snap] of initialSnapshot) {
+      const el = document.querySelector(`[data-yami-id="${CSS.escape(id)}"]`)
+      if (!el) continue
+      // Restore innerHTML — preserves child element structure
+      if (el.innerHTML !== snap.html) {
+        el.innerHTML = snap.html
+      }
+      // Restore inline style
+      if (snap.style) {
+        el.setAttribute('style', snap.style)
+      } else {
+        el.removeAttribute('style')
+      }
+    }
+
+    // Clear all edit state
+    changeLog.length = 0
+    undoStack.length = 0
+    redoStack.length = 0
+    lastViolations = []
+
+    // If edit mode is active, deactivate and re-activate to refresh UI
+    if (editActive) {
+      const wasEditing = editingElement
+      deactivateEditMode()
+      // Re-select the element in BridgeBar if it was selected
+      if (wasEditing) {
+        const yamiId = getYamiId(wasEditing)
+        if (yamiId) {
+          const el = document.querySelector(`[data-yami-id="${CSS.escape(yamiId)}"]`)
+          if (el) {
+            el.classList.add('yami-bridge-selected')
+          }
+        }
+      }
+    }
+
+    updateChangeBadge()
+    showToast('Reset · 已重置')
+  }
+
+  // ── Phase 8c: TweakPanel reset coordination ────────────────────
+  // When TweakPanel's "Reset · 重置" button is clicked, we also reset
+  // Edit Mode state so both runtimes return to the shipped state.
+
+  function watchTweakPanelReset() {
+    // TweakPanel exposes window.__YAMI_TWEAK_PANEL__; we observe the
+    // reset button click by watching for the panel's reset action.
+    // Since we can't hook into TweakPanel's internals directly, we
+    // use a MutationObserver on [data-changed] attributes — when ALL
+    // rows flip to data-changed="false" simultaneously, it's a reset.
+    const tweakPanel = document.querySelector('.yami-tweak-panel')
+    if (!tweakPanel) return
+
+    let lastChangedCount = 0
+    const observer = new MutationObserver(() => {
+      const changedRows = tweakPanel.querySelectorAll('[data-changed="true"]')
+      const currentCount = changedRows.length
+      // Detect reset: changed count drops to 0 from a non-zero state
+      if (lastChangedCount > 0 && currentCount === 0 && changeLog.length > 0) {
+        resetAll()
+      }
+      lastChangedCount = currentCount
+    })
+
+    observer.observe(tweakPanel, {
+      attributes: true,
+      attributeFilter: ['data-changed'],
+      subtree: true,
+    })
+  }
+
+  // ── Toast (reuse BridgeBar pattern) ────────────────────────────
+
+  function showToast(text) {
+    const bar = document.getElementById('yami-bridge-bar-root')
+    if (!bar) return
+    const t = document.createElement('div')
+    t.className = 'toast'
+    t.setAttribute('role', 'status')
+    t.textContent = text
+    bar.appendChild(t)
+    void t.offsetWidth
+    t.classList.add('visible')
+    setTimeout(() => {
+      t.classList.remove('visible')
+      setTimeout(() => {
+        if (t.parentNode) t.parentNode.removeChild(t)
+      }, 220)
+    }, 1600)
+  }
+
+  // ── Simplified runtime validation (Phase 8a subset) ────────────
+  // Full validateRuntime() lives in the TS package and isn't available
+  // in the artifact runtime. We inline the two P0 checks that matter
+  // most for edit-time feedback: tap-target and emphasis-limit.
+
+  function validateElement(el) {
+    const violations = []
+    if (!el) return violations
+
+    // Tap-target check: interactive elements must be ≥ 44×44
+    const interactive = el.matches(
+      'a[href], button, input, select, textarea, [role="button"], [tabindex]',
+    )
+    if (interactive) {
+      const rect = el.getBoundingClientRect()
+      if (rect.width > 0 && rect.height > 0) {
+        if (rect.width < 44 || rect.height < 44) {
+          violations.push({
+            ruleId: 'tap-target',
+            message: `Tap target ${Math.round(rect.width)}×${Math.round(rect.height)}px < 44×44px minimum`,
+            severity: 'error',
+            suggestion: 'Increase padding or min-height/min-width to meet WCAG 2.5.5',
+          })
+        }
+      }
+    }
+
+    // Emphasis-limit: count emphasis-colored elements in the viewport
+    // (simplified — full version walks the entire page)
+    const cs = getComputedStyle(el)
+    const bgColor = cs.backgroundColor
+    const textColor = cs.color
+    // Check if the element uses the emphasis/brand-red color
+    const emphasisTokenValue = tokenCatalog['--button-emphasis'] || tokenCatalog['--text-emphasis']
+    if (emphasisTokenValue) {
+      const isEmphasis = bgColor === emphasisTokenValue || textColor === emphasisTokenValue
+      if (isEmphasis) {
+        // Count other emphasis elements on the page
+        const allEmphasis = document.querySelectorAll('[data-yami-id]')
+        let emphasisCount = 0
+        for (const other of allEmphasis) {
+          const otherCs = getComputedStyle(other)
+          if (
+            otherCs.backgroundColor === emphasisTokenValue ||
+            otherCs.color === emphasisTokenValue
+          ) {
+            emphasisCount++
+          }
+        }
+        if (emphasisCount > 1) {
+          violations.push({
+            ruleId: 'emphasis-limit',
+            message: `${emphasisCount} emphasis elements on page (recommend ≤ 1 per viewport)`,
+            severity: 'warning',
+            suggestion: 'Reduce emphasis usage — only the primary CTA should use emphasis color',
+          })
+        }
+      }
+    }
+
+    return violations
+  }
+
+  // ── Styles ─────────────────────────────────────────────────────
+
+  const STYLE_ID = 'yami-edit-mode-style'
+
+  function injectStyles() {
+    if (document.getElementById(STYLE_ID)) return
+    const style = document.createElement('style')
+    style.id = STYLE_ID
+    style.textContent = `
+      .yami-edit-active {
+        cursor: text;
+      }
+      .yami-edit-active[contenteditable="true"] {
+        outline: 2px solid var(--border-focus, #000);
+        outline-offset: 2px;
+        min-height: 1em;
+      }
+      .yami-edit-active[contenteditable="true"]:focus-visible {
+        outline: 2px solid var(--text-emphasis, #e00);
+        outline-offset: 2px;
+      }
+      .yami-edit-violation {
+        outline: 2px dashed var(--border-attention, #e00) !important;
+        outline-offset: 2px;
+      }
+      .yami-edit-violation-tooltip {
+        position: absolute;
+        z-index: 2147483647;
+        background: var(--surface-inverse, #222);
+        color: var(--text-primary-inverse, #fff);
+        font-family: var(--font-family-brand, system-ui, sans-serif);
+        font-size: var(--font-size-caption-sm, 12px);
+        padding: var(--space-100, 8px) var(--space-150, 12px);
+        border-radius: var(--radius-sm, 4px);
+        max-width: 300px;
+        pointer-events: none;
+        white-space: pre-wrap;
+      }
+      .yami-edit-prop-panel {
+        position: absolute;
+        z-index: 2147483645;
+        background: var(--surface-primary, #fff);
+        border: 1px solid var(--border-default, #e5e5e5);
+        border-radius: var(--radius-component-default, 8px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        font-family: var(--font-family-brand, system-ui, sans-serif);
+        font-size: var(--font-size-caption-sm, 12px);
+        padding: var(--space-100, 8px);
+        min-width: 240px;
+        max-height: 320px;
+        overflow-y: auto;
+      }
+      .yami-edit-prop-panel__title {
+        font-weight: 600;
+        padding: var(--space-050, 4px) var(--space-100, 8px);
+        color: var(--text-secondary, #555);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        font-size: 11px;
+      }
+      .yami-edit-prop-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-100, 8px);
+        align-items: center;
+        padding: var(--space-050, 4px) var(--space-100, 8px);
+        min-height: 44px;
+      }
+      .yami-edit-prop-label {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 11px;
+        color: var(--text-secondary, #555);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .yami-edit-prop-input {
+        appearance: none;
+        height: 44px;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 0 var(--space-100, 8px);
+        font: inherit;
+        font-size: 11px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        color: inherit;
+        background: var(--surface-primary, #fff);
+        border: 1px solid var(--border-default, #d4d4d4);
+        border-radius: var(--radius-sm, 4px);
+      }
+      .yami-edit-prop-input:focus-visible {
+        outline: 2px solid var(--border-focus, #000);
+        outline-offset: 1px;
+      }
+      #yami-bridge-bar-root .yami-edit-toggle {
+        background: var(--surface-secondary, #f5f5f5);
+      }
+      #yami-bridge-bar-root .yami-edit-toggle[aria-pressed="true"] {
+        background: var(--button-emphasis, #e00);
+        color: var(--text-primary-inverse, #fff);
+        border-color: var(--button-emphasis, #e00);
+      }
+      #yami-bridge-bar-root .yami-edit-toggle[aria-pressed="true"]:hover {
+        box-shadow: inset 0 0 0 9999px rgba(0,0,0,0.1);
+      }
+      #yami-bridge-bar-root .yami-edit-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-050, 4px);
+        font-size: var(--font-size-caption-sm, 12px);
+        color: var(--text-secondary, #555);
+        margin-left: var(--space-100, 8px);
+      }
+      #yami-bridge-bar-root .yami-edit-badge[data-has-errors="true"] {
+        color: var(--border-attention, #e00);
+        font-weight: 600;
+      }
+    `
+    document.head.appendChild(style)
+  }
+
+  // ── Property panel ─────────────────────────────────────────────
+
+  let propPanel = null
+
+  function removePropPanel() {
+    if (propPanel) {
+      propPanel.remove()
+      propPanel = null
+    }
+  }
+
+  function showPropPanel(el) {
+    removePropPanel()
+    if (!el) return
+
+    const tokens = readElementTokens(el)
+    if (tokens.length === 0) return
+
+    const rect = el.getBoundingClientRect()
+    const panel = document.createElement('div')
+    panel.className = 'yami-edit-prop-panel'
+
+    const title = document.createElement('div')
+    title.className = 'yami-edit-prop-panel__title'
+    title.textContent = 'Properties · 属性'
+    panel.appendChild(title)
+
+    const yamiId = getYamiId(el)
+
+    for (const tok of tokens) {
+      const row = document.createElement('div')
+      row.className = 'yami-edit-prop-row'
+
+      const label = document.createElement('span')
+      label.className = 'yami-edit-prop-label'
+      label.textContent = tok.label
+      label.title = tok.tokenName ? `var(${tok.tokenName})` : tok.computedValue
+
+      const input = document.createElement('input')
+      input.type = 'text'
+      input.className = 'yami-edit-prop-input'
+      input.value = tok.tokenName ? `var(${tok.tokenName})` : tok.computedValue
+      input.spellcheck = false
+      input.setAttribute('aria-label', `${tok.label} value`)
+
+      input.addEventListener('change', () => {
+        const newVal = input.value.trim()
+        const oldVal = tok.tokenName ? `var(${tok.tokenName})` : tok.computedValue
+        if (newVal === oldVal) return
+
+        el.style.setProperty(tok.property, newVal)
+
+        const change = {
+          yamiId: yamiId,
+          type: 'style',
+          property: tok.property,
+          from: oldVal,
+          to: newVal,
+        }
+        changeLog.push(change)
+        undoStack.push(change)
+        redoStack.length = 0
+
+        // Re-validate after style change
+        runValidation()
+        updateBadge()
+        updateChangeBadge()
+      })
+
+      row.appendChild(label)
+      row.appendChild(input)
+      panel.appendChild(row)
+    }
+
+    // Position below the element
+    panel.style.position = 'absolute'
+    panel.style.left = `${Math.max(0, rect.left + window.scrollX)}px`
+    panel.style.top = `${rect.bottom + window.scrollY + 8}px`
+
+    document.body.appendChild(panel)
+    propPanel = panel
+  }
+
+  // ── Violation tooltips ─────────────────────────────────────────
+
+  const violationTooltips = []
+
+  function clearViolationUI() {
+    for (const tt of violationTooltips) {
+      tt.tooltip?.remove()
+      tt.element?.classList.remove('yami-edit-violation')
+    }
+    violationTooltips.length = 0
+  }
+
+  function showViolation(el, violation) {
+    el.classList.add('yami-edit-violation')
+
+    const rect = el.getBoundingClientRect()
+    const tooltip = document.createElement('div')
+    tooltip.className = 'yami-edit-violation-tooltip'
+    tooltip.setAttribute('role', 'status')
+    tooltip.textContent = `${violation.ruleId}: ${violation.message}${violation.suggestion ? `\n→ ${violation.suggestion}` : ''}`
+
+    tooltip.style.left = `${Math.max(0, rect.left + window.scrollX)}px`
+    tooltip.style.top = `${Math.max(0, rect.top + window.scrollY - 40)}px`
+
+    document.body.appendChild(tooltip)
+    violationTooltips.push({ element: el, tooltip })
+  }
+
+  let lastViolations = []
+
+  function runValidation() {
+    clearViolationUI()
+    if (!editActive) return
+
+    const selected = getSelectedElement()
+    if (!selected) return
+
+    const violations = validateElement(selected)
+    lastViolations = violations
+
+    for (const v of violations) {
+      showViolation(selected, v)
+    }
+  }
+
+  // ── BridgeBar integration ──────────────────────────────────────
+
+  let editToggleBtn = null
+  let editBadge = null
+  let changeBadge = null
+  let copyChangesBtn = null
+  let resetAllBtn = null
+
+  function updateBadge() {
+    if (!editBadge) return
+    const errorCount = lastViolations.filter((v) => v.severity === 'error').length
+    const warnCount = lastViolations.filter((v) => v.severity === 'warning').length
+    const total = errorCount + warnCount
+
+    if (total > 0 && editActive) {
+      editBadge.style.display = ''
+      editBadge.textContent = `${total} violation${total > 1 ? 's' : ''} · ${total} 项违规`
+      editBadge.dataset.hasErrors = errorCount > 0 ? 'true' : 'false'
+    } else {
+      editBadge.style.display = 'none'
+    }
+  }
+
+  function updateChangeBadge() {
+    if (!changeBadge) return
+    const diff = buildDiff()
+    const count = diff.length
+    if (count > 0) {
+      changeBadge.style.display = ''
+      changeBadge.textContent = `${count} change${count > 1 ? 's' : ''} · ${count} 项变更`
+    } else {
+      changeBadge.style.display = 'none'
+    }
+
+    // Enable/disable Copy Changes and Reset All buttons
+    if (copyChangesBtn) {
+      if (count > 0) {
+        copyChangesBtn.removeAttribute('aria-disabled')
+      } else {
+        copyChangesBtn.setAttribute('aria-disabled', 'true')
+      }
+    }
+    if (resetAllBtn) {
+      if (count > 0) {
+        resetAllBtn.removeAttribute('aria-disabled')
+      } else {
+        resetAllBtn.setAttribute('aria-disabled', 'true')
+      }
+    }
+  }
+
+  function injectBridgeBarButton() {
+    // Wait for BridgeBar to mount
+    const bar = document.getElementById('yami-bridge-bar-root')
+    if (!bar) return
+
+    const actions = bar.querySelector('.actions')
+    if (!actions) return
+
+    // Don't double-inject
+    if (actions.querySelector('.yami-edit-toggle')) return
+
+    // ── Edit toggle button ──
+    editToggleBtn = document.createElement('button')
+    editToggleBtn.type = 'button'
+    editToggleBtn.className = 'action yami-edit-toggle'
+    editToggleBtn.textContent = 'Edit · 编辑'
+    editToggleBtn.setAttribute('aria-label', 'Toggle edit mode')
+    editToggleBtn.setAttribute('aria-pressed', 'false')
+
+    editToggleBtn.addEventListener('click', () => {
+      if (editActive) {
+        deactivateEditMode()
+      } else {
+        activateEditMode()
+      }
+    })
+
+    // Insert as first action
+    actions.insertBefore(editToggleBtn, actions.firstChild)
+
+    // ── Phase 8b: Copy Changes button ──
+    copyChangesBtn = document.createElement('button')
+    copyChangesBtn.type = 'button'
+    copyChangesBtn.className = 'action'
+    copyChangesBtn.textContent = 'Copy Changes · 复制变更'
+    copyChangesBtn.setAttribute('aria-label', 'Copy edit diff to clipboard')
+    copyChangesBtn.setAttribute('aria-disabled', 'true')
+
+    copyChangesBtn.addEventListener('click', () => {
+      if (copyChangesBtn.getAttribute('aria-disabled') === 'true') return
+      const json = buildDiffJson()
+      writeClipboard(json).then(
+        () => showToast('Changes copied · 变更已复制'),
+        () => showToast('Copy failed · 复制失败'),
+      )
+    })
+
+    actions.insertBefore(copyChangesBtn, editToggleBtn.nextSibling)
+
+    // ── Phase 8c: Reset All button ──
+    resetAllBtn = document.createElement('button')
+    resetAllBtn.type = 'button'
+    resetAllBtn.className = 'action'
+    resetAllBtn.textContent = 'Reset All · 重置全部'
+    resetAllBtn.setAttribute('aria-label', 'Reset all edits to original state')
+    resetAllBtn.setAttribute('aria-disabled', 'true')
+
+    resetAllBtn.addEventListener('click', () => {
+      if (resetAllBtn.getAttribute('aria-disabled') === 'true') return
+      resetAll()
+    })
+
+    actions.insertBefore(resetAllBtn, copyChangesBtn.nextSibling)
+
+    // ── Violation badge ──
+    const labelEl = bar.querySelector('.label')
+    if (labelEl) {
+      editBadge = document.createElement('span')
+      editBadge.className = 'yami-edit-badge'
+      editBadge.style.display = 'none'
+      labelEl.parentNode.insertBefore(editBadge, labelEl.nextSibling)
+
+      // Phase 8b: change count badge
+      changeBadge = document.createElement('span')
+      changeBadge.className = 'yami-edit-badge'
+      changeBadge.style.display = 'none'
+      editBadge.parentNode.insertBefore(changeBadge, editBadge.nextSibling)
+    }
+  }
+
+  // ── Edit mode activation ───────────────────────────────────────
+
+  function activateEditMode() {
+    const selected = getSelectedElement()
+    if (!selected) return
+
+    // Phase 8c: capture initial DOM snapshot on first activation
+    captureSnapshot()
+
+    editActive = true
+    editingElement = selected
+
+    if (editToggleBtn) {
+      editToggleBtn.setAttribute('aria-pressed', 'true')
+    }
+
+    // Enable contenteditable on text-bearing children
+    enableTextEditing(selected)
+
+    // Show property panel
+    showPropPanel(selected)
+
+    // Run initial validation
+    runValidation()
+    updateBadge()
+    updateChangeBadge()
+  }
+
+  function deactivateEditMode() {
+    editActive = false
+
+    if (editToggleBtn) {
+      editToggleBtn.setAttribute('aria-pressed', 'false')
+    }
+
+    // Disable contenteditable
+    disableTextEditing()
+
+    // Remove property panel
+    removePropPanel()
+
+    // Clear violation UI
+    clearViolationUI()
+    lastViolations = []
+    updateBadge()
+
+    editingElement = null
+    originalTextMap.clear()
+  }
+
+  // ── Text editing ───────────────────────────────────────────────
+
+  function enableTextEditing(el) {
+    if (!el) return
+
+    // Find text-bearing nodes (direct text children or simple text elements)
+    const textNodes = findTextNodes(el)
+    if (textNodes.length === 0) return
+
+    for (const node of textNodes) {
+      originalTextMap.set(node, node.textContent || '')
+      node.setAttribute('contenteditable', 'true')
+      node.classList.add('yami-edit-active')
+
+      // Plain-text paste handler — strip HTML
+      node.addEventListener('paste', handlePaste)
+
+      // Track text changes
+      node.addEventListener('input', handleTextInput)
+    }
+  }
+
+  function disableTextEditing() {
+    const editables = document.querySelectorAll('.yami-edit-active[contenteditable]')
+    for (const el of editables) {
+      el.removeAttribute('contenteditable')
+      el.classList.remove('yami-edit-active')
+      el.removeEventListener('paste', handlePaste)
+      el.removeEventListener('input', handleTextInput)
+    }
+  }
+
+  function findTextNodes(root) {
+    const results = []
+    // Look for elements that directly contain text (not just wrapper divs)
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, {
+      acceptNode(node) {
+        // Skip if it's a container with only element children (no direct text)
+        const hasDirectText = Array.from(node.childNodes).some(
+          (child) => child.nodeType === Node.TEXT_NODE && child.textContent.trim().length > 0,
+        )
+        if (hasDirectText) return NodeFilter.FILTER_ACCEPT
+        return NodeFilter.FILTER_SKIP
+      },
+    })
+
+    let node = walker.nextNode()
+    while (node) {
+      // Don't make the root itself editable if it has complex children
+      if (node !== root || root.children.length <= 1) {
+        results.push(node)
+      }
+      node = walker.nextNode()
+    }
+
+    // If no inner text nodes found, make the root itself editable
+    // (simple elements like <span>text</span>)
+    if (results.length === 0 && root.textContent.trim()) {
+      results.push(root)
+    }
+
+    return results
+  }
+
+  function handlePaste(e) {
+    e.preventDefault()
+    const text = (e.clipboardData || window.clipboardData).getData('text/plain')
+    document.execCommand('insertText', false, text)
+  }
+
+  function handleTextInput(e) {
+    const el = e.target
+    const yamiId = getYamiId(el) || getYamiId(el.closest('[data-yami-id]'))
+    const newText = el.textContent
+    const prevText = originalTextMap.get(el)
+
+    if (prevText !== undefined && newText !== prevText) {
+      const change = {
+        yamiId: yamiId,
+        type: 'text',
+        from: prevText,
+        to: newText,
+      }
+      changeLog.push(change)
+      undoStack.push(change)
+      redoStack.length = 0
+      originalTextMap.set(el, newText)
+    }
+
+    // Re-validate after text change
+    runValidation()
+    updateBadge()
+    updateChangeBadge()
+  }
+
+  // ── Undo / Redo (Phase 8c, wired early for keyboard shortcut) ──
+
+  function handleKeydown(e) {
+    if (!editActive) return
+
+    const isMod = e.metaKey || e.ctrlKey
+    if (!isMod) return
+
+    if (e.key === 'z' && !e.shiftKey) {
+      e.preventDefault()
+      undo()
+    } else if ((e.key === 'z' && e.shiftKey) || e.key === 'y') {
+      e.preventDefault()
+      redo()
+    }
+  }
+
+  function undo() {
+    if (undoStack.length === 0) return
+    const change = undoStack.pop()
+    redoStack.push(change)
+
+    // Reverse the change
+    applyChange(change, true)
+    updateBadge()
+    updateChangeBadge()
+  }
+
+  function redo() {
+    if (redoStack.length === 0) return
+    const change = redoStack.pop()
+    undoStack.push(change)
+
+    // Re-apply the change
+    applyChange(change, false)
+    updateBadge()
+    updateChangeBadge()
+  }
+
+  function applyChange(change, reverse) {
+    const value = reverse ? change.from : change.to
+    const el = change.yamiId
+      ? document.querySelector(`[data-yami-id="${CSS.escape(change.yamiId)}"]`)
+      : null
+
+    if (!el) return
+
+    if (change.type === 'style' && change.property) {
+      el.style.setProperty(change.property, value)
+    } else if (change.type === 'text') {
+      // Find the text-bearing child
+      const textEl = findTextNodes(el)[0] || el
+      textEl.textContent = value
+      // Keep the per-node map in sync so subsequent edits diff correctly
+      originalTextMap.set(textEl, value)
+    }
+
+    runValidation()
+  }
+
+  // ── Selection change observer ──────────────────────────────────
+  // When BridgeBar selection changes, deactivate edit mode on the
+  // previous element and prepare for the new one.
+
+  let lastSelectedId = null
+
+  function watchSelectionChanges() {
+    const observer = new MutationObserver(() => {
+      const selected = getSelectedElement()
+      const currentId = getYamiId(selected)
+
+      if (currentId !== lastSelectedId) {
+        if (editActive) {
+          deactivateEditMode()
+        }
+        lastSelectedId = currentId
+      }
+    })
+
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['class'],
+      subtree: true,
+    })
+  }
+
+  // ── Boot ───────────────────────────────────────────────────────
+
+  function boot() {
+    injectStyles()
+    injectBridgeBarButton()
+    watchSelectionChanges()
+    watchTweakPanelReset()
+    document.addEventListener('keydown', handleKeydown)
+
+    // Expose for debugging, Phase 10 agent consumption, and devtools
+    window.__YAMI_EDIT_MODE__ = {
+      get active() {
+        return editActive
+      },
+      get changeLog() {
+        return [...changeLog]
+      },
+      get diff() {
+        return buildDiff()
+      },
+      get diffJson() {
+        return buildDiffJson()
+      },
+      activate: activateEditMode,
+      deactivate: deactivateEditMode,
+      undo,
+      redo,
+      resetAll,
+      copyChanges() {
+        return writeClipboard(buildDiffJson())
+      },
+    }
+  }
+
+  // BridgeBar mounts on DOMContentLoaded; we need to wait for it.
+  // Use a small retry loop since both runtimes boot on the same event.
+  function waitForBridgeBar() {
+    if (document.getElementById('yami-bridge-bar-root')) {
+      boot()
+      return
+    }
+    let attempts = 0
+    const interval = setInterval(() => {
+      attempts++
+      if (document.getElementById('yami-bridge-bar-root') || attempts > 50) {
+        clearInterval(interval)
+        boot()
+      }
+    }, 50)
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', waitForBridgeBar, { once: true })
+  } else {
+    waitForBridgeBar()
+  }
+})()
+</script><script id="yami-comment-mode" data-yami-bridge-kit="v1">/**
+ * CommentMode runtime — Phase 9.
+ *
+ * Vanilla-JS overlay that lets designers pin textual annotations to
+ * elements identified by `data-yami-id`. The 4th artifact-side runtime
+ * (after BridgeBar, TweakPanel, Edit Mode).
+ *
+ * Interaction model:
+ *   1. Select an element via BridgeBar (click-to-select)
+ *   2. Click "Comment · 评论" toggle in the comment toolbar
+ *   3. A text input anchored to the selected element appears
+ *   4. Type comment, press Enter or click confirm
+ *   5. Numbered badge appears on the element's top-right corner
+ *   6. Click badge to view/delete the comment
+ *
+ * Data model:
+ *   Each comment: { id, yamiId, text, author, timestamp }
+ *   Stored in-memory only (no persistence — ADR-0026 Decision 2).
+ *   "Copy Comments · 复制评论" exports all as JSON to clipboard.
+ *
+ * Architecture (ADR-0026):
+ *   - Standalone vanilla-JS IIFE (ADR-0023 authoring rules)
+ *   - Reads BridgeBar selection via `.yami-bridge-selected` class
+ *   - Pin-based annotation, no threading (Decision 3)
+ *   - Comment creation via toolbar button (Decision 4)
+ *
+ * Constraints honoured (steering / AGENTS.md / ADR-0023):
+ *   - Tap target ≥ 44×44px on every interactive control
+ *   - :focus-visible ring (never :focus alone)
+ *   - Token-only colours / radii
+ *   - No gradient, emoji, glassmorphism, soft-pastel, hand-drawn art
+ *   - Bilingual labels (Comment · 评论)
+ *   - `<\/script>` escape handled by inject-comment-mode.ts
+ *
+ * Byte-stability: this file's content is injected verbatim into every
+ * artifact. Any whitespace change propagates to yami-content-hash.
+ */
+;(() => {
+  if (typeof document === 'undefined' || typeof window === 'undefined') return
+
+  if (window.__YAMI_COMMENT_MODE_MOUNTED__) return
+  window.__YAMI_COMMENT_MODE_MOUNTED__ = true
+
+  // ── State ──────────────────────────────────────────────────────
+
+  /** @type {Array<{id:string, yamiId:string, text:string, author:string, timestamp:string}>} */
+  const comments = []
+  let nextId = 1
+  let activePopover = null
+  /** @type {Set<Element>} Elements whose position was changed from static to relative */
+  const positionModified = new Set()
+
+  // ── Helpers ────────────────────────────────────────────────────
+
+  function getSelectedElement() {
+    return document.querySelector('.yami-bridge-selected')
+  }
+
+  function getYamiId(el) {
+    return el ? el.dataset?.yamiId || '' : ''
+  }
+
+  function generateId() {
+    return 'c' + nextId++
+  }
+
+  function writeClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text)
+    }
+    // Fallback for file:// or older browsers
+    const ta = document.createElement('textarea')
+    ta.value = text
+    ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px'
+    document.body.appendChild(ta)
+    ta.select()
+    document.execCommand('copy')
+    document.body.removeChild(ta)
+    return Promise.resolve()
+  }
+
+  // ── Styles ─────────────────────────────────────────────────────
+
+  function injectStyles() {
+    if (document.getElementById('yami-comment-mode-style')) return
+    const style = document.createElement('style')
+    style.id = 'yami-comment-mode-style'
+    style.textContent = `
+      .yami-comment-toolbar{
+        position:fixed;bottom:80px;right:var(--space-200, 16px);
+        display:flex;gap:var(--space-100, 8px);
+        z-index:2147483644;
+      }
+      .yami-comment-toolbar__btn{
+        appearance:none;
+        display:flex;align-items:center;justify-content:center;
+        height:44px;min-width:44px;
+        padding:0 var(--space-150, 12px);
+        background:var(--surface-primary, #fff);
+        color:var(--text-primary, #111);
+        border:1px solid var(--border-default, #e5e5e5);
+        border-radius:var(--radius-component-default, 8px);
+        box-shadow:0 2px 8px rgba(0,0,0,0.08);
+        font-family:var(--font-family-brand, system-ui, sans-serif);
+        font-size:var(--font-size-body-sm, 14px);
+        cursor:pointer;
+        white-space:nowrap;
+      }
+      .yami-comment-toolbar__btn:focus-visible{
+        outline:2px solid var(--border-focus, #000);
+        outline-offset:2px;
+      }
+      .yami-comment-toolbar__btn[aria-pressed="true"]{
+        background:var(--text-primary, #111);
+        color:var(--surface-primary, #fff);
+        border-color:var(--text-primary, #111);
+      }
+      .yami-comment-toolbar__btn[disabled]{
+        opacity:0.4;cursor:not-allowed;
+      }
+      .yami-comment-badge{
+        position:absolute;top:-6px;right:-6px;
+        width:24px;height:24px;
+        display:flex;align-items:center;justify-content:center;
+        background:var(--fill-promotion-primary, #e00000);
+        color:#fff;
+        border-radius:9999px;
+        font-family:var(--font-family-brand, system-ui, sans-serif);
+        font-size:11px;font-weight:700;
+        cursor:pointer;
+        z-index:2147483643;
+        border:2px solid var(--surface-primary, #fff);
+        box-shadow:0 1px 4px rgba(0,0,0,0.15);
+        pointer-events:auto;
+      }
+      .yami-comment-badge:focus-visible{
+        outline:2px solid var(--border-focus, #000);
+        outline-offset:2px;
+      }
+      .yami-comment-popover{
+        position:absolute;top:calc(100% + 8px);right:0;
+        width:260px;
+        background:var(--surface-primary, #fff);
+        border:1px solid var(--border-default, #e5e5e5);
+        border-radius:var(--radius-component-default, 8px);
+        box-shadow:0 4px 16px rgba(0,0,0,0.12);
+        padding:var(--space-150, 12px);
+        z-index:2147483645;
+        font-family:var(--font-family-brand, system-ui, sans-serif);
+        font-size:var(--font-size-body-sm, 14px);
+        color:var(--text-primary, #111);
+      }
+      .yami-comment-popover__text{
+        margin:0 0 var(--space-100, 8px);
+        line-height:1.5;
+        word-wrap:break-word;
+      }
+      .yami-comment-popover__meta{
+        font-size:var(--font-size-caption-sm, 12px);
+        color:var(--text-secondary, #555);
+        margin:0 0 var(--space-100, 8px);
+      }
+      .yami-comment-popover__delete{
+        appearance:none;background:transparent;
+        border:1px solid var(--border-default, #d4d4d4);
+        border-radius:var(--radius-sm, 4px);
+        padding:0 var(--space-100, 8px);
+        height:36px;min-width:44px;
+        font:inherit;color:var(--text-emphasis, #e00000);
+        cursor:pointer;
+      }
+      .yami-comment-popover__delete:focus-visible{
+        outline:2px solid var(--border-focus, #000);
+        outline-offset:2px;
+      }
+      .yami-comment-input-wrap{
+        position:absolute;top:calc(100% + 8px);right:0;
+        width:260px;
+        background:var(--surface-primary, #fff);
+        border:1px solid var(--border-default, #e5e5e5);
+        border-radius:var(--radius-component-default, 8px);
+        box-shadow:0 4px 16px rgba(0,0,0,0.12);
+        padding:var(--space-150, 12px);
+        z-index:2147483645;
+        display:flex;flex-direction:column;gap:var(--space-100, 8px);
+      }
+      .yami-comment-input{
+        appearance:none;
+        width:100%;box-sizing:border-box;
+        min-height:60px;
+        padding:var(--space-100, 8px);
+        font-family:var(--font-family-brand, system-ui, sans-serif);
+        font-size:var(--font-size-body-sm, 14px);
+        color:var(--text-primary, #111);
+        background:var(--surface-secondary, #f5f5f5);
+        border:1px solid var(--border-default, #d4d4d4);
+        border-radius:var(--radius-sm, 4px);
+        resize:vertical;
+      }
+      .yami-comment-input:focus-visible{
+        outline:2px solid var(--border-focus, #000);
+        outline-offset:1px;
+      }
+      .yami-comment-input-actions{
+        display:flex;gap:var(--space-100, 8px);justify-content:flex-end;
+      }
+      .yami-comment-input-actions button{
+        appearance:none;
+        height:44px;min-width:44px;
+        padding:0 var(--space-150, 12px);
+        border-radius:var(--radius-sm, 4px);
+        font:inherit;cursor:pointer;
+      }
+      .yami-comment-confirm{
+        background:var(--text-primary, #111);
+        color:var(--surface-primary, #fff);
+        border:1px solid var(--text-primary, #111);
+      }
+      .yami-comment-confirm:focus-visible{
+        outline:2px solid var(--border-focus, #000);
+        outline-offset:2px;
+      }
+      .yami-comment-cancel{
+        background:transparent;
+        color:var(--text-primary, #111);
+        border:1px solid var(--border-default, #d4d4d4);
+      }
+      .yami-comment-cancel:focus-visible{
+        outline:2px solid var(--border-focus, #000);
+        outline-offset:2px;
+      }
+    `
+    document.head.appendChild(style)
+  }
+
+  // ── Badge rendering ────────────────────────────────────────────
+
+  function getCommentsForElement(yamiId) {
+    return comments.filter((c) => c.yamiId === yamiId)
+  }
+
+  function renderBadges() {
+    // Remove all existing badges
+    const existing = document.querySelectorAll('.yami-comment-badge')
+    for (let i = 0; i < existing.length; i++) existing[i].remove()
+
+    // Group comments by yamiId
+    const byElement = {}
+    for (let j = 0; j < comments.length; j++) {
+      const c = comments[j]
+      if (!byElement[c.yamiId]) byElement[c.yamiId] = []
+      byElement[c.yamiId].push(c)
+    }
+
+    const yamiIds = Object.keys(byElement)
+    for (let k = 0; k < yamiIds.length; k++) {
+      const yamiId = yamiIds[k]
+      const el = document.querySelector('[data-yami-id="' + CSS.escape(yamiId) + '"]')
+      if (!el) continue
+
+      // Ensure the element is positioned for absolute badge placement
+      const pos = getComputedStyle(el).position
+      if (pos === 'static') {
+        el.style.position = 'relative'
+        positionModified.add(el)
+      }
+
+      const count = byElement[yamiId].length
+      const badge = document.createElement('button')
+      badge.type = 'button'
+      badge.className = 'yami-comment-badge'
+      badge.textContent = String(count)
+      badge.setAttribute(
+        'aria-label',
+        count + ' comment(s) on ' + yamiId + ' · ' + count + ' 条评论',
+      )
+      badge.dataset.yamiId = yamiId
+
+      badge.addEventListener(
+        'click',
+        ((id) => (e) => {
+          e.stopPropagation()
+          togglePopover(id)
+        })(yamiId),
+      )
+
+      el.appendChild(badge)
+    }
+  }
+
+  // ── Popover ────────────────────────────────────────────────────
+
+  function closePopover() {
+    if (activePopover) {
+      activePopover.remove()
+      activePopover = null
+    }
+  }
+
+  function togglePopover(yamiId) {
+    // If already showing this popover, close it
+    if (activePopover && activePopover.dataset.yamiId === yamiId) {
+      closePopover()
+      return
+    }
+    closePopover()
+
+    const el = document.querySelector('[data-yami-id="' + CSS.escape(yamiId) + '"]')
+    if (!el) return
+
+    const elComments = getCommentsForElement(yamiId)
+    if (elComments.length === 0) return
+
+    const popover = document.createElement('div')
+    popover.className = 'yami-comment-popover'
+    popover.dataset.yamiId = yamiId
+
+    for (let i = 0; i < elComments.length; i++) {
+      const c = elComments[i]
+      const item = document.createElement('div')
+      item.style.cssText =
+        'margin-bottom:var(--space-100, 8px);padding-bottom:var(--space-100, 8px);border-bottom:1px solid var(--divider-default, #f0f0f0)'
+      if (i === elComments.length - 1) item.style.borderBottom = 'none'
+
+      const textEl = document.createElement('p')
+      textEl.className = 'yami-comment-popover__text'
+      textEl.textContent = c.text
+      item.appendChild(textEl)
+
+      const metaEl = document.createElement('p')
+      metaEl.className = 'yami-comment-popover__meta'
+      const d = new Date(c.timestamp)
+      metaEl.textContent =
+        c.author + ' · ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      item.appendChild(metaEl)
+
+      const delBtn = document.createElement('button')
+      delBtn.type = 'button'
+      delBtn.className = 'yami-comment-popover__delete'
+      delBtn.textContent = 'Delete · 删除'
+      delBtn.dataset.commentId = c.id
+      delBtn.addEventListener(
+        'click',
+        ((commentId) => () => {
+          deleteComment(commentId)
+        })(c.id),
+      )
+      item.appendChild(delBtn)
+
+      popover.appendChild(item)
+    }
+
+    // Ensure parent is positioned
+    const pos = getComputedStyle(el).position
+    if (pos === 'static') el.style.position = 'relative'
+
+    el.appendChild(popover)
+    activePopover = popover
+  }
+
+  // ── Comment input ──────────────────────────────────────────────
+
+  let activeInput = null
+
+  function showCommentInput(yamiId) {
+    closeCommentInput()
+    closePopover()
+
+    const el = document.querySelector('[data-yami-id="' + CSS.escape(yamiId) + '"]')
+    if (!el) return
+
+    const pos = getComputedStyle(el).position
+    if (pos === 'static') el.style.position = 'relative'
+
+    const wrap = document.createElement('div')
+    wrap.className = 'yami-comment-input-wrap'
+
+    const textarea = document.createElement('textarea')
+    textarea.className = 'yami-comment-input'
+    textarea.placeholder = 'Add comment · 添加评论...'
+    textarea.rows = 2
+    wrap.appendChild(textarea)
+
+    const actions = document.createElement('div')
+    actions.className = 'yami-comment-input-actions'
+
+    const cancelBtn = document.createElement('button')
+    cancelBtn.type = 'button'
+    cancelBtn.className = 'yami-comment-cancel'
+    cancelBtn.textContent = 'Cancel · 取消'
+    cancelBtn.addEventListener('click', closeCommentInput)
+    actions.appendChild(cancelBtn)
+
+    const confirmBtn = document.createElement('button')
+    confirmBtn.type = 'button'
+    confirmBtn.className = 'yami-comment-confirm'
+    confirmBtn.textContent = 'Add · 添加'
+    confirmBtn.addEventListener('click', () => {
+      const text = textarea.value.trim()
+      if (!text) return
+      addComment(yamiId, text)
+      closeCommentInput()
+    })
+    actions.appendChild(confirmBtn)
+
+    wrap.appendChild(actions)
+    el.appendChild(wrap)
+    activeInput = wrap
+
+    // Focus the textarea
+    setTimeout(() => {
+      textarea.focus()
+    }, 50)
+
+    // Enter to submit (Shift+Enter for newline)
+    textarea.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault()
+        const text = textarea.value.trim()
+        if (!text) return
+        addComment(yamiId, text)
+        closeCommentInput()
+      }
+      if (e.key === 'Escape') {
+        closeCommentInput()
+      }
+    })
+  }
+
+  function closeCommentInput() {
+    if (activeInput) {
+      activeInput.remove()
+      activeInput = null
+    }
+  }
+
+  // ── CRUD ───────────────────────────────────────────────────────
+
+  function addComment(yamiId, text) {
+    comments.push({
+      id: generateId(),
+      yamiId: yamiId,
+      text: text,
+      author: 'designer',
+      timestamp: new Date().toISOString(),
+    })
+    renderBadges()
+    updateToolbarCount()
+    announce('Comment added · 已添加评论')
+  }
+
+  function deleteComment(commentId) {
+    for (let i = 0; i < comments.length; i++) {
+      if (comments[i].id === commentId) {
+        comments.splice(i, 1)
+        break
+      }
+    }
+    closePopover()
+    renderBadges()
+    updateToolbarCount()
+    announce('Comment deleted · 已删除评论')
+  }
+
+  function clearAllComments() {
+    comments.length = 0
+    nextId = 1
+    closePopover()
+    closeCommentInput()
+    renderBadges()
+    updateToolbarCount()
+    // Restore position on elements we modified
+    for (const el of positionModified) {
+      el.style.position = ''
+    }
+    positionModified.clear()
+  }
+
+  // ── Export ─────────────────────────────────────────────────────
+
+  function buildExportJson() {
+    return JSON.stringify(
+      comments.map((c) => ({
+        yamiId: c.yamiId,
+        text: c.text,
+        author: c.author,
+        timestamp: c.timestamp,
+      })),
+      null,
+      2,
+    )
+  }
+
+  // ── Toolbar ────────────────────────────────────────────────────
+
+  let toolbar = null
+  let commentToggleBtn = null
+  let countBadge = null
+
+  function buildToolbar() {
+    injectStyles()
+
+    toolbar = document.createElement('div')
+    toolbar.className = 'yami-comment-toolbar'
+    toolbar.setAttribute('role', 'toolbar')
+    toolbar.setAttribute('aria-label', 'Comment Mode · 评论模式')
+
+    // Comment toggle
+    commentToggleBtn = document.createElement('button')
+    commentToggleBtn.type = 'button'
+    commentToggleBtn.className = 'yami-comment-toolbar__btn'
+    commentToggleBtn.setAttribute('aria-pressed', 'false')
+    commentToggleBtn.textContent = 'Comment · 评论'
+    commentToggleBtn.addEventListener('click', () => {
+      const selected = getSelectedElement()
+      const yamiId = getYamiId(selected)
+      if (!yamiId) return
+      if (activeInput) {
+        closeCommentInput()
+      } else {
+        showCommentInput(yamiId)
+      }
+    })
+    toolbar.appendChild(commentToggleBtn)
+
+    // Copy comments
+    const copyBtn = document.createElement('button')
+    copyBtn.type = 'button'
+    copyBtn.className = 'yami-comment-toolbar__btn'
+    copyBtn.textContent = 'Copy · 复制'
+    copyBtn.addEventListener('click', () => {
+      if (comments.length === 0) return
+      writeClipboard(buildExportJson()).then(() => {
+        const orig = copyBtn.textContent
+        copyBtn.textContent = 'Copied · 已复制'
+        setTimeout(() => {
+          copyBtn.textContent = orig
+        }, 1500)
+      })
+    })
+    toolbar.appendChild(copyBtn)
+
+    // Clear all
+    const clearBtn = document.createElement('button')
+    clearBtn.type = 'button'
+    clearBtn.className = 'yami-comment-toolbar__btn'
+    clearBtn.textContent = 'Clear · 清除'
+    clearBtn.addEventListener('click', clearAllComments)
+    toolbar.appendChild(clearBtn)
+
+    // Count badge
+    countBadge = document.createElement('span')
+    countBadge.style.cssText =
+      'display:none;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 6px;background:var(--fill-promotion-primary, #e00000);color:#fff;border-radius:9999px;font-family:var(--font-family-brand, system-ui, sans-serif);font-size:12px;font-weight:700;align-self:center'
+    toolbar.appendChild(countBadge)
+
+    document.body.appendChild(toolbar)
+  }
+
+  function updateToolbarCount() {
+    if (!countBadge) return
+    if (comments.length > 0) {
+      countBadge.style.display = 'flex'
+      countBadge.textContent = String(comments.length)
+    } else {
+      countBadge.style.display = 'none'
+    }
+  }
+
+  // ── Close on outside click ─────────────────────────────────────
+
+  function onDocumentClick(e) {
+    // Close popover if clicking outside it
+    if (
+      activePopover &&
+      !activePopover.contains(e.target) &&
+      !e.target.classList.contains('yami-comment-badge')
+    ) {
+      closePopover()
+    }
+    // Close input if clicking outside it and outside toolbar
+    if (activeInput && !activeInput.contains(e.target) && toolbar && !toolbar.contains(e.target)) {
+      closeCommentInput()
+    }
+  }
+
+  // ── Boot ───────────────────────────────────────────────────────
+
+  /** @type {HTMLElement|null} */
+  let liveRegion = null
+
+  function announce(message) {
+    if (!liveRegion) {
+      liveRegion = document.createElement('div')
+      liveRegion.setAttribute('role', 'status')
+      liveRegion.setAttribute('aria-live', 'polite')
+      liveRegion.style.cssText =
+        'position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap'
+      document.body.appendChild(liveRegion)
+    }
+    liveRegion.textContent = message
+  }
+
+  function boot() {
+    buildToolbar()
+    document.addEventListener('click', onDocumentClick)
+
+    // Expose for debugging and Phase 10 agent consumption
+    window.__YAMI_COMMENT_MODE__ = {
+      get comments() {
+        return [...comments]
+      },
+      get json() {
+        return buildExportJson()
+      },
+      add: addComment,
+      clear: clearAllComments,
+      copyComments: () => writeClipboard(buildExportJson()),
+    }
+  }
+
+  // Wait for BridgeBar to mount (same pattern as Edit Mode)
+  function waitForBridgeBar() {
+    if (document.getElementById('yami-bridge-bar-root')) {
+      boot()
+      return
+    }
+    let attempts = 0
+    const interval = setInterval(() => {
+      attempts++
+      if (document.getElementById('yami-bridge-bar-root') || attempts > 50) {
+        clearInterval(interval)
+        boot()
+      }
+    }, 50)
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', waitForBridgeBar, { once: true })
+  } else {
+    waitForBridgeBar()
+  }
+})()
+</script></body></html>

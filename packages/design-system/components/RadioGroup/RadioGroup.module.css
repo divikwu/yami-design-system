@@ -1,0 +1,80 @@
+.group {
+  display: grid;
+  gap: var(--space-150);
+}
+
+.item {
+  position: relative;
+  display: inline-flex;
+  width: var(--space-300);
+  height: var(--space-300);
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.item::before {
+  position: absolute;
+  inset: var(--space-025);
+  box-sizing: border-box;
+  content: "";
+  border: 1.5px solid var(--text-secondary);
+  border-radius: var(--radius-button-primary);
+  background: var(--background-primary);
+}
+
+.item::after {
+  position: absolute;
+  inset: calc(var(--space-100) * -1 - var(--space-025));
+  content: "";
+}
+
+.item:hover:not([data-disabled])::before {
+  background: var(--surface-secondary);
+}
+
+.item[data-checked]::before {
+  border-color: var(--text-primary);
+}
+
+.item:focus-visible {
+  border-radius: var(--radius-button-primary);
+  outline: var(--stroke-thick) solid var(--border-focus);
+  outline-offset: var(--space-025);
+}
+
+.item[data-disabled] {
+  cursor: not-allowed;
+}
+
+.item[data-disabled]::before {
+  border-color: var(--fill-disabled);
+  background: var(--background-secondary);
+}
+
+.indicator {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  pointer-events: none;
+}
+
+.dot {
+  display: block;
+  width: var(--space-150);
+  height: var(--space-150);
+  border-radius: var(--radius-button-primary);
+  background: var(--text-primary);
+}
+
+.item[data-disabled] .dot {
+  background: var(--fill-disabled);
+}

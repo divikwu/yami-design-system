@@ -1,0 +1,37 @@
+/**
+ * Cart — container-query-based narrow-viewport layout.
+ *
+ * Cart's 2-column grid (items + 320px summary) breaks when the outer
+ * container is < ~640px wide — typical failure mode: inside IPhoneFrame
+ * (393px) where the summary column eats most of the row and items
+ * squeeze into overlap. Cannot use @media queries: document viewport
+ * is the browser window (huge), but the cart container is the iPhone
+ * bezel content area (narrow). @container queries solve this by
+ * reading the nearest element marked as a container.
+ *
+ * cart.recipe.ts already documents the intended mobile behavior:
+ *   "Mobile collapses to single column with summary pinned to bottom
+ *    (sticky footer with surface color and spacing separation)."
+ * This file is the first implementation of that behavior.
+ */
+
+.container {
+  container-type: inline-size;
+  container-name: cart;
+}
+
+.itemsGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: var(--space-400);
+  align-items: start;
+}
+
+/* When the Cart container is narrower than 640px, collapse to single
+ * column and stack summary below items.
+ */
+@container cart (max-width: 640px) {
+  .itemsGrid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,13 @@
+.pageCanvas {
+  box-sizing: border-box;
+  min-height: 100vh;
+  padding-top: var(--space-100);
+  background: var(--background-secondary);
+}
+
+@media (min-width: 1024px) {
+  .pageCanvas {
+    padding-top: 0;
+    background: transparent;
+  }
+}

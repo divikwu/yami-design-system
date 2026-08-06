@@ -1,0 +1,246 @@
+{
+  "$schema": "../../../schema/component.json",
+  "name": "ProductList",
+  "category": "composite",
+  "status": "stable",
+  "version": "0.2.0",
+  "description": "Responsive, data-driven YAMI product collection with rail and waterfall layouts across standard, themed, and atmospheric appearances.",
+  "figma": {
+    "fileKey": "6oOAy72DBff4P6NzJYc2hi",
+    "nodeId": "6970:52060",
+    "notes": "Product List / 产品列表. PC rail set 3878:61068 and PC waterfall 3878:61095."
+  },
+  "exports": [
+    "ProductList",
+    "ProductListProps",
+    "ProductListAppearance",
+    "ProductListLayout",
+    "ProductListItem",
+    "ProductListTab"
+  ],
+  "composes": ["ProductCard", "Tabs", "Button"],
+  "props": {
+    "title": {
+      "type": "ReactNode",
+      "required": true,
+      "description": "Visible list heading and accessible section label."
+    },
+    "products": {
+      "type": "ProductListItem[]",
+      "required": true,
+      "description": "ProductCard data with a stable id for each item."
+    },
+    "appearance": {
+      "type": "\"standard\" | \"themed\" | \"atmospheric\"",
+      "required": false,
+      "default": "standard",
+      "description": "Collection surface treatment."
+    },
+    "layout": {
+      "type": "\"rail\" | \"waterfall\"",
+      "required": false,
+      "default": "rail",
+      "description": "Responsive collection layout. ProductCard presentation is selected internally."
+    },
+    "presentation": {
+      "type": "\"rich\" | \"minimal\" | \"compact\"",
+      "required": false,
+      "description": "Optional ProductCard presentation override for composed collection patterns."
+    },
+    "tabs": {
+      "type": "ProductListTab[]",
+      "required": false,
+      "description": "Tertiary navigation tabs. Selection does not filter products internally."
+    },
+    "value": {
+      "type": "string",
+      "required": false,
+      "description": "Controlled selected tab value."
+    },
+    "defaultValue": {
+      "type": "string",
+      "required": false,
+      "description": "Initial uncontrolled selected tab value."
+    },
+    "onValueChange": {
+      "type": "(value: string) => void",
+      "required": false,
+      "description": "Reports tab selection."
+    },
+    "viewAllHref": {
+      "type": "string",
+      "required": false,
+      "description": "Destination for the optional view-all link."
+    },
+    "viewAllLabel": {
+      "type": "ReactNode",
+      "required": false,
+      "default": "See all",
+      "description": "Localized view-all label."
+    },
+    "hasMore": {
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "Shows the waterfall load-more action when true."
+    },
+    "onLoadMore": {
+      "type": "MouseEventHandler<HTMLButtonElement>",
+      "required": false,
+      "description": "Waterfall load-more callback."
+    },
+    "loadMoreLabel": {
+      "type": "ReactNode",
+      "required": false,
+      "default": "View more",
+      "description": "Localized load-more label."
+    },
+    "onAddToCart": {
+      "type": "(productId: string) => void",
+      "required": false,
+      "description": "Reports the ID of the product whose independent quick-add action was pressed."
+    },
+    "loading": {
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "Hides products and renders layout-specific skeletons."
+    },
+    "loadingLabel": {
+      "type": "string",
+      "required": false,
+      "default": "Loading products",
+      "description": "Localized assistive loading announcement."
+    },
+    "skeletonCount": {
+      "type": "number",
+      "required": false,
+      "description": "Positive visual placeholder count."
+    },
+    "dividerPosition": {
+      "type": "\"top\" | \"bottom\" | \"none\"",
+      "required": false,
+      "default": "top",
+      "description": "Places the desktop section boundary above, below, or removes it; ignored below 1024px."
+    },
+    "dividerVariant": {
+      "type": "\"gray\" | \"black\"",
+      "required": false,
+      "default": "gray",
+      "description": "Gray preserves the existing 1px structural separator; black uses the theme-aware 2px emphasis separator."
+    },
+    "banner": {
+      "type": "{ src: string; mobileSrc?: string; alt: string; backgroundColor?: string; mobileBackgroundColor?: string }",
+      "required": "when appearance is themed",
+      "description": "Semantic campaign banner with optional mobile art direction and precomputed responsive dominant colors used by the themed surface and bottom-edge gradient."
+    },
+    "backgroundColor": {
+      "type": "string",
+      "required": false,
+      "description": "Precomputed bottom-edge color for the atmospheric surface and image-to-surface gradient."
+    },
+    "backgroundImage": {
+      "type": "string",
+      "required": false,
+      "description": "Decorative desktop CSS background for atmospheric appearance."
+    },
+    "backgroundImageMobile": {
+      "type": "string",
+      "required": false,
+      "description": "Optional decorative mobile and tablet CSS background for atmospheric appearance. Falls back to backgroundImage when omitted."
+    }
+  },
+  "rules": {
+    "tapTarget": {
+      "ruleId": "tap-target",
+      "note": "Rail arrows, quick add, and load-more actions compose YAMI Button controls."
+    },
+    "focus": {
+      "ruleId": "focus-style",
+      "note": "Links, tabs, and desktop pagination buttons remain keyboard reachable."
+    },
+    "radius": {
+      "ruleId": "no-custom-radii",
+      "note": "Cards and skeleton geometry consume semantic radius slots only."
+    },
+    "motion": {
+      "ruleId": "elevation-on-press",
+      "note": "Rail scrolling and skeleton shimmer respect prefers-reduced-motion."
+    }
+  },
+  "tokens": [
+    "--surface-primary",
+    "--surface-secondary",
+    "--button-secondary",
+    "--button-secondary-active",
+    "--text-primary",
+    "--fill-skeleton",
+    "--fill-skeleton-inverse",
+    "--divider-default",
+    "--divider-emphasis",
+    "--border-default",
+    "--border-focus",
+    "--stroke-default",
+    "--stroke-thick",
+    "--radius-component-default",
+    "--radius-tag-primary",
+    "--font-family-ios",
+    "--font-size-heading-xl",
+    "--font-size-heading-2xl",
+    "--font-size-heading-3xl",
+    "--font-size-link-md",
+    "--line-height-heading-xl",
+    "--line-height-heading-2xl",
+    "--line-height-heading-3xl",
+    "--line-height-link-md",
+    "--layout-page-margin-default",
+    "--space-025",
+    "--space-050",
+    "--space-100",
+    "--space-200",
+    "--space-250",
+    "--space-300",
+    "--space-400"
+  ],
+  "tokenBindings": {
+    "--surface-primary": {
+      "property": "background-color",
+      "selector": ".root, themed and atmospheric .item"
+    },
+    "--surface-secondary": {
+      "property": "background-color",
+      "selector": ".root[data-appearance='themed'], .root[data-appearance='atmospheric']"
+    },
+    "--fill-skeleton": {
+      "property": "background-color",
+      "selector": ".skeletonMedia, .skeletonLine, .skeletonPrice"
+    },
+    "--radius-component-default": {
+      "property": "border-radius",
+      "selector": ".item, .skeletonItem, .skeletonMedia"
+    },
+    "--layout-page-margin-default": {
+      "property": "padding-inline",
+      "selector": ".container"
+    }
+  },
+  "accessibility": {
+    "wcagLevel": "AA",
+    "tapTargetMin": 44,
+    "keyboardNav": ["tab", "enter", "space", "arrow keys"],
+    "ariaPattern": "labelled section containing a product list and optional tabs, links, and buttons",
+    "structure": "Visible heading labels the section. Products use list/listitem. Themed banner requires alt text; atmospheric art is decorative CSS.",
+    "interaction": "Product navigation and quick-add remain independent. Loading exposes aria-busy and localized status copy while skeletons are aria-hidden."
+  },
+  "dependencies": {
+    "runtime": ["react", "./ProductCard", "./Tabs", "./Button"],
+    "peer": [],
+    "devOnly": []
+  },
+  "usageRef": "./usage.md",
+  "examples": [
+    "./examples.tsx#ProductRailExample",
+    "./examples.tsx#ProductWaterfallExample",
+    "./examples.tsx#LoadingProductListExample"
+  ]
+}

@@ -1,0 +1,74 @@
+.root {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  /* One size at every width; only the glyph inside grows on PC. */
+  width: var(--space-500);
+  height: var(--space-500);
+  padding: 0;
+  color: var(--product-card-add-icon);
+  background-color: var(--product-card-add-surface);
+  border: var(--stroke-default) solid var(--product-card-add-border);
+  border-radius: var(--radius-full);
+  box-shadow: 0 4px 8px -4px var(--product-card-add-shadow);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color 150ms cubic-bezier(0.2, 0, 0, 1),
+    color 150ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.root::before {
+  content: "";
+  position: absolute;
+  inset: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
+}
+
+.root:not(:disabled):hover,
+.root:not(:disabled):active {
+  background-color: var(--product-card-add-surface-active-mobile);
+}
+
+.root:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+.root:disabled {
+  cursor: not-allowed;
+  color: var(--text-disabled);
+  background-color: var(--button-disabled);
+}
+
+.icon {
+  width: 22px;
+  height: 22px;
+  pointer-events: none;
+}
+
+@media (min-width: 1024px) {
+  .root:not(:disabled):hover,
+  .root:not(:disabled):active {
+    color: var(--product-card-add-icon-active);
+    background-color: var(--product-card-add-surface-active-desktop);
+  }
+
+  .icon {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root {
+    transition: none;
+  }
+}

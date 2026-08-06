@@ -1,0 +1,486 @@
+.root {
+  --section-divider-color: var(--border-default);
+  --section-divider-width: var(--stroke-default);
+
+  box-sizing: border-box;
+  width: 100%;
+  overflow: hidden;
+  border: 0;
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  font-family: var(--font-family-ios);
+}
+
+.root[data-divider-variant="black"] {
+  --section-divider-color: var(--divider-emphasis);
+  --section-divider-width: var(--stroke-thick);
+}
+
+.container {
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1920px;
+  flex-direction: column;
+  gap: var(--space-200);
+  margin-inline: auto;
+  padding: var(--space-400) var(--space-600);
+}
+
+.header {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.heading,
+.actions {
+  display: flex;
+  align-items: center;
+}
+
+.heading {
+  min-width: 0;
+}
+
+/* The desktop/mobile title swap comes from SectionHeading. */
+.tabs {
+  display: none;
+}
+
+.actions {
+  flex: 0 0 auto;
+  gap: var(--space-150);
+}
+
+/* The view-all pair comes from SectionHeading. */
+.brandTitle:focus-visible,
+.bannerLink:focus-visible {
+  outline: var(--stroke-thick) solid var(--border-focus);
+  outline-offset: var(--space-025);
+}
+
+.railActions {
+  gap: var(--space-100);
+}
+
+:global(.dark) .railButton {
+  background-color: var(--button-tertiary);
+  color: var(--text-primary);
+  box-shadow: inset 0 0 0 var(--stroke-default) var(--border-default);
+}
+
+:global(.dark) .railButton:not([aria-disabled="true"]):hover,
+:global(.dark) .railButton:not([aria-disabled="true"]):active {
+  background-color: var(--button-tertiary-active);
+}
+
+:global(.dark) .railButton[aria-disabled="true"] {
+  background-color: var(--button-tertiary);
+  color: var(--text-disabled);
+}
+
+.list {
+  display: flex;
+  width: 100%;
+  gap: var(--space-200);
+  margin: 0;
+  padding: var(--space-025) 0;
+  overflow-x: auto;
+  list-style: none;
+  overscroll-behavior-inline: contain;
+  scroll-padding-inline: 0;
+  scroll-snap-type: inline mandatory;
+  scrollbar-width: none;
+}
+
+.list::-webkit-scrollbar {
+  display: none;
+}
+
+.panel {
+  position: relative;
+  min-width: 280px;
+  flex: 0 0 calc((100% - var(--space-600)) / 4);
+  overflow: hidden;
+  border-radius: var(--radius-component-default);
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+.panel :global([data-slot="product-list"]) {
+  position: relative;
+  border: var(--stroke-default) solid var(--border-default);
+  border-radius: var(--radius-component-default);
+}
+
+.panel :global([data-slot="product-list-banner"]) {
+  height: calc(var(--space-1000) + var(--space-1000));
+}
+
+.panel :global([data-slot="product-list-banner"]) picture {
+  height: 100%;
+}
+
+.panel :global([data-slot="product-list-banner"]) img {
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  object-fit: cover;
+}
+
+/* One flat scrim over the whole banner, at every width. ProductList's own
+ * themed banner fades only its bottom half, which works for a wide hero but
+ * left this panel's badge — sitting top-right — with no ground at all on the
+ * pale brand artwork. A single tone also keeps PC and mobile identical; they
+ * carried two different treatments before. */
+.panel
+  :global([data-slot="product-list"])[data-appearance="themed"]
+  :global([data-slot="product-list-banner"])::after {
+  display: block;
+  inset: 0;
+  height: 100%;
+  background: var(--color-black-400);
+}
+
+.panel
+  :global([data-slot="product-list"])[data-appearance="themed"]
+  :global([data-slot="product-list-container"]) {
+  gap: 0;
+  padding: var(--space-200);
+}
+
+.panel :global([data-slot="product-list-heading"]) {
+  position: absolute;
+  z-index: 2;
+  top: calc(var(--space-1000) + var(--space-500));
+  right: var(--space-200);
+  left: var(--space-200);
+  padding: 0;
+  pointer-events: none;
+}
+
+.panel
+  :global([data-slot="product-list"])[data-appearance="themed"]
+  :global([data-slot="product-list-title"]) {
+  color: var(--color-white-1000);
+  font-size: var(--font-size-heading-xl);
+  line-height: var(--line-height-heading-xl);
+}
+
+.panel :global([data-slot="product-list-actions"]) {
+  display: none;
+}
+
+.panel
+  :global([data-slot="product-list"])[data-layout="waterfall"]
+  :global([data-slot="product-list-items"]) {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.panel :global([data-slot="product-list-item"]) {
+  position: relative;
+  border-top: var(--stroke-default) solid transparent;
+}
+
+.panel
+  :global([data-slot="product-card"][data-presentation="compact"]) {
+  min-height: calc(
+    var(--space-800) + var(--space-500) + var(--space-150)
+  );
+  gap: var(--space-100);
+  padding: var(--space-100);
+}
+
+.panel
+  :global([data-slot="product-card"][data-presentation="compact"])
+  :global([data-slot="product-card-media"]) {
+  width: calc(
+    var(--space-800) + var(--space-500) + var(--space-050)
+  );
+  flex-basis: calc(
+    var(--space-800) + var(--space-500) + var(--space-050)
+  );
+}
+
+.panel
+  :global([data-slot="product-card"][data-presentation="compact"])
+  :global([data-slot="product-card-image"]) {
+  background-color: var(--color-white-1000);
+}
+
+.panel
+  :global([data-slot="product-card"][data-presentation="compact"])
+  :global([data-slot="product-card-content"]) {
+  gap: var(--space-025);
+  padding: var(--space-050) 0;
+}
+
+.brandTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-050);
+  color: inherit;
+  pointer-events: auto;
+  text-decoration: none;
+}
+
+.bannerLink {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: calc(var(--space-1000) + var(--space-1000));
+  border-radius: var(--radius-component-default)
+    var(--radius-component-default) 0 0;
+}
+
+.badge {
+  position: absolute;
+  z-index: 2;
+  top: var(--space-200);
+  right: var(--space-200);
+  display: block;
+  width: var(--space-1000);
+  height: var(--space-1000);
+  pointer-events: none;
+}
+
+@media (min-width: 1024px) {
+  .root[data-divider-position="top"] {
+    border-top: var(--section-divider-width) solid var(--section-divider-color);
+  }
+
+  .root[data-divider-position="bottom"] {
+    border-bottom: var(--section-divider-width) solid var(--section-divider-color);
+  }
+
+  .panel {
+    flex-basis: calc((100% - var(--space-200)) / 2);
+    border-radius: var(--radius-surface-default);
+  }
+
+  .panel :global([data-slot="product-list"]) {
+    border-radius: var(--radius-surface-default);
+  }
+
+  .bannerLink {
+    border-radius: var(--radius-surface-default)
+      var(--radius-surface-default) 0 0;
+  }
+
+  .panel
+    :global([data-slot="product-list"])[data-appearance="themed"]
+    :global([data-slot="product-list-container"]) {
+    padding: 0;
+  }
+
+  .panel
+    :global([data-slot="product-list"])[data-layout="waterfall"]
+    :global([data-slot="product-list-items"]) {
+    align-items: stretch;
+    width: 100%;
+    margin-inline: 0;
+  }
+
+  .panel :global([data-slot="product-list-item"]:first-child) {
+    border-top: 0;
+  }
+
+  .panel
+    :global([data-slot="product-list-item"]:not(:first-child))::before {
+    position: absolute;
+    z-index: 2;
+    top: calc(-1 * var(--stroke-default));
+    right: 0;
+    left: 0;
+    height: var(--stroke-default);
+    background: var(--divider-default);
+    content: "";
+    pointer-events: none;
+  }
+
+  .panel
+    :global([data-slot="product-card"][data-presentation="compact"])
+    :global([data-slot="product-card-price-action-row"]) {
+    padding-top: 0;
+    padding-right: var(--space-050);
+  }
+}
+
+@media (min-width: 1025px) {
+  .panel {
+    flex-basis: calc((100% - var(--space-400)) / 3);
+  }
+}
+
+@media (min-width: 1440px) {
+  .panel {
+    flex-basis: calc((100% - var(--space-600)) / 4);
+  }
+}
+
+@media (max-width: 1023px) {
+  .root {
+    width: calc(
+      100% - var(--layout-page-margin-card) -
+        var(--layout-page-margin-card)
+    );
+    margin-inline: var(--layout-page-margin-card);
+    border: 0;
+    border-radius: var(--radius-surface-default);
+  }
+
+  .container {
+    gap: var(--space-025);
+    padding: var(--space-100);
+  }
+
+  .header {
+    gap: var(--space-025);
+    padding: 0;
+  }
+
+  /* SectionHeading owns the shared mobile heading inset and row gap. */
+  .heading {
+    min-width: 0;
+  }
+
+  .tabs {
+    box-sizing: border-box;
+    width: 100%;
+    overflow: hidden;
+    padding-inline: 0;
+  }
+
+  .tabsList {
+    box-sizing: border-box;
+    width: 100%;
+  }
+
+  .railActions {
+    display: none;
+  }
+
+  .list {
+    box-sizing: border-box;
+    width: calc(
+      100% + var(--space-100) + var(--space-100)
+    );
+    gap: var(--space-100);
+    margin-inline: calc(-1 * var(--space-100));
+    padding: var(--space-100) var(--space-100) 0;
+    scroll-padding-inline: var(--space-100);
+  }
+
+  .panel {
+    min-width: 312px;
+    flex-basis: 312px;
+  }
+
+  .panel :global([data-slot="product-list"]) {
+    width: 100%;
+    margin: 0;
+    border: 0;
+    border-radius: var(--radius-component-default);
+  }
+
+  /* The banner is a rounded image block on all four corners, not a header
+   * bleeding into the card's top edge. It only inherited the card's top two
+   * corners from the parent's overflow clip before, leaving the bottom pair
+   * square where it met the product rows. The banner clips its own artwork
+   * (overflow: hidden), so the radius carries the image and the scrim with it;
+   * .bannerLink is the overlay that takes the focus ring, so it matches. */
+  .panel :global([data-slot="product-list-banner"]),
+  .bannerLink {
+    border-radius: var(--radius-component-default);
+  }
+
+  .panel
+    :global([data-slot="product-list"])[data-appearance="themed"]
+    :global([data-slot="product-list-container"]) {
+    gap: 0;
+    padding: var(--space-100) 0 0;
+  }
+
+  .panel :global([data-slot="product-list-heading"]) {
+    top: calc(var(--space-1000) + var(--space-500));
+    right: var(--space-100);
+    bottom: auto;
+    left: calc(var(--space-100) + var(--space-050));
+  }
+
+  .panel
+    :global([data-slot="product-list"])[data-appearance="themed"]
+    :global([data-slot="product-list-title"]) {
+    font-size: var(--font-size-display-sm);
+    line-height: var(--line-height-display-sm);
+  }
+
+  .panel
+    :global([data-slot="product-list"])[data-layout="waterfall"]
+    :global([data-slot="product-list-items"]) {
+    gap: var(--space-100);
+  }
+
+  .panel :global([data-slot="product-list-item"]) {
+    border-top: 0;
+  }
+
+  .panel :global([data-slot="card"]) {
+    border-radius: var(--radius-component-default);
+  }
+
+  .panel
+    :global([data-slot="product-card"][data-presentation="compact"]) {
+    min-height: calc(var(--space-1000) + var(--space-200));
+    align-items: center;
+    gap: 0;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-component-default);
+    overflow: hidden;
+  }
+
+  .panel
+    :global([data-slot="product-card"][data-presentation="compact"])
+    :global([data-slot="product-card-media"]) {
+    width: calc(var(--space-1000) + var(--space-200));
+    flex-basis: calc(var(--space-1000) + var(--space-200));
+  }
+
+  .panel
+    :global([data-slot="product-card"][data-presentation="compact"])
+    :global([data-slot="product-card-content"]) {
+    gap: var(--space-025);
+    padding: var(--space-050) 0 var(--space-050) var(--space-100);
+  }
+
+  .panel
+    :global([data-slot="product-card"][data-presentation="compact"])
+    :global([data-slot="product-card-quick-add"]) {
+    margin-right: var(--space-100);
+  }
+
+  .panel
+    :global([data-slot="product-card"][data-presentation="compact"])
+    :global([data-slot="product-card-price-action-row"]) {
+    padding-top: 0;
+  }
+
+  .badge {
+    top: var(--space-100);
+    right: var(--space-100);
+    width: calc(var(--space-600) + var(--space-100));
+    height: calc(var(--space-600) + var(--space-100));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .list {
+    scroll-behavior: auto;
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "$schema": "../../../schema/component.json",
+  "name": "AspectRatio",
+  "category": "layout",
+  "status": "stable",
+  "version": "0.1.0",
+  "description": "Style-neutral layout primitive that constrains arbitrary content to a caller-provided width-to-height ratio.",
+  "figma": { "nodeId": null, "componentKey": null },
+  "props": {
+    "ratio": {
+      "type": "number",
+      "required": true,
+      "description": "Width divided by height, for example 1 or 16 / 9."
+    },
+    "children": {
+      "type": "ReactNode",
+      "required": false,
+      "description": "Content constrained by the ratio container."
+    }
+  },
+  "rules": {},
+  "tokens": [],
+  "tokenBindings": {},
+  "accessibility": {
+    "role": "none",
+    "wcagLevel": "AA",
+    "tapTargetMin": 0,
+    "keyboardNav": [],
+    "ariaPattern": "none",
+    "notes": "Layout-only wrapper. Accessibility semantics belong to its children."
+  },
+  "dependencies": {
+    "runtime": ["react"],
+    "peer": [],
+    "devOnly": []
+  },
+  "usageRef": "./usage.md",
+  "examples": [
+    "./examples.tsx#SquareAspectRatio",
+    "./examples.tsx#LandscapeAspectRatio",
+    "./examples.tsx#PortraitAspectRatio"
+  ]
+}

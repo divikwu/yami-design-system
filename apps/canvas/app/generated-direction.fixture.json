@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "editorial-market",
+  "name": "Editorial Market",
+  "description": "更克制、偏编辑精选的首页方向",
+  "extends": "current",
+  "pages": {
+    "home": {
+      "hero": { "ariaLabel": "YAMI 编辑精选" },
+      "sections": [
+        { "id": "trending-products", "kind": "products", "props": { "title": "编辑精选", "viewAllLabel": "浏览全部精选" } }
+      ],
+      "tokenOverrides": {
+        "--surface-secondary": "#f2eee6",
+        "--text-emphasis": "#b32025",
+        "--radius-surface-default": "0"
+      }
+    }
+  },
+  "generated": { "model": "fixture", "createdAt": "2026-08-06T12:00:00.000Z" }
+}

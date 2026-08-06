@@ -1,0 +1,20 @@
+.canvas {
+  min-height: 100vh;
+  padding-block: var(--space-100);
+  background: var(--background-primary);
+}
+
+.cardPreview {
+  width: min(320px, calc(100vw - var(--space-200)));
+  margin-inline: auto;
+}
+
+@media (min-width: 1024px) {
+  .canvas {
+    padding-block: var(--space-200);
+  }
+
+  .cardPreview {
+    width: min(384px, calc(100vw - (2 * var(--space-600))));
+  }
+}

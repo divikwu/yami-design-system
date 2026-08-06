@@ -1,0 +1,157 @@
+{
+  "$schema": "../../../schema/component.json",
+  "name": "TrendingSearches",
+  "category": "composite",
+  "status": "stable",
+  "version": "0.1.0",
+  "description": "Ranked search terms with the results behind each one — a rail of keyword cards on desktop, a ranked accordion on mobile.",
+  "figma": {
+    "nodeId": "866:44808",
+    "componentKey": null,
+    "notes": "PC: English-Site-Optimization-2026 866-44808 (search-keywords-pc), 1824px content box, 444px cards on a 16px gap at 1920. Cards follow BrandProductRail's per-view ladder (2 at 1024, 3 from 1025, 4 from 1440), which reproduces that 444px at the frame width. Mobile: YAMI-UI-UX-Guidelines 6993-64807 (search-keywords-mobile), 386px accordion, one row open."
+  },
+  "exports": [
+    "TrendingSearches",
+    "TrendingSearchKeyword",
+    "TrendingSearchesProps"
+  ],
+  "composes": ["ProductCard", "SectionHeading", "RailNavigation"],
+  "props": {
+    "title": {
+      "type": "ReactNode",
+      "required": true,
+      "description": "Section title. `mobileTitle` swaps in a shorter one below 1024px."
+    },
+    "keywords": {
+      "type": "TrendingSearchKeyword[]",
+      "required": true,
+      "description": "Ranked terms. Each carries its search `href`, an optional `tagline`, a mobile-only `thumbnail`, and the `products` the term returns — three or more, since desktop previews two and mobile scrolls the rest."
+    },
+    "seeAllLabel": {
+      "type": "ReactNode",
+      "required": false,
+      "default": "See all",
+      "description": "Desktop per-card link copy. The term is appended out of sight so the links are not identical."
+    },
+    "expandLabel": {
+      "type": "(keyword: string) => string",
+      "required": false,
+      "description": "Accessible name for a mobile row toggle, given the term."
+    },
+    "defaultExpandedId": {
+      "type": "string",
+      "required": false,
+      "description": "Which row opens first on mobile. Defaults to the top-ranked term."
+    },
+    "onAddToCart": {
+      "type": "(productId: string) => void",
+      "required": false,
+      "description": "Quick-add handler forwarded to every product card."
+    },
+    "previousLabel": {
+      "type": "string",
+      "required": false,
+      "default": "Previous searches",
+      "description": "Accessible name for the desktop rail's back button."
+    },
+    "nextLabel": {
+      "type": "string",
+      "required": false,
+      "default": "Next searches",
+      "description": "Accessible name for the desktop rail's forward button."
+    }
+  },
+  "rules": {
+    "focus": {
+      "ruleId": "focus-style",
+      "note": "Row toggles, per-card links and the mobile CTA each carry a token-backed focus ring."
+    },
+    "radius": {
+      "ruleId": "no-custom-radii",
+      "note": "Keyword cards use --radius-surface-default; the tagline and the CTA use --radius-component-default; row thumbnail tiles use --radius-sm. Product cards bring their own — nothing here restyles them."
+    },
+    "tapTarget": {
+      "ruleId": "tap-target",
+      "note": "Mobile rows are 40px artwork plus 12px block padding. The mobile CTA has a 32px sm visual height with a transparent 44px pointer target. The desktop see-all link is caption type at 41x20, so a transparent ::before overlay carries its 44px pointer target without growing the visual."
+    }
+  },
+  "tokens": [
+    "--surface-primary",
+    "--surface-secondary",
+    "--text-primary",
+    "--text-secondary",
+    "--divider-default",
+    "--border-focus",
+    "--stroke-default",
+    "--stroke-thick",
+    "--badge-bg-primary-purple",
+    "--badge-bg-secondary-purple",
+    "--radius-surface-default",
+    "--radius-component-default",
+    "--radius-sm",
+    "--fill-tertiary",
+    "--layout-page-margin-card",
+    "--font-family-ios",
+    "--font-size-heading-xl",
+    "--line-height-heading-xl",
+    "--font-size-body-md",
+    "--line-height-body-md",
+    "--font-size-caption-md",
+    "--line-height-caption-md",
+    "--font-weight-emphasize",
+    "--space-025",
+    "--space-050",
+    "--space-100",
+    "--space-150",
+    "--space-200",
+    "--space-300",
+    "--space-400",
+    "--space-600"
+  ],
+  "tokenBindings": {
+    "--surface-secondary": {
+      "property": "background",
+      "selector": ".item from 1024px, .explore below it"
+    },
+    "--badge-bg-secondary-purple": {
+      "property": "background",
+      "selector": ".tagline below 1024px"
+    },
+    "--radius-surface-default": {
+      "property": "border-radius",
+      "selector": ".container below 1024px, .item above it"
+    },
+    "--layout-page-margin-card": {
+      "property": "margin-inline",
+      "selector": ".container below 1024px"
+    },
+    "--space-600": {
+      "property": "padding-inline",
+      "selector": ".container from 1024px"
+    },
+    "--space-400": {
+      "property": "height",
+      "selector": ".explore below 1024px"
+    },
+    "--space-150": {
+      "property": "padding-inline",
+      "selector": ".explore below 1024px"
+    }
+  },
+  "accessibility": {
+    "role": "labelled region containing a ranked list",
+    "wcagLevel": "AA",
+    "tapTargetMin": 44,
+    "keyboardNav": ["tab", "enter", "space"],
+    "ariaPattern": "section[aria-label] wrapping a list; below 1024px each row is a button with aria-expanded and aria-controls onto its panel",
+    "structure": "The mobile toggles and the desktop links are each display:none at the other breakpoint, so only one of the two structures reaches the accessibility tree. Rank numbers are aria-hidden — the list order already carries them.",
+    "interaction": "One term is open at a time on mobile; opening another closes it. Desktop shows every card open and pages the rail one card per press."
+  },
+  "dependencies": {
+    "runtime": ["react"],
+    "peer": [],
+    "devOnly": []
+  },
+  "usageRef": "./usage.md",
+  "examples": ["./examples.tsx#TrendingSearchesExample"]
+}

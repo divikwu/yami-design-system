@@ -1,0 +1,76 @@
+{
+  "$description": "Error messages. Follow 'what happened + what to do' pattern from copy-patterns.md — short, actionable, never 'Oops!' or 'Something went wrong'. Use %{placeholders} for dynamic values the caller substitutes at render time.",
+
+  "networkError": {
+    "en": "Connection lost. Check your network and try again.",
+    "zh-CN": "网络连接失败，请检查网络后重试。"
+  },
+  "serverError": {
+    "en": "Something is off on our side. Please try again in a moment.",
+    "zh-CN": "服务异常，请稍后重试。"
+  },
+  "sessionExpired": {
+    "en": "Your session has expired. Sign in again to continue.",
+    "zh-CN": "登录已过期，请重新登录。"
+  },
+  "timeout": {
+    "en": "Request timed out. Try again.",
+    "zh-CN": "请求超时，请重试。"
+  },
+
+  "outOfStock": {
+    "en": "Out of stock. Try one of these similar items.",
+    "zh-CN": "已售罄，可尝试以下类似商品。"
+  },
+  "itemUnavailable": {
+    "en": "This item is no longer available.",
+    "zh-CN": "商品已下架。"
+  },
+  "quantityExceedsStock": {
+    "en": "Only %{max} left in stock.",
+    "zh-CN": "库存仅剩 %{max} 件。"
+  },
+
+  "invalidCode": {
+    "en": "Invalid promo code. Check the code and try again.",
+    "zh-CN": "优惠码无效，请检查后重试。"
+  },
+  "expiredCode": {
+    "en": "This promo code has expired.",
+    "zh-CN": "优惠码已过期。"
+  },
+  "minOrderNotMet": {
+    "en": "Minimum order of $%{amount} required for this coupon.",
+    "zh-CN": "此优惠券需满 $%{amount} 可用。"
+  },
+
+  "invalidPhone": {
+    "en": "Enter a valid phone number.",
+    "zh-CN": "请输入有效的电话号码。"
+  },
+  "invalidEmail": {
+    "en": "Enter a valid email address.",
+    "zh-CN": "请输入有效的邮箱地址。"
+  },
+  "invalidZip": {
+    "en": "Enter a valid ZIP code.",
+    "zh-CN": "请输入有效的邮编。"
+  },
+  "passwordTooShort": {
+    "en": "Password must be at least %{min} characters.",
+    "zh-CN": "密码至少需要 %{min} 个字符。"
+  },
+  "requiredField": {
+    "en": "Required field.",
+    "zh-CN": "必填项。"
+  },
+
+  "paymentFailed": {
+    "en": "Payment failed. Verify your card details or try another method.",
+    "zh-CN": "支付失败，请检查卡信息或更换支付方式。"
+  },
+  "addressNotDeliverable": {
+    "en": "We don't deliver to this address yet.",
+    "zh-CN": "该地址暂不支持配送。"
+  }
+}

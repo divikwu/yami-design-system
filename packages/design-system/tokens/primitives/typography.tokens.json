@@ -1,0 +1,65 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "font-weight": {
+    "normal": {
+      "$type": "fontWeight",
+      "$value": {
+        "EN": "Regular",
+        "CN": "Regular"
+      },
+      "$description": "默认字重，适用于正文与说明信息。不用于强调信息、价格主信息或标题层级。"
+    },
+    "emphasize": {
+      "$type": "fontWeight",
+      "$value": {
+        "EN": "Medium",
+        "CN": "Medium"
+      },
+      "$description": "强调字重，适用于重点信息、价格与短标题。不用于长正文，也不替代标题层级。"
+    }
+  },
+  "font-family": {
+    "ios": {
+      "$type": "fontFamily",
+      "$value": {
+        "EN": "GT Walsheim",
+        "CN": "Noto Sans SC"
+      },
+      "$description": "品牌字体，适用于英文标题与营销文案。中文正文需搭配指定 fallback，不建议直接作为全局正文字体。"
+    },
+    "android": {
+      "$type": "fontFamily",
+      "$value": {
+        "EN": "GT Walsheim",
+        "CN": "Noto Sans SC"
+      },
+      "$description": "Android 中文系统字体回退，适用于中文内容与系统原生体验场景。"
+    },
+    "win": {
+      "$type": "fontFamily",
+      "$value": {
+        "EN": "GT Walsheim",
+        "CN": "Noto Sans SC"
+      },
+      "$description": "Android 中文系统字体回退，适用于中文内容与系统原生体验场景。"
+    }
+  },
+  "letter-spacing": {
+    "normal": {
+      "$type": "dimension",
+      "$value": {
+        "EN": 0,
+        "CN": 0
+      },
+      "$description": "默认字距，适用于大多数正文、标题与说明场景。无明确需求时优先使用。"
+    },
+    "tight": {
+      "$type": "dimension",
+      "$value": {
+        "EN": -1,
+        "CN": -1
+      },
+      "$description": "紧缩字距，适用于大标题和短品牌词。不建议用于长正文或复杂中英混排。"
+    }
+  }
+}

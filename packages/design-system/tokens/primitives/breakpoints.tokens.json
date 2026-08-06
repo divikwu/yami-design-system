@@ -1,0 +1,25 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "breakpoints": {
+    "mobile": {
+      "$type": "dimension",
+      "$value": "402px"
+    },
+    "tablet": {
+      "$type": "dimension",
+      "$value": "768px"
+    },
+    "desktop": {
+      "$type": "dimension",
+      "$value": "1024px"
+    },
+    "desktop-lg": {
+      "$type": "dimension",
+      "$value": "1440px"
+    },
+    "desktop-xl": {
+      "$type": "dimension",
+      "$value": "1920px"
+    }
+  }
+}

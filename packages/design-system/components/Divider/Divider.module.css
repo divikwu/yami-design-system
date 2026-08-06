@@ -1,0 +1,58 @@
+/* Divider.module.css
+ *
+ * Semantic horizontal / vertical separator. Two strengths:
+ *   default  → 1px, --divider-default
+ *   emphasis → 2px, --divider-emphasis
+ *
+ * Both strengths support inverse tokens for the active theme's opposite-polarity surface.
+ */
+
+.divider {
+  border: 0;
+  margin: 0;
+  flex-shrink: 0;
+  display: block;
+}
+
+/* ─── Orientation ───────────────────────────────────────────────── */
+
+.horizontal {
+  width: 100%;
+  height: 1px;
+}
+
+.vertical {
+  align-self: stretch;
+  width: 1px;
+  height: auto;
+  min-height: 1em;
+  display: inline-block;
+}
+
+/* ─── Strength variants ─────────────────────────────────────────── */
+
+.default {
+  background-color: var(--divider-default);
+}
+
+.emphasis {
+  background-color: var(--divider-emphasis);
+}
+
+.horizontal.emphasis {
+  height: 2px;
+}
+
+.vertical.emphasis {
+  width: 2px;
+}
+
+/* ─── Inverse variants (opposite-polarity surfaces) ─────────────── */
+
+.default.inverse {
+  background-color: var(--divider-default-inverse);
+}
+
+.emphasis.inverse {
+  background-color: var(--divider-emphasis-inverse);
+}

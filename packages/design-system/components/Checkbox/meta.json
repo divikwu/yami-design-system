@@ -1,0 +1,76 @@
+{
+  "$schema": "../../../schema/component.json",
+  "name": "Checkbox",
+  "category": "form",
+  "status": "beta",
+  "version": "0.1.0",
+  "description": "YAMI neutral multi-select control from the Forms Figma page. Uses Base UI for keyboard, ARIA, controlled/uncontrolled state, and native form participation.",
+  "figma": {
+    "fileKey": "6oOAy72DBff4P6NzJYc2hi",
+    "nodeId": "4795:90512",
+    "componentKey": "f0a1bb4e8c7540460de93a68de180508560150a3",
+    "pageNodeId": "2857:32277",
+    "notes": "Figma CheckBox is a 24x24 component frame with a 20x20 visible control.",
+    "stateMapping": "Status=Default/Hover/Selected/Disable_Selected/Disable_Unselected maps to unchecked hover, checked, checked+disabled, and unchecked+disabled. Indeterminate is code-only."
+  },
+  "variants": {
+    "state": ["default", "hover", "selected", "disabled-selected", "disabled-unselected", "focus-visible", "indeterminate"]
+  },
+  "props": {
+    "checked": { "type": "boolean", "required": false, "description": "Controlled selected state." },
+    "defaultChecked": { "type": "boolean", "required": false, "default": false, "description": "Initial selected state for uncontrolled use." },
+    "onCheckedChange": { "type": "function", "required": false, "description": "Called when an enabled checkbox changes." },
+    "disabled": { "type": "boolean", "required": false, "default": false },
+    "indeterminate": { "type": "boolean", "required": false, "default": false, "description": "Mixed selection state for parent/group controls; code-side extension beyond the Figma set." },
+    "name": { "type": "string", "required": false, "description": "Native form field name." },
+    "value": { "type": "string", "required": false, "description": "Value submitted when checked." },
+    "required": { "type": "boolean", "required": false, "default": false }
+  },
+  "rules": {
+    "focus": { "ruleId": "focus-style", "note": "Uses a 2px --border-focus ring with 2px offset." },
+    "disabled": { "ruleId": "no-opacity-disabled", "note": "Disabled states use --fill-disabled and semantic background colors." },
+    "radii": { "ruleId": "no-custom-radii", "note": "Visible square uses --radius-tag-primary, matching Figma's 4px radius." },
+    "tapTarget": { "ruleId": "tap-target", "note": "20px visible square inside 24px frame with an expanded 44px pointer target." },
+    "color": { "ruleId": "semantic-color-only", "note": "Selected state is neutral --text-primary, not operational or brand red." }
+  },
+  "tokens": [
+    "--background-primary",
+    "--background-secondary",
+    "--surface-secondary",
+    "--fill-disabled",
+    "--text-primary",
+    "--text-primary-inverse",
+    "--text-secondary",
+    "--border-focus",
+    "--radius-tag-primary",
+    "--space-025",
+    "--space-100",
+    "--space-300",
+    "--stroke-thick"
+  ],
+  "tokenBindings": {
+    "--background-primary": { "property": "background", "selector": ".root::before" },
+    "--surface-secondary": { "property": "background", "selector": ".root:hover:not([data-disabled])::before" },
+    "--text-primary": { "property": "background/border-color", "selector": ".root[data-checked]::before, .root[data-indeterminate]::before" },
+    "--text-secondary": { "property": "border-color", "selector": ".root::before" },
+    "--fill-disabled": { "property": "background/border-color", "selector": ".root[data-disabled]::before" },
+    "--border-focus": { "property": "outline-color", "selector": ".root:focus-visible" },
+    "--radius-tag-primary": { "property": "border-radius", "selector": ".root::before" }
+  },
+  "accessibility": {
+    "role": "checkbox",
+    "wcagLevel": "AA",
+    "tapTargetMin": 44,
+    "keyboardNav": ["tab", "shift+tab", "space"],
+    "ariaPattern": "checkbox",
+    "notes": "Base UI renders role=checkbox plus a hidden native form input. Provide a visible label or aria-label."
+  },
+  "dependencies": { "runtime": ["react", "@base-ui/react"], "peer": ["@base-ui/react"], "devOnly": [] },
+  "usageRef": "./usage.md",
+  "examples": [
+    "./examples.tsx#BasicCheckbox",
+    "./examples.tsx#SelectedCheckbox",
+    "./examples.tsx#DisabledCheckbox",
+    "./examples.tsx#IndeterminateCheckbox"
+  ]
+}

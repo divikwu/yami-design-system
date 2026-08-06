@@ -1,0 +1,17 @@
+/* Story-only scaffolding: the grey page canvas the section is designed to sit
+ * on below 1024px. Without it the white card is white on white and its inset,
+ * corner and dividers cannot be read. Desktop is a full-bleed band on the
+ * page's own background, so the canvas drops out there. */
+.pageCanvas {
+  box-sizing: border-box;
+  min-height: 100vh;
+  padding-top: var(--space-100);
+  background: var(--background-secondary);
+}
+
+@media (min-width: 1024px) {
+  .pageCanvas {
+    padding-top: 0;
+    background: transparent;
+  }
+}

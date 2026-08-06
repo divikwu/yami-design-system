@@ -1,0 +1,78 @@
+{
+  "$description": "Toast and system-message copy. Pattern from copy-patterns.md: result first, optional next-steps. Kept short so toasts render on one line in most viewports. %{placeholders} substituted at call time.",
+
+  "orderPlaced": {
+    "en": "Order placed · #%{orderId}",
+    "zh-CN": "订单已提交 · #%{orderId}"
+  },
+  "orderConfirmed": {
+    "en": "Order confirmed — you'll receive tracking soon.",
+    "zh-CN": "订单已确认，物流信息稍后发送。"
+  },
+  "orderCancelled": {
+    "en": "Order cancelled.",
+    "zh-CN": "订单已取消。"
+  },
+
+  "addedToCart": {
+    "en": "Added to cart",
+    "zh-CN": "已加入购物车"
+  },
+  "removedFromCart": {
+    "en": "Removed from cart",
+    "zh-CN": "已从购物车移除"
+  },
+  "quantityUpdated": {
+    "en": "Quantity updated",
+    "zh-CN": "数量已更新"
+  },
+
+  "savedToFavorites": {
+    "en": "Saved to favorites",
+    "zh-CN": "已收藏"
+  },
+  "removedFromFavorites": {
+    "en": "Removed from favorites",
+    "zh-CN": "已取消收藏"
+  },
+
+  "addressAdded": {
+    "en": "Address saved",
+    "zh-CN": "地址已保存"
+  },
+  "addressDeleted": {
+    "en": "Address deleted",
+    "zh-CN": "地址已删除"
+  },
+  "paymentAdded": {
+    "en": "Payment method added",
+    "zh-CN": "支付方式已添加"
+  },
+
+  "couponApplied": {
+    "en": "Coupon applied · save $%{amount}",
+    "zh-CN": "优惠券已使用 · 减 $%{amount}"
+  },
+  "couponRemoved": {
+    "en": "Coupon removed",
+    "zh-CN": "优惠券已移除"
+  },
+
+  "passwordChanged": {
+    "en": "Password changed",
+    "zh-CN": "密码已修改"
+  },
+  "profileUpdated": {
+    "en": "Profile updated",
+    "zh-CN": "资料已更新"
+  },
+
+  "copiedToClipboard": {
+    "en": "Copied to clipboard",
+    "zh-CN": "已复制"
+  },
+  "linkShared": {
+    "en": "Link copied — paste anywhere to share.",
+    "zh-CN": "链接已复制，可粘贴分享。"
+  }
+}

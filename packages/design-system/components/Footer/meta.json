@@ -1,0 +1,271 @@
+{
+  "$schema": "../../../schema/component.json",
+  "name": "Footer",
+  "category": "composite",
+  "semanticCategories": ["navigation"],
+  "status": "beta",
+  "version": "0.1.0",
+  "description": "YAMI PC global site footer: a responsive masthead matching the 1920, 1440, and 1024px Figma variants, closed by an inverse bar carrying payment marks, copyright, and legal links. PC only — the mobile footer ships separately.",
+  "figma": {
+    "fileKey": "6oOAy72DBff4P6NzJYc2hi",
+    "nodeId": "6970:69275",
+    "componentNodes": {
+      "pc": "6970:69276",
+      "pc1440": "6970:69581",
+      "pc1024": "6970:69886"
+    },
+    "notes": "Geometry and token bindings were verified against the Figma Footer variants at 1920px (6970:69276), 1440px (6970:69581), and 1024px (6970:69886). The 1024px variant stacks the link panel above two side-by-side right bands; 1440px uses a two-by-two link grid; 1920px uses four link columns. The PC footer has a 1024px minimum width and scrolls horizontally below that viewport. The closing payment/legal bar is a fixed dark brand surface and remains unchanged when the surrounding page switches to dark mode. Mobile footer is out of scope for 0.x and gets its own node binding when it ships."
+  },
+  "exports": [
+    "Footer",
+    "FooterAppButton",
+    "FooterAppButtonProps",
+    "FooterAppLink",
+    "FooterColumn",
+    "FooterCopyright",
+    "FooterImage",
+    "FooterLegalLink",
+    "FooterLink",
+    "FooterLinkColumn",
+    "FooterPaymentMark",
+    "FooterProps",
+    "FooterSocialLink",
+    "FooterSubscribe",
+    "FooterSubscribeProps"
+  ],
+  "composes": [],
+  "props": {
+    "columns": {
+      "type": "FooterColumn[]",
+      "required": true,
+      "description": "Masthead columns in display order. The Figma PC fixture supplies four visual columns; the last column owns the Make Money and Contact groups."
+    },
+    "subscribe": {
+      "type": "FooterSubscribeProps",
+      "required": false,
+      "description": "Newsletter block: heading, field labelling, submit label, and optional controlled value. Omit to drop the whole keep-in-touch band. Email validation is deliberately the caller's concern — the DS surfaces `error` and fires `onSubmit`."
+    },
+    "socialLinks": {
+      "type": "FooterSocialLink[]",
+      "required": false,
+      "default": "[]",
+      "description": "Social follow entries rendered above the newsletter field. Glyphs come from assets/icons/social/ and are decorative — each anchor names itself via its label."
+    },
+    "appTitle": {
+      "type": "string",
+      "required": false,
+      "description": "Heading for the app band, e.g. \"Shop on the go. Get the app.\""
+    },
+    "appLinks": {
+      "type": "FooterAppLink[]",
+      "required": false,
+      "default": "[]",
+      "description": "App-store download entries, rendered as FooterAppButton. Badge artwork remains caller-supplied; the fixture uses the maintained 24px Apple and Google Play marks."
+    },
+    "copyright": {
+      "type": "FooterCopyright",
+      "required": true,
+      "description": "Copyright copy rendered in the closing bar, either as one line or as the Figma four-paragraph form."
+    },
+    "legalLinks": {
+      "type": "FooterLegalLink[]",
+      "required": false,
+      "default": "[]",
+      "description": "Legal entries beside the copyright line. `ariaLabel` overrides the accessible name where the visible label under-describes the target, as production's Business license does."
+    },
+    "paymentMarks": {
+      "type": "FooterPaymentMark[]",
+      "required": false,
+      "default": "[]",
+      "description": "Accepted payment marks above the copyright line. Artwork carries the scheme name as alt because no visible label repeats it."
+    },
+    "ariaLabel": {
+      "type": "string",
+      "required": false,
+      "default": "YAMI",
+      "description": "Localized accessible name for the contentinfo landmark."
+    },
+    "socialLabel": {
+      "type": "string",
+      "required": false,
+      "default": "Follow YAMI",
+      "description": "Localized accessible name for the social follow list."
+    },
+    "legalLabel": {
+      "type": "string",
+      "required": false,
+      "default": "Legal",
+      "description": "Localized accessible name for the legal link list."
+    },
+    "paymentLabel": {
+      "type": "string",
+      "required": false,
+      "default": "Accepted payment methods",
+      "description": "Localized accessible name for the payment mark list."
+    }
+  },
+  "rules": {
+    "semanticColorOnly": {
+      "ruleId": "semantic-color-only",
+      "note": "No raw hue is baked into the CSS. The content panels resolve to --surface-secondary, the input uses --surface-primary, the app controls use the active --surface-inverse, and the closing bar locally binds its inverse semantic tokens to the fixed dark/light-text brand polarity."
+    },
+    "typeHierarchy": {
+      "ruleId": "type-hierarchy",
+      "note": "Four levels: heading-2xl (side-band titles), heading-sm (group titles), link-md (column links, field, submit), caption-md (copyright and legal). Production sets group titles at 16/24; the DS pairs 16px with --line-height-heading-sm (20px) because there is no 16/24 slot."
+    },
+    "noCustomRadii": {
+      "ruleId": "no-custom-radii",
+      "note": "Only semantic radius slots. Production's 2px input and 4px app button both map to --radius-component-default (8px)."
+    },
+    "borderStrength": {
+      "ruleId": "border-strength",
+      "note": "The component follows Figma's hierarchy: a default 2px --divider-emphasis top border caps the footer, while 1px --divider-default gaps separate masthead panels and the two right bands. The input ring maps to --border-default."
+    },
+    "tapTarget": {
+      "ruleId": "tap-target",
+      "note": "Column links (20px rows) and social glyphs (24px) both sit below 44px. Each keeps its visual size and gains a transparent hit area, as in Header. App buttons and the newsletter field are already 40px tall and 246px wide."
+    },
+    "focus": {
+      "ruleId": "focus-style",
+      "note": "Column links, the social links, newsletter submit, app buttons, and legal links expose a 2px outline at 2px offset. The newsletter field reuses its border with --border-focus while focused instead of adding a second ring. Slots on the inverse surface switch to --border-focus-inverse."
+    },
+    "redUsage": {
+      "ruleId": "red-usage",
+      "note": "The newsletter submit is the only red in the landmark and uses --text-emphasis, matching production's #e00 text button. Validation copy uses --text-error."
+    },
+    "numeralsFont": {
+      "ruleId": "numerals-font",
+      "note": "The support phone number and copyright years inherit --font-family-ios from the footer root."
+    },
+    "elevationOnPress": {
+      "ruleId": "elevation-on-press",
+      "note": "Hover changes color only — no shadow anywhere in the landmark, matching production."
+    }
+  },
+  "tokens": [
+    "--surface-primary",
+    "--surface-secondary",
+    "--surface-inverse",
+    "--text-primary",
+    "--text-primary-inverse",
+    "--text-secondary",
+    "--text-secondary-inverse",
+    "--text-emphasis",
+    "--text-error",
+    "--border-default",
+    "--border-focus",
+    "--border-focus-inverse",
+    "--divider-default",
+    "--divider-emphasis",
+    "--radius-component-default",
+    "--stroke-default",
+    "--stroke-thick",
+    "--font-family-ios",
+    "--font-weight-normal",
+    "--font-size-heading-2xl",
+    "--line-height-heading-2xl",
+    "--font-size-heading-sm",
+    "--line-height-heading-sm",
+    "--font-size-link-md",
+    "--line-height-link-md",
+    "--font-size-body-md",
+    "--line-height-body-md",
+    "--font-size-caption-md",
+    "--line-height-caption-md",
+    "--space-050",
+    "--space-100",
+    "--space-150",
+    "--space-200",
+    "--space-300",
+    "--space-400",
+    "--space-600",
+    "--space-800"
+  ],
+  "tokenBindings": {
+    "--surface-secondary": {
+      "property": "background",
+      "selector": ".root, .linkPanel, .keepInTouch, .appBand"
+    },
+    "--surface-primary": {
+      "property": "background",
+      "selector": ".subscribeInput"
+    },
+    "--surface-inverse": {
+      "property": "background",
+      "selector": ".closingBar, .appButton"
+    },
+    "--divider-default": {
+      "property": "background",
+      "selector": ".masthead and .sidePanel structural gaps"
+    },
+    "--divider-emphasis": {
+      "property": "border-top-color",
+      "selector": ".root default top rule at --stroke-thick"
+    },
+    "--border-default": {
+      "property": "border-color",
+      "selector": ".subscribeInput"
+    },
+    "--border-focus": {
+      "property": "border-color",
+      "selector": ".subscribeInput:focus-visible"
+    },
+    "--space-600": {
+      "property": "padding",
+      "selector": ".linkPanel, .keepInTouch, .appBand, .closingBar inline"
+    },
+    "--space-800": {
+      "property": "padding",
+      "selector": ".closingBar block and 1024px inline"
+    },
+    "--space-400": {
+      "property": "padding-block / margin-top",
+      "selector": ".keepInTouch, .appBand, .appRow, .group + .group"
+    },
+    "--radius-component-default": {
+      "property": "border-radius",
+      "selector": ".subscribeInput, .subscribeSubmit, .appButton, .socialLink"
+    },
+    "--text-emphasis": {
+      "property": "color",
+      "selector": ".subscribeSubmit"
+    },
+    "--text-secondary": {
+      "property": "color",
+      "selector": ".groupLink"
+    },
+    "--text-secondary-inverse": {
+      "property": "color",
+      "selector": ".closingBar, .copyright, .legalLink"
+    },
+    "--font-size-heading-sm": {
+      "property": "font-size",
+      "selector": ".groupTitle"
+    },
+    "--font-size-heading-2xl": {
+      "property": "font-size",
+      "selector": ".sideTitle"
+    },
+    "--font-size-caption-md": {
+      "property": "font-size",
+      "selector": ".copyright, .legalLink, .subscribeError"
+    }
+  },
+  "accessibility": {
+    "role": "contentinfo landmark containing labelled link lists and a newsletter form",
+    "wcagLevel": "AA",
+    "tapTargetMin": 44,
+    "keyboardNav": ["tab", "shift+tab", "enter"],
+    "ariaPattern": "footer contentinfo + h3-titled link lists + a form with a visually hidden label; social, legal, and payment lists each carry an accessible name",
+    "structure": "Group titles are real h3 headings so the footer is navigable by heading. Social glyphs are decorative (empty alt) and their anchors name themselves via aria-label. Payment marks carry the scheme name as alt because no visible label repeats it. Legal entries may override their accessible name via ariaLabel where the visible label under-describes the target.",
+    "interaction": "The newsletter field reports rejection through aria-invalid plus an aria-describedby error node with role=alert; validation itself is the caller's. Destinations are optional throughout — an entry without href renders as a plain unlinked label, matching Header, so an unconfigured footer exposes no empty links.",
+    "notes": "PC only. The footer has a 1024px minimum width. At 1920px the masthead is 50/50 with four link columns; at 1440px it is 50/50 with a two-by-two link grid; at 1024px the link panel is full width above two side-by-side right bands. Below 1024px the page scrolls horizontally; the mobile footer is a separate component."
+  },
+  "dependencies": {
+    "runtime": ["react"],
+    "peer": [],
+    "devOnly": []
+  },
+  "usageRef": "./usage.md",
+  "examples": ["./examples.tsx#PcFooter"]
+}

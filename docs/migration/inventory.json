@@ -1,0 +1,17 @@
+{
+  "sourceFiles": 669,
+  "migratedDesignSystemFiles": 558,
+  "migratedPrototypeFiles": 12,
+  "incubatorFiles": 64,
+  "components": 19,
+  "stories": 29,
+  "foundationStories": 10,
+  "fixtures": 10,
+  "svg": 134,
+  "codeConnect": 14,
+  "excluded": [
+    "readiness-baseline.json",
+    "Design Labs identity manifests",
+    "committed generated token/catalog/registry artifacts"
+  ]
+}

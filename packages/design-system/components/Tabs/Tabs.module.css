@@ -1,0 +1,387 @@
+/* Tabs.module.css
+ *
+ * YAMI Tabs maps the Figma "Tabs" guidance into three navigation levels:
+ * primary, secondary, tertiary. Baseline behavior is limited to ARIA tab
+ * semantics and keyboard navigation; every visual surface below is YAMI
+ * token-bound and follows the Figma Mobile + WEB component sets.
+ */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-200);
+  color: var(--text-primary);
+  font-family: var(--font-family-ios);
+}
+
+.root[data-orientation="vertical"] {
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+.list {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  width: max-content;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.list::-webkit-scrollbar {
+  display: none;
+}
+
+.track {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.list[data-full-width="true"] {
+  width: 100%;
+}
+
+.root[data-orientation="vertical"] .list {
+  flex-direction: column;
+  align-items: stretch;
+  overflow-x: visible;
+  overflow-y: auto;
+}
+
+.trigger {
+  position: relative;
+  z-index: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  gap: var(--space-050);
+  min-width: 0;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  letter-spacing: 0;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.trigger::before,
+.trigger::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.trigger::before {
+  z-index: -1;
+  inset: 0;
+  border-radius: inherit;
+  background: transparent;
+}
+
+.trigger::after {
+  opacity: 0;
+}
+
+.trigger:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+.list[data-inverse="true"] .trigger:focus-visible {
+  outline-color: var(--border-focus-inverse);
+}
+
+.trigger[aria-disabled="true"] {
+  color: var(--text-disabled);
+  cursor: not-allowed;
+}
+
+.list[data-inverse="true"] .trigger[aria-disabled="true"] {
+  color: var(--text-disabled-inverse);
+}
+
+.trigger:not([aria-disabled="true"]):hover {
+  color: var(--text-primary);
+}
+
+.list[data-inverse="true"] .trigger:not([aria-disabled="true"]):hover {
+  color: var(--text-primary-inverse);
+}
+
+.label,
+.icon {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+}
+
+.icon {
+  width: var(--space-250);
+  height: var(--space-250);
+  justify-content: center;
+  color: currentColor;
+}
+
+.icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.list[data-variant="primary"][data-style="a"] {
+  min-height: 56px;
+  gap: var(--space-200);
+  padding-inline: var(--space-200);
+}
+
+.list[data-variant="primary"][data-style="a"] .trigger {
+  height: 56px;
+  padding: 0;
+  border-radius: var(--radius-component-none);
+  font-size: var(--font-size-heading-md);
+  line-height: var(--line-height-heading-md);
+  font-weight: var(--font-weight-normal);
+  color: var(--text-secondary);
+}
+
+.list[data-variant="primary"][data-style="a"] .trigger[data-state="active"] {
+  color: var(--text-primary);
+  font-weight: var(--font-weight-emphasize);
+}
+
+.list[data-inverse="true"][data-variant="primary"][data-style="a"] .trigger {
+  color: var(--text-secondary-inverse);
+}
+
+.list[data-inverse="true"][data-variant="primary"][data-style="a"] .trigger[data-state="active"] {
+  color: var(--text-primary-inverse);
+}
+
+.list[data-variant="primary"][data-style="b"] {
+  min-height: 52px;
+  gap: 0;
+  padding: 0;
+  border-radius: var(--radius-full);
+  background: transparent;
+}
+
+.list[data-variant="primary"][data-style="b"] .track {
+  position: relative;
+  min-height: 52px;
+  gap: 0;
+  padding: var(--space-050) calc(var(--space-100) + var(--space-025));
+  border-radius: inherit;
+}
+
+.list[data-variant="primary"][data-style="b"] .track::before {
+  content: "";
+  position: absolute;
+  inset: var(--space-100);
+  pointer-events: none;
+  border-radius: inherit;
+  background: var(--surface-secondary);
+}
+
+.list[data-variant="primary"][data-style="b"] .trigger {
+  min-height: 44px;
+  padding-inline: var(--space-150);
+  font-size: var(--font-size-body-md);
+  line-height: var(--line-height-body-md);
+  font-weight: var(--font-weight-normal);
+  color: var(--text-secondary);
+}
+
+.list[data-variant="primary"][data-style="b"] .trigger::before {
+  top: 6px;
+  bottom: 6px;
+}
+
+.list[data-variant="primary"][data-style="b"] .trigger[data-state="active"] {
+  color: var(--text-primary);
+  font-weight: var(--font-weight-emphasize);
+}
+
+.list[data-variant="primary"][data-style="b"] .trigger[data-state="active"]::before {
+  background: var(--surface-primary);
+}
+
+.list[data-inverse="true"][data-variant="primary"][data-style="b"] {
+  background: transparent;
+}
+
+.list[data-inverse="true"][data-variant="primary"][data-style="b"] .track::before {
+  background: var(--button-tertiary-active-inverse);
+}
+
+.list[data-inverse="true"][data-variant="primary"][data-style="b"] .trigger {
+  color: var(--text-secondary-inverse);
+}
+
+.list[data-inverse="true"][data-variant="primary"][data-style="b"] .trigger[data-state="active"] {
+  color: var(--text-primary);
+}
+
+.list[data-variant="secondary"] {
+  min-height: 44px;
+  gap: var(--space-200);
+  padding-inline: var(--space-200);
+  border-bottom: var(--stroke-default) solid var(--divider-default);
+}
+
+.list[data-variant="secondary"] .trigger {
+  height: 44px;
+  padding: 0;
+  border-radius: var(--radius-component-none);
+  color: var(--text-secondary);
+  font-size: var(--font-size-body-xl);
+  line-height: var(--line-height-body-xl);
+  font-weight: var(--font-weight-normal);
+}
+
+.list[data-variant="secondary"] .trigger::after {
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: var(--stroke-thick);
+  background: currentColor;
+}
+
+.list[data-variant="secondary"] .trigger[data-state="active"] {
+  color: var(--text-primary);
+  font-weight: var(--font-weight-emphasize);
+}
+
+.list[data-variant="secondary"] .trigger[data-state="active"]::after {
+  opacity: 1;
+}
+
+.list[data-inverse="true"][data-variant="secondary"] {
+  border-bottom-color: var(--border-default-inverse);
+}
+
+.list[data-inverse="true"][data-variant="secondary"] .trigger {
+  color: var(--text-secondary-inverse);
+}
+
+.list[data-inverse="true"][data-variant="secondary"] .trigger[data-state="active"] {
+  color: var(--text-primary-inverse);
+}
+
+.list[data-variant="tertiary"] {
+  min-height: var(--space-600);
+  gap: var(--space-050);
+}
+
+.list[data-variant="tertiary"] .trigger {
+  height: var(--space-600);
+  padding-inline: var(--space-150);
+  color: var(--text-primary);
+  font-size: var(--font-size-body-md);
+  line-height: var(--line-height-body-md);
+  font-weight: var(--font-weight-normal);
+}
+
+.list[data-variant="tertiary"] .trigger::before {
+  inset-block: var(--space-100);
+}
+
+.list[data-variant="tertiary"]
+  .trigger[data-state="inactive"]:not([aria-disabled="true"]):hover::before {
+  background: var(--button-secondary);
+}
+
+.list[data-variant="tertiary"] .trigger[data-state="active"] {
+  color: var(--text-primary-inverse);
+  font-weight: var(--font-weight-emphasize);
+}
+
+.list[data-variant="tertiary"] .trigger[data-state="active"]::before {
+  background: var(--text-primary);
+}
+
+.list[data-inverse="true"][data-variant="tertiary"] .trigger {
+  color: var(--text-primary-inverse);
+}
+
+.list[data-inverse="true"][data-variant="tertiary"] .trigger[data-state="active"] {
+  color: var(--text-primary);
+}
+
+.list[data-inverse="true"][data-variant="tertiary"] .trigger[data-state="active"]::before {
+  background: var(--surface-primary);
+}
+
+.list[data-inverse="true"][data-variant="tertiary"]
+  .trigger[data-state="inactive"]:not([aria-disabled="true"]):hover::before {
+  background: var(--button-secondary-inverse);
+}
+
+.list[data-full-width="true"] .trigger {
+  min-width: max-content;
+  flex: 1 1 0;
+}
+
+.root[data-orientation="vertical"] .trigger {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.root[data-orientation="vertical"] .list[data-variant="secondary"] .trigger::after {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: auto;
+  width: var(--stroke-thick);
+  height: auto;
+}
+
+.content {
+  color: var(--text-secondary);
+  font-size: var(--font-size-body-md);
+  line-height: var(--line-height-body-md);
+  outline: none;
+}
+
+.content:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: var(--space-050);
+}
+
+.content[hidden] {
+  display: none;
+}
+
+.list[data-skeleton="true"] {
+  pointer-events: none;
+}
+
+.skeletonItem {
+  display: block;
+  width: 48px;
+  height: var(--space-250);
+  border-radius: var(--radius-full);
+  background: var(--fill-skeleton);
+}
+
+.skeletonItemWide {
+  width: 72px;
+}
+
+.list[data-inverse="true"] .skeletonItem {
+  background: var(--fill-skeleton-inverse);
+}
+
+.list[data-variant="primary"][data-style="b"][data-skeleton="true"] .skeletonItem,
+.list[data-variant="tertiary"][data-skeleton="true"] .skeletonItem {
+  height: var(--space-400);
+}

@@ -1,0 +1,95 @@
+.root {
+  position: relative;
+  display: inline-flex;
+  width: var(--space-300);
+  height: var(--space-300);
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text-primary-inverse);
+  cursor: pointer;
+}
+
+.root::before {
+  position: absolute;
+  inset: var(--space-025);
+  box-sizing: border-box;
+  content: "";
+  border: 1.5px solid var(--text-secondary);
+  border-radius: var(--radius-tag-primary);
+  background: var(--background-primary);
+}
+
+.root::after {
+  position: absolute;
+  inset: calc(var(--space-100) * -1 - var(--space-025));
+  content: "";
+}
+
+.root:hover:not([data-disabled])::before {
+  background: var(--surface-secondary);
+}
+
+.root[data-checked]::before,
+.root[data-indeterminate]::before {
+  border-color: var(--text-primary);
+  background: var(--text-primary);
+}
+
+.root:focus-visible {
+  border-radius: var(--radius-tag-primary);
+  outline: var(--stroke-thick) solid var(--border-focus);
+  outline-offset: var(--space-025);
+}
+
+.root[data-disabled] {
+  color: var(--text-primary-inverse);
+  cursor: not-allowed;
+}
+
+.root[data-disabled]::before {
+  border-color: var(--fill-disabled);
+  background: var(--background-secondary);
+}
+
+.root[data-disabled][data-checked]::before,
+.root[data-disabled][data-indeterminate]::before {
+  background: var(--fill-disabled);
+}
+
+.indicator {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  pointer-events: none;
+}
+
+.indicator svg {
+  width: 14px;
+  height: 14px;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.mixedIcon {
+  display: none;
+}
+
+.root[data-indeterminate] .checkIcon {
+  display: none;
+}
+
+.root[data-indeterminate] .mixedIcon {
+  display: block;
+}

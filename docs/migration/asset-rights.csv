@@ -1,0 +1,5 @@
+category,location,source,distribution
+font,packages/design-system/assets/fonts,DL Source licensed asset,private protected deployments only
+brand-svg,packages/design-system/assets/logos,DL Source brand asset,private protected deployments only
+product-photography,packages/design-system/components/**/assets and packages/prototypes/pages/EcommerceHome/assets,DL Source fixture asset,private protected deployments only
+source-code,packages/design-system and packages/prototypes,DL Source at locked SHA,private repository

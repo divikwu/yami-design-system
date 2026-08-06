@@ -1,0 +1,281 @@
+{
+  "$schema": "../../../schema/component.json",
+  "name": "Button",
+  "category": "action",
+  "status": "stable",
+  "version": "0.2.0",
+
+  "description": "YAMI primary interactive element. 4 hierarchies (emphasis / primary / secondary / tertiary) × 3 form modes (full / inline / icon) × 3 sizes (sm / md / lg) × default & inverse surfaces. Mirrors the YAMI UI/UX Guidelines Figma file (Mobile v2 + PC v2).",
+
+  "figma": {
+    "fileKey": "6oOAy72DBff4P6NzJYc2hi",
+    "nodeId": "5587:127256",
+    "componentKey": null,
+    "notes": "Primary binding is PC Full-Default. componentKey populated during Phase 10 Code Connect publish. Full node mapping in `figma.nodes` below — each Form × Surface lives in its own component_set because Figma encodes Form via separate sets rather than a variant property.",
+    "nodes": {
+      "mobile": {
+        "fullDefault":   "5579:113397",
+        "fullInverse":   "5587:118979",
+        "inlineDefault": "5579:116562",
+        "inlineInverse": "5587:119340",
+        "iconDefault":   "5587:118666",
+        "iconInverse":   "5587:123317"
+      },
+      "pc": {
+        "fullDefault":   "5587:127256",
+        "fullInverse":   "5587:127647",
+        "inlineDefault": "5587:127393",
+        "inlineInverse": "5587:127784",
+        "iconDefault":   "5587:127574",
+        "iconInverse":   "5587:127965"
+      }
+    },
+    "sizeDelta": "Per-form size coverage in Figma: Full + Inline ship Size=Medium (40) and Size=Large (Mobile 48 / PC 56). Icon ships Size=Small (32) / Medium (40) / Large (48 on both Mobile + PC — does NOT bump to 56). Code unifies the size axis to sm/md/lg across all forms; Full/Inline 'sm' is a YAMI-product extension beyond Figma. CSS scopes the lg→56 desktop bump to :not(.iconOnly) so Icon Large stays 48×48.",
+    "stateMapping": "Figma 'Hover / Active' collapses to two CSS states (:hover + :active) which already share the same `-active` token. Figma omits :focus-visible (a11y-only) and code adds it per rule `focus-style`."
+  },
+
+  "variants": {
+    "variant": ["emphasis", "primary", "secondary", "tertiary"],
+    "form": ["full", "inline", "icon"],
+    "size": ["sm", "md", "lg"],
+    "surface": ["default", "inverse"],
+    "state": ["default", "hover", "active", "disabled", "loading", "focus-visible"]
+  },
+
+  "props": {
+    "variant": {
+      "type": "enum",
+      "values": ["emphasis", "primary", "secondary", "tertiary"],
+      "required": false,
+      "default": "primary",
+      "description": "Visual role. 'emphasis' is rate-limited to 1 per screen (see rules.emphasis)."
+    },
+    "size": {
+      "type": "enum",
+      "values": ["sm", "md", "lg"],
+      "required": false,
+      "default": "md"
+    },
+    "leftIcon": {
+      "type": "ReactNode",
+      "required": false,
+      "description": "Prefer SVGs from assets/icons/ which already use currentColor."
+    },
+    "rightIcon": {
+      "type": "ReactNode",
+      "required": false
+    },
+    "form": {
+      "type": "enum",
+      "values": ["full", "inline", "icon"],
+      "required": false,
+      "default": "inline",
+      "description": "Layout mode mirroring Figma's Form axis. 'full' stretches to container width (replaces legacy fullWidth=true). 'inline' is content-width (default). 'icon' is square, no label (replaces legacy iconOnly=true, requires aria-label). When omitted, derived from legacy iconOnly / fullWidth for backward compat."
+    },
+    "inverse": {
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "When true, swaps to the *-inverse token set for the active theme's opposite-polarity surface. Mirrors Figma's '<Form> - Inverse' component sets."
+    },
+    "iconOnly": {
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "DEPRECATED — use form='icon'. Kept for backward compat (mapped to form='icon' when set). REQUIRES aria-label."
+    },
+    "fullWidth": {
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "DEPRECATED — use form='full'. Kept for backward compat (mapped to form='full' when set)."
+    },
+    "loading": {
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "Replaces visuals with a spinner and sets aria-busy."
+    },
+    "disabled": {
+      "type": "boolean",
+      "required": false,
+      "default": false
+    },
+    "htmlType": {
+      "type": "enum",
+      "values": ["button", "submit", "reset"],
+      "required": false,
+      "default": "button"
+    },
+    "children": {
+      "type": "ReactNode",
+      "required": false,
+      "description": "Label text; icon node if iconOnly=true."
+    },
+    "aria-label": {
+      "type": "string",
+      "required": "when iconOnly=true",
+      "description": "Dev-time console warning if iconOnly without aria-label."
+    }
+  },
+
+  "rules": {
+    "emphasis": {
+      "ruleId": "emphasis-limit",
+      "useWhen": [
+        "Primary CTA on a page (Buy Now, Add to Cart, Place Order)",
+        "Checkout terminal action",
+        "Promotion / urgency-driven action"
+      ],
+      "avoidWhen": [
+        "Navigation (use primary or tertiary)",
+        "Secondary actions next to a primary",
+        "Cancel / dismiss affordances"
+      ],
+      "maxPerScreen": 1
+    },
+    "tapTarget": {
+      "ruleId": "tap-target",
+      "minIosPt": 44,
+      "minAndroidDp": 48,
+      "note": "All sizes (sm=32, md=40, lg=48) include padding that expands the touch region to ≥44pt even when visible height is smaller."
+    },
+    "focus": {
+      "ruleId": "focus-style",
+      "note": "2px solid var(--border-focus) ring with 2px outline-offset. Never browser default."
+    },
+    "disabledState": {
+      "ruleId": "no-opacity-disabled",
+      "note": "Uses --button-disabled background + --text-disabled foreground. Never CSS opacity."
+    },
+    "radii": {
+      "ruleId": "no-custom-radii",
+      "note": "All full-form buttons → --radius-sm (4px). Inline emphasis → --radius-button-emphasis (8px squarish). Inline primary/secondary/tertiary → --radius-button-primary (pill)."
+    }
+  },
+
+  "tokens": [
+    "--button-emphasis",
+    "--button-emphasis-active",
+    "--button-primary",
+    "--button-primary-active",
+    "--button-secondary",
+    "--button-secondary-active",
+    "--button-tertiary",
+    "--button-tertiary-active",
+    "--button-disabled",
+    "--button-emphasis-inverse",
+    "--button-emphasis-active-inverse",
+    "--button-primary-inverse",
+    "--button-primary-active-inverse",
+    "--button-secondary-inverse",
+    "--button-secondary-active-inverse",
+    "--button-tertiary-inverse",
+    "--button-tertiary-active-inverse",
+    "--button-disabled-inverse",
+    "--text-on-emphasis",
+    "--text-primary",
+    "--text-primary-inverse",
+    "--text-disabled",
+    "--text-disabled-inverse",
+    "--border-focus",
+    "--border-focus-inverse",
+    "--radius-button-emphasis",
+    "--radius-button-primary",
+    "--radius-sm",
+    "--font-family-ios",
+    "--font-weight-emphasize",
+    "--font-size-body-md",
+    "--font-size-body-xl",
+    "--line-height-body-md",
+    "--line-height-body-xl",
+    "--space-050",
+    "--space-150",
+    "--space-200",
+    "--space-250"
+  ],
+
+  "tokenBindings": {
+    "--button-emphasis": { "property": "background-color", "selector": ".emphasis" },
+    "--button-emphasis-active": {
+      "property": "background-color",
+      "selector": ".emphasis:hover, .emphasis:active"
+    },
+    "--button-primary": { "property": "background-color", "selector": ".primary" },
+    "--button-primary-active": {
+      "property": "background-color",
+      "selector": ".primary:hover, .primary:active"
+    },
+    "--button-secondary": { "property": "background-color", "selector": ".secondary" },
+    "--button-secondary-active": {
+      "property": "background-color",
+      "selector": ".secondary:hover, .secondary:active"
+    },
+    "--button-tertiary": { "property": "background-color", "selector": ".tertiary" },
+    "--button-tertiary-active": {
+      "property": "background-color",
+      "selector": ".tertiary:hover, .tertiary:active"
+    },
+    "--button-disabled": {
+      "property": "background-color",
+      "selector": ".button[aria-disabled='true']"
+    },
+    "--text-primary": { "property": "color", "selector": ".secondary, .tertiary" },
+    "--text-on-emphasis": { "property": "color", "selector": ".emphasis" },
+    "--text-primary-inverse": { "property": "color", "selector": ".primary" },
+    "--text-disabled": { "property": "color", "selector": ".button[aria-disabled='true']" },
+    "--border-focus": { "property": "outline-color", "selector": ".button:focus-visible" },
+    "--radius-button-emphasis": {
+      "property": "border-radius",
+      "selector": ".emphasis:not(.fullWidth)"
+    },
+    "--radius-button-primary": {
+      "property": "border-radius",
+      "selector": ".primary:not(.fullWidth), .secondary:not(.fullWidth), .tertiary:not(.fullWidth)"
+    },
+    "--radius-sm": { "property": "border-radius", "selector": ".fullWidth" },
+    "--font-family-ios": { "property": "font-family", "selector": ".button" },
+    "--font-weight-emphasize": { "property": "font-weight", "selector": ".button" },
+    "--font-size-body-md": { "property": "font-size", "selector": ".sm, .md" },
+    "--font-size-body-xl": { "property": "font-size", "selector": ".lg" },
+    "--line-height-body-md": { "property": "line-height", "selector": ".sm, .md" },
+    "--line-height-body-xl": { "property": "line-height", "selector": ".lg" },
+    "--space-050": { "property": "gap", "selector": ".button" },
+    "--space-150": { "property": "padding-inline", "selector": ".sm" },
+    "--space-200": { "property": "padding-inline", "selector": ".md" },
+    "--space-250": { "property": "padding-inline", "selector": ".lg" }
+  },
+
+  "accessibility": {
+    "role": "button",
+    "wcagLevel": "AA",
+    "tapTargetMin": 44,
+    "keyboardNav": ["tab", "enter", "space"],
+    "ariaPattern": "button",
+    "tapTarget": { "ios": 44, "android": 48 },
+    "requiresAriaLabel": "when iconOnly=true",
+    "focusVisible": "2px solid var(--border-focus), 2px offset",
+    "loadingAnnounces": "aria-busy=true"
+  },
+
+  "dependencies": {
+    "runtime": ["react"],
+    "peer": [],
+    "devOnly": []
+  },
+
+  "usageRef": "./usage.md",
+  "examples": [
+    "./examples.tsx#EmphasisExample",
+    "./examples.tsx#PrimaryExample",
+    "./examples.tsx#SecondaryExample",
+    "./examples.tsx#TertiaryExample",
+    "./examples.tsx#WithLeftIconExample",
+    "./examples.tsx#IconOnlyExample",
+    "./examples.tsx#LoadingExample",
+    "./examples.tsx#FullWidthExample",
+    "./examples.tsx#AllSizesExample",
+    "./examples.tsx#CheckoutCTARowExample",
+    "./examples.tsx#InverseExample"
+  ]
+}

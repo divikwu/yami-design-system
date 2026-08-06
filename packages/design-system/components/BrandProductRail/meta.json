@@ -1,0 +1,201 @@
+{
+  "$schema": "../../../schema/component.json",
+  "name": "BrandProductRail",
+  "category": "composite",
+  "status": "stable",
+  "version": "0.3.0",
+  "description": "Responsive brand-led commerce rail composed from ProductList, compact ProductCard, and shared rail navigation controls.",
+  "figma": {
+    "nodeId": "6962:102987",
+    "componentKey": null,
+    "notes": "PC behavior follows the YAMI homepage reference; mobile behavior follows the Figma brand-mobile / campaign composition."
+  },
+  "exports": [
+    "BrandProductRail",
+    "BrandProductCampaign",
+    "BrandProductRailProps"
+  ],
+  "composes": ["ProductList", "ProductCard", "Button", "Tabs"],
+  "props": {
+    "title": {
+      "type": "ReactNode",
+      "required": true,
+      "description": "Visible section heading and accessible label."
+    },
+    "mobileTitle": {
+      "type": "ReactNode",
+      "required": false,
+      "description": "Optional mobile-only section heading; falls back to title."
+    },
+    "campaigns": {
+      "type": "BrandProductCampaign[]",
+      "required": true,
+      "description": "Ordered brand campaigns with a banner and ProductList items."
+    },
+    "tabs": {
+      "type": "ProductListTab[]",
+      "required": false,
+      "description": "Optional mobile category tabs composed with the existing tertiary Tabs."
+    },
+    "value": {
+      "type": "string",
+      "required": false,
+      "description": "Controlled mobile category tab value."
+    },
+    "defaultValue": {
+      "type": "string",
+      "required": false,
+      "description": "Initial uncontrolled mobile category tab value."
+    },
+    "onValueChange": {
+      "type": "(value: string) => void",
+      "required": false,
+      "description": "Reports mobile category tab changes."
+    },
+    "viewAllHref": {
+      "type": "string",
+      "required": false,
+      "description": "Destination for the optional view-all link."
+    },
+    "viewAllLabel": {
+      "type": "ReactNode",
+      "required": false,
+      "default": "View all",
+      "description": "Localized view-all label."
+    },
+    "previousLabel": {
+      "type": "string",
+      "required": false,
+      "default": "Previous brands",
+      "description": "Localized accessible name for the previous-page button."
+    },
+    "nextLabel": {
+      "type": "string",
+      "required": false,
+      "default": "Next brands",
+      "description": "Localized accessible name for the next-page button."
+    },
+    "onAddToCart": {
+      "type": "(campaignId: string, productId: string) => void",
+      "required": false,
+      "description": "Reports the campaign and product IDs from the reused ProductCard quick-add action."
+    },
+    "dividerPosition": {
+      "type": "\"top\" | \"bottom\" | \"none\"",
+      "required": false,
+      "default": "top",
+      "description": "Places the desktop section boundary above, below, or removes it; ignored below 1024px."
+    },
+    "dividerVariant": {
+      "type": "\"gray\" | \"black\"",
+      "required": false,
+      "default": "gray",
+      "description": "Gray preserves the existing 1px structural separator; black uses the theme-aware 2px emphasis separator."
+    }
+  },
+  "rules": {
+    "tapTarget": {
+      "ruleId": "tap-target",
+      "note": "Paging and quick-add actions compose existing YAMI Button controls."
+    },
+    "focus": {
+      "ruleId": "focus-style",
+      "note": "Campaign, product, view-all, and paging controls retain token-backed focus rings."
+    },
+    "radius": {
+      "ruleId": "no-custom-radii",
+      "note": "Campaign panels consume --radius-component-default."
+    },
+    "motion": {
+      "ruleId": "elevation-on-press",
+      "note": "Rail paging respects prefers-reduced-motion."
+    }
+  },
+  "tokens": [
+    "--surface-primary",
+    "--button-secondary",
+    "--text-primary",
+    "--text-primary-inverse",
+    "--color-white-1000",
+    "--color-black-0",
+    "--color-black-400",
+    "--overlay-default",
+    "--overlay-scrim",
+    "--divider-default",
+    "--divider-emphasis",
+    "--border-default",
+    "--border-focus",
+    "--stroke-default",
+    "--stroke-thick",
+    "--radius-component-default",
+    "--radius-button-primary",
+    "--radius-surface-default",
+    "--radius-full",
+    "--font-family-ios",
+    "--font-weight-normal",
+    "--font-size-display-sm",
+    "--font-size-heading-xl",
+    "--font-size-heading-2xl",
+    "--font-size-link-md",
+    "--line-height-display-sm",
+    "--line-height-heading-xl",
+    "--line-height-heading-2xl",
+    "--line-height-link-md",
+    "--layout-page-margin-card",
+    "--space-025",
+    "--space-050",
+    "--space-100",
+    "--space-150",
+    "--space-200",
+    "--space-300",
+    "--space-400",
+    "--space-500",
+    "--space-600",
+    "--space-800",
+    "--space-1000"
+  ],
+  "tokenBindings": {
+    "--surface-primary": {
+      "property": "background",
+      "selector": ".root and composed ProductList panels"
+    },
+    "--color-white-1000": {
+      "property": "color and background-color",
+      "selector": "brand banner title and compact ProductCard image surfaces"
+    },
+    "--layout-page-margin-card": {
+      "property": "mobile outer margin",
+      "selector": ".root below 1024px"
+    },
+    "--space-600": {
+      "property": "desktop section padding and responsive panel gap calculation",
+      "selector": ".container and .panel"
+    },
+    "--radius-component-default": {
+      "property": "border-radius",
+      "selector": ".panel and composed ProductList"
+    },
+    "--overlay-scrim": {
+      "property": "background gradient",
+      "selector": "brand banner ::after"
+    }
+  },
+  "accessibility": {
+    "role": "labelled section containing a horizontally scrollable list of brand campaigns",
+    "wcagLevel": "AA",
+    "tapTargetMin": 44,
+    "keyboardNav": ["tab", "shift+tab", "enter"],
+    "ariaPattern": "section with heading, list/listitem campaign panels, links, and previous/next buttons",
+    "structure": "The visible heading labels the section. Each campaign composes a labelled ProductList containing ProductCard articles.",
+    "interaction": "Native horizontal scrolling remains available; desktop paging buttons report disabled edge states."
+  },
+  "dependencies": {
+    "runtime": ["react", "./ProductList", "./ProductCard", "./Button", "./Tabs"],
+    "peer": [],
+    "devOnly": []
+  },
+  "usageRef": "./usage.md",
+  "examples": [
+    "./examples.tsx#BrandProductRailExample"
+  ]
+}

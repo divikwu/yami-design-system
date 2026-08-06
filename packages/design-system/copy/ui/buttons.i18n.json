@@ -1,0 +1,40 @@
+{
+  "$description": "Button labels across YAMI product UI. All entries have en + zh-CN. Bilingual display (e.g. 'Buy Now · 立即购买') is a rendering concern, not stored combined here. See ../../design-system/content/copy-patterns.md for pairing patterns.",
+
+  "addToCart":      { "en": "Add to Cart",       "zh-CN": "加入购物车" },
+  "buyNow":         { "en": "Buy Now",           "zh-CN": "立即购买" },
+  "checkout":       { "en": "Checkout",          "zh-CN": "结账" },
+  "placeOrder":     { "en": "Place Order",       "zh-CN": "提交订单" },
+  "continueShopping": { "en": "Continue Shopping", "zh-CN": "继续购物" },
+  "startShopping":  { "en": "Start Shopping",    "zh-CN": "开始购物" },
+  "backToHome":     { "en": "Back to Home",      "zh-CN": "返回首页" },
+
+  "save":           { "en": "Save",              "zh-CN": "保存" },
+  "cancel":         { "en": "Cancel",            "zh-CN": "取消" },
+  "confirm":        { "en": "Confirm",           "zh-CN": "确认" },
+  "submit":         { "en": "Submit",            "zh-CN": "提交" },
+  "delete":         { "en": "Delete",            "zh-CN": "删除" },
+  "remove":         { "en": "Remove",            "zh-CN": "移除" },
+  "edit":           { "en": "Edit",              "zh-CN": "编辑" },
+  "share":          { "en": "Share",             "zh-CN": "分享" },
+  "apply":          { "en": "Apply",             "zh-CN": "应用" },
+  "retry":          { "en": "Retry",             "zh-CN": "重试" },
+
+  "viewDetails":    { "en": "View Details",      "zh-CN": "查看详情" },
+  "viewAll":        { "en": "View All",          "zh-CN": "查看全部" },
+  "viewOrder":      { "en": "View Order",        "zh-CN": "查看订单" },
+  "loadMore":       { "en": "Load More",         "zh-CN": "加载更多" },
+  "back":           { "en": "Back",              "zh-CN": "返回" },
+  "next":           { "en": "Next",              "zh-CN": "下一步" },
+  "done":           { "en": "Done",              "zh-CN": "完成" },
+  "close":          { "en": "Close",             "zh-CN": "关闭" },
+
+  "addAddress":     { "en": "Add Address",       "zh-CN": "添加地址" },
+  "addPayment":     { "en": "Add Payment",       "zh-CN": "添加支付方式" },
+  "applyCoupon":    { "en": "Apply Coupon",      "zh-CN": "使用优惠券" },
+  "trackOrder":     { "en": "Track Order",       "zh-CN": "跟踪订单" },
+
+  "signIn":         { "en": "Sign In",           "zh-CN": "登录" },
+  "signUp":         { "en": "Sign Up",           "zh-CN": "注册" },
+  "signOut":        { "en": "Sign Out",          "zh-CN": "退出登录" }
+}

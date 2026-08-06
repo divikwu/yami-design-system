@@ -1,0 +1,324 @@
+/* Button.module.css
+ *
+ * YAMI brand Button. Consumes only semantic tokens from tokens.css —
+ * no primitives, no hardcoded values. See design.md rules:
+ *   - emphasis-limit (usage.md enforces max 1 emphasis per screen)
+ *   - tap-target   (min 44pt; padding-based, not visible size)
+ *   - no-opacity-disabled (uses token color, not opacity)
+ *   - focus-style (2px var(--border-focus) ring, not browser default)
+ *   - no-custom-radii (uses --radius-button-* tokens)
+ *
+ * Sizes (mobile baseline / ≥1024px desktop, per Figma Mobile v2 + PC v2):
+ *   sm  → 32 / 32         — product-only step (Icon form has it in Figma)
+ *   md  → 40 / 40
+ *   lg  → 48 / 56          — Full + Inline only
+ *   lg  → 48 / 48 (icon)   — Icon form stays 48 even on desktop
+ */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* Figma Content frame itemSpacing = 4px between icon ↔ label.
+     Was --space-100 (8px); corrected to match SSOT (PC Full-Default 5587:127256). */
+  gap: var(--space-050);
+
+  font-family: var(--font-family-ios);
+  font-weight: var(--font-weight-emphasize);
+  white-space: nowrap;
+  text-decoration: none;
+
+  border: 0;
+  cursor: pointer;
+  user-select: none;
+
+  /* Position context for sm/md hit-area extenders (Phase 12f-2 iconOnly,
+     Phase 12f-3 text). Adding it at root keeps `.iconOnly { position }`
+     redundant but harmless and lets text variants opt in via ::before. */
+  position: relative;
+
+  transition:
+    background-color 150ms cubic-bezier(0.2, 0, 0, 1),
+    color 150ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+.button[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+/* ─── Sizes ─────────────────────────────────────────────────────── */
+
+.sm {
+  height: var(--space-400);
+  padding: 0 var(--space-150);
+  font-size: var(--font-size-body-md);
+  line-height: var(--line-height-body-md);
+}
+
+.md {
+  height: var(--space-500);
+  padding: 0 var(--space-200);
+  font-size: var(--font-size-body-md);
+  line-height: var(--line-height-body-md);
+}
+
+.lg {
+  height: var(--space-600);
+  padding: 0 var(--space-250);
+  font-size: var(--font-size-body-xl);
+  line-height: var(--line-height-body-xl);
+}
+
+/* Responsive lg — PC Full/Inline Large bumps to 56px (Figma 5587:127257).
+   Mobile baseline stays 48px (Figma 5579:113094).
+   Icon form is excluded: Figma's PC Icon Large (5587:127576) is 48×48 even
+   on desktop — bumping it would also break the .iconOnly aspect-ratio:1
+   square contract (would render 56×56).
+   Raw 56px: no --space-700 token exists in tokens.css yet — track in
+   decisions.md and introduce when the token-syncer next runs. */
+@media (min-width: 1024px) {
+  .lg:not(.iconOnly) {
+    height: 56px;
+  }
+}
+
+/* iconOnly: square aspect, centered icon, no text padding */
+.iconOnly {
+  padding-inline: 0;
+  aspect-ratio: 1;
+  /* Position context for the hit-area extender below. The button itself
+     stays its visual size (sm 32, md 40); a transparent ::before pad
+     extends the click region to ≥ 44×44. Phase 12f-2. */
+  position: relative;
+}
+
+/* Hit-area extender for sm + md iconOnly buttons.
+   Visual size stays at the design intent (32 / 40). The pseudo-element
+   absorbs pointer events in a 44×44 box centered on the visual button.
+   sm (32 → 44): 6px overflow on each side. md (40 → 44): 2px each side.
+   Why pseudo (not padding): keeps the button's visual / focus-ring size
+   pinned. Why this is safe: iconOnly buttons sit alone in their cell
+   (ProductCard footer, Cart qty controls, product-detail share/heart)
+   so the overflow doesn't overlap siblings.
+   Reference: WCAG 2.5.5 — equivalent ≥ 44×44 alternative target. */
+.iconOnly.sm::before,
+.iconOnly.md::before {
+  content: "";
+  position: absolute;
+  /* 44px = WCAG 2.5.5 tap-target floor. Raw value used (no semantic token
+     exists yet); a future Phase 12-x can introduce --tap-target-min and
+     bind here. */
+  inset: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
+}
+
+/* Hit-area extender for sm + md TEXT buttons (Phase 12f-3).
+   Vertical-only: the pseudo grows the click region to 44px tall while
+   keeping width = visual button width. Text buttons all carry a label
+   so their visual width is already ≥ 44; only height was short.
+   Why vertical-only (not square 44 like iconOnly): text buttons live
+   in tight horizontal rows (filter chips, cart qty rows, inline CTAs)
+   where horizontal overflow would steal clicks from siblings. Vertical
+   space above/below is dead space — extending there is safe.
+   sm (32 → 44): top/bottom 6px. md (40 → 44): top/bottom 2px. */
+.button.sm:not(.iconOnly)::before,
+.button.md:not(.iconOnly)::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 44px;
+  transform: translateY(-50%);
+}
+
+/* fullWidth: stretches to container and always uses the compact CTA radius,
+   regardless of hierarchy. Inline primary/secondary/tertiary buttons keep
+   their pill shape. */
+.fullWidth {
+  width: 100%;
+}
+
+.button.fullWidth {
+  border-radius: var(--radius-sm);
+}
+
+/* ─── Variants ──────────────────────────────────────────────────── */
+
+/*
+ * emphasis — Buy Now / Add to Cart / primary CTAs.
+ * Squarish radius to convey commitment. Rule emphasis-limit: max 1 per screen.
+ */
+.emphasis {
+  background-color: var(--button-emphasis);
+  color: var(--text-on-emphasis);
+  border-radius: var(--radius-button-emphasis);
+}
+.emphasis:not([aria-disabled="true"]):hover,
+.emphasis:not([aria-disabled="true"]):active {
+  background-color: var(--button-emphasis-active);
+}
+.emphasis[aria-disabled="true"] {
+  background-color: var(--button-disabled);
+  color: var(--text-disabled);
+}
+
+/*
+ * primary — Generic primary actions. Black pill.
+ */
+.primary {
+  background-color: var(--button-primary);
+  color: var(--text-primary-inverse);
+  border-radius: var(--radius-button-primary);
+}
+.primary:not([aria-disabled="true"]):hover,
+.primary:not([aria-disabled="true"]):active {
+  background-color: var(--button-primary-active);
+}
+.primary[aria-disabled="true"] {
+  background-color: var(--button-disabled);
+  color: var(--text-disabled);
+}
+
+/*
+ * secondary — Grey fill, for secondary actions alongside a primary.
+ */
+.secondary {
+  background-color: var(--button-secondary);
+  color: var(--text-primary);
+  border-radius: var(--radius-button-primary);
+}
+.secondary:not([aria-disabled="true"]):hover,
+.secondary:not([aria-disabled="true"]):active {
+  background-color: var(--button-secondary-active);
+}
+.secondary[aria-disabled="true"] {
+  background-color: var(--button-disabled);
+  color: var(--text-disabled);
+}
+
+/*
+ * tertiary — White fill with transparent hover, for low-emphasis.
+ * Often used as a secondary pair to a primary on opposite-polarity surfaces.
+ */
+.tertiary {
+  background-color: var(--button-tertiary);
+  color: var(--text-primary);
+  border-radius: var(--radius-button-primary);
+}
+.tertiary:not([aria-disabled="true"]):hover,
+.tertiary:not([aria-disabled="true"]):active {
+  background-color: var(--button-tertiary-active);
+}
+.tertiary[aria-disabled="true"] {
+  background-color: var(--button-disabled);
+  color: var(--text-disabled);
+}
+
+/* ─── Inverse surface modifier ──────────────────────────────────── */
+
+/*
+ * inverse=true — for buttons placed on the active theme's opposite-polarity
+ * surface (--surface-inverse). This is dark in Light and light in Dark.
+ * Mirrors Figma's "<Form> - Inverse" component sets. All four hierarchies
+ * swap to their *-inverse token aliases. Focus ring follows the inverse polarity.
+ *
+ * Layered after the base variants so it wins on specificity without !important.
+ */
+.inverse:focus-visible {
+  outline-color: var(--border-focus-inverse);
+}
+.inverse[aria-disabled="true"] {
+  background-color: var(--button-disabled-inverse);
+  color: var(--text-disabled-inverse);
+}
+
+.emphasis.inverse {
+  background-color: var(--button-emphasis-inverse);
+  color: var(--text-on-emphasis);
+}
+.emphasis.inverse:not([aria-disabled="true"]):hover,
+.emphasis.inverse:not([aria-disabled="true"]):active {
+  background-color: var(--button-emphasis-active-inverse);
+}
+
+.primary.inverse {
+  background-color: var(--button-primary-inverse);
+  color: var(--text-primary);
+}
+.primary.inverse:not([aria-disabled="true"]):hover,
+.primary.inverse:not([aria-disabled="true"]):active {
+  background-color: var(--button-primary-active-inverse);
+}
+
+.secondary.inverse {
+  background-color: var(--button-secondary-inverse);
+  color: var(--text-primary-inverse);
+}
+.secondary.inverse:not([aria-disabled="true"]):hover,
+.secondary.inverse:not([aria-disabled="true"]):active {
+  background-color: var(--button-secondary-active-inverse);
+}
+
+.tertiary.inverse {
+  background-color: var(--button-tertiary-inverse);
+  color: var(--text-primary-inverse);
+}
+.tertiary.inverse:not([aria-disabled="true"]):hover,
+.tertiary.inverse:not([aria-disabled="true"]):active {
+  background-color: var(--button-tertiary-active-inverse);
+}
+
+/* ─── Icon slots ────────────────────────────────────────────────── */
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* line-height: 1 collapses the line-box around the glyph/SVG so flex
+     centering targets the visual element, not the inherited 20px line-box.
+     Important when consumers pass a text glyph (e.g. ♥) as the icon node —
+     glyph-internal baseline offsets would otherwise drop the visual center. */
+  line-height: 1;
+  /* icons inherit color via currentColor (svg-cleanup normalization) */
+  flex-shrink: 0;
+}
+
+/* ─── Loading spinner ───────────────────────────────────────────── */
+
+.loading .label,
+.loading .icon {
+  /* opacity:0 hides visually but keeps the element in the a11y tree, so
+     screen readers can still announce the button's accessible name
+     alongside aria-busy. visibility:hidden would strip the name and
+     leave the loading button nameless. */
+  opacity: 0;
+}
+
+.spinner {
+  /* Explicit centering: inset:0 + margin:auto centers the 1em×1em circle
+     inside `.button` (which is already position:relative) regardless of
+     form/size. Avoids relying on inline-flow fallback positioning. */
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: var(--radius-full);
+  animation: button-spin 600ms linear infinite;
+}
+
+@keyframes button-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

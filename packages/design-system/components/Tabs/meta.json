@@ -1,0 +1,301 @@
+{
+  "$schema": "../../../schema/component.json",
+  "name": "Tabs",
+  "category": "navigation",
+  "status": "beta",
+  "version": "0.1.0",
+
+  "description": "Navigation tabs for switching between related content panes. Implements YAMI Primary Style A/B, Secondary, and Tertiary variants from the YAMI UI UX Guidelines Tabs node, with default and inverse surfaces plus ARIA tab behavior.",
+
+  "figma": {
+    "fileKey": "6oOAy72DBff4P6NzJYc2hi",
+    "nodeId": "2723:18998",
+    "componentKey": null,
+    "notes": "Tabs source node `↪ 选项卡 Tabs`. Figma splits Mobile and WEB component sets and splits Primary Style A/B into separate sets. Code keeps one compound component with variant/styleVariant/inverse props and responsive CSS. Icon slots exist in WEB button components but are disabled in the reference examples; code exposes leftIcon/rightIcon for product use with real YAMI SVG assets.",
+    "nodes": {
+      "mobile": {
+        "primaryStyleA": "5631:135576",
+        "primaryInverseStyleA": "5651:136490",
+        "primaryStyleB": "6854:30602",
+        "secondaryDefault": "5651:136681",
+        "secondaryInverse": "5651:136703",
+        "tertiaryDefault": "2737:24398",
+        "tertiaryInverse": "2857:15324"
+      },
+      "web": {
+        "primaryLight": "3112:22784",
+        "primaryDark": "3112:22821",
+        "secondaryLight": "3112:22764",
+        "secondaryDark": "3112:22801",
+        "primaryButton": "3112:22855",
+        "secondaryButton": "3112:22838"
+      }
+    },
+    "sizeDelta": "Mobile Primary Style A uses 56px list height and 18/24 text; WEB Primary uses 48px and 16/20. Mobile Primary Style B uses a 52px segmented surface with 32px visible selected pill inside a 44px hit target. Secondary stays underline-based at 44px on both mobile and PC. Tertiary uses 48px triggers and hit targets with 32px selected pills vertically centered inside.",
+    "stateMapping": "Figma State=Default/Skeleton maps to TabsList skeleton=false/true. Selected/default tab states map to data-state='active'/'inactive'. Hover/focus are code-only interaction states; disabled is a code-side accessibility state for product use."
+  },
+
+  "variants": {
+    "variant": ["primary", "secondary", "tertiary"],
+    "styleVariant": ["a", "b"],
+    "surface": ["default", "inverse"],
+    "orientation": ["horizontal", "vertical"],
+    "activationMode": ["automatic", "manual"],
+    "state": ["active", "inactive", "disabled", "focus-visible", "skeleton"]
+  },
+
+  "exports": ["TabsList", "TabsTrigger", "TabsContent"],
+
+  "composition": {
+    "requiredSlots": ["tabs", "tabs-list", "tabs-trigger"],
+    "requiredChildren": ["TabsList", "TabsTrigger"],
+    "allowedChildren": ["TabsList", "TabsTrigger", "TabsContent"],
+    "notes": [
+      "Use TabsList as the direct trigger container and TabsTrigger for each tab option.",
+      "Use TabsContent when tab panels differ. Match every TabsTrigger value to a TabsContent value.",
+      "Do not replace triggers with plain buttons or custom spans."
+    ]
+  },
+
+  "props": {
+    "value": {
+      "type": "string",
+      "required": false,
+      "description": "Controlled selected tab value."
+    },
+    "defaultValue": {
+      "type": "string",
+      "required": false,
+      "description": "Initial selected tab value for uncontrolled use."
+    },
+    "onValueChange": {
+      "type": "(value: string) => void",
+      "required": false,
+      "description": "Called when an enabled tab is activated by click, Enter/Space, or automatic arrow-key activation."
+    },
+    "orientation": {
+      "type": "enum",
+      "values": ["horizontal", "vertical"],
+      "required": false,
+      "default": "horizontal"
+    },
+    "activationMode": {
+      "type": "enum",
+      "values": ["automatic", "manual"],
+      "required": false,
+      "default": "automatic",
+      "description": "automatic changes selection while arrowing; manual only moves focus until click/Enter/Space."
+    },
+    "TabsList.variant": {
+      "type": "enum",
+      "values": ["primary", "secondary", "tertiary"],
+      "required": false,
+      "default": "primary"
+    },
+    "TabsList.styleVariant": {
+      "type": "enum",
+      "values": ["a", "b"],
+      "required": false,
+      "default": "a",
+      "description": "Primary-only visual axis from Figma. styleVariant='a' is underline; styleVariant='b' is segmented."
+    },
+    "TabsList.inverse": {
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "Use inverse colors for the active theme's opposite-polarity surface."
+    },
+    "TabsList.fullWidth": {
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "Stretch the list and distribute triggers evenly."
+    },
+    "TabsList.skeleton": {
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "Render non-interactive Figma State=Skeleton placeholders."
+    },
+    "TabsTrigger.value": {
+      "type": "string",
+      "required": true,
+      "description": "Unique value that links the trigger to its panel."
+    },
+    "TabsTrigger.disabled": {
+      "type": "boolean",
+      "required": false,
+      "default": false
+    },
+    "TabsTrigger.leftIcon": {
+      "type": "ReactNode",
+      "required": false,
+      "description": "Optional icon before label. Use currentColor SVGs from design-systems/yami/assets/icons."
+    },
+    "TabsTrigger.rightIcon": {
+      "type": "ReactNode",
+      "required": false,
+      "description": "Optional icon after label. Use currentColor SVGs from design-systems/yami/assets/icons."
+    },
+    "TabsContent.value": {
+      "type": "string",
+      "required": true,
+      "description": "Value matching a TabsTrigger."
+    }
+  },
+
+  "rules": {
+    "levels": {
+      "ruleId": "navigation-depth",
+      "note": "Primary for major content groups, Secondary for sub-sections, Tertiary for compact category filters. Do not mix levels in the same list."
+    },
+    "focus": {
+      "ruleId": "focus-style",
+      "note": "2px solid --border-focus ring with --border-focus-inverse on opposite-polarity surfaces."
+    },
+    "tapTarget": {
+      "ruleId": "tap-target",
+      "minIosPt": 44,
+      "note": "Compact pill visuals keep Figma 32px fill while the button hit target is at least 44px on mobile variants."
+    },
+    "disabled": {
+      "ruleId": "no-opacity-disabled",
+      "note": "Disabled tabs use --text-disabled / --text-disabled-inverse and are skipped by arrow-key navigation."
+    },
+    "icons": {
+      "ruleId": "asset-source",
+      "note": "When icon slots are used, pass currentColor SVGs from design-systems/yami/assets/icons; do not use ad-hoc glyphs."
+    }
+  },
+
+  "tokens": [
+    "--text-primary",
+    "--text-primary-inverse",
+    "--text-secondary",
+    "--text-secondary-inverse",
+    "--text-disabled",
+    "--text-disabled-inverse",
+    "--surface-primary",
+    "--surface-secondary",
+    "--surface-inverse",
+    "--fill-skeleton",
+    "--fill-skeleton-inverse",
+    "--border-focus",
+    "--border-focus-inverse",
+    "--border-default-inverse",
+    "--divider-default",
+    "--button-secondary",
+    "--button-secondary-inverse",
+    "--button-tertiary-active-inverse",
+    "--radius-full",
+    "--radius-component-none",
+    "--radius-surface-default",
+    "--stroke-default",
+    "--stroke-thick",
+    "--font-family-ios",
+    "--font-weight-normal",
+    "--font-weight-emphasize",
+    "--font-size-heading-md",
+    "--font-size-body-xl",
+    "--font-size-body-md",
+    "--font-size-caption-md",
+    "--line-height-heading-md",
+    "--line-height-body-xl",
+    "--line-height-body-md",
+    "--line-height-caption-md",
+    "--space-0",
+    "--space-025",
+    "--space-050",
+    "--space-100",
+    "--space-150",
+    "--space-200",
+    "--space-250",
+    "--space-300",
+    "--space-400",
+    "--space-500",
+    "--space-600"
+  ],
+
+  "tokenBindings": {
+    "--text-primary": {
+      "property": "color",
+      "selector": ".trigger[data-state='active'], .list[data-variant='tertiary'] .trigger"
+    },
+    "--text-secondary": {
+      "property": "color",
+      "selector": ".trigger"
+    },
+    "--text-primary-inverse": {
+      "property": "color",
+      "selector": ".list[data-inverse='true'][data-variant='primary'][data-style='a'] .trigger[data-state='active'], .list[data-inverse='true'][data-variant='secondary'] .trigger[data-state='active'], .list[data-variant='tertiary']:not([data-inverse='true']) .trigger[data-state='active']"
+    },
+    "--text-disabled": {
+      "property": "color",
+      "selector": ".trigger[aria-disabled='true']"
+    },
+    "--surface-secondary": {
+      "property": "background",
+      "selector": ".list[data-variant='primary'][data-style='b']"
+    },
+    "--surface-primary": {
+      "property": "background",
+      "selector": ".list[data-variant='primary'][data-style='b'] .trigger[data-state='active']::before"
+    },
+    "--button-secondary": {
+      "property": "background",
+      "selector": ".list[data-variant='tertiary'] .trigger[data-state='inactive']:hover::before"
+    },
+    "--button-secondary-inverse": {
+      "property": "background",
+      "selector": ".list[data-inverse='true'][data-variant='tertiary'] .trigger[data-state='inactive']:hover::before"
+    },
+    "--space-050": {
+      "property": "gap",
+      "selector": ".list[data-variant='tertiary']"
+    },
+    "--fill-skeleton": {
+      "property": "background",
+      "selector": ".skeletonItem"
+    },
+    "--border-focus": {
+      "property": "outline-color",
+      "selector": ".trigger:focus-visible, .content:focus-visible"
+    },
+    "--radius-full": {
+      "property": "border-radius",
+      "selector": ".trigger, .list[data-variant='primary'][data-style='b'], .skeletonItem"
+    },
+    "--font-family-ios": {
+      "property": "font-family",
+      "selector": ".root"
+    }
+  },
+
+  "accessibility": {
+    "role": "tablist / tab / tabpanel",
+    "wcagLevel": "AA",
+    "tapTargetMin": 44,
+    "keyboardNav": ["tab", "shift+tab", "arrow-left", "arrow-right", "arrow-up", "arrow-down", "home", "end", "enter", "space"],
+    "ariaPattern": "WAI-ARIA Tabs pattern",
+    "focusVisible": "2px solid var(--border-focus), inverse uses --border-focus-inverse",
+    "disabled": "Disabled triggers set aria-disabled=true, tabIndex=-1, and are skipped by arrow navigation.",
+    "labelling": "TabsTrigger id and TabsContent aria-labelledby/aria-controls are generated from useId + value."
+  },
+
+  "dependencies": {
+    "runtime": ["react"],
+    "peer": [],
+    "devOnly": []
+  },
+
+  "usageRef": "./usage.md",
+  "examples": [
+    "./examples.tsx#PrimaryTabsExample",
+    "./examples.tsx#SegmentedTabsExample",
+    "./examples.tsx#SecondaryTabsExample",
+    "./examples.tsx#TertiaryTabsExample",
+    "./examples.tsx#InverseTabsExample",
+    "./examples.tsx#DisabledTabsExample",
+    "./examples.tsx#SkeletonTabsExample"
+  ]
+}

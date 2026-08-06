@@ -1,0 +1,85 @@
+.root {
+  box-sizing: border-box;
+  width: 100%;
+  overflow: hidden;
+  background: var(--background-primary);
+  color: var(--text-primary);
+  font-family: var(--font-family-ios);
+}
+
+.main {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  background: var(--surface-primary);
+}
+
+.hero {
+  padding-block: 0;
+  background: var(--surface-primary);
+}
+
+.sections {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0;
+  padding-block: 0;
+}
+
+.section {
+  min-width: 0;
+}
+
+/* A themed band is inset from the page: 48px beside it and 32px above and
+ * below, all *outside* the coloured surface, and all inside the 1920px content
+ * box — hence a 1824px cap.
+ *
+ * Only themed is left here. Atmospheric moved the same inset into the
+ * component, where the band spans the page and the panel sits inside it; that
+ * is what lets the component paint its own section rule. Themed cannot follow
+ * while BrandProductRail nests one inside every brand card — the inset is the
+ * page's there, not the component's — so the selector stays scoped to a
+ * section's own child. */
+@media (min-width: 1024px) {
+  .section[data-kind="products"][data-appearance="themed"]
+    > [data-slot="product-list"] {
+    box-sizing: border-box;
+    width: calc(100% - var(--space-600) - var(--space-600));
+    max-width: calc(1920px - var(--space-600) - var(--space-600));
+    margin-block: var(--space-400);
+    margin-inline: auto;
+  }
+}
+
+/* Mobile stacks white cards on a grey canvas — the pattern ProductList already
+ * follows. The page surface therefore has to step back to the secondary
+ * background, and the white panels that carry the PC layout have to give way,
+ * or the cards would sit on white and read as one undivided sheet. */
+@media (max-width: 1023.98px) {
+  .root {
+    background: var(--background-secondary);
+  }
+
+  .main,
+  .hero {
+    background: transparent;
+  }
+
+  /* Spacing between sections belongs to the page, not to each section. Four
+   * components used to carry `margin-block-end` themselves, which left the
+   * header and hero — the two that are not cards — with no gap at all, and gave
+   * the last section a trailing margin with nothing to separate it from. One
+   * `gap` here covers every pair and leaves no tail. */
+  .main {
+    gap: var(--layout-page-margin-card);
+  }
+
+  .sections {
+    gap: var(--layout-page-margin-card);
+  }
+}
+
+/* No divider rules here. ProductList takes dividerPosition and paints it, and
+ * the atmospheric band now owns the full-bleed box the rule belongs on — the
+ * page only sets the prop. */

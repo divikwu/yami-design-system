@@ -1,0 +1,29 @@
+{
+  "name": "@yami/canvas",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3200",
+    "build": "next build",
+    "start": "next start -p 3200",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@yami/contracts": "workspace:*",
+    "@yami/design-system": "workspace:*",
+    "@yami/prototypes": "workspace:*",
+    "motion": "12.42.2",
+    "next": "16.2.10",
+    "openai": "7.4.0",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "typescript": "5.9.3",
+    "vitest": "4.1.10"
+  }
+}

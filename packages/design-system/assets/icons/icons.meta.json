@@ -1,0 +1,981 @@
+{
+  "$schema": "../schema/icons-meta.json",
+  "version": "0.1.0",
+  "generatedAt": "2026-08-04T10:21:24.000Z",
+  "canvases": [
+    16,
+    24
+  ],
+  "categories": {
+    "action": {
+      "count": 15,
+      "canvas": 24
+    },
+    "area": {
+      "count": 5,
+      "canvas": 24
+    },
+    "base": {
+      "count": 45,
+      "canvas": 24
+    },
+    "category": {
+      "count": 14,
+      "canvas": 24
+    },
+    "discount": {
+      "count": 3,
+      "canvas": 24
+    },
+    "social": {
+      "count": 11,
+      "canvas": 24
+    },
+   "social-monochrome": {
+      "count": 7,
+      "canvas": 24
+    },
+    "system": {
+      "count": 17,
+      "canvas": 16
+    }
+  },
+  "icons": [
+    {
+      "name": "arrow-left",
+      "category": "action",
+      "path": "assets/icons/action/arrow-left.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "1b434d047a"
+    },
+    {
+      "name": "arrow-right",
+      "category": "action",
+      "path": "assets/icons/action/arrow-right.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "87ea8e81a4"
+    },
+    {
+      "name": "arrow-up",
+      "category": "action",
+      "path": "assets/icons/action/arrow-up.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "61e39a4be4"
+    },
+    {
+      "name": "camera",
+      "category": "action",
+      "path": "assets/icons/action/camera.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "811a237322"
+    },
+    {
+      "name": "cart-add",
+      "category": "action",
+      "path": "assets/icons/action/cart-add.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "e20b1ba093"
+    },
+    {
+      "name": "clear-fill",
+      "category": "action",
+      "path": "assets/icons/action/clear-fill.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "52072e71b9"
+    },
+    {
+      "name": "close",
+      "category": "action",
+      "path": "assets/icons/action/close.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "e1695b4555"
+    },
+    {
+      "name": "delete",
+      "category": "action",
+      "path": "assets/icons/action/delete.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "2400814605"
+    },
+    {
+      "name": "heart",
+      "category": "action",
+      "path": "assets/icons/action/heart.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "d3a77e3078"
+    },
+    {
+      "name": "information-line",
+      "category": "action",
+      "path": "assets/icons/action/information-line.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "0e131786b7"
+    },
+    {
+      "name": "post-drafts",
+      "category": "action",
+      "path": "assets/icons/action/post-drafts.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "ce7ffe3c87"
+    },
+    {
+      "name": "scan",
+      "category": "action",
+      "path": "assets/icons/action/scan.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "75a7de35b8"
+    },
+    {
+      "name": "search",
+      "category": "action",
+      "path": "assets/icons/action/search.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "713e8c3ef0"
+    },
+    {
+      "name": "share",
+      "category": "action",
+      "path": "assets/icons/action/share.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "142aa4fb5a"
+    },
+    {
+      "name": "sign-out",
+      "category": "action",
+      "path": "assets/icons/action/sign-out.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "9a1831c548"
+    },
+    {
+      "name": "canada",
+      "category": "area",
+      "path": "assets/icons/area/canada.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "1fa9cf5928"
+    },
+    {
+      "name": "china",
+      "category": "area",
+      "path": "assets/icons/area/china.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "76d0e29976"
+    },
+    {
+      "name": "japan",
+      "category": "area",
+      "path": "assets/icons/area/japan.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "e93a5b7a59"
+    },
+    {
+      "name": "korea",
+      "category": "area",
+      "path": "assets/icons/area/korea.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "4d9662e9e0"
+    },
+    {
+      "name": "united-states",
+      "category": "area",
+      "path": "assets/icons/area/united-states.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "1e16839cec"
+    },
+    {
+      "name": "account",
+      "category": "base",
+      "path": "assets/icons/base/account.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "bcbf852b53"
+    },
+    {
+      "name": "all",
+      "category": "base",
+      "path": "assets/icons/base/all.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "11d08bdaa6"
+    },
+    {
+      "name": "amount",
+      "category": "base",
+      "path": "assets/icons/base/amount.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "f94268d6ae"
+    },
+    {
+      "name": "authentic-fill",
+      "category": "base",
+      "path": "assets/icons/base/authentic-fill.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "5ebfbe4dd5"
+    },
+    {
+      "name": "bank-card-fill",
+      "category": "base",
+      "path": "assets/icons/base/bank-card-fill.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "e02f0572a2"
+    },
+    {
+      "name": "bank-card",
+      "category": "base",
+      "path": "assets/icons/base/bank-card.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "00dd2a314d"
+    },
+    {
+      "name": "brand",
+      "category": "base",
+      "path": "assets/icons/base/brand.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "dd45acb6b9"
+    },
+    {
+      "name": "cart",
+      "category": "base",
+      "path": "assets/icons/base/cart.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "d27e211c31"
+    },
+    {
+      "name": "chat",
+      "category": "base",
+      "path": "assets/icons/base/chat.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "340fc0f654"
+    },
+    {
+      "name": "coupons",
+      "category": "base",
+      "path": "assets/icons/base/coupons.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "93f0c1f87d"
+    },
+    {
+      "name": "customer-service",
+      "category": "base",
+      "path": "assets/icons/base/customer-service.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "92734e3515"
+    },
+    {
+      "name": "delivery-fill",
+      "category": "base",
+      "path": "assets/icons/base/delivery-fill.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "9977c8a273"
+    },
+    {
+      "name": "discount-fill",
+      "category": "base",
+      "path": "assets/icons/base/discount-fill.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "9f664f2634"
+    },
+    {
+      "name": "discount",
+      "category": "base",
+      "path": "assets/icons/base/discount.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "de86d2260a"
+    },
+    {
+      "name": "follow-yami",
+      "category": "base",
+      "path": "assets/icons/base/follow-yami.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "54b852fbf2"
+    },
+    {
+      "name": "gift-card-balance",
+      "category": "base",
+      "path": "assets/icons/base/gift-card-balance.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "126dc09fc5"
+    },
+    {
+      "name": "gift",
+      "category": "base",
+      "path": "assets/icons/base/gift.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "44a7f35c34"
+    },
+    {
+      "name": "image",
+      "category": "base",
+      "path": "assets/icons/base/image.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "d90e41a452"
+    },
+    {
+      "name": "information-fill",
+      "category": "base",
+      "path": "assets/icons/base/information-fill.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "ca8c521192"
+    },
+    {
+      "name": "join-yami",
+      "category": "base",
+      "path": "assets/icons/base/join-yami.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "bb0821192a"
+    },
+    {
+      "name": "language",
+      "category": "base",
+      "path": "assets/icons/base/language.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "df26885279"
+    },
+    {
+      "name": "location",
+      "category": "base",
+      "path": "assets/icons/base/location.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "055087b208"
+    },
+    {
+      "name": "lock-fill",
+      "category": "base",
+      "path": "assets/icons/base/lock-fill.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "5b09a2dbbe"
+    },
+    {
+      "name": "message",
+      "category": "base",
+      "path": "assets/icons/base/message.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "4ecff54dfc"
+    },
+    {
+      "name": "mute",
+      "category": "base",
+      "path": "assets/icons/base/mute.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "664052d8cc"
+    },
+    {
+      "name": "notice",
+      "category": "base",
+      "path": "assets/icons/base/notice.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "0f62af42fa"
+    },
+    {
+      "name": "official-fill",
+      "category": "base",
+      "path": "assets/icons/base/official-fill.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "ce65bfb6af"
+    },
+    {
+      "name": "order",
+      "category": "base",
+      "path": "assets/icons/base/order.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "19fea4797a"
+    },
+    {
+      "name": "pause-fill",
+      "category": "base",
+      "path": "assets/icons/base/pause-fill.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "87ced54088"
+    },
+    {
+      "name": "payment-fill",
+      "category": "base",
+      "path": "assets/icons/base/payment-fill.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "83dd73932f"
+    },
+    {
+      "name": "placeholder",
+      "category": "base",
+      "path": "assets/icons/base/placeholder.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "db5ba9ec6c"
+    },
+    {
+      "name": "play-fill",
+      "category": "base",
+      "path": "assets/icons/base/play-fill.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "c15db811d1"
+    },
+    {
+      "name": "points",
+      "category": "base",
+      "path": "assets/icons/base/points.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "67f35da13d"
+    },
+    {
+      "name": "protection-fill",
+      "category": "base",
+      "path": "assets/icons/base/protection-fill.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "ddc859b974"
+    },
+    {
+      "name": "protection-line",
+      "category": "base",
+      "path": "assets/icons/base/protection-line.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "4b15466546"
+    },
+    {
+      "name": "refund-fill",
+      "category": "base",
+      "path": "assets/icons/base/refund-fill.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "d9aeac8349"
+    },
+    {
+      "name": "reorder",
+      "category": "base",
+      "path": "assets/icons/base/reorder.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "a6b525e44e"
+    },
+    {
+      "name": "restock",
+      "category": "base",
+      "path": "assets/icons/base/restock.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "7f02e27955"
+    },
+    {
+      "name": "returns-fill",
+      "category": "base",
+      "path": "assets/icons/base/returns-fill.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "5197413a4c"
+    },
+    {
+      "name": "returns",
+      "category": "base",
+      "path": "assets/icons/base/returns.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "27f0286d1a"
+    },
+    {
+      "name": "settings",
+      "category": "base",
+      "path": "assets/icons/base/settings.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "671be81b64"
+    },
+    {
+      "name": "sound-on",
+      "category": "base",
+      "path": "assets/icons/base/sound-on.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "a8eda9cea1"
+    },
+    {
+      "name": "upgrade",
+      "category": "base",
+      "path": "assets/icons/base/upgrade.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "08c4b680af"
+    },
+    {
+      "name": "warning-fill",
+      "category": "base",
+      "path": "assets/icons/base/warning-fill.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "9dfb4af4ea"
+    },
+    {
+      "name": "zipcode",
+      "category": "base",
+      "path": "assets/icons/base/zipcode.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "ecfac5069e"
+    },
+    {
+      "name": "beauty",
+      "category": "category",
+      "path": "assets/icons/category/beauty.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "da89bebc63"
+    },
+    {
+      "name": "best-sellers",
+      "category": "category",
+      "path": "assets/icons/category/best-sellers.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "928c6aa3f0"
+    },
+    {
+      "name": "beverage",
+      "category": "category",
+      "path": "assets/icons/category/beverage.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "ed810a6115"
+    },
+    {
+      "name": "clothing",
+      "category": "category",
+      "path": "assets/icons/category/clothing.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "4c4bfc5645"
+    },
+    {
+      "name": "electronics",
+      "category": "category",
+      "path": "assets/icons/category/electronics.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "e9444875aa"
+    },
+    {
+      "name": "grocery",
+      "category": "category",
+      "path": "assets/icons/category/grocery.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "c67bb65221"
+    },
+    {
+      "name": "health",
+      "category": "category",
+      "path": "assets/icons/category/health.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "80721f74b0"
+    },
+    {
+      "name": "home",
+      "category": "category",
+      "path": "assets/icons/category/home.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "852ed98962"
+    },
+    {
+      "name": "makeup",
+      "category": "category",
+      "path": "assets/icons/category/makeup.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "2dbe44c4e7"
+    },
+    {
+      "name": "matcha",
+      "category": "category",
+      "path": "assets/icons/category/matcha.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "2df793fdf8"
+    },
+    {
+      "name": "new",
+      "category": "category",
+      "path": "assets/icons/category/new.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "90294aa7fe"
+    },
+    {
+      "name": "snack-1",
+      "category": "category",
+      "path": "assets/icons/category/snack-1.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "dea9c563b9"
+    },
+    {
+      "name": "snack-2",
+      "category": "category",
+      "path": "assets/icons/category/snack-2.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "ea9d1bd685"
+    },
+    {
+      "name": "toys-and-kids",
+      "category": "category",
+      "path": "assets/icons/category/toys-and-kids.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "5a6a7fefd1"
+    },
+    {
+      "name": "code",
+      "category": "discount",
+      "path": "assets/icons/discount/code.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "2295fb71b9"
+    },
+    {
+      "name": "coupon",
+      "category": "discount",
+      "path": "assets/icons/discount/coupon.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "ed5fc2b4ba"
+    },
+    {
+      "name": "gift",
+      "category": "discount",
+      "path": "assets/icons/discount/gift.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "38f8ce7e17"
+    },
+    {
+      "name": "apple",
+      "category": "social",
+      "path": "assets/icons/social/apple.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "780ec6fcd2"
+    },
+    {
+      "name": "facebook",
+      "category": "social",
+      "path": "assets/icons/social/facebook.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "a4c14a3c21"
+    },
+    {
+      "name": "google",
+      "category": "social",
+      "path": "assets/icons/social/google.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "dcde27238a"
+    },
+    {
+      "name": "google-play",
+      "category": "social",
+      "path": "assets/icons/social/google-play.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "f3ae8f4447"
+    },
+    {
+      "name": "instagram",
+      "category": "social",
+      "path": "assets/icons/social/instagram.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "991e410ad9"
+    },
+    {
+      "name": "moments",
+      "category": "social",
+      "path": "assets/icons/social/moments.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "569e0764f7"
+    },
+    {
+      "name": "pinterest",
+      "category": "social",
+      "path": "assets/icons/social/pinterest.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "31eb72f2cd"
+    },
+    {
+      "name": "redbook",
+      "category": "social",
+      "path": "assets/icons/social/redbook.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "79b52df596"
+    },
+    {
+      "name": "wechat",
+      "category": "social",
+      "path": "assets/icons/social/wechat.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "8e8d4836fa"
+    },
+    {
+      "name": "weibo",
+      "category": "social",
+      "path": "assets/icons/social/weibo.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "31531f2b1f"
+    },
+    {
+      "name": "youtube",
+      "category": "social",
+     "path": "assets/icons/social/youtube.svg",
+     "width": 24,
+     "height": 24,
+      "sha1": "c88dc23c2d"
+    },
+    {
+      "name": "facebook",
+      "category": "social-monochrome",
+      "path": "assets/icons/social-monochrome/facebook.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "e4b3960cf5"
+    },
+    {
+      "name": "instagram",
+      "category": "social-monochrome",
+      "path": "assets/icons/social-monochrome/instagram.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "ad78b3dd35"
+    },
+    {
+      "name": "reddit",
+      "category": "social-monochrome",
+      "path": "assets/icons/social-monochrome/reddit.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "b22092d20a"
+    },
+    {
+      "name": "twitter",
+      "category": "social-monochrome",
+      "path": "assets/icons/social-monochrome/twitter.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "e76f1d3f59"
+    },
+    {
+      "name": "wechat",
+      "category": "social-monochrome",
+      "path": "assets/icons/social-monochrome/wechat.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "a72fce72a1"
+    },
+    {
+      "name": "weibo",
+      "category": "social-monochrome",
+      "path": "assets/icons/social-monochrome/weibo.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "52b0f4d373"
+    },
+    {
+      "name": "youtube",
+      "category": "social-monochrome",
+      "path": "assets/icons/social-monochrome/youtube.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "9e68e2c395"
+    },
+    {
+      "name": "add",
+      "category": "system",
+      "path": "assets/icons/system/add.svg",
+      "width": 16,
+      "height": 16,
+      "sha1": "6150526e57"
+    },
+    {
+      "name": "ai-fill",
+      "category": "system",
+      "path": "assets/icons/system/ai-fill.svg",
+      "width": 16,
+      "height": 16,
+      "sha1": "254d776b42"
+    },
+    {
+      "name": "area",
+      "category": "system",
+      "path": "assets/icons/system/area.svg",
+      "width": 16,
+      "height": 16,
+      "sha1": "6c8048f51c"
+    },
+    {
+      "name": "arrow-down-fill",
+      "category": "system",
+      "path": "assets/icons/system/arrow-down-fill.svg",
+      "width": 16,
+      "height": 16,
+      "sha1": "497208bee9"
+    },
+    {
+      "name": "arrow-down",
+      "category": "system",
+      "path": "assets/icons/system/arrow-down.svg",
+      "width": 16,
+      "height": 16,
+      "sha1": "78459b464d"
+    },
+    {
+      "name": "arrow-left",
+      "category": "system",
+      "path": "assets/icons/system/arrow-left.svg",
+      "width": 16,
+      "height": 16,
+      "sha1": "1958716994"
+    },
+    {
+      "name": "arrow-right",
+      "category": "system",
+      "path": "assets/icons/system/arrow-right.svg",
+      "width": 16,
+      "height": 16,
+      "sha1": "e65493c1db"
+    },
+    {
+      "name": "arrow-up-fill",
+      "category": "system",
+      "path": "assets/icons/system/arrow-up-fill.svg",
+      "width": 16,
+      "height": 16,
+      "sha1": "0764489112"
+    },
+    {
+      "name": "arrow-up",
+      "category": "system",
+      "path": "assets/icons/system/arrow-up.svg",
+      "width": 16,
+      "height": 16,
+      "sha1": "abaa498731"
+    },
+    {
+      "name": "chevron-down",
+      "category": "system",
+      "path": "assets/icons/system/chevron-down.svg",
+      "width": 16,
+      "height": 16,
+      "sha1": "7e276bcee8"
+    },
+    {
+      "name": "chevron-right",
+      "category": "system",
+      "path": "assets/icons/system/chevron-right.svg",
+      "width": 16,
+      "height": 16,
+      "sha1": "1ccbdc0152"
+    },
+    {
+      "name": "chevron-up-alt",
+      "category": "system",
+      "path": "assets/icons/system/chevron-up-alt.svg",
+      "width": 16,
+      "height": 16,
+      "sha1": "de05e3c84a"
+    },
+    {
+      "name": "chevron-up",
+      "category": "system",
+      "path": "assets/icons/system/chevron-up.svg",
+      "width": 16,
+      "height": 16,
+      "sha1": "47ee90ccbd"
+    },
+    {
+      "name": "close",
+      "category": "system",
+      "path": "assets/icons/system/close.svg",
+      "width": 16,
+      "height": 16,
+      "sha1": "3af5069806"
+    },
+    {
+      "name": "loading-black",
+      "category": "system",
+      "path": "assets/icons/system/loading-black.svg",
+      "width": 16,
+      "height": 16,
+      "sha1": "de263ac21d"
+    },
+    {
+      "name": "minus",
+      "category": "system",
+      "path": "assets/icons/system/minus.svg",
+      "width": 16,
+      "height": 16,
+      "sha1": "a3a9c158a8"
+    },
+    {
+      "name": "star-fill",
+      "category": "system",
+      "path": "assets/icons/system/star-fill.svg",
+      "width": 16,
+      "height": 16,
+      "sha1": "dcd4903968"
+    }
+  ]
+}

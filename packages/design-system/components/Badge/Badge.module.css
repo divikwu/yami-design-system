@@ -1,0 +1,147 @@
+/* Badge.module.css
+ *
+ * 6-color semantic badge system. Colors map to --badge-bg-* / --badge-fg-*
+ * tokens. Two emphasis levels (primary = solid, secondary = tinted).
+ *
+ * Variant pattern (Phase 12b-1c part 2/2):
+ *   color    → set as data-color="red|blue|green|purple|yellow|neutral"
+ *   emphasis → set as data-emphasis="primary|secondary"
+ * CSS uses attribute selectors so Phase 1c Babel plugin can reverse-lookup
+ * tokens by attribute. The double-axis variant (color × emphasis) lands
+ * on a compound selector like .badge[data-emphasis='primary'][data-color='red'].
+ *
+ * Rules enforced by CSS:
+ *   - numerals-font (digits in badges use GT Walsheim via font-family-ios)
+ *   - no-custom-radii (--radius-tag-primary = 4px)
+ * Rules enforced by usage.md (not CSS):
+ *   - no-emoji (no emoji inside badge text)
+ *   - red-usage (red badge only for promotion/urgency)
+ */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* Figma itemSpacing = 2px around the flag prefix. No --space token = 2px;
+     --space-025 is the only 2px in the scale. */
+  gap: var(--space-025);
+
+  font-family: var(--font-family-ios);
+  font-weight: var(--font-weight-normal);
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+  letter-spacing: var(--letter-spacing-normal);
+
+  border-radius: var(--radius-tag-primary);
+  /* Clip children to the 4px corner. Specifically needed for the flag
+     prefix (exclusive / choice) whose SVG has 90° left corners — without
+     overflow:hidden, those square corners poke past the badge's rounding. */
+  overflow: hidden;
+
+  height: 20px;
+  padding: 0 var(--space-050);
+}
+
+@media (min-width: 1024px) {
+  .badge {
+    height: 24px;
+    font-size: 14px;
+    line-height: 20px;
+  }
+}
+
+/* ─── Flag prefix (exclusive / choice types) ────────────────────── */
+/*
+ * Figma's `Type=Exclusive` (purple) and `Type=Choice` (blue) badges have
+ * a flush-left YAMI flag prefix that bleeds to the badge's left edge.
+ * Mirrors assets/badges/flag-cap-{purple,blue}.svg (26×20).
+ * When `data-flag` is set, the left padding is killed so the flag SVG
+ * sits flush; the SVG's built-in right-side notch creates the visual
+ * handoff into the tinted text region.
+ */
+.badge[data-flag] {
+  padding-left: 0;
+}
+
+.flag {
+  flex-shrink: 0;
+  /* Stretch to badge height so the flag follows the 20px mobile / 24px PC
+     badge height without per-breakpoint SVG overrides. */
+  height: 100%;
+  width: auto;
+  display: block;
+  margin-right: -2px;
+}
+
+/* ─── Primary (solid bg) — high-contrast, attention-grabbing ───── */
+
+.badge[data-emphasis="primary"][data-color="red"] {
+  background-color: var(--badge-bg-primary-red);
+  color: var(--badge-fg-primary-red);
+}
+.badge[data-emphasis="primary"][data-color="blue"] {
+  background-color: var(--badge-bg-primary-blue);
+  color: var(--badge-fg-default-inverse);
+}
+.badge[data-emphasis="primary"][data-color="green"] {
+  background-color: var(--badge-bg-primary-green);
+  color: var(--badge-fg-default-inverse);
+}
+.badge[data-emphasis="primary"][data-color="purple"] {
+  background-color: var(--badge-bg-primary-purple);
+  color: var(--badge-fg-default-inverse);
+}
+.badge[data-emphasis="primary"][data-color="yellow"] {
+  background-color: var(--badge-bg-primary-yellow);
+  color: var(--badge-fg-default-inverse);
+}
+.badge[data-emphasis="primary"][data-color="neutral"] {
+  background-color: var(--badge-bg-primary-neutral);
+  color: var(--badge-fg-default-inverse);
+}
+
+/* ─── Secondary (tinted bg + saturated fg) — softer context ────── */
+
+.badge[data-emphasis="secondary"][data-color="red"] {
+  background-color: var(--badge-bg-secondary-red);
+  color: var(--badge-fg-secondary-red);
+}
+.badge[data-emphasis="secondary"][data-color="blue"] {
+  background-color: var(--badge-bg-secondary-blue);
+  color: var(--badge-fg-secondary-blue);
+}
+.badge[data-emphasis="secondary"][data-color="green"] {
+  background-color: var(--badge-bg-secondary-green);
+  color: var(--badge-fg-secondary-green);
+}
+.badge[data-emphasis="secondary"][data-color="purple"] {
+  background-color: var(--badge-bg-secondary-purple);
+  color: var(--badge-fg-secondary-purple);
+}
+.badge[data-emphasis="secondary"][data-color="yellow"] {
+  background-color: var(--badge-bg-secondary-yellow);
+  color: var(--badge-fg-secondary-yellow);
+}
+.badge[data-emphasis="secondary"][data-color="neutral"] {
+  background-color: var(--badge-bg-tertiary-neutral);
+  color: var(--badge-fg-default);
+}
+
+/* Figma's plain semantic shortcuts use neutral ink on their tinted fills.
+ * Flag-bearing exclusive / choice and Best Sellers keep their color-specific
+ * foregrounds, so this override is intentionally limited to these five types. */
+.badge[data-emphasis="secondary"][data-type="sale"],
+.badge[data-emphasis="secondary"][data-type="low-price"],
+.badge[data-emphasis="secondary"][data-type="discount"],
+.badge[data-emphasis="secondary"][data-type="new"],
+.badge[data-emphasis="secondary"][data-type="hot"] {
+  color: var(--text-primary);
+}
+
+/* Price badge: white fill with hairline outline. */
+.badge[data-type="price"][data-color][data-emphasis] {
+  background-color: var(--surface-primary);
+  color: var(--text-primary);
+  box-shadow: inset 0 0 0 var(--stroke-default) var(--border-default);
+}

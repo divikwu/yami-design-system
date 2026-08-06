@@ -1,0 +1,70 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "space": {
+    "0": {
+      "$type": "dimension",
+      "$value": "0",
+      "$description": "无间距。用于贴边布局与不需要留白的元素关系。"
+    },
+    "100": {
+      "$type": "dimension",
+      "$value": "8px",
+      "$description": "默认紧凑间距。适用于常规组件内边距与基础元素间距。"
+    },
+    "150": {
+      "$type": "dimension",
+      "$value": "12px",
+      "$description": "中小间距。适用于表单项、卡片内容与列表内元素间距。"
+    },
+    "200": {
+      "$type": "dimension",
+      "$value": "16px",
+      "$description": "默认间距。适用于常规区块留白与组件间距。"
+    },
+    "250": {
+      "$type": "dimension",
+      "$value": "20px",
+      "$description": "中间距。适用于需要略宽松节奏的组件与内容分组。"
+    },
+    "300": {
+      "$type": "dimension",
+      "$value": "24px",
+      "$description": "中大间距。适用于卡片区块、模块内部与内容分层留白。"
+    },
+    "400": {
+      "$type": "dimension",
+      "$value": "32px",
+      "$description": "大间距。适用于模块级留白与主要分区间距。"
+    },
+    "500": {
+      "$type": "dimension",
+      "$value": "40px",
+      "$description": "较大间距。适用于重点区块之间的留白与布局分隔。"
+    },
+    "600": {
+      "$type": "dimension",
+      "$value": "48px",
+      "$description": "超大间距。适用于大容器留白与页面级分区。"
+    },
+    "800": {
+      "$type": "dimension",
+      "$value": "64px",
+      "$description": "页面级大留白。适用于大区块之间的明显分隔。"
+    },
+    "1000": {
+      "$type": "dimension",
+      "$value": "80px",
+      "$description": "页面级超大留白。适用于首屏与大型版块之间的强分隔。"
+    },
+    "025": {
+      "$type": "dimension",
+      "$value": "2px",
+      "$description": "超小间距。适用于细微分隔、图标与文字的紧贴关系。"
+    },
+    "050": {
+      "$type": "dimension",
+      "$value": "4px",
+      "$description": "小间距。适用于紧凑型组件内部留白与近距离元素间距。"
+    }
+  }
+}

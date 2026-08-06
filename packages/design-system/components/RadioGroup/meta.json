@@ -1,0 +1,85 @@
+{
+  "$schema": "../../../schema/component.json",
+  "name": "RadioGroup",
+  "category": "form",
+  "status": "beta",
+  "version": "0.1.0",
+  "description": "YAMI exclusive-selection group. RadioGroupItem mirrors the Forms Figma Radio Button while Base UI supplies group state, roving focus, ARIA, and native form participation.",
+  "figma": {
+    "fileKey": "6oOAy72DBff4P6NzJYc2hi",
+    "nodeId": "4795:90633",
+    "componentKey": "8012bc4680692313a0305812a3b3774e6b9252e5",
+    "pageNodeId": "2857:32277",
+    "notes": "Figma Radio Button is an item-level 24x24 set. RadioGroup is a code-side accessibility composition.",
+    "stateMapping": "Property 1=Default/Hover/Selected/Disable_Selected/Disable_Unselected maps to unchecked hover, checked, checked+disabled, and unchecked+disabled."
+  },
+  "variants": {
+    "state": ["default", "hover", "selected", "disabled-selected", "disabled-unselected", "focus-visible"]
+  },
+  "exports": ["RadioGroupItem"],
+  "composition": {
+    "requiredSlots": ["radio-group", "radio-group-item"],
+    "requiredChildren": ["RadioGroupItem"],
+    "allowedChildren": ["RadioGroupItem"],
+    "notes": [
+      "Render every RadioGroupItem within one RadioGroup so exclusive selection and arrow-key navigation remain intact.",
+      "Compose visible labels with native label elements; do not replace RadioGroupItem with a custom button."
+    ]
+  },
+  "props": {
+    "value": { "type": "string", "required": false, "description": "Controlled selected group value." },
+    "defaultValue": { "type": "string", "required": false, "description": "Initial selected value for uncontrolled use." },
+    "onValueChange": { "type": "function", "required": false, "description": "Called when an enabled item becomes selected." },
+    "name": { "type": "string", "required": false, "description": "Native form field name shared by group items." },
+    "disabled": { "type": "boolean", "required": false, "default": false, "description": "Disables the complete group." },
+    "required": { "type": "boolean", "required": false, "default": false },
+    "RadioGroupItem.value": { "type": "string", "required": true, "description": "Unique value for this option." },
+    "RadioGroupItem.disabled": { "type": "boolean", "required": false, "default": false, "description": "Disables one option." }
+  },
+  "rules": {
+    "focus": { "ruleId": "focus-style", "note": "Uses a 2px --border-focus ring with 2px offset." },
+    "disabled": { "ruleId": "no-opacity-disabled", "note": "Disabled states use --fill-disabled and semantic background colors." },
+    "radii": { "ruleId": "no-custom-radii", "note": "Circular geometry uses --radius-button-primary rather than a raw radius." },
+    "tapTarget": { "ruleId": "tap-target", "note": "20px visible circle inside 24px frame with an expanded 44px pointer target." },
+    "color": { "ruleId": "semantic-color-only", "note": "Selected state is neutral --text-primary, not operational or brand red." }
+  },
+  "tokens": [
+    "--background-primary",
+    "--background-secondary",
+    "--surface-secondary",
+    "--fill-disabled",
+    "--text-primary",
+    "--text-secondary",
+    "--border-focus",
+    "--radius-button-primary",
+    "--space-025",
+    "--space-100",
+    "--space-150",
+    "--space-300",
+    "--stroke-thick"
+  ],
+  "tokenBindings": {
+    "--background-primary": { "property": "background", "selector": ".item::before" },
+    "--surface-secondary": { "property": "background", "selector": ".item:hover:not([data-disabled])::before" },
+    "--text-primary": { "property": "border-color/background", "selector": ".item[data-checked]::before, .dot" },
+    "--text-secondary": { "property": "border-color", "selector": ".item::before" },
+    "--fill-disabled": { "property": "border-color/background", "selector": ".item[data-disabled]::before, .item[data-disabled] .dot" },
+    "--border-focus": { "property": "outline-color", "selector": ".item:focus-visible" },
+    "--radius-button-primary": { "property": "border-radius", "selector": ".item::before, .dot" }
+  },
+  "accessibility": {
+    "role": "radiogroup with radio children",
+    "wcagLevel": "AA",
+    "tapTargetMin": 44,
+    "keyboardNav": ["tab", "shift+tab", "arrow-left", "arrow-right", "arrow-up", "arrow-down"],
+    "ariaPattern": "radiogroup",
+    "notes": "Base UI preserves exclusive selection, roving focus, and hidden native form inputs. Name both the group and every item."
+  },
+  "dependencies": { "runtime": ["react", "@base-ui/react"], "peer": ["@base-ui/react"], "devOnly": [] },
+  "usageRef": "./usage.md",
+  "examples": [
+    "./examples.tsx#PaymentMethodRadioGroup",
+    "./examples.tsx#DisabledRadioGroup",
+    "./examples.tsx#ControlledRadioGroup"
+  ]
+}

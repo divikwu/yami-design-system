@@ -1,0 +1,16 @@
+@font-face {
+  font-family: "GT Walsheim";
+  src: url("/assets/fonts/GT-Walsheim-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "GT Walsheim";
+  src: url("/assets/fonts/GT-Walsheim-Medium.woff2") format("woff2");
+  font-weight: 600;
+  font-display: swap;
+}
+html, body, #storybook-root { min-height: 100%; }
+body { margin: 0; }
+.yami-story-root { min-height: 100vh; color: var(--text-primary); background: var(--background-primary, #fff); }
+[data-theme="dark"] { color-scheme: dark; --background-primary: #161616; --surface-primary: #222; --text-primary: #fff; --text-secondary: #c7c7c7; }

@@ -1,0 +1,125 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "brand": {
+    "primary": { "$type": "color", "$value": "{color.brand.red}" },
+    "secondary": { "$type": "color", "$value": "{color.white.900}" },
+    "tertiary": { "$type": "color", "$value": "{color.red.950}" },
+    "inverse": { "$type": "color", "$value": "{color.black.900}" }
+  },
+  "text": {
+    "on-emphasis": { "$type": "color", "$value": "{color.white.1000}" },
+    "emphasis": { "$type": "color", "$value": "{color.red.400}" },
+    "emphasis-inverse": { "$type": "color", "$value": "{color.red.500}" },
+    "primary": { "$type": "color", "$value": "{color.white.1000}" },
+    "primary-inverse": { "$type": "color", "$value": "{color.black.1000}" },
+    "secondary": { "$type": "color", "$value": "{color.white.600}" },
+    "secondary-inverse": { "$type": "color", "$value": "{color.black.600}" },
+    "disabled": { "$type": "color", "$value": "{color.white.400}" },
+    "disabled-inverse": { "$type": "color", "$value": "{color.black.400}" },
+    "success": { "$type": "color", "$value": "{color.emerald.400}" },
+    "warning": { "$type": "color", "$value": "{color.yellow.400}" },
+    "error": { "$type": "color", "$value": "{color.red.400}" },
+    "info": { "$type": "color", "$value": "{color.blue.400}" }
+  },
+  "background": {
+    "primary": { "$type": "color", "$value": "{color.neutral.950}" },
+    "secondary": { "$type": "color", "$value": "{color.neutral.900}" }
+  },
+  "surface": {
+    "primary": { "$type": "color", "$value": "{color.neutral.900}" },
+    "secondary": { "$type": "color", "$value": "{color.neutral.800}" },
+    "inverse": { "$type": "color", "$value": "{color.white.1000}" }
+  },
+  "fill": {
+    "primary": { "$type": "color", "$value": "{color.neutral.900}" },
+    "secondary": { "$type": "color", "$value": "{color.neutral.800}" },
+    "tertiary": { "$type": "color", "$value": "{color.neutral.950}" },
+    "disabled": { "$type": "color", "$value": "{color.neutral.700}" },
+    "inverse": { "$type": "color", "$value": "{color.white.1000}" },
+    "skeleton": { "$type": "color", "$value": "{color.white.200}" },
+    "skeleton-inverse": { "$type": "color", "$value": "{color.black.200}" },
+    "success-primary": { "$type": "color", "$value": "{color.emerald.400}" },
+    "success-secondary": { "$type": "color", "$value": "{color.emerald.950}" },
+    "warning-primary": { "$type": "color", "$value": "{color.yellow.400}" },
+    "warning-secondary": { "$type": "color", "$value": "{color.amber.950}" },
+    "error-primary": { "$type": "color", "$value": "{color.red.400}" },
+    "error-secondary": { "$type": "color", "$value": "{color.red.950}" },
+    "info-primary": { "$type": "color", "$value": "{color.blue.400}" },
+    "info-secondary": { "$type": "color", "$value": "{color.blue.950}" },
+    "promotion-primary": { "$type": "color", "$value": "{color.red.400}" },
+    "promotion-secondary": { "$type": "color", "$value": "{color.red.950}" },
+    "highlight": { "$type": "color", "$value": "{color.yellow.400}" }
+  },
+  "button": {
+    "emphasis": { "$type": "color", "$value": "{color.red.500}" },
+    "emphasis-active": { "$type": "color", "$value": "{color.red.600}" },
+    "emphasis-inverse": { "$type": "color", "$value": "{color.red.500}" },
+    "emphasis-active-inverse": { "$type": "color", "$value": "{color.red.600}" },
+    "primary": { "$type": "color", "$value": "{color.white.1000}" },
+    "primary-active": { "$type": "color", "$value": "{color.white.800}" },
+    "primary-inverse": { "$type": "color", "$value": "{color.black.900}" },
+    "primary-active-inverse": { "$type": "color", "$value": "{color.black.1000}" },
+    "secondary": { "$type": "color", "$value": "{color.white.200}" },
+    "secondary-active": { "$type": "color", "$value": "{color.white.300}" },
+    "secondary-inverse": { "$type": "color", "$value": "{color.black.100}" },
+    "secondary-active-inverse": { "$type": "color", "$value": "{color.black.200}" },
+    "tertiary": { "$type": "color", "$value": "{color.white.0}" },
+    "tertiary-active": { "$type": "color", "$value": "{color.white.100}" },
+    "tertiary-inverse": { "$type": "color", "$value": "{color.black.0}" },
+    "tertiary-active-inverse": { "$type": "color", "$value": "{color.black.100}" },
+    "disabled": { "$type": "color", "$value": "{color.white.400}" },
+    "disabled-inverse": { "$type": "color", "$value": "{color.neutral.200}" }
+  },
+  "border": {
+    "default": { "$type": "color", "$value": "{color.white.200}" },
+    "default-inverse": { "$type": "color", "$value": "{color.black.200}" },
+    "focus": { "$type": "color", "$value": "{color.white.1000}" },
+    "focus-inverse": { "$type": "color", "$value": "{color.black.900}" },
+    "attention": { "$type": "color", "$value": "{color.red.400}" },
+    "attention-inverse": { "$type": "color", "$value": "{color.red.500}" }
+  },
+  "divider": {
+    "default": { "$type": "color", "$value": "{color.white.200}" },
+    "default-inverse": { "$type": "color", "$value": "{color.black.100}" },
+    "subtle": { "$type": "color", "$value": "{color.white.400}" },
+    "subtle-inverse": { "$type": "color", "$value": "{color.black.400}" },
+    "emphasis": { "$type": "color", "$value": "{color.white.900}" },
+    "emphasis-inverse": { "$type": "color", "$value": "{color.black.900}" }
+  },
+  "badge": {
+    "bg-primary-red": { "$type": "color", "$value": "{color.red.400}" },
+    "bg-secondary-red": { "$type": "color", "$value": "{color.red.950}" },
+    "bg-primary-blue": { "$type": "color", "$value": "{color.blue.400}" },
+    "bg-secondary-blue": { "$type": "color", "$value": "{color.blue.950}" },
+    "bg-primary-green": { "$type": "color", "$value": "{color.emerald.400}" },
+    "bg-secondary-green": { "$type": "color", "$value": "{color.emerald.950}" },
+    "bg-primary-purple": { "$type": "color", "$value": "{color.purple.400}" },
+    "bg-secondary-purple": { "$type": "color", "$value": "{color.purple.950}" },
+    "bg-primary-yellow": { "$type": "color", "$value": "{color.amber.400}" },
+    "bg-secondary-yellow": { "$type": "color", "$value": "{color.amber.950}" },
+    "bg-primary-neutral": { "$type": "color", "$value": "{color.white.1000}" },
+    "bg-secondary-neutral": { "$type": "color", "$value": "{color.neutral.800}" },
+    "bg-tertiary-neutral": { "$type": "color", "$value": "{color.neutral.900}" },
+    "fg-secondary-red": { "$type": "color", "$value": "{color.red.200}" },
+    "fg-secondary-blue": { "$type": "color", "$value": "{color.blue.200}" },
+    "fg-secondary-green": { "$type": "color", "$value": "{color.emerald.200}" },
+    "fg-secondary-purple": { "$type": "color", "$value": "{color.purple.200}" },
+    "fg-secondary-yellow": { "$type": "color", "$value": "{color.amber.200}" },
+    "fg-default": { "$type": "color", "$value": "{color.white.1000}" },
+    "fg-default-inverse": { "$type": "color", "$value": "{color.black.900}" },
+    "fg-primary-red": { "$type": "color", "$value": "{color.black.900}" }
+  },
+  "overlay": {
+    "default": { "$type": "color", "$value": "{color.black.300}" },
+    "scrim": { "$type": "color", "$value": "{color.black.700}" }
+  },
+  "product-card-add": {
+    "surface": { "$type": "color", "$value": "{color.white.900}" },
+    "surface-active-mobile": { "$type": "color", "$value": "{color.neutral.100}" },
+    "surface-active-desktop": { "$type": "color", "$value": "{color.red.500}" },
+    "icon": { "$type": "color", "$value": "{color.black.900}" },
+    "icon-active": { "$type": "color", "$value": "{color.white.1000}" },
+    "border": { "$type": "color", "$value": "{color.black.200}" },
+    "shadow": { "$type": "color", "$value": "{color.black.200}" }
+  }
+}

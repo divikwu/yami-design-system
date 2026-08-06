@@ -1,0 +1,10 @@
+node_modules
+.next
+storybook-static
+test-results
+playwright-report
+coverage
+.env*
+!.env.example
+.vercel
+*.tsbuildinfo

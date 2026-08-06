@@ -1,0 +1,35 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "radius": {
+    "none": {
+      "$type": "dimension",
+      "$value": "0",
+      "$description": "无圆角。用于直角容器、分割型表面与不需要圆角的结构元素。"
+    },
+    "sm": {
+      "$type": "dimension",
+      "$value": "4px",
+      "$description": "小圆角。适用于输入框、标签与紧凑型控件。"
+    },
+    "md": {
+      "$type": "dimension",
+      "$value": "8px",
+      "$description": "默认圆角。适用于按钮、表单控件与常规交互组件。"
+    },
+    "lg": {
+      "$type": "dimension",
+      "$value": "12px",
+      "$description": "中大圆角。适用于卡片、面板与需要更强柔和感的容器。"
+    },
+    "xl": {
+      "$type": "dimension",
+      "$value": "16px",
+      "$description": "大圆角。适用于弹窗、抽屉与高层级容器。"
+    },
+    "full": {
+      "$type": "dimension",
+      "$value": "9999px",
+      "$description": "完全圆角。适用于 pill、胶囊标签、头像与圆形元素。"
+    }
+  }
+}

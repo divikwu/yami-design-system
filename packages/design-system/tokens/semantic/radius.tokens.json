@@ -1,0 +1,48 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "radius": {
+    "surface": {
+      "none": {
+        "$type": "dimension",
+        "$value": "{radius.none}",
+        "$description": "页面级或全宽背景使用的直角圆角设置，适用于需要与屏幕边缘对齐的布局区域"
+      },
+      "default": {
+        "$type": "dimension",
+        "$value": "{radius.lg}",
+        "$description": "页面级主要内容区域的默认圆角，用于大块内容容器，确保整体视觉柔和但不过度装饰。"
+      }
+    },
+    "component": {
+      "none": {
+        "$type": "dimension",
+        "$value": "{radius.none}",
+        "$description": "通用组件在需要保持直角样式时使用，常见于表格、列表或强结构化内容。"
+      },
+      "default": {
+        "$type": "dimension",
+        "$value": "{radius.md}",
+        "$description": "通用 UI 组件的默认圆角，适用于卡片、弹窗、信息块等基础组件。"
+      }
+    },
+    "button": {
+      "emphasis": {
+        "$type": "dimension",
+        "$value": "{radius.md}",
+        "$description": "强操作或次级按钮的默认圆角，用于保持可点击感的同时不过度强调视觉存在感。"
+      },
+      "primary": {
+        "$type": "dimension",
+        "$value": "{radius.full}",
+        "$description": "主按钮或高频操作按钮使用的全圆角样式，用于强化点击引导与品牌识别。"
+      }
+    },
+    "tag": {
+      "primary": {
+        "$type": "dimension",
+        "$value": "{radius.sm}",
+        "$description": "标签、徽标类组件的默认圆角，用于信息标识与状态提示，强调紧凑与轻量感。"
+      }
+    }
+  }
+}

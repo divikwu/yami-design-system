@@ -1,0 +1,103 @@
+import type { ShortcutRailItem } from "./ShortcutRail.types";
+
+export type ShortcutLocale = "zh" | "en";
+
+const iconSources = [
+  new URL("./assets/01-trending.png", import.meta.url).href,
+  new URL("./assets/02-celebrity-shops.png", import.meta.url).href,
+  new URL("./assets/03-new-arrivals.png", import.meta.url).href,
+  new URL("./assets/04-summer-festival.png", import.meta.url).href,
+  new URL("./assets/05-family-wellness.png", import.meta.url).href,
+  new URL("./assets/06-beach-living.png", import.meta.url).href,
+  new URL("./assets/07-save-20.png", import.meta.url).href,
+  new URL("./assets/08-hot-pot.png", import.meta.url).href,
+  new URL("./assets/09-face-masks.png", import.meta.url).href,
+  new URL("./assets/10-better-sleep.png", import.meta.url).href,
+  new URL("./assets/11-baby-favorites.png", import.meta.url).href,
+  new URL("./assets/12-seasonal-hair.png", import.meta.url).href,
+  new URL("./assets/13-easy-meals.png", import.meta.url).href,
+  new URL("./assets/14-travel-list.png", import.meta.url).href,
+  new URL("./assets/15-flash-finds.png", import.meta.url).href,
+  new URL("./assets/16-popular-shops.png", import.meta.url).href,
+  new URL("./assets/17-stock-up.png", import.meta.url).href,
+  new URL("./assets/18-korean-trends.png", import.meta.url).href,
+  new URL("./assets/19-japan-finds.png", import.meta.url).href,
+  new URL("./assets/20-thai-style.png", import.meta.url).href,
+  new URL("./assets/21-weekly-picks.png", import.meta.url).href,
+  new URL("./assets/22-popular-posts.png", import.meta.url).href,
+  new URL("./assets/23-subscribe.png", import.meta.url).href,
+] as const;
+
+export const shortcutCopy = {
+  zh: {
+    ariaLabel: "精选快捷入口",
+    previousLabel: "上一组快捷入口",
+    nextLabel: "下一组快捷入口",
+    labels: [
+      "网红好味",
+      "明星店铺",
+      "人气新品",
+      "夏日祭",
+      "家庭健康舱",
+      "沙滩慢生活",
+      "惊喜送$20",
+      "百味火锅",
+      "面膜护理",
+      "睡眠生活家",
+      "育儿好物季",
+      "换季护发",
+      "一饭封神",
+      "出游必备list",
+      "限时捡漏",
+      "人气店铺",
+      "家庭囤货",
+      "🇰🇷韩系流行",
+      "🇯🇵探物日本",
+      "🇹🇭泰式风情",
+      "本周推荐",
+      "热门种草",
+      "订阅福利",
+    ],
+  },
+  en: {
+    ariaLabel: "Featured shortcuts",
+    previousLabel: "Previous shortcuts",
+    nextLabel: "Next shortcuts",
+    labels: [
+      "Trending",
+      "Celebrity Shops",
+      "New Arrivals",
+      "Summer Festival",
+      "Family Wellness",
+      "Beach Living",
+      "Save $20",
+      "Hot Pot Picks",
+      "Face Masks",
+      "Better Sleep",
+      "Baby Favorites",
+      "Seasonal Hair",
+      "Easy Meals",
+      "Travel List",
+      "Flash Finds",
+      "Popular Shops",
+      "Stock Up",
+      "Korean Trends",
+      "Japan Finds",
+      "Thai Style",
+      "Weekly Picks",
+      "Popular Posts",
+      "Subscribe",
+    ],
+  },
+} as const;
+
+export function createShortcutItems(
+  locale: ShortcutLocale,
+): ShortcutRailItem[] {
+  return shortcutCopy[locale].labels.map((label, index) => ({
+    id: `shortcut-${index + 1}`,
+    label,
+    iconSrc: iconSources[index],
+    href: `#shortcut-${index + 1}`,
+  }));
+}

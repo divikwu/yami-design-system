@@ -1,0 +1,245 @@
+{
+  "$schema": "../../../schema/component.json",
+  "name": "Input",
+  "category": "form",
+  "status": "stable",
+  "version": "0.2.0",
+
+  "description": "YAMI Input Field from Figma `↪ 表单输入 Forms`. Responsive single-line native input with embedded label, value row, clear action, helper/error supporting text, and accessible form semantics.",
+
+  "figma": {
+    "fileKey": "6oOAy72DBff4P6NzJYc2hi",
+    "nodeId": "2857:32277",
+    "componentNodes": {
+      "pcInputField": "3384:23600",
+      "mobileInputField": "3387:24708"
+    }
+  },
+
+  "variants": {
+    "platform": ["mobile", "pc"],
+    "state": [
+      "default",
+      "focused",
+      "typing",
+      "complete",
+      "error",
+      "disabled-filled",
+      "disabled-empty"
+    ]
+  },
+
+  "props": {
+    "label": {
+      "type": "ReactNode",
+      "required": false,
+      "description": "Embedded field label rendered inside the control."
+    },
+    "helperText": {
+      "type": "ReactNode",
+      "required": false,
+      "description": "Supporting text below the input. Hidden when error is present."
+    },
+    "error": {
+      "type": "ReactNode",
+      "required": false,
+      "description": "Error supporting text. Sets aria-invalid, role='alert', and attention border."
+    },
+    "state": {
+      "type": "enum",
+      "values": [
+        "default",
+        "focused",
+        "typing",
+        "complete",
+        "error",
+        "disabled",
+        "disabled-filled",
+        "disabled-empty"
+      ],
+      "required": false,
+      "description": "Visual state override for catalog demos. Product usage normally derives state from value/focus/error/disabled."
+    },
+    "clearable": {
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "Shows the clear-fill action while focus remains inside the field and the input has a value."
+    },
+    "onClear": {
+      "type": "function",
+      "required": false,
+      "description": "Called after the clear action sets the native value to empty and dispatches a bubbling input event."
+    },
+    "leadingIcon": {
+      "type": "ReactNode",
+      "required": false,
+      "description": "Icon/text rendered before the text stack. Use currentColor SVG assets from design-systems/yami/assets/icons."
+    },
+    "trailingIcon": {
+      "type": "ReactNode",
+      "required": false,
+      "description": "Icon/text/action rendered after the text stack. Use currentColor SVG assets from design-systems/yami/assets/icons and keep interactive actions controlled by component state."
+    },
+    "prefix": {
+      "type": "ReactNode",
+      "required": false,
+      "description": "Backward-compatible alias for leadingIcon."
+    },
+    "suffix": {
+      "type": "ReactNode",
+      "required": false,
+      "description": "Backward-compatible alias for trailingIcon."
+    },
+    "fullWidth": {
+      "type": "boolean",
+      "required": false,
+      "default": false
+    },
+    "optional": {
+      "type": "boolean",
+      "required": false,
+      "default": false
+    },
+    "required": {
+      "type": "boolean",
+      "required": false,
+      "description": "Sets native required and renders an aria-hidden visual marker."
+    },
+    "disabled": {
+      "type": "boolean",
+      "required": false,
+      "default": false
+    }
+  },
+
+  "rules": {
+    "focus": {
+      "ruleId": "focus-style",
+      "note": "Focused/typing states use a 2px --border-focus border. Focus-within keeps the clear action mounted while keyboard focus moves inside the field."
+    },
+    "disabled": {
+      "ruleId": "no-opacity-disabled",
+      "note": "Disabled uses --fill-tertiary and text tokens; never opacity."
+    },
+    "radii": {
+      "ruleId": "no-custom-radii",
+      "note": "Uses --radius-component-default (8px)."
+    },
+    "border": {
+      "ruleId": "border-strength",
+      "note": "Default is --border-default, focus is --border-focus, error is --border-attention."
+    },
+    "tapTarget": {
+      "ruleId": "tap-target",
+      "note": "Visible control is 48px on mobile and 56px on PC."
+    },
+    "assetSource": {
+      "ruleId": "asset-source",
+      "note": "Clear and error icons are currentColor SVG paths from design-systems/yami/assets/icons/action."
+    },
+    "nativeSync": {
+      "ruleId": "native-input-sync",
+      "note": "Uncontrolled visual state resyncs from native input/change and form reset events."
+    }
+  },
+
+  "tokens": [
+    "--background-primary",
+    "--fill-tertiary",
+    "--border-default",
+    "--border-focus",
+    "--border-attention",
+    "--text-primary",
+    "--text-secondary",
+    "--text-emphasis",
+    "--radius-component-default",
+    "--font-family-ios",
+    "--font-weight-normal",
+    "--font-size-body-md",
+    "--font-size-body-xl",
+    "--font-size-caption-md",
+    "--line-height-body-md",
+    "--line-height-body-xl",
+    "--line-height-caption-md",
+    "--letter-spacing-normal",
+    "--space-0",
+    "--space-025",
+    "--space-050",
+    "--space-100",
+    "--space-150",
+    "--space-500",
+    "--space-600",
+    "--stroke-default",
+    "--stroke-thick"
+  ],
+
+  "tokenBindings": {
+    "--background-primary": { "property": "background", "selector": ".field" },
+    "--fill-tertiary": {
+      "property": "background",
+      "selector": ".root[data-state='disabled-filled'] .field, .root[data-state='disabled-empty'] .field"
+    },
+    "--border-default": { "property": "box-shadow", "selector": ".field" },
+    "--border-focus": {
+      "property": "box-shadow",
+      "selector": ".root[data-state='focused'] .field, .root[data-state='typing'] .field"
+    },
+    "--border-attention": { "property": "box-shadow", "selector": ".root[data-state='error'] .field" },
+    "--text-primary": {
+      "property": "color",
+      "selector": ".control, .root[data-state='focused'] .label, .root[data-state='typing'] .label, .root[data-state='error'] .label"
+    },
+    "--text-secondary": {
+      "property": "color",
+      "selector": ".label, .control::placeholder, .leading, .trailing, .helperText"
+    },
+    "--text-emphasis": {
+      "property": "color",
+      "selector": ".requiredMarker, .errorText"
+    },
+    "--radius-component-default": { "property": "border-radius", "selector": ".field" },
+    "--font-family-ios": { "property": "font-family", "selector": ".root" },
+    "--font-size-body-md": { "property": "font-size", "selector": ".label, .control" },
+    "--font-size-body-xl": { "property": "font-size", "selector": "@media(min-width:1024px) .control" },
+    "--font-size-caption-md": {
+      "property": "font-size",
+      "selector": ".root[data-floating='true'] .label, .helperText"
+    },
+    "--line-height-body-md": { "property": "line-height", "selector": ".label, .control" },
+    "--line-height-body-xl": { "property": "line-height", "selector": "@media(min-width:1024px) .control" },
+    "--line-height-caption-md": {
+      "property": "line-height",
+      "selector": ".root[data-floating='true'] .label, .helperText, .errorText"
+    }
+  },
+
+  "accessibility": {
+    "role": "implicit native input",
+    "wcagLevel": "AA",
+    "tapTargetMin": 44,
+    "keyboardNav": ["tab", "shift+tab", "type", "delete", "escape when consumer wires it"],
+    "ariaPattern": "textbox/searchbox depending on input type",
+    "labelling": "Visible embedded label is <label htmlFor={id}>. If no visible label is provided, consumer must pass aria-label.",
+    "errorAnnouncement": "error renders role='alert' and is linked via aria-describedby",
+    "required": "required=true uses native required and an aria-hidden visual marker",
+    "disabled": "native disabled prevents focus and editing"
+  },
+
+  "dependencies": { "runtime": ["react"], "peer": [], "devOnly": [] },
+
+  "usageRef": "./usage.md",
+  "examples": [
+    "./examples.tsx#BasicInput",
+    "./examples.tsx#FocusedInput",
+    "./examples.tsx#TypingInput",
+    "./examples.tsx#CompleteInput",
+    "./examples.tsx#WithErrorInput",
+    "./examples.tsx#DisabledFilledInput",
+    "./examples.tsx#DisabledEmptyInput",
+    "./examples.tsx#SearchInput",
+    "./examples.tsx#RequiredInput",
+    "./examples.tsx#WithHelperTextInput",
+    "./examples.tsx#ResettableInput"
+  ]
+}

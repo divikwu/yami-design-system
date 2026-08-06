@@ -1,0 +1,459 @@
+/* Footer — YAMI PC global site footer.
+ *
+ * The layout follows the Figma Footer variants at 1920, 1440, and 1024px:
+ *   · 1920px: 50/50 masthead, four link columns, stacked right bands
+ *   · 1440px: 50/50 masthead, two-by-two link grid, equal right bands
+ *   · 1024px: full-width link row, then two right bands side by side
+ *
+ * The 1px gaps are structural dividers and the 2px top border is the Figma
+ * emphasis divider. All content panels stay on the secondary surface.
+ */
+
+/* The band runs full-bleed — the surface, the 2px emphasis rule and the 1px
+ * structural dividers all span the window. Only the content stops at 1920px,
+ * which every panel reaches by growing its *outer* padding rather than by
+ * capping a box that a divider is drawn on. */
+.root {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 1024px;
+
+  /* A masthead panel is a half-width column whose inner edge is the window
+   * centre, so the panel's own 100% minus 960px is exactly how far it reaches
+   * past the 1920px content box. Below that width the term goes negative and
+   * the plain 48px gutter wins. */
+  --footer-gutter-outer: max(
+    var(--space-600),
+    calc(100% - 960px + var(--space-600))
+  );
+  border-top: var(--stroke-thick) solid var(--divider-emphasis);
+  background: var(--surface-secondary);
+  color: var(--text-primary);
+  font-family: var(--font-family-ios);
+}
+
+/* -------------------------------------------------------------- masthead */
+
+.masthead {
+  display: grid;
+  box-sizing: border-box;
+  width: 100%;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--stroke-default);
+  background: var(--divider-default);
+}
+
+.linkPanel {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-content: start;
+  padding: var(--space-400) var(--space-600) var(--space-600)
+    var(--footer-gutter-outer);
+  gap: var(--space-300);
+  background: var(--surface-secondary);
+}
+
+.column {
+  display: flex;
+  align-self: start;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.group + .group {
+  margin-top: var(--space-400);
+}
+
+.groupTitle {
+  margin: 0 0 var(--space-050);
+  color: var(--text-primary);
+  font-size: var(--font-size-heading-sm);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-heading-sm);
+}
+
+.groupList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.groupLink {
+  display: inline-block;
+  /* Production's 20px rows sit below the 44px target. The visual size is kept
+   * and the shortfall is absorbed by transparent padding, as in Header. */
+  padding-block: var(--space-050);
+  color: var(--text-secondary);
+  font-size: var(--font-size-link-md);
+  line-height: var(--line-height-link-md);
+  text-decoration: none;
+}
+
+.groupLink:hover {
+  color: var(--text-primary);
+}
+
+/* ------------------------------------------------------------ side panel */
+
+.sidePanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--stroke-default);
+  background: var(--divider-default);
+}
+
+.keepInTouch {
+  padding: var(--space-400) var(--footer-gutter-outer)
+    calc(var(--space-600) - var(--stroke-default)) var(--space-600);
+  background: var(--surface-secondary);
+}
+
+.sideTitle {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: var(--font-size-heading-2xl);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-heading-2xl);
+}
+
+.socialRow {
+  display: flex;
+  margin: var(--space-400) 0 0;
+  padding: 0;
+  gap: var(--space-300);
+  list-style: none;
+}
+
+.socialLink {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-component-default);
+  color: var(--text-primary);
+}
+
+/* The glyphs ship as monochrome artwork with #000000de baked into the fill, so
+ * they are painted as masks in currentColor rather than drawn as images — the
+ * row then follows --text-primary into dark theme (#ffffff) instead of staying
+ * black on a dark band. `filter: invert()` would land on 87% white and read a
+ * step dimmer than the heading beside it. Same treatment as Header's zipcode
+ * icon. */
+.socialIcon {
+  display: block;
+  width: 24px;
+  height: 24px;
+  background: currentColor;
+  -webkit-mask: var(--footer-social-icon) center / contain no-repeat;
+  mask: var(--footer-social-icon) center / contain no-repeat;
+}
+
+/* The 24px glyphs sit below the 44px target, so each gains a transparent
+ * hit area without changing the visual row height. */
+.socialLink::after {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  content: '';
+  transform: translate(-10px, -10px);
+}
+
+.socialRow li {
+  position: relative;
+  display: inline-flex;
+}
+
+/* ------------------------------------------------------------- subscribe */
+
+.subscribe {
+  margin-top: var(--space-400);
+}
+
+.subscribeLabel {
+  position: absolute;
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.subscribeRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-100);
+}
+
+.subscribeInput {
+  width: 246px;
+  height: 40px;
+  box-sizing: border-box;
+  padding-inline: var(--space-200);
+  border: var(--stroke-default) solid var(--border-default);
+  border-radius: var(--radius-component-default);
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  font-family: inherit;
+  /* Field and submit share one type token so the pair cannot drift apart —
+   * link-md, matching the submit's Link-button role. */
+  font-size: var(--font-size-link-md);
+  line-height: var(--line-height-link-md);
+}
+
+.subscribeInput::placeholder {
+  color: var(--text-secondary);
+}
+
+.subscribeSubmit {
+  height: 40px;
+  padding-inline: var(--space-100);
+  border: 0;
+  border-radius: var(--radius-component-default);
+  background: none;
+  color: var(--text-emphasis);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--font-size-link-md);
+  line-height: var(--line-height-link-md);
+}
+
+.subscribeError {
+  margin: var(--space-050) 0 0;
+  color: var(--text-error);
+  font-size: var(--font-size-caption-md);
+  line-height: var(--line-height-caption-md);
+}
+
+/* -------------------------------------------------------------- app band */
+
+.appBand {
+  padding: var(--space-400) var(--footer-gutter-outer) var(--space-600)
+    var(--space-600);
+  background: var(--surface-secondary);
+}
+
+.appTitle {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: var(--font-size-heading-2xl);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-heading-2xl);
+}
+
+.appRow {
+  display: flex;
+  margin-top: var(--space-400);
+  gap: var(--space-300);
+}
+
+.appButton {
+  display: inline-flex;
+  flex: 0 1 246px;
+  width: 246px;
+  min-width: 0;
+  height: 40px;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-component-default);
+  background: var(--surface-inverse);
+  color: var(--text-primary-inverse);
+  gap: var(--space-100);
+  text-decoration: none;
+}
+
+.appButtonIcon {
+  display: block;
+  width: 24px;
+  height: 24px;
+}
+
+/* The Apple mark ships as black artwork and the button sits on
+ * --surface-inverse, so it has to flip to read on that surface — but only
+ * while the surface is dark. In dark theme --surface-inverse resolves to
+ * white, and an inverted mark would be white on white. */
+.appButton[data-store='app-store'] .appButtonIcon {
+  filter: invert(1);
+}
+
+:global(.dark) .appButton[data-store='app-store'] .appButtonIcon {
+  filter: none;
+}
+
+.appButtonLabel {
+  font-size: var(--font-size-link-md);
+  line-height: var(--line-height-link-md);
+}
+
+/* ----------------------------------------------------------- closing bar */
+
+.closingBar {
+  box-sizing: border-box;
+  height: 277px;
+  /* Surface stays full-bleed; the inline padding grows past 1920 so the content
+   * lines up with the masthead's 48px gutter inside the same 1920 box. */
+  padding-block: var(--space-800);
+  padding-inline: max(
+    var(--space-600),
+    calc((100% - 1920px) / 2 + var(--space-600))
+  );
+
+  /* The legal/payment module is a fixed brand surface in both Storybook
+   * themes. Keep its light-theme semantic polarity local to this band so a
+   * parent `.dark` context cannot invert the closing bar to white. */
+  --surface-inverse: var(--color-neutral-900);
+  --text-primary-inverse: var(--color-white-1000);
+  --text-secondary-inverse: var(--color-white-600);
+  --border-focus-inverse: var(--color-white-1000);
+
+  background: var(--surface-inverse);
+  color: var(--text-secondary-inverse);
+}
+
+.closingBar[data-has-legal='true'] {
+  height: auto;
+}
+
+.paymentRow {
+  display: flex;
+  align-items: center;
+  margin: 0 0 var(--space-300);
+  padding: 0;
+  gap: var(--space-150);
+  list-style: none;
+}
+
+.paymentMark {
+  display: block;
+  height: auto;
+  max-height: 22px;
+  width: auto;
+  object-fit: contain;
+}
+
+.copyright {
+  display: flex;
+  margin: 0;
+  flex-direction: column;
+  gap: var(--space-100);
+  color: var(--text-secondary-inverse);
+  font-size: var(--font-size-caption-md);
+  line-height: var(--line-height-caption-md);
+}
+
+.copyright p {
+  margin: 0;
+}
+
+.legalRow {
+  display: flex;
+  flex-wrap: wrap;
+  margin: var(--space-100) 0 0;
+  padding: 0;
+  gap: var(--space-100) var(--space-300);
+  list-style: none;
+}
+
+.legalLink {
+  color: var(--text-secondary-inverse);
+  font-size: var(--font-size-caption-md);
+  line-height: var(--line-height-caption-md);
+  text-decoration: none;
+}
+
+.legalLink:hover {
+  color: var(--text-primary-inverse);
+}
+
+/* ------------------------------------------------------------------ focus */
+
+.groupLink:focus-visible,
+.socialLink:focus-visible,
+.subscribeSubmit:focus-visible,
+.appButton:focus-visible,
+.legalLink:focus-visible {
+  outline: var(--stroke-thick) solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+.subscribeInput:focus-visible {
+  border-color: var(--border-focus);
+  outline: none;
+}
+
+.legalLink:focus-visible,
+.appButton:focus-visible {
+  outline-color: var(--border-focus-inverse);
+}
+
+/* Figma's 1440px variant groups the four visual columns into two rows and
+ * gives the two right-hand bands equal height. The same mode is useful for
+ * the intermediate Storybook desktop viewport. */
+/* PC-only. There is no mobile footer layout, so below --breakpoints-desktop
+ * the whole band leaves the flow rather than forcing the page into a
+ * horizontal scroll at its 1024px floor. Every other section on the page is
+ * responsive and keeps shrinking. */
+@media (max-width: 1023.98px) {
+  .root {
+    display: none;
+  }
+}
+
+@media (min-width: 1025px) and (max-width: 1440px) {
+  .linkPanel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding-bottom: calc(var(--space-600) - var(--stroke-default));
+  }
+
+  .sidePanel {
+    display: grid;
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+  }
+
+  .sidePanel > section {
+    min-height: 0;
+  }
+}
+
+/* At the 1024px Figma breakpoint, the link area becomes a full-width row and
+ * the newsletter/app bands share the row below it. App buttons consume the
+ * available width instead of overflowing their half. */
+@media (max-width: 1024px) {
+  .masthead {
+    /* One column, so a panel is no longer half the window and the half-width
+     * formula above no longer describes the overflow. Nothing overflows at this
+     * size anyway — the plain gutter applies. */
+    --footer-gutter-outer: var(--space-600);
+
+    grid-template-columns: 1fr;
+  }
+
+  .linkPanel {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    padding-block: var(--space-400);
+    min-height: 288px;
+  }
+
+  .sidePanel {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sidePanel > section {
+    min-width: 0;
+  }
+
+  .appRow {
+    gap: var(--space-200);
+  }
+
+  .appButton {
+    flex: 1 1 0;
+    width: auto;
+  }
+
+  .closingBar {
+    padding-inline: var(--space-800);
+  }
+}

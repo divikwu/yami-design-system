@@ -1,0 +1,23 @@
+.pageCanvas {
+  box-sizing: border-box;
+  min-height: 100vh;
+  padding-top: var(--space-100);
+  background: var(--background-secondary);
+}
+
+.campaignCanvas {
+  box-sizing: border-box;
+  min-height: 100vh;
+  padding: 0;
+}
+
+@media (min-width: 1024px) {
+  .pageCanvas {
+    padding-top: 0;
+    background: transparent;
+  }
+
+  .campaignCanvas {
+    padding: var(--space-400) var(--space-600);
+  }
+}

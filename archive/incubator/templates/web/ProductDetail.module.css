@@ -1,0 +1,23 @@
+/**
+ * ProductDetail — container-query-based narrow-viewport layout.
+ * Same rationale as Cart.module.css / Checkout.module.css.
+ */
+
+.container {
+  container-type: inline-size;
+  container-name: productDetail;
+}
+
+.mainGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-400);
+  align-items: start;
+}
+
+/* Narrow: image gallery on top, info panel below. */
+@container productDetail (max-width: 640px) {
+  .mainGrid {
+    grid-template-columns: 1fr;
+  }
+}

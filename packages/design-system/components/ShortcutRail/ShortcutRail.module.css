@@ -1,0 +1,326 @@
+/* yami-validate-disable: no-gradient */
+/* The edge gradient is functional overflow affordance behind the paging
+ * control, matching the existing Header category rail treatment. */
+
+.root {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+
+  /* How far the band overflows the 1920px content box on one side — 0 below
+   * 1920, half the excess above it. */
+  --shortcut-rail-edge-offset: max(0px, calc((100% - 1920px) / 2));
+  overflow: hidden;
+  color: var(--text-primary);
+  background: var(--surface-primary);
+  font-family: var(--font-family-ios);
+}
+
+/* The band runs full-bleed — its background and the section rule below it span
+ * the window. Only the content stops at 1920px, and the 48px page gutter is
+ * inside that 1920 because the box is border-box. */
+.list {
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1920px;
+  gap: var(--space-300);
+  margin-block: 0;
+  margin-inline: auto;
+  padding-block: var(--space-300);
+  padding-inline: var(--layout-page-margin-default);
+  overflow-x: auto;
+  list-style: none;
+  scroll-behavior: smooth;
+  scroll-padding-inline: var(--layout-page-margin-default);
+  scrollbar-width: none;
+}
+
+.list::-webkit-scrollbar {
+  display: none;
+}
+
+.item {
+  flex: 0 0 auto;
+  width: calc(var(--space-800) + var(--space-200));
+}
+
+.link {
+  display: grid;
+  min-width: 0;
+  justify-items: center;
+  gap: var(--space-100);
+  border-radius: var(--radius-component-default);
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.link:focus-visible {
+  outline: var(--stroke-thick) solid var(--border-focus);
+  outline-offset: var(--space-050);
+}
+
+.iconSurface {
+  display: grid;
+  width: var(--space-1000);
+  height: var(--space-1000);
+  place-items: center;
+  overflow: hidden;
+  border-radius: var(--radius-full);
+  background: var(--surface-secondary);
+}
+
+.icon {
+  display: block;
+  width: var(--space-600);
+  height: var(--space-600);
+  object-fit: contain;
+  transition: transform 150ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.iconSurface:hover .icon {
+  transform: scale(1.03);
+}
+
+.label {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  font-size: var(--font-size-caption-md);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-caption-md);
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.edge {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  display: none;
+  width: calc(var(--space-800) + var(--space-800));
+  align-items: flex-start;
+  pointer-events: none;
+}
+
+.edgePrevious {
+  left: 0;
+  justify-content: flex-start;
+  padding-left: var(--layout-page-margin-default);
+}
+
+.edgeNext {
+  right: 0;
+  justify-content: flex-end;
+  padding-right: var(--layout-page-margin-default);
+}
+
+.mask {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, var(--surface-primary) 50%, transparent);
+}
+
+.edgeNext .mask {
+  transform: scaleX(-1);
+}
+
+.control {
+  position: relative;
+  z-index: 1;
+  margin-top: calc(
+    var(--space-300) +
+      (var(--space-1000) - (var(--space-400) + var(--space-050))) / 2 -
+      var(--space-025)
+  );
+  pointer-events: auto;
+}
+
+@media (min-width: 768px) {
+  .edge {
+    display: flex;
+  }
+}
+
+@media (min-width: 1024px) {
+  .list {
+    padding-inline: var(--space-600);
+    scroll-padding-inline: var(--space-600);
+  }
+
+  /* The paging buttons are anchored to the full-bleed band, so past 1920px they
+   * would drift out with the window while the entries they page stop at the
+   * content box. Sliding the whole edge in by the overflow — rather than
+   * growing its padding — keeps the button on the same line as the first and
+   * last entry without stretching the fade behind it. */
+  .edgePrevious {
+    left: var(--shortcut-rail-edge-offset);
+    padding-left: var(--space-600);
+  }
+
+  .edgeNext {
+    right: var(--shortcut-rail-edge-offset);
+    padding-right: var(--space-600);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .list {
+    scroll-behavior: auto;
+  }
+
+  .icon {
+    transition: none;
+  }
+
+  .iconSurface:hover .icon {
+    transform: none;
+  }
+}
+
+/* ------------------------------------------------- mobile (<1024px)
+ *
+ * Figma `3183:34141 quick access links - mobile`. A card rather than a
+ * full-bleed band, with smaller entries (68 / 56 / 36 against PC's 80 / 80 /
+ * 48) and a paging thumb in place of the edge buttons — controls no one taps
+ * on touch.
+ *
+ * The entry keeps its Figma width and the viewport decides how many fit, with
+ * four as the floor — see `--shortcut-rail-item-width` below.
+ */
+
+.progress {
+  display: none;
+}
+
+@media (max-width: 1023.98px) {
+  /* A white card inset from a grey page, matching ProductList: same
+   * --layout-page-margin-card gutter and --radius-surface-default corner, so
+   * stacked sections line up down the page. */
+  .root {
+    --shortcut-rail-gap: var(--space-100);
+
+    width: calc(
+      100% - var(--layout-page-margin-card) - var(--layout-page-margin-card)
+    );
+    margin-inline: var(--layout-page-margin-card);
+    border-radius: var(--radius-surface-default);
+    background: var(--surface-primary);
+  }
+
+  .list {
+    /* The entry keeps the Figma width; the number visible follows the viewport.
+     *
+     * Dividing the rail by a fixed count instead made the entry grow with the
+     * container while the 56px disc did not, so the space between discs ran
+     * from 9px at 375 to 114px at 900 — and below ~330 the entry became
+     * narrower than the disc it holds. Pinning the width keeps that gap at a
+     * constant 12px and lets a wider screen simply show more.
+     *
+     * The `min()` is the four-entry floor: only when 68px cannot fit four does
+     * the entry shrink to make them fit.
+     *
+     * Declared on the list, not the item: the two-row grid reads it from
+     * `grid-auto-columns`, and custom properties only inherit downward. */
+    --shortcut-rail-item-width: min(
+      68px,
+      calc((100% - 3 * var(--shortcut-rail-gap)) / 4)
+    );
+
+    gap: var(--shortcut-rail-gap);
+    /* 12 above the entries, 4 below: the paging thumb belongs to the row it
+     * pages, so it tucks close under the labels while the card keeps its 12px
+     * inset below the thumb. */
+    padding-block: var(--space-150) var(--space-050);
+    padding-inline: var(--space-100);
+    scroll-padding-inline: var(--space-100);
+    scroll-snap-type: inline mandatory;
+  }
+
+  /* Two rows page as one block: the list becomes a two-row grid that flows
+   * along the inline axis, so a swipe advances a whole column pair. */
+  .root[data-lines="2"] .list {
+    display: grid;
+    grid-auto-columns: var(--shortcut-rail-item-width);
+    grid-auto-flow: column;
+    grid-template-rows: repeat(2, auto);
+    row-gap: var(--space-150);
+  }
+
+  .item {
+    width: var(--shortcut-rail-item-width);
+    scroll-snap-align: start;
+  }
+
+  .root[data-lines="2"] .item {
+    width: auto;
+  }
+
+  .link {
+    gap: var(--space-025);
+    padding-inline: var(--space-050);
+    border-radius: var(--radius-sm);
+  }
+
+  /* 56 and 36 are literal: the spacing scale steps 48 -> 64 -> 80 and carries
+   * no 56, and these are icon canvas sizes rather than spacing. */
+  .iconSurface {
+    width: 56px;
+    height: 56px;
+  }
+
+  .icon {
+    width: 36px;
+    height: 36px;
+    /* Figma layers the glyph in darken so the artwork's own white ground drops
+     * out against the grey disc. */
+    mix-blend-mode: darken;
+    object-fit: cover;
+  }
+
+  /* Two lines, then ellipsis — Figma wraps "Convenience Store" and "Late Night
+   * Flavors" rather than clipping them to one line. `overflow-wrap: anywhere`
+   * matches the design's break-word: at 68px a word like "Convenience" is wider
+   * than the entry and would otherwise overflow instead of wrapping. */
+  .label {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  /* Edge buttons are PC affordances; touch pages by swiping. */
+  .edge {
+    display: none;
+  }
+
+  /* The 4px above the thumb comes from .list's bottom padding; the card's own
+   * bottom inset below it stays at 12. */
+  .progress {
+    display: flex;
+    justify-content: center;
+    padding-block: 0 var(--space-150);
+  }
+
+  .progressTrack {
+    position: relative;
+    width: 48px;
+    height: var(--stroke-thick);
+    border-radius: var(--radius-full);
+    background: var(--divider-default);
+  }
+
+  .progressThumb {
+    position: absolute;
+    top: 0;
+    left: calc(var(--shortcut-rail-progress, 0) * (48px - 24px));
+    width: 24px;
+    height: 100%;
+    border-radius: var(--radius-full);
+    background: var(--divider-emphasis);
+  }
+}

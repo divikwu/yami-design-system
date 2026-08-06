@@ -1,0 +1,119 @@
+{
+  "$schema": "../../../schema/component.json",
+  "name": "Card",
+  "category": "layout",
+  "status": "stable",
+  "version": "0.1.0",
+
+  "description": "Surface primitive for grouping related content. No border by default (rule card-no-border), 12px radius, no shadow. Polymorphic via `as` prop (div / a / button) for link and button cards.",
+
+  "figma": { "nodeId": null, "componentKey": null },
+
+  "variants": {
+    "padding": ["none", "sm", "md", "lg"],
+    "surface": ["primary", "secondary", "inverse"]
+  },
+
+  "props": {
+    "as": {
+      "type": "ElementType",
+      "required": false,
+      "default": "div",
+      "description": "Polymorphic element. Use 'a' with href for link cards, 'button' for button cards."
+    },
+    "padding": {
+      "type": "enum",
+      "values": ["none", "sm", "md", "lg"],
+      "required": false,
+      "default": "md",
+      "description": "Inner padding tier. 'none' for image-only cards where the img is edge-to-edge."
+    },
+    "surface": {
+      "type": "enum",
+      "values": ["primary", "secondary", "inverse"],
+      "required": false,
+      "default": "primary"
+    },
+    "bordered": {
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "Opt-in hairline border. Only for dense listing grids — use sparingly (rule card-no-border default)."
+    },
+    "interactive": {
+      "type": "boolean",
+      "required": false,
+      "description": "Adds hover + focus-visible styling. Auto-inferred when as='button' or as='a' + href."
+    }
+  },
+
+  "rules": {
+    "border": {
+      "ruleId": "card-no-border",
+      "note": "Default border: none. `bordered` only in dense grids."
+    },
+    "radii": { "ruleId": "no-custom-radii", "note": "Uses --radius-surface-default (12px)." },
+    "elevationOnPress": {
+      "ruleId": "elevation-on-press",
+      "note": "interactive cards change background-color on hover; Card has no elevation API because Figma provides no elevation token source."
+    },
+    "focus": {
+      "ruleId": "focus-style",
+      "note": "Interactive cards show 2px --border-focus outline + 2px offset."
+    }
+  },
+
+  "tokens": [
+    "--surface-primary",
+    "--surface-secondary",
+    "--surface-inverse",
+    "--text-primary-inverse",
+    "--border-default",
+    "--border-focus",
+    "--radius-surface-default",
+    "--space-150",
+    "--space-200",
+    "--space-300"
+  ],
+
+  "tokenBindings": {
+    "--surface-primary": { "property": "background-color", "selector": ".card, .surface-primary" },
+    "--surface-secondary": {
+      "property": "background-color",
+      "selector": ".surface-secondary, .interactive:hover"
+    },
+    "--surface-inverse": { "property": "background-color", "selector": ".surface-inverse" },
+    "--text-primary-inverse": { "property": "color", "selector": ".surface-inverse" },
+    "--border-default": { "property": "border-color", "selector": ".bordered" },
+    "--border-focus": { "property": "outline-color", "selector": ".interactive:focus-visible" },
+    "--radius-surface-default": { "property": "border-radius", "selector": ".card" },
+    "--space-150": { "property": "padding", "selector": ".pad-sm" },
+    "--space-200": { "property": "padding", "selector": ".pad-md" },
+    "--space-300": { "property": "padding", "selector": ".pad-lg" }
+  },
+
+  "accessibility": {
+    "role": "implicit (div, or button/link when as= overridden)",
+    "wcagLevel": "AA",
+    "tapTargetMin": 44,
+    "keyboardNav": ["tab", "enter", "space"],
+    "ariaPattern": "group (default) | button (as='button') | link (as='a' with href)",
+    "notes": "tapTargetMin/keyboardNav apply only when interactive=true (auto-inferred via as='button' or as='a'+href). Non-interactive cards effectively have tapTargetMin=0 and keyboardNav=[]. interactive=true adds focus-visible outline."
+  },
+
+  "dependencies": {
+    "runtime": ["react"],
+    "peer": [],
+    "devOnly": []
+  },
+
+  "usageRef": "./usage.md",
+  "examples": [
+    "./examples.tsx#BasicCard",
+    "./examples.tsx#NoPaddingCard",
+    "./examples.tsx#BorderedCard",
+    "./examples.tsx#LinkCard",
+    "./examples.tsx#SurfaceSecondaryCard",
+    "./examples.tsx#SurfaceInverseCard"
+  ]
+}

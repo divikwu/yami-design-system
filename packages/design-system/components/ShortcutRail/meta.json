@@ -1,0 +1,143 @@
+{
+  "$schema": "../../../schema/component.json",
+  "name": "ShortcutRail",
+  "category": "navigation",
+  "status": "stable",
+  "version": "0.1.0",
+  "description": "Responsive YAMI shortcut navigation rail with circular image icons, localized labels, native scrolling, and overflow-aware paging controls.",
+  "figma": {
+    "nodeId": null,
+    "componentKey": null,
+    "notes": "Implemented from the YAMI homepage PC shortcut rail reference supplied through browser annotation."
+  },
+  "exports": [
+    "ShortcutRail",
+    "ShortcutRailItem",
+    "ShortcutRailProps"
+  ],
+  "composes": ["Button"],
+  "props": {
+    "items": {
+      "type": "ShortcutRailItem[]",
+      "required": true,
+      "description": "Ordered shortcut destinations with stable IDs, labels, icon sources, and hrefs."
+    },
+    "ariaLabel": {
+      "type": "string",
+      "required": false,
+      "default": "Featured shortcuts",
+      "description": "Localized accessible name for the navigation region."
+    },
+    "previousLabel": {
+      "type": "string",
+      "required": false,
+      "default": "Previous shortcuts",
+      "description": "Localized accessible name for the previous-page control."
+    },
+    "lines": {
+      "type": "1 | 2",
+      "required": false,
+      "default": "1",
+      "description": "Rows the mobile rail flows into below 1024px (Figma 3183:34141). Two rows page horizontally as one block, keeping a long list a single swipe deep. PC always renders a single row. Entry width is pinned to the Figma 68px in both, with a four-entry floor, so the viewport decides how many are visible rather than the entry stretching."
+    },
+    "nextLabel": {
+      "type": "string",
+      "required": false,
+      "default": "Next shortcuts",
+      "description": "Localized accessible name for the next-page control."
+    }
+  },
+  "rules": {
+    "tapTarget": {
+      "ruleId": "tap-target",
+      "note": "Shortcut links include the 80px icon surface; paging controls compose the shared YAMI RailNavigation button."
+    },
+    "focus": {
+      "ruleId": "focus-style",
+      "note": "Every shortcut link and paging control remains keyboard reachable with a token-backed focus ring."
+    },
+    "radius": {
+      "ruleId": "no-custom-radii",
+      "note": "Icon surfaces use --radius-full and links use --radius-component-default."
+    },
+    "motion": {
+      "ruleId": "elevation-on-press",
+      "note": "Native rail paging respects prefers-reduced-motion."
+    },
+    "gradient": {
+      "ruleId": "no-gradient",
+      "note": "The white-to-transparent edge mask is a functional overflow affordance matching the existing Header category rail."
+    }
+  },
+  "tokens": [
+    "--surface-primary",
+    "--surface-secondary",
+    "--text-primary",
+    "--border-default",
+    "--border-focus",
+    "--stroke-thick",
+    "--radius-full",
+    "--radius-component-default",
+    "--font-family-ios",
+    "--font-weight-normal",
+    "--font-size-caption-md",
+    "--line-height-caption-md",
+    "--layout-page-margin-default",
+    "--space-050",
+    "--space-100",
+    "--space-200",
+    "--space-300",
+    "--space-400",
+    "--space-600",
+    "--space-800",
+    "--space-1000"
+  ],
+  "tokenBindings": {
+    "--surface-primary": {
+      "property": "background and edge gradient",
+      "selector": ".root, .mask"
+    },
+    "--surface-secondary": {
+      "property": "background",
+      "selector": ".iconSurface"
+    },
+    "--radius-full": {
+      "property": "border-radius",
+      "selector": ".iconSurface"
+    },
+    "--font-size-caption-md": {
+      "property": "font-size",
+      "selector": ".label"
+    },
+    "--layout-page-margin-default": {
+      "property": "padding-inline and scroll-padding-inline",
+      "selector": ".list below 1024px"
+    },
+    "--space-1000": {
+      "property": "width / height",
+      "selector": ".iconSurface"
+    },
+    "--space-600": {
+      "property": "padding-inline and scroll-padding-inline",
+      "selector": ".list, .edgePrevious, .edgeNext at or above 1024px"
+    }
+  },
+  "accessibility": {
+    "role": "labelled navigation containing a list of shortcut links",
+    "wcagLevel": "AA",
+    "tapTargetMin": 44,
+    "keyboardNav": ["tab", "shift+tab", "enter"],
+    "ariaPattern": "nav with list/listitem links and optional previous/next buttons",
+    "structure": "Visible labels provide link names; decorative icon images use empty alt text.",
+    "interaction": "Mobile uses native horizontal scrolling. Desktop adds overflow-aware paging controls over functional edge masks."
+  },
+  "dependencies": {
+    "runtime": ["react", "./Button"],
+    "peer": [],
+    "devOnly": []
+  },
+  "usageRef": "./usage.md",
+  "examples": [
+    "./examples.tsx#ShortcutRailExample"
+  ]
+}

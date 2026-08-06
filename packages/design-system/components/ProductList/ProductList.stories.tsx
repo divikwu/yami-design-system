@@ -1,0 +1,439 @@
+import type { CSSProperties } from "react";
+import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import { ProductList } from "./ProductList";
+import type { ProductListItem, ProductListProps } from "./ProductList.types";
+import storyStyles from "./ProductList.stories.module.css";
+import {
+  createProductListProducts,
+  createProductListTabs,
+  productListCopy as copy,
+  type ProductListLocale as ProductLocale,
+} from "./fixtures";
+
+const bannerSrc = new URL("./assets/mega-saver-banner.webp", import.meta.url)
+  .href;
+const bannerMobileSrc = new URL(
+  "./assets/campaign-banner-mobile.png",
+  import.meta.url,
+).href;
+const atmosphereDesktopSrc = new URL(
+  "./assets/atmospheric-pc.jpg",
+  import.meta.url,
+).href;
+const atmosphereMobileSrc = new URL(
+  "./assets/atmospheric-mobile.jpg",
+  import.meta.url,
+).href;
+
+function getProps(
+  locale: ProductLocale,
+  overrides: Partial<ProductListProps> = {},
+): ProductListProps {
+  const localeCopy = copy[locale];
+  return {
+    title: localeCopy.heading,
+    products: createProductListProducts(locale),
+    tabs: createProductListTabs(locale),
+    viewAllHref: "#all-products",
+    viewAllLabel: localeCopy.viewAll,
+    loadMoreLabel: localeCopy.loadMore,
+    loadingLabel: localeCopy.loading,
+    onAddToCart: () => {},
+    ...overrides,
+  };
+}
+
+function localeFromGlobals(value: unknown): ProductLocale {
+  return value === "en" ? "en" : "zh";
+}
+
+const meta = {
+  title: "YAMI/Components/Commerce/Product List",
+  component: ProductList,
+  decorators: [
+    (Story) => (
+      <div className={storyStyles.pageCanvas}>
+        <Story />
+      </div>
+    ),
+  ],
+  parameters: {
+    layout: "fullscreen",
+    docs: {
+      description: {
+        component:
+          "Responsive, data-driven YAMI product collection. It composes ProductCard, Tabs, and Button into rail and waterfall layouts with standard, themed, and atmospheric surfaces.",
+      },
+    },
+  },
+  argTypes: {
+    dividerPosition: {
+      options: ["top", "bottom", "none"],
+      control: { type: "radio" },
+      description: "Desktop-only section divider edge; ignored below 1024px.",
+    },
+    dividerVariant: {
+      options: ["gray", "black"],
+      control: { type: "radio" },
+      description: "Gray renders at 1px; black emphasis renders at 2px.",
+    },
+  },
+  args: {
+    title: "产品列表",
+    products: createProductListProducts("en"),
+    appearance: "standard",
+    layout: "rail",
+    dividerPosition: "top",
+    dividerVariant: "gray",
+  },
+} satisfies Meta<typeof ProductList>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+function Collection({
+  globals,
+  overrides,
+}: {
+  globals: Record<string, unknown>;
+  overrides?: Partial<ProductListProps>;
+}) {
+  const locale = localeFromGlobals(globals.locale);
+  return <ProductList {...getProps(locale, overrides)} />;
+}
+
+export const Showcase: Story = {
+  render: (args, { globals }) => (
+    <Collection
+      globals={globals}
+      overrides={{
+        dividerPosition: args.dividerPosition,
+        dividerVariant: args.dividerVariant,
+      }}
+    />
+  ),
+};
+
+/* Divider position and variant are Controls on every story, so these two exist
+ * only to assert the computed borders. `!dev` keeps them out of the sidebar and
+ * the docs page — a config flag does not deserve a component-level entry — while
+ * `test` keeps them in the index for a runner. */
+export const BlackBottomDivider: Story = {
+  tags: ["!dev", "!autodocs"],
+  args: {
+    dividerPosition: "bottom",
+    dividerVariant: "black",
+  },
+  render: (args, { globals }) => (
+    <Collection
+      globals={globals}
+      overrides={{
+        dividerPosition: args.dividerPosition,
+        dividerVariant: args.dividerVariant,
+      }}
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const root = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-list"]',
+    );
+    if (!root) throw new Error("Product List did not render");
+    const style = getComputedStyle(root);
+    if (style.borderBottomWidth !== "2px" || style.borderTopWidth !== "0px") {
+      throw new Error("Product List black divider must render 2px on the bottom only");
+    }
+  },
+};
+
+export const MobileDividerDisabled: Story = {
+  tags: ["!dev", "!autodocs"],
+  globals: {
+    viewport: { value: "yamiMobile", isRotated: false },
+  },
+  args: {
+    dividerPosition: "bottom",
+    dividerVariant: "black",
+  },
+  render: BlackBottomDivider.render,
+  play: async ({ canvasElement }) => {
+    const root = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-list"]',
+    );
+    if (!root) throw new Error("Product List did not render");
+    const style = getComputedStyle(root);
+    if (style.borderBottomWidth !== "0px" || style.borderTopWidth !== "0px") {
+      throw new Error("Product List must not render dividers below 1024px");
+    }
+  },
+};
+
+export const StandardRail: Story = {
+  render: (_args, { globals }) => <Collection globals={globals} />,
+};
+
+async function verifyCampaignPadding({
+  canvasElement,
+}: {
+  canvasElement: HTMLElement;
+}) {
+  if (window.innerWidth < 1024) return;
+  const outer = canvasElement.querySelector<HTMLElement>(
+    '[class*="campaignCanvas"]',
+  );
+  if (!outer) throw new Error("Campaign Product List outer frame did not render");
+  const style = getComputedStyle(outer);
+  if (
+    style.paddingTop !== "32px" ||
+    style.paddingRight !== "48px" ||
+    style.paddingBottom !== "32px" ||
+    style.paddingLeft !== "48px"
+  ) {
+    throw new Error(
+      "Themed and atmospheric Product Lists require an outer 48px horizontal and 32px vertical padding frame",
+    );
+  }
+}
+
+export const ThemedRail: Story = {
+  render: (_args, { globals }) => {
+    const locale = localeFromGlobals(globals.locale);
+    return (
+      <div className={storyStyles.campaignCanvas}>
+        <ProductList
+          {...getProps(locale, {
+            title: copy[locale].themedTitle,
+            appearance: "themed",
+            banner: {
+              src: bannerSrc,
+              mobileSrc: bannerMobileSrc,
+              alt: copy[locale].bannerAlt,
+              backgroundColor: "#E4E5F0",
+              mobileBackgroundColor: "#F9EAF3",
+            },
+          })}
+        />
+      </div>
+    );
+  },
+  play: verifyCampaignPadding,
+};
+
+export const AtmosphericRail: Story = {
+  render: (_args, { globals }) => {
+    const locale = localeFromGlobals(globals.locale);
+    return (
+      <div className={storyStyles.campaignCanvas}>
+        <ProductList
+          {...getProps(locale, {
+            title: copy[locale].atmosphericTitle,
+            appearance: "atmospheric",
+            backgroundColor: "#FFF8EB",
+            backgroundImage: atmosphereDesktopSrc,
+            backgroundImageMobile: atmosphereMobileSrc,
+          })}
+        />
+      </div>
+    );
+  },
+  play: verifyCampaignPadding,
+};
+
+export const Waterfall: Story = {
+  render: (_args, { globals }) => (
+    <Collection
+      globals={globals}
+      overrides={{
+        layout: "waterfall",
+        viewAllHref: undefined,
+        hasMore: true,
+        onLoadMore: () => {},
+      }}
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    for (const id of [
+      "elegance-face-powder-i",
+      "revive-moisturizing-renewal-cream",
+    ]) {
+      if (!canvasElement.querySelector(`[href$="/products/${id}"]`)) {
+        throw new Error(`Waterfall is missing the shared product fixture "${id}"`);
+      }
+    }
+  },
+};
+
+const skeletonMatrixStyle: CSSProperties = {
+  display: "grid",
+  gap: "var(--space-400)",
+  paddingBlock: "var(--space-200)",
+};
+
+export const SkeletonMatrix: Story = {
+  render: (_args, { globals }) => {
+    const locale = localeFromGlobals(globals.locale);
+    const localeCopy = copy[locale];
+    const layouts = ["rail", "waterfall"] as const;
+
+    return (
+      <div style={skeletonMatrixStyle}>
+        {layouts.map((layout) => (
+          <ProductList
+            key={layout}
+            title={`${localeCopy.loading} · ${layout}`}
+            products={[]}
+            layout={layout}
+            loading
+            loadingLabel={localeCopy.loading}
+            skeletonCount={4}
+          />
+        ))}
+      </div>
+    );
+  },
+};
+
+/* One divider contract across all three appearances: dividerPosition and
+ * dividerVariant decide it, desktop draws it, mobile draws none. Standard is a
+ * square full-bleed band and paints a border; the campaign appearances are
+ * rounded panels, where a border follows the 16px radius and curves, so they
+ * paint a clipped overlay instead. The prop is what a caller sees, so that is
+ * what this asserts — not which of the two mechanisms answered.
+ *
+ * Hidden from the sidebar: a matrix of computed styles, not a format to
+ * browse. */
+export const DividerContract: Story = {
+  tags: ["!dev", "!autodocs"],
+  render: (_args, { globals }) => {
+    const locale = localeFromGlobals(globals.locale);
+    return (
+      <div className={storyStyles.pageCanvas}>
+        {(["standard", "themed", "atmospheric"] as const).map((appearance) => (
+          <ProductList
+            key={appearance}
+            {...getProps(locale, {
+              appearance,
+              dividerPosition: "top",
+              dividerVariant: "gray",
+            })}
+          />
+        ))}
+      </div>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const lists = Array.from(
+      canvasElement.querySelectorAll<HTMLElement>('[data-slot="product-list"]'),
+    );
+    if (lists.length !== 3) {
+      throw new Error(`Expected one list per appearance, got ${lists.length}`);
+    }
+
+    const desktop = window.innerWidth >= 1024;
+    const paints = (root: HTMLElement, edge: "top" | "bottom") => {
+      const style = getComputedStyle(root);
+      const overlay = getComputedStyle(root, "::after");
+      const border =
+        edge === "top" ? style.borderTopWidth : style.borderBottomWidth;
+      const drawnByBorder = Number.parseFloat(border) > 0;
+      const drawnByOverlay =
+        overlay.content !== "none" &&
+        Number.parseFloat(overlay.height) > 0 &&
+        Number.parseFloat(edge === "top" ? overlay.top : overlay.bottom) === 0;
+      return drawnByBorder || drawnByOverlay;
+    };
+
+    for (const root of lists) {
+      const appearance = root.dataset.appearance;
+
+      for (const edge of ["top", "bottom"] as const) {
+        root.setAttribute("data-divider-position", edge);
+        if (paints(root, edge) !== desktop) {
+          throw new Error(
+            `${appearance} with dividerPosition="${edge}" must ${desktop ? "paint" : "paint no"} rule at ${window.innerWidth}px`,
+          );
+        }
+        // The opposite edge stays clear, whatever the width.
+        const other = edge === "top" ? "bottom" : "top";
+        if (paints(root, other)) {
+          throw new Error(
+            `${appearance} with dividerPosition="${edge}" must leave its ${other} edge clear`,
+          );
+        }
+      }
+
+      root.setAttribute("data-divider-position", "none");
+      if (paints(root, "top") || paints(root, "bottom")) {
+        throw new Error(`${appearance} with dividerPosition="none" must paint nothing`);
+      }
+      root.setAttribute("data-divider-position", "top");
+    }
+  },
+};
+
+export const DividerContractMobile: Story = {
+  ...DividerContract,
+  tags: ["!dev", "!autodocs"],
+  globals: { viewport: { value: "yamiMobile", isRotated: false } },
+};
+
+/* The waterfall's column ladder below the desktop breakpoint, asserted at each
+ * band's narrowest point — where a threshold set too low does its damage. Both
+ * stories run the same check; only the viewport differs.
+ *
+ * Hidden from the sidebar: a measurement rig, not a format to browse. */
+const assertWaterfallColumns: NonNullable<Story["play"]> = async ({
+  canvasElement,
+}) => {
+  const grid = canvasElement.querySelector<HTMLElement>(
+    '[data-slot="product-list-items"]',
+  );
+  if (!grid) throw new Error("Waterfall grid did not render");
+
+  const width = window.innerWidth;
+  const expected = width >= 1024 ? null : width >= 768 ? 4 : width >= 560 ? 3 : 2;
+  if (expected === null) return;
+
+  const columns = getComputedStyle(grid).gridTemplateColumns.split(" ").length;
+  if (columns !== expected) {
+    throw new Error(
+      `At ${width}px the feed must run ${expected} columns, ran ${columns}`,
+    );
+  }
+
+  // The ladder exists to keep the card readable, so the count alone is not the
+  // point. 152px is the horizontal rails' card; a feed card must not come in
+  // under it, which is what a 440px three-column threshold would have done.
+  const card = grid.firstElementChild as HTMLElement | null;
+  if (!card) throw new Error("Waterfall grid rendered no cards");
+  const cardWidth = card.getBoundingClientRect().width;
+  if (cardWidth < 152) {
+    throw new Error(
+      `At ${width}px a ${expected}-column feed leaves a ${cardWidth.toFixed(1)}px card, under the 152px rail card`,
+    );
+  }
+};
+
+export const WaterfallColumnsPhone: Story = {
+  ...Waterfall,
+  tags: ["!dev", "!autodocs"],
+  globals: { viewport: { value: "yamiMobile", isRotated: false } },
+  play: assertWaterfallColumns,
+};
+
+/* 480px is the band a 440px threshold would have broken: three columns there
+ * leave a 136px card. Neither the phone nor the tablet story covers it — the
+ * damage of a threshold set too low happens between the presets. */
+export const WaterfallColumnsLargePhone: Story = {
+  ...Waterfall,
+  tags: ["!dev", "!autodocs"],
+  globals: { viewport: { value: "yamiMobileXl", isRotated: false } },
+  play: assertWaterfallColumns,
+};
+
+export const WaterfallColumnsTablet: Story = {
+  ...Waterfall,
+  tags: ["!dev", "!autodocs"],
+  globals: { viewport: { value: "yamiTablet", isRotated: false } },
+  play: assertWaterfallColumns,
+};

@@ -1,0 +1,265 @@
+{
+  "$schema": "../../../schema/component.json",
+  "name": "Badge",
+  "category": "display",
+  "status": "stable",
+  "version": "0.2.0",
+
+  "description": "Small pill-shaped label for product status, promotion, and counts. Two parallel APIs: (1) abstract color (6) × emphasis (primary solid / secondary tinted); (2) `type` shortcut mapping to Figma's named Type variants (sale / new / hot / discount / etc.). Red reserved for promotion/urgency per design.md.",
+
+  "figma": {
+    "fileKey": "6oOAy72DBff4P6NzJYc2hi",
+    "nodeId": "1539:22788",
+    "componentKey": null,
+    "notes": "Primary binding is Badge / PC. Mobile (1538:3058) ships the same Type × Language variants but at fixed 20px height. The 4 specialty sets (Top Seller, Membership tag/icon, Badge icon) are out-of-scope for the abstract Badge — track them as separate components if they ship to product.",
+    "nodes": {
+      "mobile": "1538:3058",
+      "pc": "1539:22788",
+      "specialty": {
+        "topSeller": "2861:117",
+        "membershipTag": "1632:21283",
+        "badgeIcon": "2412:33621",
+        "membershipIcon": "5960:91035"
+      }
+    },
+    "sizeDelta": "Badge has one responsive size and type scale: 20px height with 12/16 text on mobile/tablet, 24px height with 14/20 text at PC breakpoint (min-width: 1024px)."
+  },
+
+  "variants": {
+    "color": ["red", "blue", "green", "purple", "yellow", "neutral"],
+    "emphasis": ["primary", "secondary"],
+    "type": [
+      "price",
+      "sale",
+      "low-price",
+      "discount",
+      "new",
+      "hot",
+      "exclusive",
+      "choice",
+      "best-sellers"
+    ]
+  },
+
+  "props": {
+    "color": {
+      "type": "enum",
+      "values": ["red", "blue", "green", "purple", "yellow", "neutral"],
+      "required": false,
+      "default": "neutral",
+      "description": "Semantic color. 'red' only for promotion/sale (rule: red-usage)."
+    },
+    "emphasis": {
+      "type": "enum",
+      "values": ["primary", "secondary"],
+      "required": false,
+      "default": "primary",
+      "description": "'primary' = solid bg, high contrast. 'secondary' = tinted bg, softer."
+    },
+    "type": {
+      "type": "enum",
+      "values": [
+        "price",
+        "sale",
+        "low-price",
+        "discount",
+        "new",
+        "hot",
+        "exclusive",
+        "choice",
+        "best-sellers"
+      ],
+      "required": false,
+      "description": "Semantic shortcut mirroring Figma's Type variant. Resolves to a (color, emphasis) preset (e.g. 'sale' → red+secondary). Explicit color / emphasis props override the preset. 'exclusive' (purple flag) and 'choice' (blue flag) additionally render a flush-left YAMI logo flag prefix matching assets/badges/flag-cap-{purple,blue}.svg."
+    },
+    "children": {
+      "type": "ReactNode",
+      "required": false,
+      "description": "Label text. Typically 1 word or short phrase (NEW, SALE, –30%, 限时)."
+    }
+  },
+
+  "rules": {
+    "colorUsage": {
+      "ruleId": "red-usage",
+      "note": "color='red' only for promotion / urgency / sale. Never decorative."
+    },
+    "semanticColor": {
+      "ruleId": "semantic-color-only",
+      "note": "The 6-color palette IS the sanctioned non-brand color set — this is the one place blue/green/purple/yellow are OK."
+    },
+    "noEmoji": {
+      "ruleId": "no-emoji",
+      "note": "Badge text is plain. Do not encode pictograms as emoji or as ad-hoc Badge variants."
+    },
+    "numerals": {
+      "ruleId": "numerals-font",
+      "note": "Digits (–30%, 1.2k, etc.) render in var(--font-family-ios) = GT Walsheim."
+    },
+    "radii": {
+      "ruleId": "no-custom-radii",
+      "note": "Uses --radius-tag-primary (4px). Never override."
+    }
+  },
+
+  "tokens": [
+    "--badge-bg-primary-red",
+    "--badge-fg-primary-red",
+    "--badge-bg-primary-blue",
+    "--badge-bg-primary-green",
+    "--badge-bg-primary-purple",
+    "--badge-bg-primary-yellow",
+    "--badge-bg-primary-neutral",
+    "--badge-bg-secondary-red",
+    "--badge-fg-secondary-red",
+    "--badge-bg-secondary-blue",
+    "--badge-fg-secondary-blue",
+    "--badge-bg-secondary-green",
+    "--badge-fg-secondary-green",
+    "--badge-bg-secondary-purple",
+    "--badge-fg-secondary-purple",
+    "--badge-bg-secondary-yellow",
+    "--badge-fg-secondary-yellow",
+    "--badge-bg-tertiary-neutral",
+    "--badge-fg-default",
+    "--badge-fg-default-inverse",
+    "--text-primary",
+    "--font-family-ios",
+    "--font-weight-normal",
+    "--font-size-caption-md",
+    "--line-height-caption-md",
+    "--radius-tag-primary",
+    "--space-025",
+    "--space-050"
+  ],
+
+  "tokenBindings": {
+    "--badge-bg-primary-red": {
+      "property": "background-color",
+      "selector": ".badge[data-emphasis='primary'][data-color='red']"
+    },
+    "--badge-fg-primary-red": {
+      "property": "color",
+      "selector": ".badge[data-emphasis='primary'][data-color='red']"
+    },
+    "--badge-bg-primary-blue": {
+      "property": "background-color",
+      "selector": ".badge[data-emphasis='primary'][data-color='blue']"
+    },
+    "--badge-bg-primary-green": {
+      "property": "background-color",
+      "selector": ".badge[data-emphasis='primary'][data-color='green']"
+    },
+    "--badge-bg-primary-purple": {
+      "property": "background-color",
+      "selector": ".badge[data-emphasis='primary'][data-color='purple']"
+    },
+    "--badge-bg-primary-yellow": {
+      "property": "background-color",
+      "selector": ".badge[data-emphasis='primary'][data-color='yellow']"
+    },
+    "--badge-bg-primary-neutral": {
+      "property": "background-color",
+      "selector": ".badge[data-emphasis='primary'][data-color='neutral']"
+    },
+    "--badge-fg-default-inverse": {
+      "property": "color",
+      "selector": ".badge[data-emphasis='primary']:not([data-color='red'])"
+    },
+    "--badge-bg-secondary-red": {
+      "property": "background-color",
+      "selector": ".badge[data-emphasis='secondary'][data-color='red']"
+    },
+    "--badge-fg-secondary-red": {
+      "property": "color",
+      "selector": ".badge[data-emphasis='secondary'][data-color='red']"
+    },
+    "--badge-bg-secondary-blue": {
+      "property": "background-color",
+      "selector": ".badge[data-emphasis='secondary'][data-color='blue']"
+    },
+    "--badge-fg-secondary-blue": {
+      "property": "color",
+      "selector": ".badge[data-emphasis='secondary'][data-color='blue']"
+    },
+    "--badge-bg-secondary-green": {
+      "property": "background-color",
+      "selector": ".badge[data-emphasis='secondary'][data-color='green']"
+    },
+    "--badge-fg-secondary-green": {
+      "property": "color",
+      "selector": ".badge[data-emphasis='secondary'][data-color='green']"
+    },
+    "--badge-bg-secondary-purple": {
+      "property": "background-color",
+      "selector": ".badge[data-emphasis='secondary'][data-color='purple']"
+    },
+    "--badge-fg-secondary-purple": {
+      "property": "color",
+      "selector": ".badge[data-emphasis='secondary'][data-color='purple']"
+    },
+    "--badge-bg-secondary-yellow": {
+      "property": "background-color",
+      "selector": ".badge[data-emphasis='secondary'][data-color='yellow']"
+    },
+    "--badge-fg-secondary-yellow": {
+      "property": "color",
+      "selector": ".badge[data-emphasis='secondary'][data-color='yellow']"
+    },
+    "--badge-bg-tertiary-neutral": {
+      "property": "background-color",
+      "selector": ".badge[data-emphasis='secondary'][data-color='neutral']"
+    },
+    "--badge-fg-default": {
+      "property": "color",
+      "selector": ".badge[data-emphasis='secondary'][data-color='neutral']"
+    },
+    "--text-primary": {
+      "property": "color",
+      "selector": ".badge[data-emphasis='secondary'][data-type='sale'], .badge[data-emphasis='secondary'][data-type='low-price'], .badge[data-emphasis='secondary'][data-type='discount'], .badge[data-emphasis='secondary'][data-type='new'], .badge[data-emphasis='secondary'][data-type='hot']"
+    },
+    "--font-family-ios": { "property": "font-family", "selector": ".badge" },
+    "--font-weight-normal": { "property": "font-weight", "selector": ".badge" },
+    "--font-size-caption-md": { "property": "font-size", "selector": ".badge" },
+    "--line-height-caption-md": {
+      "property": "line-height",
+      "selector": ".badge"
+    },
+    "--radius-tag-primary": {
+      "property": "border-radius",
+      "selector": ".badge"
+    },
+    "--space-025": { "property": "gap", "selector": ".badge" },
+    "--space-050": {
+      "property": "padding-inline",
+      "selector": ".badge"
+    }
+  },
+
+  "accessibility": {
+    "role": "implicit (span)",
+    "wcagLevel": "AA",
+    "tapTargetMin": 0,
+    "keyboardNav": [],
+    "ariaPattern": "label",
+    "notes": "Badge is a visual label (non-interactive — tapTargetMin=0). If it conveys state not present in adjacent text (e.g. 'OUT OF STOCK' on an otherwise normal-looking product), ensure the state is also encoded in markup — e.g. aria-label on the parent product element."
+  },
+
+  "dependencies": {
+    "runtime": ["react"],
+    "peer": [],
+    "devOnly": []
+  },
+
+  "usageRef": "./usage.md",
+  "examples": [
+    "./examples.tsx#SaleBadge",
+    "./examples.tsx#NewBadge",
+    "./examples.tsx#DiscountBadge",
+    "./examples.tsx#OutOfStockBadge",
+    "./examples.tsx#LimitedBadge",
+    "./examples.tsx#BestsellerBadge",
+    "./examples.tsx#AllColorsRow",
+    "./examples.tsx#AllEmphasisRow"
+  ]
+}

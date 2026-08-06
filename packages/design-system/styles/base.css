@@ -1,0 +1,121 @@
+/* YAMI design system base.css
+ *
+ * Hand-written non-token CSS, concatenated into tokens.css AFTER the
+ * SD-generated :root and @media blocks.
+ *
+ * Scope:
+ *   1. :root legacy aliases (deprecated; do not use in new code)
+ *   2. Semantic element baselines (html, body, h1-h4, p, .body, .caption,
+ *      .price, .strike, a, code)
+ *
+ * Anti-scope: @font-face goes in fonts.css; all design tokens
+ * (--color, --space, --radius, --layout, --font-*,
+ * --font-size, --line-height) come from DTCG JSON under tokens/.
+ */
+
+/* ============ LEGACY ALIASES ============
+ * Kept for backwards compatibility with code that predates the
+ * DTCG-compliant --font-family-* / --font-weight-* primitives.
+ * Do not use these in new code.
+ */
+:root {
+  /* @deprecated v0.2.0 — to be removed in v0.3.0 per ADR-010.
+   * Migrate consumers to the DTCG-derived --font-family-* / --font-mono /
+   * --font-weight-* tokens. These thin aliases exist only for backwards
+   * compatibility with code that predates the DTCG semantic surface. */
+  --font-brand: var(--font-family-ios);
+  --font-cn-ios: var(--font-family-ios);
+  --font-cn-android: var(--font-family-android);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --fw-normal: var(--font-weight-normal);
+  --fw-emphasize: var(--font-weight-emphasize);
+  --fw-bold: 700;
+}
+
+/* ============ SEMANTIC ELEMENT BASELINES ============ */
+html,
+body {
+  font-family: var(--font-cn-ios);
+  color: var(--text-primary);
+  background: var(--background-primary);
+}
+
+h1,
+.h1 {
+  font-family: var(--font-brand);
+  font-weight: var(--fw-emphasize);
+  font-size: var(--font-size-display-md);
+  line-height: var(--line-height-display-md);
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+h2,
+.h2 {
+  font-family: var(--font-brand);
+  font-weight: var(--fw-emphasize);
+  font-size: var(--font-size-heading-xl);
+  line-height: var(--line-height-heading-xl);
+  margin: 0;
+}
+h3,
+.h3 {
+  font-family: var(--font-brand);
+  font-weight: var(--fw-emphasize);
+  font-size: var(--font-size-heading-md);
+  line-height: var(--line-height-heading-md);
+  margin: 0;
+}
+h4,
+.h4 {
+  font-family: var(--font-brand);
+  font-weight: var(--fw-emphasize);
+  font-size: var(--font-size-heading-sm);
+  line-height: var(--line-height-heading-sm);
+  margin: 0;
+}
+p,
+.body {
+  font-size: var(--font-size-body-md);
+  line-height: var(--line-height-body-md);
+}
+.body-lg {
+  font-size: var(--font-size-body-xl);
+  line-height: var(--line-height-body-xl);
+}
+.caption {
+  font-size: var(--font-size-caption-sm);
+  line-height: var(--line-height-caption-sm);
+  color: var(--text-secondary);
+}
+.price {
+  font-family: var(--font-brand);
+  font-weight: var(--fw-emphasize);
+  font-size: var(--font-size-price-md);
+  line-height: var(--line-height-price-md);
+  color: var(--text-emphasis);
+}
+.price-sm {
+  font-family: var(--font-brand);
+  font-weight: var(--fw-emphasize);
+  font-size: var(--font-size-price-sm);
+  line-height: var(--line-height-price-sm);
+  color: var(--text-emphasis);
+}
+.strike {
+  font-size: var(--font-size-strike-md);
+  line-height: var(--line-height-strike-md);
+  text-decoration: line-through;
+  color: var(--text-secondary);
+}
+a,
+.link {
+  color: var(--text-primary);
+  text-decoration: underline;
+}
+code,
+.mono {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 20px;
+}

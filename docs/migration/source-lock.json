@@ -1,0 +1,10 @@
+{
+  "sourceRole": "DL Source",
+  "sourceUrl": "https://github.com/divikwu/design-labs",
+  "sourcePath": "design-systems/yami",
+  "sourceSha": "e22f1e14ac74d1e024d8dffc47935e8f43e115cf",
+  "sourceTreeOid": "babc3f8d006789d336cab13d880acd9298d2e8b8",
+  "commitTreeOid": "364c9e4a276f5476b695f023347c80e5e5064f6d",
+  "committedAt": "2026-08-06T20:25:17+08:00",
+  "migrationMethod": "git archive SOURCE_SHA design-systems/yami"
+}

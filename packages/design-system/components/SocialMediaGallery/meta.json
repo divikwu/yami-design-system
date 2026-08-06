@@ -1,0 +1,158 @@
+{
+  "$schema": "../../../schema/component.json",
+  "name": "SocialMediaGallery",
+  "category": "composite",
+  "status": "stable",
+  "version": "0.1.0",
+  "description": "Responsive YAMI social video gallery with product and pure-video card variants across PC and mobile layouts.",
+  "figma": {
+    "fileKey": "6oOAy72DBff4P6NzJYc2hi",
+    "nodeId": "6993:63493",
+    "notes": "PC gallery 6993:63493, PC child card 6993:63472, and mobile gallery 6962:102989."
+  },
+  "exports": [
+    "SocialMediaGallery",
+    "SocialVideoCard",
+    "SocialMediaGalleryProps",
+    "SocialVideoCardProps",
+    "SocialVideoProduct"
+  ],
+  "composes": ["Button"],
+  "props": {
+    "title": {
+      "type": "ReactNode",
+      "required": true,
+      "description": "Desktop section heading and accessible section label."
+    },
+    "mobileTitle": {
+      "type": "ReactNode",
+      "required": false,
+      "description": "Optional mobile heading; falls back to title."
+    },
+    "cards": {
+      "type": "SocialVideoCardProps[]",
+      "required": true,
+      "description": "Ordered social video cards with stable IDs."
+    },
+    "viewAllHref": {
+      "type": "string",
+      "required": false,
+      "description": "Optional desktop view-all destination."
+    },
+    "viewAllLabel": {
+      "type": "ReactNode",
+      "required": false,
+      "default": "See all",
+      "description": "Localized desktop view-all label."
+    },
+    "previousLabel": {
+      "type": "string",
+      "required": false,
+      "default": "Previous social videos",
+      "description": "Localized previous-page control label."
+    },
+    "nextLabel": {
+      "type": "string",
+      "required": false,
+      "default": "Next social videos",
+      "description": "Localized next-page control label."
+    },
+    "products": {
+      "type": "SocialVideoProduct[]",
+      "required": false,
+      "description": "Optional product footer data for SocialVideoCard; omit product images to render the caption in a text-only footer on either breakpoint."
+    }
+  },
+  "rules": {
+    "tapTarget": {
+      "ruleId": "tap-target",
+      "note": "Video and product links remain independent; desktop paging composes shared Button controls."
+    },
+    "focus": {
+      "ruleId": "focus-style",
+      "note": "Video, product, view-all, and paging actions use token-backed focus indicators."
+    },
+    "radius": {
+      "ruleId": "no-custom-radii",
+      "note": "Gallery, video cards, product images, and account marks consume semantic radius tokens."
+    },
+    "gradient": {
+      "ruleId": "no-gradient",
+      "note": "Media gradients are functional contrast layers from the Figma video-card specification."
+    },
+    "motion": {
+      "ruleId": "elevation-on-press",
+      "note": "Native rail paging respects prefers-reduced-motion."
+    }
+  },
+  "tokens": [
+    "--surface-primary",
+    "--surface-secondary",
+    "--text-primary",
+    "--text-secondary",
+    "--text-primary-inverse",
+    "--color-white-1000",
+    "--divider-default",
+    "--border-focus",
+    "--border-focus-inverse",
+    "--stroke-default",
+    "--stroke-thick",
+    "--radius-full",
+    "--radius-surface-default",
+    "--radius-component-default",
+    "--radius-tag-primary",
+    "--font-family-ios",
+    "--font-weight-normal",
+    "--font-weight-emphasize",
+    "--font-size-heading-xl",
+    "--font-size-heading-2xl",
+    "--font-size-body-md",
+    "--font-size-link-sm",
+    "--line-height-heading-xl",
+    "--line-height-heading-2xl",
+    "--line-height-body-md",
+    "--line-height-link-sm",
+    "--space-025",
+    "--space-050",
+    "--space-100",
+    "--space-150",
+    "--space-200",
+    "--space-300",
+    "--space-400",
+    "--space-500",
+    "--space-600"
+  ],
+  "tokenBindings": {
+    "--surface-primary": {
+      "property": "background-color",
+      "selector": ".root, .moreProducts"
+    },
+    "--surface-secondary": {
+      "property": "background-color",
+      "selector": ".card"
+    },
+    "--divider-default": {
+      "property": "border-color",
+      "selector": ".root at or above 1024px"
+    },
+    "--radius-component-default": {
+      "property": "border-radius",
+      "selector": ".card"
+    }
+  },
+  "accessibility": {
+    "wcagLevel": "AA",
+    "tapTargetMin": 44,
+    "keyboardNav": ["tab", "shift+tab", "enter"],
+    "ariaPattern": "labelled section containing a horizontal list of article cards and optional links and paging buttons",
+    "structure": "The visible heading labels the section. Each video is an article; video and product destinations remain separate links.",
+    "interaction": "Mobile uses native horizontal scrolling. Desktop exposes overflow-aware previous and next controls."
+  },
+  "dependencies": {
+    "runtime": ["react", "./Button"],
+    "peer": [],
+    "devOnly": ["@figma/code-connect", "@storybook/react-vite"]
+  },
+  "usageRef": "./usage.md",
+  "examples": ["./examples.tsx#SocialMediaGalleryExample"]
+}
