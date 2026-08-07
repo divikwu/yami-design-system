@@ -9,7 +9,7 @@ async function walk(dir) {
   return nested.flat();
 }
 const stories = [...await walk(path.join(root, "packages/design-system")), ...await walk(path.join(root, "packages/prototypes"))];
-if (stories.length !== 30) throw new Error(`Expected 30 stories, received ${stories.length}`);
+if (stories.length !== 32) throw new Error(`Expected 32 stories, received ${stories.length}`);
 const indexPath = path.join(root, "apps/storybook/storybook-static/index.json");
 const index = JSON.parse(await fs.readFile(indexPath, "utf8"));
 const entries = Object.values(index.entries ?? {});
