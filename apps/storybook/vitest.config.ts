@@ -10,7 +10,14 @@ const directory = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
   plugins: [react()],
   optimizeDeps: {
-    include: ["@storybook/react-vite"],
+    include: [
+      "@base-ui/react/checkbox",
+      "@base-ui/react/radio",
+      "@base-ui/react/radio-group",
+      "@storybook/react-vite",
+      "react/jsx-dev-runtime",
+      "storybook/test",
+    ],
   },
   test: {
     projects: [
