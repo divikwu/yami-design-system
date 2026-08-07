@@ -2,6 +2,12 @@
   "name": "yami-design-system",
   "version": "0.1.0",
   "private": true,
+  "description": "AI-driven Yami design system and prototyping platform",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/divikwu/yami-design-system.git"
+  },
+  "homepage": "https://yami-design-system.vercel.app",
   "packageManager": "pnpm@11.10.0",
   "engines": { "node": "~24" },
   "scripts": {

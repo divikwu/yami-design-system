@@ -4,12 +4,15 @@
 
 Accepted by the repository owner on 2026-08-06.
 
+The Production-deployment restriction below was superseded by
+[`ADR 003`](003-public-production-and-manual-deployments.md) on 2026-08-07. The
+asset-rights warning remains active.
+
 ## Decision
 
 `divikwu/yami-design-system` is a public GitHub repository so GitHub Free can enforce
-rulesets and required CI checks on `main`. The packages remain private, Vercel
-automatic Git deployments remain disabled, and production deployment remains
-prohibited by ADR 001.
+rulesets and required CI checks on `main`. The packages remain private and
+Vercel automatic Git deployments remain disabled.
 
 Repository visibility does not change the rights recorded in
 `docs/migration/asset-rights.csv` or any asset-specific license notice. In
