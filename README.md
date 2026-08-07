@@ -25,8 +25,18 @@ and import contract.
 - Canvas: http://localhost:3200
 - Storybook: http://localhost:6006
 
-The source repository is public so GitHub Free can enforce CI rules on `main`.
-Packages remain private and Vercel remains preview-only and protected. Public
-repository visibility does not grant reuse or redistribution rights for the
-licensed fonts, brand marks or product photography; review the asset notices
-before forking, mirroring or packaging static assets.
+## Hosted environments
+
+- Canvas: https://yami-design-system.vercel.app
+- Storybook: https://yami-design-system-storybook.vercel.app
+
+The source repository and the manually promoted Vercel production deployments
+are public. Automatic Git deployments remain disabled, and neither Vercel
+project receives an AI secret. See
+[`ADR 003`](docs/adr/003-public-production-and-manual-deployments.md) for the
+current release policy.
+
+Public availability does not grant reuse or redistribution rights for the
+licensed fonts, brand marks or product photography. The asset-rights conflict
+is recorded but not cleared; review the asset notices before forking, mirroring
+or packaging static assets.

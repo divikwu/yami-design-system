@@ -13,10 +13,11 @@ storage; it validates imported manifests and stores them in the browser.
 The migrated source is locked to the SHA in `docs/migration/source-lock.json`.
 Derived tokens and catalogs are regenerated in this repository.
 
-Vercel hosting remains on the Hobby plan. Canvas and Storybook use Standard
-Protection with automatic Git deployments disabled and are limited to manually
-authorized Preview deployments. Production deployment is prohibited unless a
-later ADR establishes an equivalent private access boundary.
+Vercel hosting remains on the Hobby plan. The original protected-Preview-only
+policy has been superseded by
+[`ADR 003`](003-public-production-and-manual-deployments.md), which records the
+owner-approved public Production deployments and the unresolved asset-rights
+boundary. Automatic Git deployments remain disabled.
 
 ## Direction merge contract
 
