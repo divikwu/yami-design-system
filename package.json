@@ -25,7 +25,7 @@
     "test:storybook": "pnpm --filter @yami/storybook test-storybook",
     "test:a11y": "playwright test --project=a11y",
     "test:e2e": "playwright test --project=e2e",
-    "test:visual": "playwright test --project=visual",
+    "test:visual": "PLAYWRIGHT_USE_PRODUCTION=1 playwright test --project=visual",
     "changeset": "changeset",
     "changeset:status": "changeset status"
   },
