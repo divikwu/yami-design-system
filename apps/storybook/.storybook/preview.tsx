@@ -34,7 +34,7 @@ const preview: Preview = {
     viewport: {
       options: YAMI_VIEWPORTS
     },
-    options: { storySort: { order: ["YAMI", ["Foundations", "Components", "Pages"]] } }
+    options: { storySort: { order: ["YAMI", ["Foundations", "Primitives", "Assets", "Components", "Pages"]] } }
   },
   decorators: [
     (Story, context) => {
