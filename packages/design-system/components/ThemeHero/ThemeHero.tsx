@@ -1,16 +1,16 @@
 import { Button } from "../Button";
-import styles from "./BrandHero.module.css";
-import type { BrandHeroProps } from "./BrandHero.types";
+import styles from "./ThemeHero.module.css";
+import type { ThemeHeroProps } from "./ThemeHero.types";
 
 function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
 /**
- * Brand storytelling hero with selectable copy, one primary action and a
+ * Theme storytelling hero with selectable copy, one primary action and a
  * campaign image repeated as a blurred full-bleed atmosphere.
  */
-export function BrandHero({
+export function ThemeHero({
   title,
   description,
   image,
@@ -19,12 +19,12 @@ export function BrandHero({
   imageLoading = "lazy",
   className,
   ...rest
-}: BrandHeroProps) {
+}: ThemeHeroProps) {
   return (
     <section
       {...rest}
       className={cx(styles.root, className)}
-      data-slot="brand-hero"
+      data-slot="theme-hero"
     >
       <div className={styles.atmosphere} aria-hidden="true">
         <img src={backgroundImageSrc} alt="" />
@@ -32,7 +32,7 @@ export function BrandHero({
       <div className={styles.scrim} aria-hidden="true" />
 
       <div className={styles.container}>
-        <div className={styles.copy} data-slot="brand-hero-copy">
+        <div className={styles.copy} data-slot="theme-hero-copy">
           <h2 className={styles.title}>{title}</h2>
           <div className={styles.description}>{description}</div>
           {cta && (
@@ -53,7 +53,7 @@ export function BrandHero({
           )}
         </div>
 
-        <div className={styles.media} data-slot="brand-hero-media">
+        <div className={styles.media} data-slot="theme-hero-media">
           <img
             className={styles.image}
             src={image.src}

@@ -1,8 +1,8 @@
-import type { BrandHeroProps } from "./BrandHero.types";
+import type { ThemeHeroProps } from "./ThemeHero.types";
 
 const anuaHero = new URL("./assets/anua-hero.png", import.meta.url).href;
 
-export function createBrandHeroProps(): BrandHeroProps {
+export function createThemeHeroProps(): ThemeHeroProps {
   return {
     title: "Anua: Gentle yet Effective Korean Skincare",
     description:

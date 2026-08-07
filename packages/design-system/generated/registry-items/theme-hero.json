@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "name": "theme-hero",
+  "title": "ThemeHero",
+  "type": "component",
+  "status": "experimental",
+  "source": "components/ThemeHero",
+  "files": [
+    "components/ThemeHero/assets/anua-hero.png",
+    "components/ThemeHero/fixtures.ts",
+    "components/ThemeHero/index.ts",
+    "components/ThemeHero/ThemeHero.module.css",
+    "components/ThemeHero/ThemeHero.tsx",
+    "components/ThemeHero/ThemeHero.types.ts"
+  ]
+}

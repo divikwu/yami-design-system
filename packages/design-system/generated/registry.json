@@ -32,12 +32,6 @@
       "path": "registry-items/billboard.json"
     },
     {
-      "name": "brand-hero",
-      "title": "BrandHero",
-      "type": "component",
-      "path": "registry-items/brand-hero.json"
-    },
-    {
       "name": "brand-product-rail",
       "title": "BrandProductRail",
       "type": "component",
@@ -126,6 +120,18 @@
       "title": "Tabs",
       "type": "component",
       "path": "registry-items/tabs.json"
+    },
+    {
+      "name": "theme-hero",
+      "title": "ThemeHero",
+      "type": "component",
+      "path": "registry-items/theme-hero.json"
+    },
+    {
+      "name": "theme-product-list",
+      "title": "ThemeProductList",
+      "type": "component",
+      "path": "registry-items/theme-product-list.json"
     },
     {
       "name": "trending-searches",

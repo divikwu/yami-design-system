@@ -1,35 +1,35 @@
 {
   "$schema": "../../../schema/component.json",
-  "name": "BrandHero",
+  "name": "ThemeHero",
   "category": "composite",
   "status": "experimental",
   "version": "0.1.0",
-  "description": "Full-width brand storytelling hero with selectable copy, one primary CTA and atmospheric campaign artwork.",
+  "description": "Full-width theme storytelling hero with selectable copy, one primary CTA and atmospheric campaign artwork.",
   "figma": {
     "nodeId": "1877:43111",
     "componentKey": null,
-    "notes": "English Site Optimization 2026 Brand Hero; layout behavior is also informed by the W Concept brand visual module."
+    "notes": "English Site Optimization 2026 Theme Hero; layout behavior is also informed by the W Concept visual module."
   },
   "exports": [
-    "BrandHero",
-    "BrandHeroCta",
-    "BrandHeroImage",
-    "BrandHeroProps"
+    "ThemeHero",
+    "ThemeHeroCta",
+    "ThemeHeroImage",
+    "ThemeHeroProps"
   ],
   "composes": ["Button"],
   "props": {
     "title": {
       "type": "ReactNode",
       "required": true,
-      "description": "Visible brand positioning heading."
+      "description": "Visible theme positioning heading."
     },
     "description": {
       "type": "ReactNode",
       "required": true,
-      "description": "Selectable supporting brand copy."
+      "description": "Selectable supporting theme copy."
     },
     "image": {
-      "type": "BrandHeroImage",
+      "type": "ThemeHeroImage",
       "required": true,
       "description": "Foreground campaign artwork with meaningful alt text and intrinsic dimensions."
     },
@@ -39,7 +39,7 @@
       "description": "Alternate decorative source for the blurred full-bleed atmosphere; defaults to image.src."
     },
     "cta": {
-      "type": "BrandHeroCta",
+      "type": "ThemeHeroCta",
       "required": false,
       "description": "Optional primary action rendered with the shared inverse Button."
     },
@@ -87,7 +87,7 @@
   "tokenBindings": {
     "--space-600": {
       "property": "padding-inline",
-      "selector": ".root from 1024px"
+      "selector": ".container from 1024px"
     },
     "--font-size-display-xl": {
       "property": "font-size",
@@ -113,5 +113,5 @@
     "devOnly": []
   },
   "usageRef": "./usage.md",
-  "examples": ["./examples.tsx#BrandHeroExample"]
+  "examples": ["./examples.tsx#ThemeHeroExample"]
 }

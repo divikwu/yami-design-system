@@ -30,6 +30,11 @@
       "required": true,
       "description": "ProductCard data with a stable id for each item."
     },
+    "leadingContent": {
+      "type": "ReactNode",
+      "required": false,
+      "description": "Optional content rendered before the first rail product; ThemeProductList uses it to reserve two card slots."
+    },
     "appearance": {
       "type": "\"standard\" | \"themed\" | \"atmospheric\"",
       "required": false,
