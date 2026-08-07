@@ -23,7 +23,7 @@ export function PreviewSurface({ localeOverride }: { localeOverride?: "en" | "zh
   const theme = params.get("theme") === "dark" ? "dark" : "light";
   const direction = params.get("direction") || "current";
   const transition: PreviewTransition = params.get("transition") === "path" ? "path" : params.get("transition") === "direction" ? "direction" : "none";
-  const navigate = useCallback((nextPath: string) => window.parent.postMessage({ type: "yami-canvas:v1:navigate", path: nextPath }, window.location.origin), []);
+  const navigate = useCallback((nextPath: string) => window.parent.postMessage({ type: "yami-design-system:v1:navigate", path: nextPath }, window.location.origin), []);
 
   useEffect(() => {
     setManifest(direction === "current" ? null : direction === fixed.id ? fixed : findDraft(direction));

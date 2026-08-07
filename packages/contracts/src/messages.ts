@@ -3,7 +3,7 @@ import { z } from "zod";
 export const canvasPaths = ["/", "/products", "/categories", "/search", "/cart", "/brands", "/account"] as const;
 
 export const PreviewNavigateMessageSchema = z.object({
-  type: z.literal("yami-canvas:v1:navigate"),
+  type: z.literal("yami-design-system:v1:navigate"),
   path: z.string().max(240).regex(/^\/(?!\/)[^\\]*$/, "Preview path must be a same-origin absolute path")
 }).strict().superRefine((message, context) => {
   const root = `/${message.path.split("/").filter(Boolean)[0] ?? ""}`;

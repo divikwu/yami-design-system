@@ -9,7 +9,7 @@
   "items": [
     {
       "name": "yami-design-system",
-      "title": "YAMI Design System",
+      "title": "Yami Design System",
       "type": "design-system",
       "path": "registry-items/yami-design-system.json"
     },

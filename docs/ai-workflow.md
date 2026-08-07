@@ -1,13 +1,13 @@
 # AI direction workflow
 
 Use Codex or Kiro to create a design direction, then import the resulting JSON
-from the YAMI Canvas control panel. Canvas never sends prompts or project assets
+from the Yami Design System Canvas control panel. Canvas never sends prompts or project assets
 to an external model.
 
 ## Agent prompt
 
 ```text
-Create a YAMI Canvas DirectionManifestV1 JSON design direction.
+Create a Yami Design System DirectionManifestV1 JSON design direction.
 
 Read:
 - packages/contracts/src/manifest.ts
@@ -28,7 +28,8 @@ Requirements:
 
 - The browser validates `DirectionManifestV1` before saving anything.
 - Invalid JSON leaves the current direction unchanged.
-- Drafts are stored in `yami-canvas:drafts:v1` local storage.
+- Drafts are stored in `yami-design-system:drafts:v1` local storage. Existing
+  `yami-canvas:drafts:v1` drafts migrate automatically on first read.
 - Exported files can be reviewed in Git and shared with the team.
 - `current` always resolves from the Ecommerce Home fixture; it is never copied
   into a second manifest.

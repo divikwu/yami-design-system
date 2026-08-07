@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
   "id": "yami",
-  "name": "YAMI Design System",
-  "description": "Private YAMI ecommerce design system shared by Canvas and Storybook.",
+  "name": "Yami Design System",
+  "description": "Yami ecommerce design system shared by Canvas and Storybook.",
   "version": "0.1.0",
   "status": "alpha",
-  "canonicalRepository": "https://github.com/divikwu/yami-canvas",
+  "canonicalRepository": "https://github.com/divikwu/yami-design-system",
   "package": "@yami/design-system",
   "provenance": {
     "sourceRole": "DL Source",

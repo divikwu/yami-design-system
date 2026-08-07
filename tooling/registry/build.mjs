@@ -44,7 +44,7 @@ for (const directory of directories) {
 const baseItem = {
   schemaVersion: 1,
   name: "yami-design-system",
-  title: "YAMI Design System",
+  title: "Yami Design System",
   type: "design-system",
   source: "design-system.meta.json",
   files: [

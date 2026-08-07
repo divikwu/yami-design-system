@@ -1,7 +1,7 @@
 # Ecommerce Home host comparison
 
 This diagnostic compares the same `YAMI/Pages/Ecommerce Home / PC` story in
-the Design Labs Storybook host and the standalone YAMI Canvas Storybook host.
+the Design Labs Storybook host and the standalone Yami Design System Storybook host.
 It is separate from the locked Linux Playwright acceptance baselines.
 
 Capture inputs on 2026-08-06:
@@ -26,7 +26,7 @@ section geometry are preserved. The source image is 4px taller at the footer.
 Files:
 
 - `dl-source-ecommerce-home-zh-light-1440.png`
-- `yami-canvas-ecommerce-home-zh-light-1440.png`
+- `yami-design-system-ecommerce-home-zh-light-1440.png`
 - `ecommerce-home-zh-light-1440-diff.png`
 
 Run `pnpm capture:host-visual` while the two Storybook hosts are available at

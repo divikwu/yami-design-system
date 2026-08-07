@@ -14,8 +14,8 @@ const yamiFont = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "YAMI Canvas",
-  description: "由 AI 驱动的 YAMI 设计系统与原型制作平台"
+  title: "Yami Design System",
+  description: "由 AI 驱动的 Yami 设计系统与原型制作平台"
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

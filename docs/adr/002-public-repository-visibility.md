@@ -6,7 +6,7 @@ Accepted by the repository owner on 2026-08-06.
 
 ## Decision
 
-`divikwu/yami-canvas` is a public GitHub repository so GitHub Free can enforce
+`divikwu/yami-design-system` is a public GitHub repository so GitHub Free can enforce
 rulesets and required CI checks on `main`. The packages remain private, Vercel
 automatic Git deployments remain disabled, and production deployment remains
 prohibited by ADR 001.

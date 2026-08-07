@@ -6,7 +6,7 @@ const outputDir = path.resolve("docs/migration/visual-comparison");
 const story = "iframe.html?id=yami-pages-ecommerce-home--pc&viewMode=story&globals=locale:zh;theme:light";
 const hosts = [
   ["dl-source", process.env.DL_STORYBOOK_URL ?? "http://localhost:6006"],
-  ["yami-canvas", process.env.YAMI_STORYBOOK_URL ?? "http://localhost:6007"],
+  ["yami-design-system", process.env.YAMI_STORYBOOK_URL ?? "http://localhost:6007"],
 ];
 
 await fs.mkdir(outputDir, { recursive: true });

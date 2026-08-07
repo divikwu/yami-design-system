@@ -2,5 +2,5 @@ import { Suspense } from "react";
 import { CanvasWorkbench } from "../ui/canvas-workbench";
 
 export default function WorkbenchPage() {
-  return <Suspense fallback={<main className="app-loading">正在打开 YAMI Canvas…</main>}><CanvasWorkbench /></Suspense>;
+  return <Suspense fallback={<main className="app-loading">正在打开 Yami Design System…</main>}><CanvasWorkbench /></Suspense>;
 }

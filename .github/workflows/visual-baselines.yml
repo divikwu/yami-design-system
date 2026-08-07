@@ -21,7 +21,7 @@ jobs:
         run: CI=1 pnpm exec playwright test --project=visual --update-snapshots
       - uses: actions/upload-artifact@v4
         with:
-          name: yami-canvas-linux-visual-baselines
+          name: yami-design-system-linux-visual-baselines
           path: tests/visual/canvas.visual.spec.ts-snapshots
           if-no-files-found: error
           retention-days: 7

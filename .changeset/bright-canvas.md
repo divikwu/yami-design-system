@@ -4,4 +4,4 @@
 "@yami/prototypes": minor
 ---
 
-Create the private YAMI Canvas workspace from the locked Design Labs snapshot.
+Create the Yami Design System workspace from the locked Design Labs snapshot.

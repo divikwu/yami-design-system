@@ -47,7 +47,7 @@ describe("direction contracts", () => {
   });
 
   it("rejects protocol-relative navigation and non-local assets", () => {
-    expect(() => PreviewNavigateMessageSchema.parse({ type: "yami-canvas:v1:navigate", path: "//products" })).toThrow();
+    expect(() => PreviewNavigateMessageSchema.parse({ type: "yami-design-system:v1:navigate", path: "//products" })).toThrow();
     expect(() => DirectionManifestV1Schema.parse({
       schemaVersion: 1,
       id: "unsafe-assets",

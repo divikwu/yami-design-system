@@ -1,8 +1,8 @@
-# ADR 001 — YAMI Canvas architecture and migration contract
+# ADR 001 — Yami Design System architecture and migration contract
 
 ## Decision
 
-YAMI Canvas uses a pnpm workspace with Next.js Canvas, React-Vite Storybook,
+Yami Design System uses a pnpm workspace with Next.js Canvas, React-Vite Storybook,
 source-consumed React packages and a contracts-only Zod package. It does not use
 Astryx Theme Adapter, StyleX, Tailwind, shadcn, Turborepo or a database.
 

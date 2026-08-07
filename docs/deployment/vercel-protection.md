@@ -9,8 +9,8 @@ deployment policy.
 
 | Project | Root directory | Required protection and release policy |
 | --- | --- | --- |
-| `yami-canvas` | `apps/canvas` | Standard Protection; protected Preview deployments only |
-| `yami-canvas-storybook` | `apps/storybook` | Standard Protection; protected Preview deployments only |
+| `yami-design-system` | `apps/canvas` | Standard Protection; protected Preview deployments only |
+| `yami-design-system-storybook` | `apps/storybook` | Standard Protection; protected Preview deployments only |
 
 Automatic Git deployments are disabled in each app's `vercel.json`. A Preview
 deployment must be started manually after separate user authorization. Do not

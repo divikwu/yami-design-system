@@ -1,6 +1,6 @@
 # YAMI CHANGELOG
 
-> **2026-08-06 — Migrated into YAMI Canvas.** This package is the canonical
+> **2026-08-06 — Migrated into Yami Design System.** This package is the canonical
 > workspace source for the Canvas and Storybook applications. The immutable
 > Design Labs snapshot remains migration provenance only.
 > Historical paths and commands below are retained as provenance; use

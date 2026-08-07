@@ -6,7 +6,7 @@ audience: ai-agent
 purpose: Entry point for AI agents producing UI under the YAMI brand.
 ---
 
-# YAMI Design System — AI Skill Manifest
+# Yami Design System — AI Skill Manifest
 
 This file tells an AI agent (Claude Code, Cursor, OpenAI Codex, etc.) **how to use YAMI to produce production-grade UI** without violating brand or system rules. It is the canonical entry point — read this first, then follow its links.
 
@@ -115,7 +115,7 @@ and the local registry is the shadcn-compatible distribution contract.
 
 ## Validate your output
 
-After generating, run from the YAMI Canvas repository root:
+After generating, run from the Yami Design System repository root:
 
 ```bash
 pnpm check:generated && pnpm check:boundaries && pnpm test

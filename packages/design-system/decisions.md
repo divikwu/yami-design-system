@@ -1,7 +1,7 @@
 # YAMI Decision History
 
 > Migration note: command and path references in historical entries describe
-> DL Source at the time of each decision. Current YAMI Canvas commands live in
+> DL Source at the time of each decision. Current Yami Design System commands live in
 > the repository root `package.json`; the current token runbook is in
 > `README.md`.
 

@@ -1,6 +1,6 @@
-# YAMI Canvas
+# Yami Design System
 
-由 AI 驱动的 YAMI 设计系统与原型制作平台。
+由 AI 驱动的 Yami 设计系统与原型制作平台。
 
 ## Local development
 
@@ -13,7 +13,7 @@ pnpm dev:storybook
 
 ## AI workflow
 
-YAMI Canvas does not call a model at runtime. Generate a `DirectionManifestV1`
+Yami Design System does not call a model at runtime. Generate a `DirectionManifestV1`
 JSON file in Codex or Kiro, then import it from the Canvas control panel. The
 browser validates the schema before saving the direction to local storage.
 

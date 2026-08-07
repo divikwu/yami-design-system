@@ -5,7 +5,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import fixture from "../generated-direction.fixture.json";
-import { readDrafts, upsertDraft, writeDrafts } from "../lib/drafts";
+import { DRAFTS_CHANGED_EVENT, readDrafts, upsertDraft, writeDrafts } from "../lib/drafts";
 
 type Locale = "zh" | "en";
 type Theme = "light" | "dark";
@@ -21,7 +21,7 @@ export function CanvasWorkbench() {
   const [drafts, setDrafts] = useState<DirectionManifestV1[]>([]);
   const [notice, setNotice] = useState("");
   const requestedPath = params.get("path") || "/";
-  const pathResult = PreviewNavigateMessageSchema.safeParse({ type: "yami-canvas:v1:navigate", path: requestedPath });
+  const pathResult = PreviewNavigateMessageSchema.safeParse({ type: "yami-design-system:v1:navigate", path: requestedPath });
   const path = pathResult.success ? pathResult.data.path : "/";
   const direction = params.get("direction") || "current";
   const locale = (params.get("locale") === "en" ? "en" : "zh") as Locale;
@@ -34,14 +34,14 @@ export function CanvasWorkbench() {
   const update = useCallback((next: Partial<{ path: string; direction: string; locale: Locale; theme: Theme; viewport: Viewport }>, mode: "push" | "replace" = "replace") => {
     const query = new URLSearchParams(params.toString());
     for (const [key, value] of Object.entries(next)) query.set(key, value);
-    router[mode](`/?${query.toString()}`);
+    router[mode](`/workbench?${query.toString()}`);
   }, [params, router]);
 
   useEffect(() => {
     const sync = () => setDrafts(readDrafts());
     sync();
-    window.addEventListener("yami-canvas:drafts-changed", sync);
-    return () => window.removeEventListener("yami-canvas:drafts-changed", sync);
+    window.addEventListener(DRAFTS_CHANGED_EVENT, sync);
+    return () => window.removeEventListener(DRAFTS_CHANGED_EVENT, sync);
   }, []);
 
   useEffect(() => {
@@ -107,7 +107,7 @@ export function CanvasWorkbench() {
   return (
     <main className="canvas-shell">
       <header className="canvas-header">
-        <div className="brand-lockup"><span className="brand-mark">Y</span><div><strong>YAMI Canvas</strong><span>AI 原型工作台</span></div></div>
+        <div className="brand-lockup"><span className="brand-mark">Y</span><div><strong>Yami Design System</strong><span>AI 原型工作台</span></div></div>
         <div className="header-actions"><a href="http://localhost:6006" target="_blank" rel="noreferrer">Storybook ↗</a><button onClick={() => router.back()} aria-label="返回上一步">← 返回</button></div>
       </header>
 
