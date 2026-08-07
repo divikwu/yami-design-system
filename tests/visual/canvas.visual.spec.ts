@@ -1,6 +1,35 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 test.skip(!process.env.CI, "Visual baselines are generated and compared only in the locked Linux CI image.");
+
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    Math.random = () => 0;
+  });
+});
+
+async function waitForStablePreview(page: Page) {
+  const preview = page.frameLocator('iframe[title="YAMI 原型预览"]');
+  await expect(preview.getByRole("main")).toBeVisible();
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+  });
+  await preview.locator("body").evaluate(async () => {
+    await document.fonts.ready;
+    await Promise.all(
+      Array.from(document.images, (image) => {
+        if (image.complete) return Promise.resolve();
+        return new Promise<void>((resolve) => {
+          image.addEventListener("load", () => resolve(), { once: true });
+          image.addEventListener("error", () => resolve(), { once: true });
+        });
+      }),
+    );
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    });
+  });
+}
 
 for (const locale of ["zh", "en"] as const) {
   for (const theme of ["light", "dark"] as const) {
@@ -8,7 +37,7 @@ for (const locale of ["zh", "en"] as const) {
       test(`current in ${locale}/${theme} at ${viewport}px`, async ({ page }) => {
         await page.setViewportSize({ width: viewport === "1440" ? 1920 : 1440, height: 1100 });
         await page.goto(`/workbench?path=%2F&direction=current&locale=${locale}&theme=${theme}&viewport=${viewport}`);
-        await expect(page.frameLocator('iframe[title="YAMI 原型预览"]').getByRole("main")).toBeVisible();
+        await waitForStablePreview(page);
         await expect(page).toHaveScreenshot(`current-${locale}-${theme}-${viewport}.png`, { fullPage: true });
       });
     }
@@ -19,7 +48,7 @@ for (const viewport of ["360", "1440"] as const) {
   test(`fixed direction at ${viewport}px`, async ({ page }) => {
     await page.setViewportSize({ width: viewport === "1440" ? 1920 : 1440, height: 1100 });
     await page.goto(`/workbench?path=%2F&direction=editorial-market&locale=zh&theme=light&viewport=${viewport}`);
-    await expect(page.frameLocator('iframe[title="YAMI 原型预览"]').getByRole("main")).toBeVisible();
+    await waitForStablePreview(page);
     await expect(page).toHaveScreenshot(`editorial-market-${viewport}.png`, { fullPage: true });
   });
 }
