@@ -8,7 +8,7 @@
     "url": "https://github.com/divikwu/yami-design-system.git"
   },
   "homepage": "https://yami-design-system.vercel.app",
-  "packageManager": "pnpm@11.10.0",
+  "packageManager": "pnpm@11.20.0",
   "engines": { "node": "~24" },
   "scripts": {
     "dev": "pnpm --filter @yami/canvas dev",
@@ -38,14 +38,14 @@
   "devDependencies": {
     "@changesets/cli": "2.31.1",
     "@axe-core/playwright": "4.12.1",
-    "@eslint/js": "9.39.2",
+    "@eslint/js": "10.0.1",
     "@playwright/test": "1.61.1",
-    "@types/node": "24.10.1",
-    "eslint": "9.39.2",
-    "eslint-plugin-react-hooks": "7.0.1",
-    "globals": "16.5.0",
-    "typescript": "5.9.3",
-    "typescript-eslint": "8.54.0",
+    "@types/node": "24.13.3",
+    "eslint": "10.8.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "globals": "17.9.0",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.66.0",
     "vitest": "4.1.10"
   }
 }

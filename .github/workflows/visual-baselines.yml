@@ -11,15 +11,16 @@ jobs:
     runs-on: ubuntu-latest
     container: mcr.microsoft.com/playwright:v1.61.1-noble
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with: { version: 11.10.0 }
-      - uses: actions/setup-node@v4
-        with: { node-version: 24, cache: pnpm }
+      - uses: actions/checkout@v7
+      - uses: pnpm/setup@v2
+        with:
+          runtime: node@24
+          cache: true
+          install: false
       - run: pnpm install --frozen-lockfile
       - name: generate-linux-baselines
         run: PLAYWRIGHT_USE_PRODUCTION=1 CI=1 pnpm exec playwright test --project=visual --update-snapshots
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: yami-design-system-linux-visual-baselines
           path: tests/visual/canvas.visual.spec.ts-snapshots

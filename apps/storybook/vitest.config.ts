@@ -38,6 +38,19 @@ export default defineConfig({
           setupFiles: [path.join(directory, ".storybook/vitest.setup.ts")],
         },
       },
+      {
+        plugins: [react()],
+        test: {
+          name: "browser",
+          include: ["tests/**/*.browser.test.tsx"],
+          browser: {
+            enabled: true,
+            provider: playwright({}),
+            headless: true,
+            instances: [{ browser: "chromium" }],
+          },
+        },
+      },
     ],
   },
 });

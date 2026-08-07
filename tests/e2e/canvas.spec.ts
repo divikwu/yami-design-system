@@ -100,7 +100,9 @@ test("migrates drafts from the former yami-canvas storage key", async ({ page })
     pages: { home: {} },
   };
   await page.addInitScript((legacyDraft) => {
-    localStorage.setItem("yami-canvas:drafts:v1", JSON.stringify([legacyDraft]));
+    if (window.top === window) {
+      localStorage.setItem("yami-canvas:drafts:v1", JSON.stringify([legacyDraft]));
+    }
   }, draft);
 
   await page.goto("/workbench?path=%2F&direction=legacy-review&locale=en&theme=light&viewport=1440");
