@@ -40,16 +40,17 @@ jobs:
           - check: changeset
             command: pnpm changeset:status
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: ${{ matrix.check == 'changeset' && '0' || '1' }}
       - name: fetch-changeset-base
         if: matrix.check == 'changeset' && github.event_name == 'pull_request'
         run: git fetch --no-tags origin main:refs/heads/main
-      - uses: pnpm/action-setup@v4
-        with: { version: 11.10.0 }
-      - uses: actions/setup-node@v4
-        with: { node-version: 24, cache: pnpm }
+      - uses: pnpm/setup@v2
+        with:
+          runtime: node@24
+          cache: true
+          install: false
       - name: install
         run: pnpm install --frozen-lockfile
       - name: install-storybook-browser
@@ -73,18 +74,19 @@ jobs:
           - check: visual
             command: pnpm test:visual
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with: { version: 11.10.0 }
-      - uses: actions/setup-node@v4
-        with: { node-version: 24, cache: pnpm }
+      - uses: actions/checkout@v7
+      - uses: pnpm/setup@v2
+        with:
+          runtime: node@24
+          cache: true
+          install: false
       - name: install
         run: pnpm install --frozen-lockfile
       - name: ${{ matrix.check }}
         run: ${{ matrix.command }}
       - name: browser-artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-${{ matrix.check }}-results
           path: |

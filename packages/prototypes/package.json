@@ -5,6 +5,6 @@
   "type": "module",
   "exports": { ".": "./src/index.ts", "./ecommerce-home": "./pages/EcommerceHome/index.ts" },
   "scripts": { "typecheck": "tsc -p tsconfig.json", "test": "vitest run", "build": "tsc -p tsconfig.json" },
-  "dependencies": { "@yami/contracts": "workspace:*", "@yami/design-system": "workspace:*", "react": "19.2.7" },
-  "devDependencies": { "@types/react": "19.2.14", "typescript": "5.9.3", "vitest": "4.1.10" }
+  "dependencies": { "@yami/contracts": "workspace:*", "@yami/design-system": "workspace:*", "react": "19.2.8" },
+  "devDependencies": { "@types/react": "19.2.18", "typescript": "6.0.3", "vitest": "4.1.10" }
 }

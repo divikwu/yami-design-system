@@ -27,6 +27,8 @@ import { type ButtonHTMLAttributes, forwardRef, type ReactNode } from 'react'
 
 import styles from './Button.module.css'
 
+declare const process: { env?: { NODE_ENV?: string } } | undefined
+
 export type ButtonVariant = 'emphasis' | 'primary' | 'secondary' | 'tertiary'
 export type ButtonForm = 'full' | 'inline' | 'icon'
 export type ButtonSize = 'sm' | 'md' | 'lg'
@@ -97,8 +99,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
   const effectiveForm = resolveForm(form, iconOnly, fullWidth)
   const isIconOnly = effectiveForm === 'icon'
   const isFullWidth = effectiveForm === 'full'
+  const isDevelopment =
+    (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') ||
+    Boolean((import.meta as ImportMeta & { env?: { DEV?: boolean } }).env?.DEV)
 
-  if (process.env.NODE_ENV === 'development' && isIconOnly && !ariaLabel) {
+  if (isDevelopment && isIconOnly && !ariaLabel) {
     console.warn(
       '[Button] form="icon" (or iconOnly) rendered without aria-label. Screen readers will announce "button" with no context.',
     )
