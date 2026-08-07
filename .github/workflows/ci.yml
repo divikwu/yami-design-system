@@ -41,6 +41,8 @@ jobs:
             command: pnpm changeset:status
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: ${{ matrix.check == 'changeset' && '0' || '1' }}
       - name: fetch-changeset-base
         if: matrix.check == 'changeset' && github.event_name == 'pull_request'
         run: git fetch --no-tags origin main:refs/heads/main
