@@ -43,7 +43,7 @@
       "sourceSha256": "70065aaed60d4d21bf35b41e1aa60ce64c2fd4cc7b5f178c7d41b12c9672e4f4",
       "disposition": "migrated",
       "destination": "packages/design-system/SKILL.md",
-      "destinationSha256": "b72e2a69b9d3d62963e83b59d0dcf7256ef212643f4286b7d88e053c5f4f2fa2"
+      "destinationSha256": "99d3a2ea6e4481f6ee433de4cba6587cb897dff64faaa2bfa229e7e9cd35060f"
     },
     {
       "source": "assets/badges/README.md",
