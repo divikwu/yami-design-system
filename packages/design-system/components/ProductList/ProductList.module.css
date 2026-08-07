@@ -234,6 +234,23 @@
   scroll-snap-stop: always;
 }
 
+/* ThemeProductList reserves the first two rail slots for its editorial
+ * content panel. The slot width follows the same card ladder as the product
+ * items, so the panel remains exactly two cards plus one gap wide. */
+.root[data-leading-content="true"][data-layout="rail"] .list {
+  gap: var(--space-100);
+}
+
+.root[data-leading-content="true"][data-layout="rail"] .leadingContent {
+  display: flex;
+  min-width: 0;
+  flex: 0 0 calc(152px + 152px + var(--space-100));
+  align-self: stretch;
+  overflow: hidden;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
 /* Below the desktop breakpoint the feed steps through fixed counts rather than
  * auto-filling: a tablet should show fewer, larger cards, and auto-fill would
  * run 1023px out to six columns.
@@ -521,6 +538,31 @@
     flex-basis: calc((100% - 36px) / 4);
   }
 
+  .root[data-leading-content="true"] .container {
+    max-width: 1440px;
+    /* Keep the same desktop inset as the generic ProductList container. */
+  }
+
+  .root[data-leading-content="true"][data-layout="rail"] .list {
+    --theme-product-card-width: calc(
+      (100% - var(--space-600)) / 4
+    );
+    gap: var(--space-200);
+  }
+
+  .root[data-leading-content="true"][data-layout="rail"] .item,
+  .root[data-leading-content="true"][data-layout="rail"] .skeletonItem {
+    flex-basis: var(--theme-product-card-width);
+  }
+
+  .root[data-leading-content="true"][data-layout="rail"] .leadingContent {
+    flex-basis: calc(
+      var(--theme-product-card-width) +
+        var(--theme-product-card-width) +
+        var(--space-200)
+    );
+  }
+
   /* Desktop scrolls by gesture too — trackpad, touchscreen, drag — not only
    * through the paging buttons, the same unlock HeroBanner's rail got. The
    * rail was already a scroll container (scrollRail writes scrollLeft, which
@@ -558,12 +600,24 @@
   .root[data-layout="rail"] .skeletonItem {
     flex-basis: calc((100% - 48px) / 5);
   }
+
+  .root[data-leading-content="true"][data-layout="rail"] .list {
+    --theme-product-card-width: calc(
+      (100% - var(--space-600) - var(--space-200)) / 5
+    );
+  }
 }
 
 @media (min-width: 1440px) {
   .root[data-layout="rail"] .item,
   .root[data-layout="rail"] .skeletonItem {
     flex-basis: calc((100% - 60px) / 6);
+  }
+
+  .root[data-leading-content="true"][data-layout="rail"] .list {
+    --theme-product-card-width: calc(
+      (100% - var(--space-1000)) / 6
+    );
   }
 }
 

@@ -5,7 +5,7 @@ import type {
   ReactNode,
 } from "react";
 
-export interface BrandHeroImage {
+export interface ThemeHeroImage {
   /** Image source for both the primary artwork and, by default, the atmosphere. */
   src: string;
   /** Meaningful description of the foreground brand artwork. */
@@ -16,20 +16,20 @@ export interface BrandHeroImage {
   height: number;
 }
 
-export interface BrandHeroCta {
+export interface ThemeHeroCta {
   label: string;
   ariaLabel?: string;
   onClick?: MouseEventHandler<HTMLButtonElement>;
   disabled?: boolean;
 }
 
-export interface BrandHeroProps
+export interface ThemeHeroProps
   extends Omit<HTMLAttributes<HTMLElement>, "children" | "title"> {
   title: ReactNode;
   description: ReactNode;
-  image: BrandHeroImage;
+  image: ThemeHeroImage;
   /** Optional alternate source for the blurred decorative atmosphere. */
   backgroundImageSrc?: string;
-  cta?: BrandHeroCta;
+  cta?: ThemeHeroCta;
   imageLoading?: ImgHTMLAttributes<HTMLImageElement>["loading"];
 }

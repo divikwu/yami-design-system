@@ -35,6 +35,8 @@ interface ProductListBaseProps
     SectionDividerProps {
   title: ReactNode;
   products: ProductListItem[];
+  /** Optional rail content rendered before the first product card. */
+  leadingContent?: ReactNode;
   layout?: ProductListLayout;
   presentation?: ProductCardPresentation;
   tabs?: ProductListTab[];

@@ -87,6 +87,7 @@ export function ProductList(props: ProductListProps) {
   const {
     title,
     products,
+    leadingContent,
     appearance = "standard",
     banner,
     backgroundColor,
@@ -209,6 +210,7 @@ export function ProductList(props: ProductListProps) {
       data-slot="product-list"
       data-appearance={appearance}
       data-layout={layout}
+      data-leading-content={leadingContent ? "true" : undefined}
       data-divider-position={dividerPosition}
       data-divider-variant={dividerVariant}
       aria-labelledby={titleId}
@@ -284,6 +286,16 @@ export function ProductList(props: ProductListProps) {
           aria-label={layout === "rail" ? "Products" : undefined}
           onScroll={layout === "rail" ? updateRailState : undefined}
         >
+          {leadingContent && (
+            <div
+              className={styles.leadingContent}
+              data-slot="product-list-leading-content"
+              role="listitem"
+            >
+              {leadingContent}
+            </div>
+          )}
+
           {loading ? (
             <ProductListSkeleton layout={layout} count={visibleCount} />
           ) : (
