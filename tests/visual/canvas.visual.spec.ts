@@ -20,7 +20,12 @@ async function waitForStablePreview(page: Page) {
       Array.from(document.images)
         .filter((image) => {
           const bounds = image.getBoundingClientRect();
-          return bounds.bottom >= 0 && bounds.top <= window.innerHeight;
+          return (
+            bounds.width > 0 &&
+            bounds.height > 0 &&
+            bounds.bottom >= 0 &&
+            bounds.top <= window.innerHeight
+          );
         })
         .map((image) => {
           if (image.complete) return Promise.resolve();
