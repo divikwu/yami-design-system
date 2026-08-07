@@ -2,10 +2,12 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": { "types": ["vite/client"] },
   "files": [
+    ".storybook/component-docs.tsx",
     ".storybook/main.ts",
     ".storybook/manager.ts",
     ".storybook/preview.tsx",
     "tests/Button.browser.test.tsx",
+    "tests/ComponentDocs.browser.test.tsx",
     "vitest.config.ts"
   ]
 }

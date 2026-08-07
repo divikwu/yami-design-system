@@ -4,6 +4,8 @@ import "@yami/design-system/tokens.css";
 import "@yami/design-system/styles/base.css";
 import "./preview.css";
 
+import { ComponentDocsPage } from "./component-docs";
+
 const YAMI_VIEWPORTS = {
   yamiMobileSm: { name: "YAMI Mobile-sm (360)", styles: { width: "360px", height: "800px" }, type: "mobile" as const },
   yamiMobile: { name: "YAMI Mobile (375)", styles: { width: "375px", height: "812px" }, type: "mobile" as const },
@@ -30,6 +32,10 @@ const preview: Preview = {
   parameters: {
     layout: "centered",
     controls: { expanded: true },
+    docs: {
+      page: ComponentDocsPage,
+      toc: { headingSelector: "h2, h3" },
+    },
     a11y: { test: "error" },
     viewport: {
       options: YAMI_VIEWPORTS
