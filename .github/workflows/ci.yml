@@ -41,6 +41,9 @@ jobs:
             command: pnpm changeset:status
     steps:
       - uses: actions/checkout@v4
+      - name: fetch-changeset-base
+        if: matrix.check == 'changeset' && github.event_name == 'pull_request'
+        run: git fetch --no-tags origin main:refs/heads/main
       - uses: pnpm/action-setup@v4
         with: { version: 11.10.0 }
       - uses: actions/setup-node@v4
