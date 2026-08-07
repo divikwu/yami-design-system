@@ -17,13 +17,18 @@ async function waitForStablePreview(page: Page) {
   await preview.locator("body").evaluate(async () => {
     await document.fonts.ready;
     await Promise.all(
-      Array.from(document.images, (image) => {
-        if (image.complete) return Promise.resolve();
-        return new Promise<void>((resolve) => {
-          image.addEventListener("load", () => resolve(), { once: true });
-          image.addEventListener("error", () => resolve(), { once: true });
-        });
-      }),
+      Array.from(document.images)
+        .filter((image) => {
+          const bounds = image.getBoundingClientRect();
+          return bounds.bottom >= 0 && bounds.top <= window.innerHeight;
+        })
+        .map((image) => {
+          if (image.complete) return Promise.resolve();
+          return new Promise<void>((resolve) => {
+            image.addEventListener("load", () => resolve(), { once: true });
+            image.addEventListener("error", () => resolve(), { once: true });
+          });
+        }),
     );
     await new Promise<void>((resolve) => {
       requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
