@@ -10,10 +10,12 @@ the Production aliases private.
 | `yami-design-system` | `apps/canvas` | `yami-design-system.vercel.app` | Public, manual deployment |
 | `yami-design-system-storybook` | `apps/storybook` | `yami-design-system-storybook.vercel.app` | Public, manual deployment |
 
-Automatic Git deployments are disabled in each app's `vercel.json`, and the
-Vercel projects are not connected to a Git repository. A push to GitHub does not
-update either site. Every Preview or Production deployment must be started
-manually after separate user authorization and must identify the deployed commit.
+Both Vercel projects are connected to `divikwu/yami-design-system`, with root
+directories matching the table above. Automatic Git deployments remain disabled
+in each app's `vercel.json`, so the connection records repository provenance but
+a push to GitHub does not update either site. Every Preview or Production
+deployment must be started manually after separate user authorization and must
+identify the deployed commit.
 
 Neither project receives an AI secret: Codex or Kiro creates a Direction
 Manifest locally, and Canvas validates imported JSON.

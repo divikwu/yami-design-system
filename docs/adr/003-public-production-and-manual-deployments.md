@@ -19,8 +19,11 @@ separate rights boundary.
 
 - Canvas and Storybook may run as public Vercel Production deployments.
 - Automatic Git deployments remain disabled.
-- The Vercel projects remain unlinked from GitHub; deployments are manual and
-  require separate user authorization.
+- The Vercel projects are linked to `divikwu/yami-design-system` for repository
+  provenance and monorepo source selection. The link does not authorize or
+  trigger a deployment while each app keeps `git.deploymentEnabled: false`.
+- Preview and Production deployments remain manual and require separate user
+  authorization.
 - A deployment must identify the source commit and pass the repository CI suite.
 - Neither Vercel project receives `OPENAI_API_KEY` or another model-provider
   secret. Direction manifests are generated in Codex or Kiro and imported by
