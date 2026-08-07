@@ -32,6 +32,12 @@
       "path": "registry-items/billboard.json"
     },
     {
+      "name": "brand-hero",
+      "title": "BrandHero",
+      "type": "component",
+      "path": "registry-items/brand-hero.json"
+    },
+    {
       "name": "brand-product-rail",
       "title": "BrandProductRail",
       "type": "component",

@@ -492,6 +492,18 @@ Brand-led commerce rail for homepage trend and discovery sections.
 | **Content** | Campaign and product data are consumer-provided. Landscape brand art remains semantic; brand text sits over a token-backed bottom scrim, and the optional partnership badge may be decorative or explicitly labelled. |
 | **Structure** | The visible heading labels a list of brand campaigns. Each panel contains a labelled ProductList and independent campaign, product, quick-add, and view-all controls. |
 
+### BrandHero — `components/BrandHero/` _(composite: composes Button)_
+
+Full-width brand storytelling module for an individual brand landing page.
+
+| Axis | Contract |
+| --- | --- |
+| **Composition** | Selectable heading and supporting copy sit beside semantic campaign artwork; the same source may repeat behind the module as a blurred decorative atmosphere. |
+| **Geometry** | Desktop is a 448px full-bleed band with 24px block padding, 48px page gutters and a centred 1440px two-column container. |
+| **Responsive behavior** | Below 1024px, copy and artwork stack in DOM order while keeping the foreground image's intrinsic ratio. |
+| **Action** | One optional primary inverse Button follows the copy. The component does not introduce secondary actions or navigation chrome. |
+| **Structure** | A section with an `h2`, selectable description, meaningful foreground image and optional native button. The blurred duplicate is decorative. |
+
 ### HeroBanner — `components/HeroBanner/` _(composite: composes Button)_
 
 Responsive homepage campaign rail shared by PC and Mobile.

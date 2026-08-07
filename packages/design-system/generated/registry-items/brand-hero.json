@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "name": "brand-hero",
+  "title": "BrandHero",
+  "type": "component",
+  "status": "experimental",
+  "source": "components/BrandHero",
+  "files": [
+    "components/BrandHero/assets/anua-hero.png",
+    "components/BrandHero/BrandHero.module.css",
+    "components/BrandHero/BrandHero.tsx",
+    "components/BrandHero/BrandHero.types.ts",
+    "components/BrandHero/fixtures.ts",
+    "components/BrandHero/index.ts"
+  ]
+}

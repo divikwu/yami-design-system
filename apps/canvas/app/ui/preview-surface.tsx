@@ -13,13 +13,13 @@ import "@yami/design-system/styles/base.css";
 
 const fixed = DirectionManifestV1Schema.parse(fixture);
 
-export function PreviewSurface() {
+export function PreviewSurface({ localeOverride }: { localeOverride?: "en" | "zh" } = {}) {
   const params = useSearchParams();
   const reduced = useReducedMotion();
   const [ready, setReady] = useState(false);
   const [manifest, setManifest] = useState<DirectionManifestV1 | null>(null);
   const path = params.get("path") || "/";
-  const locale = params.get("locale") === "en" ? "en" : "zh";
+  const locale = localeOverride ?? (params.get("locale") === "en" ? "en" : "zh");
   const theme = params.get("theme") === "dark" ? "dark" : "light";
   const direction = params.get("direction") || "current";
   const transition: PreviewTransition = params.get("transition") === "path" ? "path" : params.get("transition") === "direction" ? "direction" : "none";

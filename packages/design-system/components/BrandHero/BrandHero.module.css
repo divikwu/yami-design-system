@@ -1,0 +1,142 @@
+.root {
+  --brand-hero-foreground: var(--color-white-1000);
+  --button-primary-inverse: var(--color-white-1000);
+  --button-primary-active-inverse: var(--color-neutral-100);
+  --text-primary: var(--color-black-1000);
+
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  height: 448px;
+  padding: var(--space-300) var(--space-600);
+  overflow: hidden;
+  color: var(--brand-hero-foreground);
+  background: var(--surface-secondary);
+  font-family: var(--font-family-ios);
+}
+
+.atmosphere,
+.scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.atmosphere {
+  overflow: hidden;
+}
+
+.atmosphere img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(40px);
+  transform: scale(1.12);
+}
+
+.scrim {
+  background: rgb(0 0 0 / 36%);
+}
+
+.container {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-300);
+  width: 100%;
+  max-width: 1440px;
+  height: 400px;
+  margin-inline: auto;
+}
+
+.copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: var(--space-100);
+  min-width: 0;
+  height: 100%;
+}
+
+.title {
+  width: 100%;
+  margin: 0;
+  font-family: "Noto Serif", "Noto Serif SC", Georgia, serif;
+  font-size: var(--font-size-display-xl);
+  font-weight: 800;
+  line-height: var(--line-height-display-xl);
+  overflow-wrap: anywhere;
+}
+
+.description {
+  width: 100%;
+  font-size: var(--font-size-heading-xs);
+  font-weight: var(--font-weight-emphasize);
+  line-height: var(--line-height-heading-xs);
+  white-space: pre-wrap;
+}
+
+.description p {
+  margin: 0;
+}
+
+.cta {
+  box-sizing: border-box;
+  width: max-content;
+  max-width: 160px;
+  padding-block: var(--space-300);
+}
+
+.cta .ctaButton {
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-body-xl);
+  line-height: var(--line-height-body-xl);
+}
+
+.media {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  height: 100%;
+}
+
+.image {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  object-fit: cover;
+}
+
+@media (max-width: 1023.98px) {
+  .root {
+    height: auto;
+    min-height: 0;
+    padding: var(--space-300) var(--layout-page-margin-default);
+  }
+
+  .container {
+    grid-template-columns: minmax(0, 1fr);
+    height: auto;
+  }
+
+  .copy {
+    height: auto;
+    padding-block: var(--space-200);
+  }
+
+  .media {
+    height: auto;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ctaButton {
+    transition:
+      background-color 150ms cubic-bezier(0.2, 0, 0, 1),
+      color 150ms cubic-bezier(0.2, 0, 0, 1);
+  }
+}

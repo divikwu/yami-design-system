@@ -461,6 +461,138 @@
       }
     },
     {
+      "id": "BrandHero",
+      "source": "components/BrandHero",
+      "meta": {
+        "$schema": "../../../schema/component.json",
+        "name": "BrandHero",
+        "category": "composite",
+        "status": "experimental",
+        "version": "0.1.0",
+        "description": "Full-width brand storytelling hero with selectable copy, one primary CTA and atmospheric campaign artwork.",
+        "figma": {
+          "nodeId": "1877:43111",
+          "componentKey": null,
+          "notes": "English Site Optimization 2026 Brand Hero; layout behavior is also informed by the W Concept brand visual module."
+        },
+        "exports": [
+          "BrandHero",
+          "BrandHeroCta",
+          "BrandHeroImage",
+          "BrandHeroProps"
+        ],
+        "composes": [
+          "Button"
+        ],
+        "props": {
+          "title": {
+            "type": "ReactNode",
+            "required": true,
+            "description": "Visible brand positioning heading."
+          },
+          "description": {
+            "type": "ReactNode",
+            "required": true,
+            "description": "Selectable supporting brand copy."
+          },
+          "image": {
+            "type": "BrandHeroImage",
+            "required": true,
+            "description": "Foreground campaign artwork with meaningful alt text and intrinsic dimensions."
+          },
+          "backgroundImageSrc": {
+            "type": "string",
+            "required": false,
+            "description": "Alternate decorative source for the blurred full-bleed atmosphere; defaults to image.src."
+          },
+          "cta": {
+            "type": "BrandHeroCta",
+            "required": false,
+            "description": "Optional primary action rendered with the shared inverse Button."
+          },
+          "imageLoading": {
+            "type": "\"eager\" | \"lazy\"",
+            "required": false,
+            "default": "lazy",
+            "description": "Foreground artwork loading strategy."
+          }
+        },
+        "rules": {
+          "focus": {
+            "ruleId": "focus-style",
+            "note": "The composed Button supplies the token-backed inverse focus ring."
+          },
+          "radius": {
+            "ruleId": "no-custom-radii",
+            "note": "The CTA consumes --radius-md from the Figma Full Inverse control."
+          },
+          "typeHierarchy": {
+            "ruleId": "type-hierarchy",
+            "note": "The module uses a display heading, heading-xs supporting copy and body-xl CTA label."
+          }
+        },
+        "tokens": [
+          "--color-black-1000",
+          "--color-neutral-100",
+          "--color-white-1000",
+          "--font-family-ios",
+          "--font-size-body-xl",
+          "--font-size-display-xl",
+          "--font-size-heading-xs",
+          "--font-weight-emphasize",
+          "--layout-page-margin-default",
+          "--line-height-body-xl",
+          "--line-height-display-xl",
+          "--line-height-heading-xs",
+          "--radius-md",
+          "--space-100",
+          "--space-200",
+          "--space-300",
+          "--space-600",
+          "--surface-secondary"
+        ],
+        "tokenBindings": {
+          "--space-600": {
+            "property": "padding-inline",
+            "selector": ".root from 1024px"
+          },
+          "--font-size-display-xl": {
+            "property": "font-size",
+            "selector": ".title"
+          },
+          "--surface-secondary": {
+            "property": "background",
+            "selector": ".root before artwork loads"
+          }
+        },
+        "accessibility": {
+          "role": "section with heading, descriptive copy, image and optional button",
+          "wcagLevel": "AA",
+          "tapTargetMin": 44,
+          "keyboardNav": [
+            "tab",
+            "enter",
+            "space"
+          ],
+          "ariaPattern": "decorative atmosphere hidden from assistive technology; meaningful foreground image alt; native heading and button",
+          "structure": "The visible h2 introduces selectable supporting copy. The blurred duplicate is decorative; the foreground image is semantic.",
+          "interaction": "The optional CTA composes the shared Button and inherits its keyboard, disabled and focus behavior."
+        },
+        "dependencies": {
+          "runtime": [
+            "react",
+            "Button"
+          ],
+          "peer": [],
+          "devOnly": []
+        },
+        "usageRef": "./usage.md",
+        "examples": [
+          "./examples.tsx#BrandHeroExample"
+        ]
+      }
+    },
+    {
       "id": "BrandProductRail",
       "source": "components/BrandProductRail",
       "meta": {
