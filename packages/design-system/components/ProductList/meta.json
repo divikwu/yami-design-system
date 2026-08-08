@@ -3,8 +3,8 @@
   "name": "ProductList",
   "category": "composite",
   "status": "stable",
-  "version": "0.2.0",
-  "description": "Responsive, data-driven YAMI product collection with rail and waterfall layouts across standard, themed, and atmospheric appearances.",
+  "version": "0.3.0",
+  "description": "Responsive, data-driven YAMI product collection with rail and waterfall layouts, campaign appearances, and card or full-bleed mobile section surfaces.",
   "figma": {
     "fileKey": "6oOAy72DBff4P6NzJYc2hi",
     "nodeId": "6970:52060",
@@ -15,6 +15,7 @@
     "ProductListProps",
     "ProductListAppearance",
     "ProductListLayout",
+    "ProductListMobileSurface",
     "ProductListItem",
     "ProductListTab"
   ],
@@ -46,6 +47,12 @@
       "required": false,
       "default": "rail",
       "description": "Responsive collection layout. ProductCard presentation is selected internally."
+    },
+    "mobileSurface": {
+      "type": "\"card\" | \"plain\"",
+      "required": false,
+      "default": "card",
+      "description": "Mobile-only section surface. Card preserves the inset rounded panel and ignores divider configuration. Plain is full-bleed with 16px content padding and honors dividerPosition/dividerVariant."
     },
     "presentation": {
       "type": "\"rich\" | \"minimal\" | \"compact\"",
@@ -126,7 +133,7 @@
       "type": "\"top\" | \"bottom\" | \"none\"",
       "required": false,
       "default": "top",
-      "description": "Places the desktop section boundary above, below, or removes it; ignored below 1024px."
+      "description": "Places the desktop section boundary above, below, or removes it. Mobile plain surfaces honor the same setting; mobile card surfaces ignore it."
     },
     "dividerVariant": {
       "type": "\"gray\" | \"black\"",

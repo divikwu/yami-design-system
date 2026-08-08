@@ -56,9 +56,8 @@ export const Pc: Story = {
       throw new Error("Topic landing page description is out of sync with ThemeHero");
     }
 
-    const cta = hero.querySelector("button");
-    if (normalize(cta?.textContent) !== normalize(expectedHero.cta?.label)) {
-      throw new Error("Topic landing page CTA is out of sync with ThemeHero");
+    if (hero.querySelector("button")) {
+      throw new Error("Topic landing page must not render a hero CTA");
     }
 
     if (page.querySelector("#explore-topics")) {
@@ -191,6 +190,18 @@ export const Pc: Story = {
       throw new Error("Topic landing page Waterfall must remain full bleed");
     }
 
+    const loadMoreButton = waterfall?.querySelector<HTMLElement>(
+      '[data-slot="product-list-load-more"] > button',
+    );
+    if (
+      page.getBoundingClientRect().width >= 1024 &&
+      loadMoreButton?.getBoundingClientRect().height !== 48
+    ) {
+      throw new Error(
+        "Topic landing page desktop Load more button must be 48px high",
+      );
+    }
+
     const themeProductList = page.querySelector<HTMLElement>(
       '[data-slot="theme-product-list"]',
     );
@@ -251,8 +262,11 @@ export const Pc: Story = {
     const reviewGap = getComputedStyle(reviewContainer).rowGap;
     const firstReviewCard = reviewCards[0];
     if (page.getBoundingClientRect().width < 1024) {
+      const reviewItemsStyle = getComputedStyle(reviewItemsList);
       if (
-        reviewGap !== "12px" ||
+        reviewGap !== "8px" ||
+        reviewItemsStyle.paddingTop !== "0px" ||
+        reviewItemsStyle.paddingBottom !== "0px" ||
         firstReviewCard.getBoundingClientRect().width !== 344 ||
         getComputedStyle(firstReviewCard).borderRadius !== "8px"
       ) {
@@ -293,12 +307,65 @@ export const Pc: Story = {
       throw new Error("Topic landing page product lists must render products");
     }
 
-    if (!page.querySelector('[data-slot="header"]')) {
-      throw new Error("Topic landing page is missing the global header");
-    }
-
     const footer = page.querySelector<HTMLElement>('[data-slot="footer"]');
     const isDesktop = page.getBoundingClientRect().width >= 1024;
+    const activityHeader = page.querySelector<HTMLElement>(
+      '[data-slot="activity-page-header"]',
+    );
+    const globalHeader = page.querySelector<HTMLElement>(
+      '[data-slot="topic-landing-global-header"]',
+    );
+    if (!activityHeader || !globalHeader) {
+      throw new Error("Topic landing page is missing its responsive navigation");
+    }
+    if (isDesktop) {
+      if (
+        getComputedStyle(activityHeader.parentElement!).display !== "none" ||
+        getComputedStyle(globalHeader).display === "none"
+      ) {
+        throw new Error("Desktop topic landing page must retain the global header");
+      }
+    } else {
+      if (
+        getComputedStyle(activityHeader.parentElement!).display === "none" ||
+        getComputedStyle(globalHeader).display !== "none" ||
+        activityHeader.querySelector('[data-slot="activity-page-header-title"]')
+          ?.textContent !== "Anua"
+      ) {
+        throw new Error("Mobile topic landing page must use the Anua activity header");
+      }
+      if (Math.round(activityHeader.getBoundingClientRect().height) !== 56) {
+        throw new Error("Mobile topic landing activity header must be 56px high");
+      }
+
+      const mobileSurfaceSections = [...productLists, reviewList];
+      if (
+        mobileSurfaceSections.some(
+          (section) =>
+            section.dataset.mobileSurface !== "plain" ||
+            section.dataset.dividerPosition !== "top" ||
+            section.dataset.dividerVariant !== "gray" ||
+            getComputedStyle(section).borderTopWidth !== "1px",
+        )
+      ) {
+        throw new Error(
+          "Topic landing page mobile content sections must use the plain surface with a top gray divider",
+        );
+      }
+    }
+    const activeHeader = isDesktop
+      ? globalHeader
+      : activityHeader.parentElement!;
+    const activeHeaderStyle = getComputedStyle(activeHeader);
+    if (
+      activeHeaderStyle.position !== "sticky" ||
+      activeHeaderStyle.top !== "0px" ||
+      activeHeaderStyle.zIndex !== "10"
+    ) {
+      throw new Error(
+        "Topic landing navigation must remain sticky above page content",
+      );
+    }
     if (isDesktop && !footer) {
       throw new Error("Topic landing page is missing the desktop footer");
     }

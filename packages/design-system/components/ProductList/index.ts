@@ -3,6 +3,7 @@ export type {
   ProductListAppearance,
   ProductListItem,
   ProductListLayout,
+  ProductListMobileSurface,
   ProductListProps,
   ProductListTab,
 } from "./ProductList.types";

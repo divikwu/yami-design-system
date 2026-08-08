@@ -16,7 +16,8 @@
   "exports": [
     "ProductCard",
     "ProductCardAddButton",
-    "ProductCardPresentation"
+    "ProductCardPresentation",
+    "ProductCardSurface"
   ],
 
   "composes": ["Card", "AspectRatio", "Badge", "ProductCardAddButton"],
@@ -27,6 +28,12 @@
       "required": false,
       "default": "rich",
       "description": "Non-breaking visual presentation. Rich preserves the original full product anatomy, minimal shows image with price badge and quick add, and compact uses a left-image horizontal row."
+    },
+    "surface": {
+      "type": "\"card\" | \"plain\"",
+      "required": false,
+      "default": "card",
+      "description": "Outer spacing context. Card uses 4px padding when placed over a background; plain removes outer padding."
     },
     "image": {
       "type": "string",

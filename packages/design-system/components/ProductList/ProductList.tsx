@@ -2,16 +2,16 @@
 
 import {
   type CSSProperties,
-  useCallback,
-  useEffect,
   useId,
   useMemo,
-  useRef,
-  useState,
 } from "react";
 
 import { Button } from "../Button";
 import { RailNavigation } from "../Button/RailNavigation";
+import {
+  HorizontalScrollList,
+  useHorizontalScrollList,
+} from "../HorizontalScrollList";
 import { ProductCard, type ProductCardPresentation, type ProductCardProps } from "../ProductCard";
 import { SectionHeading } from "../SectionHeading";
 import { Tabs, TabsList, TabsTrigger } from "../Tabs";
@@ -34,21 +34,6 @@ const PRESENTATION_BY_LAYOUT: Record<
 
 function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
-}
-
-function getRailPageDistance(rail: HTMLDivElement) {
-  const [firstItem, secondItem] = Array.from(rail.children) as HTMLElement[];
-  const itemStep =
-    firstItem && secondItem ? secondItem.offsetLeft - firstItem.offsetLeft : 0;
-
-  if (!firstItem || itemStep <= 0) return rail.clientWidth;
-
-  const gap = Math.max(0, itemStep - firstItem.offsetWidth);
-  const visibleItems = Math.max(
-    1,
-    Math.floor((rail.clientWidth + gap) / itemStep),
-  );
-  return visibleItems * itemStep;
 }
 
 function ProductListSkeleton({
@@ -94,6 +79,7 @@ export function ProductList(props: ProductListProps) {
     backgroundImage,
     backgroundImageMobile,
     layout = "rail",
+    mobileSurface = "card",
     presentation: presentationOverride,
     tabs,
     value,
@@ -116,57 +102,32 @@ export function ProductList(props: ProductListProps) {
     style,
     ...rest
   } = props;
+  const isThemeProductList = rest["data-component"] === "theme-product-list";
+  const railSurface =
+    layout === "rail" &&
+    appearance === "themed" &&
+    mobileSurface === "card" &&
+    !isThemeProductList
+      ? "card"
+      : "plain";
+  const productCardSurface =
+    mobileSurface === "plain" || isThemeProductList ? "plain" : "card";
   const titleId = useId();
   const listId = `${titleId}-products`;
-  const railRef = useRef<HTMLDivElement>(null);
-  const [railState, setRailState] = useState({
-    atStart: true,
-    atEnd: true,
-    canScroll: false,
+  const {
+    listRef: railRef,
+    state: railState,
+    updateState: updateRailState,
+    scrollByPage,
+  } = useHorizontalScrollList({
+    enabled: layout === "rail" && !loading,
+    itemCount: products.length + (leadingContent ? 1 : 0),
+    minimumPageDistance: 150,
   });
   const firstTabValue = useMemo(
     () => tabs?.find((tab) => !tab.disabled)?.value,
     [tabs],
   );
-
-  const updateRailState = useCallback(() => {
-    const rail = railRef.current;
-    if (!rail) return;
-    const maxScrollLeft = Math.max(0, rail.scrollWidth - rail.clientWidth);
-    setRailState({
-      atStart: rail.scrollLeft <= 1,
-      atEnd: rail.scrollLeft >= maxScrollLeft - 1,
-      canScroll: maxScrollLeft > 1,
-    });
-  }, []);
-
-  useEffect(() => {
-    if (layout !== "rail" || loading) return;
-    updateRailState();
-    const rail = railRef.current;
-    if (!rail || typeof ResizeObserver === "undefined") return;
-    const observer = new ResizeObserver(updateRailState);
-    observer.observe(rail);
-    return () => observer.disconnect();
-  }, [layout, loading, products.length, updateRailState]);
-
-  function scrollRail(direction: -1 | 1) {
-    const rail = railRef.current;
-    if (!rail) return;
-    const reduceMotion =
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const left = direction * Math.max(getRailPageDistance(rail), 150);
-    if (typeof rail.scrollBy === "function") {
-      rail.scrollBy({
-        left,
-        behavior: reduceMotion ? "auto" : "smooth",
-      });
-    } else {
-      rail.scrollLeft += left;
-      updateRailState();
-    }
-  }
 
   const mergedStyle = {
     ...style,
@@ -212,6 +173,7 @@ export function ProductList(props: ProductListProps) {
       data-slot="product-list"
       data-appearance={appearance}
       data-layout={layout}
+      data-mobile-surface={mobileSurface}
       data-leading-content={leadingContent ? "true" : undefined}
       data-divider-position={dividerPosition}
       data-divider-variant={dividerVariant}
@@ -250,8 +212,8 @@ export function ProductList(props: ProductListProps) {
                 nextLabel={nextLabel}
                 previousDisabled={railState.atStart}
                 nextDisabled={railState.atEnd}
-                onPrevious={() => scrollRail(-1)}
-                onNext={() => scrollRail(1)}
+                onPrevious={() => scrollByPage(-1)}
+                onNext={() => scrollByPage(1)}
               />
             ) : null
           }
@@ -287,10 +249,12 @@ export function ProductList(props: ProductListProps) {
           </div>
         )}
 
-        <div
+        <HorizontalScrollList
           id={listId}
           ref={layout === "rail" ? railRef : undefined}
           className={styles.list}
+          enabled={layout === "rail"}
+          surface={railSurface}
           data-slot="product-list-items"
           role="list"
           tabIndex={layout === "rail" ? 0 : undefined}
@@ -320,12 +284,13 @@ export function ProductList(props: ProductListProps) {
                 <ProductCard
                   {...(product as ProductCardProps)}
                   presentation={presentation}
+                  surface={productCardSurface}
                   onAddToCart={onAddToCart ? () => onAddToCart(id) : undefined}
                 />
               </div>
             ))
           )}
-        </div>
+        </HorizontalScrollList>
 
         {loading && (
           <span className={styles.srOnly} role="status">
@@ -334,7 +299,7 @@ export function ProductList(props: ProductListProps) {
         )}
 
         {!loading && layout === "waterfall" && hasMore && (
-          <div className={styles.loadMore}>
+          <div className={styles.loadMore} data-slot="product-list-load-more">
             <Button
               form="full"
               size="md"

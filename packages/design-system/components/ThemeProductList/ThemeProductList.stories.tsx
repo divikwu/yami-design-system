@@ -30,7 +30,31 @@ import { createThemeProductListProps } from "@yami/design-system/components/Them
       },
     },
   },
-  args: createThemeProductListProps(),
+  argTypes: {
+    mobileSurface: {
+      options: ["card", "plain"],
+      control: { type: "radio" },
+      description:
+        "Mobile section surface. Card preserves the inset rounded panel; plain is full-bleed with 16px content padding and supports dividers.",
+    },
+    dividerPosition: {
+      options: ["top", "bottom", "none"],
+      control: { type: "radio" },
+      description:
+        "Section divider edge. Always supported on desktop; on mobile it is available only for the plain surface.",
+    },
+    dividerVariant: {
+      options: ["gray", "black"],
+      control: { type: "radio" },
+      description: "Gray renders at 1px; black emphasis renders at 2px.",
+    },
+  },
+  args: {
+    ...createThemeProductListProps(),
+    mobileSurface: "card",
+    dividerPosition: "top",
+    dividerVariant: "gray",
+  },
 } satisfies Meta<typeof ThemeProductList>;
 
 export default meta;
@@ -71,7 +95,16 @@ export const Showcase: Story = {
     const productItems = list.querySelectorAll<HTMLElement>(
       '[data-slot="product-list-item"]',
     );
-    if (productItems.length === 0) {
+    const firstProductCard = productItems[0]?.querySelector<HTMLElement>(
+      '[data-slot="product-card"]',
+    );
+    if (
+      productItems.length === 0 ||
+      !firstProductCard ||
+      list.dataset.surface !== "plain" ||
+      firstProductCard.dataset.surface !== "plain" ||
+      getComputedStyle(firstProductCard).padding !== "0px"
+    ) {
       throw new Error("ThemeProductList must continue with ProductList products");
     }
 
@@ -139,12 +172,12 @@ export const Showcase: Story = {
         mobileWrapper.getBoundingClientRect().bottom >
           firstProduct.getBoundingClientRect().top ||
         listStyles.paddingTop !== "4px" ||
-        listStyles.paddingRight !== "6px" ||
+        listStyles.paddingRight !== "8px" ||
         listStyles.paddingBottom !== "4px" ||
-        listStyles.paddingLeft !== "6px"
+        listStyles.paddingLeft !== "8px"
       ) {
         throw new Error(
-          "ThemeProductList mobile must use a 4px container gap and stack its content panel above a 4px/6px padded product rail",
+          "ThemeProductList mobile must use a 4px container gap and stack its content panel above a 4px/8px padded product rail",
         );
       }
     }
@@ -154,4 +187,90 @@ export const Showcase: Story = {
 export const Mobile: Story = {
   globals: { viewport: { value: "yamiMobile", isRotated: false } },
   play: Showcase.play,
+};
+
+export const MobilePlain: Story = {
+  name: "Mobile / Plain",
+  globals: { viewport: { value: "yamiMobile", isRotated: false } },
+  args: {
+    mobileSurface: "plain",
+    dividerPosition: "top",
+    dividerVariant: "gray",
+  },
+  play: async ({ canvasElement }) => {
+    const themeList = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="theme-product-list"]',
+    );
+    const root = themeList?.querySelector<HTMLElement>(
+      '[data-slot="product-list"]',
+    );
+    const container = root?.querySelector<HTMLElement>(
+      '[data-slot="product-list-container"]',
+    );
+    const tabs = root?.querySelector<HTMLElement>('[role="tablist"]');
+    const mobileContent = root?.querySelector<HTMLElement>(
+      '[data-slot="product-list-leading-content-mobile"]',
+    );
+    const list = root?.querySelector<HTMLElement>(
+      '[data-slot="product-list-items"]',
+    );
+    const firstProduct = list?.querySelector<HTMLElement>(
+      '[data-slot="product-list-item"]',
+    );
+    const firstCard = firstProduct?.querySelector<HTMLElement>(
+      '[data-slot="product-card"]',
+    );
+    if (
+      !themeList ||
+      !root ||
+      !container ||
+      !tabs ||
+      !mobileContent ||
+      !list ||
+      !firstProduct ||
+      !firstCard
+    ) {
+      throw new Error("Plain mobile ThemeProductList did not render");
+    }
+
+    const rootStyle = getComputedStyle(root);
+    const containerStyle = getComputedStyle(container);
+    const listStyle = getComputedStyle(list);
+    const rootRect = root.getBoundingClientRect();
+    const listRect = list.getBoundingClientRect();
+    if (
+      root.dataset.mobileSurface !== "plain" ||
+      rootRect.left !== 0 ||
+      rootRect.right !== window.innerWidth ||
+      rootStyle.marginLeft !== "0px" ||
+      rootStyle.marginRight !== "0px" ||
+      rootStyle.borderRadius !== "0px" ||
+      rootStyle.borderTopWidth !== "1px" ||
+      rootStyle.borderBottomWidth !== "0px" ||
+      containerStyle.padding !== "16px" ||
+      tabs.getBoundingClientRect().left !== 0 ||
+      tabs.getBoundingClientRect().right !== window.innerWidth ||
+      mobileContent.getBoundingClientRect().left !== 16 ||
+      mobileContent.getBoundingClientRect().right !== window.innerWidth - 16 ||
+      listRect.left !== 0 ||
+      listRect.right !== window.innerWidth ||
+      list.dataset.surface !== "plain" ||
+      firstProduct.getBoundingClientRect().left !== 16 ||
+      listStyle.columnGap !== "8px" ||
+      listStyle.marginLeft !== "-16px" ||
+      listStyle.marginRight !== "-16px" ||
+      listStyle.paddingTop !== "4px" ||
+      listStyle.paddingRight !== "16px" ||
+      listStyle.paddingBottom !== "4px" ||
+      listStyle.paddingLeft !== "16px" ||
+      listStyle.scrollPaddingInline !== "16px" ||
+      firstCard.dataset.surface !== "plain" ||
+      getComputedStyle(firstCard).padding !== "0px" ||
+      list.scrollWidth <= list.clientWidth
+    ) {
+      throw new Error(
+        "Plain mobile ThemeProductList must use the shared full-bleed ProductList surface",
+      );
+    }
+  },
 };

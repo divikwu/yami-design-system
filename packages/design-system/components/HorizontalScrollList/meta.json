@@ -1,0 +1,76 @@
+{
+  "$schema": "../../../schema/component.json",
+  "name": "HorizontalScrollList",
+  "category": "layout",
+  "status": "experimental",
+  "version": "0.1.0",
+  "description": "Polymorphic finite horizontal list with native scrolling, hidden scrollbars, item snapping, and a shared controller hook for paging controls.",
+  "figma": { "nodeId": null, "componentKey": null },
+  "variants": {
+    "enabled": ["true", "false"],
+    "surface": ["card", "plain"]
+  },
+  "props": {
+    "as": {
+      "type": "ElementType",
+      "required": false,
+      "default": "div",
+      "description": "Semantic element rendered for the list, commonly div, ul, or ol."
+    },
+    "enabled": {
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "description": "Applies the horizontal scrolling behavior and default keyboard focusability."
+    },
+    "surface": {
+      "type": "enum",
+      "values": ["card", "plain"],
+      "required": false,
+      "default": "plain",
+      "description": "Selects a transparent square rail over the caller background or a plain rail. Both surfaces use 8px item and edge spacing on mobile."
+    },
+    "children": {
+      "type": "ReactNode",
+      "required": false,
+      "description": "List items. Callers own item width and scroll-snap alignment."
+    }
+  },
+  "rules": {
+    "nativeScrolling": {
+      "ruleId": "horizontal-list-native-scroll",
+      "note": "Finite rails use native horizontal scrolling; callers do not translate the list with transforms."
+    },
+    "itemGeometry": {
+      "ruleId": "horizontal-list-caller-geometry",
+      "note": "The list owns scrolling while callers own item width, gap, and edge padding."
+    }
+  },
+  "tokens": [
+    "--space-100"
+  ],
+  "tokenBindings": {
+    "--space-100": {
+      "property": "gap and padding",
+      "selector": ".surfaceCard, .surfacePlain"
+    }
+  },
+  "accessibility": {
+    "role": "caller-owned list semantics",
+    "wcagLevel": "AA",
+    "tapTargetMin": 0,
+    "keyboardNav": ["tab", "arrow keys via native scrolling"],
+    "ariaPattern": "list",
+    "notes": "Enabled lists default to tabIndex=0. Callers must provide an accessible label and semantic list items."
+  },
+  "dependencies": {
+    "runtime": ["react"],
+    "peer": [],
+    "devOnly": []
+  },
+  "usageRef": "./usage.md",
+  "examples": [
+    "./examples.tsx#BasicHorizontalScrollList",
+    "./examples.tsx#WithBackgroundHorizontalScrollList"
+  ]
+}

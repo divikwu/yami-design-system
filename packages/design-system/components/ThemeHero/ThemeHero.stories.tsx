@@ -114,8 +114,12 @@ export const Showcase: Story = {
         throw new Error("Desktop ThemeHero content must be centered in the full-bleed band");
       }
       const mediaStyle = getComputedStyle(media);
+      const imageStyle = getComputedStyle(image);
       if (mediaStyle.maxHeight !== "400px" || mediaStyle.overflow !== "hidden") {
         throw new Error("Desktop ThemeHero media must cap its height and hide overflow");
+      }
+      if (imageStyle.borderRadius !== "8px") {
+        throw new Error("Desktop ThemeHero artwork must use an 8px radius");
       }
       const contentHorizontalPadding =
         Number.parseFloat(contentStyle.paddingLeft) +
@@ -144,6 +148,7 @@ export const Mobile: Story = {
     const copy = canvasElement.querySelector<HTMLElement>(
       '[data-slot="theme-hero-copy"]',
     );
+    const title = copy?.querySelector<HTMLElement>("h2");
     const description = copy?.querySelector<HTMLElement>("div");
     const media = canvasElement.querySelector<HTMLElement>(
       '[data-slot="theme-hero-media"]',
@@ -160,6 +165,7 @@ export const Mobile: Story = {
     if (
       !hero ||
       !copy ||
+      !title ||
       !description ||
       !media ||
       !image ||
@@ -173,6 +179,7 @@ export const Mobile: Story = {
     const heroBox = hero.getBoundingClientRect();
     const mediaBox = media.getBoundingClientRect();
     const copyStyles = getComputedStyle(copy);
+    const titleStyles = getComputedStyle(title);
     const descriptionStyles = getComputedStyle(description);
     const mediaStyles = getComputedStyle(media);
     const imageStyles = getComputedStyle(image);
@@ -185,6 +192,7 @@ export const Mobile: Story = {
       Math.abs(mediaBox.height - heroBox.height) > 1 ||
       copyStyles.position !== "absolute" ||
       copyStyles.justifyContent !== "flex-end" ||
+      titleStyles.fontSize !== "24px" ||
       descriptionStyles.webkitLineClamp !== "3" ||
       mediaStyles.position !== "absolute" ||
       imageStyles.objectFit !== "cover" ||

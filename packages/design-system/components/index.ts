@@ -17,6 +17,7 @@
  */
 
 export * from './Badge'
+export * from './ActivityPageHeader'
 export * from './Billboard'
 export * from './AspectRatio'
 export * from './BrandProductRail'
@@ -27,6 +28,7 @@ export * from './Checkbox'
 export * from './Divider'
 export * from './Footer'
 export * from './Header'
+export * from './HorizontalScrollList'
 export * from './Input'
 export * from './HeroBanner'
 export * from './ProductCard'

@@ -22,13 +22,19 @@ view-all action when `viewAllHref` is provided. Without a destination the title
 renders without an action. Previous/next paging controls appear on desktop only,
 matching ProductList.
 
+## Mobile surface
+
+`mobileSurface="card"` is the default and preserves the inset rounded section.
+Use `mobileSurface="plain"` for a full-bleed section with square outer corners,
+16px content padding, and the same mobile divider support as `ProductList`.
+
 ## Section divider
 
 The list uses the same desktop section-divider contract as `ProductList`. It
 defaults to a 1px gray line above the section. Set `dividerPosition` to `top`,
 `bottom`, or `none`; set `dividerVariant` to `gray` or `black`. The black
-variant uses the theme-aware 2px emphasis divider. Mobile ignores divider
-configuration.
+variant uses the theme-aware 2px emphasis divider. On mobile, divider
+configuration is available only when `mobileSurface="plain"`.
 
 ```tsx
 <ReviewList

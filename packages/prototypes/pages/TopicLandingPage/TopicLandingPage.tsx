@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ActivityPageHeader,
   Footer,
   Header,
   ProductList,
@@ -17,6 +18,7 @@ function cx(...classes: Array<string | false | null | undefined>) {
 }
 
 export function TopicLandingPage({
+  activityHeader,
   header,
   hero,
   standardRail,
@@ -33,7 +35,12 @@ export function TopicLandingPage({
       className={cx(styles.root, className)}
       data-slot="topic-landing-page"
     >
-      <Header {...header} />
+      <div className={styles.activityHeader} data-slot="topic-landing-activity-header">
+        <ActivityPageHeader {...activityHeader} />
+      </div>
+      <div className={styles.globalHeader} data-slot="topic-landing-global-header">
+        <Header {...header} />
+      </div>
 
       <main>
         <ThemeHero {...hero} />

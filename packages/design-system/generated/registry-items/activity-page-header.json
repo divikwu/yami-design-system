@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "name": "activity-page-header",
+  "title": "ActivityPageHeader",
+  "type": "component",
+  "status": "experimental",
+  "source": "components/ActivityPageHeader",
+  "files": [
+    "components/ActivityPageHeader/ActivityPageHeader.module.css",
+    "components/ActivityPageHeader/ActivityPageHeader.tsx",
+    "components/ActivityPageHeader/ActivityPageHeader.types.ts",
+    "components/ActivityPageHeader/index.ts"
+  ]
+}

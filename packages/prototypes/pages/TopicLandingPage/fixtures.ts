@@ -1,4 +1,5 @@
 import type {
+  ActivityPageHeaderProps,
   FooterProps,
   HeaderProps,
   ProductListItem,
@@ -120,6 +121,18 @@ function createHeader(): HeaderProps {
   };
 }
 
+function createActivityHeader(header: HeaderProps): ActivityPageHeaderProps {
+  return {
+    title: "Anua",
+    locale: "en",
+    homeHref: header.homeHref,
+    searchLabel: header.searchLabel,
+    cartLabel: header.cart.label,
+    onSearch: () => {},
+    onCart: () => {},
+  };
+}
+
 function createFooter(): FooterProps {
   const copy = footerCopy.en;
   return {
@@ -148,6 +161,9 @@ function createProductListProps(layout: "rail" | "waterfall"): ProductListProps 
     products: createProductListProducts("en"),
     tabs: createProductListTabs("en"),
     layout,
+    mobileSurface: "plain",
+    dividerPosition: "top",
+    dividerVariant: "gray",
     viewAllHref: isWaterfall ? undefined : "#all-products",
     viewAllLabel: copy.viewAll,
     hasMore: isWaterfall,
@@ -179,11 +195,24 @@ function createStandardRailProps(): ProductListProps {
 }
 
 export function createTopicLandingPageFixture(): TopicLandingPageProps {
+  const header = createHeader();
+  const hero = createThemeHeroProps();
   return {
-    header: createHeader(),
-    hero: createThemeHeroProps(),
-    standardRail: createThemeProductListProps("en"),
-    reviewList: createReviewListProps("en"),
+    activityHeader: createActivityHeader(header),
+    header,
+    hero: { ...hero, cta: undefined },
+    standardRail: {
+      ...createThemeProductListProps("en"),
+      mobileSurface: "plain",
+      dividerPosition: "top",
+      dividerVariant: "gray",
+    },
+    reviewList: {
+      ...createReviewListProps("en"),
+      mobileSurface: "plain",
+      dividerPosition: "top",
+      dividerVariant: "gray",
+    },
     productRail: createStandardRailProps(),
     waterfall: createProductListProps("waterfall"),
     footer: createFooter(),

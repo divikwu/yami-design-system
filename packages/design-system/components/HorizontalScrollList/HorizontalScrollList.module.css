@@ -1,0 +1,37 @@
+.root {
+  box-sizing: border-box;
+  min-width: 0;
+  width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: inline mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.root::-webkit-scrollbar {
+  display: none;
+}
+
+.surfaceCard[data-surface="card"] {
+  box-sizing: border-box;
+  gap: var(--space-100);
+  padding: var(--space-100);
+  background: transparent;
+  border-radius: 0;
+  scroll-padding-inline: var(--space-100);
+}
+
+.surfacePlain {
+  background: transparent;
+  border-radius: 0;
+}
+
+@media (max-width: 1023.98px) {
+  .surfacePlain[data-surface="plain"] {
+    box-sizing: border-box;
+    gap: var(--space-100);
+    padding: var(--space-100);
+    scroll-padding-inline: var(--space-100);
+  }
+}

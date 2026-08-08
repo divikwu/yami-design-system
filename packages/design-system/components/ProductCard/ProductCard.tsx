@@ -13,10 +13,12 @@ export type {
   ProductCardPresentation,
   ProductCardPromotion,
   ProductCardProps,
+  ProductCardSurface,
 } from "./ProductCard.types";
 
 export function ProductCard({
   presentation = "rich",
+  surface = "card",
   image,
   imageAlt,
   imageLoading = "lazy",
@@ -49,6 +51,7 @@ export function ProductCard({
         className={styles.root}
         data-slot="product-card"
         data-presentation={presentation}
+        data-surface={surface}
       >
         <ProductCardMedia
           image={image}

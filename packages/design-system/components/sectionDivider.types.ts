@@ -9,7 +9,7 @@ export type SectionDividerPosition = "top" | "bottom" | "none";
 export type SectionDividerVariant = "gray" | "black";
 
 export interface SectionDividerProps {
-  /** Desktop boundary edge. Ignored below 1024px. */
+  /** Boundary edge. Individual components define whether it is available on mobile. */
   dividerPosition?: SectionDividerPosition;
   /** Coupled color and width treatment. Default: gray (1px). */
   dividerVariant?: SectionDividerVariant;

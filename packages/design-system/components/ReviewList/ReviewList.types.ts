@@ -2,6 +2,8 @@ import type { HTMLAttributes, ReactNode } from "react";
 
 import type { SectionDividerProps } from "../sectionDivider.types";
 
+export type ReviewListMobileSurface = "card" | "plain";
+
 export interface ReviewProduct {
   /** Product image shown in the review footer. */
   imageSrc: string;
@@ -38,6 +40,8 @@ export interface ReviewListProps
   mobileTitle?: ReactNode;
   /** Ordered review cards shown in the horizontal rail. */
   reviews: ReviewCardProps[];
+  /** Mobile section surface. Plain is full-bleed with 16px content padding and supports section dividers. */
+  mobileSurface?: ReviewListMobileSurface;
   /** Optional destination for the shared desktop/mobile view-all action. */
   viewAllHref?: string;
   /** Localized view-all label. */

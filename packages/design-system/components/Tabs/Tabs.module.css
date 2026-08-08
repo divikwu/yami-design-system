@@ -385,3 +385,23 @@
 .list[data-variant="tertiary"][data-skeleton="true"] .skeletonItem {
   height: var(--space-400);
 }
+
+@media (min-width: 768px) {
+  .root[data-orientation="horizontal"]
+    .list[data-variant="tertiary"]
+    .trigger {
+    min-width: var(--space-600);
+  }
+
+  .root[data-orientation="horizontal"]
+    .list[data-variant="primary"][data-style="b"]
+    .trigger::before {
+    inset-block: var(--space-050);
+  }
+
+  .root[data-orientation="horizontal"]
+    .list[data-variant="tertiary"]
+    .trigger::before {
+    inset-block: calc(var(--space-050) + var(--space-025));
+  }
+}

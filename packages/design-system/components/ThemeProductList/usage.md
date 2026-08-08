@@ -26,6 +26,16 @@ panel becomes a full-width row below the tabs, and the horizontal product rail
 starts on the following row. The panel remains keyboard reachable when
 `content.href` is supplied.
 
+## Mobile surface
+
+`mobileSurface="card"` is the default and keeps the inset rounded section. Use
+`mobileSurface="plain"` to reuse ProductList's full-bleed mobile surface: square
+outer corners, 16px content alignment, full-width tabs and product scrolling,
+and mobile top/bottom divider support. The image-led content panel remains
+stacked above the product rail in both modes. The inner product rail always uses
+the `Without Background` surface, and its ProductCard children always use the
+plain 0px-padding surface; `mobileSurface` changes only the outer section.
+
 ## Accessibility
 
 The panel image is semantic and requires alt text. The overlay copy remains
