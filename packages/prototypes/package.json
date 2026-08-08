@@ -10,5 +10,5 @@
   },
   "scripts": { "typecheck": "tsc -p tsconfig.json", "test": "vitest run", "build": "tsc -p tsconfig.json" },
   "dependencies": { "@yami/contracts": "workspace:*", "@yami/design-system": "workspace:*", "react": "19.2.8" },
-  "devDependencies": { "@types/react": "19.2.18", "typescript": "6.0.3", "vitest": "4.1.10" }
+  "devDependencies": { "@types/react": "19.2.18", "typescript": "7.0.2", "vitest": "4.1.10" }
 }

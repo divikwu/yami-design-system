@@ -39,12 +39,12 @@
     "@changesets/cli": "2.31.1",
     "@axe-core/playwright": "4.12.1",
     "@eslint/js": "10.0.1",
-    "@playwright/test": "1.61.1",
-    "@types/node": "24.13.3",
+    "@playwright/test": "1.62.1",
+    "@types/node": "26.1.2",
     "eslint": "10.8.0",
     "eslint-plugin-react-hooks": "7.1.1",
     "globals": "17.9.0",
-    "typescript": "6.0.3",
+    "typescript": "7.0.2",
     "typescript-eslint": "8.66.0",
     "vitest": "4.1.10"
   }
