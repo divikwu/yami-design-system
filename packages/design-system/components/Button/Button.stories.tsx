@@ -183,6 +183,17 @@ export const Playground: Story = {}
 /** Emphasis CTA — the page's single permission-to-act button. */
 export const Emphasis: Story = {
   args: { variant: "emphasis", children: "Add to Cart" },
+  play: async ({ canvasElement }) => {
+    const button = canvasElement.querySelector<HTMLButtonElement>("button")
+    if (!button) throw new Error("Inline emphasis Button did not render")
+    const styles = getComputedStyle(button)
+    const expectedRadius = styles.getPropertyValue("--radius-button-primary").trim()
+    if (styles.borderRadius !== expectedRadius) {
+      throw new Error(
+        `Inline Button must use the pill radius; received ${styles.borderRadius}`,
+      )
+    }
+  },
 }
 
 /** Full-width CTA — page-level commitment. */
@@ -199,10 +210,10 @@ export const FullWidth: Story = {
     const button = canvasElement.querySelector<HTMLButtonElement>("button")
     if (!button) throw new Error("Full-width Button did not render")
     const styles = getComputedStyle(button)
-    const expectedRadius = styles.getPropertyValue("--radius-sm").trim()
+    const expectedRadius = styles.getPropertyValue("--radius-component-default").trim()
     if (styles.borderRadius !== expectedRadius) {
       throw new Error(
-        `Full-width Button must use the compact radius; received ${styles.borderRadius}`,
+        `Full-width Button must use the component radius; received ${styles.borderRadius}`,
       )
     }
   },

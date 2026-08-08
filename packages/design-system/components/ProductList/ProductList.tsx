@@ -121,7 +121,8 @@ export function ProductList(props: ProductListProps) {
   const railRef = useRef<HTMLDivElement>(null);
   const [railState, setRailState] = useState({
     atStart: true,
-    atEnd: false,
+    atEnd: true,
+    canScroll: false,
   });
   const firstTabValue = useMemo(
     () => tabs?.find((tab) => !tab.disabled)?.value,
@@ -135,6 +136,7 @@ export function ProductList(props: ProductListProps) {
     setRailState({
       atStart: rail.scrollLeft <= 1,
       atEnd: rail.scrollLeft >= maxScrollLeft - 1,
+      canScroll: maxScrollLeft > 1,
     });
   }, []);
 
@@ -240,7 +242,7 @@ export function ProductList(props: ProductListProps) {
           viewAllHref={viewAllHref}
           viewAllLabel={viewAllLabel}
           actions={
-            layout === "rail" && !loading ? (
+            layout === "rail" && !loading && railState.canScroll ? (
               <RailNavigation
                 className={styles.railActions}
                 buttonClassName={styles.railButton}
@@ -274,6 +276,15 @@ export function ProductList(props: ProductListProps) {
               ))}
             </TabsList>
           </Tabs>
+        )}
+
+        {leadingContent && (
+          <div
+            className={styles.mobileLeadingContent}
+            data-slot="product-list-leading-content-mobile"
+          >
+            {leadingContent}
+          </div>
         )}
 
         <div
@@ -326,7 +337,7 @@ export function ProductList(props: ProductListProps) {
           <div className={styles.loadMore}>
             <Button
               form="full"
-              size="lg"
+              size="md"
               variant="secondary"
               onClick={onLoadMore}
             >

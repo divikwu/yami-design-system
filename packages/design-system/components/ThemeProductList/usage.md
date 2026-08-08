@@ -21,9 +21,10 @@ alt text, contrast overlay and description.
 ## Responsive behavior
 
 At desktop widths the inner list is capped at 1440px and the content panel is
-exactly two product-card widths plus one gap. At smaller widths the panel keeps
-that two-slot relationship inside the horizontal rail and remains keyboard
-reachable when `content.href` is supplied.
+exactly two product-card widths plus one gap. At smaller widths the content
+panel becomes a full-width row below the tabs, and the horizontal product rail
+starts on the following row. The panel remains keyboard reachable when
+`content.href` is supplied.
 
 ## Accessibility
 

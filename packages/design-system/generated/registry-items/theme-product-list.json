@@ -14,6 +14,7 @@
     "components/ThemeProductList/fixtures.ts",
     "components/ThemeProductList/index.ts",
     "components/ThemeProductList/ThemeProductList.module.css",
+    "components/ThemeProductList/ThemeProductList.stories.module.css",
     "components/ThemeProductList/ThemeProductList.tsx",
     "components/ThemeProductList/ThemeProductList.types.ts"
   ]

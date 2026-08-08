@@ -172,6 +172,38 @@ export const StandardRail: Story = {
   render: (_args, { globals }) => <Collection globals={globals} />,
 };
 
+export const StaticRailHeader: Story = {
+  tags: ["!dev", "!autodocs"],
+  render: (_args, { globals }) => {
+    const locale = localeFromGlobals(globals.locale);
+    return (
+      <ProductList
+        {...getProps(locale, {
+          products: createProductListProducts(locale).slice(0, 2),
+          viewAllHref: " ",
+        })}
+      />
+    );
+  },
+  play: async ({ canvasElement }) => {
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    const actions = canvasElement.querySelector(
+      '[data-slot="product-list-actions"]',
+    );
+    const navigation = canvasElement.querySelector(
+      '[data-slot="rail-navigation"]',
+    );
+    const viewAll = canvasElement.querySelector(
+      '[data-slot="product-list-view-all"]',
+    );
+    if (actions || navigation || viewAll) {
+      throw new Error(
+        "A non-scrollable rail without a collection link must render no heading actions",
+      );
+    }
+  },
+};
+
 async function verifyCampaignPadding({
   canvasElement,
 }: {

@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "name": "review-list",
+  "title": "ReviewList",
+  "type": "component",
+  "status": "experimental",
+  "source": "components/ReviewList",
+  "files": [
+    "components/ReviewList/assets/anua-heartleaf-77-toner.png",
+    "components/ReviewList/assets/anua-heartleaf-cleansing-foam.png",
+    "components/ReviewList/assets/anua-niacinamide-txa.png",
+    "components/ReviewList/fixtures.ts",
+    "components/ReviewList/index.ts",
+    "components/ReviewList/ReviewCard.tsx",
+    "components/ReviewList/ReviewList.module.css",
+    "components/ReviewList/ReviewList.stories.module.css",
+    "components/ReviewList/ReviewList.tsx",
+    "components/ReviewList/ReviewList.types.ts"
+  ]
+}

@@ -4,6 +4,7 @@ import {
   Footer,
   Header,
   ProductList,
+  ReviewList,
   ThemeHero,
   ThemeProductList,
 } from "@yami/design-system";
@@ -19,6 +20,7 @@ export function TopicLandingPage({
   header,
   hero,
   standardRail,
+  reviewList,
   productRail,
   waterfall,
   footer,
@@ -36,6 +38,12 @@ export function TopicLandingPage({
       <main>
         <ThemeHero {...hero} />
         <ThemeProductList {...standardRail} />
+        <div
+          className={styles.reviewList}
+          data-slot="topic-landing-review-list"
+        >
+          <ReviewList {...reviewList} />
+        </div>
         <div
           className={styles.standardRail}
           data-slot="topic-landing-standard-rail"

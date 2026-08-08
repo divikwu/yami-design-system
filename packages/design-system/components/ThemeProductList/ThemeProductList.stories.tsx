@@ -2,10 +2,18 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { ThemeProductList } from "./ThemeProductList";
 import { createThemeProductListProps } from "./fixtures";
+import storyStyles from "./ThemeProductList.stories.module.css";
 
 const meta = {
   title: "YAMI/Components/Commerce/Theme Product List",
   component: ThemeProductList,
+  decorators: [
+    (Story) => (
+      <div className={storyStyles.canvas}>
+        <Story />
+      </div>
+    ),
+  ],
   parameters: {
     layout: "fullscreen",
     docs: {
@@ -36,9 +44,13 @@ export const Showcase: Story = {
     const list = themeList?.querySelector<HTMLElement>(
       '[data-slot="product-list-items"]',
     );
-    const content = themeList?.querySelector<HTMLElement>(
+    const desktopContent = list?.querySelector<HTMLElement>(
       '[data-slot="theme-product-list-content"]',
     );
+    const mobileContent = themeList?.querySelector<HTMLElement>(
+      '[data-slot="product-list-leading-content-mobile"] [data-slot="theme-product-list-content"]',
+    );
+    const content = window.innerWidth < 1024 ? mobileContent : desktopContent;
     const image = content?.querySelector<HTMLImageElement>("img");
     const overlay = content?.querySelector<HTMLElement>(
       '[data-slot="theme-product-list-overlay"]',
@@ -93,10 +105,53 @@ export const Showcase: Story = {
       if (!container || container.getBoundingClientRect().width > 1441) {
         throw new Error("ThemeProductList desktop content must cap at 1440px");
       }
+      if (getComputedStyle(list).scrollSnapType !== "none") {
+        throw new Error(
+          "ThemeProductList desktop must keep its image-led start stable during resize",
+        );
+      }
+    } else {
+      const canvas = themeList.parentElement;
+      const canvasStyles = canvas ? getComputedStyle(canvas) : null;
+      const mobileWrapper = themeList.querySelector<HTMLElement>(
+        '[data-slot="product-list-leading-content-mobile"]',
+      );
+      const desktopWrapper = list.querySelector<HTMLElement>(
+        '[data-slot="product-list-leading-content"]',
+      );
+      const firstProduct = list.querySelector<HTMLElement>(
+        '[data-slot="product-list-item"]',
+      );
+      const container = themeList.querySelector<HTMLElement>(
+        '[data-slot="product-list-container"]',
+      );
+      const listStyles = getComputedStyle(list);
+      if (
+        !mobileWrapper ||
+        !desktopWrapper ||
+        !firstProduct ||
+        !container ||
+        !canvasStyles ||
+        canvasStyles.backgroundColor !== "rgb(245, 245, 245)" ||
+        getComputedStyle(container).rowGap !== "4px" ||
+        getComputedStyle(mobileWrapper).display === "none" ||
+        getComputedStyle(desktopWrapper).display !== "none" ||
+        mobileWrapper.getBoundingClientRect().bottom >
+          firstProduct.getBoundingClientRect().top ||
+        listStyles.paddingTop !== "4px" ||
+        listStyles.paddingRight !== "6px" ||
+        listStyles.paddingBottom !== "4px" ||
+        listStyles.paddingLeft !== "6px"
+      ) {
+        throw new Error(
+          "ThemeProductList mobile must use a 4px container gap and stack its content panel above a 4px/6px padded product rail",
+        );
+      }
     }
   },
 };
 
 export const Mobile: Story = {
   globals: { viewport: { value: "yamiMobile", isRotated: false } },
+  play: Showcase.play,
 };

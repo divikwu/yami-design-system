@@ -870,7 +870,7 @@
           },
           "radii": {
             "ruleId": "no-custom-radii",
-            "note": "All full-form buttons → --radius-sm (4px). Inline emphasis → --radius-button-emphasis (8px squarish). Inline primary/secondary/tertiary → --radius-button-primary (pill)."
+            "note": "All full-form buttons → --radius-component-default (8px). Inline buttons → --radius-button-primary (pill) across every hierarchy. Icon form keeps its hierarchy-specific radius."
           }
         },
         "tokens": [
@@ -901,7 +901,7 @@
           "--border-focus-inverse",
           "--radius-button-emphasis",
           "--radius-button-primary",
-          "--radius-sm",
+          "--radius-component-default",
           "--font-family-ios",
           "--font-weight-emphasize",
           "--font-size-body-md",
@@ -972,15 +972,15 @@
           },
           "--radius-button-emphasis": {
             "property": "border-radius",
-            "selector": ".emphasis:not(.fullWidth)"
+            "selector": ".emphasis.iconOnly"
           },
           "--radius-button-primary": {
             "property": "border-radius",
-            "selector": ".primary:not(.fullWidth), .secondary:not(.fullWidth), .tertiary:not(.fullWidth)"
+            "selector": ".button:not(.fullWidth):not(.iconOnly), .primary.iconOnly, .secondary.iconOnly, .tertiary.iconOnly"
           },
-          "--radius-sm": {
+          "--radius-component-default": {
             "property": "border-radius",
-            "selector": ".fullWidth"
+            "selector": ".button.fullWidth"
           },
           "--font-family-ios": {
             "property": "font-family",
@@ -3004,7 +3004,7 @@
           "leadingContent": {
             "type": "ReactNode",
             "required": false,
-            "description": "Optional content rendered before the first rail product; ThemeProductList uses it to reserve two card slots."
+            "description": "Optional editorial content stacked above the mobile product rail and rendered before the first desktop rail product; ThemeProductList uses it to reserve two desktop card slots."
           },
           "appearance": {
             "type": "\"standard\" | \"themed\" | \"atmospheric\"",
@@ -3419,6 +3419,156 @@
           "./examples.tsx#PaymentMethodRadioGroup",
           "./examples.tsx#DisabledRadioGroup",
           "./examples.tsx#ControlledRadioGroup"
+        ]
+      }
+    },
+    {
+      "id": "ReviewList",
+      "source": "components/ReviewList",
+      "meta": {
+        "$schema": "../../../schema/component.json",
+        "name": "ReviewList",
+        "category": "composite",
+        "status": "experimental",
+        "version": "0.1.0",
+        "description": "Responsive customer-review rail that reuses the ProductList section heading and composes ReviewCard children.",
+        "figma": {
+          "fileKey": "wE2APma1NxPl3eHM5NFpU9",
+          "nodeId": "1865:43859",
+          "notes": "English Site Optimization 2026 Image Card. Desktop shows three cards at 1440px content width and four at 1920px, with additional reviews continuing in the horizontal rail."
+        },
+        "exports": [
+          "ReviewList",
+          "ReviewCard",
+          "ReviewListProps",
+          "ReviewCardProps",
+          "ReviewProduct"
+        ],
+        "composes": [
+          "SectionHeading",
+          "RailNavigation"
+        ],
+        "props": {
+          "title": {
+            "type": "ReactNode",
+            "required": true,
+            "description": "Visible section heading and accessible label."
+          },
+          "reviews": {
+            "type": "ReviewCardProps[]",
+            "required": true,
+            "description": "Ordered customer reviews rendered in the rail."
+          },
+          "mobileTitle": {
+            "type": "ReactNode",
+            "required": false,
+            "description": "Optional narrow-screen replacement for title."
+          },
+          "viewAllHref": {
+            "type": "string",
+            "required": false,
+            "description": "Destination for the optional view-all link."
+          },
+          "viewAllLabel": {
+            "type": "ReactNode",
+            "required": false,
+            "default": "See all",
+            "description": "Localized view-all label."
+          },
+          "previousLabel": {
+            "type": "string",
+            "required": false,
+            "default": "Previous reviews",
+            "description": "Accessible label for the previous rail action."
+          },
+          "nextLabel": {
+            "type": "string",
+            "required": false,
+            "default": "Next reviews",
+            "description": "Accessible label for the next rail action."
+          },
+          "dividerPosition": {
+            "type": "\"top\" | \"bottom\" | \"none\"",
+            "required": false,
+            "default": "top",
+            "description": "Places the desktop section boundary above, below, or removes it; ignored below 1024px."
+          },
+          "dividerVariant": {
+            "type": "\"gray\" | \"black\"",
+            "required": false,
+            "default": "gray",
+            "description": "Gray renders the 1px structural separator; black renders the theme-aware 2px emphasis separator."
+          }
+        },
+        "rules": {
+          "focus": {
+            "ruleId": "focus-style",
+            "note": "Product review links and shared rail controls keep token-backed focus treatments."
+          },
+          "radius": {
+            "ruleId": "no-custom-radii",
+            "note": "Review cards use the component radius, product footers use the tag radius, and product thumbnails use half the tag radius for the compact 2px treatment."
+          },
+          "motion": {
+            "ruleId": "elevation-on-press",
+            "note": "Rail paging respects prefers-reduced-motion."
+          }
+        },
+        "tokens": [
+          "--surface-primary",
+          "--surface-secondary",
+          "--text-primary",
+          "--text-secondary",
+          "--text-emphasis",
+          "--fill-disabled",
+          "--border-default",
+          "--border-focus",
+          "--divider-emphasis",
+          "--stroke-default",
+          "--stroke-thick",
+          "--radius-surface-default",
+          "--radius-component-default",
+          "--radius-tag-primary",
+          "--layout-page-margin-card",
+          "--font-family-ios",
+          "--font-weight-normal",
+          "--font-size-body-md",
+          "--line-height-body-md",
+          "--font-size-caption-md",
+          "--line-height-caption-md",
+          "--space-025",
+          "--space-050",
+          "--space-100",
+          "--space-150",
+          "--space-200",
+          "--space-300",
+          "--space-400",
+          "--space-600"
+        ],
+        "accessibility": {
+          "wcagLevel": "AA",
+          "tapTargetMin": 44,
+          "keyboardNav": [
+            "tab",
+            "enter",
+            "arrow keys"
+          ],
+          "ariaPattern": "Labelled review rail with accessible rating images and native product links.",
+          "structure": "The shared SectionHeading labels the rail; each list item contains one ReviewCard article.",
+          "interaction": "Product footers are keyboard-reachable links when href is supplied, and rail controls respect reduced motion."
+        },
+        "dependencies": {
+          "runtime": [
+            "react",
+            "./SectionHeading",
+            "./Button/RailNavigation"
+          ],
+          "peer": [],
+          "devOnly": []
+        },
+        "usageRef": "./usage.md",
+        "examples": [
+          "./examples.tsx#ReviewListExample"
         ]
       }
     },
@@ -4119,11 +4269,11 @@
         "category": "composite",
         "status": "experimental",
         "version": "0.1.0",
-        "description": "Full-width theme storytelling hero with selectable copy, one primary CTA and atmospheric campaign artwork.",
+        "description": "Responsive theme storytelling hero with a two-column desktop composition and full-bleed mobile artwork behind selectable copy and one primary CTA.",
         "figma": {
           "nodeId": "1877:43111",
           "componentKey": null,
-          "notes": "English Site Optimization 2026 Theme Hero; layout behavior is also informed by the W Concept visual module."
+          "notes": "English Site Optimization 2026 Theme Hero. Desktop preserves the approved two-column composition; mobile adopts W Concept's full-bleed artwork with bottom-aligned copy and a contrast scrim."
         },
         "exports": [
           "ThemeHero",
@@ -4189,7 +4339,7 @@
           "--font-size-body-xl",
           "--font-size-display-xl",
           "--font-size-heading-xs",
-          "--font-weight-emphasize",
+          "--font-weight-normal",
           "--layout-page-margin-default",
           "--line-height-body-xl",
           "--line-height-display-xl",

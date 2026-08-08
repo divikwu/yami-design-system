@@ -137,4 +137,64 @@ export const Showcase: Story = {
 
 export const Mobile: Story = {
   globals: { viewport: { value: "yamiMobile", isRotated: false } },
+  play: async ({ canvasElement }) => {
+    const hero = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="theme-hero"]',
+    );
+    const copy = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="theme-hero-copy"]',
+    );
+    const description = copy?.querySelector<HTMLElement>("div");
+    const media = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="theme-hero-media"]',
+    );
+    const image = media?.querySelector<HTMLImageElement>("img");
+    const atmosphere = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="theme-hero-atmosphere"]',
+    );
+    const scrim = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="theme-hero-scrim"]',
+    );
+    const cta = copy?.querySelector<HTMLElement>("div:last-child");
+
+    if (
+      !hero ||
+      !copy ||
+      !description ||
+      !media ||
+      !image ||
+      !atmosphere ||
+      !scrim ||
+      !cta
+    ) {
+      throw new Error("Mobile ThemeHero did not render its visual layers");
+    }
+
+    const heroBox = hero.getBoundingClientRect();
+    const mediaBox = media.getBoundingClientRect();
+    const copyStyles = getComputedStyle(copy);
+    const descriptionStyles = getComputedStyle(description);
+    const mediaStyles = getComputedStyle(media);
+    const imageStyles = getComputedStyle(image);
+    const scrimStyles = getComputedStyle(scrim);
+
+    if (
+      heroBox.height < 359 ||
+      heroBox.height > 401 ||
+      Math.abs(mediaBox.width - heroBox.width) > 1 ||
+      Math.abs(mediaBox.height - heroBox.height) > 1 ||
+      copyStyles.position !== "absolute" ||
+      copyStyles.justifyContent !== "flex-end" ||
+      descriptionStyles.webkitLineClamp !== "3" ||
+      mediaStyles.position !== "absolute" ||
+      imageStyles.objectFit !== "cover" ||
+      getComputedStyle(atmosphere).display !== "none" ||
+      !scrimStyles.backgroundImage.includes("linear-gradient") ||
+      getComputedStyle(cta).paddingTop !== "0px"
+    ) {
+      throw new Error(
+        "Mobile ThemeHero must use a full-bleed image with bottom-aligned copy and a contrast scrim",
+      );
+    }
+  },
 };

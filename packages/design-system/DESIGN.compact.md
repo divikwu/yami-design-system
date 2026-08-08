@@ -62,7 +62,7 @@ Price format: `$12.99` (USD-leading). Discount: `$12.99  $19.99` (current red, o
 
 | Component | Variants | Note |
 |---|---|---|
-| **Button** | emphasis / primary / secondary / tertiary × sm/md/lg | Emphasis is **rate-limited to 1 per screen**. Pill for primary, 8px-rounded square for emphasis. |
+| **Button** | emphasis / primary / secondary / tertiary × full/inline/icon × sm/md/lg | Emphasis is **rate-limited to 1 per screen**. Full form uses 8px; inline form is pill-shaped. |
 | **Tabs** | primary / secondary / tertiary | Responsive tab navigation; Theme and inverse surface polarity remain independent. |
 | **Card** | padding × surface primary/secondary/inverse | **No border and no shadow by default.** Interactive cards change `background-color`, not shadow. |
 | **Badge** | 6 colors × primary (solid) / secondary (tinted) × sm/md | Sole place blue/green/purple/yellow is allowed. Max 2 badges per ProductCard. |

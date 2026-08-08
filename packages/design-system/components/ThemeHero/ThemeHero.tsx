@@ -26,10 +26,18 @@ export function ThemeHero({
       className={cx(styles.root, className)}
       data-slot="theme-hero"
     >
-      <div className={styles.atmosphere} aria-hidden="true">
+      <div
+        className={styles.atmosphere}
+        data-slot="theme-hero-atmosphere"
+        aria-hidden="true"
+      >
         <img src={backgroundImageSrc} alt="" />
       </div>
-      <div className={styles.scrim} aria-hidden="true" />
+      <div
+        className={styles.scrim}
+        data-slot="theme-hero-scrim"
+        aria-hidden="true"
+      />
 
       <div className={styles.container}>
         <div className={styles.copy} data-slot="theme-hero-copy">

@@ -1,3 +1,7 @@
+/* yami-validate-disable: no-gradient */
+/* The mobile gradient is a functional contrast layer for selectable copy over
+ * full-bleed campaign artwork. */
+
 .root {
   --theme-hero-foreground: var(--color-white-1000);
   --button-primary-inverse: var(--color-white-1000);
@@ -78,7 +82,7 @@
 .description {
   width: 100%;
   font-size: var(--font-size-heading-xs);
-  font-weight: var(--font-weight-emphasize);
+  font-weight: var(--font-weight-normal);
   line-height: var(--line-height-heading-xs);
   white-space: pre-wrap;
 }
@@ -123,25 +127,62 @@
 
 @media (max-width: 1023.98px) {
   .root {
-    height: auto;
-    min-height: 0;
+    height: clamp(360px, 100vw, 400px);
+    min-height: 360px;
   }
 
   .container {
-    grid-template-columns: minmax(0, 1fr);
-    height: auto;
-    padding: var(--space-300) var(--layout-page-margin-default);
+    display: block;
+    height: 100%;
+    padding: 0;
   }
 
   .copy {
-    height: auto;
-    padding-block: var(--space-200);
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    height: 100%;
+    justify-content: flex-end;
+    padding: var(--space-200) var(--layout-page-margin-default);
+  }
+
+  .description {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
+  .cta {
+    padding-block: 0;
+  }
+
+  .atmosphere {
+    display: none;
+  }
+
+  .scrim {
+    z-index: 1;
+    background: linear-gradient(
+      to bottom,
+      rgb(0 0 0 / 4%) 18%,
+      rgb(0 0 0 / 78%) 100%
+    );
   }
 
   .media {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
     max-width: none;
     max-height: none;
-    height: auto;
+  }
+
+  .image {
+    height: 100%;
+    object-fit: cover;
   }
 }
 

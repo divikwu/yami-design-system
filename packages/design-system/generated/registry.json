@@ -104,6 +104,12 @@
       "path": "registry-items/radio-group.json"
     },
     {
+      "name": "review-list",
+      "title": "ReviewList",
+      "type": "component",
+      "path": "registry-items/review-list.json"
+    },
+    {
       "name": "shortcut-rail",
       "title": "ShortcutRail",
       "type": "component",

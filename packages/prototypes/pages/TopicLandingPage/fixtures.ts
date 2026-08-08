@@ -18,6 +18,7 @@ import {
   createProductListTabs,
   productListCopy,
 } from "@yami/design-system/components/ProductList/fixtures";
+import { createReviewListProps } from "@yami/design-system/components/ReviewList/fixtures";
 import { createThemeHeroProps } from "@yami/design-system/components/ThemeHero/fixtures";
 import { createThemeProductListProps } from "@yami/design-system/components/ThemeProductList/fixtures";
 
@@ -161,6 +162,7 @@ function createStandardRailProps(): ProductListProps {
   return {
     ...createProductListProps("rail"),
     title: "Popular Picks",
+    viewAllHref: undefined,
     products: standardRailProducts,
     tabs: [
       "All",
@@ -181,6 +183,7 @@ export function createTopicLandingPageFixture(): TopicLandingPageProps {
     header: createHeader(),
     hero: createThemeHeroProps(),
     standardRail: createThemeProductListProps("en"),
+    reviewList: createReviewListProps("en"),
     productRail: createStandardRailProps(),
     waterfall: createProductListProps("waterfall"),
     footer: createFooter(),

@@ -27,5 +27,7 @@ keyboard and focus behavior.
 
 At 1024px and above, content is a centered, 1440px-capped two-column layout
 inside the 448px full-bleed band. The desktop container is flush vertically and
-uses a 48px inline inset. Below 1024px, copy and artwork stack while retaining
-the same readable text and action order.
+uses a 48px inline inset. Below 1024px, the campaign artwork becomes a
+full-bleed, cover-cropped visual with the selectable copy and CTA anchored over
+its lower edge. A contrast scrim preserves legibility, and supporting copy is
+limited to three lines so the artwork remains visible.

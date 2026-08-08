@@ -347,7 +347,7 @@ YAMI ships 9 primitives and 5 composites. Full anatomy, props, and `tokenBinding
 | **Variants**   | `emphasis` · `primary` · `secondary` · `tertiary`                                                |
 | **Sizes**      | `sm` (32) · `md` (40) · `lg` (48)                                                                |
 | **States**     | default · hover · active · disabled · loading · focus-visible                                    |
-| **Radius**     | `emphasis` → `--radius-button-emphasis` (8px) · others → `--radius-button-primary` (pill)        |
+| **Radius**     | `form=full` → `--radius-component-default` (8px) · `form=inline` → `--radius-button-primary` (pill) · `form=icon` keeps hierarchy-specific radius |
 | **Typography** | `--font-family-ios` + weight 500; sm/md `body-md`, lg `body-xl`                                  |
 | **Tap target** | All sizes pad to ≥ 44pt internal hit area (rule `tap-target`)                                    |
 | **Rate limit** | **`emphasis` = 1 per screen.** No exceptions. (rule `emphasis-limit`)                            |
