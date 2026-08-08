@@ -14,10 +14,10 @@ Use `<Button>` for any interactive action that is **not navigation between pages
 
 | Variant | Background | Shape | When to use |
 |---|---|---|---|
-| `emphasis` | `--button-emphasis` (operational red) + `--text-on-emphasis` (white) | 8px | Buy Now / Add to Cart / Place Order — the **one** high-priority CTA on the screen |
-| `primary` | `--button-primary` (black) | pill | Generic primary actions, form submits, non-emphasis CTAs |
-| `secondary` | `--button-secondary` (grey) | pill | Secondary actions paired with a primary (Cancel / Back / Skip) |
-| `tertiary` | `--button-tertiary` (white) | pill | Low-emphasis actions; lightweight card-level actions |
+| `emphasis` | `--button-emphasis` (operational red) + `--text-on-emphasis` (white) | Depends on `form` | Buy Now / Add to Cart / Place Order — the **one** high-priority CTA on the screen |
+| `primary` | `--button-primary` (black) | Depends on `form` | Generic primary actions, form submits, non-emphasis CTAs |
+| `secondary` | `--button-secondary` (grey) | Depends on `form` | Secondary actions paired with a primary (Cancel / Back / Skip) |
+| `tertiary` | `--button-tertiary` (white) | Depends on `form` | Low-emphasis actions; lightweight card-level actions |
 
 ### ⚠️ `emphasis-limit` rule (design.md)
 
@@ -51,9 +51,9 @@ The `form` prop mirrors the Figma Form axis (Mobile v2 + PC v2). It controls lay
 
 | Form | Layout | When to use |
 |---|---|---|
-| `inline` | Content-width, sits in a row | **Default.** Most buttons |
-| `full` | Stretches to container width; always uses `--radius-sm` (4px) | Page-level CTAs (checkout, sheet footer, mobile bottom-fixed action) |
-| `icon` | Square (1:1), no label | Compact actions where the icon alone communicates the verb. **Requires `aria-label`.** |
+| `full` | Stretches to container width; uses `--radius-component-default` (8px) | Page-level CTAs (checkout, sheet footer, mobile bottom-fixed action) |
+| `inline` | Content-width; uses `--radius-button-primary` (pill) for every hierarchy | **Default.** Most buttons |
+| `icon` | Square (1:1), no label; keeps the hierarchy-specific radius | Compact actions where the icon alone communicates the verb. **Requires `aria-label`.** |
 
 ```tsx
 <Button form="full" variant="emphasis">Checkout</Button>

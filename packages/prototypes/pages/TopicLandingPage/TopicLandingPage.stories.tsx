@@ -14,7 +14,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "An editorial theme landing page for English-site users with a global header, ThemeHero, a ThemeProductList rail, a Standard Rail and a ProductList Waterfall collection, followed by the global footer.",
+          "An editorial theme landing page for English-site users with a global header, ThemeHero, ThemeProductList, ReviewList, a Standard Rail and a ProductList Waterfall collection, followed by the global footer.",
       },
       story: { inline: false, height: "2400px" },
     },
@@ -83,6 +83,26 @@ export const Pc: Story = {
       );
     }
 
+    for (const productList of productLists.filter(
+      (list) => list.dataset.layout === "rail",
+    )) {
+      const items = productList.querySelector<HTMLElement>(
+        '[data-slot="product-list-items"]',
+      );
+      const navigation = productList.querySelector(
+        '[data-slot="rail-navigation"]',
+      );
+      if (
+        items &&
+        items.scrollWidth <= items.clientWidth + 1 &&
+        navigation
+      ) {
+        throw new Error(
+          "Topic landing page must hide rail navigation when all content fits",
+        );
+      }
+    }
+
     const standardRail = page.querySelector<HTMLElement>(
       '[data-slot="topic-landing-standard-rail"]',
     );
@@ -141,6 +161,14 @@ export const Pc: Story = {
         "Topic landing page Standard Rail must show six slots at 1440px",
       );
     }
+    if (
+      productLists[1]?.querySelector('[data-slot="product-list-view-all"]') ||
+      productLists[1]?.querySelector('[data-slot="product-list-view-all-mobile"]')
+    ) {
+      throw new Error(
+        "Topic landing page Standard Rail must hide view-all without a destination",
+      );
+    }
 
     const waterfall = productLists[2];
     const waterfallContainer = waterfall?.querySelector<HTMLElement>(
@@ -176,6 +204,84 @@ export const Pc: Story = {
       throw new Error(
         "Topic landing page must lead its Standard Rail with the theme content panel",
       );
+    }
+
+    const reviewList = page.querySelector<HTMLElement>(
+      '[data-slot="review-list"]',
+    );
+    const reviewSection = page.querySelector<HTMLElement>(
+      '[data-slot="topic-landing-review-list"]',
+    );
+    const reviewCards = reviewList?.querySelectorAll<HTMLElement>(
+      '[data-slot="review-card"]',
+    );
+    const reviewItems = reviewList?.querySelectorAll<HTMLElement>(
+      '[data-slot="review-list-items"] > li',
+    );
+    const reviewItemsList = reviewList?.querySelector<HTMLElement>(
+      '[data-slot="review-list-items"]',
+    );
+    const reviewContainer = reviewList?.querySelector<HTMLElement>(
+      '[data-slot="review-list-container"]',
+    );
+    if (
+      !reviewList ||
+      !reviewSection ||
+      !reviewCards ||
+      reviewCards.length !== 3 ||
+      !reviewItems ||
+      reviewItems.length !== 3 ||
+      !reviewItemsList ||
+      !reviewContainer ||
+      !reviewList.textContent?.includes("It feels so gentle") ||
+      reviewList.querySelector('[data-slot="review-list-view-all-mobile"]')
+    ) {
+      throw new Error(
+        "Topic landing page ReviewList must reuse the component content without a view-all action",
+      );
+    }
+    if (
+      reviewSection.querySelector('[data-slot="review-list"]') !== reviewList ||
+      reviewContainer.getBoundingClientRect().width > 1441
+    ) {
+      throw new Error(
+        "Topic landing page ReviewList content must cap at 1440px",
+      );
+    }
+    const reviewGap = getComputedStyle(reviewContainer).rowGap;
+    const firstReviewCard = reviewCards[0];
+    if (page.getBoundingClientRect().width < 1024) {
+      if (
+        reviewGap !== "12px" ||
+        firstReviewCard.getBoundingClientRect().width !== 344 ||
+        getComputedStyle(firstReviewCard).borderRadius !== "8px"
+      ) {
+        throw new Error(
+          "Topic landing page ReviewList mobile layout must match the shared ReviewList/ProductList geometry",
+        );
+      }
+    } else {
+      if (
+        reviewGap !== "16px" ||
+        getComputedStyle(firstReviewCard).borderRadius !== "8px"
+      ) {
+        throw new Error(
+          "Topic landing page ReviewList desktop must preserve its 16px gap and desktop radius",
+        );
+      }
+
+      const itemGap = Number.parseFloat(getComputedStyle(reviewItemsList).gap);
+      const expectedItemWidth =
+        (reviewItemsList.getBoundingClientRect().width - itemGap * 2) / 3;
+      if (
+        Math.abs(
+          reviewItems[0].getBoundingClientRect().width - expectedItemWidth,
+        ) > 1
+      ) {
+        throw new Error(
+          "Topic landing page ReviewList must show three card slots within its 1440px content width",
+        );
+      }
     }
 
     if (

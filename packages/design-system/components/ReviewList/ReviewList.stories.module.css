@@ -1,0 +1,15 @@
+.canvas {
+  box-sizing: border-box;
+  width: min(100%, 1920px);
+  min-height: 100vh;
+  margin-inline: auto;
+  padding-top: var(--space-100);
+  background: var(--background-secondary);
+}
+
+@media (min-width: 1024px) {
+  .canvas {
+    padding-top: 0;
+    background: transparent;
+  }
+}

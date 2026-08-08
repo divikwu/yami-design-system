@@ -50,6 +50,7 @@ export function SectionHeading({
   const join = (...names: Array<string | undefined>) =>
     names.filter(Boolean).join(" ");
   const slotName = (suffix: string) => (slot ? `${slot}-${suffix}` : undefined);
+  const resolvedViewAllHref = viewAllHref?.trim();
 
   return (
     <div className={join(styles.root, className)} data-slot={slotName("heading")}>
@@ -67,23 +68,23 @@ export function SectionHeading({
           </>
         )}
       </h2>
-      {viewAllHref || actions ? (
+      {resolvedViewAllHref || actions ? (
         <div
           className={join(styles.actions, actionsClassName)}
           data-slot={slotName("actions")}
         >
-          {viewAllHref && (
+          {resolvedViewAllHref && (
             <>
               <a
                 className={styles.viewAll}
-                href={viewAllHref}
+                href={resolvedViewAllHref}
                 data-slot={slotName("view-all")}
               >
                 {viewAllLabel}
               </a>
               <a
                 className={styles.viewAllMobile}
-                href={viewAllHref}
+                href={resolvedViewAllHref}
                 data-slot={slotName("view-all-mobile")}
               >
                 <span className={styles.srOnly}>{viewAllLabel}</span>

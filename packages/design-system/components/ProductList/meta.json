@@ -33,7 +33,7 @@
     "leadingContent": {
       "type": "ReactNode",
       "required": false,
-      "description": "Optional content rendered before the first rail product; ThemeProductList uses it to reserve two card slots."
+      "description": "Optional editorial content stacked above the mobile product rail and rendered before the first desktop rail product; ThemeProductList uses it to reserve two desktop card slots."
     },
     "appearance": {
       "type": "\"standard\" | \"themed\" | \"atmospheric\"",

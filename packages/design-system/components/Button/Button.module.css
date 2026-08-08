@@ -139,22 +139,22 @@
   transform: translateY(-50%);
 }
 
-/* fullWidth: stretches to container and always uses the compact CTA radius,
-   regardless of hierarchy. Inline primary/secondary/tertiary buttons keep
-   their pill shape. */
+/* fullWidth: stretches to container and uses the component radius,
+   regardless of hierarchy. */
 .fullWidth {
   width: 100%;
 }
 
 .button.fullWidth {
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-component-default);
 }
 
 /* ─── Variants ──────────────────────────────────────────────────── */
 
 /*
  * emphasis — Buy Now / Add to Cart / primary CTAs.
- * Squarish radius to convey commitment. Rule emphasis-limit: max 1 per screen.
+ * Icon form keeps the squarish emphasis radius; inline form overrides to pill.
+ * Rule emphasis-limit: max 1 per screen.
  */
 .emphasis {
   background-color: var(--button-emphasis);
@@ -220,6 +220,13 @@
 .tertiary[aria-disabled="true"] {
   background-color: var(--button-disabled);
   color: var(--text-disabled);
+}
+
+/* inline: content-width buttons use the pill radius across all hierarchies.
+   The selector excludes full and icon forms so those form-specific rules stay
+   explicit without adding another runtime class. */
+.button:not(.fullWidth):not(.iconOnly) {
+  border-radius: var(--radius-button-primary);
 }
 
 /* ─── Inverse surface modifier ──────────────────────────────────── */

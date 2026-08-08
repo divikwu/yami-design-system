@@ -112,7 +112,7 @@ Full specs in `design.md` (with rule-ids).
 - **Color**: red + white + black, zero decorative color. Red only for brand / emphasis CTAs / promo (see `design.md#red-usage`)
 - **Type**: GT Walsheim display/heading/body, PingFang SC for CJK. Max 4 type levels per page
 - **Spacing**: 8pt grid (`--space-100` = 8px)
-- **Radii**: 12px cards, 8px components + emphasis buttons, 9999 pill for primary/secondary, 4px tags. Never custom
+- **Radii**: 12px cards, 8px full-form buttons/components, 9999 pill for inline buttons, 4px tags. Never custom
 - **Depth**: no local elevation scale; hover/press changes color, not shadow
 - **Borders**: 8% default, 87% focus (black, not blue), 100% red attention
 - **Motion**: 150-200ms state changes, 300ms page transitions, `cubic-bezier(0.2, 0, 0, 1)`. No bounces, no parallax

@@ -150,7 +150,7 @@
     },
     "radii": {
       "ruleId": "no-custom-radii",
-      "note": "All full-form buttons → --radius-sm (4px). Inline emphasis → --radius-button-emphasis (8px squarish). Inline primary/secondary/tertiary → --radius-button-primary (pill)."
+      "note": "All full-form buttons → --radius-component-default (8px). Inline buttons → --radius-button-primary (pill) across every hierarchy. Icon form keeps its hierarchy-specific radius."
     }
   },
 
@@ -182,7 +182,7 @@
     "--border-focus-inverse",
     "--radius-button-emphasis",
     "--radius-button-primary",
-    "--radius-sm",
+    "--radius-component-default",
     "--font-family-ios",
     "--font-weight-emphasize",
     "--font-size-body-md",
@@ -227,13 +227,13 @@
     "--border-focus": { "property": "outline-color", "selector": ".button:focus-visible" },
     "--radius-button-emphasis": {
       "property": "border-radius",
-      "selector": ".emphasis:not(.fullWidth)"
+      "selector": ".emphasis.iconOnly"
     },
     "--radius-button-primary": {
       "property": "border-radius",
-      "selector": ".primary:not(.fullWidth), .secondary:not(.fullWidth), .tertiary:not(.fullWidth)"
+      "selector": ".button:not(.fullWidth):not(.iconOnly), .primary.iconOnly, .secondary.iconOnly, .tertiary.iconOnly"
     },
-    "--radius-sm": { "property": "border-radius", "selector": ".fullWidth" },
+    "--radius-component-default": { "property": "border-radius", "selector": ".button.fullWidth" },
     "--font-family-ios": { "property": "font-family", "selector": ".button" },
     "--font-weight-emphasize": { "property": "font-weight", "selector": ".button" },
     "--font-size-body-md": { "property": "font-size", "selector": ".sm, .md" },

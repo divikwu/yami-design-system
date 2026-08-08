@@ -4,11 +4,11 @@
   "category": "composite",
   "status": "experimental",
   "version": "0.1.0",
-  "description": "Full-width theme storytelling hero with selectable copy, one primary CTA and atmospheric campaign artwork.",
+  "description": "Responsive theme storytelling hero with a two-column desktop composition and full-bleed mobile artwork behind selectable copy and one primary CTA.",
   "figma": {
     "nodeId": "1877:43111",
     "componentKey": null,
-    "notes": "English Site Optimization 2026 Theme Hero; layout behavior is also informed by the W Concept visual module."
+    "notes": "English Site Optimization 2026 Theme Hero. Desktop preserves the approved two-column composition; mobile adopts W Concept's full-bleed artwork with bottom-aligned copy and a contrast scrim."
   },
   "exports": [
     "ThemeHero",
@@ -72,7 +72,7 @@
     "--font-size-body-xl",
     "--font-size-display-xl",
     "--font-size-heading-xs",
-    "--font-weight-emphasize",
+    "--font-weight-normal",
     "--layout-page-margin-default",
     "--line-height-body-xl",
     "--line-height-display-xl",

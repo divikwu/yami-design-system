@@ -24,6 +24,26 @@
   margin-inline: auto;
 }
 
+.reviewList {
+  width: 100%;
+}
+
+.reviewList > [data-slot="review-list"] > [data-slot="review-list-container"] {
+  width: 100%;
+  max-width: 1440px;
+  margin-inline: auto;
+}
+
+@media (min-width: 1024px) {
+  .reviewList
+    > [data-slot="review-list"]
+    > [data-slot="review-list-container"]
+    > [data-slot="review-list-items"]
+    > li {
+    flex-basis: calc((100% - 2 * var(--space-150)) / 3);
+  }
+}
+
 @container (min-width: 1440px) {
   .standardRail
     > [data-slot="product-list"]
