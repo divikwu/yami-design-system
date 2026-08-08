@@ -121,6 +121,7 @@ export const CompleteHomeSectionPropsSchemas = {
     mobileTitle: textValueSchema.optional(),
     appearance: z.literal("standard").optional(),
     layout: z.enum(["rail", "waterfall"]).optional(),
+    mobileSurface: z.enum(["card", "plain"]).optional(),
     viewAllHref: z.string().max(240).optional(),
     viewAllLabel: textValueSchema.optional(),
     previousLabel: z.string().max(120).optional(),
@@ -199,7 +200,7 @@ export const CompleteHomeSectionPropsSchemas = {
 } as const;
 
 const sectionPatchSchemas = [
-  z.object({ id: z.string().min(1), kind: z.literal("products"), hidden: z.boolean().optional(), props: z.object({ ...sharedSectionProps, products: CompleteHomeSectionPropsSchemas.products.shape.products.optional(), appearance: z.enum(["standard", "themed", "atmospheric"]).optional(), layout: z.enum(["rail", "waterfall"]).optional(), loadMoreLabel: z.string().max(120).optional() }).strict().optional() }).strict(),
+  z.object({ id: z.string().min(1), kind: z.literal("products"), hidden: z.boolean().optional(), props: z.object({ ...sharedSectionProps, products: CompleteHomeSectionPropsSchemas.products.shape.products.optional(), appearance: z.enum(["standard", "themed", "atmospheric"]).optional(), layout: z.enum(["rail", "waterfall"]).optional(), mobileSurface: z.enum(["card", "plain"]).optional(), loadMoreLabel: z.string().max(120).optional() }).strict().optional() }).strict(),
   z.object({ id: z.string().min(1), kind: z.literal("brands"), hidden: z.boolean().optional(), props: z.object({ ...sharedSectionProps, campaigns: CompleteHomeSectionPropsSchemas.brands.shape.campaigns.optional() }).strict().optional() }).strict(),
   z.object({ id: z.string().min(1), kind: z.literal("social"), hidden: z.boolean().optional(), props: z.object({ ...sharedSectionProps, cards: CompleteHomeSectionPropsSchemas.social.shape.cards.optional() }).strict().optional() }).strict(),
   z.object({ id: z.string().min(1), kind: z.literal("billboard"), hidden: z.boolean().optional(), props: z.object({ href: z.string().max(240).optional(), label: z.string().max(160).optional() }).strict().optional() }).strict(),

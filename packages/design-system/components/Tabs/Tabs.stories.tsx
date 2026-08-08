@@ -248,6 +248,32 @@ export const Showcase: Story = {
     const inverseShowcase = canvasElement.querySelector<HTMLElement>("[data-tabs-inverse-showcase]")
     if (!showcaseStack || !inverseShowcase) throw new Error("Tabs responsive showcase did not render")
 
+    if (window.innerWidth >= 768) {
+      const filledLists = canvasElement.querySelectorAll<HTMLElement>(
+        '[role="tablist"][data-variant="primary"][data-style="b"], [role="tablist"][data-variant="tertiary"]',
+      )
+      for (const list of filledLists) {
+        const activeTrigger = list.querySelector<HTMLElement>(
+          '[role="tab"][data-state="active"]',
+        )
+        if (!activeTrigger) throw new Error("Filled desktop Tab did not render")
+        const backgroundStyle = getComputedStyle(activeTrigger, "::before")
+        const backgroundHeight =
+          activeTrigger.getBoundingClientRect().height -
+          Number.parseFloat(backgroundStyle.top) -
+          Number.parseFloat(backgroundStyle.bottom)
+        if (backgroundHeight !== 36) {
+          throw new Error("Filled desktop Tab backgrounds must use a 36px height")
+        }
+        if (
+          list.dataset.variant === "tertiary" &&
+          activeTrigger.getBoundingClientRect().width < 48
+        ) {
+          throw new Error("Desktop Tertiary Tabs must use a 48px minimum width")
+        }
+      }
+    }
+
     const initialWidth = showcaseStack.style.width
     const initialMaxWidth = showcaseStack.style.maxWidth
     try {

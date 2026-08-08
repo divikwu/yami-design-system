@@ -125,6 +125,12 @@
   object-fit: cover;
 }
 
+@media (min-width: 1024px) {
+  .image {
+    border-radius: var(--radius-md);
+  }
+}
+
 @media (max-width: 1023.98px) {
   .root {
     height: clamp(360px, 100vw, 400px);
@@ -144,6 +150,10 @@
     height: 100%;
     justify-content: flex-end;
     padding: var(--space-200) var(--layout-page-margin-default);
+  }
+
+  .title {
+    font-size: var(--font-size-display-sm);
   }
 
   .description {

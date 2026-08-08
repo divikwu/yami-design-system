@@ -3,7 +3,12 @@ import { DirectionManifestV1Schema, PreviewNavigateMessageSchema, TokenOverrides
 
 describe("direction contracts", () => {
   it("accepts a renderable kinded overlay", () => {
-    expect(DirectionManifestV1Schema.parse({ schemaVersion: 1, id: "warm-market", name: "Warm Market", extends: "current", pages: { home: { sections: [{ id: "trending", kind: "products", props: { title: "本周热卖" } }] } } }).id).toBe("warm-market");
+    const manifest = DirectionManifestV1Schema.parse({ schemaVersion: 1, id: "warm-market", name: "Warm Market", extends: "current", pages: { home: { sections: [{ id: "trending", kind: "products", props: { title: "本周热卖", mobileSurface: "plain" } }] } } });
+    expect(manifest.id).toBe("warm-market");
+    const section = manifest.pages.home?.sections?.[0];
+    expect(section?.kind).toBe("products");
+    if (!section || section.kind !== "products") throw new Error("Expected products section");
+    expect(section.props?.mobileSurface).toBe("plain");
   });
 
   it("accepts serializable fixed-slot replacements", () => {

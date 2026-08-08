@@ -32,6 +32,24 @@
       "required": true,
       "description": "Image, overlay title/description and optional destination link for the reserved two-slot panel."
     },
+    "mobileSurface": {
+      "type": "\"card\" | \"plain\"",
+      "required": false,
+      "default": "card",
+      "description": "Mobile-only section surface. Card preserves the inset rounded panel. Plain is full-bleed with 16px content padding and honors dividerPosition/dividerVariant."
+    },
+    "dividerPosition": {
+      "type": "\"top\" | \"bottom\" | \"none\"",
+      "required": false,
+      "default": "top",
+      "description": "Places the section boundary above, below, or removes it. On mobile it is honored only by the plain surface."
+    },
+    "dividerVariant": {
+      "type": "\"gray\" | \"black\"",
+      "required": false,
+      "default": "gray",
+      "description": "Gray renders the 1px structural separator; black renders the theme-aware 2px emphasis separator."
+    },
     "tabs": {
       "type": "ProductListTab[]",
       "required": false,

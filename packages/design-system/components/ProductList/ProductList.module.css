@@ -214,17 +214,8 @@
   );
   margin-inline: calc(-1 * var(--space-100));
   gap: var(--space-100);
-  overflow-x: auto;
-  overscroll-behavior-inline: contain;
   padding: var(--space-025) var(--space-100);
   scroll-padding-inline: var(--space-100);
-  scroll-snap-type: inline mandatory;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-}
-
-.root[data-layout="rail"] .list::-webkit-scrollbar {
-  display: none;
 }
 
 .root[data-layout="rail"] .item,
@@ -292,6 +283,10 @@
 .root[data-appearance="atmospheric"] .item {
   background: var(--surface-primary);
   border-radius: var(--radius-component-default);
+}
+
+.root[data-appearance="themed"] .list[data-surface="card"] .item {
+  background: transparent;
 }
 
 .root[data-appearance="themed"][data-layout="rail"]
@@ -438,6 +433,52 @@
     border-radius: var(--radius-xl);
   }
 
+  .root[data-mobile-surface="plain"] {
+    width: 100%;
+    margin-inline: 0;
+    border-radius: 0;
+  }
+
+  .root[data-mobile-surface="plain"] .container {
+    padding: var(--space-200);
+  }
+
+  .root[data-mobile-surface="plain"] .tabsList {
+    width: calc(100% + var(--space-200) + var(--space-200));
+    margin-inline: calc(-1 * var(--space-200));
+    padding-inline: var(--space-200);
+    scroll-padding-inline: var(--space-200);
+  }
+
+  .root[data-mobile-surface="plain"][data-layout="rail"] .list {
+    width: calc(100% + var(--space-200) + var(--space-200));
+    margin-inline: calc(-1 * var(--space-200));
+    padding-inline: var(--space-200);
+    scroll-padding-inline: var(--space-200);
+  }
+
+  .root[data-mobile-surface="plain"][data-layout="waterfall"] .list {
+    gap: var(--space-200);
+    padding: 0;
+    scroll-padding-inline: 0;
+  }
+
+  .root[data-mobile-surface="plain"][data-appearance="atmospheric"]
+    .container {
+    width: 100%;
+    margin-inline: 0;
+    border-radius: 0;
+  }
+
+  .root[data-mobile-surface="plain"][data-divider-position="top"] {
+    border-top: var(--section-divider-width) solid var(--section-divider-color);
+  }
+
+  .root[data-mobile-surface="plain"][data-divider-position="bottom"] {
+    border-bottom: var(--section-divider-width) solid
+      var(--section-divider-color);
+  }
+
   .root[data-leading-content="true"] .mobileLeadingContent {
     display: block;
     min-width: 0;
@@ -450,8 +491,13 @@
   }
 
   .root[data-component="theme-product-list"][data-layout="rail"] .list {
-    padding: var(--space-050)
-      calc(var(--space-100) - var(--space-025));
+    padding: var(--space-050) var(--space-100);
+  }
+
+  .root[data-component="theme-product-list"][data-mobile-surface="plain"][data-layout="rail"]
+    .list {
+    padding: var(--space-050) var(--space-200);
+    scroll-padding-inline: var(--space-200);
   }
 
   .root[data-component="theme-product-list"] .container {
@@ -603,6 +649,7 @@
     width: 100%;
     margin-inline: 0;
     gap: var(--space-150);
+    padding-block: var(--space-050) 0;
     padding-inline: 0;
     /* Follows the inline padding to zero. Left at the mobile 8px it offset
      * every snap point by that much, settling each card 8px short of the edge
@@ -617,6 +664,7 @@
   .root[data-layout="waterfall"] .list {
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: var(--space-200);
+    padding: var(--space-050) 0 0;
   }
 }
 

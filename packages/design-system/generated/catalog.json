@@ -3,6 +3,120 @@
   "generatedFrom": "components/*/meta.json",
   "components": [
     {
+      "id": "ActivityPageHeader",
+      "source": "components/ActivityPageHeader",
+      "meta": {
+        "$schema": "../../../schema/component.json",
+        "name": "ActivityPageHeader",
+        "category": "navigation",
+        "status": "experimental",
+        "version": "0.1.0",
+        "description": "Compact mobile navigation for campaign and editorial landing pages with the approved YAMI lockup, a page title, search and cart actions.",
+        "figma": {
+          "nodeId": "7592:65365",
+          "componentKey": null,
+          "notes": "YAMI UI/UX Guidelines H5 Page8 mobile navigation. The supplied node defines only the 402x56 mobile form."
+        },
+        "exports": [
+          "ActivityPageHeader",
+          "ActivityPageHeaderLocale",
+          "ActivityPageHeaderProps"
+        ],
+        "composes": [],
+        "props": {
+          "title": {
+            "type": "string",
+            "required": true,
+            "description": "Short campaign or page title, truncated to one centered line."
+          },
+          "locale": {
+            "type": "\"en\" | \"zh\"",
+            "required": false,
+            "default": "en",
+            "description": "Selects the approved EN or CN Mobile Logo-UI lockup."
+          },
+          "homeHref": {
+            "type": "string",
+            "required": false,
+            "description": "Optional home destination for the brand lockup."
+          },
+          "onSearch": {
+            "type": "MouseEventHandler<HTMLButtonElement>",
+            "required": false,
+            "description": "Search action handler."
+          },
+          "onCart": {
+            "type": "MouseEventHandler<HTMLButtonElement>",
+            "required": false,
+            "description": "Cart action handler."
+          }
+        },
+        "rules": {
+          "brand": {
+            "ruleId": "brand-assets",
+            "note": "Consumes the locked Mobile Logo-UI assets; the mark and wordmark are never assembled in code."
+          },
+          "focus": {
+            "ruleId": "focus-style",
+            "note": "Brand and action controls use the shared token-backed focus ring."
+          },
+          "tapTarget": {
+            "ruleId": "tap-target",
+            "note": "Figma's 40px visible actions retain a 44px hit area."
+          }
+        },
+        "tokens": [
+          "--brand-secondary",
+          "--surface-primary",
+          "--layout-page-margin-card",
+          "--font-family-ios",
+          "--font-size-heading-md",
+          "--font-weight-emphasize",
+          "--line-height-heading-md",
+          "--space-050",
+          "--space-100"
+        ],
+        "tokenBindings": {
+          "--layout-page-margin-card": {
+            "property": "padding-inline",
+            "selector": ".root and .branding"
+          },
+          "--font-size-heading-md": {
+            "property": "font-size",
+            "selector": ".title"
+          },
+          "--surface-primary": {
+            "property": "background",
+            "selector": ".root"
+          }
+        },
+        "accessibility": {
+          "role": "banner with page heading and two named actions",
+          "wcagLevel": "AA",
+          "tapTargetMin": 44,
+          "keyboardNav": [
+            "tab",
+            "enter",
+            "space"
+          ],
+          "ariaPattern": "native h1 plus named search and cart buttons",
+          "structure": "The one-line visible title is the page h1. Icons are decorative inside explicitly named buttons.",
+          "interaction": "Search and cart are native buttons with visible focus treatment."
+        },
+        "dependencies": {
+          "runtime": [
+            "react"
+          ],
+          "peer": [],
+          "devOnly": []
+        },
+        "usageRef": "./usage.md",
+        "examples": [
+          "./examples.tsx#ActivityPageHeaderExample"
+        ]
+      }
+    },
+    {
       "id": "AspectRatio",
       "source": "components/AspectRatio",
       "meta": {
@@ -2343,6 +2457,103 @@
       }
     },
     {
+      "id": "HorizontalScrollList",
+      "source": "components/HorizontalScrollList",
+      "meta": {
+        "$schema": "../../../schema/component.json",
+        "name": "HorizontalScrollList",
+        "category": "layout",
+        "status": "experimental",
+        "version": "0.1.0",
+        "description": "Polymorphic finite horizontal list with native scrolling, hidden scrollbars, item snapping, and a shared controller hook for paging controls.",
+        "figma": {
+          "nodeId": null,
+          "componentKey": null
+        },
+        "variants": {
+          "enabled": [
+            "true",
+            "false"
+          ],
+          "surface": [
+            "card",
+            "plain"
+          ]
+        },
+        "props": {
+          "as": {
+            "type": "ElementType",
+            "required": false,
+            "default": "div",
+            "description": "Semantic element rendered for the list, commonly div, ul, or ol."
+          },
+          "enabled": {
+            "type": "boolean",
+            "required": false,
+            "default": true,
+            "description": "Applies the horizontal scrolling behavior and default keyboard focusability."
+          },
+          "surface": {
+            "type": "enum",
+            "values": [
+              "card",
+              "plain"
+            ],
+            "required": false,
+            "default": "plain",
+            "description": "Selects a transparent square rail over the caller background or a plain rail. Both surfaces use 8px item and edge spacing on mobile."
+          },
+          "children": {
+            "type": "ReactNode",
+            "required": false,
+            "description": "List items. Callers own item width and scroll-snap alignment."
+          }
+        },
+        "rules": {
+          "nativeScrolling": {
+            "ruleId": "horizontal-list-native-scroll",
+            "note": "Finite rails use native horizontal scrolling; callers do not translate the list with transforms."
+          },
+          "itemGeometry": {
+            "ruleId": "horizontal-list-caller-geometry",
+            "note": "The list owns scrolling while callers own item width, gap, and edge padding."
+          }
+        },
+        "tokens": [
+          "--space-100"
+        ],
+        "tokenBindings": {
+          "--space-100": {
+            "property": "gap and padding",
+            "selector": ".surfaceCard, .surfacePlain"
+          }
+        },
+        "accessibility": {
+          "role": "caller-owned list semantics",
+          "wcagLevel": "AA",
+          "tapTargetMin": 0,
+          "keyboardNav": [
+            "tab",
+            "arrow keys via native scrolling"
+          ],
+          "ariaPattern": "list",
+          "notes": "Enabled lists default to tabIndex=0. Callers must provide an accessible label and semantic list items."
+        },
+        "dependencies": {
+          "runtime": [
+            "react"
+          ],
+          "peer": [],
+          "devOnly": []
+        },
+        "usageRef": "./usage.md",
+        "examples": [
+          "./examples.tsx#BasicHorizontalScrollList",
+          "./examples.tsx#WithBackgroundHorizontalScrollList"
+        ]
+      }
+    },
+    {
       "id": "Input",
       "source": "components/Input",
       "meta": {
@@ -2641,7 +2852,8 @@
         "exports": [
           "ProductCard",
           "ProductCardAddButton",
-          "ProductCardPresentation"
+          "ProductCardPresentation",
+          "ProductCardSurface"
         ],
         "composes": [
           "Card",
@@ -2655,6 +2867,12 @@
             "required": false,
             "default": "rich",
             "description": "Non-breaking visual presentation. Rich preserves the original full product anatomy, minimal shows image with price badge and quick add, and compact uses a left-image horizontal row."
+          },
+          "surface": {
+            "type": "\"card\" | \"plain\"",
+            "required": false,
+            "default": "card",
+            "description": "Outer spacing context. Card uses 4px padding when placed over a background; plain removes outer padding."
           },
           "image": {
             "type": "string",
@@ -2970,8 +3188,8 @@
         "name": "ProductList",
         "category": "composite",
         "status": "stable",
-        "version": "0.2.0",
-        "description": "Responsive, data-driven YAMI product collection with rail and waterfall layouts across standard, themed, and atmospheric appearances.",
+        "version": "0.3.0",
+        "description": "Responsive, data-driven YAMI product collection with rail and waterfall layouts, campaign appearances, and card or full-bleed mobile section surfaces.",
         "figma": {
           "fileKey": "6oOAy72DBff4P6NzJYc2hi",
           "nodeId": "6970:52060",
@@ -2982,6 +3200,7 @@
           "ProductListProps",
           "ProductListAppearance",
           "ProductListLayout",
+          "ProductListMobileSurface",
           "ProductListItem",
           "ProductListTab"
         ],
@@ -3017,6 +3236,12 @@
             "required": false,
             "default": "rail",
             "description": "Responsive collection layout. ProductCard presentation is selected internally."
+          },
+          "mobileSurface": {
+            "type": "\"card\" | \"plain\"",
+            "required": false,
+            "default": "card",
+            "description": "Mobile-only section surface. Card preserves the inset rounded panel and ignores divider configuration. Plain is full-bleed with 16px content padding and honors dividerPosition/dividerVariant."
           },
           "presentation": {
             "type": "\"rich\" | \"minimal\" | \"compact\"",
@@ -3097,7 +3322,7 @@
             "type": "\"top\" | \"bottom\" | \"none\"",
             "required": false,
             "default": "top",
-            "description": "Places the desktop section boundary above, below, or removes it; ignored below 1024px."
+            "description": "Places the desktop section boundary above, below, or removes it. Mobile plain surfaces honor the same setting; mobile card surfaces ignore it."
           },
           "dividerVariant": {
             "type": "\"gray\" | \"black\"",
@@ -3441,6 +3666,7 @@
           "ReviewList",
           "ReviewCard",
           "ReviewListProps",
+          "ReviewListMobileSurface",
           "ReviewCardProps",
           "ReviewProduct"
         ],
@@ -3458,6 +3684,12 @@
             "type": "ReviewCardProps[]",
             "required": true,
             "description": "Ordered customer reviews rendered in the rail."
+          },
+          "mobileSurface": {
+            "type": "\"card\" | \"plain\"",
+            "required": false,
+            "default": "card",
+            "description": "Mobile-only section surface. Card preserves the inset rounded panel and ignores divider configuration. Plain is full-bleed with 16px content padding and honors dividerPosition/dividerVariant."
           },
           "mobileTitle": {
             "type": "ReactNode",
@@ -3491,7 +3723,7 @@
             "type": "\"top\" | \"bottom\" | \"none\"",
             "required": false,
             "default": "top",
-            "description": "Places the desktop section boundary above, below, or removes it; ignored below 1024px."
+            "description": "Places the section boundary above, below, or removes it. On mobile it is honored only by the plain surface."
           },
           "dividerVariant": {
             "type": "\"gray\" | \"black\"",
@@ -4432,6 +4664,24 @@
             "type": "ThemeProductListContent",
             "required": true,
             "description": "Image, overlay title/description and optional destination link for the reserved two-slot panel."
+          },
+          "mobileSurface": {
+            "type": "\"card\" | \"plain\"",
+            "required": false,
+            "default": "card",
+            "description": "Mobile-only section surface. Card preserves the inset rounded panel. Plain is full-bleed with 16px content padding and honors dividerPosition/dividerVariant."
+          },
+          "dividerPosition": {
+            "type": "\"top\" | \"bottom\" | \"none\"",
+            "required": false,
+            "default": "top",
+            "description": "Places the section boundary above, below, or removes it. On mobile it is honored only by the plain surface."
+          },
+          "dividerVariant": {
+            "type": "\"gray\" | \"black\"",
+            "required": false,
+            "default": "gray",
+            "description": "Gray renders the 1px structural separator; black renders the theme-aware 2px emphasis separator."
           },
           "tabs": {
             "type": "ProductListTab[]",

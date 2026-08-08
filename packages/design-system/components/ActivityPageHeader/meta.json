@@ -1,0 +1,102 @@
+{
+  "$schema": "../../../schema/component.json",
+  "name": "ActivityPageHeader",
+  "category": "navigation",
+  "status": "experimental",
+  "version": "0.1.0",
+  "description": "Compact mobile navigation for campaign and editorial landing pages with the approved YAMI lockup, a page title, search and cart actions.",
+  "figma": {
+    "nodeId": "7592:65365",
+    "componentKey": null,
+    "notes": "YAMI UI/UX Guidelines H5 Page8 mobile navigation. The supplied node defines only the 402x56 mobile form."
+  },
+  "exports": [
+    "ActivityPageHeader",
+    "ActivityPageHeaderLocale",
+    "ActivityPageHeaderProps"
+  ],
+  "composes": [],
+  "props": {
+    "title": {
+      "type": "string",
+      "required": true,
+      "description": "Short campaign or page title, truncated to one centered line."
+    },
+    "locale": {
+      "type": "\"en\" | \"zh\"",
+      "required": false,
+      "default": "en",
+      "description": "Selects the approved EN or CN Mobile Logo-UI lockup."
+    },
+    "homeHref": {
+      "type": "string",
+      "required": false,
+      "description": "Optional home destination for the brand lockup."
+    },
+    "onSearch": {
+      "type": "MouseEventHandler<HTMLButtonElement>",
+      "required": false,
+      "description": "Search action handler."
+    },
+    "onCart": {
+      "type": "MouseEventHandler<HTMLButtonElement>",
+      "required": false,
+      "description": "Cart action handler."
+    }
+  },
+  "rules": {
+    "brand": {
+      "ruleId": "brand-assets",
+      "note": "Consumes the locked Mobile Logo-UI assets; the mark and wordmark are never assembled in code."
+    },
+    "focus": {
+      "ruleId": "focus-style",
+      "note": "Brand and action controls use the shared token-backed focus ring."
+    },
+    "tapTarget": {
+      "ruleId": "tap-target",
+      "note": "Figma's 40px visible actions retain a 44px hit area."
+    }
+  },
+  "tokens": [
+    "--brand-secondary",
+    "--surface-primary",
+    "--layout-page-margin-card",
+    "--font-family-ios",
+    "--font-size-heading-md",
+    "--font-weight-emphasize",
+    "--line-height-heading-md",
+    "--space-050",
+    "--space-100"
+  ],
+  "tokenBindings": {
+    "--layout-page-margin-card": {
+      "property": "padding-inline",
+      "selector": ".root and .branding"
+    },
+    "--font-size-heading-md": {
+      "property": "font-size",
+      "selector": ".title"
+    },
+    "--surface-primary": {
+      "property": "background",
+      "selector": ".root"
+    }
+  },
+  "accessibility": {
+    "role": "banner with page heading and two named actions",
+    "wcagLevel": "AA",
+    "tapTargetMin": 44,
+    "keyboardNav": ["tab", "enter", "space"],
+    "ariaPattern": "native h1 plus named search and cart buttons",
+    "structure": "The one-line visible title is the page h1. Icons are decorative inside explicitly named buttons.",
+    "interaction": "Search and cart are native buttons with visible focus treatment."
+  },
+  "dependencies": {
+    "runtime": ["react"],
+    "peer": [],
+    "devOnly": []
+  },
+  "usageRef": "./usage.md",
+  "examples": ["./examples.tsx#ActivityPageHeaderExample"]
+}

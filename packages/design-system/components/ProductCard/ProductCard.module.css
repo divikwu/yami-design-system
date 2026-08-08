@@ -143,6 +143,10 @@
   line-clamp: 2;
 }
 
+.root[data-surface="plain"] {
+  padding: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .image {
     transition: none;

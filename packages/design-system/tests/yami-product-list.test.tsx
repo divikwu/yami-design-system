@@ -22,6 +22,7 @@ interface ProductListTestProps {
   products: ProductListTestItem[]
   appearance?: "standard" | "themed" | "atmospheric"
   layout?: "rail" | "waterfall"
+  mobileSurface?: "card" | "plain"
   tabs?: Array<{
     value: string
     label: ReactNode
@@ -105,6 +106,23 @@ describe("YAMI ProductList contracts", () => {
       expect(container.querySelectorAll('[role="listitem"]')).toHaveLength(2)
     },
   )
+
+  it("exposes the mobile surface contract without changing the card default", async () => {
+    await act(async () => {
+      root.render(
+        <>
+          <ProductList title="Card" products={products} />
+          <ProductList title="Plain" products={products} mobileSurface="plain" />
+        </>,
+      )
+    })
+
+    const lists = container.querySelectorAll<HTMLElement>(
+      '[data-slot="product-list"]',
+    )
+    expect(lists[0]?.dataset.mobileSurface).toBe("card")
+    expect(lists[1]?.dataset.mobileSurface).toBe("plain")
+  })
 
   it("supports uncontrolled tabs and ignores disabled tabs", async () => {
     const onValueChange = vi.fn()

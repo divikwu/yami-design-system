@@ -12,6 +12,17 @@
   box-sizing: border-box;
 }
 
+.globalHeader {
+  display: none;
+}
+
+.activityHeader,
+.globalHeader {
+  position: sticky;
+  z-index: 10;
+  top: 0;
+}
+
 .standardRail {
   width: 100%;
   margin-inline: auto;
@@ -35,6 +46,18 @@
 }
 
 @media (min-width: 1024px) {
+  .activityHeader {
+    display: none;
+  }
+
+  .globalHeader {
+    display: block;
+  }
+
+  .waterfall [data-slot="product-list-load-more"] > button {
+    height: var(--space-600);
+  }
+
   .reviewList
     > [data-slot="review-list"]
     > [data-slot="review-list-container"]

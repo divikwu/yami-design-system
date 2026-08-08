@@ -14,6 +14,7 @@
     "ReviewList",
     "ReviewCard",
     "ReviewListProps",
+    "ReviewListMobileSurface",
     "ReviewCardProps",
     "ReviewProduct"
   ],
@@ -28,6 +29,12 @@
       "type": "ReviewCardProps[]",
       "required": true,
       "description": "Ordered customer reviews rendered in the rail."
+    },
+    "mobileSurface": {
+      "type": "\"card\" | \"plain\"",
+      "required": false,
+      "default": "card",
+      "description": "Mobile-only section surface. Card preserves the inset rounded panel and ignores divider configuration. Plain is full-bleed with 16px content padding and honors dividerPosition/dividerVariant."
     },
     "mobileTitle": {
       "type": "ReactNode",
@@ -61,7 +68,7 @@
       "type": "\"top\" | \"bottom\" | \"none\"",
       "required": false,
       "default": "top",
-      "description": "Places the desktop section boundary above, below, or removes it; ignored below 1024px."
+      "description": "Places the section boundary above, below, or removes it. On mobile it is honored only by the plain surface."
     },
     "dividerVariant": {
       "type": "\"gray\" | \"black\"",

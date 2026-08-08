@@ -39,17 +39,40 @@ Each product must have a stable `id`; all remaining fields are standard
 The list keeps its existing top gray divider by default. `dividerPosition`
 accepts `top`, `bottom`, or `none`. `dividerVariant="gray"` renders the 1px
 structural line; `dividerVariant="black"` renders the theme-aware 2px emphasis
-line. Divider configuration is desktop-only and is ignored below 1024px.
+line. Desktop always honors this configuration. On mobile it is available only
+when `mobileSurface="plain"`; the default card surface ignores mobile dividers.
 
 Themed and atmospheric desktop lists are intended to sit inside an outer frame
 with `32px` vertical and `48px` horizontal padding. The component keeps its
 own denser internal content padding; consumers should apply the outer frame at
-the page or composition layer.
+the page or composition layer. Themed rails use the shared
+`HorizontalScrollList` card surface; standard and atmospheric rails retain the
+plain surface.
 
 ```tsx
 <ProductList
   title="New Arrivals"
   products={products}
+  dividerPosition="bottom"
+  dividerVariant="black"
+/>
+```
+
+## Mobile surface
+
+`mobileSurface="card"` is the default and preserves the inset rounded section.
+Use `mobileSurface="plain"` when the collection needs to meet both screen edges.
+The plain surface removes the outer 8px inset, removes the section radius, and
+increases the component content padding from 8px to 16px. It also enables the
+same top/bottom divider configuration used on desktop. In the waterfall layout,
+the card surface keeps an 8px grid gap; the plain surface uses a 16px grid gap
+and square outer corners.
+
+```tsx
+<ProductList
+  title="New Arrivals"
+  products={products}
+  mobileSurface="plain"
   dividerPosition="bottom"
   dividerVariant="black"
 />

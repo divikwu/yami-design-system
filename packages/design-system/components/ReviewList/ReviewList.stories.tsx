@@ -38,10 +38,17 @@ import { createReviewListProps } from "@yami/design-system/components/ReviewList
     },
   },
   argTypes: {
+    mobileSurface: {
+      options: ["card", "plain"],
+      control: { type: "radio" },
+      description:
+        "Mobile section surface. Card preserves the inset rounded panel; plain is full-bleed with 16px content padding and supports dividers.",
+    },
     dividerPosition: {
       options: ["top", "bottom", "none"],
       control: { type: "radio" },
-      description: "Desktop-only section divider edge; ignored below 1024px.",
+      description:
+        "Section divider edge. Always supported on desktop; on mobile it is available only for the plain surface.",
     },
     dividerVariant: {
       options: ["gray", "black"],
@@ -51,6 +58,7 @@ import { createReviewListProps } from "@yami/design-system/components/ReviewList
   },
   args: {
     ...createReviewListProps(),
+    mobileSurface: "card",
     dividerPosition: "top",
     dividerVariant: "gray",
   },
@@ -63,6 +71,7 @@ export const Showcase: Story = {
   render: (args, { globals }) => (
     <ReviewList
       {...createReviewListProps(localeFromGlobals(globals.locale))}
+      mobileSurface={args.mobileSurface}
       dividerPosition={args.dividerPosition}
       dividerVariant={args.dividerVariant}
     />
@@ -212,9 +221,7 @@ export const BlackBottomDivider: Story = {
 
 export const Mobile: Story = {
   globals: { viewport: { value: "yamiMobile", isRotated: false } },
-  render: (_args, { globals }) => (
-    <ReviewList {...createReviewListProps(localeFromGlobals(globals.locale))} />
-  ),
+  render: Showcase.render,
   play: async ({ canvasElement }) => {
     const root = canvasElement.querySelector<HTMLElement>(
       '[data-slot="review-list"]',
@@ -256,21 +263,88 @@ export const Mobile: Story = {
     if (
       rootStyles.marginLeft !== "8px" ||
       rootStyles.marginRight !== "8px" ||
+      root.dataset.mobileSurface !== "card" ||
       rootStyles.borderTopWidth !== "0px" ||
       rootStyles.borderBottomWidth !== "0px" ||
       !canvasStyles ||
       canvasStyles.paddingTop !== "8px" ||
       canvasStyles.backgroundColor !== "rgb(245, 245, 245)" ||
-      containerStyles.rowGap !== "12px" ||
+      containerStyles.rowGap !== "8px" ||
       itemWidth !== 344 ||
       cardStyles.borderRadius !== "8px" ||
       viewAll !== null ||
       railNavigationStyles.display !== "none" ||
       railStyles.paddingLeft !== "8px" ||
-      railStyles.paddingRight !== "8px"
+      railStyles.paddingRight !== "8px" ||
+      railStyles.paddingTop !== "0px" ||
+      railStyles.paddingBottom !== "0px"
     ) {
       throw new Error(
         "ReviewList mobile must use the shared mobile heading, gray canvas, and 344px cards",
+      );
+    }
+  },
+};
+
+export const MobilePlain: Story = {
+  name: "Mobile / Plain",
+  globals: { viewport: { value: "yamiMobile", isRotated: false } },
+  args: {
+    mobileSurface: "plain",
+    dividerPosition: "top",
+    dividerVariant: "gray",
+  },
+  render: Showcase.render,
+  play: async ({ canvasElement }) => {
+    const root = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="review-list"]',
+    );
+    const rail = root?.querySelector<HTMLElement>(
+      '[data-slot="review-list-items"]',
+    );
+    const container = root?.querySelector<HTMLElement>(
+      '[data-slot="review-list-container"]',
+    );
+    const firstItem = rail?.querySelector<HTMLElement>("li");
+    if (!root || !rail || !container || !firstItem) {
+      throw new Error("Plain mobile ReviewList did not render");
+    }
+
+    const rootStyle = getComputedStyle(root);
+    const railStyle = getComputedStyle(rail);
+    const containerStyle = getComputedStyle(container);
+    const rootRect = root.getBoundingClientRect();
+    const railRect = rail.getBoundingClientRect();
+    if (
+      root.dataset.mobileSurface !== "plain" ||
+      rootRect.left !== 0 ||
+      rootRect.right !== window.innerWidth ||
+      rootStyle.marginLeft !== "0px" ||
+      rootStyle.marginRight !== "0px" ||
+      rootStyle.borderRadius !== "0px" ||
+      rootStyle.borderTopWidth !== "1px" ||
+      rootStyle.borderBottomWidth !== "0px" ||
+      containerStyle.paddingTop !== "16px" ||
+      containerStyle.paddingRight !== "16px" ||
+      containerStyle.paddingBottom !== "16px" ||
+      containerStyle.paddingLeft !== "16px" ||
+      containerStyle.rowGap !== "8px" ||
+      railRect.left !== 0 ||
+      railRect.right !== window.innerWidth ||
+      firstItem.getBoundingClientRect().left !== 16 ||
+      firstItem.getBoundingClientRect().width !== 344 ||
+      railStyle.columnGap !== "8px" ||
+      railStyle.marginLeft !== "-16px" ||
+      railStyle.marginRight !== "-16px" ||
+      railStyle.paddingLeft !== "16px" ||
+      railStyle.paddingRight !== "16px" ||
+      railStyle.paddingTop !== "0px" ||
+      railStyle.paddingBottom !== "0px" ||
+      railStyle.scrollPaddingInline !== "16px" ||
+      rail.scrollWidth <= rail.clientWidth
+    ) {
+      throw new Error(
+        "Plain mobile ReviewList must be full-bleed with square corners and 16px content insets",
       );
     }
   },

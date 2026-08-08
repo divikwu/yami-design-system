@@ -17,6 +17,8 @@ export type ProductListAppearance =
 
 export type ProductListLayout = "rail" | "waterfall";
 
+export type ProductListMobileSurface = "card" | "plain";
+
 export type ProductListItem = Omit<
   ProductCardProps,
   "presentation" | "onAddToCart"
@@ -33,11 +35,14 @@ export interface ProductListTab {
 interface ProductListBaseProps
   extends Omit<HTMLAttributes<HTMLElement>, "title">,
     SectionDividerProps {
+  "data-component"?: string;
   title: ReactNode;
   products: ProductListItem[];
   /** Optional editorial content rendered before the rail on mobile and before the first product card on desktop. */
   leadingContent?: ReactNode;
   layout?: ProductListLayout;
+  /** Mobile section surface. Plain is full-bleed with 16px content padding and supports section dividers. */
+  mobileSurface?: ProductListMobileSurface;
   presentation?: ProductCardPresentation;
   tabs?: ProductListTab[];
   value?: string;

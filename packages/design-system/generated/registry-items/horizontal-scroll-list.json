@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "name": "horizontal-scroll-list",
+  "title": "HorizontalScrollList",
+  "type": "component",
+  "status": "experimental",
+  "source": "components/HorizontalScrollList",
+  "files": [
+    "components/HorizontalScrollList/HorizontalScrollList.module.css",
+    "components/HorizontalScrollList/HorizontalScrollList.stories.module.css",
+    "components/HorizontalScrollList/HorizontalScrollList.tsx",
+    "components/HorizontalScrollList/index.ts",
+    "components/HorizontalScrollList/useHorizontalScrollList.ts"
+  ]
+}

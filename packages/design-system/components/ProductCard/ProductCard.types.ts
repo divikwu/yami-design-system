@@ -19,10 +19,13 @@ export interface ProductCardPromotion {
 }
 
 export type ProductCardPresentation = "rich" | "minimal" | "compact";
+export type ProductCardSurface = "card" | "plain";
 
 interface ProductCardBaseProps {
   /** Visual anatomy. rich preserves the full card, minimal is media-only, compact is a horizontal list row. */
   presentation?: ProductCardPresentation;
+  /** Outer spacing context. card uses 4px padding over a background; plain removes outer padding. */
+  surface?: ProductCardSurface;
   /** Product title. Clamped to 2 lines with ellipsis. */
   title: ReactNode;
   /** Current selling price. Uses emphasis color only when priceOriginal is present. */

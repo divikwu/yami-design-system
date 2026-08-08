@@ -20,6 +20,7 @@ const meta = {
     },
   },
   args: {
+    surface: "card",
     image:
       "https://cdn.yamibuy.net/item/3ccf61fd74fd43320d647a1b8779a978_757x757.webp",
     imageAlt:
@@ -36,6 +37,14 @@ const meta = {
     ratingCount: "8",
     soldCount: "周销 200+",
     badges: [{ label: "-16%", type: "discount" }],
+  },
+  argTypes: {
+    surface: {
+      options: ["card", "plain"],
+      control: { type: "inline-radio" },
+      description:
+        "Card uses 2px outer padding for background surfaces; plain removes outer padding.",
+    },
   },
 } satisfies Meta<typeof ProductCard>;
 
@@ -89,10 +98,22 @@ export const Showcase: Story = {
     );
   },
   play: async ({ canvasElement }) => {
+    const root = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-card"]',
+    );
     const content = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-card-content"]',
     );
-    if (!content) throw new Error("ProductCard content did not render");
+    if (!root || !content) throw new Error("ProductCard content did not render");
+    const rootStyle = getComputedStyle(root);
+    if (
+      rootStyle.paddingTop !== "2px" ||
+      rootStyle.paddingRight !== "2px" ||
+      rootStyle.paddingBottom !== "2px" ||
+      rootStyle.paddingLeft !== "2px"
+    ) {
+      throw new Error("Standard ProductCard outer padding must be 2px");
+    }
     const contentStyle = getComputedStyle(content);
     if (
       contentStyle.paddingTop !== "8px" ||
@@ -132,9 +153,32 @@ export const Playground: Story = {
 
     return (
       <div style={{ width: 200 }}>
-        <ProductCard {...args} {...product} onAddToCart={() => {}} />
+        <ProductCard
+          {...args}
+          {...product}
+          surface={args.surface}
+          onAddToCart={() => {}}
+        />
       </div>
     );
+  },
+};
+
+export const WithBackground: Story = {
+  args: { surface: "card" },
+  render: Playground.render,
+};
+
+export const WithoutBackground: Story = {
+  args: { surface: "plain" },
+  render: Playground.render,
+  play: async ({ canvasElement }) => {
+    const root = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-card"]',
+    );
+    if (!root || getComputedStyle(root).padding !== "0px") {
+      throw new Error("Plain ProductCard outer padding must be 0px");
+    }
   },
 };
 
