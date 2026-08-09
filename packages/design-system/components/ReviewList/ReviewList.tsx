@@ -19,6 +19,7 @@ function cx(...classes: Array<string | false | null | undefined>) {
 
 export function ReviewList({
   title,
+  titleFontFamily = "sans",
   mobileTitle,
   reviews,
   mobileSurface = "card",
@@ -56,6 +57,7 @@ export function ReviewList({
         <SectionHeading
           id={titleId}
           title={title}
+          titleFontFamily={titleFontFamily}
           mobileTitle={mobileTitle ?? title}
           slot="review-list"
           className={styles.heading}

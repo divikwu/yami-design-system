@@ -23,6 +23,91 @@
   top: 0;
 }
 
+.main {
+  width: 100%;
+}
+
+.main[data-motion-ready="true"]
+  :is(
+    [data-motion-reveal="initial"],
+    [data-motion-reveal="scroll"],
+    [data-motion-reveal="waterfall-row"]
+  ) {
+  opacity: 0;
+  transform: translate3d(0, 32px, 0);
+}
+
+.main[data-motion-ready="true"]
+  :is(
+    [data-motion-reveal="initial"],
+    [data-motion-reveal="scroll"],
+    [data-motion-reveal="waterfall-row"]
+  )[data-motion-state="visible"] {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  transition:
+    opacity 500ms ease-in-out,
+    transform 500ms ease-in-out;
+}
+
+.main[data-motion-ready="true"]
+  [data-motion-reveal="initial"][data-motion-state="visible"] {
+  transition-duration: 500ms;
+}
+
+.main[data-motion-ready="true"]
+  [data-motion-reveal="waterfall-row"][data-motion-state="visible"] {
+  transition-delay: var(--topic-landing-row-reveal-delay, 0ms);
+}
+
+main.main[data-slot="topic-landing-main"]
+  :is(
+    [data-slot="theme-hero-container"],
+    [data-slot="topic-landing-tabs-container"],
+    [data-slot="shortcut-rail-container"],
+    [data-slot="review-list-container"],
+    [data-slot="product-list-container"]
+  ) {
+  max-width: var(--topic-landing-content-max-width);
+}
+
+main.main[data-title-font-family="serif"]
+  :is(
+    [data-slot="theme-hero-title"],
+    [data-slot="shortcut-rail-title"],
+    [data-slot="product-list-title"],
+    [data-slot="review-list-title"]
+  ) {
+  font-family: var(--font-family-serif);
+  font-weight: var(--font-weight-semibold);
+}
+
+main.main[data-title-font-family="sans"]
+  :is(
+    [data-slot="theme-hero-title"],
+    [data-slot="shortcut-rail-title"],
+    [data-slot="product-list-title"],
+    [data-slot="review-list-title"]
+  ) {
+  font-family: var(--font-family-ios);
+  font-weight: var(--font-weight-normal);
+}
+
+.shortcutRail {
+  width: 100%;
+}
+
+.primaryTabs {
+  width: 100%;
+  margin-inline: 0;
+}
+
+.primaryTabsContainer {
+  box-sizing: border-box;
+  width: 100%;
+  margin-inline: auto;
+}
+
 .standardRail {
   width: 100%;
   margin-inline: auto;
@@ -31,7 +116,6 @@
 
 .standardRail > [data-slot="product-list"] > [data-slot="product-list-container"] {
   width: 100%;
-  max-width: 1440px;
   margin-inline: auto;
 }
 
@@ -39,13 +123,26 @@
   width: 100%;
 }
 
+/* Keep the initial Hero, Tabs, shortcuts and Start Here sections immediately
+ * renderable. Later sections can skip layout and paint until they approach the
+ * viewport while reserving a stable estimated block size. */
+.reviewList,
+.standardRail,
+.waterfall {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 720px;
+}
+
 .reviewList > [data-slot="review-list"] > [data-slot="review-list-container"] {
   width: 100%;
-  max-width: 1440px;
   margin-inline: auto;
 }
 
 @media (min-width: 1024px) {
+  .primaryTabsContainer {
+    padding-inline: var(--space-600);
+  }
+
   .activityHeader {
     display: none;
   }
@@ -79,6 +176,20 @@
 
 .waterfall > [data-slot="product-list-container"] {
   width: 100%;
-  max-width: 1440px;
   margin-inline: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .main[data-motion-ready] .initialReveal,
+  .main[data-motion-ready]
+    :is(
+      [data-motion-reveal="scroll"],
+      [data-motion-reveal="initial"],
+      [data-motion-reveal="waterfall-row"]
+    ) {
+    opacity: 1;
+    transform: none;
+    animation: none;
+    transition: none;
+  }
 }

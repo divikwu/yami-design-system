@@ -129,6 +129,13 @@ export const Showcase: Story = {
       </Row>
     </div>
   ),
+  play: async ({ canvasElement }) => {
+    const badges = canvasElement.querySelectorAll<HTMLElement>('[data-slot="badge"]')
+    if (badges.length === 0) throw new Error("Badge Showcase did not render")
+    if (Array.from(badges).some((badge) => getComputedStyle(badge).height !== "20px")) {
+      throw new Error("Every Badge variant must use the fixed 20px height")
+    }
+  },
 }
 
 /** Interactive playground — drive every prop via the Controls panel. */

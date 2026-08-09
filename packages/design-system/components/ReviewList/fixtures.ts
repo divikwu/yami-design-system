@@ -2,11 +2,11 @@ import type { ReviewCardProps, ReviewListProps } from "./ReviewList.types";
 
 const imageSources = {
   foam: new URL(
-    "./assets/anua-heartleaf-cleansing-foam.png",
+    "./assets/anua-heartleaf-cleansing-foam.webp",
     import.meta.url,
   ).href,
-  toner: new URL("./assets/anua-heartleaf-77-toner.png", import.meta.url).href,
-  serum: new URL("./assets/anua-niacinamide-txa.png", import.meta.url).href,
+  toner: new URL("./assets/anua-heartleaf-77-toner.webp", import.meta.url).href,
+  serum: new URL("./assets/anua-niacinamide-txa.webp", import.meta.url).href,
 } as const;
 
 const reviews: ReviewCardProps[] = [

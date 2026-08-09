@@ -36,6 +36,8 @@ export const Showcase: Story = {
     const copy = canvasElement.querySelector<HTMLElement>(
       '[data-slot="theme-hero-copy"]',
     );
+    const title = copy?.querySelector<HTMLElement>("h2");
+    const description = copy?.querySelector<HTMLElement>("div");
     const media = canvasElement.querySelector<HTMLElement>(
       '[data-slot="theme-hero-media"]',
     );
@@ -46,8 +48,15 @@ export const Showcase: Story = {
       '[data-slot="theme-hero"] [data-slot="button"]',
     );
 
-    if (!hero || !copy || !media || !image || !button) {
+    if (!hero || !copy || !title || !description || !media || !image || !button) {
       throw new Error("ThemeHero did not render its copy, artwork and CTA");
+    }
+    const titleStyle = getComputedStyle(title);
+    if (!titleStyle.fontFamily.includes("Source Serif 4") || titleStyle.fontWeight !== "600") {
+      throw new Error("ThemeHero display title must use the Source Serif 4 600 contract");
+    }
+    if (getComputedStyle(description).fontWeight !== "400") {
+      throw new Error("ThemeHero description must remain regular at weight 400");
     }
     if (!copy.textContent?.includes("Gentle yet Effective")) {
       throw new Error("ThemeHero must keep selectable theme copy");

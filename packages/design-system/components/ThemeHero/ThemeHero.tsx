@@ -1,4 +1,9 @@
 import { Button } from "../Button";
+import {
+  handleProgressiveImageError,
+  handleProgressiveImageLoad,
+  prepareProgressiveImage,
+} from "../progressiveImage";
 import styles from "./ThemeHero.module.css";
 import type { ThemeHeroProps } from "./ThemeHero.types";
 
@@ -31,7 +36,13 @@ export function ThemeHero({
         data-slot="theme-hero-atmosphere"
         aria-hidden="true"
       >
-        <img src={backgroundImageSrc} alt="" />
+        <img
+          src={backgroundImageSrc}
+          alt=""
+          loading="eager"
+          decoding="async"
+          fetchPriority="low"
+        />
       </div>
       <div
         className={styles.scrim}
@@ -39,9 +50,11 @@ export function ThemeHero({
         aria-hidden="true"
       />
 
-      <div className={styles.container}>
+      <div className={styles.container} data-slot="theme-hero-container">
         <div className={styles.copy} data-slot="theme-hero-copy">
-          <h2 className={styles.title}>{title}</h2>
+          <h2 className={styles.title} data-slot="theme-hero-title">
+            {title}
+          </h2>
           <div className={styles.description}>{description}</div>
           {cta && (
             <div className={styles.cta}>
@@ -63,6 +76,7 @@ export function ThemeHero({
 
         <div className={styles.media} data-slot="theme-hero-media">
           <img
+            ref={prepareProgressiveImage}
             className={styles.image}
             src={image.src}
             alt={image.alt}
@@ -70,6 +84,9 @@ export function ThemeHero({
             height={image.height}
             loading={imageLoading}
             decoding="async"
+            fetchPriority={imageLoading === "eager" ? "high" : undefined}
+            onLoad={handleProgressiveImageLoad}
+            onError={handleProgressiveImageError}
           />
         </div>
       </div>

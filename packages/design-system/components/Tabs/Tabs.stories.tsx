@@ -220,6 +220,54 @@ export const Showcase: Story = {
     </div>
   ),
   play: async ({ canvasElement }) => {
+    const primaryStyleALists = canvasElement.querySelectorAll<HTMLElement>(
+      '[role="tablist"][data-variant="primary"][data-style="a"]',
+    )
+    if (primaryStyleALists.length !== 2) {
+      throw new Error("Primary Style A must render on default and inverse surfaces")
+    }
+    for (const list of primaryStyleALists) {
+      const tabsRoot = list.closest<HTMLElement>('[data-slot="tabs"]')
+      const tabsRootStyle = tabsRoot ? getComputedStyle(tabsRoot) : null
+      const listStyle = getComputedStyle(list)
+      const activeTrigger = list.querySelector<HTMLElement>(
+        '[role="tab"][data-state="active"]',
+      )
+      const inactiveTrigger = list.querySelector<HTMLElement>(
+        '[role="tab"][data-state="inactive"]',
+      )
+      if (!activeTrigger || !inactiveTrigger) {
+        throw new Error("Primary Style A tab states did not render")
+      }
+      const activeUnderline = getComputedStyle(activeTrigger, "::after")
+      const inactiveUnderline = getComputedStyle(inactiveTrigger, "::after")
+      const activeLabel = activeTrigger.querySelector<HTMLElement>("span")
+      const underlineTop =
+        activeTrigger.getBoundingClientRect().bottom -
+        Number.parseFloat(activeUnderline.bottom) -
+        Number.parseFloat(activeUnderline.height)
+      const labelToUnderlineGap = activeLabel
+        ? underlineTop - activeLabel.getBoundingClientRect().bottom
+        : Number.NaN
+      if (
+        !tabsRootStyle ||
+        tabsRootStyle.paddingLeft !== "0px" ||
+        tabsRootStyle.paddingRight !== "0px" ||
+        listStyle.paddingLeft !== "0px" ||
+        listStyle.paddingRight !== "0px" ||
+        listStyle.columnGap !== "24px" ||
+        getComputedStyle(activeTrigger).fontSize !== "16px" ||
+        activeUnderline.opacity !== "1" ||
+        activeUnderline.height !== "2px" ||
+        Math.abs(labelToUnderlineGap - 4) > 0.5 ||
+        inactiveUnderline.opacity !== "0"
+      ) {
+        throw new Error(
+          "Primary Style A must use 16px text and 24px gaps without inline padding, with a 2px underline 4px below the active label only",
+        )
+      }
+    }
+
     const activeTab = canvasElement.querySelector<HTMLElement>(
       '[role="tablist"][data-inverse="true"][data-variant="primary"][data-style="b"] [role="tab"][data-state="active"]',
     )

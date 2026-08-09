@@ -73,6 +73,7 @@
     "--font-size-display-xl",
     "--font-size-heading-xs",
     "--font-weight-normal",
+    "--font-weight-semibold",
     "--layout-page-margin-default",
     "--line-height-body-xl",
     "--line-height-display-xl",

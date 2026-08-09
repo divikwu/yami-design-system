@@ -282,8 +282,25 @@
   width: 56px;
   height: 56px;
   flex: 0 0 56px;
+  background: var(--surface-secondary);
   border-radius: calc(var(--radius-tag-primary) / 2);
   object-fit: cover;
+  transition: opacity 240ms ease-out;
+}
+
+.productImage[data-image-state="pending"],
+.productImage[data-image-state="error"] {
+  opacity: 0;
+}
+
+.productImage[data-image-state="loaded"] {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .productImage {
+    transition: none;
+  }
 }
 
 .productContent {

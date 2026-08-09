@@ -2,6 +2,17 @@ import type { ShortcutRailItem } from "./ShortcutRail.types";
 
 export type ShortcutLocale = "zh" | "en";
 
+export const fullBleedShortcutEntries = [
+  ["Grocery", "4dbde65572b0df54bb0bf4f4e389c0d9"],
+  ["Snack & Beverage", "12728c53ca0300069f04e3bbd588e703"],
+  ["Beauty", "51bd33315b6e0a9bc7eef8ee150866d1"],
+  ["Personal Care", "5872ea8aab9aa5fe1aaffae352ebe960"],
+  ["Health", "01f5b01b60976b829de6863e824ab52b"],
+  ["Electronics", "56624e0b642dd7ff21ba7503069483c7"],
+  ["Home", "fc7b311e7e24d3763d95b0d03b4ee923"],
+  ["Toys , Kids, Babies", "68eb5f77d2ef6234a957de78f5e13fe3"],
+] as const;
+
 const iconSources = [
   new URL("./assets/01-trending.png", import.meta.url).href,
   new URL("./assets/02-celebrity-shops.png", import.meta.url).href,
@@ -99,5 +110,15 @@ export function createShortcutItems(
     label,
     iconSrc: iconSources[index],
     href: `#shortcut-${index + 1}`,
+  }));
+}
+
+export function createFullBleedShortcutItems(): ShortcutRailItem[] {
+  return fullBleedShortcutEntries.map(([label, assetId], index) => ({
+    id: `featured-shortcut-${index + 1}`,
+    label,
+    iconSrc: `https://cdn.yamibuy.net/item/${assetId}_300x300.webp`,
+    href: `#featured-shortcut-${index + 1}`,
+    imagePresentation: "full-bleed",
   }));
 }

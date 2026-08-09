@@ -164,7 +164,7 @@ const principlesData = [
     ruleId: 'no-decorative-media',
     title: '装饰媒体禁用',
     severity: 'error',
-    description: '禁止 glassmorphism / 手绘插图 / serif display / 花体字 / 图案纹理 / 软粉色调',
+    description: '禁止 glassmorphism / 手绘插图 / 未注册 serif 与花体字 / 图案纹理 / 软粉色调',
     validator: noDecorativeMedia,
   },
 ] as const satisfies readonly Principle[]

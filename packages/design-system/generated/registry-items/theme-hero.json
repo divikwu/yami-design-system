@@ -6,7 +6,9 @@
   "status": "experimental",
   "source": "components/ThemeHero",
   "files": [
+    "components/ThemeHero/assets/anua-hero-atmosphere.webp",
     "components/ThemeHero/assets/anua-hero.png",
+    "components/ThemeHero/assets/anua-hero.webp",
     "components/ThemeHero/fixtures.ts",
     "components/ThemeHero/index.ts",
     "components/ThemeHero/ThemeHero.module.css",

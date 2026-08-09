@@ -306,9 +306,11 @@
   --fill-warning-secondary: var(--color-amber-50);
   --font-family-android: 'GT Walsheim', 'Noto Sans SC', sans-serif;
   --font-family-ios: 'GT Walsheim', 'Noto Sans SC', sans-serif;
+  --font-family-serif: 'Source Serif 4', 'Source Han Serif SC', serif;
   --font-family-win: 'GT Walsheim', 'Noto Sans SC', sans-serif;
   --font-weight-emphasize: 500;
   --font-weight-normal: 400;
+  --font-weight-semibold: 600;
   --font-size-heading-2xl: 24px;
   --line-height-heading-2xl: 32px;
   --font-size-heading-3xl: 28px;

@@ -45,7 +45,6 @@
 
 @media (min-width: 1024px) {
   .badge {
-    height: 24px;
     font-size: 14px;
     line-height: 20px;
   }
@@ -66,8 +65,7 @@
 
 .flag {
   flex-shrink: 0;
-  /* Stretch to badge height so the flag follows the 20px mobile / 24px PC
-     badge height without per-breakpoint SVG overrides. */
+  /* Stretch to the shared 20px badge height without a separate SVG override. */
   height: 100%;
   width: auto;
   display: block;

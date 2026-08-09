@@ -1,5 +1,7 @@
 import type { HTMLAttributes, ReactNode } from "react";
 
+import type { SectionDividerProps } from "../sectionDivider.types";
+
 export interface ShortcutRailItem {
   /** Stable identity for React and analytics hooks. */
   id: string;
@@ -7,14 +9,19 @@ export interface ShortcutRailItem {
   label: ReactNode;
   /** Decorative icon source. The visible label names the destination. */
   iconSrc: string;
+  /** Image treatment inside the circular surface. Full bleed fills and crops the entire circle. */
+  imagePresentation?: "icon" | "full-bleed";
   /** Destination for the shortcut. */
   href: string;
 }
 
 export interface ShortcutRailProps
-  extends Omit<HTMLAttributes<HTMLElement>, "children"> {
+  extends Omit<HTMLAttributes<HTMLElement>, "children" | "title">,
+    SectionDividerProps {
   /** Ordered shortcut destinations. */
   items: ShortcutRailItem[];
+  /** Optional visible section title. When present, the rail uses the titled gray-surface treatment. */
+  title?: ReactNode;
   /** Localized accessible name for the navigation region. */
   ariaLabel?: string;
   /** Localized label for the previous-page control. */

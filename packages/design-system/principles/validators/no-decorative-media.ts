@@ -1,6 +1,6 @@
 /**
  * no-decorative-media — forbids glassmorphism, gradients (covered by
- * no-gradient), hand-drawn illustrations, serif display fonts, soft
+ * no-gradient), unregistered serif display fonts, soft
  * pastel palettes, patterns/textures/grain.
  *
  * Status: SKELETON — most of these are visual / asset-level concerns
@@ -24,6 +24,7 @@ import { findAll, result } from './_shared'
 const BACKDROP_FILTER = /\bbackdrop-filter\s*:\s*([^;}\n]+)/gi
 const SERIF_FONT_FAMILY =
   /font-family\s*:\s*[^;}\n]*\b(serif|Georgia|Times|Palatino|Baskerville|cursive|fantasy)\b[^;}\n]*/gi
+const APPROVED_SERIF_FONT_FAMILY = /^font-family\s*:\s*var\(\s*--font-family-serif\s*\)\s*$/i
 
 export const noDecorativeMedia: Validator = {
   ruleId: 'no-decorative-media',
@@ -46,13 +47,14 @@ export const noDecorativeMedia: Validator = {
     }
 
     for (const hit of findAll(code, SERIF_FONT_FAMILY)) {
+      if (APPROVED_SERIF_FONT_FAMILY.test(hit.match.trim())) continue
       violations.push({
         ruleId: 'no-decorative-media',
-        message: `Serif or decorative font-family '${hit.match}' — YAMI uses GT Walsheim + system sans stacks only.`,
+        message: `Unregistered serif or decorative font-family '${hit.match}' — YAMI serif typography must use --font-family-serif.`,
         severity: 'error',
         locations: [hit.location],
         suggestion:
-          'Replace with var(--font-family-ios), var(--font-family-ios), or var(--font-family-android).',
+          'Use var(--font-family-serif) for approved display/heading-md serif variants, or a --font-family-* sans token elsewhere.',
       })
     }
 

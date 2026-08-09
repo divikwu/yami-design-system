@@ -53,16 +53,17 @@ function cssName(trail) {
   return `--${trail.join("-")}`;
 }
 
-function valueForCss(value, type) {
+function valueForCss(value, type, extensions) {
   if (type === "fontFamily" && value && typeof value === "object" && !Array.isArray(value)) {
     const families = [...new Set(Object.values(value).filter((item) => typeof item === "string"))];
-    return [...families.map((family) => family.includes(" ") ? `'${family}'` : family), "sans-serif"].join(", ");
+    const genericFamily = extensions?.["com.yami.generic-family"] ?? "sans-serif";
+    return [...families.map((family) => family.includes(" ") ? `'${family}'` : family), genericFamily].join(", ");
   }
   const selected = value && typeof value === "object" && !Array.isArray(value)
     ? value.EN ?? Object.values(value)[0]
     : value;
   if (type === "fontWeight" && typeof selected === "string") {
-    const weights = { Regular: 400, Medium: 500, Bold: 700 };
+    const weights = { Regular: 400, Medium: 500, SemiBold: 600, Bold: 700 };
     if (weights[selected] !== undefined) return String(weights[selected]);
   }
   if (typeof selected === "string" && /^\{[^}]+\}$/.test(selected)) {
@@ -80,7 +81,7 @@ function sourceContext(relativePath) {
 }
 
 function asValue(token, contextId) {
-  const cssValue = valueForCss(token.value, token.type);
+  const cssValue = valueForCss(token.value, token.type, token.extensions);
   return {
     contextId,
     rawValue: token.value,
@@ -94,7 +95,7 @@ function asValue(token, contextId) {
 
 function renderBlock(selector, tokens) {
   if (tokens.length === 0) return "";
-  return `${selector} {\n${tokens.map((token) => `  ${token.css}: ${valueForCss(token.value, token.type)};`).join("\n")}\n}\n`;
+  return `${selector} {\n${tokens.map((token) => `  ${token.css}: ${valueForCss(token.value, token.type, token.extensions)};`).join("\n")}\n}\n`;
 }
 
 const files = await list(sourceDir);
@@ -142,9 +143,9 @@ if (JSON.stringify(mobileTypography) !== JSON.stringify(tabletTypography)) {
   throw new Error("Tablet typography differs from mobile; add an explicit tablet runtime context before generating.");
 }
 
-const rootValues = new Map(byContext.get("root").map((token) => [token.id, valueForCss(token.value, token.type)]));
+const rootValues = new Map(byContext.get("root").map((token) => [token.id, valueForCss(token.value, token.type, token.extensions)]));
 const desktopLgOverrides = byContext.get("desktop-lg").filter(
-  (token) => rootValues.get(token.id) !== valueForCss(token.value, token.type),
+  (token) => rootValues.get(token.id) !== valueForCss(token.value, token.type, token.extensions),
 );
 const desktopLgIds = new Set(desktopLgOverrides.map((token) => token.id));
 byContext.set("desktop-lg", desktopLgOverrides);

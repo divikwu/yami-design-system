@@ -1,5 +1,6 @@
 import type { Preview } from "@storybook/react-vite";
 import React from "react";
+import "@yami/design-system/styles/fonts.css";
 import "@yami/design-system/tokens.css";
 import "@yami/design-system/styles/base.css";
 import "./preview.css";

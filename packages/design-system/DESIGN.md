@@ -609,7 +609,7 @@ Functional, not decorative. State feedback uses **color shift first** (the `-act
 <!-- rule-id: no-emoji -->
 <!-- rule-id: no-decorative-media -->
 
-> **Rules governing this section** — `no-emoji` (no emoji in product UI; UGC excepted), `no-decorative-media` (no glassmorphism / gradients / hand-drawn / serif display / patterns / pastels / colored-left-border alerts). Full bilingual prose: [Hard Rules summary](#hard-rules-validator-linked).
+> **Rules governing this section** — `no-emoji` (no emoji in product UI; UGC excepted), `no-decorative-media` (no glassmorphism / gradients / hand-drawn / unregistered serif or decorative fonts / patterns / pastels / colored-left-border alerts; approved serif typography uses `--font-family-serif`). Full bilingual prose: [Hard Rules summary](#hard-rules-validator-linked).
 
 - **Product photography** — naturalistic, warm, product-forward. Pure white or a neutral gray background; avoid branded pink behind catalog imagery.
 - **No moody, no stylized, no hand-drawn.** Food photography that looks like a real product, not a magazine cover.
@@ -693,7 +693,7 @@ For the **why** behind each rule (trade-offs, history, edge cases), see [`decisi
 | **`card-no-border`**      | Cards default to no border. Opt-in `bordered` only for dense listing grids.                                                                                                               | 卡片默认无边框。仅在密集列表网格中可显式 `bordered`。                                                                                      |
 | **`tap-target`**          | iOS 44pt, Android 48dp minimum hit area. Padding-expand the touch region without growing the visible affordance.                                                                          | 触屏可点击区域：iOS 44pt / Android 48dp。用 padding 扩大命中区，不要放大可见尺寸。                                                         |
 | **`no-emoji`**            | No emoji in product UI (buttons, nav, status, empty states). UGC excepted.                                                                                                                | 产品 UI 内禁用 emoji（按钮、导航、状态、空态）。UGC 内容例外。                                                                             |
-| **`no-decorative-media`** | No glassmorphism, gradients, hand-drawn illustration, serif display, patterns / noise / grain, pastel palettes, colored-left-border alert cards.                                          | 不用毛玻璃、渐变、手绘插画、衬线展示字、纹理/噪点/颗粒、粉彩色板、左侧色条警示卡。                                                         |
+| **`no-decorative-media`** | No glassmorphism, gradients, hand-drawn illustration, unregistered serif/decorative fonts, patterns / noise / grain, pastel palettes, colored-left-border alert cards. Approved serif typography must use `--font-family-serif`. | 不用毛玻璃、渐变、手绘插画、未注册的衬线/装饰字体、纹理/噪点/颗粒、粉彩色板、左侧色条警示卡；批准的衬线样式必须使用 `--font-family-serif`。 |
 | **`token-exists`**        | Every `var(--name)` reference must exist in `tokens.css`. AI generators commonly fabricate plausible-but-fake tokens; CI's `check:tokens-in-docs` catches this on the documentation side. | 每个 `var(--name)` 引用必须真实存在于 `tokens.css`。AI 常见错误是捏造看似合理的 token；CI 的 `check:tokens-in-docs` 在文档层拦截这类问题。 |
 
 Decisions of note (selected):

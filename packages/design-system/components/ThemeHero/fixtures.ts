@@ -1,6 +1,10 @@
 import type { ThemeHeroProps } from "./ThemeHero.types";
 
-const anuaHero = new URL("./assets/anua-hero.png", import.meta.url).href;
+const anuaHero = new URL("./assets/anua-hero.webp", import.meta.url).href;
+const anuaHeroAtmosphere = new URL(
+  "./assets/anua-hero-atmosphere.webp",
+  import.meta.url,
+).href;
 
 export function createThemeHeroProps(): ThemeHeroProps {
   return {
@@ -13,6 +17,7 @@ export function createThemeHeroProps(): ThemeHeroProps {
       width: 1672,
       height: 941,
     },
+    backgroundImageSrc: anuaHeroAtmosphere,
     cta: { label: "Shop All Anua" },
     imageLoading: "eager",
   };

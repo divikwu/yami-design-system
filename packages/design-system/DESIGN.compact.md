@@ -94,7 +94,7 @@ These have validators; violations fail `validate_design`. Full reasoning lives i
 12. **card-no-border** — opt-in border only for dense grids.
 13. **tap-target** — iOS 44pt / Android 48dp minimum.
 14. **no-emoji** — none in product UI (UGC excepted).
-15. **no-decorative-media** — no glassmorphism, gradients, hand-drawn illustration, pastels, alert-bar cards.
+15. **no-decorative-media** — no glassmorphism, gradients, hand-drawn illustration, unregistered serif/decorative fonts, pastels, alert-bar cards; approved serif typography uses `--font-family-serif`.
 16. **token-exists** — every `var(--x)` reference must exist in `tokens.css`.
 
 ---

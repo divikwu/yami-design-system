@@ -1,6 +1,11 @@
 "use client";
 
 import { ProductList } from "../ProductList";
+import {
+  handleProgressiveImageError,
+  handleProgressiveImageLoad,
+  prepareProgressiveImage,
+} from "../progressiveImage";
 
 import styles from "./ThemeProductList.module.css";
 import type {
@@ -17,10 +22,14 @@ function ThemeProductListContentPanel({
   const panel = (
     <div className={styles.content} data-slot="theme-product-list-content">
       <img
+        ref={prepareProgressiveImage}
         className={styles.image}
         src={image.src}
         alt={image.alt}
         loading="lazy"
+        decoding="async"
+        onLoad={handleProgressiveImageLoad}
+        onError={handleProgressiveImageError}
       />
       <div className={styles.overlay} data-slot="theme-product-list-overlay">
         <h3 className={styles.title}>{title}</h3>

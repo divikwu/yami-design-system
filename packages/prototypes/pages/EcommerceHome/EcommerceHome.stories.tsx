@@ -52,6 +52,34 @@ export const Pc: Story = {
     );
     if (!page) throw new Error("Ecommerce home did not render");
 
+    const main = page.querySelector<HTMLElement>(
+      '[data-slot="ecommerce-home-main"]',
+    );
+    const initialReveal = main?.querySelector<HTMLElement>(
+      '[data-motion-reveal="initial"]',
+    );
+    const scrollReveals = main?.querySelectorAll<HTMLElement>(
+      '[data-motion-reveal="scroll"]',
+    );
+    const waterfallRowItems = main?.querySelectorAll<HTMLElement>(
+      '[data-motion-reveal="waterfall-row"]',
+    );
+    const waterfallLoadMore = main?.querySelector<HTMLElement>(
+      '[data-slot="product-list-load-more"]',
+    );
+    if (
+      !initialReveal ||
+      scrollReveals?.length !== 6 ||
+      !waterfallRowItems ||
+      waterfallRowItems.length <= 6 ||
+      waterfallLoadMore?.dataset.motionReveal !== "waterfall-row" ||
+      main?.dataset.motionReady === undefined
+    ) {
+      throw new Error(
+        "Ecommerce home must expose initial, section and waterfall row reveal groups",
+      );
+    }
+
     // The page shell no longer pins a 1024px floor — every section shrinks with
     // the viewport. The one exception is the footer, which has no mobile layout
     // and leaves the flow below --breakpoints-desktop instead of dragging the
@@ -137,9 +165,13 @@ export const Pc: Story = {
       ),
     );
     for (let index = 1; index < sectionFrames.length; index += 1) {
-      const previous = sectionFrames[index - 1].getBoundingClientRect();
-      const current = sectionFrames[index].getBoundingClientRect();
-      if (Math.abs(current.top - previous.bottom) > 1) {
+      const previous = sectionFrames[index - 1];
+      const current = sectionFrames[index];
+      if (
+        Math.abs(
+          current.offsetTop - (previous.offsetTop + previous.offsetHeight),
+        ) > 1
+      ) {
         throw new Error("Ecommerce home sections must touch vertically");
       }
     }

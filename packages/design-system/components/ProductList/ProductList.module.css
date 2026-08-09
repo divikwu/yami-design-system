@@ -152,6 +152,16 @@
   height: auto;
   max-height: 192px;
   object-fit: cover;
+  transition: opacity 240ms ease-out;
+}
+
+.banner img[data-image-state="pending"],
+.banner img[data-image-state="error"] {
+  opacity: 0;
+}
+
+.banner img[data-image-state="loaded"] {
+  opacity: 1;
 }
 
 .banner picture {
@@ -710,6 +720,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .banner img {
+    transition: none;
+  }
+
   .skeletonMedia,
   .skeletonLine,
   .skeletonLineShort,

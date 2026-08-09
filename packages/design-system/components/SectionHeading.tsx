@@ -24,6 +24,7 @@ export type SectionHeadingProps = {
    * against, so each section keeps the ones it already published.
    */
   slot?: string;
+  titleFontFamily?: "sans" | "serif";
   className?: string;
   titleClassName?: string;
   actionsClassName?: string;
@@ -43,6 +44,7 @@ export function SectionHeading({
   viewAllLabel,
   actions,
   slot,
+  titleFontFamily = "sans",
   className,
   titleClassName,
   actionsClassName,
@@ -56,7 +58,11 @@ export function SectionHeading({
     <div className={join(styles.root, className)} data-slot={slotName("heading")}>
       <h2
         id={id}
-        className={join(styles.title, titleClassName)}
+        className={join(
+          styles.title,
+          titleFontFamily === "serif" ? styles.titleSerif : undefined,
+          titleClassName,
+        )}
         data-slot={slotName("title")}
       >
         {mobileTitle === undefined ? (

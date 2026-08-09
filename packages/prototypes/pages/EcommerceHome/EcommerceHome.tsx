@@ -1,5 +1,7 @@
 "use client";
 
+import { useLayoutEffect, useRef } from "react";
+
 import {
   Billboard,
   BrandProductRail,
@@ -28,6 +30,123 @@ export function EcommerceHomeTemplate({
   className,
   ...rest
 }: EcommerceHomeProps) {
+  const mainRef = useRef<HTMLElement>(null);
+
+  useLayoutEffect(() => {
+    const main = mainRef.current;
+    if (!main) return;
+
+    const reducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    const revealSections = Array.from(
+      main.querySelectorAll<HTMLElement>('[data-motion-reveal="scroll"]'),
+    );
+    const initialReveal = main.querySelector<HTMLElement>(
+      '[data-motion-reveal="initial"]',
+    );
+    const waterfallItems = Array.from(
+      main.querySelectorAll<HTMLElement>(
+        '[data-slot="ecommerce-home-section"][data-kind="products"] > [data-slot="product-list"][data-layout="waterfall"] [data-slot="product-list-item"]',
+      ),
+    );
+    const waterfallLoadMore = main.querySelector<HTMLElement>(
+      '[data-slot="ecommerce-home-section"][data-kind="products"] > [data-slot="product-list"][data-layout="waterfall"] [data-slot="product-list-load-more"]',
+    );
+    waterfallItems.forEach((item) => {
+      item.dataset.motionReveal = "waterfall-row";
+    });
+    if (waterfallLoadMore) {
+      waterfallLoadMore.dataset.motionReveal = "waterfall-row";
+    }
+    const lastWaterfallItem = waterfallItems[waterfallItems.length - 1];
+    const revealTargets = [
+      ...(initialReveal ? [initialReveal] : []),
+      ...revealSections,
+      ...waterfallItems,
+    ];
+
+    if (reducedMotion) {
+      main.dataset.motionReady = "reduced";
+      return;
+    }
+
+    main.dataset.motionReady = "true";
+
+    if (!("IntersectionObserver" in window)) {
+      [
+        ...revealTargets,
+        ...(waterfallLoadMore ? [waterfallLoadMore] : []),
+      ].forEach((target) => {
+        target.dataset.motionState = "visible";
+      });
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visibleEntries = entries.filter((entry) => entry.isIntersecting);
+        entries
+          .filter((entry) => !entry.isIntersecting)
+          .forEach((entry) => {
+            const target = entry.target as HTMLElement;
+            delete target.dataset.motionState;
+            if (target === lastWaterfallItem && waterfallLoadMore) {
+              delete waterfallLoadMore.dataset.motionState;
+            }
+          });
+        const waterfallEntries = visibleEntries.filter(
+          (entry) =>
+            (entry.target as HTMLElement).dataset.motionReveal ===
+              "waterfall-row" &&
+            (entry.target as HTMLElement).dataset.slot === "product-list-item",
+        );
+        const visibleRowTops = Array.from(
+          new Set(
+            waterfallEntries.map((entry) =>
+              Math.round(entry.boundingClientRect.top),
+            ),
+          ),
+        ).sort((a, b) => a - b);
+
+        waterfallEntries.forEach((entry) => {
+          const target = entry.target as HTMLElement;
+          const rowIndex = visibleRowTops.indexOf(
+            Math.round(entry.boundingClientRect.top),
+          );
+          target.style.setProperty(
+            "--ecommerce-home-row-reveal-delay",
+            `${Math.max(rowIndex, 0) * 120}ms`,
+          );
+        });
+
+        visibleEntries.forEach((entry) => {
+          const target = entry.target as HTMLElement;
+          target.dataset.motionState = "visible";
+
+          if (target === lastWaterfallItem && waterfallLoadMore) {
+            const lastRowDelay = target.style.getPropertyValue(
+              "--ecommerce-home-row-reveal-delay",
+            );
+            waterfallLoadMore.style.setProperty(
+              "--ecommerce-home-row-reveal-delay",
+              lastRowDelay,
+            );
+            waterfallLoadMore.dataset.motionState = "visible";
+          }
+        });
+      },
+      {
+        rootMargin: "0px 0px -10% 0px",
+        threshold: 0.1,
+      },
+    );
+
+    revealTargets.forEach((target) => observer.observe(target));
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div
       {...rest}
@@ -36,15 +155,27 @@ export function EcommerceHomeTemplate({
     >
       <Header {...header} />
 
-      <main className={styles.main} data-slot="ecommerce-home-main">
-        <div className={styles.hero} data-slot="ecommerce-home-hero">
-          <HeroBanner {...hero} />
-        </div>
+      <main
+        ref={mainRef}
+        className={styles.main}
+        data-slot="ecommerce-home-main"
+      >
+        <div className={styles.initialReveal} data-motion-reveal="initial">
+          <div className={styles.hero} data-slot="ecommerce-home-hero">
+            <HeroBanner {...hero} />
+          </div>
 
-        <ShortcutRail {...shortcutRail} />
+          <ShortcutRail {...shortcutRail} />
+        </div>
 
         <div className={styles.sections} data-slot="ecommerce-home-sections">
           {sections.map((section) => {
+            const motionReveal =
+              section.kind === "products" &&
+              section.props.layout === "waterfall"
+                ? undefined
+                : "scroll";
+
             if (section.kind === "social") {
               return (
                 <div
@@ -52,6 +183,7 @@ export function EcommerceHomeTemplate({
                   className={styles.section}
                   data-slot="ecommerce-home-section"
                   data-kind="social"
+                  data-motion-reveal={motionReveal}
                 >
                   <SocialMediaGallery {...section.props} />
                 </div>
@@ -65,6 +197,7 @@ export function EcommerceHomeTemplate({
                   className={styles.section}
                   data-slot="ecommerce-home-section"
                   data-kind="billboard"
+                  data-motion-reveal={motionReveal}
                 >
                   <Billboard {...section.props} />
                 </div>
@@ -78,6 +211,7 @@ export function EcommerceHomeTemplate({
                   className={styles.section}
                   data-slot="ecommerce-home-section"
                   data-kind="searches"
+                  data-motion-reveal={motionReveal}
                 >
                   <TrendingSearches {...section.props} />
                 </div>
@@ -91,6 +225,7 @@ export function EcommerceHomeTemplate({
                   className={styles.section}
                   data-slot="ecommerce-home-section"
                   data-kind="brands"
+                  data-motion-reveal={motionReveal}
                 >
                   <BrandProductRail {...section.props} />
                 </div>
@@ -107,6 +242,7 @@ export function EcommerceHomeTemplate({
                 data-appearance={appearance}
                 data-divider-position={section.props.dividerPosition ?? "top"}
                 data-divider-variant={section.props.dividerVariant ?? "gray"}
+                data-motion-reveal={motionReveal}
               >
                 <ProductList {...section.props} />
               </div>

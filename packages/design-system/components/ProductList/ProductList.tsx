@@ -13,6 +13,11 @@ import {
   useHorizontalScrollList,
 } from "../HorizontalScrollList";
 import { ProductCard, type ProductCardPresentation, type ProductCardProps } from "../ProductCard";
+import {
+  handleProgressiveImageError,
+  handleProgressiveImageLoad,
+  prepareProgressiveImage,
+} from "../progressiveImage";
 import { SectionHeading } from "../SectionHeading";
 import { Tabs, TabsList, TabsTrigger } from "../Tabs";
 
@@ -71,6 +76,7 @@ function ProductListSkeleton({
 export function ProductList(props: ProductListProps) {
   const {
     title,
+    titleFontFamily = "sans",
     products,
     leadingContent,
     appearance = "standard",
@@ -189,7 +195,14 @@ export function ProductList(props: ProductListProps) {
                 srcSet={banner.mobileSrc}
               />
             )}
-            <img src={banner.src} alt={banner.alt} />
+            <img
+              ref={prepareProgressiveImage}
+              src={banner.src}
+              alt={banner.alt}
+              decoding="async"
+              onLoad={handleProgressiveImageLoad}
+              onError={handleProgressiveImageError}
+            />
           </picture>
         </div>
       )}
@@ -199,6 +212,7 @@ export function ProductList(props: ProductListProps) {
           slot="product-list"
           id={titleId}
           title={title}
+          titleFontFamily={titleFontFamily}
           className={styles.heading}
           titleClassName={styles.title}
           viewAllHref={viewAllHref}
