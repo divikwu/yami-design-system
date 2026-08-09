@@ -491,6 +491,7 @@ export function createEcommerceHomeFixture(
 
   return {
     id: "home",
+    contentMaxWidth: 1920,
     header: createHeader(locale),
     hero: createHero(locale),
     shortcutRail: createShortcutRail(locale),

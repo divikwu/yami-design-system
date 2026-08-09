@@ -55,6 +55,22 @@ export const Pc: Story = {
     const main = page.querySelector<HTMLElement>(
       '[data-slot="ecommerce-home-main"]',
     );
+    const expectedContentMaxWidth = "1920px";
+    const contentContainers = main?.querySelectorAll<HTMLElement>(
+      '[data-slot="hero-banner"], [data-slot="shortcut-rail-container"], [data-slot="billboard-link"], [data-slot="product-list-container"], [data-slot="brand-product-rail-container"], [data-slot="social-media-gallery-container"], [data-slot="trending-searches-container"]',
+    );
+    if (
+      main?.dataset.contentMaxWidth !== expectedContentMaxWidth ||
+      !contentContainers?.length ||
+      Array.from(contentContainers).some(
+        (container) =>
+          getComputedStyle(container).maxWidth !== expectedContentMaxWidth,
+      )
+    ) {
+      throw new Error(
+        "Ecommerce home must apply one page-level maximum width to every main content container",
+      );
+    }
     const initialReveal = main?.querySelector<HTMLElement>(
       '[data-motion-reveal="initial"]',
     );

@@ -14,6 +14,19 @@
   background: var(--surface-primary);
 }
 
+main.main[data-slot="ecommerce-home-main"]
+  :is(
+    [data-slot="hero-banner"],
+    [data-slot="shortcut-rail-container"],
+    [data-slot="billboard-link"],
+    [data-slot="product-list-container"],
+    [data-slot="brand-product-rail-container"],
+    [data-slot="social-media-gallery-container"],
+    [data-slot="trending-searches-container"]
+  ) {
+  max-width: var(--ecommerce-home-content-max-width);
+}
+
 .initialReveal {
   display: flex;
   min-width: 0;

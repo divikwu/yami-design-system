@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef, type CSSProperties } from "react";
 
 import {
   Billboard,
@@ -22,6 +22,7 @@ function cx(...classes: Array<string | false | null | undefined>) {
 }
 
 export function EcommerceHomeTemplate({
+  contentMaxWidth = 1920,
   header,
   hero,
   shortcutRail,
@@ -31,6 +32,10 @@ export function EcommerceHomeTemplate({
   ...rest
 }: EcommerceHomeProps) {
   const mainRef = useRef<HTMLElement>(null);
+  const contentMaxWidthValue =
+    typeof contentMaxWidth === "number"
+      ? `${contentMaxWidth}px`
+      : contentMaxWidth;
 
   useLayoutEffect(() => {
     const main = mainRef.current;
@@ -159,6 +164,12 @@ export function EcommerceHomeTemplate({
         ref={mainRef}
         className={styles.main}
         data-slot="ecommerce-home-main"
+        data-content-max-width={contentMaxWidthValue}
+        style={
+          {
+            "--ecommerce-home-content-max-width": contentMaxWidthValue,
+          } as CSSProperties
+        }
       >
         <div className={styles.initialReveal} data-motion-reveal="initial">
           <div className={styles.hero} data-slot="ecommerce-home-hero">

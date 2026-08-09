@@ -89,7 +89,7 @@ export function SocialMediaGallery({
       data-slot="social-media-gallery"
       aria-labelledby={titleId}
     >
-      <div className={styles.container}>
+      <div className={styles.container} data-slot="social-media-gallery-container">
         <SectionHeading
           id={titleId}
           title={title}

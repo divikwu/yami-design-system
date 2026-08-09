@@ -118,7 +118,7 @@ export function TrendingSearches({
       data-slot="trending-searches"
       aria-labelledby={titleId}
     >
-      <div className={styles.container}>
+      <div className={styles.container} data-slot="trending-searches-container">
         <SectionHeading
           id={titleId}
           title={title}

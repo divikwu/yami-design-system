@@ -309,6 +309,7 @@
 .loadMore {
   display: flex;
   justify-content: center;
+  padding-block: var(--space-100);
   width: 100%;
 }
 
@@ -673,7 +674,8 @@
 
   .root[data-layout="waterfall"] .list {
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: var(--space-200);
+    column-gap: var(--space-200);
+    row-gap: var(--space-300);
     padding: var(--space-050) 0 0;
   }
 }

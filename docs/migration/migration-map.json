@@ -1275,7 +1275,7 @@
       "sourceSha256": "b9cb928d20dfb49ff68fac14dba7520a3e79c802a69f3e9e447dc6aa310fad4a",
       "disposition": "migrated",
       "destination": "packages/design-system/components/BrandProductRail/BrandProductRail.tsx",
-      "destinationSha256": "c8c5d259a3a8bb40cb5b3cd6e9cf8a64d14253dc8cc2146f2818bd738b30dce5"
+      "destinationSha256": "81af96f7ffa42691405558f44eff5a53055f5da9944f5ab7e46ddc219f3b5469"
     },
     {
       "source": "components/BrandProductRail/BrandProductRail.types.ts",
@@ -2591,7 +2591,7 @@
       "sourceSha256": "1bae791cecc099dce8f099b2a396d6aad61ee95e3ab920f392f75739ea3f795f",
       "disposition": "migrated",
       "destination": "packages/design-system/components/ProductList/ProductList.module.css",
-      "destinationSha256": "772ca0ed4aebf548e5948c48da7025efe7ac521b77659691ccf17840c4f698f8"
+      "destinationSha256": "48d23240a64f762a15e73f71c8b7ddd97678992af106424c07761e7aae52f855"
     },
     {
       "source": "components/ProductList/ProductList.stories.module.css",
@@ -3018,7 +3018,7 @@
       "sourceSha256": "28414516d9d19ee1b3ae65d33d8e48e9782b45b010572072a1c3bbb857ab262e",
       "disposition": "migrated",
       "destination": "packages/design-system/components/SocialMediaGallery/SocialMediaGallery.tsx",
-      "destinationSha256": "28414516d9d19ee1b3ae65d33d8e48e9782b45b010572072a1c3bbb857ab262e"
+      "destinationSha256": "30cf5b3de915db11af5ea91d4bab552bdf93d206614c81bde7049cdd452337eb"
     },
     {
       "source": "components/SocialMediaGallery/SocialMediaGallery.types.ts",
@@ -3228,7 +3228,7 @@
       "sourceSha256": "a96706a66f73a7904a101cdbabc1d02b899a76ab2ded23c238d29cd64a1e29ec",
       "disposition": "migrated",
       "destination": "packages/design-system/components/TrendingSearches/TrendingSearches.tsx",
-      "destinationSha256": "ac9342a0f26f39bbf63cdc32a562be00e5876bb67dbef570ea050b3ec0b2a306"
+      "destinationSha256": "d7537bc3bd709e0271ce7a962310c64c5f7219bf76fa6667e35bd964612b665a"
     },
     {
       "source": "components/TrendingSearches/TrendingSearches.types.ts",
@@ -3452,28 +3452,28 @@
       "sourceSha256": "529bb72a58495d446f67f546bcb9569fe2e2debe205ec9a83e3b33a0052cefef",
       "disposition": "migrated",
       "destination": "packages/prototypes/pages/EcommerceHome/EcommerceHome.module.css",
-      "destinationSha256": "34ed2157fcb37d3c718f02834522af052912428f7f7737a065e0337fc5ea3122"
+      "destinationSha256": "7b9dfd25e3c1474370a7481cece9bc42cd26359b6b8b55f6dccf188f015f8c90"
     },
     {
       "source": "pages/EcommerceHome/EcommerceHome.stories.tsx",
       "sourceSha256": "225ba1253425bc2cb3483aa1af46662650e028799adeffabfda4cd06da2d16be",
       "disposition": "migrated",
       "destination": "packages/prototypes/pages/EcommerceHome/EcommerceHome.stories.tsx",
-      "destinationSha256": "2670c4672ca37daaadc39a1050e99e9075fb72ff17c9ded9e4920beb4b80f8e8"
+      "destinationSha256": "362ddd90893d56a7f381ca483fc71755dd3b4d4087043a64df632ce4ec16b666"
     },
     {
       "source": "pages/EcommerceHome/EcommerceHome.tsx",
       "sourceSha256": "1212ec3428b0e6fd4e2555ff9e81218615790d7ea81477ad194655817bf42872",
       "disposition": "migrated",
       "destination": "packages/prototypes/pages/EcommerceHome/EcommerceHome.tsx",
-      "destinationSha256": "e8f3bda7df150f8b7aedac9adb430e694158fd76d4dfcfd835932f5ce5f1dc7c"
+      "destinationSha256": "3b181b21c96f250ab6cdf3a58b23150ae151d48d0acc33087d282c8a2255f6ef"
     },
     {
       "source": "pages/EcommerceHome/EcommerceHome.types.ts",
       "sourceSha256": "3daf45e41fff49937eb5e19b57aa656baffc6057a56e45b8131aa49e921ebe12",
       "disposition": "migrated",
       "destination": "packages/prototypes/pages/EcommerceHome/EcommerceHome.types.ts",
-      "destinationSha256": "f663dceae0bc9c3299779517c8a4ce9d10e00dbb90f3fbe1ba1e5780899a72a2"
+      "destinationSha256": "1248277b47426e7777e8a4b31fe6f1677bb6dd23ae6e2951ca3f40593da53049"
     },
     {
       "source": "pages/EcommerceHome/assets/beauty-of-joseon-relief-sun.png",
@@ -3522,7 +3522,7 @@
       "sourceSha256": "2aa187ddb7131b984b38b3291853f0d0209c29d1d4e61e4ad6784283d822848b",
       "disposition": "migrated",
       "destination": "packages/prototypes/pages/EcommerceHome/fixtures.ts",
-      "destinationSha256": "44313ab7441191b89fbb964a238f69a92e8f974f5665730b552da9b566e7f02e"
+      "destinationSha256": "1c80ec8103125312f32a3bb1586c17557bee93c7c6be3e422187aea12fb31a36"
     },
     {
       "source": "pages/EcommerceHome/index.ts",
