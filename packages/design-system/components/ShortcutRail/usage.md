@@ -11,9 +11,44 @@ collections, editorial shortcuts, or homepage discovery entrances.
       id: "trending",
       label: "Trending",
       iconSrc: trendingIcon,
+      imagePresentation: "icon",
       href: "/collections/trending",
     },
   ]}
+/>
+```
+
+Set an entry to `full-bleed` when its image should fill and crop to the entire
+circular surface:
+
+```tsx
+{
+  id: "seasonal",
+  label: "Seasonal picks",
+  iconSrc: seasonalImage,
+  imagePresentation: "full-bleed",
+  href: "/collections/seasonal",
+}
+```
+
+Add a visible title to use the left-aligned gray-surface treatment:
+
+```tsx
+<ShortcutRail
+  title="Featured shortcuts"
+  items={items}
+/>
+```
+
+The full-width surface around the 1920px content container can draw a section
+divider on either edge using the shared section-divider contract:
+
+```tsx
+<ShortcutRail
+  title="Featured shortcuts"
+  items={items}
+  dividerPosition="bottom"
+  dividerVariant="gray"
 />
 ```
 
@@ -27,3 +62,6 @@ collections, editorial shortcuts, or homepage discovery entrances.
 The component keeps icon and label sizes stable at narrow widths. Touch and
 trackpad users scroll the native rail; desktop users also receive token-backed
 paging controls when content overflows.
+
+On mobile, ShortcutRail always uses the full-width `plain` surface. It does not
+provide an inset card treatment.

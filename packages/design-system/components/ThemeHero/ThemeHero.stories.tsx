@@ -11,7 +11,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "A theme storytelling hero with selectable copy, a primary action and campaign artwork repeated as a blurred atmosphere. Designed from English Site Optimization 2026 node 1877:43111 and informed by the W Concept visual module.",
+          "A theme storytelling hero with selectable copy, optional primary and secondary actions, and campaign artwork repeated as a blurred atmosphere. Designed from English Site Optimization 2026 node 1877:43111 and informed by the W Concept visual module.",
       },
       source: {
         language: "tsx",
@@ -36,18 +36,83 @@ export const Showcase: Story = {
     const copy = canvasElement.querySelector<HTMLElement>(
       '[data-slot="theme-hero-copy"]',
     );
+    const title = copy?.querySelector<HTMLElement>("h2");
+    const description = copy?.querySelector<HTMLElement>(
+      '[data-slot="theme-hero-description"]',
+    );
+    const tagList = copy?.querySelector<HTMLElement>(
+      '[data-slot="theme-hero-tags"]',
+    );
+    const badges = tagList?.querySelectorAll<HTMLElement>('[data-slot="badge"]');
+    const actions = copy?.querySelector<HTMLElement>(
+      '[data-slot="theme-hero-actions"]',
+    );
+    const primaryButton = actions?.querySelector<HTMLButtonElement>(
+      '[data-action="primary"]',
+    );
+    const secondaryButton = actions?.querySelector<HTMLButtonElement>(
+      '[data-action="secondary"]',
+    );
     const media = canvasElement.querySelector<HTMLElement>(
       '[data-slot="theme-hero-media"]',
     );
     const image = canvasElement.querySelector<HTMLImageElement>(
       '[data-slot="theme-hero-media"] img',
     );
-    const button = canvasElement.querySelector<HTMLButtonElement>(
-      '[data-slot="theme-hero"] [data-slot="button"]',
-    );
-
-    if (!hero || !copy || !media || !image || !button) {
-      throw new Error("ThemeHero did not render its copy, artwork and CTA");
+    if (
+      !hero ||
+      !copy ||
+      !title ||
+      !description ||
+      !tagList ||
+      badges?.length !== 3 ||
+      !actions ||
+      !primaryButton ||
+      !secondaryButton ||
+      !media ||
+      !image
+    ) {
+      throw new Error("ThemeHero did not render its copy, badges, artwork and actions");
+    }
+    const titleStyle = getComputedStyle(title);
+    if (!titleStyle.fontFamily.includes("Source Serif 4") || titleStyle.fontWeight !== "600") {
+      throw new Error("ThemeHero display title must use the Source Serif 4 600 contract");
+    }
+    const descriptionStyle = getComputedStyle(description);
+    if (
+      descriptionStyle.fontSize !== "16px" ||
+      descriptionStyle.lineHeight !== "20px" ||
+      descriptionStyle.fontWeight !== "400"
+    ) {
+      throw new Error(
+        "ThemeHero description must use the regular 16/20 supporting-copy contract",
+      );
+    }
+    const tagListStyle = getComputedStyle(tagList);
+    if (
+      tagListStyle.paddingTop !== "8px" ||
+      tagListStyle.paddingRight !== "0px" ||
+      tagListStyle.paddingBottom !== "8px" ||
+      tagListStyle.paddingLeft !== "0px"
+    ) {
+      throw new Error("ThemeHero tag list must use 8px block padding only");
+    }
+    if (
+      Array.from(badges).some((badge) => {
+        const style = getComputedStyle(badge);
+        return (
+          badge.dataset.tone !== "dark" ||
+          badge.dataset.size !== "sm" ||
+          style.height !== "20px" ||
+          style.borderRadius !== "4px" ||
+          style.fontSize !== "12px" ||
+          style.lineHeight !== "16px"
+        );
+      })
+    ) {
+      throw new Error(
+        "ThemeHero keywords must default to compact sm Badge tones",
+      );
     }
     if (!copy.textContent?.includes("Gentle yet Effective")) {
       throw new Error("ThemeHero must keep selectable theme copy");
@@ -55,8 +120,30 @@ export const Showcase: Story = {
     if (!image.alt.trim()) {
       throw new Error("ThemeHero foreground artwork requires meaningful alt text");
     }
-    if (button.textContent?.trim() !== "Shop All Anua") {
-      throw new Error("ThemeHero must expose its primary action");
+    const primaryStyle = getComputedStyle(primaryButton);
+    const secondaryStyle = getComputedStyle(secondaryButton);
+    const actionsStyle = getComputedStyle(actions);
+    const actionsBox = actions.getBoundingClientRect();
+    const primaryBox = primaryButton.getBoundingClientRect();
+    const secondaryBox = secondaryButton.getBoundingClientRect();
+    if (
+      primaryButton.textContent?.trim() !== "Shop Products" ||
+      secondaryButton.textContent?.trim() !== "Explore More" ||
+      actions.dataset.actionCount !== "2" ||
+      actionsStyle.display !== "flex" ||
+      actionsStyle.paddingTop !== "16px" ||
+      actionsStyle.paddingBottom !== "16px" ||
+      Math.abs(actionsBox.width - primaryBox.width - secondaryBox.width - 8) > 1 ||
+      actionsBox.width >= copy.getBoundingClientRect().width ||
+      primaryStyle.backgroundColor !== "rgb(255, 255, 255)" ||
+      primaryStyle.borderRadius !== "9999px" ||
+      secondaryStyle.borderTopWidth !== "1px" ||
+      secondaryStyle.borderTopStyle !== "solid" ||
+      secondaryStyle.borderRadius !== "9999px"
+    ) {
+      throw new Error(
+        "ThemeHero must expose content-width full-round actions with 16px block padding, a white primary and outlined secondary",
+      );
     }
 
     await new Promise<void>((resolve) => {
@@ -141,6 +228,7 @@ export const Showcase: Story = {
 
 export const Mobile: Story = {
   globals: { viewport: { value: "yamiMobile", isRotated: false } },
+  args: { tagSize: "md" },
   play: async ({ canvasElement }) => {
     const hero = canvasElement.querySelector<HTMLElement>(
       '[data-slot="theme-hero"]',
@@ -149,7 +237,22 @@ export const Mobile: Story = {
       '[data-slot="theme-hero-copy"]',
     );
     const title = copy?.querySelector<HTMLElement>("h2");
-    const description = copy?.querySelector<HTMLElement>("div");
+    const description = copy?.querySelector<HTMLElement>(
+      '[data-slot="theme-hero-description"]',
+    );
+    const tagList = copy?.querySelector<HTMLElement>(
+      '[data-slot="theme-hero-tags"]',
+    );
+    const badges = tagList?.querySelectorAll<HTMLElement>('[data-slot="badge"]');
+    const actions = copy?.querySelector<HTMLElement>(
+      '[data-slot="theme-hero-actions"]',
+    );
+    const primaryButton = actions?.querySelector<HTMLButtonElement>(
+      '[data-action="primary"]',
+    );
+    const secondaryButton = actions?.querySelector<HTMLButtonElement>(
+      '[data-action="secondary"]',
+    );
     const media = canvasElement.querySelector<HTMLElement>(
       '[data-slot="theme-hero-media"]',
     );
@@ -160,18 +263,20 @@ export const Mobile: Story = {
     const scrim = canvasElement.querySelector<HTMLElement>(
       '[data-slot="theme-hero-scrim"]',
     );
-    const cta = copy?.querySelector<HTMLElement>("div:last-child");
-
     if (
       !hero ||
       !copy ||
       !title ||
       !description ||
+      !tagList ||
+      badges?.length !== 3 ||
+      !actions ||
+      !primaryButton ||
+      !secondaryButton ||
       !media ||
       !image ||
       !atmosphere ||
-      !scrim ||
-      !cta
+      !scrim
     ) {
       throw new Error("Mobile ThemeHero did not render its visual layers");
     }
@@ -181,9 +286,19 @@ export const Mobile: Story = {
     const copyStyles = getComputedStyle(copy);
     const titleStyles = getComputedStyle(title);
     const descriptionStyles = getComputedStyle(description);
+    const tagListStyles = getComputedStyle(tagList);
+    const badgeStyles = Array.from(badges, (badge) => getComputedStyle(badge));
+    const actionsStyles = getComputedStyle(actions);
+    const actionsBox = actions.getBoundingClientRect();
+    const primaryButtonStyles = getComputedStyle(primaryButton);
+    const secondaryButtonStyles = getComputedStyle(secondaryButton);
     const mediaStyles = getComputedStyle(media);
     const imageStyles = getComputedStyle(image);
     const scrimStyles = getComputedStyle(scrim);
+    const copyContentWidth =
+      copy.getBoundingClientRect().width -
+      Number.parseFloat(copyStyles.paddingLeft) -
+      Number.parseFloat(copyStyles.paddingRight);
 
     if (
       heroBox.height < 359 ||
@@ -193,15 +308,35 @@ export const Mobile: Story = {
       copyStyles.position !== "absolute" ||
       copyStyles.justifyContent !== "flex-end" ||
       titleStyles.fontSize !== "24px" ||
+      descriptionStyles.fontSize !== "14px" ||
+      descriptionStyles.lineHeight !== "20px" ||
       descriptionStyles.webkitLineClamp !== "3" ||
+      tagListStyles.paddingTop !== "8px" ||
+      tagListStyles.paddingBottom !== "8px" ||
+      badgeStyles.some(
+        (style) =>
+          style.height !== "20px" ||
+          style.borderRadius !== "4px" ||
+          style.fontSize !== "12px" ||
+          style.lineHeight !== "16px",
+      ) ||
+      Array.from(badges).some((badge) => badge.dataset.size !== "md") ||
+      actionsStyles.paddingTop !== "8px" ||
+      actionsStyles.paddingBottom !== "8px" ||
+      actionsStyles.display !== "flex" ||
+      actionsStyles.flexWrap !== "nowrap" ||
+      Math.abs(actionsBox.width - copyContentWidth) > 1 ||
+      primaryButtonStyles.flexGrow !== "1" ||
+      secondaryButtonStyles.flexGrow !== "1" ||
+      primaryButtonStyles.borderRadius !== "9999px" ||
+      secondaryButtonStyles.borderRadius !== "9999px" ||
       mediaStyles.position !== "absolute" ||
       imageStyles.objectFit !== "cover" ||
       getComputedStyle(atmosphere).display !== "none" ||
-      !scrimStyles.backgroundImage.includes("linear-gradient") ||
-      getComputedStyle(cta).paddingTop !== "0px"
+      !scrimStyles.backgroundImage.includes("linear-gradient")
     ) {
       throw new Error(
-        "Mobile ThemeHero must use a full-bleed image with bottom-aligned copy and a contrast scrim",
+        "Mobile ThemeHero must use a full-bleed image with bottom-aligned copy, 8px-padded full-width distributed actions and a contrast scrim",
       );
     }
   },

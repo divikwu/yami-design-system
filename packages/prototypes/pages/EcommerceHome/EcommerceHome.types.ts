@@ -41,6 +41,7 @@ export type EcommerceHomeSection =
 
 export interface EcommerceHomeProps
   extends Omit<ComponentProps<"div">, "children"> {
+  contentMaxWidth?: number | string;
   header: HeaderProps;
   hero: HeroBannerProps;
   shortcutRail: ShortcutRailProps;

@@ -6,7 +6,9 @@ import type {
   ShortcutRailProps,
 } from "./ShortcutRail.types";
 import {
+  createFullBleedShortcutItems,
   createShortcutItems,
+  fullBleedShortcutEntries,
   shortcutCopy,
   type ShortcutLocale,
 } from "./fixtures";
@@ -43,22 +45,47 @@ const meta = {
       },
     },
   },
-  args: getProps("zh"),
+  argTypes: {
+    dividerPosition: {
+      control: "inline-radio",
+      options: ["top", "bottom", "none"],
+    },
+    dividerVariant: {
+      control: "inline-radio",
+      options: ["gray", "black"],
+    },
+  },
+  args: {
+    ...getProps("zh"),
+    dividerPosition: "none",
+    dividerVariant: "gray",
+  },
 } satisfies Meta<typeof ShortcutRail>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Showcase: Story = {
-  render: (_args, { globals }) => {
+  render: (args, { globals }) => {
     const locale = localeFromGlobals(globals.locale);
-    return <ShortcutRail {...getProps(locale)} />;
+    return (
+      <ShortcutRail
+        {...getProps(locale)}
+        dividerPosition={args.dividerPosition}
+        dividerVariant={args.dividerVariant}
+      />
+    );
   },
   play: async ({ canvasElement }) => {
+    const container = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="shortcut-rail-container"]',
+    );
     const list = canvasElement.querySelector<HTMLElement>(
       '[data-slot="shortcut-rail-list"]',
     );
-    if (!list) throw new Error("Shortcut rail list did not render");
+    if (!container || !list) {
+      throw new Error("Shortcut rail list did not render");
+    }
 
     const links = canvasElement.querySelectorAll(
       '[data-slot="shortcut-rail-link"]',
@@ -67,13 +94,16 @@ export const Showcase: Story = {
       throw new Error(`Expected 23 shortcut links, got ${links.length}`);
     }
 
+    const containerStyle = getComputedStyle(container);
     const listStyle = getComputedStyle(list);
     if (
-      listStyle.paddingTop !== "24px" ||
-      listStyle.paddingBottom !== "24px"
+      containerStyle.paddingTop !== "32px" ||
+      containerStyle.paddingBottom !== "32px" ||
+      listStyle.paddingTop !== "0px" ||
+      listStyle.paddingBottom !== "0px"
     ) {
       throw new Error(
-        `Shortcut rail must use 24px block padding, got ${listStyle.paddingTop} ${listStyle.paddingBottom}`,
+        "Shortcut rail container must own the vertical section spacing",
       );
     }
 
@@ -130,6 +160,188 @@ export const Showcase: Story = {
   },
 };
 
+export const TitledGray: Story = {
+  name: "Titled — Gray Surface",
+  args: {
+    dividerPosition: "bottom",
+    dividerVariant: "black",
+  },
+  render: (args, { globals }) => {
+    const locale = localeFromGlobals(globals.locale);
+    return (
+      <ShortcutRail
+        {...getProps(locale)}
+        title={locale === "en" ? "Featured shortcuts" : "热门分类"}
+        dividerPosition={args.dividerPosition}
+        dividerVariant={args.dividerVariant}
+      />
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const root = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="shortcut-rail"]',
+    );
+    const surface = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="shortcut-rail-surface"]',
+    );
+    const container = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="shortcut-rail-container"]',
+    );
+    const title = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="shortcut-rail-title"]',
+    );
+    const railBody = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="shortcut-rail-body"]',
+    );
+    const list = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="shortcut-rail-list"]',
+    );
+    const iconSurface = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="shortcut-rail-link"] > span',
+    );
+    if (
+      !root ||
+      !surface ||
+      !container ||
+      !title ||
+      !railBody ||
+      !list ||
+      !iconSurface
+    ) {
+      throw new Error("Titled Shortcut Rail must render its title and list");
+    }
+    const rootStyle = getComputedStyle(root);
+    const surfaceStyle = getComputedStyle(surface);
+    const containerStyle = getComputedStyle(container);
+    const titleStyle = getComputedStyle(title);
+    const listStyle = getComputedStyle(list);
+    const iconSurfaceStyle = getComputedStyle(iconSurface);
+    if (
+      root.dataset.hasTitle !== "true" ||
+      root.dataset.dividerPosition !== "bottom" ||
+      root.dataset.dividerVariant !== "black" ||
+      surface.parentElement !== root ||
+      container.parentElement !== surface ||
+      surfaceStyle.width !== rootStyle.width ||
+      surfaceStyle.borderTopWidth !== "0px" ||
+      surfaceStyle.borderBottomWidth !== "2px" ||
+      title.parentElement !== container ||
+      railBody.parentElement !== container ||
+      containerStyle.maxWidth !== "1920px" ||
+      containerStyle.marginLeft !== containerStyle.marginRight ||
+      containerStyle.paddingTop !== "32px" ||
+      containerStyle.paddingBottom !== "32px" ||
+      containerStyle.paddingLeft !== "48px" ||
+      containerStyle.paddingRight !== "48px" ||
+      title.textContent?.trim().length === 0 ||
+      titleStyle.textAlign !== "left" ||
+      titleStyle.fontWeight !== "400" ||
+      titleStyle.paddingTop !== "0px" ||
+      titleStyle.paddingRight !== "4px" ||
+      titleStyle.paddingBottom !== "0px" ||
+      titleStyle.paddingLeft !== "4px" ||
+      listStyle.justifyContent !== "flex-start" ||
+      listStyle.padding !== "0px" ||
+      surfaceStyle.backgroundColor === "rgba(0, 0, 0, 0)" ||
+      iconSurfaceStyle.backgroundColor === surfaceStyle.backgroundColor
+    ) {
+      throw new Error("Titled Shortcut Rail must be left aligned on a gray surface");
+    }
+  },
+};
+
+export const FullBleedImages: Story = {
+  name: "Full-bleed Images",
+  globals: {
+    viewport: { value: "yamiMobile", isRotated: false },
+  },
+  render: (args, { globals }) => {
+    const locale = localeFromGlobals(globals.locale);
+    const props = getProps(locale);
+    return (
+      <ShortcutRail
+        {...props}
+        title={locale === "en" ? "Featured shortcuts" : "热门分类"}
+        items={createFullBleedShortcutItems()}
+        dividerPosition={args.dividerPosition}
+        dividerVariant={args.dividerVariant}
+      />
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const root = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="shortcut-rail"]',
+    );
+    const railBody = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="shortcut-rail-body"]',
+    );
+    const title = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="shortcut-rail-title"]',
+    );
+    const links = canvasElement.querySelectorAll<HTMLElement>(
+      '[data-slot="shortcut-rail-link"]',
+    );
+    const list = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="shortcut-rail-list"]',
+    );
+    const images = canvasElement.querySelectorAll<HTMLElement>(
+      '[data-image-presentation="full-bleed"] img',
+    );
+    const rootRect = root?.getBoundingClientRect();
+    const railBodyRect = railBody?.getBoundingClientRect();
+    const listStyle = list ? getComputedStyle(list) : null;
+    if (
+      !root ||
+      !railBody ||
+      !title ||
+      !list ||
+      !rootRect ||
+      !railBodyRect ||
+      !listStyle ||
+      root.dataset.railPresentation !== "full-bleed" ||
+      canvasElement.querySelector('[data-slot="shortcut-rail-progress"]') ||
+      getComputedStyle(root).overflow !== "hidden" ||
+      getComputedStyle(title).paddingLeft !== "4px" ||
+      getComputedStyle(title).paddingRight !== "4px" ||
+      listStyle.overflowX !== "auto" ||
+      listStyle.paddingLeft !== "16px" ||
+      listStyle.paddingRight !== "16px" ||
+      Math.abs(railBodyRect.left - rootRect.left) > 1 ||
+      Math.abs(railBodyRect.right - rootRect.right) > 1 ||
+      list.scrollWidth <= list.clientWidth ||
+      images.length !== fullBleedShortcutEntries.length
+    ) {
+      throw new Error(
+        "Full-bleed mobile shortcuts must reach the viewport edges and remain scrollable without a progress bar",
+      );
+    }
+    const expectedImageSize =
+      canvasElement.getBoundingClientRect().width < 1024 ? "56px" : "80px";
+    if (
+      Array.from(images).some((image) => {
+        const style = getComputedStyle(image);
+        return (
+          style.width !== expectedImageSize ||
+          style.height !== expectedImageSize ||
+          style.objectFit !== "cover"
+        );
+      })
+    ) {
+      throw new Error("Full-bleed shortcut images must fill and crop the circular surface");
+    }
+    fullBleedShortcutEntries.forEach(([label, assetId], index) => {
+      const image = links[index]?.querySelector<HTMLImageElement>("img");
+      const src = `https://cdn.yamibuy.net/item/${assetId}_300x300.webp`;
+      if (
+        links[index]?.textContent?.trim() !== label ||
+        image?.src !== src
+      ) {
+        throw new Error(`Full-bleed shortcut ${index + 1} must use ${label}`);
+      }
+    });
+  },
+};
+
 export const CompactViewport: Story = {
   name: "Mobile — 1 Line",
   globals: {
@@ -142,13 +354,72 @@ export const CompactViewport: Story = {
     docs: {
       description: {
         story:
-          "Below 1024px the rail becomes the mobile card from Figma `3183:34141`: smaller entries, a paging thumb instead of edge buttons, and a width that divides the card by `min(5, max(4, count))` — so a long list always breaks the fifth entry at the edge.",
+          "Below 1024px the rail keeps a full-width plain surface with smaller entries, a paging thumb instead of edge buttons, and a width that divides the rail by `min(5, max(4, count))` — so a long list always breaks the fifth entry at the edge.",
       },
     },
   },
-  render: (_args, { globals }) => {
+  render: (args, { globals }) => {
     const locale = localeFromGlobals(globals.locale);
-    return <ShortcutRail {...getProps(locale)} />;
+    return (
+      <ShortcutRail
+        {...getProps(locale)}
+        title={locale === "en" ? "Featured shortcuts" : "热门分类"}
+        dividerPosition={args.dividerPosition}
+        dividerVariant={args.dividerVariant}
+      />
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const root = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="shortcut-rail"]',
+    );
+    const title = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="shortcut-rail-title"]',
+    );
+    const container = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="shortcut-rail-container"]',
+    );
+    const railBody = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="shortcut-rail-body"]',
+    );
+    const list = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="shortcut-rail-list"]',
+    );
+    if (!root || !container || !title || !railBody || !list) {
+      throw new Error("Mobile Shortcut Rail did not render");
+    }
+    const rootStyle = getComputedStyle(root);
+    const containerStyle = getComputedStyle(container);
+    const titleStyle = getComputedStyle(title);
+    const listStyle = getComputedStyle(list);
+    if (
+      root.dataset.mobileSurface !== "plain" ||
+      Math.abs(
+        root.getBoundingClientRect().width -
+          canvasElement.getBoundingClientRect().width,
+      ) > 1 ||
+      rootStyle.marginLeft !== "0px" ||
+      rootStyle.marginRight !== "0px" ||
+      rootStyle.borderRadius !== "0px" ||
+      title.parentElement !== container ||
+      railBody.parentElement !== container ||
+      containerStyle.paddingLeft !== "16px" ||
+      containerStyle.paddingRight !== "16px" ||
+      containerStyle.paddingTop !== "16px" ||
+      containerStyle.paddingBottom !== "16px" ||
+      titleStyle.paddingLeft !== "4px" ||
+      titleStyle.paddingRight !== "4px" ||
+      titleStyle.paddingTop !== "0px" ||
+      titleStyle.paddingBottom !== "0px" ||
+      listStyle.paddingLeft !== "0px" ||
+      listStyle.paddingRight !== "0px" ||
+      listStyle.paddingTop !== "0px" ||
+      listStyle.paddingBottom !== "0px"
+    ) {
+      throw new Error(
+        "Mobile Shortcut Rail must use the full-width plain surface",
+      );
+    }
   },
 };
 
@@ -165,8 +436,15 @@ export const MobileTwoLines: Story = {
       },
     },
   },
-  render: (_args, { globals }) => {
+  render: (args, { globals }) => {
     const locale = localeFromGlobals(globals.locale);
-    return <ShortcutRail {...getProps(locale)} lines={2} />;
+    return (
+      <ShortcutRail
+        {...getProps(locale)}
+        lines={2}
+        dividerPosition={args.dividerPosition}
+        dividerVariant={args.dividerVariant}
+      />
+    );
   },
 };

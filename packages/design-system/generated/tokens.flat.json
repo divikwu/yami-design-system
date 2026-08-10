@@ -1321,6 +1321,14 @@
     },
     "$description": "品牌字体，适用于英文标题与营销文案。中文正文需搭配指定 fallback，不建议直接作为全局正文字体。"
   },
+  "font-family.serif": {
+    "$type": "fontFamily",
+    "$value": {
+      "EN": "Source Serif 4",
+      "CN": "Source Han Serif SC"
+    },
+    "$description": "衬线展示字体，适用于 display 与 heading-md serif 变体，不用于正文或功能性文字。"
+  },
   "font-family.win": {
     "$type": "fontFamily",
     "$value": {
@@ -1344,6 +1352,14 @@
       "CN": "Regular"
     },
     "$description": "默认字重，适用于正文与说明信息。不用于强调信息、价格主信息或标题层级。"
+  },
+  "font-weight.semibold": {
+    "$type": "fontWeight",
+    "$value": {
+      "EN": "SemiBold",
+      "CN": "SemiBold"
+    },
+    "$description": "衬线标题字重，适用于 heading-md serif 变体，不用于正文。"
   },
   "heading-2xl.font-size": {
     "$type": "dimension",

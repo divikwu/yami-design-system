@@ -152,6 +152,16 @@
   height: auto;
   max-height: 192px;
   object-fit: cover;
+  transition: opacity 240ms ease-out;
+}
+
+.banner img[data-image-state="pending"],
+.banner img[data-image-state="error"] {
+  opacity: 0;
+}
+
+.banner img[data-image-state="loaded"] {
+  opacity: 1;
 }
 
 .banner picture {
@@ -299,6 +309,7 @@
 .loadMore {
   display: flex;
   justify-content: center;
+  padding-block: var(--space-100);
   width: 100%;
 }
 
@@ -663,7 +674,8 @@
 
   .root[data-layout="waterfall"] .list {
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: var(--space-200);
+    column-gap: var(--space-200);
+    row-gap: var(--space-300);
     padding: var(--space-050) 0 0;
   }
 }
@@ -710,6 +722,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .banner img {
+    transition: none;
+  }
+
   .skeletonMedia,
   .skeletonLine,
   .skeletonLineShort,

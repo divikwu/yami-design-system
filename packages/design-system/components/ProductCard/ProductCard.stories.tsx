@@ -124,6 +124,13 @@ export const Showcase: Story = {
       throw new Error("Standard ProductCard content padding must be 8px");
     }
 
+    const ranking = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-card-ranking"]',
+    );
+    if (!ranking || getComputedStyle(ranking).height !== "24px") {
+      throw new Error("ProductCard ranking row must be 24px high");
+    }
+
     const slots = ["product-card-rating", "product-card-price"];
 
     for (const slot of slots) {
@@ -140,6 +147,15 @@ export const Showcase: Story = {
       );
       if (!hit || hit.closest("a")) {
         throw new Error(`ProductCard ${slot} is covered by a link hit target`);
+      }
+      if (getComputedStyle(element).fontVariantNumeric !== "normal") {
+        throw new Error(`ProductCard ${slot} must use default proportional numerals`);
+      }
+      if (slot === "product-card-price") {
+        const style = getComputedStyle(element);
+        if (style.alignItems !== "center" || style.columnGap !== "4px") {
+          throw new Error("ProductCard price row must center items with a 4px gap");
+        }
       }
     }
 

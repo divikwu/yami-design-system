@@ -140,6 +140,12 @@
       "path": "registry-items/tabs.json"
     },
     {
+      "name": "tag",
+      "title": "Tag",
+      "type": "component",
+      "path": "registry-items/tag.json"
+    },
+    {
       "name": "theme-hero",
       "title": "ThemeHero",
       "type": "component",

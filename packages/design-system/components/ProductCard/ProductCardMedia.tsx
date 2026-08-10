@@ -7,6 +7,11 @@ import {
 
 import { AspectRatio } from "../AspectRatio";
 import { Badge } from "../Badge";
+import {
+  handleProgressiveImageError,
+  handleProgressiveImageLoad,
+  prepareProgressiveImage,
+} from "../progressiveImage";
 
 import styles from "./ProductCard.module.css";
 import { ProductCardAddButton } from "./ProductCardAddButton";
@@ -61,6 +66,7 @@ export function ProductCardMedia({
       >
         {image ? (
           <img
+            ref={prepareProgressiveImage}
             src={image}
             alt={imageAlt ?? ""}
             width={1}
@@ -69,6 +75,8 @@ export function ProductCardMedia({
             decoding="async"
             fetchPriority={imageFetchPriority}
             className={styles.image}
+            onLoad={handleProgressiveImageLoad}
+            onError={handleProgressiveImageError}
           />
         ) : (
           <span

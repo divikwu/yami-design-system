@@ -4,7 +4,7 @@
   "category": "navigation",
   "status": "stable",
   "version": "0.1.0",
-  "description": "Responsive YAMI shortcut navigation rail with circular image icons, localized labels, native scrolling, and overflow-aware paging controls.",
+  "description": "Responsive YAMI shortcut navigation rail with circular image icons, localized labels, native scrolling, overflow-aware paging controls, an optional left-aligned titled gray surface, and an always-plain full-width mobile surface.",
   "figma": {
     "nodeId": null,
     "componentKey": null,
@@ -20,7 +20,24 @@
     "items": {
       "type": "ShortcutRailItem[]",
       "required": true,
-      "description": "Ordered shortcut destinations with stable IDs, labels, icon sources, and hrefs."
+      "description": "Ordered shortcut destinations with stable IDs, labels, icon sources, hrefs, and an optional icon or full-bleed image presentation."
+    },
+    "title": {
+      "type": "ReactNode",
+      "required": false,
+      "description": "Optional visible section title. When present, the rail uses the left-aligned gray-surface treatment and the title labels the navigation region."
+    },
+    "dividerPosition": {
+      "type": "\"top\" | \"bottom\" | \"none\"",
+      "required": false,
+      "default": "none",
+      "description": "Optional full-width surface divider edge."
+    },
+    "dividerVariant": {
+      "type": "\"gray\" | \"black\"",
+      "required": false,
+      "default": "gray",
+      "description": "Divider color and width treatment: gray is 1px and black is 2px emphasis."
     },
     "ariaLabel": {
       "type": "string",
@@ -74,14 +91,21 @@
     "--surface-secondary",
     "--text-primary",
     "--border-default",
+    "--divider-emphasis",
     "--border-focus",
+    "--stroke-default",
     "--stroke-thick",
     "--radius-full",
     "--radius-component-default",
     "--font-family-ios",
     "--font-weight-normal",
+    "--font-weight-semibold",
     "--font-size-caption-md",
+    "--font-size-heading-xl",
+    "--font-size-heading-2xl",
     "--line-height-caption-md",
+    "--line-height-heading-xl",
+    "--line-height-heading-2xl",
     "--layout-page-margin-default",
     "--space-050",
     "--space-100",
@@ -95,11 +119,11 @@
   "tokenBindings": {
     "--surface-primary": {
       "property": "background and edge gradient",
-      "selector": ".root, .mask"
+      "selector": ".root, .mask, and titled .iconSurface"
     },
     "--surface-secondary": {
       "property": "background",
-      "selector": ".iconSurface"
+      "selector": ".iconSurface, .root[data-has-title='true'] and its edge mask"
     },
     "--radius-full": {
       "property": "border-radius",
@@ -127,8 +151,8 @@
     "wcagLevel": "AA",
     "tapTargetMin": 44,
     "keyboardNav": ["tab", "shift+tab", "enter"],
-    "ariaPattern": "nav with list/listitem links and optional previous/next buttons",
-    "structure": "Visible labels provide link names; decorative icon images use empty alt text.",
+    "ariaPattern": "nav with list/listitem links, optional visible title, and optional previous/next buttons",
+    "structure": "A supplied title labels the navigation region; otherwise ariaLabel is used. Visible labels provide link names and decorative icon images use empty alt text.",
     "interaction": "Mobile uses native horizontal scrolling. Desktop adds overflow-aware paging controls over functional edge masks."
   },
   "dependencies": {

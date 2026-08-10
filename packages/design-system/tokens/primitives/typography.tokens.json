@@ -16,6 +16,14 @@
         "CN": "Medium"
       },
       "$description": "强调字重，适用于重点信息、价格与短标题。不用于长正文，也不替代标题层级。"
+    },
+    "semibold": {
+      "$type": "fontWeight",
+      "$value": {
+        "EN": "SemiBold",
+        "CN": "SemiBold"
+      },
+      "$description": "衬线标题字重，适用于 heading-md serif 变体，不用于正文。"
     }
   },
   "font-family": {
@@ -42,6 +50,17 @@
         "CN": "Noto Sans SC"
       },
       "$description": "Android 中文系统字体回退，适用于中文内容与系统原生体验场景。"
+    },
+    "serif": {
+      "$type": "fontFamily",
+      "$value": {
+        "EN": "Source Serif 4",
+        "CN": "Source Han Serif SC"
+      },
+      "$description": "衬线展示字体，适用于 display 与 heading-md serif 变体，不用于正文或功能性文字。",
+      "$extensions": {
+        "com.yami.generic-family": "serif"
+      }
     }
   },
   "letter-spacing": {

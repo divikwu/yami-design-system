@@ -7,8 +7,11 @@
   "source": "components/ReviewList",
   "files": [
     "components/ReviewList/assets/anua-heartleaf-77-toner.png",
+    "components/ReviewList/assets/anua-heartleaf-77-toner.webp",
     "components/ReviewList/assets/anua-heartleaf-cleansing-foam.png",
+    "components/ReviewList/assets/anua-heartleaf-cleansing-foam.webp",
     "components/ReviewList/assets/anua-niacinamide-txa.png",
+    "components/ReviewList/assets/anua-niacinamide-txa.webp",
     "components/ReviewList/fixtures.ts",
     "components/ReviewList/index.ts",
     "components/ReviewList/ReviewCard.tsx",

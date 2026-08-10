@@ -79,14 +79,33 @@ export const Showcase: Story = {
     const overlay = content?.querySelector<HTMLElement>(
       '[data-slot="theme-product-list-overlay"]',
     );
+    const contentTitle = overlay?.querySelector<HTMLElement>("h3");
+    const contentDescription = overlay?.querySelector<HTMLElement>("p");
 
-    if (!themeList || !list || !content || !image || !overlay) {
+    if (
+      !themeList ||
+      !list ||
+      !content ||
+      !image ||
+      !overlay ||
+      !contentTitle ||
+      !contentDescription
+    ) {
       throw new Error(
         "ThemeProductList must render its content panel, image, overlay and product rail",
       );
     }
     if (!image.alt.trim() || !overlay.textContent?.includes("Start Fresh")) {
       throw new Error("ThemeProductList content requires meaningful copy and alt text");
+    }
+    const expectedTitleSize = window.innerWidth >= 1440 ? "20px" : "18px";
+    if (getComputedStyle(contentTitle).fontSize !== expectedTitleSize) {
+      throw new Error(
+        `ThemeProductList content title must use heading-md (${expectedTitleSize})`,
+      );
+    }
+    if (getComputedStyle(contentDescription).fontWeight !== "400") {
+      throw new Error("ThemeProductList description must remain regular at weight 400");
     }
     if (list.firstElementChild?.getAttribute("data-slot") !== "product-list-leading-content") {
       throw new Error("ThemeProductList content must reserve the first rail position");

@@ -3,17 +3,82 @@
  * control, matching the existing Header category rail treatment. */
 
 .root {
+  --section-divider-color: var(--border-default);
+  --section-divider-width: var(--stroke-default);
+
   position: relative;
   box-sizing: border-box;
   width: 100%;
 
-  /* How far the band overflows the 1920px content box on one side — 0 below
-   * 1920, half the excess above it. */
-  --shortcut-rail-edge-offset: max(0px, calc((100% - 1920px) / 2));
   overflow: hidden;
   color: var(--text-primary);
-  background: var(--surface-primary);
   font-family: var(--font-family-ios);
+}
+
+.root[data-divider-variant="black"] {
+  --section-divider-color: var(--divider-emphasis);
+  --section-divider-width: var(--stroke-thick);
+}
+
+.surface {
+  box-sizing: border-box;
+  width: 100%;
+  border: 0;
+  background: var(--surface-primary);
+}
+
+.root[data-has-title="true"] .surface {
+  background: var(--surface-secondary);
+}
+
+.root[data-divider-position="top"] .surface {
+  border-top: var(--section-divider-width) solid var(--section-divider-color);
+}
+
+.root[data-divider-position="bottom"] .surface {
+  border-bottom: var(--section-divider-width) solid var(--section-divider-color);
+}
+
+.container {
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1920px;
+  flex-direction: column;
+  gap: var(--space-300);
+  margin-inline: auto;
+  padding-block: var(--space-400);
+  padding-inline: var(--layout-page-margin-default);
+}
+
+.title {
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
+  padding-block: 0;
+  padding-inline: var(--space-050);
+  font-size: var(--font-size-heading-2xl);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-heading-2xl);
+  text-align: left;
+}
+
+.railBody {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.root[data-has-title="true"] .list {
+  justify-content: flex-start;
+}
+
+.root[data-has-title="true"] .iconSurface {
+  background: var(--surface-primary);
+}
+
+.root[data-has-title="true"] .mask {
+  background: linear-gradient(90deg, var(--surface-secondary) 50%, transparent);
 }
 
 /* The band runs full-bleed — its background and the section rule below it span
@@ -23,16 +88,13 @@
   display: flex;
   box-sizing: border-box;
   width: 100%;
-  max-width: 1920px;
   gap: var(--space-300);
   margin-block: 0;
-  margin-inline: auto;
-  padding-block: var(--space-300);
-  padding-inline: var(--layout-page-margin-default);
+  padding: 0;
   overflow-x: auto;
   list-style: none;
   scroll-behavior: smooth;
-  scroll-padding-inline: var(--layout-page-margin-default);
+  scroll-padding-inline: 0;
   scrollbar-width: none;
 }
 
@@ -75,7 +137,25 @@
   width: var(--space-600);
   height: var(--space-600);
   object-fit: contain;
-  transition: transform 150ms cubic-bezier(0.2, 0, 0, 1);
+  transition:
+    opacity 240ms ease-out,
+    transform 150ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.icon[data-image-state="pending"],
+.icon[data-image-state="error"] {
+  opacity: 0;
+}
+
+.icon[data-image-state="loaded"] {
+  opacity: 1;
+}
+
+.iconSurface[data-image-presentation="full-bleed"] .icon {
+  width: 100%;
+  height: 100%;
+  mix-blend-mode: normal;
+  object-fit: cover;
 }
 
 .iconSurface:hover .icon {
@@ -108,13 +188,11 @@
 .edgePrevious {
   left: 0;
   justify-content: flex-start;
-  padding-left: var(--layout-page-margin-default);
 }
 
 .edgeNext {
   right: 0;
   justify-content: flex-end;
-  padding-right: var(--layout-page-margin-default);
 }
 
 .mask {
@@ -131,8 +209,7 @@
   position: relative;
   z-index: 1;
   margin-top: calc(
-    var(--space-300) +
-      (var(--space-1000) - (var(--space-400) + var(--space-050))) / 2 -
+    (var(--space-1000) - (var(--space-400) + var(--space-050))) / 2 -
       var(--space-025)
   );
   pointer-events: auto;
@@ -145,24 +222,8 @@
 }
 
 @media (min-width: 1024px) {
-  .list {
+  .container {
     padding-inline: var(--space-600);
-    scroll-padding-inline: var(--space-600);
-  }
-
-  /* The paging buttons are anchored to the full-bleed band, so past 1920px they
-   * would drift out with the window while the entries they page stop at the
-   * content box. Sliding the whole edge in by the overflow — rather than
-   * growing its padding — keeps the button on the same line as the first and
-   * last entry without stretching the fade behind it. */
-  .edgePrevious {
-    left: var(--shortcut-rail-edge-offset);
-    padding-left: var(--space-600);
-  }
-
-  .edgeNext {
-    right: var(--shortcut-rail-edge-offset);
-    padding-right: var(--space-600);
   }
 }
 
@@ -182,10 +243,10 @@
 
 /* ------------------------------------------------- mobile (<1024px)
  *
- * Figma `3183:34141 quick access links - mobile`. A card rather than a
- * full-bleed band, with smaller entries (68 / 56 / 36 against PC's 80 / 80 /
- * 48) and a paging thumb in place of the edge buttons — controls no one taps
- * on touch.
+ * Figma `3183:34141 quick access links - mobile`. The surface stays plain and
+ * full width, with smaller entries (68 / 56 / 36 against PC's 80 / 80 / 48)
+ * and a paging thumb in place of the edge buttons — controls no one taps on
+ * touch.
  *
  * The entry keeps its Figma width and the viewport decides how many fit, with
  * four as the floor — see `--shortcut-rail-item-width` below.
@@ -196,18 +257,32 @@
 }
 
 @media (max-width: 1023.98px) {
-  /* A white card inset from a grey page, matching ProductList: same
-   * --layout-page-margin-card gutter and --radius-surface-default corner, so
-   * stacked sections line up down the page. */
   .root {
     --shortcut-rail-gap: var(--space-100);
+  }
 
-    width: calc(
-      100% - var(--layout-page-margin-card) - var(--layout-page-margin-card)
-    );
-    margin-inline: var(--layout-page-margin-card);
-    border-radius: var(--radius-surface-default);
-    background: var(--surface-primary);
+  /* Let the full-bleed image rail extend through the container gutter to the
+   * viewport edge. The list stays horizontally scrollable, so every fixed-size
+   * entry remains reachable without introducing page-level overflow. */
+  .root[data-rail-presentation="full-bleed"] .railBody {
+    width: calc(100% + var(--space-400));
+    margin-inline: calc(-1 * var(--space-200));
+  }
+
+  .root[data-rail-presentation="full-bleed"] .list {
+    padding-inline: var(--space-200);
+    scroll-padding-inline: var(--space-200);
+  }
+
+  .container {
+    gap: var(--space-150);
+    padding-block: var(--space-200);
+    padding-inline: var(--space-200);
+  }
+
+  .title {
+    font-size: var(--font-size-heading-xl);
+    line-height: var(--line-height-heading-xl);
   }
 
   .list {
@@ -230,12 +305,8 @@
     );
 
     gap: var(--shortcut-rail-gap);
-    /* 12 above the entries, 4 below: the paging thumb belongs to the row it
-     * pages, so it tucks close under the labels while the card keeps its 12px
-     * inset below the thumb. */
-    padding-block: var(--space-150) var(--space-050);
-    padding-inline: var(--space-100);
-    scroll-padding-inline: var(--space-100);
+    padding: 0;
+    scroll-padding-inline: 0;
     scroll-snap-type: inline mandatory;
   }
 
@@ -298,12 +369,12 @@
     display: none;
   }
 
-  /* The 4px above the thumb comes from .list's bottom padding; the card's own
-   * bottom inset below it stays at 12. */
+  /* Keep the paging thumb 4px below the labels; the container owns the outer
+   * bottom inset. */
   .progress {
     display: flex;
     justify-content: center;
-    padding-block: 0 var(--space-150);
+    padding-block: var(--space-050) 0;
   }
 
   .progressTrack {

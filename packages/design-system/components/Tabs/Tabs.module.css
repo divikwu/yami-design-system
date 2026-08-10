@@ -140,23 +140,39 @@
 
 .list[data-variant="primary"][data-style="a"] {
   min-height: 56px;
-  gap: var(--space-200);
-  padding-inline: var(--space-200);
+  gap: var(--space-300);
+  padding-inline: 0;
 }
 
 .list[data-variant="primary"][data-style="a"] .trigger {
   height: 56px;
   padding: 0;
   border-radius: var(--radius-component-none);
-  font-size: var(--font-size-heading-md);
-  line-height: var(--line-height-heading-md);
+  font-size: var(--font-size-body-xl);
+  line-height: var(--line-height-body-xl);
   font-weight: var(--font-weight-normal);
   color: var(--text-secondary);
+}
+
+.list[data-variant="primary"][data-style="a"] .trigger::after {
+  right: 0;
+  bottom: calc(
+    (56px - var(--line-height-body-xl)) / 2 - var(--space-050) -
+      var(--stroke-thick)
+  );
+  left: 0;
+  height: var(--stroke-thick);
+  background: currentColor;
 }
 
 .list[data-variant="primary"][data-style="a"] .trigger[data-state="active"] {
   color: var(--text-primary);
   font-weight: var(--font-weight-emphasize);
+}
+
+.list[data-variant="primary"][data-style="a"]
+  .trigger[data-state="active"]::after {
+  opacity: 1;
 }
 
 .list[data-inverse="true"][data-variant="primary"][data-style="a"] .trigger {

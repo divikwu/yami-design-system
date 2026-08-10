@@ -112,7 +112,7 @@ export function BrandProductRail({
       data-divider-position={dividerPosition}
       data-divider-variant={dividerVariant}
     >
-      <div className={styles.container}>
+      <div className={styles.container} data-slot="brand-product-rail-container">
         <div className={styles.header}>
           <SectionHeading
             id={titleId}

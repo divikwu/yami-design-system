@@ -1,0 +1,110 @@
+{
+  "$schema": "../../../schema/component.json",
+  "name": "Tag",
+  "category": "display",
+  "status": "experimental",
+  "version": "0.2.0",
+  "description": "Static 28px full-pill label for short descriptive keywords, with translucent filled and transparent 1px-outline dark and light tones.",
+  "figma": {
+    "nodeId": null,
+    "componentKey": null,
+    "notes": "Code-defined informational tag. It is distinct from the smaller status and promotion Badge component."
+  },
+  "variants": {
+    "tone": ["dark", "light", "dark-outline", "light-outline"]
+  },
+  "exports": ["Tag", "TagProps", "TagTone"],
+  "props": {
+    "tone": {
+      "type": "enum",
+      "values": ["dark", "light", "dark-outline", "light-outline"],
+      "required": false,
+      "default": "dark",
+      "description": "dark/light use translucent fills; dark-outline/light-outline use a transparent background with a 1px black or white stroke."
+    },
+    "children": {
+      "type": "ReactNode",
+      "required": false,
+      "description": "Short, non-interactive descriptive label."
+    }
+  },
+  "rules": {
+    "interaction": {
+      "ruleId": "display-only",
+      "note": "Tag is non-interactive. Use a shared interactive primitive for filters, navigation, or dismissal."
+    },
+    "radius": {
+      "ruleId": "no-custom-radii",
+      "note": "Uses --radius-full; do not override the pill geometry."
+    },
+    "contrast": {
+      "ruleId": "semantic-color-only",
+      "note": "Choose dark variants for light or mixed backgrounds and light variants for dark backgrounds. Outline tones rely directly on the underlying surface."
+    }
+  },
+  "tokens": [
+    "--color-black-600",
+    "--color-black-1000",
+    "--color-white-700",
+    "--color-white-1000",
+    "--font-family-ios",
+    "--font-size-body-md",
+    "--font-weight-normal",
+    "--line-height-body-md",
+    "--radius-full",
+    "--space-050",
+    "--space-150",
+    "--space-300",
+    "--stroke-default"
+  ],
+  "tokenBindings": {
+    "--color-black-600": {
+      "property": "background-color",
+      "selector": ".tag[data-tone='dark']"
+    },
+    "--color-white-1000": {
+      "property": "color / border-color",
+      "selector": ".tag[data-tone='dark'], .tag[data-tone='light-outline']"
+    },
+    "--color-white-700": {
+      "property": "background-color",
+      "selector": ".tag[data-tone='light']"
+    },
+    "--color-black-1000": {
+      "property": "color / border-color",
+      "selector": ".tag[data-tone='light'], .tag[data-tone='dark-outline']"
+    },
+    "--radius-full": {
+      "property": "border-radius",
+      "selector": ".tag"
+    },
+    "--space-150": {
+      "property": "padding-inline",
+      "selector": ".tag"
+    },
+    "--stroke-default": {
+      "property": "border-width",
+      "selector": ".tag"
+    }
+  },
+  "accessibility": {
+    "role": "implicit span",
+    "wcagLevel": "AA",
+    "tapTargetMin": 0,
+    "keyboardNav": [],
+    "ariaPattern": "plain text",
+    "notes": "Non-interactive content. Keep labels concise and select the tone that contrasts with the rendered background; outline variants have no contrast-providing fill."
+  },
+  "dependencies": {
+    "runtime": ["react"],
+    "peer": [],
+    "devOnly": ["@storybook/react-vite"]
+  },
+  "usageRef": "./usage.md",
+  "examples": [
+    "./examples.tsx#DarkTagExample",
+    "./examples.tsx#LightTagExample",
+    "./examples.tsx#DarkOutlineTagExample",
+    "./examples.tsx#LightOutlineTagExample"
+  ]
+}

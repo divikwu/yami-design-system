@@ -71,6 +71,7 @@ const TYPOGRAPHY_SECTIONS: Array<{ category: TypographyCategory; label: string }
   { category: "link", label: "link" },
   { category: "commerce", label: "commerce" },
 ]
+const SERIF_SPECIMEN_NAMES = ["display-xl", "display-md", "display-sm", "heading-md"] as const
 
 function typographySpecimens(doc: TokensJsonDoc): TypographySpecimen[] {
   const specimens = new Map<string, TypographySpecimen>()
@@ -158,9 +159,17 @@ function TypographyGrid({ children }: { children: React.ReactNode }) {
   )
 }
 
-function TypographySpecimenCard({ specimen }: { specimen: TypographySpecimen }) {
+function TypographySpecimenCard({
+  specimen,
+  variant = "sans",
+}: {
+  specimen: TypographySpecimen
+  variant?: "sans" | "serif"
+}) {
   const previewFontSize = fallbackValue(specimen.fontSize) ?? "16px"
   const previewLineHeight = fallbackValue(specimen.lineHeight) ?? "24px"
+  const isSerif = variant === "serif"
+  const styleName = isSerif ? `${specimen.name}-serif` : specimen.name
 
   return (
     <article style={tokenStoryStyles.card}>
@@ -175,21 +184,26 @@ function TypographySpecimenCard({ specimen }: { specimen: TypographySpecimen }) 
         }}
       >
         <div
+          data-typography-serif={isSerif ? styleName : undefined}
           style={{
             color: "var(--text-primary, var(--foreground, #222))",
-            fontFamily: "var(--font-family-ios, var(--font-sans, system-ui, sans-serif))",
+            fontFamily: isSerif
+              ? "var(--font-family-serif, serif)"
+              : "var(--font-family-ios, var(--font-sans, system-ui, sans-serif))",
             fontSize: previewFontSize,
-            fontWeight: specimenWeight(specimen),
+            fontWeight: isSerif
+              ? "var(--font-weight-semibold, 600)"
+              : specimenWeight(specimen),
             letterSpacing: 0,
             lineHeight: previewLineHeight,
           }}
         >
           {PREVIEW_COPY}
         </div>
-        <span style={tokenStoryStyles.caption}>{specimen.name}</span>
+        <span style={tokenStoryStyles.caption}>{styleName}</span>
       </div>
       <div style={tokenStoryStyles.cardBody}>
-        <strong style={tokenStoryStyles.tokenName}>{specimen.name}</strong>
+        <strong style={tokenStoryStyles.tokenName}>{styleName}</strong>
         <div
           style={{
             display: "grid",
@@ -223,6 +237,23 @@ function TypographySpecimenCard({ specimen }: { specimen: TypographySpecimen }) 
   )
 }
 
+function TypographySerifSection() {
+  const specimens = SERIF_SPECIMEN_NAMES.map((name) => TYPOGRAPHY_SPECIMENS.find((item) => item.name === name)).filter(
+    (specimen): specimen is TypographySpecimen => specimen !== undefined,
+  )
+
+  return (
+    <section style={{ display: "grid", gap: "var(--space-100, 8px)" }}>
+      <TokenHeading>serif variants</TokenHeading>
+      <TypographyGrid>
+        {specimens.map((specimen) => (
+          <TypographySpecimenCard key={`${specimen.name}-serif`} specimen={specimen} variant="serif" />
+        ))}
+      </TypographyGrid>
+    </section>
+  )
+}
+
 function TypographySection({ category, label }: { category: TypographyCategory; label: string }) {
   const specimens = TYPOGRAPHY_SPECIMENS.filter((specimen) => specimen.category === category)
   if (specimens.length === 0) return null
@@ -242,9 +273,26 @@ function TypographySection({ category, label }: { category: TypographyCategory; 
 export const Overview: Story = {
   render: () => (
     <TokenStoryFrame title="typography" intro="Typography foundation tokens are rendered from tokens.json source references.">
+      <TypographySerifSection />
       {TYPOGRAPHY_SECTIONS.map((section) => (
         <TypographySection category={section.category} key={section.category} label={section.label} />
       ))}
     </TokenStoryFrame>
   ),
+  play: async ({ canvasElement }) => {
+    const serifStyles = Array.from(canvasElement.querySelectorAll<HTMLElement>("[data-typography-serif]"))
+    const expectedStyles = ["display-xl-serif", "display-md-serif", "display-sm-serif", "heading-md-serif"]
+
+    if (serifStyles.map((element) => element.dataset.typographySerif).join(",") !== expectedStyles.join(",")) {
+      throw new Error("Typography serif variants must cover display-xl/md/sm and heading-md")
+    }
+
+    for (const element of serifStyles) {
+      const style = getComputedStyle(element)
+      const expectedWeight = "600"
+      if (!style.fontFamily.includes("Source Serif 4") || style.fontWeight !== expectedWeight) {
+        throw new Error(`${element.dataset.typographySerif} must use Source Serif 4 ${expectedWeight}`)
+      }
+    }
+  },
 }

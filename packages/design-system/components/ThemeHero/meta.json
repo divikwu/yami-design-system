@@ -3,8 +3,8 @@
   "name": "ThemeHero",
   "category": "composite",
   "status": "experimental",
-  "version": "0.1.0",
-  "description": "Responsive theme storytelling hero with a two-column desktop composition and full-bleed mobile artwork behind selectable copy and one primary CTA.",
+  "version": "0.8.1",
+  "description": "Responsive theme storytelling hero with a two-column desktop composition, optional size-configurable descriptive Badges, one or two configurable actions and full-bleed mobile artwork.",
   "figma": {
     "nodeId": "1877:43111",
     "componentKey": null,
@@ -16,7 +16,7 @@
     "ThemeHeroImage",
     "ThemeHeroProps"
   ],
-  "composes": ["Button"],
+  "composes": ["Badge", "Button"],
   "props": {
     "title": {
       "type": "ReactNode",
@@ -27,6 +27,23 @@
       "type": "ReactNode",
       "required": true,
       "description": "Selectable supporting theme copy."
+    },
+    "tags": {
+      "type": "readonly string[]",
+      "required": false,
+      "description": "Optional short descriptive keywords rendered with the shared non-interactive Badge."
+    },
+    "tagSize": {
+      "type": "BadgeSize",
+      "required": false,
+      "default": "sm",
+      "description": "Preferred size for each keyword Badge. Use sm for compact metadata or md for more prominent desktop labels; ThemeHero compacts both to sm geometry below 1024px."
+    },
+    "tagTone": {
+      "type": "BadgeTone",
+      "required": false,
+      "default": "dark",
+      "description": "Filled or outlined polarity for the composed Badges."
     },
     "image": {
       "type": "ThemeHeroImage",
@@ -41,7 +58,12 @@
     "cta": {
       "type": "ThemeHeroCta",
       "required": false,
-      "description": "Optional primary action rendered with the shared inverse Button."
+      "description": "Optional primary action rendered with the shared white inverse Button."
+    },
+    "secondaryCta": {
+      "type": "ThemeHeroCta",
+      "required": false,
+      "description": "Optional lower-emphasis action rendered with the shared transparent inverse Button and a one-pixel outline."
     },
     "imageLoading": {
       "type": "\"eager\" | \"lazy\"",
@@ -57,31 +79,38 @@
     },
     "radius": {
       "ruleId": "no-custom-radii",
-      "note": "The CTA consumes --radius-md from the Figma Full Inverse control."
+      "note": "Keyword Badges use the selected desktop size, compact to sm geometry on mobile and retain --radius-tag-primary; both content-width CTAs consume --radius-full, and desktop artwork uses --radius-md."
     },
     "typeHierarchy": {
       "ruleId": "type-hierarchy",
-      "note": "The module uses a display heading, heading-xs supporting copy and body-xl CTA label."
+      "note": "The module uses a display heading, heading-sm desktop supporting copy, heading-xs mobile supporting copy and body-xl CTA label."
     }
   },
   "tokens": [
     "--color-black-1000",
     "--color-neutral-100",
+    "--color-white-0",
+    "--color-white-100",
     "--color-white-1000",
     "--font-family-ios",
     "--font-size-body-xl",
     "--font-size-display-xl",
     "--font-size-heading-xs",
+    "--font-size-heading-sm",
     "--font-weight-normal",
+    "--font-weight-semibold",
     "--layout-page-margin-default",
     "--line-height-body-xl",
     "--line-height-display-xl",
     "--line-height-heading-xs",
+    "--line-height-heading-sm",
     "--radius-md",
+    "--radius-full",
     "--space-100",
     "--space-200",
     "--space-300",
     "--space-600",
+    "--stroke-default",
     "--surface-secondary"
   ],
   "tokenBindings": {
@@ -93,22 +122,54 @@
       "property": "font-size",
       "selector": ".title"
     },
+    "--font-size-heading-sm": {
+      "property": "font-size",
+      "selector": ".description"
+    },
+    "--font-size-heading-xs": {
+      "property": "font-size",
+      "selector": ".description below 1024px"
+    },
+    "--line-height-heading-sm": {
+      "property": "line-height",
+      "selector": ".description"
+    },
+    "--line-height-heading-xs": {
+      "property": "line-height",
+      "selector": ".description below 1024px"
+    },
+    "--space-100": {
+      "property": "gap / padding-block",
+      "selector": ".copy and .actions gap / .tags and mobile .actions padding-block"
+    },
+    "--space-200": {
+      "property": "padding / padding-block",
+      "selector": ".copy below 1024px / .actions from 1024px"
+    },
+    "--stroke-default": {
+      "property": "border-width",
+      "selector": ".secondaryActionButton"
+    },
+    "--radius-full": {
+      "property": "border-radius",
+      "selector": ".actionButton"
+    },
     "--surface-secondary": {
       "property": "background",
       "selector": ".root before artwork loads"
     }
   },
   "accessibility": {
-    "role": "section with heading, descriptive copy, image and optional button",
+    "role": "section with heading, descriptive copy, optional keyword list, image and optional action group",
     "wcagLevel": "AA",
     "tapTargetMin": 44,
     "keyboardNav": ["tab", "enter", "space"],
-    "ariaPattern": "decorative atmosphere hidden from assistive technology; meaningful foreground image alt; native heading and button",
-    "structure": "The visible h2 introduces selectable supporting copy. The blurred duplicate is decorative; the foreground image is semantic.",
-    "interaction": "The optional CTA composes the shared Button and inherits its keyboard, disabled and focus behavior."
+    "ariaPattern": "decorative atmosphere hidden from assistive technology; meaningful foreground image alt; native heading and buttons with optional aria-controls relationships",
+    "structure": "The visible h2 introduces selectable supporting copy, an optional list of non-interactive keyword Badges and up to two actions. The blurred duplicate is decorative; the foreground image is semantic.",
+    "interaction": "Both optional CTAs compose the shared Button and inherit its keyboard, disabled and focus behavior."
   },
   "dependencies": {
-    "runtime": ["react", "Button"],
+    "runtime": ["react", "Badge", "Button"],
     "peer": [],
     "devOnly": []
   },

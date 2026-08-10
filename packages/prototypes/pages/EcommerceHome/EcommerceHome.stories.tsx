@@ -52,6 +52,129 @@ export const Pc: Story = {
     );
     if (!page) throw new Error("Ecommerce home did not render");
 
+    const main = page.querySelector<HTMLElement>(
+      '[data-slot="ecommerce-home-main"]',
+    );
+    const expectedContentMaxWidth = "1920px";
+    const contentContainers = main?.querySelectorAll<HTMLElement>(
+      '[data-slot="hero-banner"], [data-slot="shortcut-rail-container"], [data-slot="billboard-link"], [data-slot="product-list-container"], [data-slot="brand-product-rail-container"], [data-slot="social-media-gallery-container"], [data-slot="trending-searches-container"]',
+    );
+    if (
+      main?.dataset.contentMaxWidth !== expectedContentMaxWidth ||
+      !contentContainers?.length ||
+      Array.from(contentContainers).some(
+        (container) =>
+          getComputedStyle(container).maxWidth !== expectedContentMaxWidth,
+      )
+    ) {
+      throw new Error(
+        "Ecommerce home must apply one page-level maximum width to every main content container",
+      );
+    }
+    const initialReveal = main?.querySelector<HTMLElement>(
+      '[data-motion-reveal="initial"]',
+    );
+    const scrollReveals = main?.querySelectorAll<HTMLElement>(
+      '[data-motion-reveal="scroll"]',
+    );
+    const waterfallMotionRoot = main?.querySelector<HTMLElement>(
+      '[data-slot="ecommerce-home-section"][data-kind="products"] > [data-slot="product-list"][data-layout="waterfall"]',
+    );
+    const waterfallHeading = waterfallMotionRoot?.querySelector<HTMLElement>(
+      '[data-slot="product-list-heading"]',
+    );
+    const waterfallTabs = waterfallMotionRoot?.querySelector<HTMLElement>(
+      '[data-slot="product-list-container"] > [data-slot="tabs"]',
+    );
+    const waterfallRowItems = waterfallMotionRoot?.querySelectorAll<HTMLElement>(
+      '[data-slot="product-list-item"]',
+    );
+    const waterfallLoadMore = waterfallMotionRoot?.querySelector<HTMLElement>(
+      '[data-slot="product-list-load-more"]',
+    );
+    if (
+      !initialReveal ||
+      scrollReveals?.length !== 6 ||
+      waterfallMotionRoot?.dataset.motionReveal !== undefined ||
+      waterfallHeading?.dataset.motionReveal !== "waterfall-heading" ||
+      waterfallTabs?.dataset.motionReveal !== "waterfall-tabs" ||
+      !waterfallRowItems ||
+      waterfallRowItems.length <= 6 ||
+      Array.from(waterfallRowItems).some(
+        (item) => item.dataset.motionReveal !== "waterfall-row",
+      ) ||
+      waterfallLoadMore?.dataset.motionReveal !== "waterfall-row" ||
+      main?.dataset.motionReady === undefined
+    ) {
+      throw new Error(
+        "Ecommerce home must match Topic Landing initial, section, heading, tabs and waterfall row reveal groups",
+      );
+    }
+    if (main.dataset.motionReady === "true") {
+      const previousInitialState = initialReveal.dataset.motionState;
+      delete initialReveal.dataset.motionState;
+      const initialHiddenTranslateY = new DOMMatrixReadOnly(
+        getComputedStyle(initialReveal).transform,
+      ).m42;
+      initialReveal.dataset.motionState = "visible";
+      const initialVisibleStyle = getComputedStyle(initialReveal);
+      if (previousInitialState === undefined) {
+        delete initialReveal.dataset.motionState;
+      } else {
+        initialReveal.dataset.motionState = previousInitialState;
+      }
+      if (
+        initialHiddenTranslateY !== 32 ||
+        initialVisibleStyle.transitionDuration !== "0.5s, 0.5s" ||
+        initialVisibleStyle.transitionTimingFunction !==
+          "ease-in-out, ease-in-out"
+      ) {
+        throw new Error(
+          "Ecommerce home initial reveal must match Topic Landing's 32px, 500ms ease-in-out entrance",
+        );
+      }
+
+      const compactRevealTargets = [
+        ...Array.from(scrollReveals),
+        waterfallHeading,
+        waterfallTabs,
+        ...Array.from(waterfallRowItems),
+        waterfallLoadMore,
+      ];
+      for (const revealTarget of compactRevealTargets) {
+        const previousMotionState = revealTarget.dataset.motionState;
+        delete revealTarget.dataset.motionState;
+        const hiddenTranslateY = new DOMMatrixReadOnly(
+          getComputedStyle(revealTarget).transform,
+        ).m42;
+
+        revealTarget.dataset.motionState = "visible";
+        const visibleStyle = getComputedStyle(revealTarget);
+        const transitionDurations =
+          visibleStyle.transitionDuration.split(", ");
+        const transitionTimings =
+          visibleStyle.transitionTimingFunction.split(", ");
+
+        if (previousMotionState === undefined) {
+          delete revealTarget.dataset.motionState;
+        } else {
+          revealTarget.dataset.motionState = previousMotionState;
+        }
+
+        if (
+          hiddenTranslateY !== 24 ||
+          transitionDurations.length !== 2 ||
+          transitionDurations.some((duration) => duration !== "0.32s") ||
+          transitionTimings.length !== 2 ||
+          transitionTimings.some((timing) => timing !== "ease-out")
+        ) {
+          throw new Error(
+            "Ecommerce home section reveals must match Topic Landing's 24px, 320ms ease-out entrance",
+          );
+        }
+      }
+    }
+
     // The page shell no longer pins a 1024px floor — every section shrinks with
     // the viewport. The one exception is the footer, which has no mobile layout
     // and leaves the flow below --breakpoints-desktop instead of dragging the
@@ -137,9 +260,13 @@ export const Pc: Story = {
       ),
     );
     for (let index = 1; index < sectionFrames.length; index += 1) {
-      const previous = sectionFrames[index - 1].getBoundingClientRect();
-      const current = sectionFrames[index].getBoundingClientRect();
-      if (Math.abs(current.top - previous.bottom) > 1) {
+      const previous = sectionFrames[index - 1];
+      const current = sectionFrames[index];
+      if (
+        Math.abs(
+          current.offsetTop - (previous.offsetTop + previous.offsetHeight),
+        ) > 1
+      ) {
         throw new Error("Ecommerce home sections must touch vertically");
       }
     }

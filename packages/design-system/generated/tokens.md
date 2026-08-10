@@ -394,9 +394,11 @@ Generated from DTCG sources. Contextual values are listed separately.
 | `fill.warning-secondary` | dark | color | `var(--color-amber-950)` |
 | `font-family.android` | root | fontFamily | `'GT Walsheim', 'Noto Sans SC', sans-serif` |
 | `font-family.ios` | root | fontFamily | `'GT Walsheim', 'Noto Sans SC', sans-serif` |
+| `font-family.serif` | root | fontFamily | `'Source Serif 4', 'Source Han Serif SC', serif` |
 | `font-family.win` | root | fontFamily | `'GT Walsheim', 'Noto Sans SC', sans-serif` |
 | `font-weight.emphasize` | root | fontWeight | `500` |
 | `font-weight.normal` | root | fontWeight | `400` |
+| `font-weight.semibold` | root | fontWeight | `600` |
 | `heading-2xl.font-size` | root | dimension | `24px` |
 | `heading-2xl.line-height` | root | dimension | `32px` |
 | `heading-3xl.font-size` | root | dimension | `28px` |

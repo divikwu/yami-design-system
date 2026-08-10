@@ -1,3 +1,9 @@
+import {
+  handleProgressiveImageError,
+  handleProgressiveImageLoad,
+  prepareProgressiveImage,
+} from "../progressiveImage";
+
 import styles from "./ReviewList.module.css";
 import type { ReviewCardProps } from "./ReviewList.types";
 
@@ -53,10 +59,14 @@ export function ReviewCard({
   const productContent = (
     <>
       <img
+        ref={prepareProgressiveImage}
         className={styles.productImage}
         src={product.imageSrc}
         alt={product.imageAlt}
         loading="lazy"
+        decoding="async"
+        onLoad={handleProgressiveImageLoad}
+        onError={handleProgressiveImageError}
       />
       <div className={styles.productContent}>
         <div className={styles.productBrand}>

@@ -36,6 +36,8 @@ export interface ReviewListProps
     SectionDividerProps {
   /** Visible section heading and accessible label. */
   title: ReactNode;
+  /** Optional serif treatment for editorial section headings. */
+  titleFontFamily?: "sans" | "serif";
   /** Optional mobile-only heading; falls back to title. */
   mobileTitle?: ReactNode;
   /** Ordered review cards shown in the horizontal rail. */

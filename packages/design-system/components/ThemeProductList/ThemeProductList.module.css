@@ -36,6 +36,16 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: opacity 240ms ease-out;
+}
+
+.image[data-image-state="pending"],
+.image[data-image-state="error"] {
+  opacity: 0;
+}
+
+.image[data-image-state="loaded"] {
+  opacity: 1;
 }
 
 .overlay {
@@ -64,14 +74,21 @@
   text-overflow: ellipsis;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .image {
+    transition: none;
+  }
+}
+
 .title {
-  font-size: var(--font-size-heading-xl);
+  font-size: var(--font-size-heading-md);
   font-weight: var(--font-weight-emphasize);
-  line-height: var(--line-height-heading-xl);
+  line-height: var(--line-height-heading-md);
 }
 
 .description {
   font-size: var(--font-size-body-md);
+  font-weight: var(--font-weight-normal);
   line-height: var(--line-height-body-md);
 }
 
@@ -86,7 +103,7 @@
   }
 
   .title {
-    font-size: var(--font-size-heading-xl);
-    line-height: var(--line-height-heading-xl);
+    font-size: var(--font-size-heading-md);
+    line-height: var(--line-height-heading-md);
   }
 }

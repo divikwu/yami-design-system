@@ -38,16 +38,24 @@ figma.connect(Badge, `${FIGMA_FILE}?node-id=1539-22788`, {
     type: figma.enum('Type', typeMap),
     children: figma.textContent('Label'),
   },
-  example: ({ type, children }) => <Badge type={type}>{children}</Badge>,
+  example: ({ type, children }) => (
+    <Badge type={type} size="sm">
+      {children}
+    </Badge>
+  ),
 })
 
 // ─── Mobile (1538:3058) ─────────────────────────────────────────────
-// Same Type axis; code renders identical CSS — only viewport-driven
-// styles differ (Mobile baseline = 20px; PC main bumps to 24 is deferred).
+// Same Type axis; both Figma bindings use the default sm geometry. The code-
+// defined md size and background-polarity tone axes are not present in Figma.
 figma.connect(Badge, `${FIGMA_FILE}?node-id=1538-3058`, {
   props: {
     type: figma.enum('Type', typeMap),
     children: figma.textContent('Label'),
   },
-  example: ({ type, children }) => <Badge type={type}>{children}</Badge>,
+  example: ({ type, children }) => (
+    <Badge type={type} size="sm">
+      {children}
+    </Badge>
+  ),
 })

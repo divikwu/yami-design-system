@@ -33,6 +33,11 @@
   white-space: nowrap;
 }
 
+.titleSerif {
+  font-family: var(--font-family-serif);
+  font-weight: var(--font-weight-semibold);
+}
+
 @media (min-width: 1024px) {
   .title {
     font-size: var(--font-size-heading-2xl);
