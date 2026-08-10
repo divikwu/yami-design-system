@@ -1,11 +1,14 @@
 /**
  * Badge — small pill-shaped label for product status, promotion, and counts.
  *
- * Two parallel APIs:
+ * Four parallel APIs:
  *   1. Abstract (lower level): color × emphasis
  *        color: red | blue | green | purple | yellow | neutral
  *        emphasis: primary (solid) | secondary (tinted)
- *   2. Semantic shortcut (mirrors Figma `Badge / Mobile` + `Badge / PC`):
+ *   2. Size: sm (20px height / 12px type) | md (24px / 14px)
+ *   3. Surface tone: dark | light | dark-outline | light-outline
+ *      Tone takes visual priority while preserving Badge size and radius.
+ *   4. Semantic shortcut (mirrors Figma `Badge / Mobile` + `Badge / PC`):
  *        type='sale' | 'low-price' | 'discount' | 'new' | 'hot' | 'exclusive'
  *             | 'choice' | 'best-sellers' | 'price'
  *      Each `type` resolves to a preset (color, emphasis). Explicit color
@@ -58,6 +61,8 @@ const TYPE_FLAGS: Partial<Record<string, 'purple' | 'blue'>> = {
 
 export type BadgeColor = 'red' | 'blue' | 'green' | 'purple' | 'yellow' | 'neutral'
 export type BadgeEmphasis = 'primary' | 'secondary'
+export type BadgeSize = 'sm' | 'md'
+export type BadgeTone = 'dark' | 'light' | 'dark-outline' | 'light-outline'
 export type BadgeType =
   | 'price'
   | 'sale'
@@ -91,6 +96,10 @@ export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   color?: BadgeColor
   /** 'primary' = solid bg, high contrast. 'secondary' = tinted bg, softer. Default: 'primary'. */
   emphasis?: BadgeEmphasis
+  /** Geometry tier. Default: 'sm' (20px / 12px). 'md' = 24px / 14px. */
+  size?: BadgeSize
+  /** Optional background-polarity treatment matching Tag tones while retaining Badge geometry. */
+  tone?: BadgeTone
   /**
    * Semantic shortcut matching Figma's Type variant. Sets (color, emphasis)
    * from the preset map. Explicit color / emphasis props still win when both
@@ -103,6 +112,8 @@ export const Badge = forwardRef<HTMLSpanElement, BadgeProps>(function Badge(
   {
     color,
     emphasis,
+    size = 'sm',
+    tone,
     type,
     className,
     children,
@@ -126,6 +137,8 @@ export const Badge = forwardRef<HTMLSpanElement, BadgeProps>(function Badge(
       data-slot="badge"
       data-color={resolvedColor}
       data-emphasis={resolvedEmphasis}
+      data-size={size}
+      data-tone={tone}
       data-type={type}
       data-flag={flag}
     >

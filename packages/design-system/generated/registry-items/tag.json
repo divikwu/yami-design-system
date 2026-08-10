@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "name": "tag",
+  "title": "Tag",
+  "type": "component",
+  "status": "experimental",
+  "source": "components/Tag",
+  "files": [
+    "components/Tag/index.ts",
+    "components/Tag/Tag.module.css",
+    "components/Tag/Tag.tsx"
+  ]
+}

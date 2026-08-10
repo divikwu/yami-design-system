@@ -77,23 +77,102 @@ export const Pc: Story = {
     const scrollReveals = main?.querySelectorAll<HTMLElement>(
       '[data-motion-reveal="scroll"]',
     );
-    const waterfallRowItems = main?.querySelectorAll<HTMLElement>(
-      '[data-motion-reveal="waterfall-row"]',
+    const waterfallMotionRoot = main?.querySelector<HTMLElement>(
+      '[data-slot="ecommerce-home-section"][data-kind="products"] > [data-slot="product-list"][data-layout="waterfall"]',
     );
-    const waterfallLoadMore = main?.querySelector<HTMLElement>(
+    const waterfallHeading = waterfallMotionRoot?.querySelector<HTMLElement>(
+      '[data-slot="product-list-heading"]',
+    );
+    const waterfallTabs = waterfallMotionRoot?.querySelector<HTMLElement>(
+      '[data-slot="product-list-container"] > [data-slot="tabs"]',
+    );
+    const waterfallRowItems = waterfallMotionRoot?.querySelectorAll<HTMLElement>(
+      '[data-slot="product-list-item"]',
+    );
+    const waterfallLoadMore = waterfallMotionRoot?.querySelector<HTMLElement>(
       '[data-slot="product-list-load-more"]',
     );
     if (
       !initialReveal ||
       scrollReveals?.length !== 6 ||
+      waterfallMotionRoot?.dataset.motionReveal !== undefined ||
+      waterfallHeading?.dataset.motionReveal !== "waterfall-heading" ||
+      waterfallTabs?.dataset.motionReveal !== "waterfall-tabs" ||
       !waterfallRowItems ||
       waterfallRowItems.length <= 6 ||
+      Array.from(waterfallRowItems).some(
+        (item) => item.dataset.motionReveal !== "waterfall-row",
+      ) ||
       waterfallLoadMore?.dataset.motionReveal !== "waterfall-row" ||
       main?.dataset.motionReady === undefined
     ) {
       throw new Error(
-        "Ecommerce home must expose initial, section and waterfall row reveal groups",
+        "Ecommerce home must match Topic Landing initial, section, heading, tabs and waterfall row reveal groups",
       );
+    }
+    if (main.dataset.motionReady === "true") {
+      const previousInitialState = initialReveal.dataset.motionState;
+      delete initialReveal.dataset.motionState;
+      const initialHiddenTranslateY = new DOMMatrixReadOnly(
+        getComputedStyle(initialReveal).transform,
+      ).m42;
+      initialReveal.dataset.motionState = "visible";
+      const initialVisibleStyle = getComputedStyle(initialReveal);
+      if (previousInitialState === undefined) {
+        delete initialReveal.dataset.motionState;
+      } else {
+        initialReveal.dataset.motionState = previousInitialState;
+      }
+      if (
+        initialHiddenTranslateY !== 32 ||
+        initialVisibleStyle.transitionDuration !== "0.5s, 0.5s" ||
+        initialVisibleStyle.transitionTimingFunction !==
+          "ease-in-out, ease-in-out"
+      ) {
+        throw new Error(
+          "Ecommerce home initial reveal must match Topic Landing's 32px, 500ms ease-in-out entrance",
+        );
+      }
+
+      const compactRevealTargets = [
+        ...Array.from(scrollReveals),
+        waterfallHeading,
+        waterfallTabs,
+        ...Array.from(waterfallRowItems),
+        waterfallLoadMore,
+      ];
+      for (const revealTarget of compactRevealTargets) {
+        const previousMotionState = revealTarget.dataset.motionState;
+        delete revealTarget.dataset.motionState;
+        const hiddenTranslateY = new DOMMatrixReadOnly(
+          getComputedStyle(revealTarget).transform,
+        ).m42;
+
+        revealTarget.dataset.motionState = "visible";
+        const visibleStyle = getComputedStyle(revealTarget);
+        const transitionDurations =
+          visibleStyle.transitionDuration.split(", ");
+        const transitionTimings =
+          visibleStyle.transitionTimingFunction.split(", ");
+
+        if (previousMotionState === undefined) {
+          delete revealTarget.dataset.motionState;
+        } else {
+          revealTarget.dataset.motionState = previousMotionState;
+        }
+
+        if (
+          hiddenTranslateY !== 24 ||
+          transitionDurations.length !== 2 ||
+          transitionDurations.some((duration) => duration !== "0.32s") ||
+          transitionTimings.length !== 2 ||
+          transitionTimings.some((timing) => timing !== "ease-out")
+        ) {
+          throw new Error(
+            "Ecommerce home section reveals must match Topic Landing's 24px, 320ms ease-out entrance",
+          );
+        }
+      }
     }
 
     // The page shell no longer pins a 1024px floor — every section shrinks with

@@ -3,15 +3,15 @@
   "name": "Badge",
   "category": "display",
   "status": "stable",
-  "version": "0.2.0",
+  "version": "0.5.0",
 
-  "description": "Small pill-shaped label for product status, promotion, and counts. Two parallel APIs: (1) abstract color (6) × emphasis (primary solid / secondary tinted); (2) `type` shortcut mapping to Figma's named Type variants (sale / new / hot / discount / etc.). Red reserved for promotion/urgency per design.md.",
+  "description": "Small label for product status, promotion, and counts. Supports sm and md sizes, abstract color × emphasis, four background-polarity tones, and semantic `type` shortcuts matching Figma.",
 
   "figma": {
     "fileKey": "6oOAy72DBff4P6NzJYc2hi",
     "nodeId": "1539:22788",
     "componentKey": null,
-    "notes": "Primary binding is Badge / PC. Badge height is standardized to 20px across PC and Mobile while preserving the responsive text scale. The 4 specialty sets (Top Seller, Membership tag/icon, Badge icon) are out-of-scope for the abstract Badge — track them as separate components if they ship to product.",
+    "notes": "Primary binding is Badge / PC. Both Figma bindings map to the default sm size; md is a code-defined extension. The 4 specialty sets (Top Seller, Membership tag/icon, Badge icon) are out-of-scope for the abstract Badge — track them as separate components if they ship to product.",
     "nodes": {
       "mobile": "1538:3058",
       "pc": "1539:22788",
@@ -22,12 +22,14 @@
         "membershipIcon": "5960:91035"
       }
     },
-    "sizeDelta": "Badge uses a fixed 20px height across breakpoints. Text remains responsive: 12/16 on mobile/tablet and 14/20 at the PC breakpoint (min-width: 1024px)."
+    "sizeDelta": "Badge sizes are breakpoint-independent: sm is 20px high with 12/16 type; md is 24px high with 14/20 type."
   },
 
   "variants": {
     "color": ["red", "blue", "green", "purple", "yellow", "neutral"],
     "emphasis": ["primary", "secondary"],
+    "size": ["sm", "md"],
+    "tone": ["dark", "light", "dark-outline", "light-outline"],
     "type": [
       "price",
       "sale",
@@ -55,6 +57,19 @@
       "required": false,
       "default": "primary",
       "description": "'primary' = solid bg, high contrast. 'secondary' = tinted bg, softer."
+    },
+    "size": {
+      "type": "enum",
+      "values": ["sm", "md"],
+      "required": false,
+      "default": "sm",
+      "description": "Breakpoint-independent geometry with 8px horizontal padding. 'sm' = 20px height with 12/16 type; 'md' = 24px height with 14/20 type."
+    },
+    "tone": {
+      "type": "enum",
+      "values": ["dark", "light", "dark-outline", "light-outline"],
+      "required": false,
+      "description": "Optional background-polarity treatment. Filled tones use translucent black or white; outline tones use a transparent fill and 1px inset stroke. Tone takes visual priority without changing Badge size or radius."
     },
     "type": {
       "type": "enum",
@@ -99,6 +114,10 @@
     "radii": {
       "ruleId": "no-custom-radii",
       "note": "Uses --radius-tag-primary (4px). Never override."
+    },
+    "surfaceTone": {
+      "ruleId": "semantic-color-only",
+      "note": "Use dark tones on light or mixed backgrounds and light tones on dark backgrounds. All four tones retain the selected Badge size and 4px radius."
     }
   },
 
@@ -123,14 +142,17 @@
     "--badge-bg-tertiary-neutral",
     "--badge-fg-default",
     "--badge-fg-default-inverse",
+    "--color-black-200",
+    "--color-black-1000",
+    "--color-white-700",
+    "--color-white-1000",
     "--text-primary",
     "--font-family-ios",
     "--font-weight-normal",
-    "--font-size-caption-md",
-    "--line-height-caption-md",
     "--radius-tag-primary",
     "--space-025",
-    "--space-050"
+    "--space-100",
+    "--stroke-default"
   ],
 
   "tokenBindings": {
@@ -220,19 +242,34 @@
     },
     "--font-family-ios": { "property": "font-family", "selector": ".badge" },
     "--font-weight-normal": { "property": "font-weight", "selector": ".badge" },
-    "--font-size-caption-md": { "property": "font-size", "selector": ".badge" },
-    "--line-height-caption-md": {
-      "property": "line-height",
-      "selector": ".badge"
-    },
     "--radius-tag-primary": {
       "property": "border-radius",
       "selector": ".badge"
     },
     "--space-025": { "property": "gap", "selector": ".badge" },
-    "--space-050": {
+    "--space-100": {
       "property": "padding-inline",
       "selector": ".badge"
+    },
+    "--color-black-200": {
+      "property": "background-color",
+      "selector": ".badge[data-tone='dark']"
+    },
+    "--color-white-700": {
+      "property": "background-color",
+      "selector": ".badge[data-tone='light']"
+    },
+    "--color-black-1000": {
+      "property": "color / box-shadow",
+      "selector": ".badge[data-tone='light'], .badge[data-tone='dark-outline']"
+    },
+    "--color-white-1000": {
+      "property": "color / box-shadow",
+      "selector": ".badge[data-tone='dark'], .badge[data-tone='light-outline']"
+    },
+    "--stroke-default": {
+      "property": "box-shadow spread radius",
+      "selector": ".badge[data-tone='dark-outline'], .badge[data-tone='light-outline']"
     }
   },
 

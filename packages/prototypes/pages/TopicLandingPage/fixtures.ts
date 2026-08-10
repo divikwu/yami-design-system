@@ -120,9 +120,16 @@ const pageCopy = {
     activityTitle: "Anua",
     heroTitle: "Anua: Gentle yet Effective Korean Skincare",
     heroDescription:
-      "Anua pairs skin-friendly natural ingredients with focused actives to create straightforward formulas for everyday skin concerns.\nExplore cleansers, toners, serums, moisturizers, and more—designed to calm, hydrate, brighten, and support a healthy-looking skin barrier.",
+      "Skin-friendly ingredients and targeted actives for simple daily care across soothing, hydration, brightening, and barrier support.",
+    heroTags: [
+      "Heartleaf Botanical",
+      "Gentle Daily Formulas",
+      "Targeted Active Care",
+    ],
     heroImageAlt:
       "Anua Korean skincare products displayed on a clear circular stand",
+    heroPrimaryCta: "Shop Products",
+    heroSecondaryCta: "Explore More",
     shortcutTitle: "Featured shortcuts",
     primaryTabsLabel: "Topic navigation",
     shortcutLabels: [
@@ -168,8 +175,11 @@ const pageCopy = {
     activityTitle: "艾努雅",
     heroTitle: "Anua：温和有效的韩系护肤",
     heroDescription:
-      "Anua 甄选亲肤天然成分，搭配针对性活性成分，为日常肌肤问题打造简单有效的配方。\n从洁面、爽肤水到精华和面霜，帮助舒缓、补水、提亮并维持健康肌肤屏障。",
+      "以温和亲肤成分结合针对性活性成分，为舒缓、补水、提亮与屏障护理提供简单清晰的日常方案。",
+    heroTags: ["Heartleaf 鱼腥草", "温和日常配方", "针对性活性护理"],
     heroImageAlt: "透明圆台上陈列的 Anua 韩系护肤产品",
+    heroPrimaryCta: "选购商品",
+    heroSecondaryCta: "探索更多",
     shortcutTitle: "精选分类",
     primaryTabsLabel: "主题导航",
     shortcutLabels: [
@@ -262,6 +272,12 @@ function createFooter(locale: TopicLandingPageLocale): FooterProps {
   };
 }
 
+function scrollToPageSection(id: string) {
+  return () => {
+    document.getElementById(id)?.scrollIntoView({ block: "start" });
+  };
+}
+
 function createProductListProps(
   layout: "rail" | "waterfall",
   locale: TopicLandingPageLocale,
@@ -332,8 +348,20 @@ export function createTopicLandingPageFixture(
       ...hero,
       title: copy.heroTitle,
       description: copy.heroDescription,
+      tags: copy.heroTags,
+      tagSize: "md",
+      tagTone: "dark",
       image: { ...hero.image, alt: copy.heroImageAlt },
-      cta: undefined,
+      cta: {
+        label: copy.heroPrimaryCta,
+        controls: "shop",
+        onClick: scrollToPageSection("shop"),
+      },
+      secondaryCta: {
+        label: copy.heroSecondaryCta,
+        controls: "explore",
+        onClick: scrollToPageSection("explore"),
+      },
     },
     primaryTabs: {
       ariaLabel: copy.primaryTabsLabel,
@@ -341,8 +369,8 @@ export function createTopicLandingPageFixture(
       items: [
         { value: "featured-shortcuts", label: copy.shortcutTitle },
         { value: "start-here", label: String(themeProductList.title) },
-        { value: "reviews", label: String(reviewList.title) },
         { value: "popular-picks", label: String(productRail.title) },
+        { value: "reviews", label: String(reviewList.title) },
         { value: "product-list", label: String(waterfall.title) },
       ],
     },
@@ -360,13 +388,6 @@ export function createTopicLandingPageFixture(
           locale === "zh" && index === 0 ? "卸妆产品好评榜 No.10" : product.ranking,
         soldCount:
           locale === "zh" && product.soldCount ? "售出 80+" : product.soldCount,
-        badges:
-          locale === "zh" && product.badges
-            ? product.badges.map((badge) => ({
-                ...badge,
-                label: badge.type === "low-price" ? "低价" : badge.label,
-              }))
-            : product.badges,
       })),
       mobileSurface: "plain",
       dividerPosition: "top",

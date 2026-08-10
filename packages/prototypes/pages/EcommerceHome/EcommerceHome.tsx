@@ -17,6 +17,8 @@ import {
 import styles from "./EcommerceHome.module.css";
 import type { EcommerceHomeProps } from "./EcommerceHome.types";
 
+const SECTION_REVEAL_ROOT_MARGIN = "0px 0px -40px 0px";
+
 function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
@@ -50,14 +52,29 @@ export function EcommerceHomeTemplate({
     const initialReveal = main.querySelector<HTMLElement>(
       '[data-motion-reveal="initial"]',
     );
+    const waterfall = main.querySelector<HTMLElement>(
+      '[data-slot="ecommerce-home-section"][data-kind="products"] > [data-slot="product-list"][data-layout="waterfall"]',
+    );
+    const waterfallHeading = waterfall?.querySelector<HTMLElement>(
+      '[data-slot="product-list-heading"]',
+    );
+    const waterfallTabs = waterfall?.querySelector<HTMLElement>(
+      '[data-slot="product-list-container"] > [data-slot="tabs"]',
+    );
     const waterfallItems = Array.from(
-      main.querySelectorAll<HTMLElement>(
-        '[data-slot="ecommerce-home-section"][data-kind="products"] > [data-slot="product-list"][data-layout="waterfall"] [data-slot="product-list-item"]',
-      ),
+      waterfall?.querySelectorAll<HTMLElement>(
+        '[data-slot="product-list-item"]',
+      ) ?? [],
     );
-    const waterfallLoadMore = main.querySelector<HTMLElement>(
-      '[data-slot="ecommerce-home-section"][data-kind="products"] > [data-slot="product-list"][data-layout="waterfall"] [data-slot="product-list-load-more"]',
+    const waterfallLoadMore = waterfall?.querySelector<HTMLElement>(
+      '[data-slot="product-list-load-more"]',
     );
+    if (waterfallHeading) {
+      waterfallHeading.dataset.motionReveal = "waterfall-heading";
+    }
+    if (waterfallTabs) {
+      waterfallTabs.dataset.motionReveal = "waterfall-tabs";
+    }
     waterfallItems.forEach((item) => {
       item.dataset.motionReveal = "waterfall-row";
     });
@@ -68,6 +85,8 @@ export function EcommerceHomeTemplate({
     const revealTargets = [
       ...(initialReveal ? [initialReveal] : []),
       ...revealSections,
+      ...(waterfallHeading ? [waterfallHeading] : []),
+      ...(waterfallTabs ? [waterfallTabs] : []),
       ...waterfallItems,
     ];
 
@@ -142,8 +161,7 @@ export function EcommerceHomeTemplate({
         });
       },
       {
-        rootMargin: "0px 0px -10% 0px",
-        threshold: 0.1,
+        rootMargin: SECTION_REVEAL_ROOT_MARGIN,
       },
     );
 

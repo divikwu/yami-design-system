@@ -28,8 +28,6 @@
 
   font-family: var(--font-family-ios);
   font-weight: var(--font-weight-normal);
-  font-size: 12px;
-  line-height: 16px;
   white-space: nowrap;
   letter-spacing: var(--letter-spacing-normal);
 
@@ -39,15 +37,19 @@
      overflow:hidden, those square corners poke past the badge's rounding. */
   overflow: hidden;
 
-  height: 20px;
-  padding: 0 var(--space-050);
+  padding: 0 var(--space-100);
 }
 
-@media (min-width: 1024px) {
-  .badge {
-    font-size: 14px;
-    line-height: 20px;
-  }
+.badge[data-size="sm"] {
+  height: 20px;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.badge[data-size="md"] {
+  height: 24px;
+  font-size: 14px;
+  line-height: 20px;
 }
 
 /* ─── Flag prefix (exclusive / choice types) ────────────────────── */
@@ -65,7 +67,7 @@
 
 .flag {
   flex-shrink: 0;
-  /* Stretch to the shared 20px badge height without a separate SVG override. */
+  /* Stretch to the selected Badge height without a separate SVG override. */
   height: 100%;
   width: auto;
   display: block;
@@ -142,4 +144,32 @@
   background-color: var(--surface-primary);
   color: var(--text-primary);
   box-shadow: inset 0 0 0 var(--stroke-default) var(--border-default);
+}
+
+/* ─── Surface tones ─────────────────────────────────────────────── */
+/* Tone is an explicit visual override for badges placed over light, dark, or
+ * mixed backgrounds. The outline treatments reuse Badge's inset-stroke pattern
+ * so the selected size, 4px radius, and inline padding remain unchanged. */
+.badge[data-tone="dark"][data-color][data-emphasis] {
+  color: var(--color-white-1000);
+  background-color: var(--color-black-200);
+  box-shadow: none;
+}
+
+.badge[data-tone="light"][data-color][data-emphasis] {
+  color: var(--color-black-1000);
+  background-color: var(--color-white-700);
+  box-shadow: none;
+}
+
+.badge[data-tone="dark-outline"][data-color][data-emphasis] {
+  color: var(--color-black-1000);
+  background-color: transparent;
+  box-shadow: inset 0 0 0 var(--stroke-default) currentColor;
+}
+
+.badge[data-tone="light-outline"][data-color][data-emphasis] {
+  color: var(--color-white-1000);
+  background-color: transparent;
+  box-shadow: inset 0 0 0 var(--stroke-default) currentColor;
 }

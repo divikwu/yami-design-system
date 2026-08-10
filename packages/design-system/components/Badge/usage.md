@@ -43,6 +43,41 @@ Red is a scarce visual resource. Using it for non-promotional state dilutes its 
 | `primary` | Attention-grabbing, sparse use (1-2 per product card), solid background |
 | `secondary` | Denser contexts (filter lists, tag clouds), softer tinted look |
 
+## Size
+
+| `size` | Height | Type / line height | Use |
+|---|---:|---:|---|
+| `sm` (default) | 20px | 12px / 16px | Product metadata and dense layouts |
+| `md` | 24px | 14px / 20px | More prominent labels with additional space |
+
+Both sizes use 8px horizontal padding. Flag-prefixed `exclusive` and `choice`
+retain their intentional flush-left artwork while keeping 8px right padding.
+
+```tsx
+<Badge size="sm">Compact</Badge>
+<Badge size="md">Prominent</Badge>
+```
+
+## Surface tone
+
+Use `tone` when a neutral Badge needs to sit directly on light, dark, or mixed
+backgrounds. It takes visual priority over `color`, `emphasis`, and `type`, but
+keeps the selected Badge size and 4px radius unchanged.
+
+| `tone` | Treatment | Recommended background |
+|---|---|---|
+| `dark` | `--color-black-200` fill with white text | Light or mixed |
+| `light` | Translucent white fill with black text | Dark |
+| `dark-outline` | Transparent fill with 1px black inset stroke | Light |
+| `light-outline` | Transparent fill with 1px white inset stroke | Dark |
+
+```tsx
+<Badge tone="dark">Heartleaf</Badge>
+<Badge tone="light">New</Badge>
+<Badge tone="dark-outline">Low stock</Badge>
+<Badge tone="light-outline">Exclusive</Badge>
+```
+
 ## Type — Figma semantic shortcut
 
 `type` is a shortcut that mirrors Figma's named Badge variants. Each value resolves to a (color, emphasis) preset matching the Figma design.
@@ -67,10 +102,6 @@ The plain tinted shortcuts `sale`, `low-price`, `discount`, `new`, and `hot` use
 ```
 
 Explicit `color` / `emphasis` win over `type` — pass both when you need a one-off override without changing your type vocabulary.
-
-## Sizes
-
-Badge has one responsive size and type scale: 20px height with `12px / 16px` text on Mobile/Tablet, and 24px height with `14px / 20px` text on PC (`min-width: 1024px`). All Badge text uses `font-weight: 400`, matching the Figma text style.
 
 ## Common patterns
 

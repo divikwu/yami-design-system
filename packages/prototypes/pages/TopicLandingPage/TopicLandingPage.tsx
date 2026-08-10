@@ -19,6 +19,8 @@ import {
 import styles from "./TopicLandingPage.module.css";
 import type { TopicLandingPageProps } from "./TopicLandingPage.types";
 
+const SECTION_REVEAL_ROOT_MARGIN = "0px 0px -40px 0px";
+
 function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
@@ -58,14 +60,29 @@ export function TopicLandingPage({
     const initialReveal = main.querySelector<HTMLElement>(
       '[data-motion-reveal="initial"]',
     );
+    const waterfall = main.querySelector<HTMLElement>(
+      '[data-page-slot="topic-landing-waterfall"]',
+    );
+    const waterfallHeading = waterfall?.querySelector<HTMLElement>(
+      '[data-slot="product-list-heading"]',
+    );
+    const waterfallTabs = waterfall?.querySelector<HTMLElement>(
+      '[data-slot="product-list-container"] > [data-slot="tabs"]',
+    );
     const waterfallItems = Array.from(
-      main.querySelectorAll<HTMLElement>(
-        '[data-page-slot="topic-landing-waterfall"] [data-slot="product-list-item"]',
-      ),
+      waterfall?.querySelectorAll<HTMLElement>(
+        '[data-slot="product-list-item"]',
+      ) ?? [],
     );
-    const waterfallLoadMore = main.querySelector<HTMLElement>(
-      '[data-page-slot="topic-landing-waterfall"] [data-slot="product-list-load-more"]',
+    const waterfallLoadMore = waterfall?.querySelector<HTMLElement>(
+      '[data-slot="product-list-load-more"]',
     );
+    if (waterfallHeading) {
+      waterfallHeading.dataset.motionReveal = "waterfall-heading";
+    }
+    if (waterfallTabs) {
+      waterfallTabs.dataset.motionReveal = "waterfall-tabs";
+    }
     waterfallItems.forEach((item) => {
       item.dataset.motionReveal = "waterfall-row";
     });
@@ -76,6 +93,8 @@ export function TopicLandingPage({
     const revealTargets = [
       ...(initialReveal ? [initialReveal] : []),
       ...revealSections,
+      ...(waterfallHeading ? [waterfallHeading] : []),
+      ...(waterfallTabs ? [waterfallTabs] : []),
       ...waterfallItems,
     ];
 
@@ -150,8 +169,7 @@ export function TopicLandingPage({
         });
       },
       {
-        rootMargin: "0px 0px -10% 0px",
-        threshold: 0.1,
+        rootMargin: SECTION_REVEAL_ROOT_MARGIN,
       },
     );
 
@@ -208,19 +226,17 @@ export function TopicLandingPage({
             </div>
           </div>
           <div
+            id="explore"
             className={styles.shortcutRail}
             data-slot="topic-landing-shortcut-rail"
           >
             <ShortcutRail {...shortcutRail} />
           </div>
-          <ThemeProductList {...standardRail} />
-        </div>
-        <div
-          className={styles.reviewList}
-          data-motion-reveal="scroll"
-          data-slot="topic-landing-review-list"
-        >
-          <ReviewList {...reviewList} />
+          <ThemeProductList
+            {...standardRail}
+            id="shop"
+            className={cx(styles.shop, standardRail.className)}
+          />
         </div>
         <div
           className={styles.standardRail}
@@ -228,6 +244,13 @@ export function TopicLandingPage({
           data-slot="topic-landing-standard-rail"
         >
           <ProductList {...productRail} />
+        </div>
+        <div
+          className={styles.reviewList}
+          data-motion-reveal="scroll"
+          data-slot="topic-landing-review-list"
+        >
+          <ReviewList {...reviewList} />
         </div>
         <ProductList
           {...waterfall}

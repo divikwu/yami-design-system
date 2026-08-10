@@ -51,7 +51,15 @@ export const Pc: Story = {
       locale === "zh"
         ? {
             heroTitle: "Anua：温和有效的韩系护肤",
-            heroDescription: "Anua 甄选亲肤天然成分",
+            heroDescription:
+              "以温和亲肤成分结合针对性活性成分，为舒缓、补水、提亮与屏障护理提供简单清晰的日常方案。",
+            heroTags: [
+              "Heartleaf 鱼腥草",
+              "温和日常配方",
+              "针对性活性护理",
+            ],
+            heroPrimaryCta: "选购商品",
+            heroSecondaryCta: "探索更多",
             firstShortcut: "粮油调味",
             lastShortcut: "母婴玩具",
             firstReview: "温和又干净，洗完很舒服",
@@ -61,7 +69,14 @@ export const Pc: Story = {
         : {
             heroTitle: "Anua: Gentle yet Effective Korean Skincare",
             heroDescription:
-              "Anua pairs skin-friendly natural ingredients with focused actives",
+              "Skin-friendly ingredients and targeted actives for simple daily care across soothing, hydration, brightening, and barrier support.",
+            heroTags: [
+              "Heartleaf Botanical",
+              "Gentle Daily Formulas",
+              "Targeted Active Care",
+            ],
+            heroPrimaryCta: "Shop Products",
+            heroSecondaryCta: "Explore More",
             firstShortcut: "Grocery",
             lastShortcut: "Toys , Kids, Babies",
             firstReview: "It feels so gentle and still gets all the gunk out",
@@ -84,23 +99,78 @@ export const Pc: Story = {
     const scrollReveals = main?.querySelectorAll<HTMLElement>(
       '[data-motion-reveal="scroll"]',
     );
-    const waterfallRowItems = main?.querySelectorAll<HTMLElement>(
-      '[data-motion-reveal="waterfall-row"]',
+    const waterfallReveal = main?.querySelector<HTMLElement>(
+      '[data-page-slot="topic-landing-waterfall"]',
     );
-    const waterfallLoadMore = main?.querySelector<HTMLElement>(
+    const waterfallHeading = waterfallReveal?.querySelector<HTMLElement>(
+      '[data-slot="product-list-heading"]',
+    );
+    const waterfallTabs = waterfallReveal?.querySelector<HTMLElement>(
+      '[data-slot="product-list-container"] > [data-slot="tabs"]',
+    );
+    const waterfallRowItems = waterfallReveal?.querySelectorAll<HTMLElement>(
+      '[data-slot="product-list-item"]',
+    );
+    const waterfallLoadMore = waterfallReveal?.querySelector<HTMLElement>(
       '[data-slot="product-list-load-more"]',
     );
     if (
       !initialReveal ||
       scrollReveals?.length !== 2 ||
+      waterfallReveal?.dataset.motionReveal !== undefined ||
+      waterfallHeading?.dataset.motionReveal !== "waterfall-heading" ||
+      waterfallTabs?.dataset.motionReveal !== "waterfall-tabs" ||
       !waterfallRowItems ||
       waterfallRowItems.length <= 6 ||
+      Array.from(waterfallRowItems).some(
+        (item) => item.dataset.motionReveal !== "waterfall-row",
+      ) ||
       waterfallLoadMore?.dataset.motionReveal !== "waterfall-row" ||
       main?.dataset.motionReady === undefined
     ) {
       throw new Error(
-        "Topic landing page must expose initial, section and waterfall row reveal groups",
+        "Topic landing page waterfall must reveal its heading, tabs and product rows independently",
       );
+    }
+    if (main.dataset.motionReady === "true") {
+      const motionRevealTargets = [
+        ...Array.from(scrollReveals),
+        waterfallHeading,
+        waterfallTabs,
+        ...Array.from(waterfallRowItems),
+        waterfallLoadMore,
+      ];
+      for (const revealTarget of motionRevealTargets) {
+        const previousMotionState = revealTarget.dataset.motionState;
+        delete revealTarget.dataset.motionState;
+        const hiddenTransform = getComputedStyle(revealTarget).transform;
+        const hiddenTranslateY = new DOMMatrixReadOnly(hiddenTransform).m42;
+
+        revealTarget.dataset.motionState = "visible";
+        const visibleStyle = getComputedStyle(revealTarget);
+        const transitionDurations =
+          visibleStyle.transitionDuration.split(", ");
+        const transitionTimings =
+          visibleStyle.transitionTimingFunction.split(", ");
+
+        if (previousMotionState === undefined) {
+          delete revealTarget.dataset.motionState;
+        } else {
+          revealTarget.dataset.motionState = previousMotionState;
+        }
+
+        if (
+          hiddenTranslateY !== 24 ||
+          transitionDurations.length !== 2 ||
+          transitionDurations.some((duration) => duration !== "0.32s") ||
+          transitionTimings.length !== 2 ||
+          transitionTimings.some((timing) => timing !== "ease-out")
+        ) {
+          throw new Error(
+            "Topic landing page section reveals must use the compact 24px, 320ms ease-out entrance",
+          );
+        }
+      }
     }
     const contentContainers = main?.querySelectorAll<HTMLElement>(
       '[data-slot="theme-hero-container"], [data-slot="topic-landing-tabs-container"], [data-slot="shortcut-rail-container"], [data-slot="review-list-container"], [data-slot="product-list-container"]',
@@ -163,6 +233,9 @@ export const Pc: Story = {
     const primaryTabsContainer = primaryTabs?.querySelector<HTMLElement>(
       '[data-slot="topic-landing-tabs-container"]',
     );
+    const primaryTabsRoot = primaryTabsContainer?.querySelector<HTMLElement>(
+      '[data-slot="tabs"]',
+    );
     const activePrimaryTab = primaryTabs?.querySelector<HTMLElement>(
       '[data-slot="tabs-trigger"][data-state="active"]',
     );
@@ -170,13 +243,18 @@ export const Pc: Story = {
     const primaryTabsContainerStyle = primaryTabsContainer
       ? getComputedStyle(primaryTabsContainer)
       : null;
+    const primaryTabsListStyle = primaryTabsList
+      ? getComputedStyle(primaryTabsList)
+      : null;
     const isDesktopTabs = page.getBoundingClientRect().width >= 1024;
     if (
       !primaryTabs ||
       !primaryTabsList ||
       !primaryTabsContainer ||
+      !primaryTabsRoot ||
       !primaryTabsStyle ||
       !primaryTabsContainerStyle ||
+      !primaryTabsListStyle ||
       primaryTabsList.dataset.variant !== "primary" ||
       primaryTabsList.dataset.style !== "a" ||
       activePrimaryTab?.textContent !== localizedExpectation.firstTab ||
@@ -187,9 +265,9 @@ export const Pc: Story = {
       primaryTabsStyle.paddingRight !== "0px" ||
       primaryTabsContainerStyle.maxWidth !== resolvedContentMaxWidth ||
       primaryTabsContainerStyle.paddingLeft !==
-        (isDesktopTabs ? "48px" : "0px") ||
+        (isDesktopTabs ? "48px" : "16px") ||
       primaryTabsContainerStyle.paddingRight !==
-        (isDesktopTabs ? "48px" : "0px") ||
+        (isDesktopTabs ? "48px" : "16px") ||
       (typeof args.contentMaxWidth === "number" &&
         primaryTabsContainer.getBoundingClientRect().width >
           args.contentMaxWidth + 1) ||
@@ -200,6 +278,25 @@ export const Pc: Story = {
       throw new Error(
         "Topic landing page must render localized Primary Style A tabs immediately before Featured shortcuts",
       );
+    }
+    if (!isDesktopTabs) {
+      const primaryTabsRect = primaryTabs.getBoundingClientRect();
+      const primaryTabsRootRect = primaryTabsRoot.getBoundingClientRect();
+      const primaryTabsListRect = primaryTabsList.getBoundingClientRect();
+      if (
+        Math.abs(primaryTabsRootRect.left - primaryTabsRect.left) > 1 ||
+        Math.abs(primaryTabsRootRect.right - primaryTabsRect.right) > 1 ||
+        Math.abs(primaryTabsListRect.left - primaryTabsRect.left) > 1 ||
+        Math.abs(primaryTabsListRect.right - primaryTabsRect.right) > 1 ||
+        primaryTabsListStyle.overflowX !== "auto" ||
+        primaryTabsListStyle.paddingLeft !== "16px" ||
+        primaryTabsListStyle.paddingRight !== "16px" ||
+        primaryTabsList.scrollWidth <= primaryTabsList.clientWidth
+      ) {
+        throw new Error(
+          "Topic landing page mobile tabs must use a full-width horizontal scroll viewport with 16px edge padding",
+        );
+      }
     }
     const themeProductList = page.querySelector<HTMLElement>(
       '[data-slot="theme-product-list"]',
@@ -248,18 +345,110 @@ export const Pc: Story = {
       throw new Error("Topic landing page heading is missing");
     }
 
-    const copy = hero.querySelector('[data-slot="theme-hero-copy"]');
+    const copy = hero.querySelector<HTMLElement>(
+      '[data-slot="theme-hero-copy"]',
+    );
+    const heroDescription = copy?.querySelector<HTMLElement>(
+      '[data-slot="theme-hero-description"]',
+    );
+    const heroDescriptionStyle = heroDescription
+      ? getComputedStyle(heroDescription)
+      : null;
+    const isMobileHero = window.innerWidth < 1024;
+    const expectedHeroDescriptionSize = isMobileHero ? "14px" : "16px";
     if (
       !copy ||
+      !heroDescription ||
       !normalize(copy.textContent).includes(
         normalize(localizedExpectation.heroDescription),
-      )
+      ) ||
+      heroDescriptionStyle?.fontSize !== expectedHeroDescriptionSize ||
+      heroDescriptionStyle?.lineHeight !== "20px"
     ) {
-      throw new Error("Topic landing page description is out of sync with ThemeHero");
+      throw new Error(
+        "Topic landing page description must use localized ThemeHero copy at desktop 16/20 and mobile 14/20",
+      );
     }
 
-    if (hero.querySelector("button")) {
-      throw new Error("Topic landing page must not render a hero CTA");
+    const heroBadgeElements = Array.from(
+      hero.querySelectorAll<HTMLElement>(
+        '[data-slot="theme-hero-tags"] [data-slot="badge"]',
+      ),
+    );
+    const heroTags = heroBadgeElements.map((badge) =>
+      normalize(badge.textContent),
+    );
+    if (
+      heroTags.length !== localizedExpectation.heroTags.length ||
+      heroTags.some(
+        (tag, index) => tag !== localizedExpectation.heroTags[index],
+      ) ||
+      heroBadgeElements.some((badge) => {
+        const style = getComputedStyle(badge);
+        const expectedHeight = isMobileHero ? "20px" : "24px";
+        const expectedFontSize = isMobileHero ? "12px" : "14px";
+        const expectedLineHeight = isMobileHero ? "16px" : "20px";
+        return (
+          badge.dataset.tone !== "dark" ||
+          badge.dataset.size !== "md" ||
+          style.height !== expectedHeight ||
+          style.borderRadius !== "4px" ||
+          style.fontSize !== expectedFontSize ||
+          style.lineHeight !== expectedLineHeight ||
+          style.paddingLeft !== "8px" ||
+          style.paddingRight !== "8px" ||
+          style.backgroundColor !== "rgba(0, 0, 0, 0.08)" ||
+          style.color !== "rgb(255, 255, 255)" ||
+          style.boxShadow !== "none"
+        );
+      })
+    ) {
+      throw new Error(
+        "Topic landing page keywords must use responsive filled dark Badges with 8px inline padding",
+      );
+    }
+
+    const heroActions = hero.querySelector<HTMLElement>(
+      '[data-slot="theme-hero-actions"]',
+    );
+    const primaryAction = heroActions?.querySelector<HTMLButtonElement>(
+      '[data-action="primary"]',
+    );
+    const secondaryAction = heroActions?.querySelector<HTMLButtonElement>(
+      '[data-action="secondary"]',
+    );
+    const shopTarget = page.querySelector<HTMLElement>("#shop");
+    const exploreTarget = page.querySelector<HTMLElement>("#explore");
+    const heroActionsStyle = heroActions
+      ? getComputedStyle(heroActions)
+      : null;
+    const heroCopyStyle = getComputedStyle(copy);
+    const heroCopyContentWidth =
+      copy.getBoundingClientRect().width -
+      Number.parseFloat(heroCopyStyle.paddingLeft) -
+      Number.parseFloat(heroCopyStyle.paddingRight);
+    const heroActionsWidth = heroActions?.getBoundingClientRect().width ?? 0;
+    const expectedActionPadding = window.innerWidth >= 1024 ? "16px" : "8px";
+    if (
+      !heroActions ||
+      !primaryAction ||
+      !secondaryAction ||
+      !shopTarget ||
+      !exploreTarget ||
+      normalize(primaryAction.textContent) !== localizedExpectation.heroPrimaryCta ||
+      normalize(secondaryAction.textContent) !== localizedExpectation.heroSecondaryCta ||
+      primaryAction.getAttribute("aria-controls") !== "shop" ||
+      secondaryAction.getAttribute("aria-controls") !== "explore" ||
+      heroActionsStyle?.paddingTop !== expectedActionPadding ||
+      heroActionsStyle?.paddingBottom !== expectedActionPadding ||
+      (isMobileHero &&
+        (heroActionsStyle?.flexWrap !== "nowrap" ||
+          Math.abs(heroActionsWidth - heroCopyContentWidth) > 1)) ||
+      (!isMobileHero && heroActionsWidth >= copy.getBoundingClientRect().width)
+    ) {
+      throw new Error(
+        "Topic landing page must connect localized Hero actions with responsive padding and mobile full-width distribution to existing page sections",
+      );
     }
 
     if (page.querySelector("#explore-topics")) {
@@ -281,6 +470,20 @@ export const Pc: Story = {
     ) {
       throw new Error(
         "Topic landing page must render Theme Rail, Standard Rail, then Waterfall",
+      );
+    }
+
+    const lowPriceBadges = Array.from(
+      productLists[0]?.querySelectorAll<HTMLElement>(
+        '[data-slot="product-card-badges"] [data-slot="badge"][data-type="low-price"]',
+      ) ?? [],
+    );
+    if (
+      lowPriceBadges.length !== 1 ||
+      normalize(lowPriceBadges[0]?.textContent) !== "Low Price"
+    ) {
+      throw new Error(
+        "Topic landing page product-image Badge labels must remain English in every locale",
       );
     }
 
@@ -424,6 +627,11 @@ export const Pc: Story = {
     const reviewWrapper = page.querySelector<HTMLElement>(
       '[data-slot="topic-landing-review-list"]',
     );
+    if (standardRail.nextElementSibling !== reviewWrapper) {
+      throw new Error(
+        "Topic landing page ReviewList must follow the Standard Rail",
+      );
+    }
     const waterfallWrapper = page.querySelector<HTMLElement>(
       '[data-page-slot="topic-landing-waterfall"]',
     );

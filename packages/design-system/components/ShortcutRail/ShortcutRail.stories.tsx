@@ -236,7 +236,10 @@ export const TitledGray: Story = {
       title.textContent?.trim().length === 0 ||
       titleStyle.textAlign !== "left" ||
       titleStyle.fontWeight !== "400" ||
-      titleStyle.padding !== "0px" ||
+      titleStyle.paddingTop !== "0px" ||
+      titleStyle.paddingRight !== "4px" ||
+      titleStyle.paddingBottom !== "0px" ||
+      titleStyle.paddingLeft !== "4px" ||
       listStyle.justifyContent !== "flex-start" ||
       listStyle.padding !== "0px" ||
       surfaceStyle.backgroundColor === "rgba(0, 0, 0, 0)" ||
@@ -272,6 +275,9 @@ export const FullBleedImages: Story = {
     const railBody = canvasElement.querySelector<HTMLElement>(
       '[data-slot="shortcut-rail-body"]',
     );
+    const title = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="shortcut-rail-title"]',
+    );
     const links = canvasElement.querySelectorAll<HTMLElement>(
       '[data-slot="shortcut-rail-link"]',
     );
@@ -287,6 +293,7 @@ export const FullBleedImages: Story = {
     if (
       !root ||
       !railBody ||
+      !title ||
       !list ||
       !rootRect ||
       !railBodyRect ||
@@ -294,6 +301,8 @@ export const FullBleedImages: Story = {
       root.dataset.railPresentation !== "full-bleed" ||
       canvasElement.querySelector('[data-slot="shortcut-rail-progress"]') ||
       getComputedStyle(root).overflow !== "hidden" ||
+      getComputedStyle(title).paddingLeft !== "4px" ||
+      getComputedStyle(title).paddingRight !== "4px" ||
       listStyle.overflowX !== "auto" ||
       listStyle.paddingLeft !== "16px" ||
       listStyle.paddingRight !== "16px" ||
@@ -398,8 +407,8 @@ export const CompactViewport: Story = {
       containerStyle.paddingRight !== "16px" ||
       containerStyle.paddingTop !== "16px" ||
       containerStyle.paddingBottom !== "16px" ||
-      titleStyle.paddingLeft !== "0px" ||
-      titleStyle.paddingRight !== "0px" ||
+      titleStyle.paddingLeft !== "4px" ||
+      titleStyle.paddingRight !== "4px" ||
       titleStyle.paddingTop !== "0px" ||
       titleStyle.paddingBottom !== "0px" ||
       listStyle.paddingLeft !== "0px" ||
