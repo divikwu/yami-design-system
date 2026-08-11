@@ -1,6 +1,12 @@
 "use client";
 
-import { useLayoutEffect, useRef, type CSSProperties } from "react";
+import {
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type MouseEvent,
+} from "react";
 
 import {
   ActivityPageHeader,
@@ -42,10 +48,192 @@ export function TopicLandingPage({
   ...rest
 }: TopicLandingPageProps) {
   const mainRef = useRef<HTMLElement>(null);
+  const primaryTabsRef = useRef<HTMLDivElement>(null);
+  const pendingPrimaryTabValueRef = useRef<string | null>(null);
+  const [primaryTabValue, setPrimaryTabValue] = useState(
+    primaryTabs.defaultValue,
+  );
   const contentMaxWidthValue =
     typeof contentMaxWidth === "number"
       ? `${contentMaxWidth}px`
       : contentMaxWidth;
+  const [waterfallTabValue, setWaterfallTabValue] = useState(
+    () =>
+      waterfall.value ??
+      waterfall.defaultValue ??
+      waterfall.tabs?.find((tab) => !tab.disabled)?.value ??
+      "",
+  );
+  const {
+    products: waterfallFallbackProducts,
+    productsByTab: waterfallProductsByTab,
+    ...waterfallProps
+  } = waterfall;
+  const activeWaterfallTab = waterfall.value ?? waterfallTabValue;
+  const visibleWaterfallProducts =
+    waterfallProductsByTab?.[activeWaterfallTab] ?? waterfallFallbackProducts;
+  const firstWaterfallTab = waterfall.tabs?.find(
+    (tab) => !tab.disabled,
+  )?.value;
+  const selectWaterfallTab = (value: string) => {
+    if (waterfall.value === undefined) {
+      setWaterfallTabValue(value);
+    }
+    waterfall.onValueChange?.(value);
+  };
+  const selectPrimaryTab = (value: string) => {
+    const item = primaryTabs.items.find((tab) => tab.value === value);
+    if (!item) return;
+
+    pendingPrimaryTabValueRef.current = value;
+    setPrimaryTabValue(value);
+    window.history.pushState(null, "", `#${item.targetId}`);
+    window.requestAnimationFrame(() => {
+      const target = document.getElementById(item.targetId);
+      const reducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
+      target?.scrollIntoView({
+        block: "start",
+        behavior: reducedMotion ? "auto" : "smooth",
+      });
+    });
+  };
+  const linkedShortcutItems = shortcutRail.items.map((item) => ({
+    ...item,
+    onClick: (event: MouseEvent<HTMLAnchorElement>) => {
+      item.onClick?.(event);
+      if (
+        event.defaultPrevented ||
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+      ) {
+        return;
+      }
+
+      const targetValue = item.href.startsWith("#explore-more-")
+        ? item.href.slice("#explore-more-".length)
+        : undefined;
+      if (!targetValue || !waterfallProductsByTab?.[targetValue]) return;
+
+      event.preventDefault();
+      selectWaterfallTab(targetValue);
+      window.history.pushState(null, "", item.href);
+      window.requestAnimationFrame(() => {
+        const target = mainRef.current?.querySelector<HTMLElement>(
+          '[data-page-slot="topic-landing-waterfall"]',
+        );
+        const reducedMotion = window.matchMedia(
+          "(prefers-reduced-motion: reduce)",
+        ).matches;
+        target?.scrollIntoView({
+          block: "start",
+          behavior: reducedMotion ? "auto" : "smooth",
+        });
+        target
+          ?.querySelector<HTMLButtonElement>(
+            '[role="tab"][data-state="active"]',
+          )
+          ?.focus({ preventScroll: true });
+      });
+    },
+  }));
+
+  useLayoutEffect(() => {
+    const targetId = window.location.hash.slice(1);
+    const matchingTab = primaryTabs.items.find(
+      (item) => item.targetId === targetId,
+    );
+    if (matchingTab) setPrimaryTabValue(matchingTab.value);
+  }, [primaryTabs.items]);
+
+  useLayoutEffect(() => {
+    const primaryTabsElement = primaryTabsRef.current;
+    if (!primaryTabsElement) return;
+
+    let animationFrame = 0;
+    const updateActiveTab = () => {
+      animationFrame = 0;
+      const activationLine =
+        primaryTabsElement.getBoundingClientRect().height + 1;
+      const pendingValue = pendingPrimaryTabValueRef.current;
+      if (pendingValue) {
+        const pendingItem = primaryTabs.items.find(
+          (item) => item.value === pendingValue,
+        );
+        const pendingSection = pendingItem
+          ? document.getElementById(pendingItem.targetId)
+          : null;
+        const pendingSectionTop =
+          pendingSection?.getBoundingClientRect().top ??
+          Number.POSITIVE_INFINITY;
+        const reachedPendingSection =
+          pendingSectionTop <= activationLine &&
+          pendingSectionTop >= activationLine - 2;
+
+        if (!reachedPendingSection) return;
+        pendingPrimaryTabValueRef.current = null;
+      }
+
+      let nextValue = primaryTabs.items[0]?.value ?? primaryTabs.defaultValue;
+
+      for (const item of primaryTabs.items) {
+        const section = document.getElementById(item.targetId);
+        if (!section || section.getBoundingClientRect().top > activationLine) {
+          break;
+        }
+        nextValue = item.value;
+      }
+
+      setPrimaryTabValue((currentValue) =>
+        currentValue === nextValue ? currentValue : nextValue,
+      );
+    };
+    const scheduleUpdate = () => {
+      if (animationFrame) return;
+      animationFrame = window.requestAnimationFrame(updateActiveTab);
+    };
+    const finishProgrammaticNavigation = () => {
+      const pendingValue = pendingPrimaryTabValueRef.current;
+      if (!pendingValue) return;
+      if (animationFrame) window.cancelAnimationFrame(animationFrame);
+      animationFrame = window.requestAnimationFrame(() => {
+        animationFrame = window.requestAnimationFrame(() => {
+          animationFrame = 0;
+          updateActiveTab();
+          if (pendingPrimaryTabValueRef.current !== pendingValue) return;
+          pendingPrimaryTabValueRef.current = null;
+          updateActiveTab();
+        });
+      });
+    };
+
+    updateActiveTab();
+    window.addEventListener("scroll", scheduleUpdate, { passive: true });
+    window.addEventListener("scrollend", finishProgrammaticNavigation);
+    window.addEventListener("resize", scheduleUpdate);
+
+    return () => {
+      window.removeEventListener("scroll", scheduleUpdate);
+      window.removeEventListener("scrollend", finishProgrammaticNavigation);
+      window.removeEventListener("resize", scheduleUpdate);
+      if (animationFrame) window.cancelAnimationFrame(animationFrame);
+    };
+  }, [primaryTabs.defaultValue, primaryTabs.items]);
+
+  useLayoutEffect(() => {
+    if (waterfall.value !== undefined) return;
+    const hashPrefix = "#explore-more-";
+    if (!window.location.hash.startsWith(hashPrefix)) return;
+
+    const targetValue = window.location.hash.slice(hashPrefix.length);
+    if (waterfallProductsByTab?.[targetValue]) {
+      setWaterfallTabValue(targetValue);
+    }
+  }, [waterfall.value, waterfallProductsByTab]);
 
   useLayoutEffect(() => {
     const main = mainRef.current;
@@ -77,18 +265,6 @@ export function TopicLandingPage({
     const waterfallLoadMore = waterfall?.querySelector<HTMLElement>(
       '[data-slot="product-list-load-more"]',
     );
-    if (waterfallHeading) {
-      waterfallHeading.dataset.motionReveal = "waterfall-heading";
-    }
-    if (waterfallTabs) {
-      waterfallTabs.dataset.motionReveal = "waterfall-tabs";
-    }
-    waterfallItems.forEach((item) => {
-      item.dataset.motionReveal = "waterfall-row";
-    });
-    if (waterfallLoadMore) {
-      waterfallLoadMore.dataset.motionReveal = "waterfall-row";
-    }
     const lastWaterfallItem = waterfallItems[waterfallItems.length - 1];
     const revealTargets = [
       ...(initialReveal ? [initialReveal] : []),
@@ -97,13 +273,14 @@ export function TopicLandingPage({
       ...(waterfallTabs ? [waterfallTabs] : []),
       ...waterfallItems,
     ];
+    revealTargets.forEach((target) => {
+      target.dataset.motionObserved = "true";
+    });
 
     if (reducedMotion) {
       main.dataset.motionReady = "reduced";
       return;
     }
-
-    main.dataset.motionReady = "true";
 
     if (!("IntersectionObserver" in window)) {
       [
@@ -129,8 +306,6 @@ export function TopicLandingPage({
           });
         const waterfallEntries = visibleEntries.filter(
           (entry) =>
-            (entry.target as HTMLElement).dataset.motionReveal ===
-              "waterfall-row" &&
             (entry.target as HTMLElement).dataset.slot === "product-list-item",
         );
         const visibleRowTops = Array.from(
@@ -176,7 +351,7 @@ export function TopicLandingPage({
     revealTargets.forEach((target) => observer.observe(target));
 
     return () => observer.disconnect();
-  }, []);
+  }, [activeWaterfallTab, visibleWaterfallProducts]);
 
   return (
     <div
@@ -195,6 +370,7 @@ export function TopicLandingPage({
         ref={mainRef}
         className={styles.main}
         data-slot="topic-landing-main"
+        data-motion-ready="true"
         data-content-max-width={contentMaxWidthValue}
         data-title-font-family={titleFontFamily}
         style={
@@ -203,42 +379,63 @@ export function TopicLandingPage({
           } as CSSProperties
         }
       >
-        <div className={styles.initialReveal} data-motion-reveal="initial">
-          <ThemeHero {...hero} />
-          <div className={styles.primaryTabs} data-slot="topic-landing-tabs">
-            <div
-              className={styles.primaryTabsContainer}
-              data-slot="topic-landing-tabs-container"
-            >
-              <Tabs defaultValue={primaryTabs.defaultValue}>
-                <TabsList
-                  aria-label={primaryTabs.ariaLabel}
-                  variant="primary"
-                  styleVariant="a"
-                >
-                  {primaryTabs.items.map((item) => (
-                    <TabsTrigger key={item.value} value={item.value}>
-                      {item.label}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </Tabs>
-            </div>
-          </div>
+        <ThemeHero
+          {...hero}
+          className={cx(styles.initialReveal, hero.className)}
+          data-motion-reveal="initial"
+        />
+        <div
+          ref={primaryTabsRef}
+          className={styles.primaryTabs}
+          data-slot="topic-landing-tabs"
+        >
           <div
-            id="explore"
-            className={styles.shortcutRail}
-            data-slot="topic-landing-shortcut-rail"
+            className={styles.primaryTabsContainer}
+            data-slot="topic-landing-tabs-container"
           >
-            <ShortcutRail {...shortcutRail} />
+            <Tabs
+              value={primaryTabValue}
+              onValueChange={selectPrimaryTab}
+            >
+              <TabsList
+                aria-label={primaryTabs.ariaLabel}
+                variant="primary"
+                styleVariant="a"
+              >
+                {primaryTabs.items.map((item) => (
+                  <TabsTrigger
+                    key={item.value}
+                    value={item.value}
+                    controls={item.targetId}
+                  >
+                    {item.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
           </div>
+        </div>
+        <div
+          id="explore"
+          className={styles.shortcutRail}
+          data-motion-reveal="scroll"
+          data-slot="topic-landing-shortcut-rail"
+        >
+          <ShortcutRail {...shortcutRail} items={linkedShortcutItems} />
+        </div>
+        <div
+          id="shop"
+          className={styles.shopReveal}
+          data-motion-reveal="scroll"
+          data-slot="topic-landing-theme-product-list"
+        >
           <ThemeProductList
             {...standardRail}
-            id="shop"
             className={cx(styles.shop, standardRail.className)}
           />
         </div>
         <div
+          id="popular-picks"
           className={styles.standardRail}
           data-motion-reveal="scroll"
           data-slot="topic-landing-standard-rail"
@@ -246,17 +443,27 @@ export function TopicLandingPage({
           <ProductList {...productRail} />
         </div>
         <div
+          id="reviews"
           className={styles.reviewList}
           data-motion-reveal="scroll"
           data-slot="topic-landing-review-list"
         >
           <ReviewList {...reviewList} />
         </div>
-        <ProductList
-          {...waterfall}
-          className={styles.waterfall}
-          data-page-slot="topic-landing-waterfall"
-        />
+        <div id="product-list" className={styles.waterfallAnchor}>
+          <ProductList
+            {...waterfallProps}
+            id={`explore-more-${activeWaterfallTab}`}
+            products={visibleWaterfallProducts}
+            value={activeWaterfallTab}
+            onValueChange={selectWaterfallTab}
+            hasMore={
+              activeWaterfallTab === firstWaterfallTab && waterfall.hasMore
+            }
+            className={styles.waterfall}
+            data-page-slot="topic-landing-waterfall"
+          />
+        </div>
       </main>
 
       <Footer {...footer} />

@@ -76,6 +76,7 @@ function ProductListSkeleton({
 export function ProductList(props: ProductListProps) {
   const {
     title,
+    description,
     titleFontFamily = "sans",
     products,
     leadingContent,
@@ -212,6 +213,7 @@ export function ProductList(props: ProductListProps) {
           slot="product-list"
           id={titleId}
           title={title}
+          description={description}
           titleFontFamily={titleFontFamily}
           className={styles.heading}
           titleClassName={styles.title}

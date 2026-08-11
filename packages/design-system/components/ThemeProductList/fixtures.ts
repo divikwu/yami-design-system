@@ -133,6 +133,7 @@ export function createThemeProductListProps(
         src: sceneImage,
         alt: localeCopy.imageAlt,
       },
+      backgroundColor: "rgb(214, 216, 217)",
       title: localeCopy.contentTitle,
       description: localeCopy.contentDescription,
       href: "#cleanse-reset",

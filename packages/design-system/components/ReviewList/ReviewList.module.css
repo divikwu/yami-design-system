@@ -142,7 +142,7 @@
   }
 
   .heading {
-    padding-inline-start: var(--space-050);
+    padding-inline-start: 0;
   }
 
   .list {

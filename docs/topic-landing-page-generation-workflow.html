@@ -1,0 +1,1550 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="YAMI Topic Landing Page 商品分类、选品、图片生成与整页自动化工作流程。"
+    />
+    <title>YAMI Topic Landing Page 生成工作流</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #171717;
+        --muted: #66635e;
+        --paper: #f5f2ea;
+        --paper-deep: #e9e4d9;
+        --surface: rgba(255, 255, 255, 0.72);
+        --line: #cec8bc;
+        --line-strong: #8b857b;
+        --accent: #e60012;
+        --accent-soft: #ffd8dc;
+        --success: #0c7656;
+        --warning: #ad6400;
+        --info: #245a9b;
+        --display: "Songti SC", "STSong", "Noto Serif SC", serif;
+        --body: "Avenir Next", "PingFang SC", "Hiragino Sans GB", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        background:
+          linear-gradient(rgba(23, 23, 23, 0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(23, 23, 23, 0.04) 1px, transparent 1px),
+          var(--paper);
+        background-size: 24px 24px;
+        font-family: var(--body);
+        line-height: 1.55;
+      }
+
+      button,
+      code,
+      pre {
+        font: inherit;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .shell {
+        width: min(1440px, 100%);
+        margin: 0 auto;
+        background: color-mix(in srgb, var(--paper) 92%, transparent);
+        border-inline: 1px solid var(--line);
+        min-height: 100vh;
+      }
+
+      .masthead {
+        position: relative;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 32px;
+        min-height: 320px;
+        padding: 44px clamp(24px, 5vw, 72px) 48px;
+        overflow: hidden;
+        border-bottom: 1px solid var(--line-strong);
+        background:
+          radial-gradient(circle at 80% 20%, rgba(230, 0, 18, 0.12), transparent 28%),
+          linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(233, 228, 217, 0.72));
+      }
+
+      .masthead::after {
+        position: absolute;
+        right: -70px;
+        bottom: -148px;
+        width: 420px;
+        aspect-ratio: 1;
+        border: 84px solid rgba(230, 0, 18, 0.08);
+        border-radius: 50%;
+        content: "";
+      }
+
+      .eyebrow,
+      .kicker,
+      .step-index,
+      .meta-label,
+      .table-kicker {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      .eyebrow {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0 0 32px;
+      }
+
+      .brand-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: var(--accent);
+        box-shadow: inset 0 0 0 4px #fff;
+        outline: 1px solid var(--accent);
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h1 {
+        max-width: 920px;
+        margin-bottom: 24px;
+        font-family: var(--display);
+        font-size: clamp(40px, 6vw, 82px);
+        font-weight: 700;
+        letter-spacing: -0.055em;
+        line-height: 0.98;
+      }
+
+      .lede {
+        max-width: 740px;
+        margin-bottom: 0;
+        color: #393734;
+        font-size: clamp(16px, 2vw, 20px);
+      }
+
+      .version-card {
+        position: relative;
+        z-index: 1;
+        align-self: end;
+        width: 220px;
+        padding: 20px;
+        border: 1px solid var(--ink);
+        background: rgba(245, 242, 234, 0.9);
+      }
+
+      .version-card strong {
+        display: block;
+        margin: 4px 0 16px;
+        font-family: var(--display);
+        font-size: 34px;
+      }
+
+      .version-card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 220px minmax(0, 1fr);
+      }
+
+      .rail {
+        position: sticky;
+        top: 0;
+        align-self: start;
+        height: 100vh;
+        padding: 32px 20px;
+        overflow-y: auto;
+        border-right: 1px solid var(--line);
+        background: rgba(245, 242, 234, 0.94);
+        backdrop-filter: blur(12px);
+      }
+
+      .rail-title {
+        margin: 0 0 22px;
+        color: var(--muted);
+        font-size: 12px;
+        letter-spacing: 0.1em;
+      }
+
+      .rail-group {
+        margin-bottom: 20px;
+      }
+
+      .rail a {
+        display: grid;
+        grid-template-columns: 24px minmax(0, 1fr);
+        gap: 8px;
+        padding: 8px 0;
+        border-bottom: 1px solid transparent;
+        color: #4a4742;
+        font-size: 13px;
+        text-decoration: none;
+      }
+
+      .rail .rail-parent {
+        color: var(--ink);
+        font-weight: 700;
+      }
+
+      .rail .rail-child {
+        display: block;
+        margin-left: 31px;
+        padding: 6px 0 6px 11px;
+        border-bottom: 0;
+        border-left: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .rail .rail-child[aria-current="page"] {
+        border-left: 3px solid var(--accent);
+        color: var(--ink);
+        font-weight: 700;
+      }
+
+      .rail a:hover,
+      .rail a:focus-visible {
+        border-bottom-color: var(--accent);
+        color: var(--ink);
+        outline: none;
+      }
+
+      .rail a span:first-child {
+        color: var(--accent);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .module-breadcrumb {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin: 0 0 18px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .module-breadcrumb span::after {
+        margin-left: 8px;
+        color: var(--line-strong);
+        content: "/";
+      }
+
+      .module-breadcrumb strong {
+        color: var(--accent);
+      }
+
+      main {
+        min-width: 0;
+      }
+
+      section {
+        padding: 72px clamp(24px, 5vw, 72px);
+        border-bottom: 1px solid var(--line);
+        scroll-margin-top: 24px;
+      }
+
+      section:nth-child(even) {
+        background: rgba(255, 255, 255, 0.28);
+      }
+
+      .section-head {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(260px, 440px);
+        gap: 40px;
+        align-items: end;
+        margin-bottom: 38px;
+      }
+
+      h2 {
+        margin-bottom: 0;
+        font-family: var(--display);
+        font-size: clamp(30px, 4vw, 52px);
+        letter-spacing: -0.035em;
+        line-height: 1.02;
+      }
+
+      h3 {
+        margin-bottom: 10px;
+        font-size: 18px;
+        line-height: 1.25;
+      }
+
+      .section-summary {
+        margin-bottom: 0;
+        color: var(--muted);
+      }
+
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        border-top: 1px solid var(--line-strong);
+        border-left: 1px solid var(--line-strong);
+      }
+
+      .summary-cell {
+        min-height: 154px;
+        padding: 20px;
+        border-right: 1px solid var(--line-strong);
+        border-bottom: 1px solid var(--line-strong);
+        background: var(--surface);
+      }
+
+      .summary-cell strong {
+        display: block;
+        margin: 16px 0 6px;
+        font-family: var(--display);
+        font-size: 28px;
+        line-height: 1;
+      }
+
+      .summary-cell p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .module-index {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        border-top: 1px solid var(--line-strong);
+        border-left: 1px solid var(--line-strong);
+      }
+
+      .module-index article {
+        position: relative;
+        min-height: 180px;
+        padding: 22px;
+        border-right: 1px solid var(--line-strong);
+        border-bottom: 1px solid var(--line-strong);
+        background: var(--surface);
+      }
+
+      .module-index article[data-status="current"] {
+        background: linear-gradient(145deg, #fff 0%, var(--accent-soft) 180%);
+        box-shadow: inset 4px 0 0 var(--accent);
+      }
+
+      .module-index .module-status {
+        display: block;
+        margin-bottom: 26px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .module-index article[data-status="current"] .module-status {
+        color: var(--accent);
+      }
+
+      .module-index h3 span {
+        display: block;
+        margin-top: 5px;
+        color: var(--muted);
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+        font-size: 11px;
+        font-weight: 400;
+      }
+
+      .module-index p {
+        margin-bottom: 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .module-index a {
+        color: inherit;
+        text-decoration-color: var(--accent);
+        text-underline-offset: 4px;
+      }
+
+      .category-table-wrap,
+      .decision-table-wrap {
+        overflow-x: auto;
+        border: 1px solid var(--line-strong);
+        background: var(--surface);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+
+      th,
+      td {
+        padding: 16px;
+        border-right: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th:last-child,
+      td:last-child {
+        border-right: 0;
+      }
+
+      tbody tr:last-child td {
+        border-bottom: 0;
+      }
+
+      th {
+        color: #4b4843;
+        background: var(--paper-deep);
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .category-name strong {
+        display: block;
+        font-size: 15px;
+      }
+
+      .category-name span,
+      .secondary {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .mono {
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+        font-size: 12px;
+      }
+
+      .workflow {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .workflow::before {
+        position: absolute;
+        top: 31px;
+        left: 3%;
+        right: 3%;
+        height: 1px;
+        background: var(--line-strong);
+        content: "";
+      }
+
+      .step {
+        position: relative;
+        min-height: 230px;
+        padding: 76px 18px 18px;
+        border: 1px solid var(--line-strong);
+        background: rgba(255, 255, 255, 0.8);
+      }
+
+      .step::before {
+        position: absolute;
+        top: 24px;
+        left: 18px;
+        width: 15px;
+        height: 15px;
+        border: 4px solid var(--paper);
+        border-radius: 50%;
+        background: var(--ink);
+        outline: 1px solid var(--ink);
+        content: "";
+      }
+
+      .step[data-gate="manual"]::before {
+        background: var(--accent);
+        outline-color: var(--accent);
+      }
+
+      .step-index {
+        position: absolute;
+        top: 20px;
+        right: 16px;
+        color: var(--muted);
+      }
+
+      .step p,
+      .step li {
+        color: #57534d;
+        font-size: 13px;
+      }
+
+      .step ul {
+        margin: 14px 0 0;
+        padding-left: 18px;
+      }
+
+      .gate {
+        display: inline-block;
+        margin-top: 14px;
+        padding-top: 8px;
+        border-top: 2px solid var(--accent);
+        color: var(--accent);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+      }
+
+      .rule-grid,
+      .mode-grid,
+      .roadmap-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .rule-card,
+      .mode-card,
+      .roadmap-card {
+        padding: 22px;
+        border: 1px solid var(--line-strong);
+        background: var(--surface);
+      }
+
+      .rule-card .number {
+        display: block;
+        margin-bottom: 24px;
+        color: var(--accent);
+        font-family: var(--display);
+        font-size: 36px;
+        line-height: 1;
+      }
+
+      .rule-card p,
+      .mode-card p,
+      .roadmap-card p {
+        margin-bottom: 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .score-formula {
+        margin-top: 24px;
+        padding: 24px;
+        border-left: 4px solid var(--accent);
+        background: #1b1b1b;
+        color: #f8f5ee;
+      }
+
+      .score-formula code {
+        display: block;
+        overflow-x: auto;
+        color: #fff;
+        white-space: nowrap;
+      }
+
+      .score-formula p {
+        margin: 12px 0 0;
+        color: #c9c5bd;
+        font-size: 12px;
+      }
+
+      .mode-card {
+        position: relative;
+        min-height: 220px;
+      }
+
+      .mode-card.recommended {
+        border: 2px solid var(--accent);
+      }
+
+      .status-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 28px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .status-tag::before {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--line-strong);
+        content: "";
+      }
+
+      .recommended .status-tag {
+        color: var(--accent);
+      }
+
+      .recommended .status-tag::before {
+        background: var(--accent);
+      }
+
+      .prompt-block,
+      .contract-block {
+        position: relative;
+        margin-top: 26px;
+      }
+
+      pre {
+        max-height: 560px;
+        margin: 0;
+        padding: 24px;
+        overflow: auto;
+        border: 1px solid #343434;
+        background: #151515;
+        color: #e8e4dc;
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+        font-size: 12px;
+        line-height: 1.65;
+        tab-size: 2;
+      }
+
+      .copy-button {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        z-index: 1;
+        padding: 8px 12px;
+        border: 1px solid #6d6d6d;
+        border-radius: 0;
+        color: #fff;
+        background: #252525;
+        cursor: pointer;
+        font-size: 12px;
+      }
+
+      .copy-button:hover,
+      .copy-button:focus-visible {
+        border-color: #fff;
+        outline: none;
+      }
+
+      .copy-button[data-copied="true"] {
+        color: #bff7df;
+        border-color: #54c391;
+      }
+
+      .automation-map {
+        display: grid;
+        grid-template-columns: minmax(210px, 0.8fr) minmax(0, 2fr);
+        border: 1px solid var(--line-strong);
+      }
+
+      .automation-map nav {
+        padding: 20px;
+        border-right: 1px solid var(--line-strong);
+        background: var(--paper-deep);
+      }
+
+      .automation-map nav button {
+        display: block;
+        width: 100%;
+        padding: 13px 4px;
+        border: 0;
+        border-bottom: 1px solid var(--line);
+        color: var(--muted);
+        background: transparent;
+        cursor: pointer;
+        text-align: left;
+      }
+
+      .automation-map nav button[aria-selected="true"] {
+        color: var(--ink);
+        font-weight: 700;
+      }
+
+      .automation-map nav button[aria-selected="true"]::before {
+        display: inline-block;
+        width: 18px;
+        color: var(--accent);
+        content: "→";
+      }
+
+      .module-panel {
+        min-height: 330px;
+        padding: 30px;
+        background: rgba(255, 255, 255, 0.72);
+      }
+
+      .module-panel[hidden] {
+        display: none;
+      }
+
+      .module-panel ul {
+        padding-left: 20px;
+      }
+
+      .module-panel li {
+        margin: 8px 0;
+        color: #4f4b45;
+      }
+
+      .artifact-line {
+        display: grid;
+        grid-template-columns: 120px minmax(0, 1fr);
+        gap: 14px;
+        padding: 12px 0;
+        border-top: 1px solid var(--line);
+      }
+
+      .artifact-line:first-of-type {
+        margin-top: 24px;
+      }
+
+      .artifact-line code {
+        overflow-wrap: anywhere;
+      }
+
+      .qa-list {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0;
+        border-top: 1px solid var(--line-strong);
+        border-left: 1px solid var(--line-strong);
+      }
+
+      .qa-item {
+        display: grid;
+        grid-template-columns: 28px minmax(0, 1fr);
+        gap: 12px;
+        padding: 18px;
+        border-right: 1px solid var(--line-strong);
+        border-bottom: 1px solid var(--line-strong);
+        background: var(--surface);
+      }
+
+      .qa-mark {
+        color: var(--success);
+        font-weight: 800;
+      }
+
+      .qa-item strong {
+        display: block;
+        margin-bottom: 3px;
+      }
+
+      .qa-item p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .roadmap-card {
+        border-top: 4px solid var(--line-strong);
+      }
+
+      .roadmap-card.current {
+        border-top-color: var(--accent);
+      }
+
+      .roadmap-card strong {
+        display: block;
+        margin-bottom: 20px;
+        font-family: var(--display);
+        font-size: 28px;
+      }
+
+      .roadmap-card ul {
+        margin: 14px 0 0;
+        padding-left: 18px;
+        color: #4f4b45;
+        font-size: 13px;
+      }
+
+      .footer-note {
+        padding: 42px clamp(24px, 5vw, 72px);
+        color: #f7f4ed;
+        background: var(--ink);
+      }
+
+      .footer-note p {
+        max-width: 850px;
+        margin: 0;
+        font-family: var(--display);
+        font-size: clamp(20px, 3vw, 32px);
+        line-height: 1.25;
+      }
+
+      @media (max-width: 1080px) {
+        .layout {
+          display: block;
+        }
+
+        .rail {
+          position: sticky;
+          z-index: 10;
+          width: 100%;
+          height: auto;
+          padding: 10px 20px;
+          overflow-x: auto;
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+          white-space: nowrap;
+        }
+
+        .rail-title {
+          display: none;
+        }
+
+        .rail a {
+          display: inline-flex;
+          margin-right: 20px;
+          padding: 8px 0;
+        }
+
+        .rail-group {
+          display: inline-flex;
+          align-items: center;
+          margin: 0 24px 0 0;
+        }
+
+        .rail .rail-child {
+          margin-left: 10px;
+          padding: 7px 0;
+          border-left: 0;
+        }
+
+        .rail .rail-child[aria-current="page"] {
+          border-bottom: 2px solid var(--accent);
+          border-left: 0;
+        }
+
+        .summary-grid,
+        .workflow,
+        .module-index {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .workflow::before {
+          display: none;
+        }
+
+        .rule-grid,
+        .mode-grid,
+        .roadmap-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .masthead {
+          display: block;
+          min-height: 0;
+          padding: 28px 22px 36px;
+        }
+
+        .eyebrow {
+          margin-bottom: 54px;
+        }
+
+        .version-card {
+          width: 100%;
+          margin-top: 36px;
+        }
+
+        section {
+          padding: 50px 20px;
+        }
+
+        .section-head {
+          display: block;
+        }
+
+        .section-summary {
+          margin-top: 18px;
+        }
+
+        .summary-grid,
+        .workflow,
+        .qa-list,
+        .module-index {
+          grid-template-columns: 1fr;
+        }
+
+        .automation-map {
+          display: block;
+        }
+
+        .automation-map nav {
+          display: flex;
+          gap: 14px;
+          overflow-x: auto;
+          border-right: 0;
+          border-bottom: 1px solid var(--line-strong);
+        }
+
+        .automation-map nav button {
+          min-width: max-content;
+        }
+
+        .artifact-line {
+          grid-template-columns: 1fr;
+          gap: 4px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header id="overview" class="masthead">
+        <div>
+          <p class="eyebrow"><span class="brand-dot" aria-hidden="true"></span>YAMI · Generation System</p>
+          <h1>Topic Landing Page<br />生成工作流</h1>
+          <p class="lede">
+            将商品分类、选品、图片生产、页面装配和视觉验收收束为一条可追溯的生成链。当前从“精选分类”模块开始，逐步扩展到整页自动化。
+          </p>
+        </div>
+        <aside class="version-card" aria-label="文档版本">
+          <span class="meta-label">Workflow version</span>
+          <strong>v0.1</strong>
+          <p>基线：ANUA 中文 / 英文 Topic Landing Page</p>
+          <p>更新：2026-08-10</p>
+        </aside>
+      </header>
+
+      <div class="layout">
+        <nav class="rail" aria-label="页面章节">
+          <p class="rail-title">DOCUMENT INDEX</p>
+          <div class="rail-group">
+            <a class="rail-parent" href="#overview"><span>01</span><span>总览</span></a>
+          </div>
+          <div class="rail-group">
+            <a class="rail-parent" href="#page-modules"><span>02</span><span>页面模块</span></a>
+            <a class="rail-child" href="#page-modules">模块目录</a>
+            <a class="rail-child" href="#module-shortcuts" aria-current="page">精选分类</a>
+          </div>
+          <div class="rail-group">
+            <a class="rail-parent" href="#product-type"><span>03</span><span>共享生成能力</span></a>
+            <a class="rail-child" href="#product-type">Product Type 定义</a>
+            <a class="rail-child" href="#pipeline">生成流程</a>
+            <a class="rail-child" href="#selection">商品选择</a>
+            <a class="rail-child" href="#images">图片系统</a>
+          </div>
+          <div class="rail-group">
+            <a class="rail-parent" href="#automation"><span>04</span><span>自动化与验收</span></a>
+            <a class="rail-child" href="#automation">整页模块装配</a>
+            <a class="rail-child" href="#contract">数据契约</a>
+            <a class="rail-child" href="#qa">QA 与路线图</a>
+          </div>
+        </nav>
+
+        <main>
+          <section id="page-modules">
+            <div class="section-head">
+              <div>
+                <p class="kicker">02 · Page modules</p>
+                <h2>页面模块目录</h2>
+              </div>
+              <p class="section-summary">
+                Topic Landing Page 由六个业务模块组成。每个模块独立拥有输入、生成规则、资产任务和审核状态；共享商品池、图片系统和页面装配契约。
+              </p>
+            </div>
+
+            <div class="module-index">
+              <article data-status="planned">
+                <span class="module-status">待完善</span>
+                <h3>品牌首屏<span>ThemeHero</span></h3>
+                <p>品牌定位、标签、主视觉商品和 CTA。</p>
+              </article>
+              <article data-status="current">
+                <span class="module-status">当前详细模块</span>
+                <h3><a href="#module-shortcuts">精选分类</a><span>ShortcutRail</span></h3>
+                <p>Product Type、代表商品和圆形分类图片。</p>
+              </article>
+              <article data-status="planned">
+                <span class="module-status">待完善</span>
+                <h3>从这里开始<span>ThemeProductList</span></h3>
+                <p>基于用户任务的场景导购与组合商品。</p>
+              </article>
+              <article data-status="planned">
+                <span class="module-status">待完善</span>
+                <h3>热门精选<span>Product rail</span></h3>
+                <p>热度、品类覆盖和可售状态驱动的精选商品。</p>
+              </article>
+              <article data-status="planned">
+                <span class="module-status">待完善</span>
+                <h3>用户评论<span>ReviewList</span></h3>
+                <p>可追溯评论、体验主题和对应商品。</p>
+              </article>
+              <article data-status="planned">
+                <span class="module-status">待完善</span>
+                <h3>产品列表<span>ProductList waterfall</span></h3>
+                <p>全量商品、筛选、排序和加载更多。</p>
+              </article>
+            </div>
+          </section>
+
+          <section id="module-shortcuts">
+            <div class="section-head">
+              <div>
+                <p class="module-breadcrumb"><span>页面模块</span><strong>精选分类</strong></p>
+                <p class="kicker">02.1 · ShortcutRail module</p>
+                <h2>精选分类 ShortcutRail</h2>
+              </div>
+              <p class="section-summary">
+                它不是品牌全量目录，而是帮助用户快速进入购物意图的一级入口。每个入口由一个稳定的 Product Type、一组候选商品和一张圆形缩略图组成。
+              </p>
+            </div>
+
+            <div class="summary-grid">
+              <article class="summary-cell">
+                <span class="meta-label">Input</span>
+                <strong>商品池</strong>
+                <p>品牌页商品、名称、当前分类、可售状态、商品图和来源链接。</p>
+              </article>
+              <article class="summary-cell">
+                <span class="meta-label">Decision</span>
+                <strong>一级归类</strong>
+                <p>按核心使用目的和护肤步骤归类；每个商品只有一个主分类。</p>
+              </article>
+              <article class="summary-cell">
+                <span class="meta-label">Asset</span>
+                <strong>7 张图</strong>
+                <p>600×600 WebP，真实商品主体，适配圆形 full-bleed 裁切。</p>
+              </article>
+              <article class="summary-cell">
+                <span class="meta-label">Output</span>
+                <strong>ShortcutRail</strong>
+                <p>中英文名称、稳定顺序、目标链接和本地图片资源。</p>
+              </article>
+            </div>
+          </section>
+
+          <section id="product-type">
+            <div class="section-head">
+              <div>
+                <p class="kicker">03.1 · Product Type definition</p>
+                <h2>当前 7 个 Product Type</h2>
+              </div>
+              <p class="section-summary">
+                合并原则：只有当商品共享同一购物意图和使用阶段时才合并。防晒和彩妆保留独立入口，不因配方或护肤功效并入面霜、精华。
+              </p>
+            </div>
+
+            <div class="category-table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>中英文分类</th>
+                    <th>归类理由</th>
+                    <th>当前代表商品</th>
+                    <th>图片识别线索</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>01</td>
+                    <td class="category-name"><strong>清洁与去角质</strong><span>Cleanse &amp; Peel</span></td>
+                    <td>同属清洁阶段；包含日常洁面、卸除和表层焕新。</td>
+                    <td>Heartleaf 洁面泡沫</td>
+                    <td>绿色软管＋泡沫 / 颗粒质感</td>
+                  </tr>
+                  <tr>
+                    <td>02</td>
+                    <td class="category-name"><strong>爽肤水与棉片</strong><span>Toners &amp; Pads</span></td>
+                    <td>都用于清洁后的调理打底，形态不同但购物任务一致。</td>
+                    <td>Heartleaf 77 Toner＋Clear Pad</td>
+                    <td>透明高瓶＋深绿圆罐</td>
+                  </tr>
+                  <tr>
+                    <td>03</td>
+                    <td class="category-name"><strong>精华与护理</strong><span>Serums &amp; Care</span></td>
+                    <td>聚合高浓度精华、安瓶及问题导向的密集护理。</td>
+                    <td>Niacinamide 10+＋Rice 7+</td>
+                    <td>红色滴管瓶＋透明泵瓶</td>
+                  </tr>
+                  <tr>
+                    <td>04</td>
+                    <td class="category-name"><strong>乳液与面霜</strong><span>Moisturizers</span></td>
+                    <td>共同承担锁水、柔润和屏障支持，按保湿意图合并。</td>
+                    <td>Peach 77+ Conditioning Milk</td>
+                    <td>半透明粉色高瓶＋乳霜质感</td>
+                  </tr>
+                  <tr>
+                    <td>05</td>
+                    <td class="category-name"><strong>防晒</strong><span>Sunscreens</span></td>
+                    <td>明确的日间 UV 防护任务，不能被普通保湿品替代。</td>
+                    <td>Zero-Cast SPF 50</td>
+                    <td>白色软管＋橙黄色底盖 / 光环</td>
+                  </tr>
+                  <tr>
+                    <td>06</td>
+                    <td class="category-name"><strong>面膜</strong><span>Face Masks</span></td>
+                    <td>以周期性、短时敷用为核心形态和购物意图。</td>
+                    <td>Heartleaf 77+ Sheet Mask</td>
+                    <td>面膜袋＋湿润膜布</td>
+                  </tr>
+                  <tr>
+                    <td>07</td>
+                    <td class="category-name"><strong>彩妆</strong><span>Makeup</span></td>
+                    <td>结果导向为遮瑕、均匀肤色或妆效，不并入护肤。</td>
+                    <td>Gyul Cushion</td>
+                    <td>银白气垫盒＋暖米色粉芯</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section id="pipeline">
+            <div class="section-head">
+              <div>
+                <p class="kicker">03.2 · End-to-end pipeline</p>
+                <h2>从品牌页到可验收页面</h2>
+              </div>
+              <p class="section-summary">
+                红色节点代表必须保留的人工审核门。自动化负责收集、排序、生成和验证；涉及品牌判断、类目合并和包装真实性时不静默放行。
+              </p>
+            </div>
+
+            <div class="workflow" aria-label="生成工作流">
+              <article class="step">
+                <span class="step-index">01</span>
+                <h3>定义页面任务</h3>
+                <p>输入品牌、目标语言、品牌页 URL、页面模板和目标分类数量。</p>
+                <ul>
+                  <li>生成 <span class="mono">GenerationBrief</span></li>
+                  <li>锁定来源和更新时间</li>
+                </ul>
+              </article>
+              <article class="step">
+                <span class="step-index">02</span>
+                <h3>采集商品池</h3>
+                <p>读取品牌页与商品页，标准化名称、图片、可售状态和现有类目。</p>
+                <ul>
+                  <li>去重 SKU / 变体</li>
+                  <li>记录来源与抓取时间</li>
+                </ul>
+              </article>
+              <article class="step">
+                <span class="step-index">03</span>
+                <h3>一级 Product Type</h3>
+                <p>依据核心使用目的、商品形态和使用阶段，输出唯一主分类和可选标签。</p>
+                <ul>
+                  <li>分类置信度</li>
+                  <li>冲突与未分类队列</li>
+                </ul>
+              </article>
+              <article class="step" data-gate="manual">
+                <span class="step-index">04</span>
+                <h3>审核分类与合并</h3>
+                <p>确认名称、颗粒度、排序和中英文是否符合用户购物心智。</p>
+                <span class="gate">人工审核门 A</span>
+              </article>
+              <article class="step">
+                <span class="step-index">05</span>
+                <h3>选择代表商品</h3>
+                <p>按代表性、可售状态、缩略图识别度、热度和素材质量评分。</p>
+                <ul>
+                  <li>每类 1–2 个主体</li>
+                  <li>保留候选与淘汰原因</li>
+                </ul>
+              </article>
+              <article class="step">
+                <span class="step-index">06</span>
+                <h3>生成分类图片</h3>
+                <p>根据图片模式生成任务；统一构图、背景、裁切安全区和输出规格。</p>
+                <ul>
+                  <li>提示词版本化</li>
+                  <li>输出资产 manifest</li>
+                </ul>
+              </article>
+              <article class="step" data-gate="manual">
+                <span class="step-index">07</span>
+                <h3>包装与视觉审核</h3>
+                <p>检查商品身份、文字畸变、圆形裁切、相邻图片区分度和品牌一致性。</p>
+                <span class="gate">人工审核门 B</span>
+              </article>
+              <article class="step">
+                <span class="step-index">08</span>
+                <h3>装配与 QA</h3>
+                <p>写入 fixture / manifest，运行类型、测试、桌面端和移动端可视验证。</p>
+                <ul>
+                  <li>报告成功 / 部分 / 阻塞</li>
+                  <li>保存生成证据</li>
+                </ul>
+              </article>
+            </div>
+          </section>
+
+          <section id="selection">
+            <div class="section-head">
+              <div>
+                <p class="kicker">03.3 · Product selection</p>
+                <h2>商品怎么选</h2>
+              </div>
+              <p class="section-summary">
+                分类图不是陈列尽可能多的商品，而是在 60–80px 的尺寸下传达一个清楚的购物入口。选品先保证“像这个分类”，再考虑热度。
+              </p>
+            </div>
+
+            <div class="rule-grid">
+              <article class="rule-card">
+                <span class="number">1</span>
+                <h3>代表性优先</h3>
+                <p>商品名称、形态和使用场景能直接解释分类；不靠复杂文案才能看懂。</p>
+              </article>
+              <article class="rule-card">
+                <span class="number">2</span>
+                <h3>缩略图可识别</h3>
+                <p>包装轮廓、主色和开合形态在圆形小图中仍明显；避免多个近似白瓶并排。</p>
+              </article>
+              <article class="rule-card">
+                <span class="number">3</span>
+                <h3>可售与素材稳定</h3>
+                <p>优先当前可售、非临时组合、拥有清晰正面商品图的 SKU，并保留替补。</p>
+              </article>
+            </div>
+
+            <div class="score-formula">
+              <code>selection_score = 0.30 × category_fit + 0.25 × availability + 0.20 × thumbnail_legibility + 0.15 × popularity + 0.10 × asset_quality</code>
+              <p>默认权重，可按品牌策略配置。任何单项不合格都可触发人工否决，不由总分覆盖。</p>
+            </div>
+
+            <div class="decision-table-wrap" style="margin-top: 24px">
+              <table>
+                <thead>
+                  <tr>
+                    <th>分类规模</th>
+                    <th>图片主体数</th>
+                    <th>默认策略</th>
+                    <th>回退方式</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>1–2 个有效商品</td>
+                    <td>1</td>
+                    <td>选择最具代表性的单品，放大商品轮廓。</td>
+                    <td>缺图则标记阻塞，不生成虚构商品。</td>
+                  </tr>
+                  <tr>
+                    <td>3–8 个有效商品</td>
+                    <td>1–2</td>
+                    <td>主商品＋形态互补的次商品。</td>
+                    <td>两个包装过于相似时退回单品。</td>
+                  </tr>
+                  <tr>
+                    <td>9 个以上</td>
+                    <td>2</td>
+                    <td>用两种主要形态覆盖分类，不做商品墙。</td>
+                    <td>按销量和素材质量选择替补。</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section id="images">
+            <div class="section-head">
+              <div>
+                <p class="kicker">03.4 · Image production</p>
+                <h2>三种图片生成模式</h2>
+              </div>
+              <p class="section-summary">
+                目标生产模式是“真实商品抠图＋模板背景”，它能兼顾品牌准确性与批量一致性。参考图生成适合快速原型，但必须增加包装文字检查。
+              </p>
+            </div>
+
+            <div class="mode-grid">
+              <article class="mode-card">
+                <span class="status-tag">Fastest</span>
+                <h3>A · 原商品图裁切</h3>
+                <p>直接使用商品卡主图，统一尺寸和圆形裁切。速度最快、商品最真实，但背景和视觉语言不一致。</p>
+              </article>
+              <article class="mode-card recommended">
+                <span class="status-tag">Production target</span>
+                <h3>B · 抠图＋模板合成</h3>
+                <p>保留真实包装像素，自动移除背景，再放入版本化的品牌场景模板。适合稳定批量生产。</p>
+              </article>
+              <article class="mode-card">
+                <span class="status-tag">Current prototype</span>
+                <h3>C · 参考图生成</h3>
+                <p>以商品图作为身份参考，让模型统一背景与构图。视觉自由度高，但可能改写包装细节。</p>
+              </article>
+            </div>
+
+            <div class="prompt-block">
+              <button class="copy-button" type="button" data-copy-target="prompt-template">复制提示词</button>
+              <pre id="prompt-template"><code>任务：生成 {brand} 的 {category_zh} / {category_en} 分类缩略图。
+
+身份约束：
+- 只使用已选择的真实商品参考图：{selected_product_ids}
+- 保持商品包装形状、主色、开合方式与品牌识别
+- 不新增商品、Logo、标题、价格、折扣、评分或 UI
+
+统一视觉：
+- 1:1 正方形，适配圆形 full-bleed 裁切
+- 商品位于中心安全区，主体 1–2 个
+- 浅色韩系棚拍，柔和自然阴影
+- 使用 {category_visual_cue} 表达分类，不遮挡包装
+
+输出：
+- 600 × 600 WebP
+- 文件名：category-{category_slug}.webp
+- 记录 prompt_version、source_images、output_hash</code></pre>
+            </div>
+          </section>
+
+          <section id="automation">
+            <div class="section-head">
+              <div>
+                <p class="kicker">04.1 · Full-page assembly</p>
+                <h2>整页模块装配</h2>
+              </div>
+              <p class="section-summary">
+                整页自动化不是一次生成一段 HTML，而是由同一份 PageGenerationSpec 驱动各模块，再复用现有设计系统组件装配 TopicLandingPage。
+              </p>
+            </div>
+
+            <div class="automation-map">
+              <nav aria-label="整页模块" role="tablist">
+                <button id="tab-hero" type="button" role="tab" aria-selected="true" aria-controls="panel-hero">品牌首屏</button>
+                <button id="tab-shortcuts" type="button" role="tab" aria-selected="false" aria-controls="panel-shortcuts">精选分类</button>
+                <button id="tab-start" type="button" role="tab" aria-selected="false" aria-controls="panel-start">从这里开始</button>
+                <button id="tab-popular" type="button" role="tab" aria-selected="false" aria-controls="panel-popular">热门精选</button>
+                <button id="tab-reviews" type="button" role="tab" aria-selected="false" aria-controls="panel-reviews">用户评论</button>
+                <button id="tab-waterfall" type="button" role="tab" aria-selected="false" aria-controls="panel-waterfall">产品列表</button>
+              </nav>
+
+              <article id="panel-hero" class="module-panel" role="tabpanel" aria-labelledby="tab-hero">
+                <p class="table-kicker">ThemeHero</p>
+                <h3>品牌认知与主张</h3>
+                <ul>
+                  <li>从品牌资料生成一句定位、简短说明和 2–3 个标签。</li>
+                  <li>选择 2–3 个跨品类主商品；主图以真实包装合成为生产目标。</li>
+                  <li>检查文案证据、品牌发音 / 中文名、CTA 目标和移动端可读性。</li>
+                </ul>
+                <div class="artifact-line"><strong>输入</strong><code>brand_profile + hero_candidates + locale</code></div>
+                <div class="artifact-line"><strong>输出</strong><code>ThemeHeroProps + hero-image.webp</code></div>
+              </article>
+
+              <article id="panel-shortcuts" class="module-panel" role="tabpanel" aria-labelledby="tab-shortcuts" hidden>
+                <p class="table-kicker">ShortcutRail</p>
+                <h3>一级购物入口</h3>
+                <ul>
+                  <li>执行本页定义的分类、选品和图片流程。</li>
+                  <li>输出 5–8 个稳定分类；超过容量则按覆盖率和购物价值压缩。</li>
+                  <li>保证中英文映射、顺序、链接和图片 manifest 一一对应。</li>
+                </ul>
+                <div class="artifact-line"><strong>输入</strong><code>product_pool + taxonomy_rules</code></div>
+                <div class="artifact-line"><strong>输出</strong><code>ShortcutRailProps + category-*.webp</code></div>
+              </article>
+
+              <article id="panel-start" class="module-panel" role="tabpanel" aria-labelledby="tab-start" hidden>
+                <p class="table-kicker">ThemeProductList</p>
+                <h3>按护肤任务开始</h3>
+                <ul>
+                  <li>从用户任务而非商品类目生成 3–5 个场景，如清洁焕新、修护焕肤。</li>
+                  <li>每个场景选择一张情境图和 3–4 个可购买商品。</li>
+                  <li>避免与“精选分类”完全重复，强调解决问题的顺序。</li>
+                </ul>
+                <div class="artifact-line"><strong>输入</strong><code>brand_routines + selected_products</code></div>
+                <div class="artifact-line"><strong>输出</strong><code>ThemeProductListProps</code></div>
+              </article>
+
+              <article id="panel-popular" class="module-panel" role="tabpanel" aria-labelledby="tab-popular" hidden>
+                <p class="table-kicker">Product rail</p>
+                <h3>高价值商品精选</h3>
+                <ul>
+                  <li>在可售商品中结合销量、评分、折扣和品类覆盖进行排序。</li>
+                  <li>保留“全量”与高价值子类标签，避免每个标签商品相同。</li>
+                  <li>价格和库存属于易变数据，生成前必须刷新。</li>
+                </ul>
+                <div class="artifact-line"><strong>输入</strong><code>live_catalog + merchandising_rules</code></div>
+                <div class="artifact-line"><strong>输出</strong><code>ProductListProps</code></div>
+              </article>
+
+              <article id="panel-reviews" class="module-panel" role="tabpanel" aria-labelledby="tab-reviews" hidden>
+                <p class="table-kicker">ReviewList</p>
+                <h3>可追溯的用户证据</h3>
+                <ul>
+                  <li>仅使用真实评论与对应商品，保存评论来源和抓取时间。</li>
+                  <li>按清洁、调理、护理等不同体验选取 3 条，不改写为广告语。</li>
+                  <li>缺少可靠评论时明确阻塞，不自动编造。</li>
+                </ul>
+                <div class="artifact-line"><strong>输入</strong><code>verified_reviews</code></div>
+                <div class="artifact-line"><strong>输出</strong><code>ReviewListProps</code></div>
+              </article>
+
+              <article id="panel-waterfall" class="module-panel" role="tabpanel" aria-labelledby="tab-waterfall" hidden>
+                <p class="table-kicker">ProductList waterfall</p>
+                <h3>全量发现与承接</h3>
+                <ul>
+                  <li>展示当前品牌可售商品并生成真实筛选标签。</li>
+                  <li>分页、加载更多和排序由商品数据驱动，不写死数量。</li>
+                  <li>验证首屏性能、图片加载、无重复商品和空状态。</li>
+                </ul>
+                <div class="artifact-line"><strong>输入</strong><code>live_catalog + filter_schema</code></div>
+                <div class="artifact-line"><strong>输出</strong><code>ProductListProps</code></div>
+              </article>
+            </div>
+          </section>
+
+          <section id="contract">
+            <div class="section-head">
+              <div>
+                <p class="kicker">04.2 · Data contract</p>
+                <h2>自动化的唯一入口</h2>
+              </div>
+              <p class="section-summary">
+                后续脚本应读写结构化 manifest，而不是直接修改 JSX。相同输入、规则版本和已批准资产应能重复装配出相同页面结构。
+              </p>
+            </div>
+
+            <div class="contract-block">
+              <button class="copy-button" type="button" data-copy-target="contract-template">复制 JSON</button>
+              <pre id="contract-template"><code>{
+  "schema_version": "topic-landing-generation/v0.1",
+  "generation_id": "anua-2026-08-10-001",
+  "brand": {
+    "id": "anua",
+    "name": "ANUA",
+    "source_url": "https://www.yami.com/us/en/b/anua/11712",
+    "locales": ["en", "zh"]
+  },
+  "rules": {
+    "taxonomy_version": "product-type/v0.1",
+    "selection_version": "category-hero/v0.1",
+    "image_prompt_version": "category-studio/v0.1",
+    "category_limit": 7,
+    "image_mode": "reference-generation"
+  },
+  "categories": [
+    {
+      "id": "cleanse-peel",
+      "label": { "zh": "清洁与去角质", "en": "Cleanse & Peel" },
+      "product_ids": ["anua-heartleaf-cleansing-foam"],
+      "hero_product_ids": ["anua-heartleaf-cleansing-foam"],
+      "classification_confidence": 0.96,
+      "status": "approved",
+      "asset": {
+        "path": "assets/category-cleanse-peel.webp",
+        "width": 600,
+        "height": 600,
+        "source_image_ids": ["source-001"],
+        "output_hash": "..."
+      }
+    }
+  ],
+  "review_gates": {
+    "taxonomy": { "status": "approved", "reviewer": "..." },
+    "assets": { "status": "approved", "reviewer": "..." }
+  },
+  "verification": {
+    "typecheck": "passed",
+    "storybook_tests": "passed",
+    "desktop_visual": "passed",
+    "mobile_visual": "passed"
+  }
+}</code></pre>
+            </div>
+          </section>
+
+          <section id="qa">
+            <div class="section-head">
+              <div>
+                <p class="kicker">04.3 · QA & roadmap</p>
+                <h2>验收标准与演进顺序</h2>
+              </div>
+              <p class="section-summary">
+                自动化只有在数据、资产、运行时和视觉四层证据都通过后才算完成。任何人工审核门未通过，状态只能是部分完成或阻塞。
+              </p>
+            </div>
+
+            <div class="qa-list">
+              <div class="qa-item"><span class="qa-mark">01</span><div><strong>分类完整性</strong><p>所有有效商品有唯一一级分类；未分类和冲突商品显式列出。</p></div></div>
+              <div class="qa-item"><span class="qa-mark">02</span><div><strong>双语一致性</strong><p>分类 ID 稳定，中英文仅是 label，不产生两套排序或链接。</p></div></div>
+              <div class="qa-item"><span class="qa-mark">03</span><div><strong>商品真实性</strong><p>名称、图片、价格、库存和评论均可回溯到来源与时间。</p></div></div>
+              <div class="qa-item"><span class="qa-mark">04</span><div><strong>资产规范</strong><p>图片存在、尺寸正确、可加载、无 UI 残留，包装未被错误重绘。</p></div></div>
+              <div class="qa-item"><span class="qa-mark">05</span><div><strong>运行时验证</strong><p>类型检查和 Storybook 测试通过，数量断言不写死在共享组件。</p></div></div>
+              <div class="qa-item"><span class="qa-mark">06</span><div><strong>视觉验证</strong><p>桌面端和移动端检查裁切、标签换行、横向滚动和相邻图片区分度。</p></div></div>
+            </div>
+
+            <div class="roadmap-grid" style="margin-top: 32px">
+              <article class="roadmap-card current">
+                <span class="status-tag">Current</span>
+                <strong>v0.1</strong>
+                <p>固化当前分类模块的规则、数据契约、提示词和验收门。</p>
+                <ul><li>人工采集商品</li><li>人工审核分类与图片</li><li>代码接入与 Storybook QA</li></ul>
+              </article>
+              <article class="roadmap-card">
+                <span class="status-tag">Next</span>
+                <strong>v0.2</strong>
+                <p>增加 manifest 生成器和资产任务队列，让分类模块可重复运行。</p>
+                <ul><li>商品 JSON 导入</li><li>规则化分类与评分</li><li>自动生成 fixtures patch</li></ul>
+              </article>
+              <article class="roadmap-card">
+                <span class="status-tag">Later</span>
+                <strong>v0.3–1.0</strong>
+                <p>接入实时目录，依次生成 Hero、场景导购、商品精选、评论和全量列表。</p>
+                <ul><li>模块级审核与重跑</li><li>差异报告和回滚</li><li>整页一键装配，人工批准发布</li></ul>
+              </article>
+            </div>
+          </section>
+        </main>
+      </div>
+
+      <footer class="footer-note">
+        <p>下一步不是“让模型再生成一次”，而是把每次判断沉淀为规则、版本和证据，让下一次生成更少依赖临时记忆。</p>
+      </footer>
+    </div>
+
+    <script>
+      const copyButtons = document.querySelectorAll("[data-copy-target]");
+      copyButtons.forEach((button) => {
+        button.addEventListener("click", async () => {
+          const target = document.getElementById(button.dataset.copyTarget);
+          if (!target) return;
+
+          try {
+            await navigator.clipboard.writeText(target.innerText);
+            button.dataset.copied = "true";
+            button.textContent = "已复制";
+          } catch {
+            button.textContent = "复制失败";
+          }
+        });
+      });
+
+      const moduleTabs = document.querySelectorAll('[role="tab"][aria-controls]');
+      moduleTabs.forEach((tab) => {
+        tab.addEventListener("click", () => {
+          moduleTabs.forEach((candidate) => {
+            const selected = candidate === tab;
+            candidate.setAttribute("aria-selected", String(selected));
+            const panel = document.getElementById(candidate.getAttribute("aria-controls"));
+            if (panel) panel.hidden = !selected;
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

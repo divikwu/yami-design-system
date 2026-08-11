@@ -40,6 +40,15 @@ export const Showcase: Story = {
     const description = copy?.querySelector<HTMLElement>(
       '[data-slot="theme-hero-description"]',
     );
+    const descriptionText = copy?.querySelector<HTMLElement>(
+      '[data-slot="theme-hero-description-text"]',
+    );
+    const descriptionCopy = copy?.querySelector<HTMLElement>(
+      '[data-slot="theme-hero-description-copy"]',
+    );
+    const descriptionToggle = copy?.querySelector<HTMLButtonElement>(
+      '[data-slot="theme-hero-description-toggle"]',
+    );
     const tagList = copy?.querySelector<HTMLElement>(
       '[data-slot="theme-hero-tags"]',
     );
@@ -64,6 +73,9 @@ export const Showcase: Story = {
       !copy ||
       !title ||
       !description ||
+      !descriptionText ||
+      !descriptionCopy ||
+      !descriptionToggle ||
       !tagList ||
       badges?.length !== 3 ||
       !actions ||
@@ -79,15 +91,42 @@ export const Showcase: Story = {
       throw new Error("ThemeHero display title must use the Source Serif 4 600 contract");
     }
     const descriptionStyle = getComputedStyle(description);
+    const descriptionTextStyle = getComputedStyle(descriptionText);
+    const descriptionToggleStyle = getComputedStyle(descriptionToggle);
+    const descriptionRange = document.createRange();
+    descriptionRange.selectNodeContents(descriptionCopy);
+    const descriptionLineRects = Array.from(descriptionRange.getClientRects());
+    const descriptionLastLine = descriptionLineRects.at(-1);
+    const descriptionToggleRect = descriptionToggle.getBoundingClientRect();
     if (
       descriptionStyle.fontSize !== "16px" ||
       descriptionStyle.lineHeight !== "20px" ||
-      descriptionStyle.fontWeight !== "400"
+      descriptionStyle.fontWeight !== "400" ||
+      descriptionTextStyle.webkitLineClamp !== "2" ||
+      descriptionText.getBoundingClientRect().height > 41 ||
+      descriptionToggle.textContent?.trim() !== "More" ||
+      descriptionToggleStyle.backgroundImage !== "none" ||
+      descriptionToggleStyle.fontWeight !== "400" ||
+      !descriptionLastLine ||
+      Math.abs(descriptionToggleRect.top - descriptionLastLine.top) > 2 ||
+      descriptionToggleRect.left < descriptionLastLine.right - 1 ||
+      descriptionToggleRect.left - descriptionLastLine.right > 8
     ) {
       throw new Error(
-        "ThemeHero description must use the regular 16/20 supporting-copy contract",
+        "Desktop ThemeHero description must use the regular 16/20 two-line contract with a plain-text expansion action",
       );
     }
+    descriptionToggle.click();
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    if (
+      descriptionToggle.getAttribute("aria-expanded") !== "true" ||
+      descriptionToggle.textContent?.trim() !== "Less" ||
+      getComputedStyle(descriptionText).webkitLineClamp !== "none"
+    ) {
+      throw new Error("Desktop ThemeHero description must reveal its full content");
+    }
+    descriptionToggle.click();
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
     const tagListStyle = getComputedStyle(tagList);
     if (
       tagListStyle.paddingTop !== "8px" ||
@@ -240,6 +279,15 @@ export const Mobile: Story = {
     const description = copy?.querySelector<HTMLElement>(
       '[data-slot="theme-hero-description"]',
     );
+    const descriptionText = copy?.querySelector<HTMLElement>(
+      '[data-slot="theme-hero-description-text"]',
+    );
+    const descriptionCopy = copy?.querySelector<HTMLElement>(
+      '[data-slot="theme-hero-description-copy"]',
+    );
+    const descriptionToggle = copy?.querySelector<HTMLButtonElement>(
+      '[data-slot="theme-hero-description-toggle"]',
+    );
     const tagList = copy?.querySelector<HTMLElement>(
       '[data-slot="theme-hero-tags"]',
     );
@@ -268,6 +316,9 @@ export const Mobile: Story = {
       !copy ||
       !title ||
       !description ||
+      !descriptionText ||
+      !descriptionCopy ||
+      !descriptionToggle ||
       !tagList ||
       badges?.length !== 3 ||
       !actions ||
@@ -286,7 +337,15 @@ export const Mobile: Story = {
     const copyStyles = getComputedStyle(copy);
     const titleStyles = getComputedStyle(title);
     const descriptionStyles = getComputedStyle(description);
+    const descriptionTextStyles = getComputedStyle(descriptionText);
+    const descriptionRange = document.createRange();
+    descriptionRange.selectNodeContents(descriptionCopy);
+    const descriptionLineRects = Array.from(descriptionRange.getClientRects());
+    const descriptionLastLine = descriptionLineRects.at(-1);
+    const descriptionToggleRect = descriptionToggle.getBoundingClientRect();
     const tagListStyles = getComputedStyle(tagList);
+    const tagListBox = tagList.getBoundingClientRect();
+    const mobileHeroBox = hero.getBoundingClientRect();
     const badgeStyles = Array.from(badges, (badge) => getComputedStyle(badge));
     const actionsStyles = getComputedStyle(actions);
     const actionsBox = actions.getBoundingClientRect();
@@ -308,17 +367,47 @@ export const Mobile: Story = {
       copyStyles.position !== "absolute" ||
       copyStyles.justifyContent !== "flex-end" ||
       titleStyles.fontSize !== "24px" ||
+      titleStyles.lineHeight !== "32px" ||
       descriptionStyles.fontSize !== "14px" ||
       descriptionStyles.lineHeight !== "20px" ||
-      descriptionStyles.webkitLineClamp !== "3" ||
-      tagListStyles.paddingTop !== "8px" ||
-      tagListStyles.paddingBottom !== "8px" ||
+      descriptionTextStyles.webkitLineClamp !== "2" ||
+      descriptionText.getBoundingClientRect().height > 41 ||
+      descriptionToggle.textContent?.trim() !== "More" ||
+      descriptionToggle.getAttribute("aria-expanded") !== "false" ||
+      descriptionToggle.getAttribute("aria-controls") !== descriptionCopy.id ||
+      getComputedStyle(descriptionToggle).backgroundImage !== "none" ||
+      getComputedStyle(descriptionToggle).fontWeight !== "400" ||
+      !descriptionLastLine ||
+      Math.abs(descriptionToggleRect.top - descriptionLastLine.top) > 2 ||
+      descriptionToggleRect.left < descriptionLastLine.right - 1 ||
+      descriptionToggleRect.left - descriptionLastLine.right > 8 ||
+      tagListStyles.flexWrap !== "nowrap" ||
+      tagListStyles.rowGap !== "4px" ||
+      tagListStyles.columnGap !== "4px" ||
+      tagListStyles.paddingTop !== "4px" ||
+      tagListStyles.paddingBottom !== "4px" ||
+      tagListStyles.overflowX !== "auto" ||
+      Math.abs(tagListBox.left - mobileHeroBox.left) > 1 ||
+      Math.abs(tagListBox.right - mobileHeroBox.right) > 1 ||
+      tagList.scrollWidth <= tagList.clientWidth ||
+      Math.max(...Array.from(badges, (badge) => badge.offsetTop)) !==
+        Math.min(...Array.from(badges, (badge) => badge.offsetTop)) ||
+      Array.from(badges).some((badge) => {
+        const style = getComputedStyle(badge);
+        return (
+          style.whiteSpace !== "nowrap" ||
+          style.textOverflow !== "clip" ||
+          badge.scrollWidth > badge.clientWidth
+        );
+      }) ||
       badgeStyles.some(
         (style) =>
           style.height !== "20px" ||
           style.borderRadius !== "4px" ||
           style.fontSize !== "12px" ||
-          style.lineHeight !== "16px",
+          style.lineHeight !== "16px" ||
+          style.color !== "rgb(0, 0, 0)" ||
+          style.backgroundColor !== "rgba(255, 255, 255, 0.68)",
       ) ||
       Array.from(badges).some((badge) => badge.dataset.size !== "md") ||
       actionsStyles.paddingTop !== "8px" ||
@@ -333,10 +422,46 @@ export const Mobile: Story = {
       mediaStyles.position !== "absolute" ||
       imageStyles.objectFit !== "cover" ||
       getComputedStyle(atmosphere).display !== "none" ||
-      !scrimStyles.backgroundImage.includes("linear-gradient")
+      hero.dataset.mobileForeground !== "dark" ||
+      getComputedStyle(hero).color !== "rgba(0, 0, 0, 0.87)" ||
+      !scrimStyles.backgroundImage.includes("linear-gradient") ||
+      !scrimStyles.backgroundImage.includes("/ 0.8") ||
+      scrimStyles.backdropFilter !== "blur(16px)" ||
+      !scrimStyles.maskImage.includes("linear-gradient") ||
+      !scrimStyles.maskImage.includes("20%") ||
+      !scrimStyles.maskImage.includes("60%")
     ) {
       throw new Error(
-        "Mobile ThemeHero must use a full-bleed image with bottom-aligned copy, 8px-padded full-width distributed actions and a contrast scrim",
+        "Mobile ThemeHero must use a 24/32 title and a single horizontally scrollable 4px-gap tag row over a full-bleed image with bottom-aligned copy, 8px-padded full-width distributed actions and an adaptive bottom-masked 16px frosted scrim",
+      );
+    }
+
+    descriptionToggle.click();
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    if (
+      descriptionToggle.getAttribute("aria-expanded") !== "true" ||
+      descriptionToggle.textContent?.trim() !== "Less" ||
+      getComputedStyle(descriptionText).webkitLineClamp !== "none" ||
+      descriptionText.scrollHeight !== descriptionText.clientHeight
+    ) {
+      throw new Error(
+        "Mobile ThemeHero description must reveal its full content and expose a collapse action",
+      );
+    }
+
+    descriptionToggle.click();
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    if (descriptionToggle.getAttribute("aria-expanded") !== "false") {
+      throw new Error("Mobile ThemeHero description must collapse again");
+    }
+
+    tagList.focus();
+    if (
+      tagList.tabIndex !== 0 ||
+      getComputedStyle(tagList).outlineStyle === "none"
+    ) {
+      throw new Error(
+        "Scrollable mobile ThemeHero tags must be keyboard focusable with a visible focus style",
       );
     }
   },

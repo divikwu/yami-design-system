@@ -1,4 +1,8 @@
-import type { HTMLAttributes, ReactNode } from "react";
+import type {
+  HTMLAttributes,
+  MouseEventHandler,
+  ReactNode,
+} from "react";
 
 import type { SectionDividerProps } from "../sectionDivider.types";
 
@@ -13,6 +17,8 @@ export interface ShortcutRailItem {
   imagePresentation?: "icon" | "full-bleed";
   /** Destination for the shortcut. */
   href: string;
+  /** Optional navigation handler for page-level shortcut behavior. */
+  onClick?: MouseEventHandler<HTMLAnchorElement>;
 }
 
 export interface ShortcutRailProps

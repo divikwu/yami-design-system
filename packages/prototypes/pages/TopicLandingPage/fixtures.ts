@@ -22,96 +22,151 @@ import {
 import { createReviewListProps } from "@yami/design-system/components/ReviewList/fixtures";
 import { createFullBleedShortcutItems } from "@yami/design-system/components/ShortcutRail/fixtures";
 import { createThemeHeroProps } from "@yami/design-system/components/ThemeHero/fixtures";
-import { createThemeProductListProps } from "@yami/design-system/components/ThemeProductList/fixtures";
 
 import type { TopicLandingPageProps } from "./TopicLandingPage.types";
+import {
+  createExploreMoreProducts,
+  exploreMoreShortcutValues,
+} from "./exploreMore.fixture";
+import { createStartHereProps } from "./startHere.fixture";
 
 export type TopicLandingPageLocale = "en" | "zh";
 
 const standardRailImages = [
-  new URL("./assets/anua-niacinamide-txa.png", import.meta.url).href,
-  new URL("./assets/anua-azelaic-hyaluron-serum.png", import.meta.url).href,
-  new URL("./assets/anua-pdrn-moisturizing-cream.png", import.meta.url).href,
-  new URL("./assets/anua-pdrn-capsule-mist.png", import.meta.url).href,
-  new URL("./assets/anua-heartleaf-cleansing-foam.png", import.meta.url).href,
-  new URL("./assets/anua-pdrn-capsule-serum.png", import.meta.url).href,
+  new URL(
+    "./assets/popular-picks/01-heartleaf-cleansing-foam.webp",
+    import.meta.url,
+  ).href,
+  new URL(
+    "./assets/popular-picks/02-niacinamide-txa-serum.webp",
+    import.meta.url,
+  ).href,
+  new URL(
+    "./assets/popular-picks/03-heartleaf-77-toner.webp",
+    import.meta.url,
+  ).href,
+  new URL(
+    "./assets/popular-picks/04-heartleaf-cleansing-oil.webp",
+    import.meta.url,
+  ).href,
+  new URL(
+    "./assets/popular-picks/05-rice-70-toner.webp",
+    import.meta.url,
+  ).href,
+  new URL(
+    "./assets/popular-picks/06-heartleaf-cleansing-foam-alt.webp",
+    import.meta.url,
+  ).href,
+  new URL(
+    "./assets/popular-picks/07-hyaluronic-foam-cleanser.webp",
+    import.meta.url,
+  ).href,
+  new URL(
+    "./assets/popular-picks/08-kpdh-sunscreen.webp",
+    import.meta.url,
+  ).href,
 ] as const;
 
-/* Six cards mirror Figma node 1865:43850 (Popular Picks). The image crops are
- * bundled so the page story remains deterministic and does not depend on a
- * temporary Figma asset URL. */
+const shortcutImages = [
+  new URL("./assets/category-cleanse-peel.webp", import.meta.url).href,
+  new URL("./assets/category-toners-pads.webp", import.meta.url).href,
+  new URL("./assets/category-serums-care.webp", import.meta.url).href,
+  new URL("./assets/category-moisturizers.webp", import.meta.url).href,
+  new URL("./assets/category-sunscreens.webp", import.meta.url).href,
+  new URL("./assets/category-face-masks.webp", import.meta.url).href,
+  new URL("./assets/category-makeup.webp", import.meta.url).href,
+] as const;
+
+/* The first eight cards mirror the ANUA brand page's sales-ranked "All" tab.
+ * Images are bundled so the story remains deterministic. */
 const standardRailProducts: ProductListItem[] = [
   {
-    id: "anua-niacinamide-txa-serum",
+    id: "anua-heartleaf-cleansing-foam",
     image: standardRailImages[0],
+    imageAlt: "Heartleaf Quercetinol Pore Deep Cleansing Foam, 5.07 fl oz",
+    brand: "ANUA",
+    brandHref: "/en/b/anua/11712",
+    href: "/en/p/heartleaf-quercetinol-pore-deep-cleansing-foam-5-07-fl-oz/1022446461",
+    title: "Heartleaf Quercetinol Pore Deep Cleansing Foam, 5.07 fl oz",
+    priceCurrent: "$10.29",
+    priceOriginal: "$14.99",
+  },
+  {
+    id: "anua-niacinamide-txa-serum",
+    image: standardRailImages[1],
     imageAlt: "Niacinamide 10% + TXA 4% Dark Spot Correcting Serum, 1.01 fl oz",
     brand: "ANUA",
-    brandHref: "/en/brands/anua",
-    href: "/en/products/anua-niacinamide-txa-serum",
+    brandHref: "/en/b/anua/11712",
+    href: "/en/p/niacinamide-10-txa-4-dark-spot-correcting-serum-1-01-fl-oz/1022446351",
     title: "Niacinamide 10% + TXA 4% Dark Spot Correcting Serum, 1.01 fl oz",
     priceCurrent: "$23.09",
     priceOriginal: "$24.99",
-    badges: [{ label: "-8%", type: "discount" }],
   },
   {
-    id: "anua-azelaic-hyaluron-serum",
-    image: standardRailImages[1],
-    imageAlt: "Azelaic Acid 10% + Hyaluron Redness Soothing Serum, 1 fl oz",
-    brand: "ANUA",
-    brandHref: "/en/brands/anua",
-    href: "/en/products/anua-azelaic-hyaluron-serum",
-    title: "Azelaic Acid 10% + Hyaluron Redness Soothing Serum, 1 fl oz",
-    priceCurrent: "$19.18",
-    priceOriginal: "$32.00",
-    badges: [{ label: "-40%", type: "discount" }],
-  },
-  {
-    id: "anua-pdrn-moisturizing-cream",
+    id: "anua-heartleaf-77-toner",
     image: standardRailImages[2],
-    imageAlt: "PDRN Hyaluronic Acid 100 Moisturizing Cream, 60 ml",
+    imageAlt: "Heartleaf 77 Soothing Toner, 8.45 fl oz",
     brand: "ANUA",
-    brandHref: "/en/brands/anua",
-    href: "/en/products/anua-pdrn-moisturizing-cream",
-    title: "PDRN Hyaluronic Acid 100 Moisturizing Cream, 60 ml",
-    priceCurrent: "$16.99",
-    priceOriginal: "$26.99",
-    badges: [{ label: "-37%", type: "discount" }],
+    brandHref: "/en/b/anua/11712",
+    href: "/en/p/heartleaf-77-soothing-toner-8-45-fl-oz/1022281871",
+    title: "Heartleaf 77 Soothing Toner, 8.45 fl oz",
+    priceCurrent: "$14.83",
+    priceOriginal: "$20.99",
   },
   {
-    id: "anua-pdrn-capsule-mist",
+    id: "anua-heartleaf-cleansing-oil",
     image: standardRailImages[3],
-    imageAlt: "PDRN Hyaluronic Acid Hydrating Capsule Mist, 100 ml",
+    imageAlt: "Heartleaf Pore Control Cleansing Oil, 200 ml",
     brand: "ANUA",
-    brandHref: "/en/brands/anua",
-    href: "/en/products/anua-pdrn-capsule-mist",
-    title: "PDRN Hyaluronic Acid Hydrating Capsule Mist, 100 ml",
-    priceCurrent: "$19.99",
-    priceOriginal: "$32.99",
-    badges: [{ label: "-39%", type: "discount" }],
+    brandHref: "/en/b/anua/11712",
+    href: "/en/p/heartleaf-pore-control-cleansing-oil-200ml/1022373071",
+    title: "Heartleaf Pore Control Cleansing Oil, 200 ml",
+    priceCurrent: "$18.99",
+    priceOriginal: "$19.99",
   },
   {
-    id: "anua-heartleaf-cleansing-foam",
+    id: "anua-rice-70-milky-toner",
     image: standardRailImages[4],
-    imageAlt: "Heartleaf Quercetinol Pore Deep Cleansing Foam, 5.07 fl oz",
+    imageAlt: "Rice 70 Glow Milky Toner, 250 ml",
     brand: "ANUA",
-    brandHref: "/en/brands/anua",
-    href: "/en/products/anua-heartleaf-cleansing-foam",
-    title: "Heartleaf Quercetinol Pore Deep Cleansing Foam, 5.07 fl oz",
-    priceCurrent: "$9.99",
-    priceOriginal: "$14.99",
-    badges: [{ label: "-33%", type: "discount" }],
+    brandHref: "/en/b/anua/11712",
+    href: "/en/p/rice-70-glow-milky-toner/1022500901",
+    title: "Rice 70 Glow Milky Toner, 250 ml",
+    priceCurrent: "$18.21",
+    priceOriginal: "$22.59",
   },
   {
-    id: "anua-pdrn-capsule-serum",
+    id: "anua-heartleaf-cleansing-foam-alt",
     image: standardRailImages[5],
-    imageAlt: "PDRN Hyaluronic Acid Capsule 100 Serum, 1.01 fl oz",
+    imageAlt: "Heartleaf Pore Deep Cleansing Foam, 150 ml, assorted packaging",
     brand: "ANUA",
-    brandHref: "/en/brands/anua",
-    href: "/en/products/anua-pdrn-capsule-serum",
-    title: "PDRN Hyaluronic Acid Capsule 100 Serum, 1.01 fl oz",
-    priceCurrent: "$27.79",
-    priceOriginal: "$28.00",
-    badges: [{ label: "-1%", type: "discount" }],
+    brandHref: "/en/b/anua/11712",
+    href: "/en/p/anua-s-heartleaf-quercentinol-pore-deep-cleansing-foam-150ml/5022424261",
+    title: "Heartleaf Pore Deep Cleansing Foam, 150 ml, assorted packaging",
+    priceCurrent: "$10.29",
+    priceOriginal: "$13.00",
+  },
+  {
+    id: "anua-hyaluronic-foam-cleanser",
+    image: standardRailImages[6],
+    imageAlt: "8 Hyaluronic Acid Hydrating Gentle Foaming Cleanser, 150 ml",
+    brand: "ANUA",
+    brandHref: "/en/b/anua/11712",
+    href: "/en/p/8-hyaluronic-acid-hydrating-gentle-foaming/1022604281",
+    title: "8 Hyaluronic Acid Hydrating Gentle Foaming Cleanser, 150 ml",
+    priceCurrent: "$11.52",
+    priceOriginal: "$13.99",
+  },
+  {
+    id: "anua-kpdh-sunscreen",
+    image: standardRailImages[7],
+    imageAlt: "ANUA × KPDH Daily Clear Moisturizing Sun Cream SPF50+, 50 ml",
+    brand: "ANUA",
+    brandHref: "/en/b/anua/11712",
+    href: "/en/p/kpdh-daily-clear-moisturizing-sun-cream-50ml/5022760411",
+    title: "ANUA × KPDH Daily Clear Moisturizing Sun Cream SPF50+, 50 ml",
+    priceCurrent: "$12.99",
+    priceOriginal: "$16.99",
   },
 ];
 
@@ -121,6 +176,8 @@ const pageCopy = {
     heroTitle: "Anua: Gentle yet Effective Korean Skincare",
     heroDescription:
       "Skin-friendly ingredients and targeted actives for simple daily care across soothing, hydration, brightening, and barrier support.",
+    heroDescriptionExpandLabel: "More",
+    heroDescriptionCollapseLabel: "Less",
     heroTags: [
       "Heartleaf Botanical",
       "Gentle Daily Formulas",
@@ -128,38 +185,26 @@ const pageCopy = {
     ],
     heroImageAlt:
       "Anua Korean skincare products displayed on a clear circular stand",
-    heroPrimaryCta: "Shop Products",
-    heroSecondaryCta: "Explore More",
     shortcutTitle: "Featured shortcuts",
     primaryTabsLabel: "Topic navigation",
     shortcutLabels: [
-      "Grocery",
-      "Snack & Beverage",
-      "Beauty",
-      "Personal Care",
-      "Health",
-      "Electronics",
-      "Home",
-      "Toys , Kids, Babies",
+      "Cleanse & Peel",
+      "Toners & Pads",
+      "Serums & Care",
+      "Moisturizers",
+      "Sunscreens",
+      "Face Masks",
+      "Makeup",
     ],
     standardRailTitle: "Popular Picks",
-    standardRailTabs: [
-      "All",
-      "Serums & Ampoules",
-      "Cleansers",
-      "Toners & Pads",
-      "Moisturizers",
-      "Sun Care",
-    ],
+    standardRailAllLabel: "All",
+    reviewTitle: "What Customers Say",
+    productListTitle: "Explore More",
+    productListDescription:
+      "Discover more from the collection, plus complementary picks selected for you.",
     standardProductNames: standardRailProducts.map((product) =>
       String(product.title),
     ),
-    themeProductNames: [
-      "Heartleaf Pore Control Cleansing Oil, 6.76 fl oz Quick Makeup Removal, Deep Cleansing Pores, Suitable for Acne-Prone Skin",
-      "Heartleaf Quercetinol Pore Deep Cleansing Foam, 5.07 fl oz",
-      "8 Hyaluronic Acid Hydrating Gentle Foaming Cleanser, 5.07 fl oz.",
-      "Rice Enzyme Brightening Cleansing Powder, 1.41 oz",
-    ],
     reviews: [
       "It feels so gentle and still gets all the gunk out",
       "I highly recommend it. After using it for a week, my skin is noticeably smoother and smoother. I have sensitive, combination, oily and dry skin and I find this bottle very moisturizing and easy to absorb.",
@@ -176,44 +221,35 @@ const pageCopy = {
     heroTitle: "Anua：温和有效的韩系护肤",
     heroDescription:
       "以温和亲肤成分结合针对性活性成分，为舒缓、补水、提亮与屏障护理提供简单清晰的日常方案。",
+    heroDescriptionExpandLabel: "更多",
+    heroDescriptionCollapseLabel: "收起",
     heroTags: ["Heartleaf 鱼腥草", "温和日常配方", "针对性活性护理"],
     heroImageAlt: "透明圆台上陈列的 Anua 韩系护肤产品",
-    heroPrimaryCta: "选购商品",
-    heroSecondaryCta: "探索更多",
     shortcutTitle: "精选分类",
     primaryTabsLabel: "主题导航",
     shortcutLabels: [
-      "粮油调味",
-      "零食饮料",
-      "美妆个护",
-      "个护清洁",
-      "健康养生",
-      "数码家电",
-      "家居生活",
-      "母婴玩具",
+      "清洁与去角质",
+      "爽肤水与棉片",
+      "精华与护理",
+      "乳液与面霜",
+      "防晒",
+      "面膜",
+      "彩妆",
     ],
     standardRailTitle: "热门精选",
-    standardRailTabs: [
-      "全部",
-      "精华安瓶",
-      "洁面",
-      "爽肤水与棉片",
-      "面霜",
-      "防晒",
-    ],
+    standardRailAllLabel: "全部",
+    reviewTitle: "顾客怎么说",
+    productListTitle: "探索更多",
+    productListDescription: "探索该系列更多产品，以及为你精选的搭配好物。",
     standardProductNames: [
+      "鱼腥草毛孔深层清洁泡沫洗面奶 150ml",
       "烟酰胺 10% + 传明酸 4% 淡斑精华 30ml",
-      "壬二酸 10% + 玻尿酸舒缓修红精华 30ml",
-      "PDRN 玻尿酸 100 保湿面霜 60ml",
-      "PDRN 玻尿酸补水胶囊喷雾 100ml",
-      "鱼腥草槲皮素深层毛孔洁面泡沫 150ml",
-      "PDRN 玻尿酸胶囊 100 精华 30ml",
-    ],
-    themeProductNames: [
+      "77% 鱼腥草舒缓爽肤水 250ml",
       "鱼腥草毛孔清洁卸妆油 200ml",
-      "鱼腥草槲皮素深层毛孔洁面泡沫 150ml",
-      "8 重玻尿酸温和保湿洁面泡沫 150ml",
-      "大米酵素焕亮洁面粉 40g",
+      "大米 70% 焕亮乳白爽肤水 250ml",
+      "鱼腥草毛孔深层清洁泡沫 150ml（新旧包装随机）",
+      "8 重玻尿酸保湿温和泡沫洁面乳 150ml",
+      "ANUA × KPDH Daily Clear 清爽防晒霜 SPF50+ 50ml",
     ],
     reviews: [
       "温和又干净，洗完很舒服",
@@ -272,12 +308,6 @@ function createFooter(locale: TopicLandingPageLocale): FooterProps {
   };
 }
 
-function scrollToPageSection(id: string) {
-  return () => {
-    document.getElementById(id)?.scrollIntoView({ block: "start" });
-  };
-}
-
 function createProductListProps(
   layout: "rail" | "waterfall",
   locale: TopicLandingPageLocale,
@@ -317,10 +347,12 @@ function createStandardRailProps(
       brandHref: product.brandHref?.replace("/en/", `/${locale}/`),
       href: product.href?.replace("/en/", `/${locale}/`),
     })),
-    tabs: copy.standardRailTabs.map((label, index) => ({
-      value: `popular-picks-tab-${index + 1}`,
-      label,
-    })),
+    tabs: [copy.standardRailAllLabel, ...copy.shortcutLabels].map(
+      (label, index) => ({
+        value: `popular-picks-tab-${index + 1}`,
+        label,
+      }),
+    ),
   };
 }
 
@@ -330,14 +362,26 @@ export function createTopicLandingPageFixture(
   const copy = pageCopy[locale];
   const header = createHeader(locale);
   const hero = createThemeHeroProps();
-  const shortcutItems = createFullBleedShortcutItems().map((item, index) => ({
-    ...item,
-    label: copy.shortcutLabels[index],
-  }));
-  const themeProductList = createThemeProductListProps(locale);
-  const reviewList = createReviewListProps(locale);
+  const shortcutItems = createFullBleedShortcutItems()
+    .slice(0, copy.shortcutLabels.length)
+    .map((item, index) => ({
+      ...item,
+      label: copy.shortcutLabels[index],
+      iconSrc: shortcutImages[index],
+      href: `#explore-more-${exploreMoreShortcutValues[index]}`,
+    }));
+  const themeProductList = createStartHereProps(locale);
+  const reviewList = {
+    ...createReviewListProps(locale),
+    title: copy.reviewTitle,
+  };
   const productRail = createStandardRailProps(locale);
-  const waterfall = createProductListProps("waterfall", locale);
+  const waterfall = {
+    ...createProductListProps("waterfall", locale),
+    ...createExploreMoreProducts(locale),
+    title: copy.productListTitle,
+    description: copy.productListDescription,
+  };
   return {
     lang: locale,
     contentMaxWidth: 1440,
@@ -348,30 +392,44 @@ export function createTopicLandingPageFixture(
       ...hero,
       title: copy.heroTitle,
       description: copy.heroDescription,
+      descriptionExpandLabel: copy.heroDescriptionExpandLabel,
+      descriptionCollapseLabel: copy.heroDescriptionCollapseLabel,
       tags: copy.heroTags,
       tagSize: "md",
       tagTone: "dark",
       image: { ...hero.image, alt: copy.heroImageAlt },
-      cta: {
-        label: copy.heroPrimaryCta,
-        controls: "shop",
-        onClick: scrollToPageSection("shop"),
-      },
-      secondaryCta: {
-        label: copy.heroSecondaryCta,
-        controls: "explore",
-        onClick: scrollToPageSection("explore"),
-      },
+      cta: undefined,
+      secondaryCta: undefined,
     },
     primaryTabs: {
       ariaLabel: copy.primaryTabsLabel,
       defaultValue: "featured-shortcuts",
       items: [
-        { value: "featured-shortcuts", label: copy.shortcutTitle },
-        { value: "start-here", label: String(themeProductList.title) },
-        { value: "popular-picks", label: String(productRail.title) },
-        { value: "reviews", label: String(reviewList.title) },
-        { value: "product-list", label: String(waterfall.title) },
+        {
+          value: "featured-shortcuts",
+          label: copy.shortcutTitle,
+          targetId: "explore",
+        },
+        {
+          value: "start-here",
+          label: String(themeProductList.title),
+          targetId: "shop",
+        },
+        {
+          value: "popular-picks",
+          label: String(productRail.title),
+          targetId: "popular-picks",
+        },
+        {
+          value: "reviews",
+          label: String(reviewList.title),
+          targetId: "reviews",
+        },
+        {
+          value: "product-list",
+          label: String(waterfall.title),
+          targetId: "product-list",
+        },
       ],
     },
     shortcutRail: {
@@ -380,15 +438,6 @@ export function createTopicLandingPageFixture(
     },
     standardRail: {
       ...themeProductList,
-      products: themeProductList.products.map((product, index) => ({
-        ...product,
-        title: copy.themeProductNames[index],
-        imageAlt: copy.themeProductNames[index],
-        ranking:
-          locale === "zh" && index === 0 ? "卸妆产品好评榜 No.10" : product.ranking,
-        soldCount:
-          locale === "zh" && product.soldCount ? "售出 80+" : product.soldCount,
-      })),
       mobileSurface: "plain",
       dividerPosition: "top",
       dividerVariant: "gray",

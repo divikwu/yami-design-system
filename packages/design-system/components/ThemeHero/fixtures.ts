@@ -11,6 +11,8 @@ export function createThemeHeroProps(): ThemeHeroProps {
     title: "Anua: Gentle yet Effective Korean Skincare",
     description:
       "Anua pairs skin-friendly natural ingredients with focused actives to create straightforward formulas for everyday skin concerns.\nExplore cleansers, toners, serums, moisturizers, and more—designed to calm, hydrate, brighten, and support a healthy-looking skin barrier.",
+    descriptionExpandLabel: "More",
+    descriptionCollapseLabel: "Less",
     tags: [
       "Heartleaf Botanical",
       "Gentle Daily Formulas",
@@ -24,6 +26,7 @@ export function createThemeHeroProps(): ThemeHeroProps {
       height: 941,
     },
     backgroundImageSrc: anuaHeroAtmosphere,
+    backgroundColor: "#e6edf2",
     cta: { label: "Shop Products" },
     secondaryCta: { label: "Explore More" },
     imageLoading: "eager",

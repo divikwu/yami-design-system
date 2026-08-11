@@ -26,6 +26,11 @@
       "required": true,
       "description": "Visible list heading and accessible section label."
     },
+    "description": {
+      "type": "ReactNode",
+      "required": false,
+      "description": "Optional supporting copy rendered to the right of the section title and below it on narrow screens."
+    },
     "products": {
       "type": "ProductListItem[]",
       "required": true,

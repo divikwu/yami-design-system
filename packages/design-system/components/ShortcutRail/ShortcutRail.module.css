@@ -56,7 +56,7 @@
   width: 100%;
   margin: 0;
   padding-block: 0;
-  padding-inline: var(--space-050);
+  padding-inline: 0 var(--space-050);
   font-size: var(--font-size-heading-2xl);
   font-weight: var(--font-weight-normal);
   line-height: var(--line-height-heading-2xl);
@@ -163,15 +163,20 @@
 }
 
 .label {
-  display: block;
+  display: -webkit-box;
   max-width: 100%;
+  max-height: calc(2 * var(--line-height-caption-md));
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   overflow: hidden;
   font-size: var(--font-size-caption-md);
   font-weight: var(--font-weight-normal);
   line-height: var(--line-height-caption-md);
+  overflow-wrap: normal;
   text-align: center;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .edge {
@@ -331,7 +336,7 @@
 
   .link {
     gap: var(--space-025);
-    padding-inline: var(--space-050);
+    padding-inline: 0;
     border-radius: var(--radius-sm);
   }
 
@@ -351,16 +356,14 @@
     object-fit: cover;
   }
 
-  /* Two lines, then ellipsis — Figma wraps "Convenience Store" and "Late Night
-   * Flavors" rather than clipping them to one line. `overflow-wrap: anywhere`
-   * matches the design's break-word: at 68px a word like "Convenience" is wider
-   * than the entry and would otherwise overflow instead of wrapping. */
+  /* Keep labels to two lines, but wrap only at natural break opportunities so
+   * a single English word is never split across lines. */
   .label {
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
     line-clamp: 2;
-    overflow-wrap: anywhere;
+    overflow-wrap: normal;
     white-space: normal;
   }
 

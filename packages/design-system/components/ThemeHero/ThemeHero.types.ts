@@ -31,6 +31,10 @@ export interface ThemeHeroProps
   extends Omit<HTMLAttributes<HTMLElement>, "children" | "title"> {
   title: ReactNode;
   description: ReactNode;
+  /** Localized label for expanding an overflowing two-line description. */
+  descriptionExpandLabel?: ReactNode;
+  /** Localized label for collapsing an expanded description. */
+  descriptionCollapseLabel?: ReactNode;
   /** Optional short descriptive keywords rendered as non-interactive Badges. */
   tags?: readonly string[];
   /**
@@ -43,6 +47,8 @@ export interface ThemeHeroProps
   image: ThemeHeroImage;
   /** Optional alternate source for the blurred decorative atmosphere. */
   backgroundImageSrc?: string;
+  /** Pre-sampled bottom-edge color used by the adaptive mobile scrim. */
+  backgroundColor?: string;
   /** Primary action rendered as the high-emphasis inverse button. */
   cta?: ThemeHeroCta;
   /** Optional lower-emphasis companion action. */

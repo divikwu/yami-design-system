@@ -37,6 +37,8 @@ interface ProductListBaseProps
     SectionDividerProps {
   "data-component"?: string;
   title: ReactNode;
+  /** Optional supporting copy rendered alongside the section title. */
+  description?: ReactNode;
   /** Optional serif treatment for editorial section headings. */
   titleFontFamily?: "sans" | "serif";
   products: ProductListItem[];

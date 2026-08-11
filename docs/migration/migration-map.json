@@ -1044,14 +1044,14 @@
       "sourceSha256": "9b6806fc353b6b3da5f56a233c56ef4d871fb9cafe30870237f51a2c0e51860d",
       "disposition": "regenerated",
       "destination": "packages/design-system/generated/catalog.json",
-      "destinationSha256": "c055d5a35e76d3fd326771d287927827b6dea60c75061c9a235848752a5e466c"
+      "destinationSha256": "778c81091618a60fdbcfda61049be9219e1f57416aac913953bd1e0028d5095a"
     },
     {
       "source": "catalog.json",
       "sourceSha256": "3333682325d00194fb646874f8453e3545a46813986fbac22e9e0bf18f87b5fa",
       "disposition": "regenerated",
       "destination": "packages/design-system/generated/catalog.json",
-      "destinationSha256": "c055d5a35e76d3fd326771d287927827b6dea60c75061c9a235848752a5e466c"
+      "destinationSha256": "778c81091618a60fdbcfda61049be9219e1f57416aac913953bd1e0028d5095a"
     },
     {
       "source": "color-primitives.stories.tsx",
@@ -2591,7 +2591,7 @@
       "sourceSha256": "1bae791cecc099dce8f099b2a396d6aad61ee95e3ab920f392f75739ea3f795f",
       "disposition": "migrated",
       "destination": "packages/design-system/components/ProductList/ProductList.module.css",
-      "destinationSha256": "48d23240a64f762a15e73f71c8b7ddd97678992af106424c07761e7aae52f855"
+      "destinationSha256": "cfd99d28e7091e2047f7577c8bf3eed577cea088ab3d848c64e4bcbce22b755e"
     },
     {
       "source": "components/ProductList/ProductList.stories.module.css",
@@ -2612,14 +2612,14 @@
       "sourceSha256": "cd8f31170e9c2b339b83e482bd40c09f2d2c1eb464679bbecdd60ca6371942b6",
       "disposition": "migrated",
       "destination": "packages/design-system/components/ProductList/ProductList.tsx",
-      "destinationSha256": "193d3a9fba3cadf81d8e97d697571f816b3640e864b05650271985645870fb22"
+      "destinationSha256": "f46c230ac0c90d8f12906afddda4fc0e46572a804abe8874d0fd44482047b38f"
     },
     {
       "source": "components/ProductList/ProductList.types.ts",
       "sourceSha256": "3bc7459be52631967ca2e72a3699bef8df6e00a7f4018f173e7e5ebc6b93a07e",
       "disposition": "migrated",
       "destination": "packages/design-system/components/ProductList/ProductList.types.ts",
-      "destinationSha256": "819de40d6bcc1f80a2104c6d347e214cfd524ed0730104e480b8fffd69e5e86c"
+      "destinationSha256": "43293964e69f0f7ff381eb703321307a3138fab6f8560480748aa225e622ff1f"
     },
     {
       "source": "components/ProductList/assets/atmospheric-mobile.jpg",
@@ -2675,7 +2675,7 @@
       "sourceSha256": "8e9c9038a633c737c5cd658632c1759d3f1e97a512dfd5dcbce299f7510c756d",
       "disposition": "migrated",
       "destination": "packages/design-system/components/ProductList/meta.json",
-      "destinationSha256": "9550a91a07d02a980c54e7577e455970d41de612f924eb96d67e78f0eb455804"
+      "destinationSha256": "25bcecff70a8230dbc285779bf94b640c1bc411ffecf5dd4038d61a4093ceb59"
     },
     {
       "source": "components/ProductList/usage.md",
@@ -2745,21 +2745,21 @@
       "sourceSha256": "65fa9aa46e0037f4d69820a9c5166731a31f8bf9c3f8498e5ac52b0174ea2d0f",
       "disposition": "migrated",
       "destination": "packages/design-system/components/SectionHeading.module.css",
-      "destinationSha256": "24f60a0a01d0637105fd7dbcc13d886469a74d6487530116f4278494e984042f"
+      "destinationSha256": "ff305383414c7d32ef14c375b906513a617e0a25f12253a1c46b5ea0e447ff6c"
     },
     {
       "source": "components/SectionHeading.tsx",
       "sourceSha256": "1b6d01fe6c9441e5977a89dcad16d30b0a556a2390d20f63ff5334bc5ed19224",
       "disposition": "migrated",
       "destination": "packages/design-system/components/SectionHeading.tsx",
-      "destinationSha256": "531818e2472f1d3721940663b9c5419becd97e521df3aa301f03e655588a26ec"
+      "destinationSha256": "9eeac8a21c27c1855875c3c89844f92b28f22e02adf049a1f704180be7ee1afc"
     },
     {
       "source": "components/ShortcutRail/ShortcutRail.module.css",
       "sourceSha256": "4ada8d2f91410d5876d9b50f4dda0c7b5e224230b744a429cc21dc19bf300d15",
       "disposition": "migrated",
       "destination": "packages/design-system/components/ShortcutRail/ShortcutRail.module.css",
-      "destinationSha256": "b05392c6196e39a90a370f6161d8c1efcda3d9748c281a1f14708ab8f9265695"
+      "destinationSha256": "0d07b2e563fe629f38a02ed9951b551b2542f30922553d44bb91bbab5294dc02"
     },
     {
       "source": "components/ShortcutRail/ShortcutRail.stories.module.css",
@@ -2773,21 +2773,21 @@
       "sourceSha256": "d0acd22474b96d0628ae362f1999b85674c85067d17be8a6098228778bcfacf1",
       "disposition": "migrated",
       "destination": "packages/design-system/components/ShortcutRail/ShortcutRail.stories.tsx",
-      "destinationSha256": "52741e21701bdd16f384309d30626a3b51972e8c78cb75799cc81de974fa8264"
+      "destinationSha256": "a07d571e57b4cf04787f1a3712086edaadba8868d4822689f69f38e376c5f185"
     },
     {
       "source": "components/ShortcutRail/ShortcutRail.tsx",
       "sourceSha256": "dedfd47efde145c3484dd00b62baad5af8a2a16cd4f12c5a293c6293228bba39",
       "disposition": "migrated",
       "destination": "packages/design-system/components/ShortcutRail/ShortcutRail.tsx",
-      "destinationSha256": "178ce73ce0303e8689f03192fc0598d6e3990da7ce3b39702007fc195f655a6e"
+      "destinationSha256": "6e73bfe3edb0278ed44af27ff3bb79b73464b02dc1a6ed3d4bdc64ec8909ccd8"
     },
     {
       "source": "components/ShortcutRail/ShortcutRail.types.ts",
       "sourceSha256": "2354f51b6aeb487e5f7097c78c6f4d68ec92965eec0c35c7c512b01c86216ae6",
       "disposition": "migrated",
       "destination": "packages/design-system/components/ShortcutRail/ShortcutRail.types.ts",
-      "destinationSha256": "14d46578dbea3053dc73117765538c640b3c2d3a10b22eceb097acae2ea39669"
+      "destinationSha256": "7c3268aa6584a89d8e51421677766298bc1ef45e01bb5f87dc08c601d012d6ae"
     },
     {
       "source": "components/ShortcutRail/assets/01-trending.png",
@@ -3165,14 +3165,14 @@
       "sourceSha256": "7cc92e85b260c65fb06ce025236e92302f2af3b16696d4d0e41fc2720278cba7",
       "disposition": "migrated",
       "destination": "packages/design-system/components/Tabs/Tabs.stories.tsx",
-      "destinationSha256": "6ae629bc00ff6c28ecaa98e8857a93195ecb8f37a5e2efa0dbe2ae1164318a49"
+      "destinationSha256": "7070f8e3002bf7c1baaba0994498dbea4d347bba06355318348c4daeed7673c4"
     },
     {
       "source": "components/Tabs/Tabs.tsx",
       "sourceSha256": "5664afce48c29817055e30468b88b6180868b7d4c500b0090c219837d2d90861",
       "disposition": "migrated",
       "destination": "packages/design-system/components/Tabs/Tabs.tsx",
-      "destinationSha256": "fc7bd0f983d99691276764d6e07a8fd1783b394a38fc518a849211dce444b170"
+      "destinationSha256": "72490e9e26b6feeae47d64abae628b253fff414b886900be0fd4ca7d10114fff"
     },
     {
       "source": "components/Tabs/examples.tsx",

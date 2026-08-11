@@ -3265,6 +3265,11 @@
             "required": true,
             "description": "Visible list heading and accessible section label."
           },
+          "description": {
+            "type": "ReactNode",
+            "required": false,
+            "description": "Optional supporting copy rendered to the right of the section title and below it on narrow screens."
+          },
           "products": {
             "type": "ProductListItem[]",
             "required": true,
@@ -4707,7 +4712,7 @@
         "category": "composite",
         "status": "experimental",
         "version": "0.8.1",
-        "description": "Responsive theme storytelling hero with a two-column desktop composition, optional size-configurable descriptive Badges, one or two configurable actions and full-bleed mobile artwork.",
+        "description": "Responsive theme storytelling hero with a two-column desktop composition, a localized expandable two-line description, optional size-configurable descriptive Badges, one or two configurable actions and full-bleed mobile artwork.",
         "figma": {
           "nodeId": "1877:43111",
           "componentKey": null,
@@ -4732,7 +4737,19 @@
           "description": {
             "type": "ReactNode",
             "required": true,
-            "description": "Selectable supporting theme copy."
+            "description": "Selectable supporting theme copy clamped to two lines until expanded."
+          },
+          "descriptionExpandLabel": {
+            "type": "ReactNode",
+            "required": false,
+            "default": "More",
+            "description": "Localized plain-text action shown only when the two-line description overflows."
+          },
+          "descriptionCollapseLabel": {
+            "type": "ReactNode",
+            "required": false,
+            "default": "Less",
+            "description": "Localized plain-text action used to restore the two-line description."
           },
           "tags": {
             "type": "readonly string[]",
@@ -4781,7 +4798,7 @@
         "rules": {
           "focus": {
             "ruleId": "focus-style",
-            "note": "The composed Button supplies the token-backed inverse focus ring."
+            "note": "The description disclosure, scrollable tag list and composed Buttons supply visible token-backed focus rings."
           },
           "radius": {
             "ruleId": "no-custom-radii",

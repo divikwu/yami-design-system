@@ -13,7 +13,9 @@ remains real DOM text so it can be translated, selected and indexed.
 ## Content
 
 - Keep the title to roughly two desktop lines.
-- Use one or two short paragraphs for `description`.
+- Use one or two short paragraphs for `description`. It is limited to two lines
+  until expanded. Localize the disclosure with `descriptionExpandLabel` and
+  `descriptionCollapseLabel`.
 - Use `tags` for up to three concise brand, ingredient, or benefit keywords;
   they render with the shared `Badge`. `tagSize` selects the preferred desktop
   `sm` or `md` geometry, while `tagTone` selects the background-polarity
@@ -30,7 +32,9 @@ The title is an `h2`; place the component beneath the page's `h1`. Descriptive
 tags render as a native list of non-interactive `Badge` labels. The blurred
 background image is decorative and hidden from assistive technology. The
 foreground image carries `image.alt`, and both CTAs use the shared `Button`
-keyboard and focus behavior. Use `controls` to identify an in-page destination.
+keyboard and focus behavior. The description disclosure is a native button with
+`aria-expanded` and `aria-controls`; horizontally overflowing tags are keyboard
+focusable. Use `controls` to identify an in-page destination.
 
 ## Responsive behavior
 
@@ -40,7 +44,8 @@ uses a 48px inline inset; supporting copy uses 16px/20px type and the action
 group uses 16px block padding. Below 1024px, the campaign artwork becomes a
 full-bleed, cover-cropped visual with the selectable copy and action group
 anchored over its lower edge. A contrast scrim preserves legibility, and
-supporting copy uses 14px/20px and is limited to three lines so the artwork
-remains visible. Keyword Badges use the compact 20px-high, 12px type geometry.
+supporting copy uses 14px/20px. Supporting copy is limited to two lines on both
+desktop and mobile until the localized plain-text disclosure is activated.
+Keyword Badges use the compact 20px-high, 12px type geometry.
 The mobile action group uses 8px block padding, spans the copy content width,
 and distributes available space across one or two actions.

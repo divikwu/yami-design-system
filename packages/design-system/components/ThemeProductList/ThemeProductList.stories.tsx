@@ -79,6 +79,9 @@ export const Showcase: Story = {
     const overlay = content?.querySelector<HTMLElement>(
       '[data-slot="theme-product-list-overlay"]',
     );
+    const scrim = content?.querySelector<HTMLElement>(
+      '[data-slot="theme-product-list-scrim"]',
+    );
     const contentTitle = overlay?.querySelector<HTMLElement>("h3");
     const contentDescription = overlay?.querySelector<HTMLElement>("p");
 
@@ -88,6 +91,7 @@ export const Showcase: Story = {
       !content ||
       !image ||
       !overlay ||
+      !scrim ||
       !contentTitle ||
       !contentDescription
     ) {
@@ -98,14 +102,72 @@ export const Showcase: Story = {
     if (!image.alt.trim() || !overlay.textContent?.includes("Start Fresh")) {
       throw new Error("ThemeProductList content requires meaningful copy and alt text");
     }
-    const expectedTitleSize = window.innerWidth >= 1440 ? "20px" : "18px";
-    if (getComputedStyle(contentTitle).fontSize !== expectedTitleSize) {
+    const contentStyle = getComputedStyle(content);
+    const scrimStyle = getComputedStyle(scrim);
+    const scrimBox = scrim.getBoundingClientRect();
+    const contentBox = content.getBoundingClientRect();
+    if (
+      Math.abs(scrimBox.width - contentBox.width) > 1 ||
+      Math.abs(scrimBox.height - contentBox.height) > 1 ||
+      !scrimStyle.backgroundImage.includes("linear-gradient") ||
+      !contentStyle
+        .getPropertyValue("--theme-product-list-surface-color")
+        .trim() ||
+      scrimStyle.backdropFilter !== "blur(16px)" ||
+      !scrimStyle.maskImage.includes("linear-gradient")
+    ) {
       throw new Error(
-        `ThemeProductList content title must use heading-md (${expectedTitleSize})`,
+        "ThemeProductList scene art must use the same adaptive full-panel 20–50% sampled-color gradient and 16px frosted scrim on PC and mobile",
       );
     }
-    if (getComputedStyle(contentDescription).fontWeight !== "400") {
-      throw new Error("ThemeProductList description must remain regular at weight 400");
+    if (!content.matches('[data-foreground="light"], [data-foreground="dark"]')) {
+      throw new Error(
+        "ThemeProductList scene art must expose the sampled foreground contrast",
+      );
+    }
+    const overlayStyle = getComputedStyle(overlay);
+    if (
+      window.innerWidth < 1024 &&
+      (overlayStyle.paddingRight !== "8px" ||
+        overlayStyle.paddingBottom !== "8px" ||
+        overlayStyle.paddingLeft !== "8px")
+    ) {
+      throw new Error(
+        "ThemeProductList mobile content must use 8px inline and bottom padding",
+      );
+    }
+    const expectedTitleSize =
+      window.innerWidth < 1024
+        ? "14px"
+        : window.innerWidth >= 1440
+          ? "20px"
+          : "18px";
+    const expectedTitleLineHeight =
+      window.innerWidth < 1024
+        ? "20px"
+        : window.innerWidth >= 1440
+          ? "28px"
+          : "24px";
+    const titleStyle = getComputedStyle(contentTitle);
+    if (
+      titleStyle.fontSize !== expectedTitleSize ||
+      titleStyle.lineHeight !== expectedTitleLineHeight
+    ) {
+      throw new Error(
+        `ThemeProductList content title must use ${expectedTitleSize}/${expectedTitleLineHeight}`,
+      );
+    }
+    const descriptionStyle = getComputedStyle(contentDescription);
+    const expectedDescriptionSize = window.innerWidth < 1024 ? "12px" : "14px";
+    const expectedDescriptionLineHeight = window.innerWidth < 1024 ? "16px" : "20px";
+    if (
+      descriptionStyle.fontSize !== expectedDescriptionSize ||
+      descriptionStyle.lineHeight !== expectedDescriptionLineHeight ||
+      descriptionStyle.fontWeight !== "400"
+    ) {
+      throw new Error(
+        `ThemeProductList description must use regular ${expectedDescriptionSize}/${expectedDescriptionLineHeight}`,
+      );
     }
     if (list.firstElementChild?.getAttribute("data-slot") !== "product-list-leading-content") {
       throw new Error("ThemeProductList content must reserve the first rail position");
