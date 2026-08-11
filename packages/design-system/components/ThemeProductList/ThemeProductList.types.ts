@@ -7,6 +7,8 @@ export interface ThemeProductListContent {
     src: string;
     alt: string;
   };
+  /** Pre-sampled color from the image's lower copy region. Prevents a foreground-color flash before client-side sampling completes. */
+  backgroundColor?: string;
   title: ReactNode;
   description: ReactNode;
   href?: string;

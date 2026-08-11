@@ -8,6 +8,8 @@
 }
 
 .content {
+  --theme-product-list-surface-color: rgb(0 0 0);
+
   position: relative;
   min-height: calc(
     var(--theme-product-card-width, 152px) + var(--space-600) +
@@ -17,6 +19,10 @@
   border-radius: var(--radius-component-default);
   background: var(--surface-secondary);
   color: var(--color-white-1000);
+}
+
+.content[data-foreground="dark"] {
+  color: var(--color-black-900);
 }
 
 .link {
@@ -55,8 +61,13 @@
   pointer-events: none;
   background: linear-gradient(
     to bottom,
-    rgb(0 0 0 / 0%) 20%,
-    rgb(0 0 0 / 45%) 50%
+    transparent 20%,
+    color-mix(
+        in srgb,
+        var(--theme-product-list-surface-color) 80%,
+        transparent
+      )
+      50%
   );
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);

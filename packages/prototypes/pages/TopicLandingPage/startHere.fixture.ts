@@ -504,6 +504,7 @@ interface ThemeDefinition {
   description: LocalizedText;
   image: string;
   imageAlt: LocalizedText;
+  backgroundColor: string;
   productKeys: AnuaProductKey[];
 }
 
@@ -524,6 +525,7 @@ const themeDefinitions: ThemeDefinition[] = [
       en: "ANUA Heartleaf cleansing oil in a clear water setting",
       zh: "清透水感场景中的 ANUA 鱼腥草卸妆油",
     },
+    backgroundColor: "rgb(208, 205, 205)",
     productKeys: [
       "cleansingOil",
       "heartleafCleansingFoam",
@@ -549,6 +551,7 @@ const themeDefinitions: ThemeDefinition[] = [
       en: "ANUA Heartleaf 77 toner held against a soft gray background",
       zh: "柔灰背景中的 ANUA 鱼腥草 77 爽肤水",
     },
+    backgroundColor: "rgb(154, 165, 164)",
     productKeys: [
       "heartleafToner",
       "heartleafTonerPad",
@@ -574,6 +577,7 @@ const themeDefinitions: ThemeDefinition[] = [
       en: "ANUA Niacinamide 10% and TXA 4% serum with pink accents",
       zh: "粉色光感场景中的 ANUA 烟酰胺 10% 与传明酸 4% 精华",
     },
+    backgroundColor: "rgb(208, 149, 155)",
     productKeys: [
       "niacinamideTxaSerum",
       "riceMilkyToner",
@@ -599,6 +603,7 @@ const themeDefinitions: ThemeDefinition[] = [
       en: "ANUA PDRN Hyaluronic Acid serum in a fresh aqua setting",
       zh: "清透水绿色场景中的 ANUA PDRN 玻尿酸精华",
     },
+    backgroundColor: "rgb(146, 169, 173)",
     productKeys: [
       "pdrnCapsuleSerum",
       "pdrnCream",
@@ -624,6 +629,7 @@ const themeDefinitions: ThemeDefinition[] = [
       en: "ANUA Zero-Cast sunscreen displayed in warm daylight",
       zh: "暖阳场景中陈列的 ANUA Zero-Cast 防晒霜",
     },
+    backgroundColor: "rgb(185, 165, 137)",
     productKeys: [
       "kpdhSunscreen",
       "zeroCastSunscreen",
@@ -692,6 +698,7 @@ export function createStartHereProps(locale: Locale): ThemeProductListProps {
           src: definition.image,
           alt: definition.imageAlt[locale],
         },
+        backgroundColor: definition.backgroundColor,
         title: definition.title[locale],
         description: definition.description[locale],
         href: `https://www.yami.com/us/${locale}/b/anua/11712`,

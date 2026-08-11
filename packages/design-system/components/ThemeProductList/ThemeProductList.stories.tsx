@@ -102,6 +102,7 @@ export const Showcase: Story = {
     if (!image.alt.trim() || !overlay.textContent?.includes("Start Fresh")) {
       throw new Error("ThemeProductList content requires meaningful copy and alt text");
     }
+    const contentStyle = getComputedStyle(content);
     const scrimStyle = getComputedStyle(scrim);
     const scrimBox = scrim.getBoundingClientRect();
     const contentBox = content.getBoundingClientRect();
@@ -109,11 +110,19 @@ export const Showcase: Story = {
       Math.abs(scrimBox.width - contentBox.width) > 1 ||
       Math.abs(scrimBox.height - contentBox.height) > 1 ||
       !scrimStyle.backgroundImage.includes("linear-gradient") ||
+      !contentStyle
+        .getPropertyValue("--theme-product-list-surface-color")
+        .trim() ||
       scrimStyle.backdropFilter !== "blur(16px)" ||
       !scrimStyle.maskImage.includes("linear-gradient")
     ) {
       throw new Error(
-        "ThemeProductList scene art must use the same full-panel 20–50% black gradient and 16px frosted scrim on PC and mobile",
+        "ThemeProductList scene art must use the same adaptive full-panel 20–50% sampled-color gradient and 16px frosted scrim on PC and mobile",
+      );
+    }
+    if (!content.matches('[data-foreground="light"], [data-foreground="dark"]')) {
+      throw new Error(
+        "ThemeProductList scene art must expose the sampled foreground contrast",
       );
     }
     const expectedTitleSize = window.innerWidth >= 1440 ? "20px" : "18px";

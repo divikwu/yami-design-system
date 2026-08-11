@@ -1,7 +1,10 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { useState } from "react";
 
+import { heroBannerPalette } from "../HeroBanner/imageColor";
+import { useImageBottomColor } from "../HeroBanner/useImageBottomColor";
 import { ProductList } from "../ProductList";
 import {
   handleProgressiveImageError,
@@ -17,12 +20,28 @@ import type {
 
 function ThemeProductListContentPanel({
   image,
+  backgroundColor,
   title,
   description,
   href,
 }: ThemeProductListContent) {
+  const imageColor = useImageBottomColor(
+    image.src,
+    backgroundColor ?? "#000000",
+  );
+  const palette = heroBannerPalette(imageColor);
+  const style = palette.surfaceColor
+    ? ({
+        "--theme-product-list-surface-color": palette.surfaceColor,
+      } as CSSProperties)
+    : undefined;
   const panel = (
-    <div className={styles.content} data-slot="theme-product-list-content">
+    <div
+      className={styles.content}
+      style={style}
+      data-slot="theme-product-list-content"
+      data-foreground={palette.foreground}
+    >
       <img
         ref={prepareProgressiveImage}
         className={styles.image}
