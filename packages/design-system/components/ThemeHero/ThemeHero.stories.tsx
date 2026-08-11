@@ -86,7 +86,11 @@ export const Showcase: Story = {
     ) {
       throw new Error("ThemeHero did not render its copy, badges, artwork and actions");
     }
+    const copyStyle = getComputedStyle(copy);
     const titleStyle = getComputedStyle(title);
+    if (copyStyle.rowGap !== "12px") {
+      throw new Error("Desktop ThemeHero copy must use a 12px vertical gap");
+    }
     if (!titleStyle.fontFamily.includes("Source Serif 4") || titleStyle.fontWeight !== "600") {
       throw new Error("ThemeHero display title must use the Source Serif 4 600 contract");
     }
@@ -366,6 +370,7 @@ export const Mobile: Story = {
       Math.abs(mediaBox.height - heroBox.height) > 1 ||
       copyStyles.position !== "absolute" ||
       copyStyles.justifyContent !== "flex-end" ||
+      copyStyles.rowGap !== "8px" ||
       titleStyles.fontSize !== "24px" ||
       titleStyles.lineHeight !== "32px" ||
       descriptionStyles.fontSize !== "14px" ||
