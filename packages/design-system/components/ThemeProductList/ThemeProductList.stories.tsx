@@ -125,6 +125,17 @@ export const Showcase: Story = {
         "ThemeProductList scene art must expose the sampled foreground contrast",
       );
     }
+    const overlayStyle = getComputedStyle(overlay);
+    if (
+      window.innerWidth < 1024 &&
+      (overlayStyle.paddingRight !== "8px" ||
+        overlayStyle.paddingBottom !== "8px" ||
+        overlayStyle.paddingLeft !== "8px")
+    ) {
+      throw new Error(
+        "ThemeProductList mobile content must use 8px inline and bottom padding",
+      );
+    }
     const expectedTitleSize =
       window.innerWidth < 1024
         ? "14px"

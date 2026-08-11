@@ -126,7 +126,7 @@
 
   .overlay {
     min-height: 112px;
-    padding: var(--space-300) var(--space-200) var(--space-200);
+    padding: var(--space-300) var(--space-100) var(--space-100);
   }
 
   .title {
