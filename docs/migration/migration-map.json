@@ -2591,7 +2591,7 @@
       "sourceSha256": "1bae791cecc099dce8f099b2a396d6aad61ee95e3ab920f392f75739ea3f795f",
       "disposition": "migrated",
       "destination": "packages/design-system/components/ProductList/ProductList.module.css",
-      "destinationSha256": "cfd99d28e7091e2047f7577c8bf3eed577cea088ab3d848c64e4bcbce22b755e"
+      "destinationSha256": "366f57684b7502e37d6f414f339affa96a5ad3614a167a5a2bd989149b61f31c"
     },
     {
       "source": "components/ProductList/ProductList.stories.module.css",
@@ -2605,7 +2605,7 @@
       "sourceSha256": "c4d8cf26855f313e2eab39487b5920d32c73819efd92bf1e89c165d2a0dd0d85",
       "disposition": "migrated",
       "destination": "packages/design-system/components/ProductList/ProductList.stories.tsx",
-      "destinationSha256": "c941821334d6f5e4396e4e88348214f1f497c202cb7ef5cceccfdee13886bf70"
+      "destinationSha256": "a775bbf8bad0c62231662f8dd3be7631d5e54bfd7870477b756deb20e8f443ae"
     },
     {
       "source": "components/ProductList/ProductList.tsx",
