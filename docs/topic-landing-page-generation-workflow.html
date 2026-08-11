@@ -8,22 +8,25 @@
       content="YAMI Topic Landing Page 商品分类、选品、图片生成与整页自动化工作流程。"
     />
     <title>YAMI Topic Landing Page 生成工作流</title>
+    <script>
+      document.documentElement.classList.add("doc-routing");
+    </script>
     <style>
       :root {
         color-scheme: light;
-        --ink: #171717;
-        --muted: #66635e;
-        --paper: #f5f2ea;
-        --paper-deep: #e9e4d9;
-        --surface: rgba(255, 255, 255, 0.72);
-        --line: #cec8bc;
-        --line-strong: #8b857b;
-        --accent: #e60012;
+        --ink: #0a0a0a;
+        --muted: #525252;
+        --paper: #f5f5f5;
+        --paper-deep: #ebebeb;
+        --surface: #fafafa;
+        --line: #d4d4d4;
+        --line-strong: #b4b4b4;
+        --accent: #d92b2b;
         --accent-soft: #ffd8dc;
         --success: #0c7656;
         --warning: #ad6400;
         --info: #245a9b;
-        --display: "Songti SC", "STSong", "Noto Serif SC", serif;
+        --display: "New York", "Noto Serif SC", "Songti SC", serif;
         --body: "Avenir Next", "PingFang SC", "Hiragino Sans GB", sans-serif;
       }
 
@@ -44,6 +47,7 @@
           var(--paper);
         background-size: 24px 24px;
         font-family: var(--body);
+        font-size: 14px;
         line-height: 1.55;
       }
 
@@ -65,6 +69,25 @@
         min-height: 100vh;
       }
 
+      .document-header {
+        display: flex;
+        min-height: 56px;
+        align-items: center;
+        padding: 10px 24px;
+        border-bottom: 1px solid var(--line);
+        color: var(--ink);
+        background: #fff;
+      }
+
+      .document-header-title {
+        margin: 0;
+        font-family: var(--display);
+        font-size: 16px;
+        font-weight: 700;
+        line-height: 1.25;
+        white-space: nowrap;
+      }
+
       .masthead {
         position: relative;
         display: grid;
@@ -75,8 +98,12 @@
         overflow: hidden;
         border-bottom: 1px solid var(--line-strong);
         background:
-          radial-gradient(circle at 80% 20%, rgba(230, 0, 18, 0.12), transparent 28%),
-          linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(233, 228, 217, 0.72));
+          radial-gradient(
+            circle at 80% 20%,
+            color-mix(in srgb, var(--accent) 12%, transparent),
+            transparent 28%
+          ),
+          linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(235, 235, 235, 0.72));
       }
 
       .masthead::after {
@@ -85,7 +112,7 @@
         bottom: -148px;
         width: 420px;
         aspect-ratio: 1;
-        border: 84px solid rgba(230, 0, 18, 0.08);
+        border: 84px solid color-mix(in srgb, var(--accent) 8%, transparent);
         border-radius: 50%;
         content: "";
       }
@@ -128,16 +155,16 @@
         max-width: 920px;
         margin-bottom: 24px;
         font-family: var(--display);
-        font-size: clamp(40px, 6vw, 82px);
+        font-size: 80px;
         font-weight: 700;
         letter-spacing: -0.055em;
-        line-height: 0.98;
+        line-height: 88px;
       }
 
       .lede {
         max-width: 740px;
         margin-bottom: 0;
-        color: #393734;
+        color: #393939;
         font-size: clamp(16px, 2vw, 20px);
       }
 
@@ -148,7 +175,7 @@
         width: 220px;
         padding: 20px;
         border: 1px solid var(--ink);
-        background: rgba(245, 242, 234, 0.9);
+        background: rgba(250, 250, 250, 0.94);
       }
 
       .version-card strong {
@@ -161,7 +188,200 @@
       .version-card p {
         margin: 0;
         color: var(--muted);
-        font-size: 13px;
+        font-size: 14px;
+      }
+
+      .overview-flow {
+        position: relative;
+        z-index: 1;
+        grid-column: 1 / -1;
+        margin-top: 48px;
+        padding-top: 32px;
+        border-top: 1px solid var(--line-strong);
+      }
+
+      .overview-flow-head {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+        align-items: start;
+        margin-bottom: 24px;
+      }
+
+      .overview-flow-head h2 {
+        font-size: clamp(28px, 3vw, 40px);
+      }
+
+      .overview-flow-head > p {
+        max-width: 720px;
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .overview-flow-scroll {
+        padding: 1px;
+      }
+
+      .overview-flow-track {
+        position: relative;
+        display: grid;
+        gap: 12px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .overview-flow-track::before {
+        position: absolute;
+        top: 22px;
+        bottom: 22px;
+        left: 21px;
+        width: 1px;
+        background: var(--line-strong);
+        content: "";
+      }
+
+      .overview-flow-step {
+        position: relative;
+        display: grid;
+        grid-template-columns: 44px minmax(0, 1fr) minmax(240px, 0.72fr);
+        gap: 18px;
+        align-items: center;
+      }
+
+      .overview-flow-node {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        width: 44px;
+        height: 44px;
+        place-items: center;
+        border: 1px solid var(--line-strong);
+        border-radius: 50%;
+        color: var(--muted);
+        background: var(--surface);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+      }
+
+      .overview-flow-node > span {
+        display: block;
+      }
+
+      .overview-flow-step[data-stage="decision"] .overview-flow-node,
+      .overview-flow-step[data-stage="review"] .overview-flow-node {
+        border-radius: 2px;
+        transform: rotate(45deg) scale(0.78);
+      }
+
+      .overview-flow-step[data-stage="decision"] .overview-flow-node > span,
+      .overview-flow-step[data-stage="review"] .overview-flow-node > span {
+        transform: rotate(-45deg) scale(1.28);
+      }
+
+      .overview-flow-card {
+        display: grid;
+        grid-template-columns: 112px minmax(0, 1fr);
+        column-gap: 18px;
+        align-items: baseline;
+        min-height: 82px;
+        padding: 16px 18px;
+        border: 1px solid var(--line-strong);
+        background: color-mix(in srgb, var(--surface) 94%, transparent);
+      }
+
+      .overview-flow-note {
+        position: relative;
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 12px;
+        align-items: start;
+        padding: 13px 15px;
+        border-left: 2px solid var(--line-strong);
+        background: rgba(250, 250, 250, 0.64);
+      }
+
+      .overview-flow-note::before {
+        position: absolute;
+        top: 50%;
+        left: -20px;
+        width: 18px;
+        border-top: 1px solid var(--line-strong);
+        content: "";
+      }
+
+      .overview-flow-note b {
+        color: var(--accent);
+        font-size: 16px;
+        line-height: 1.25;
+      }
+
+      .overview-flow-note span {
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      .overview-flow-note strong {
+        display: block;
+        margin-bottom: 2px;
+        color: var(--ink);
+      }
+
+      .overview-flow-note[data-tone="return"] {
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent-soft) 22%, var(--surface));
+      }
+
+      .overview-flow-note[data-tone="return"]::before {
+        border-top-color: var(--accent);
+      }
+
+      .overview-flow-step[data-stage="review"] .overview-flow-node {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      .overview-flow-step[data-stage="review"] .overview-flow-card {
+        border-color: var(--accent);
+        background: color-mix(in srgb, var(--accent-soft) 28%, var(--surface));
+      }
+
+      .overview-flow-step[data-stage="publish"] .overview-flow-node,
+      .overview-flow-step[data-stage="publish"] .overview-flow-card {
+        border-color: var(--ink);
+        color: var(--surface);
+        background: var(--ink);
+      }
+
+      .overview-flow-step .flow-index {
+        display: block;
+        color: var(--accent);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+      }
+
+      .overview-flow-step[data-stage="publish"] .flow-index,
+      .overview-flow-step[data-stage="publish"] .overview-flow-card p {
+        color: var(--line);
+      }
+
+      .overview-flow-card strong {
+        display: block;
+        font-family: var(--display);
+        font-size: 14px;
+        line-height: 1.35;
+      }
+
+      .overview-flow-card p {
+        grid-column: 2;
+        margin: 4px 0 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.45;
       }
 
       .layout {
@@ -177,7 +397,7 @@
         padding: 32px 20px;
         overflow-y: auto;
         border-right: 1px solid var(--line);
-        background: rgba(245, 242, 234, 0.94);
+        background: rgba(250, 250, 250, 0.94);
         backdrop-filter: blur(12px);
       }
 
@@ -198,8 +418,8 @@
         gap: 8px;
         padding: 8px 0;
         border-bottom: 1px solid transparent;
-        color: #4a4742;
-        font-size: 13px;
+        color: var(--muted);
+        font-size: 14px;
         text-decoration: none;
       }
 
@@ -215,13 +435,18 @@
         border-bottom: 0;
         border-left: 1px solid var(--line);
         color: var(--muted);
-        font-size: 12px;
+        font-size: 14px;
       }
 
       .rail .rail-child[aria-current="page"] {
         border-left: 3px solid var(--accent);
         color: var(--ink);
         font-weight: 700;
+      }
+
+      .rail .rail-parent[aria-current="page"] {
+        border-bottom-color: var(--accent);
+        color: var(--ink);
       }
 
       .rail a:hover,
@@ -256,33 +481,113 @@
       }
 
       main {
+        display: flex;
+        flex-direction: column;
         min-width: 0;
+        min-height: 100vh;
       }
 
       section {
         padding: 72px clamp(24px, 5vw, 72px);
-        border-bottom: 1px solid var(--line);
-        scroll-margin-top: 24px;
       }
 
-      section:nth-child(even) {
+      section:nth-of-type(even) {
         background: rgba(255, 255, 255, 0.28);
+      }
+
+      main > [hidden] {
+        display: none;
+      }
+
+      .doc-routing #overview:not([data-route-active]),
+      .doc-routing main > section[id]:not([data-route-active]) {
+        display: none;
+      }
+
+      .page-pagination {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        gap: 20px;
+        align-items: center;
+        margin-top: auto;
+        padding: 24px clamp(24px, 5vw, 72px);
+        border-top: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.38);
+      }
+
+      .page-pagination a {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        width: fit-content;
+        max-width: 100%;
+        color: var(--muted);
+        font-size: 12px;
+        text-decoration: none;
+      }
+
+      .page-pagination a[hidden] {
+        display: none;
+      }
+
+      .page-pagination [data-page-prev] {
+        grid-column: 1;
+      }
+
+      .page-pagination [data-page-count] {
+        grid-column: 2;
+      }
+
+      .page-pagination [data-page-next] {
+        grid-column: 3;
+      }
+
+      .page-pagination a:last-child {
+        justify-self: end;
+        text-align: right;
+      }
+
+      .page-pagination a:hover,
+      .page-pagination a:focus-visible {
+        color: var(--ink);
+        outline: none;
+      }
+
+      .page-pagination a:focus-visible strong {
+        text-decoration: underline;
+        text-decoration-color: var(--accent);
+        text-underline-offset: 5px;
+      }
+
+      .page-pagination strong {
+        overflow: hidden;
+        color: var(--ink);
+        font-size: 14px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .page-pagination [data-page-count] {
+        color: var(--muted);
+        font-size: 11px;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: 0.08em;
       }
 
       .section-head {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(260px, 440px);
-        gap: 40px;
-        align-items: end;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 14px;
+        align-items: start;
         margin-bottom: 38px;
       }
 
       h2 {
         margin-bottom: 0;
         font-family: var(--display);
-        font-size: clamp(30px, 4vw, 52px);
+        font-size: 52px;
         letter-spacing: -0.035em;
-        line-height: 1.02;
+        line-height: 56px;
       }
 
       h3 {
@@ -292,8 +597,10 @@
       }
 
       .section-summary {
+        max-width: 820px;
         margin-bottom: 0;
         color: var(--muted);
+        font-size: 14px;
       }
 
       .summary-grid {
@@ -322,7 +629,7 @@
       .summary-cell p {
         margin: 0;
         color: var(--muted);
-        font-size: 13px;
+        font-size: 14px;
       }
 
       .module-index {
@@ -346,6 +653,10 @@
         box-shadow: inset 4px 0 0 var(--accent);
       }
 
+      .module-index article[data-status="defined"] {
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.82), rgba(12, 118, 86, 0.06));
+      }
+
       .module-index .module-status {
         display: block;
         margin-bottom: 26px;
@@ -360,6 +671,10 @@
         color: var(--accent);
       }
 
+      .module-index article[data-status="defined"] .module-status {
+        color: var(--success);
+      }
+
       .module-index h3 span {
         display: block;
         margin-top: 5px;
@@ -372,7 +687,7 @@
       .module-index p {
         margin-bottom: 0;
         color: var(--muted);
-        font-size: 12px;
+        font-size: 14px;
       }
 
       .module-index a {
@@ -391,7 +706,7 @@
       table {
         width: 100%;
         border-collapse: collapse;
-        font-size: 13px;
+        font-size: 14px;
       }
 
       th,
@@ -413,7 +728,7 @@
       }
 
       th {
-        color: #4b4843;
+        color: var(--muted);
         background: var(--paper-deep);
         font-size: 11px;
         letter-spacing: 0.08em;
@@ -428,7 +743,7 @@
       .category-name span,
       .secondary {
         color: var(--muted);
-        font-size: 12px;
+        font-size: 14px;
       }
 
       .mono {
@@ -439,32 +754,33 @@
       .workflow {
         position: relative;
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 14px;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 12px;
+        padding-left: 48px;
       }
 
       .workflow::before {
         position: absolute;
-        top: 31px;
-        left: 3%;
-        right: 3%;
-        height: 1px;
+        top: 28px;
+        bottom: 28px;
+        left: 16px;
+        width: 1px;
         background: var(--line-strong);
         content: "";
       }
 
       .step {
         position: relative;
-        min-height: 230px;
-        padding: 76px 18px 18px;
+        min-height: 0;
+        padding: 20px 64px 20px 20px;
         border: 1px solid var(--line-strong);
         background: rgba(255, 255, 255, 0.8);
       }
 
       .step::before {
         position: absolute;
-        top: 24px;
-        left: 18px;
+        top: 21px;
+        left: -43px;
         width: 15px;
         height: 15px;
         border: 4px solid var(--paper);
@@ -482,18 +798,26 @@
       .step-index {
         position: absolute;
         top: 20px;
-        right: 16px;
+        right: 18px;
         color: var(--muted);
+      }
+
+      .step h3 {
+        margin: 0 0 8px;
       }
 
       .step p,
       .step li {
-        color: #57534d;
-        font-size: 13px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .step p {
+        margin: 0;
       }
 
       .step ul {
-        margin: 14px 0 0;
+        margin: 10px 0 0;
         padding-left: 18px;
       }
 
@@ -506,6 +830,118 @@
         font-size: 11px;
         font-weight: 700;
         letter-spacing: 0.08em;
+      }
+
+      .logic-note {
+        display: grid;
+        grid-template-columns: minmax(140px, 0.35fr) minmax(0, 1fr);
+        gap: 24px;
+        margin: 28px 0;
+        padding: 22px;
+        border: 1px solid var(--line-strong);
+        border-left: 4px solid var(--info);
+        background: rgba(255, 255, 255, 0.72);
+      }
+
+      .logic-note strong {
+        font-family: var(--display);
+        font-size: 20px;
+      }
+
+      .logic-note p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .workflow-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px 24px;
+        margin: 18px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .workflow-legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .workflow-legend i {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--ink);
+      }
+
+      .workflow-legend .generative i {
+        background: var(--info);
+      }
+
+      .workflow-legend .manual i {
+        background: var(--accent);
+      }
+
+      .step[data-mode="generative"]:not([data-gate="manual"])::before {
+        background: var(--info);
+        outline-color: var(--info);
+      }
+
+      .state-flow {
+        position: relative;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 12px;
+        padding-left: 48px;
+      }
+
+      .state-flow::before {
+        position: absolute;
+        top: 28px;
+        bottom: 28px;
+        left: 16px;
+        width: 1px;
+        background: var(--line-strong);
+        content: "";
+      }
+
+      .state-card {
+        position: relative;
+        min-height: 0;
+        padding: 18px 20px;
+        border: 1px solid var(--line-strong);
+        background: var(--surface);
+      }
+
+      .state-card::before {
+        position: absolute;
+        top: 19px;
+        left: -43px;
+        width: 15px;
+        height: 15px;
+        border: 4px solid var(--paper);
+        border-radius: 50%;
+        background: var(--info);
+        outline: 1px solid var(--info);
+        content: "";
+      }
+
+      .state-card code {
+        color: var(--info);
+        font-size: 11px;
+      }
+
+      .state-card strong {
+        display: block;
+        margin: 6px 0 5px;
+      }
+
+      .state-card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
       }
 
       .rule-grid,
@@ -538,7 +974,7 @@
       .roadmap-card p {
         margin-bottom: 0;
         color: var(--muted);
-        font-size: 13px;
+        font-size: 14px;
       }
 
       .score-formula {
@@ -546,7 +982,7 @@
         padding: 24px;
         border-left: 4px solid var(--accent);
         background: #1b1b1b;
-        color: #f8f5ee;
+        color: #fafafa;
       }
 
       .score-formula code {
@@ -556,10 +992,14 @@
         white-space: nowrap;
       }
 
+      .score-formula code + code {
+        margin-top: 8px;
+      }
+
       .score-formula p {
         margin: 12px 0 0;
-        color: #c9c5bd;
-        font-size: 12px;
+        color: #d4d4d4;
+        font-size: 14px;
       }
 
       .mode-card {
@@ -612,7 +1052,7 @@
         overflow: auto;
         border: 1px solid #343434;
         background: #151515;
-        color: #e8e4dc;
+        color: #ebebeb;
         font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
         font-size: 12px;
         line-height: 1.65;
@@ -696,7 +1136,7 @@
 
       .module-panel li {
         margin: 8px 0;
-        color: #4f4b45;
+        color: var(--muted);
       }
 
       .artifact-line {
@@ -746,7 +1186,7 @@
       .qa-item p {
         margin: 0;
         color: var(--muted);
-        font-size: 12px;
+        font-size: 14px;
       }
 
       .roadmap-card {
@@ -767,27 +1207,34 @@
       .roadmap-card ul {
         margin: 14px 0 0;
         padding-left: 18px;
-        color: #4f4b45;
-        font-size: 13px;
+        color: var(--muted);
+        font-size: 14px;
       }
 
       .footer-note {
-        padding: 42px clamp(24px, 5vw, 72px);
-        color: #f7f4ed;
+        padding: 12px 24px;
+        color: #fafafa;
         background: var(--ink);
       }
 
       .footer-note p {
-        max-width: 850px;
+        display: flex;
+        max-width: none;
+        justify-content: flex-start;
+        gap: 12px;
         margin: 0;
-        font-family: var(--display);
-        font-size: clamp(20px, 3vw, 32px);
-        line-height: 1.25;
+        font-family: var(--body);
+        font-size: 12px;
+        line-height: 1.4;
       }
 
       @media (max-width: 1080px) {
         .layout {
           display: block;
+        }
+
+        main {
+          min-height: 0;
         }
 
         .rail {
@@ -830,13 +1277,17 @@
         }
 
         .summary-grid,
-        .workflow,
         .module-index {
           grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
-        .workflow::before {
-          display: none;
+        .overview-flow-step {
+          grid-template-columns: 44px minmax(0, 1fr);
+        }
+
+        .overview-flow-note {
+          grid-column: 2;
+          margin-top: -4px;
         }
 
         .rule-grid,
@@ -847,6 +1298,16 @@
       }
 
       @media (max-width: 720px) {
+        h1 {
+          font-size: 48px;
+          line-height: 56px;
+        }
+
+        h2 {
+          font-size: 40px;
+          line-height: 44px;
+        }
+
         .masthead {
           display: block;
           min-height: 0;
@@ -862,8 +1323,87 @@
           margin-top: 36px;
         }
 
+        .overview-flow {
+          margin-top: 40px;
+          padding-top: 28px;
+        }
+
+        .overview-flow-head {
+          display: block;
+          margin-bottom: 20px;
+        }
+
+        .overview-flow-head > p {
+          margin-top: 12px;
+        }
+
+        .overview-flow-scroll {
+          padding: 0;
+        }
+
+        .overview-flow-track {
+          gap: 4px;
+        }
+
+        .overview-flow-track::before {
+          top: 18px;
+          bottom: 18px;
+          left: 17px;
+        }
+
+        .overview-flow-step {
+          grid-template-columns: 36px minmax(0, 1fr);
+          gap: 12px;
+          align-items: start;
+          padding-bottom: 14px;
+        }
+
+        .overview-flow-node {
+          width: 36px;
+          height: 36px;
+        }
+
+        .overview-flow-card {
+          display: block;
+          min-height: 0;
+          padding: 14px;
+        }
+
+        .overview-flow-step .flow-index {
+          margin-bottom: 8px;
+        }
+
+        .overview-flow-card strong {
+          margin-bottom: 6px;
+        }
+
+        .overview-flow-card p {
+          margin-top: 0;
+        }
+
+        .overview-flow-note {
+          grid-column: 2;
+          margin-top: 8px;
+        }
+
+        .overview-flow-note::before {
+          top: 20px;
+          left: -13px;
+          width: 12px;
+        }
+
         section {
           padding: 50px 20px;
+        }
+
+        .page-pagination {
+          gap: 10px;
+          padding: 20px;
+        }
+
+        .page-pagination strong {
+          max-width: 110px;
+          font-size: 13px;
         }
 
         .section-head {
@@ -875,10 +1415,34 @@
         }
 
         .summary-grid,
-        .workflow,
         .qa-list,
         .module-index {
           grid-template-columns: 1fr;
+        }
+
+        .workflow,
+        .state-flow {
+          padding-left: 38px;
+        }
+
+        .workflow::before,
+        .state-flow::before {
+          left: 12px;
+        }
+
+        .step,
+        .state-card {
+          padding-right: 48px;
+        }
+
+        .step::before,
+        .state-card::before {
+          left: -37px;
+        }
+
+        .logic-note {
+          grid-template-columns: 1fr;
+          gap: 8px;
         }
 
         .automation-map {
@@ -912,91 +1476,496 @@
   </head>
   <body>
     <div class="shell">
-      <header id="overview" class="masthead">
-        <div>
-          <p class="eyebrow"><span class="brand-dot" aria-hidden="true"></span>YAMI · Generation System</p>
-          <h1>Topic Landing Page<br />生成工作流</h1>
-          <p class="lede">
-            将商品分类、选品、图片生产、页面装配和视觉验收收束为一条可追溯的生成链。当前从“精选分类”模块开始，逐步扩展到整页自动化。
-          </p>
-        </div>
-        <aside class="version-card" aria-label="文档版本">
-          <span class="meta-label">Workflow version</span>
-          <strong>v0.1</strong>
-          <p>基线：ANUA 中文 / 英文 Topic Landing Page</p>
-          <p>更新：2026-08-10</p>
-        </aside>
+      <header class="document-header" aria-label="文档标题">
+        <p class="document-header-title">Topic Landing Page 生成工作流</p>
       </header>
 
       <div class="layout">
         <nav class="rail" aria-label="页面章节">
           <p class="rail-title">DOCUMENT INDEX</p>
           <div class="rail-group">
-            <a class="rail-parent" href="#overview"><span>01</span><span>总览</span></a>
+            <a class="rail-parent" href="#overview"><span>00</span><span>总览</span></a>
           </div>
           <div class="rail-group">
-            <a class="rail-parent" href="#page-modules"><span>02</span><span>页面模块</span></a>
-            <a class="rail-child" href="#page-modules">模块目录</a>
-            <a class="rail-child" href="#module-shortcuts" aria-current="page">精选分类</a>
+            <a class="rail-parent" href="#ai-logic"><span>01</span><span>输入关键词</span></a>
           </div>
           <div class="rail-group">
-            <a class="rail-parent" href="#product-type"><span>03</span><span>共享生成能力</span></a>
-            <a class="rail-child" href="#product-type">Product Type 定义</a>
-            <a class="rail-child" href="#pipeline">生成流程</a>
-            <a class="rail-child" href="#selection">商品选择</a>
+            <a class="rail-parent" href="#decision-engine"><span>02</span><span>匹配模板</span></a>
+          </div>
+          <div class="rail-group">
+            <a class="rail-parent" href="#product-type"><span>03</span><span>自动选择商品</span></a>
+            <a class="rail-child" href="#pipeline">分类资产流程</a>
+            <a class="rail-child" href="#selection">商品排序与回退</a>
+          </div>
+          <div class="rail-group">
+            <a class="rail-parent" href="#page-modules"><span>04</span><span>配置组件</span></a>
+            <a class="rail-child" href="#module-hero">主题 Hero</a>
+            <a class="rail-child" href="#module-shortcuts">精选分类</a>
+            <a class="rail-child" href="#module-start-here">从这里开始</a>
+            <a class="rail-child" href="#module-popular-picks">热门精选</a>
+            <a class="rail-child" href="#module-brand">品牌（非必须）</a>
+            <a class="rail-child" href="#module-reviews">顾客怎么说</a>
+            <a class="rail-child" href="#module-explore-more">探索更多</a>
+          </div>
+          <div class="rail-group">
+            <a class="rail-parent" href="#automation"><span>05</span><span>生成页面</span></a>
+            <a class="rail-child" href="#localization">英文内容</a>
             <a class="rail-child" href="#images">图片系统</a>
+            <a class="rail-child" href="#contract">数据契约</a>
           </div>
           <div class="rail-group">
-            <a class="rail-parent" href="#automation"><span>04</span><span>自动化与验收</span></a>
-            <a class="rail-child" href="#automation">整页模块装配</a>
-            <a class="rail-child" href="#contract">数据契约</a>
-            <a class="rail-child" href="#qa">QA 与路线图</a>
+            <a class="rail-parent" href="#qa"><span>06</span><span>自动 QA</span></a>
+            <a class="rail-child" href="#evidence-policy">证据与时效</a>
+          </div>
+          <div class="rail-group">
+            <a class="rail-parent" href="#review"><span>07</span><span>用户 Review</span></a>
+          </div>
+          <div class="rail-group">
+            <a class="rail-parent" href="#publish"><span>08</span><span>确认并发布</span></a>
           </div>
         </nav>
 
         <main>
+          <header id="overview" class="masthead">
+            <div>
+              <p class="eyebrow"><span class="brand-dot" aria-hidden="true"></span>YAMI · Generation System</p>
+              <h1>Topic Landing Page<br />生成工作流</h1>
+              <p class="lede">
+                将主题关键词、模板路由、商品选择、组件配置、英文内容、图片生产和质量验收收束为一条可追溯、可重跑的 AI 生成链。
+              </p>
+            </div>
+            <aside class="version-card" aria-label="文档版本">
+              <span class="meta-label">Workflow version</span>
+              <strong>v0.2</strong>
+              <p>基线：ANUA English Topic Landing Page</p>
+              <p>更新：2026-08-11</p>
+            </aside>
+
+            <div class="overview-flow" aria-labelledby="overview-flow-title">
+              <div class="overview-flow-head">
+                <div>
+                  <p class="kicker">Core automation flow</p>
+                  <h2 id="overview-flow-title">从关键词到发布</h2>
+                </div>
+                <p>
+                  前期由系统自动完成模板路由、选品、组件配置、页面生成与 QA；用户只在最后 Review，确认后发布。
+                </p>
+              </div>
+
+              <div class="overview-flow-scroll">
+                <ol class="overview-flow-track" aria-label="Topic Landing Page 核心自动化流程">
+                  <li class="overview-flow-step">
+                    <span class="overview-flow-node" aria-hidden="true"><span>01</span></span>
+                    <div class="overview-flow-card">
+                      <span class="flow-index">INPUT</span>
+                      <strong>输入关键词</strong>
+                      <p>输入品牌型、商品型或活动型主题词。</p>
+                    </div>
+                  </li>
+                  <li class="overview-flow-step">
+                    <span class="overview-flow-node" aria-hidden="true"><span>02</span></span>
+                    <div class="overview-flow-card">
+                      <span class="flow-index">ROUTE</span>
+                      <strong>识别主题并匹配模板</strong>
+                      <p>AI 解析实体与意图，生成 ThemeIntent 并匹配预设模板。</p>
+                    </div>
+                    <aside class="overview-flow-note" aria-label="模板路由规则">
+                      <b aria-hidden="true">↳</b>
+                      <span>
+                        <strong>3 个模板</strong>
+                        品牌型 · 商品型（商品 / 品类 / 成分）· 活动型（节日 / 场景 / 活动）
+                      </span>
+                    </aside>
+                  </li>
+                  <li class="overview-flow-step">
+                    <span class="overview-flow-node" aria-hidden="true"><span>03</span></span>
+                    <div class="overview-flow-card">
+                      <span class="flow-index">SELECT</span>
+                      <strong>构建双层商品池</strong>
+                      <p>先建立精准主题 PrimaryPool，再从核心商品扩展 RelatedPool。</p>
+                    </div>
+                    <aside class="overview-flow-note" aria-label="双层商品池规则">
+                      <b aria-hidden="true">↳</b>
+                      <span>
+                        <strong>两个逻辑池</strong>
+                        PrimaryPool：精准主题商品 · RelatedPool：搭配 complementary / 相似 substitute
+                      </span>
+                    </aside>
+                  </li>
+                  <li class="overview-flow-step">
+                    <span class="overview-flow-node" aria-hidden="true"><span>04</span></span>
+                    <div class="overview-flow-card">
+                      <span class="flow-index">CONFIG</span>
+                      <strong>配置组件与商品</strong>
+                      <p>根据模板与可支撑场景生成组件清单，并按商品池边界分配商品和内容资产。</p>
+                    </div>
+                    <aside class="overview-flow-note" aria-label="品牌组件规则">
+                      <b aria-hidden="true">◇</b>
+                      <span>
+                        <strong>品牌组件条件</strong>
+                        品牌主题隐藏；非品牌主题自动增加品牌组件。
+                      </span>
+                    </aside>
+                  </li>
+                  <li class="overview-flow-step">
+                    <span class="overview-flow-node" aria-hidden="true"><span>05</span></span>
+                    <div class="overview-flow-card">
+                      <span class="flow-index">GENERATE</span>
+                      <strong>生成完整页面</strong>
+                      <p>生成英文文案、图片和页面数据，并按照模板确定性装配页面。</p>
+                    </div>
+                  </li>
+                  <li class="overview-flow-step" data-stage="decision">
+                    <span class="overview-flow-node" aria-hidden="true"><span>06</span></span>
+                    <div class="overview-flow-card">
+                      <span class="flow-index">VERIFY</span>
+                      <strong>自动 QA</strong>
+                      <p>验证数据、视觉、运行时和可访问性，输出结构化检查结果。</p>
+                    </div>
+                    <aside class="overview-flow-note" data-tone="return" aria-label="QA 失败处理">
+                      <b aria-hidden="true">↺</b>
+                      <span>
+                        <strong>未通过：返回配置</strong>
+                        只重跑失败组件，再次生成并验证，不重做整页。
+                      </span>
+                    </aside>
+                  </li>
+                  <li class="overview-flow-step" data-stage="review">
+                    <span class="overview-flow-node" aria-hidden="true"><span>07</span></span>
+                    <div class="overview-flow-card">
+                      <span class="flow-index">REVIEW</span>
+                      <strong>用户 Review</strong>
+                      <p>查看完整页面与 QA 结果，确认内容、选品和视觉表现。</p>
+                    </div>
+                    <aside class="overview-flow-note" data-tone="return" aria-label="Review 调整处理">
+                      <b aria-hidden="true">↺</b>
+                      <span>
+                        <strong>需要调整：局部返回</strong>
+                        将意见映射到对应组件，调整后重新进入生成与 QA。
+                      </span>
+                    </aside>
+                  </li>
+                  <li class="overview-flow-step" data-stage="publish">
+                    <span class="overview-flow-node" aria-hidden="true"><span>08</span></span>
+                    <div class="overview-flow-card">
+                      <span class="flow-index">PUBLISH</span>
+                      <strong>确认并发布</strong>
+                      <p>用户确认后发布，并保存版本、来源证据与回滚记录。</p>
+                    </div>
+                  </li>
+                </ol>
+              </div>
+            </div>
+          </header>
+
           <section id="page-modules">
             <div class="section-head">
               <div>
-                <p class="kicker">02 · Page modules</p>
-                <h2>页面模块目录</h2>
+                <p class="kicker">04 · Component configuration</p>
+                <h2>配置页面组件</h2>
               </div>
               <p class="section-summary">
-                Topic Landing Page 由六个业务模块组成。每个模块独立拥有输入、生成规则、资产任务和审核状态；共享商品池、图片系统和页面装配契约。
+                模板确定组件清单，系统再为每个组件分配商品、英文内容和图片资产。七个业务模块共享同一商品快照、分类体系、稳定实体 ID 和页面装配契约。
               </p>
             </div>
 
             <div class="module-index">
-              <article data-status="planned">
-                <span class="module-status">待完善</span>
-                <h3>品牌首屏<span>ThemeHero</span></h3>
-                <p>品牌定位、标签、主视觉商品和 CTA。</p>
+              <article data-status="defined">
+                <span class="module-status">详细生成基线</span>
+                <h3><a href="#module-hero">主题 Hero</a><span>ThemeHero</span></h3>
+                <p>主题命题、标签、主视觉商品和可选 CTA。</p>
               </article>
-              <article data-status="current">
-                <span class="module-status">当前详细模块</span>
+              <article data-status="defined">
+                <span class="module-status">详细生成基线</span>
                 <h3><a href="#module-shortcuts">精选分类</a><span>ShortcutRail</span></h3>
                 <p>Product Type、代表商品和圆形分类图片。</p>
               </article>
-              <article data-status="planned">
-                <span class="module-status">待完善</span>
-                <h3>从这里开始<span>ThemeProductList</span></h3>
-                <p>基于用户任务的场景导购与组合商品。</p>
+              <article data-status="defined">
+                <span class="module-status">详细生成基线</span>
+                <h3><a href="#module-start-here">从这里开始</a><span>ThemeProductList</span></h3>
+                <p>5 个用户任务、场景内容和每组 6 个商品。</p>
               </article>
-              <article data-status="planned">
-                <span class="module-status">待完善</span>
-                <h3>热门精选<span>Product rail</span></h3>
+              <article data-status="defined">
+                <span class="module-status">详细生成基线</span>
+                <h3><a href="#module-popular-picks">热门精选</a><span>Product rail</span></h3>
                 <p>热度、品类覆盖和可售状态驱动的精选商品。</p>
               </article>
-              <article data-status="planned">
-                <span class="module-status">待完善</span>
-                <h3>用户评论<span>ReviewList</span></h3>
+              <article data-status="defined">
+                <span class="module-status">非必须 · 条件生成</span>
+                <h3><a href="#module-brand">品牌</a><span>BrandSpotlight</span></h3>
+                <p>仅在非品牌主题中展示，用证据解释代表品牌及对应商品。</p>
+              </article>
+              <article data-status="defined">
+                <span class="module-status">详细生成基线</span>
+                <h3><a href="#module-reviews">顾客怎么说</a><span>ReviewList</span></h3>
                 <p>可追溯评论、体验主题和对应商品。</p>
               </article>
-              <article data-status="planned">
-                <span class="module-status">待完善</span>
-                <h3>产品列表<span>ProductList waterfall</span></h3>
-                <p>全量商品、筛选、排序和加载更多。</p>
+              <article data-status="defined">
+                <span class="module-status">详细生成基线</span>
+                <h3><a href="#module-explore-more">探索更多</a><span>ProductList waterfall</span></h3>
+                <p>核心主题商品、搭配购买、分类筛选和加载更多。</p>
               </article>
+            </div>
+          </section>
+
+          <section id="ai-logic">
+            <div class="section-head">
+              <div>
+                <p class="kicker">01 · Input</p>
+                <h2>输入关键词，生成基础 Brief</h2>
+              </div>
+              <p class="section-summary">
+                用户只输入一个主题关键词。系统保存原始输入，并自动写入固定的美国市场、英文环境和允许来源，生成供下一步 AI 语义理解使用的 GenerationBrief。
+              </p>
+            </div>
+
+            <div class="workflow" aria-label="关键词输入处理流程">
+              <article class="step" data-mode="deterministic">
+                <span class="step-index">01</span>
+                <h3>接收主题关键词</h3>
+                <p>保存用户原始输入，只检查是否为空、长度是否有效，不在这一页判断主题类型。</p>
+                <ul><li>输入 theme_keyword</li><li>类型由下一步 AI 判断</li></ul>
+              </article>
+              <article class="step" data-mode="deterministic">
+                <span class="step-index">02</span>
+                <h3>生成 GenerationBrief</h3>
+                <p>写入固定市场、英文 locale、允许来源、run_id 和 brief_hash，作为 AI 理解主题词的输入。</p>
+                <ul><li>status = intent_pending</li><li>相同输入可追溯</li></ul>
+              </article>
+            </div>
+
+            <p class="table-kicker" style="margin: 28px 0 10px">GenerationBrief 输出示例</p>
+            <div class="prompt-block">
+              <button class="copy-button" type="button" data-copy-target="orchestrator-template">复制 Brief</button>
+              <pre id="orchestrator-template"><code>{
+  "run_id": "topic-20260811-001",
+  "theme_keyword": "ANUA",
+  "brief_hash": "sha256:...",
+  "market": "us",
+  "locale": "en-US",
+  "source_scope": ["yami_catalog", "product_detail", "brand_official"],
+  "status": "intent_pending"
+}</code></pre>
+            </div>
+          </section>
+
+          <section id="evidence-policy">
+            <div class="section-head">
+              <div>
+                <p class="kicker">06.2 · Evidence policy</p>
+                <h2>先定义什么是真的</h2>
+              </div>
+              <p class="section-summary">
+                自动化质量取决于来源和时效，而不是提示词长度。动态字段必须在运行时刷新；静态品牌信息也必须保存原文、来源和内容哈希。
+              </p>
+            </div>
+
+            <div class="decision-table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>数据域</th>
+                    <th>主来源</th>
+                    <th>允许回退</th>
+                    <th>默认时效</th>
+                    <th>AI 权限</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>SKU、商品名、规格</td>
+                    <td>YAMI 商品详情页 / 商品接口</td>
+                    <td>品牌页商品卡</td>
+                    <td>本次运行快照</td>
+                    <td>只标准化，不改写事实</td>
+                  </tr>
+                  <tr>
+                    <td>价格、库存、折扣</td>
+                    <td>当前市场实时目录</td>
+                    <td>无；过期即阻塞</td>
+                    <td>默认 30 分钟，可配置</td>
+                    <td>禁止推断或补齐</td>
+                  </tr>
+                  <tr>
+                    <td>品牌定位与功效</td>
+                    <td>品牌官方资料＋YAMI 品牌页</td>
+                    <td>商品详情中的一致描述</td>
+                    <td>内容哈希变化时刷新</td>
+                    <td>可归纳，不得新增主张</td>
+                  </tr>
+                  <tr>
+                    <td>Product Type 与任务</td>
+                    <td>商品名称、形态、用法和现有类目</td>
+                    <td>规则库与已批准历史映射</td>
+                    <td>规则版本变化时重算</td>
+                    <td>可分类，低置信度转人工</td>
+                  </tr>
+                  <tr>
+                    <td>评论</td>
+                    <td>对应商品的真实用户评论</td>
+                    <td>无可靠评论则不生成模块</td>
+                    <td>保存抓取时间与评论 ID</td>
+                    <td>禁止编造；只允许截短</td>
+                  </tr>
+                  <tr>
+                    <td>包装与商品图</td>
+                    <td>YAMI / 品牌官方原始图片</td>
+                    <td>已批准的本地资产版本</td>
+                    <td>图片哈希变化时复审</td>
+                    <td>可合成背景，不可重绘身份</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="score-formula">
+              <code>field_is_usable = source_allowed ∧ observed_at_within_ttl ∧ identity_resolved ∧ conflict_count = 0</code>
+              <p>置信度不能覆盖来源缺失。即使模型“很确定”，没有允许的来源或存在冲突时，字段状态仍为 blocked。</p>
+            </div>
+          </section>
+
+          <section id="decision-engine">
+            <div class="section-head">
+              <div>
+                <p class="kicker">02 · Route</p>
+                <h2>AI 理解主题词并匹配模板</h2>
+              </div>
+              <p class="section-summary">
+                AI 先结合关键词与目录语境识别实体、购物意图和场景，再归入品牌型、商品型或活动型，输出可解释的 ThemeIntent，最后选择 3 个预设模板之一。
+              </p>
+            </div>
+
+            <div class="rule-grid">
+              <article class="rule-card">
+                <span class="number">01</span>
+                <h3>品牌型模板</h3>
+                <p>关键词能够唯一解析到品牌实体时使用；突出品牌定位、核心系列与品牌商品，不额外生成品牌组件。</p>
+              </article>
+              <article class="rule-card">
+                <span class="number">02</span>
+                <h3>商品型模板</h3>
+                <p>关键词指向商品集合、一级类目或成分功效时使用；以商品发现为主，并自动增加品牌组件。</p>
+              </article>
+              <article class="rule-card">
+                <span class="number">03</span>
+                <h3>活动型模板</h3>
+                <p>关键词表达时间、使用场景或营销活动时使用；强化主题叙事与跨品牌选品，并自动增加品牌组件。</p>
+              </article>
+            </div>
+
+            <div class="decision-table-wrap" style="margin-top: 24px">
+              <table>
+                <thead>
+                  <tr>
+                    <th>识别信号</th>
+                    <th>匹配模板</th>
+                    <th>品牌组件</th>
+                    <th>示例关键词</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>唯一品牌实体，品牌商品覆盖充分</td>
+                    <td><strong>品牌型</strong></td>
+                    <td>隐藏，避免重复表达品牌</td>
+                    <td>ANUA、SKIN1004</td>
+                  </tr>
+                  <tr>
+                    <td>商品名、品类词或成分实体命中</td>
+                    <td><strong>商品型</strong></td>
+                    <td>显示，解释候选品牌来源</td>
+                    <td>Heartleaf Toner、Sunscreens、Niacinamide</td>
+                  </tr>
+                  <tr>
+                    <td>节日词、季节词、场景或活动实体命中</td>
+                    <td><strong>活动型</strong></td>
+                    <td>显示，承接多品牌内容</td>
+                    <td>Summer Skincare、Back to School</td>
+                  </tr>
+                  <tr>
+                    <td>多个类型同时命中或置信度不足</td>
+                    <td><strong>商品型回退</strong></td>
+                    <td>显示，并记录 route_reason</td>
+                    <td>模糊主题词或新兴趋势词</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3 style="margin-top: 34px">AI 语义理解与模板路由</h3>
+            <div class="state-flow" aria-label="AI 理解主题词并匹配模板的流程">
+              <article class="state-card"><code>brief_ready</code><strong>接收 GenerationBrief</strong><p>读取主题关键词与系统固定的市场、语言和允许来源。</p></article>
+              <article class="state-card"><code>intent_interpreted</code><strong>AI 理解主题词</strong><p>识别品牌、商品、品类、成分、节日或场景实体，并推断购物意图。</p></article>
+              <article class="state-card"><code>type_classified</code><strong>判断三类主题</strong><p>归入 brand、product 或 activity，保存置信度与判断依据。</p></article>
+              <article class="state-card"><code>intent_ready</code><strong>生成 ThemeIntent</strong><p>输出 theme_type、entity_type、entity、intent、confidence 和 matched_signals。</p></article>
+              <article class="state-card"><code>template_matched</code><strong>匹配预设模板</strong><p>根据 ThemeIntent 选择模板和组件清单，并应用品牌组件规则。</p></article>
+              <article class="state-card"><code>selection_ready</code><strong>进入自动选品</strong><p>保存 route_reason，无需人工确认，继续构建 PrimaryPool 与 RelatedPool。</p></article>
+            </div>
+
+            <div class="logic-note">
+              <strong>ThemeIntent 与路由证据</strong>
+              <p>
+                每次匹配必须保存 theme_type、entity_type、entity、intent、confidence、matched_signals、template_id、template_version 和 route_reason。后续 Review 若要求换模板，系统从选品步骤重新运行，而不是在生成后的页面上直接改结构。
+              </p>
+            </div>
+          </section>
+
+          <section id="module-hero">
+            <div class="section-head">
+              <div>
+                <p class="module-breadcrumb"><span>页面模块</span><strong>主题 Hero</strong></p>
+                <p class="kicker">04.1 · ThemeHero module</p>
+                <h2>主题 Hero ThemeHero</h2>
+              </div>
+              <p class="section-summary">
+                ThemeHero 把主题证据压缩成一个可验证的主题命题：一句主标题、一段说明、三组短标签和一张真实商品主视觉。AI 负责提炼与装配，不重绘包装，也不补写没有来源的功效。
+              </p>
+            </div>
+
+            <div class="summary-grid">
+              <article class="summary-cell">
+                <span class="meta-label">Input</span>
+                <strong>主题证据</strong>
+                <p>主题关键词、ThemeIntent、模板类型、商品证据、市场语言、合法功效表述和来源时间。</p>
+              </article>
+              <article class="summary-cell">
+                <span class="meta-label">Decision</span>
+                <strong>主题命题</strong>
+                <p>选择可被商品证据支持、能覆盖主题意图且适合日常购物语境的一条叙事。</p>
+              </article>
+              <article class="summary-cell">
+                <span class="meta-label">Asset</span>
+                <strong>主视觉</strong>
+                <p>真实商品合照、可选氛围背景、固有尺寸、替代文本和预采样背景色。</p>
+              </article>
+              <article class="summary-cell">
+                <span class="meta-label">Output</span>
+                <strong>ThemeHero</strong>
+                <p>英文标题、两行说明、英文标签、图片资产和可选 CTA 的受类型约束 Props。</p>
+              </article>
+            </div>
+
+            <div class="rule-grid" style="margin-top: 28px">
+              <article class="rule-card">
+                <span class="number">01</span>
+                <h3>内容生成</h3>
+                <p>主标题只表达一个主题命题；说明补充适用场景与护理范围；标签控制为三组英文短语。描述超过两行时使用“More / Less”交互。</p>
+              </article>
+              <article class="rule-card">
+                <span class="number">02</span>
+                <h3>图片策略</h3>
+                <p>主图必须能识别真实商品并保留包装比例，输出 src、alt、width、height；氛围图可复用或单独提供。backgroundColor 来自主图底部区域预采样，用于首帧文字对比与移动端遮罩。</p>
+              </article>
+              <article class="rule-card">
+                <span class="number">03</span>
+                <h3>响应式装配</h3>
+                <p>桌面端为文案与商品图双栏，移动端为全宽背景图叠加内容，并依据背景明暗选择黑字或白字。CTA 只有在存在明确目标时生成；当前基线主动隐藏两枚 CTA。</p>
+              </article>
+            </div>
+
+            <div class="logic-note">
+              <strong>QA 审核门</strong>
+              <p>标题与功效必须能回指来源；英文标签顺序和商品身份与 Spec 一致；图片固有尺寸必须预留布局空间；移动端首屏需通过文字对比、两行截断、展开状态、窄屏横向溢出和 reduced-motion 检查。</p>
             </div>
           </section>
 
@@ -1004,7 +1973,7 @@
             <div class="section-head">
               <div>
                 <p class="module-breadcrumb"><span>页面模块</span><strong>精选分类</strong></p>
-                <p class="kicker">02.1 · ShortcutRail module</p>
+                <p class="kicker">04.2 · ShortcutRail module</p>
                 <h2>精选分类 ShortcutRail</h2>
               </div>
               <p class="section-summary">
@@ -1015,8 +1984,8 @@
             <div class="summary-grid">
               <article class="summary-cell">
                 <span class="meta-label">Input</span>
-                <strong>商品池</strong>
-                <p>品牌页商品、名称、当前分类、可售状态、商品图和来源链接。</p>
+                <strong>PrimaryPool</strong>
+                <p>精准符合主题的商品、名称、当前分类、可售状态、商品图和来源链接。</p>
               </article>
               <article class="summary-cell">
                 <span class="meta-label">Decision</span>
@@ -1031,28 +2000,396 @@
               <article class="summary-cell">
                 <span class="meta-label">Output</span>
                 <strong>ShortcutRail</strong>
-                <p>中英文名称、稳定顺序、目标链接和本地图片资源。</p>
+                <p>英文名称、稳定顺序、目标链接和本地图片资源。</p>
               </article>
+            </div>
+
+            <div class="rule-grid" style="margin-top: 28px">
+              <article class="rule-card">
+                <span class="number">01</span>
+                <h3>分类决策</h3>
+                <p>固定输出清洁与去角质、爽肤水与棉片、精华与护理、乳液与面霜、防晒、面膜、彩妆七个一级 Product Type。按核心用途归类，每个 SKU 只保留一个主分类。</p>
+              </article>
+              <article class="rule-card">
+                <span class="number">02</span>
+                <h3>商品与图片</h3>
+                <p>每类选择 1–2 个身份清晰、当前可售且外形有代表性的商品构图；导出 600×600 WebP，圆形 full-bleed 裁切后仍完整识别主体，不加入价格、折扣或 UI 徽标。</p>
+              </article>
+              <article class="rule-card">
+                <span class="number">03</span>
+                <h3>输出与联动</h3>
+                <p>七个稳定 value 同时驱动英文标签、图片文件和 #explore-more-{value} 锚点。点击入口需选中“Explore More”同名 Tab 并滚动到对应商品池。</p>
+              </article>
+            </div>
+
+            <div class="logic-note">
+              <strong>QA 审核门</strong>
+              <p>必须恰好输出 7 个唯一 ID，英文标签顺序与 Product Type 顺序一致；图片与代表商品可追溯；移动端标签最多两行且英文单词不拆分；逐个点击验证锚点、选中状态和对应商品列表，不允许死链或错 Tab。</p>
+            </div>
+          </section>
+
+          <section id="module-start-here">
+            <div class="section-head">
+              <div>
+                <p class="module-breadcrumb"><span>页面模块</span><strong>从这里开始</strong></p>
+                <p class="kicker">04.3 · ThemeProductList module</p>
+                <h2>从这里开始 ThemeProductList</h2>
+              </div>
+              <p class="section-summary">
+                该模块不是再次按品类陈列商品，而是把品牌商品组织成五个护理任务。每个任务同时切换场景图、主题文案和六个商品，让用户从“我要解决什么”进入购买路径。
+              </p>
+            </div>
+
+            <div class="summary-grid">
+              <article class="summary-cell">
+                <span class="meta-label">Input</span>
+                <strong>需求证据</strong>
+                <p>产品功效、使用步骤、适用场景、可售状态、商品图片和品牌叙事边界。</p>
+              </article>
+              <article class="summary-cell">
+                <span class="meta-label">Decision</span>
+                <strong>5 个任务</strong>
+                <p>温和清洁、舒缓调理、淡斑提亮、补水修护与日间防护。</p>
+              </article>
+              <article class="summary-cell">
+                <span class="meta-label">Asset</span>
+                <strong>5 张场景图</strong>
+                <p>每个任务一张真实商品场景图，并记录 alt、来源与下方文案区域的背景色。</p>
+              </article>
+              <article class="summary-cell">
+                <span class="meta-label">Output</span>
+                <strong>ThemeProductList</strong>
+                <p>5 组 themes；每组包含 value、英文标签、场景内容和 6 个商品。</p>
+              </article>
+            </div>
+
+            <div class="rule-grid" style="margin-top: 28px">
+              <article class="rule-card">
+                <span class="number">01</span>
+                <h3>任务生成</h3>
+                <p>任务按护肤流程和用户目标生成：Cleanse &amp; Reset、Calm &amp; Prep、Brighten &amp; Correct、Hydrate &amp; Repair、Protect &amp; Finish。名称描述行动，不夸大结果。</p>
+              </article>
+              <article class="rule-card">
+                <span class="number">02</span>
+                <h3>商品分配</h3>
+                <p>每组固定 6 个可售商品，按“核心步骤优先、辅助步骤补齐”排序。商品可跨任务复用，但必须在每个任务中承担不同且可解释的护理角色，同组内不得重复 SKU。</p>
+              </article>
+              <article class="rule-card">
+                <span class="number">03</span>
+                <h3>场景与文案</h3>
+                <p>场景图必须对应当前任务中的真实商品；标题说明使用场景，描述解释步骤。预采样 backgroundColor 保证图片未完成采样前也能选择可读前景色，图片和商品卡均保留目标链接。</p>
+              </article>
+            </div>
+
+            <div class="logic-note">
+              <strong>QA 审核门</strong>
+              <p>验证 5 个稳定主题值及每组 6 个唯一商品；切换 Tab 时场景、英文标题、描述和商品必须原子更新；逐组检查 SKU 与任务相关性、图片身份、证据边界、价格时效、桌面横向翻页和移动端横向滚动。</p>
+            </div>
+          </section>
+
+          <section id="module-popular-picks">
+            <div class="section-head">
+              <div>
+                <p class="module-breadcrumb"><span>页面模块</span><strong>热门精选</strong></p>
+                <p class="kicker">04.4 · ProductList rail module</p>
+                <h2>热门精选 ProductList Rail</h2>
+              </div>
+              <p class="section-summary">
+                热门精选回答“第一次来先买什么”。当前基线按 ANUA 品牌页“销量由高到低”的 All 快照保留前 8 个商品，并用本地图片保证 Storybook 可重复验证。
+              </p>
+            </div>
+
+            <div class="summary-grid">
+              <article class="summary-cell">
+                <span class="meta-label">Input</span>
+                <strong>销量快照</strong>
+                <p>排序后的品牌页商品、SKU、价格、可售状态、商品链接、抓取时间和来源链接。</p>
+              </article>
+              <article class="summary-cell">
+                <span class="meta-label">Decision</span>
+                <strong>前 8 个</strong>
+                <p>保持源页销量顺序，不用主观“代表性”覆盖真实排名。</p>
+              </article>
+              <article class="summary-cell">
+                <span class="meta-label">Asset</span>
+                <strong>8 张本地图</strong>
+                <p>从源商品图固化的确定性资源，与英文商品数据共用同一商品身份。</p>
+              </article>
+              <article class="summary-cell">
+                <span class="meta-label">Output</span>
+                <strong>ProductList</strong>
+                <p>rail 布局、商品卡、分类标签、前后翻页和加入购物车回调。</p>
+              </article>
+            </div>
+
+            <div class="rule-grid" style="margin-top: 28px">
+              <article class="rule-card">
+                <span class="number">01</span>
+                <h3>排名与时效</h3>
+                <p>只在同一 observed_at 快照中排序；缺货、身份冲突或链接失效的商品进入审核，不静默换位。标题可本地化，SKU、排名、价格和源链接必须保持可追溯。</p>
+              </article>
+              <article class="rule-card">
+                <span class="number">02</span>
+                <h3>Tab 商品边界</h3>
+                <p>UI 展示 All 加七个 Product Type，并通过 productsByTab 从 PrimaryPool 输出对应商品。分类结果不足时少展示，不从 RelatedPool 补满。</p>
+              </article>
+              <article class="rule-card">
+                <span class="number">03</span>
+                <h3>商品与图片</h3>
+                <p>使用真实商品主图、品牌链接和商品链接；本地资源名称与稳定商品 ID 对齐。商品卡不展示生成式功效、虚构评分或来源中不存在的促销徽标。</p>
+              </article>
+            </div>
+
+            <div class="logic-note">
+              <strong>QA 审核门</strong>
+              <p>校验 All 恰好 8 个商品、顺序与销量快照一致、各分类 productsByTab 只含对应 Product Type；检查链接语言、价格来源和图片身份，并验证切换后商品列表、选中状态与滚动位置同步。</p>
+            </div>
+          </section>
+
+          <section id="module-brand">
+            <div class="section-head">
+              <div>
+                <p class="module-breadcrumb"><span>页面模块</span><strong>品牌（非必须）</strong></p>
+                <p class="kicker">04.5 · BrandSpotlight module</p>
+                <h2>品牌（非必须） BrandSpotlight</h2>
+              </div>
+              <p class="section-summary">
+                品牌组件只服务非品牌主题：当主题为商品型或活动型时，它用可追溯证据解释代表品牌及关联商品；品牌型主题默认隐藏，避免与 ThemeHero 重复。
+              </p>
+            </div>
+
+            <div class="summary-grid">
+              <article class="summary-cell">
+                <span class="meta-label">Input</span>
+                <strong>候选品牌</strong>
+                <p>ThemeIntent、PrimaryPool 中的品牌覆盖、品牌资料、可售商品、来源链接和观察时间。</p>
+              </article>
+              <article class="summary-cell">
+                <span class="meta-label">Decision</span>
+                <strong>展示条件</strong>
+                <p>仅在 theme_type 为 product 或 activity，且存在证据充分的代表品牌时生成。</p>
+              </article>
+              <article class="summary-cell">
+                <span class="meta-label">Asset</span>
+                <strong>品牌视觉</strong>
+                <p>已批准的品牌标识或品牌图、替代文本、固有尺寸与可访问目标链接。</p>
+              </article>
+              <article class="summary-cell">
+                <span class="meta-label">Output</span>
+                <strong>BrandSpotlight</strong>
+                <p>品牌名称、证据化简介、代表商品、图片资产、链接和显示状态。</p>
+              </article>
+            </div>
+
+            <div class="rule-grid" style="margin-top: 28px">
+              <article class="rule-card">
+                <span class="number">01</span>
+                <h3>条件生成</h3>
+                <p>品牌型主题必须隐藏；商品型或活动型主题才进入候选判断。没有明确代表品牌时允许省略，不用低置信度结果填满模板。</p>
+              </article>
+              <article class="rule-card">
+                <span class="number">02</span>
+                <h3>品牌选择</h3>
+                <p>按主题相关性、商品覆盖率、当前可售状态和证据完整度排序；保存 brand_id、confidence、matched_signals 和 selection_reason。</p>
+              </article>
+              <article class="rule-card">
+                <span class="number">03</span>
+                <h3>内容与商品</h3>
+                <p>简介只能压缩已批准品牌资料，不生成无来源主张；代表商品必须来自同一品牌并与当前主题相关，品牌入口和商品链接均可访问。</p>
+              </article>
+            </div>
+
+            <div class="logic-note">
+              <strong>QA 审核门</strong>
+              <p>验证非品牌主题条件、brand_id 唯一性、品牌资料来源、图片身份与商品归属；品牌型主题中不得渲染该组件，缺少合格候选时应输出 hidden，而不是强制生成。</p>
+            </div>
+          </section>
+
+          <section id="module-reviews">
+            <div class="section-head">
+              <div>
+                <p class="module-breadcrumb"><span>页面模块</span><strong>顾客怎么说</strong></p>
+                <p class="kicker">04.6 · ReviewList module</p>
+                <h2>顾客怎么说 ReviewList</h2>
+              </div>
+              <p class="section-summary">
+                评论模块只编排可追溯的真实体验证据。AI 可以做主题覆盖、排序和受控翻译，但不得生成评论、增强功效结论或把评论绑定到另一个商品。
+              </p>
+            </div>
+
+            <div class="summary-grid">
+              <article class="summary-cell">
+                <span class="meta-label">Input</span>
+                <strong>评论证据</strong>
+                <p>原始评论、评分、匿名用户、商品 SKU、商品图、来源链接和抓取时间。</p>
+              </article>
+              <article class="summary-cell">
+                <span class="meta-label">Decision</span>
+                <strong>3 条体验</strong>
+                <p>覆盖清洁、舒缓补水与淡斑提亮，并避免三条评论表达同一主题。</p>
+              </article>
+              <article class="summary-cell">
+                <span class="meta-label">Asset</span>
+                <strong>商品缩略图</strong>
+                <p>每条评论绑定对应商品图、替代文本、品牌名、商品名和目标链接。</p>
+              </article>
+              <article class="summary-cell">
+                <span class="meta-label">Output</span>
+                <strong>ReviewList</strong>
+                <p>稳定 ID、五分制评分、评论正文、匿名用户和关联商品。</p>
+              </article>
+            </div>
+
+            <div class="rule-grid" style="margin-top: 28px">
+              <article class="rule-card">
+                <span class="number">01</span>
+                <h3>真实性优先</h3>
+                <p>评论正文与评分必须来自同一条源记录；受控翻译需保留原文和 source_ref，不改变态度、肤质、使用周期或功效强度。没有评论证据时宁可隐藏模块。</p>
+              </article>
+              <article class="rule-card">
+                <span class="number">02</span>
+                <h3>商品绑定</h3>
+                <p>稳定 review_id 同时关联 product_id、图片、品牌、商品名和 href；评分允许半星。评论中的产品体验与底部商品卡必须指向同一 SKU。</p>
+              </article>
+              <article class="rule-card">
+                <span class="number">03</span>
+                <h3>隐私与本地化</h3>
+                <p>仅展示已匿名化用户名，不推断身份。英文模块标题固定为“What Customers Say”；长评论在卡片中受控截断，但数据层保留完整文本。</p>
+              </article>
+            </div>
+
+            <div class="logic-note">
+              <strong>QA 审核门</strong>
+              <p>逐条核对评论原文、翻译、评分、匿名状态与 SKU；检查三张商品图和链接无错配；拒绝缺失 source_ref、超出五分制、含个人信息或无法证明来源的内容，并验证桌面三卡与移动端横向阅读顺序。</p>
+            </div>
+          </section>
+
+          <section id="module-explore-more">
+            <div class="section-head">
+              <div>
+                <p class="module-breadcrumb"><span>页面模块</span><strong>探索更多</strong></p>
+                <p class="kicker">04.7 · ProductList waterfall module</p>
+                <h2>探索更多 ProductList Waterfall</h2>
+              </div>
+              <p class="section-summary">
+                探索更多承接深度浏览：All 与七个 Product Type 读取 PrimaryPool；第二个“搭配购买”读取 RelatedPool.complementary。相似替代商品保留在 RelatedPool.substitute，不混入搭配购买。
+              </p>
+            </div>
+
+            <div class="summary-grid">
+              <article class="summary-cell">
+                <span class="meta-label">Input</span>
+                <strong>双层商品池</strong>
+                <p>PrimaryPool、RelatedPool.complementary，以及商品价格、库存、图片、链接、一级分类和来源时间。</p>
+              </article>
+              <article class="summary-cell">
+                <span class="meta-label">Decision</span>
+                <strong>9 个 Tab</strong>
+                <p>All、搭配购买，以及清洁、调理、精华、面霜、防晒、面膜、彩妆七类。</p>
+              </article>
+              <article class="summary-cell">
+                <span class="meta-label">Asset</span>
+                <strong>商品主图</strong>
+                <p>每个商品使用真实主图和可访问替代文本，不在瀑布流中生成营销场景图。</p>
+              </article>
+              <article class="summary-cell">
+                <span class="meta-label">Output</span>
+                <strong>productsByTab</strong>
+                <p>按稳定 value 输出独立商品池，并由受控 Tab 状态选择当前列表。</p>
+              </article>
+            </div>
+
+            <div class="rule-grid" style="margin-top: 28px">
+              <article class="rule-card">
+                <span class="number">01</span>
+                <h3>Tab 与顺序</h3>
+                <p>固定为 All、Complete the Routine、Cleanse &amp; Peel、Toners &amp; Pads、Serums &amp; Care、Moisturizers、Sunscreens、Face Masks、Makeup；英文标签与稳定 value 一一对应。</p>
+              </article>
+              <article class="rule-card">
+                <span class="number">02</span>
+                <h3>商品池边界</h3>
+                <p>All 与分类 Tab 仅使用 PrimaryPool；搭配购买仅使用 complementary。substitute 不得混入搭配购买，后续需要展示时应增加独立 Tab 或推荐模块。</p>
+              </article>
+              <article class="rule-card">
+                <span class="number">03</span>
+                <h3>联动与加载</h3>
+                <p>精选分类通过 #explore-more-{value} 切换 productsByTab 并滚动定位；分类列表不带 badge，只有 All 保留“加载更多”，其余 Tab 直接展示该分类的已冻结集合。</p>
+              </article>
+            </div>
+
+            <div class="logic-note">
+              <strong>QA 审核门</strong>
+              <p>验证 9 个 Tab、第二位 Complete the Routine、7 个快捷入口的双向映射、每个商品的 pool_scope、唯一 ID 与主分类；搭配商品必须有锚点与 relation_reason，分类 Tab 不得出现 badge 或加载更多；检查 All 的追加加载、切换后的滚动位置、价格时效和窄屏横向 Tab 居中动效。</p>
             </div>
           </section>
 
           <section id="product-type">
             <div class="section-head">
               <div>
-                <p class="kicker">03.1 · Product Type definition</p>
-                <h2>当前 7 个 Product Type</h2>
+                <p class="kicker">03.1 · Two-layer product pools</p>
+                <h2>自动选品与双层商品池</h2>
               </div>
               <p class="section-summary">
-                合并原则：只有当商品共享同一购物意图和使用阶段时才合并。防晒和彩妆保留独立入口，不因配方或护肤功效并入面霜、精华。
+                系统先根据 ThemeIntent 建立精准主题核心池，再用核心商品派生搭配与相似关系。主题场景必须由真实商品覆盖支撑，不能先生成场景再用弱相关商品补满。
               </p>
             </div>
+
+            <div class="workflow" aria-label="双层商品池生成流程">
+              <article class="step">
+                <span class="step-index">01</span>
+                <h3>读取意图与可售全集</h3>
+                <p>读取 ThemeIntent 和同一 catalog snapshot，按市场、可售状态、商品身份与来源完整度执行硬过滤。</p>
+                <ul>
+                  <li>输入主题实体、购物意图和模板约束</li>
+                  <li>输出可参与评分的 eligible_products</li>
+                </ul>
+              </article>
+              <article class="step">
+                <span class="step-index">02</span>
+                <h3>构建 PrimaryPool</h3>
+                <p>只保留精准符合主题词和 ThemeIntent 的商品，保存 relevance_score、matched_signals 与 selection_reason。</p>
+                <ul>
+                  <li>核心组件只从该池取商品</li>
+                  <li>不足时减少展示或进入 QA，不由弱相关商品补位</li>
+                </ul>
+              </article>
+              <article class="step">
+                <span class="step-index">03</span>
+                <h3>生成可支撑主题场景</h3>
+                <p>根据 PrimaryPool 的功能、使用步骤和商品覆盖生成场景；覆盖不足的场景自动合并、降级或删除。</p>
+                <ul>
+                  <li>场景必须引用真实商品证据</li>
+                  <li>不为凑模板容量凭空生成使用路径</li>
+                </ul>
+              </article>
+              <article class="step">
+                <span class="step-index">04</span>
+                <h3>派生 RelatedPool</h3>
+                <p>以 PrimaryPool 商品为锚点扩展关联商品，并严格区分搭配购买与相似替代两种关系。</p>
+                <ul>
+                  <li>complementary：补充步骤或完成完整 Routine</li>
+                  <li>substitute：同功能、价位或品牌替代</li>
+                </ul>
+              </article>
+              <article class="step">
+                <span class="step-index">05</span>
+                <h3>按组件分配并 QA</h3>
+                <p>先锁定 pool_scope，再按组件目标重新排序；验证锚点、关系理由、重复策略和商品覆盖。</p>
+                <ul>
+                  <li>核心模块使用 PrimaryPool</li>
+                  <li>搭配购买使用 complementary；相似商品单独保留</li>
+                </ul>
+              </article>
+            </div>
+
+            <h3 style="margin-top: 34px">PrimaryPool 的 7 个 Product Type</h3>
 
             <div class="category-table-wrap">
               <table>
                 <thead>
                   <tr>
                     <th>#</th>
-                    <th>中英文分类</th>
+                    <th>文档名称 / 页面英文标签</th>
                     <th>归类理由</th>
                     <th>当前代表商品</th>
                     <th>图片识别线索</th>
@@ -1116,11 +2453,11 @@
           <section id="pipeline">
             <div class="section-head">
               <div>
-                <p class="kicker">03.2 · End-to-end pipeline</p>
-                <h2>从品牌页到可验收页面</h2>
+                <p class="kicker">03.2 · Category asset sub-pipeline</p>
+                <h2>精选分类的生成子流程</h2>
               </div>
               <p class="section-summary">
-                红色节点代表必须保留的人工审核门。自动化负责收集、排序、生成和验证；涉及品牌判断、类目合并和包装真实性时不静默放行。
+                这条子流程只读取 PrimaryPool，负责一级分类、代表商品和分类图片资产，并作为核心组件复用的 taxonomy 基线。所有节点自动执行；异常进入 QA 失败队列，在最终 Review 前局部重跑。
               </p>
             </div>
 
@@ -1128,7 +2465,7 @@
               <article class="step">
                 <span class="step-index">01</span>
                 <h3>定义页面任务</h3>
-                <p>输入品牌、目标语言、品牌页 URL、页面模板和目标分类数量。</p>
+                <p>输入 ThemeIntent、目标语言、catalog snapshot、页面模板和目标分类数量。</p>
                 <ul>
                   <li>生成 <span class="mono">GenerationBrief</span></li>
                   <li>锁定来源和更新时间</li>
@@ -1136,8 +2473,8 @@
               </article>
               <article class="step">
                 <span class="step-index">02</span>
-                <h3>采集商品池</h3>
-                <p>读取品牌页与商品页，标准化名称、图片、可售状态和现有类目。</p>
+                <h3>读取 PrimaryPool</h3>
+                <p>读取已通过主题相关性与可售硬过滤的核心商品，标准化名称、图片和现有类目。</p>
                 <ul>
                   <li>去重 SKU / 变体</li>
                   <li>记录来源与抓取时间</li>
@@ -1152,11 +2489,11 @@
                   <li>冲突与未分类队列</li>
                 </ul>
               </article>
-              <article class="step" data-gate="manual">
+              <article class="step">
                 <span class="step-index">04</span>
-                <h3>审核分类与合并</h3>
-                <p>确认名称、颗粒度、排序和中英文是否符合用户购物心智。</p>
-                <span class="gate">人工审核门 A</span>
+                <h3>校验分类与合并</h3>
+                <p>自动检查名称、颗粒度、排序、英文标签和购物意图是否满足规则。</p>
+                <ul><li>失败进入 QA 队列</li><li>不阻塞其他有效分类</li></ul>
               </article>
               <article class="step">
                 <span class="step-index">05</span>
@@ -1176,11 +2513,11 @@
                   <li>输出资产 manifest</li>
                 </ul>
               </article>
-              <article class="step" data-gate="manual">
+              <article class="step">
                 <span class="step-index">07</span>
-                <h3>包装与视觉审核</h3>
-                <p>检查商品身份、文字畸变、圆形裁切、相邻图片区分度和品牌一致性。</p>
-                <span class="gate">人工审核门 B</span>
+                <h3>包装与视觉校验</h3>
+                <p>自动检查商品身份、文字畸变、圆形裁切、相邻图片区分度和品牌一致性。</p>
+                <ul><li>失败只重跑对应资产</li><li>保留视觉差异证据</li></ul>
               </article>
               <article class="step">
                 <span class="step-index">08</span>
@@ -1197,37 +2534,39 @@
           <section id="selection">
             <div class="section-head">
               <div>
-                <p class="kicker">03.3 · Product selection</p>
-                <h2>商品怎么选</h2>
+                <p class="kicker">03.3 · Pool scoring and fallback</p>
+                <h2>双层商品池的排序与回退</h2>
               </div>
               <p class="section-summary">
-                分类图不是陈列尽可能多的商品，而是在 60–80px 的尺寸下传达一个清楚的购物入口。选品先保证“像这个分类”，再考虑热度。
+                两个商品池来自同一商品快照，但拥有不同准入规则。组件选品必须先确定 pool_scope，再在池内按组件目标排序；RelatedPool 不能静默填补 PrimaryPool 的数量缺口。
               </p>
             </div>
 
             <div class="rule-grid">
               <article class="rule-card">
                 <span class="number">1</span>
-                <h3>代表性优先</h3>
-                <p>商品名称、形态和使用场景能直接解释分类；不靠复杂文案才能看懂。</p>
+                <h3>核心池边界</h3>
+                <p>Theme Hero、精选分类、从这里开始、热门精选、品牌组件及探索更多的 All / 分类 Tab 只使用 PrimaryPool。核心池不足时减少展示或进入 QA。</p>
               </article>
               <article class="rule-card">
                 <span class="number">2</span>
-                <h3>缩略图可识别</h3>
-                <p>包装轮廓、主色和开合形态在圆形小图中仍明显；避免多个近似白瓶并排。</p>
+                <h3>关联关系可追溯</h3>
+                <p>RelatedPool 每个商品必须保存 relation_type、anchor_product_ids、relation_reason 和 confidence；complementary 与 substitute 不得混为同一列表。</p>
               </article>
               <article class="rule-card">
                 <span class="number">3</span>
-                <h3>可售与素材稳定</h3>
-                <p>优先当前可售、非临时组合、拥有清晰正面商品图的 SKU，并保留替补。</p>
+                <h3>组件内再次精排</h3>
+                <p>锁定商品池后，再按场景相关性、销量、可售状态、素材质量和缩略图识别度排序；跨组件允许有意重复，同一列表不得重复 SKU。</p>
               </article>
             </div>
 
             <div class="score-formula">
-              <code>selection_score = 0.30 × category_fit + 0.25 × availability + 0.20 × thumbnail_legibility + 0.15 × popularity + 0.10 × asset_quality</code>
-              <p>默认权重，可按品牌策略配置。任何单项不合格都可触发人工否决，不由总分覆盖。</p>
+              <code>primary_score = 0.45 × theme_fit + 0.20 × availability + 0.15 × evidence_quality + 0.10 × popularity + 0.10 × asset_quality</code>
+              <code>related_score = 0.40 × relation_strength + 0.20 × anchor_coverage + 0.20 × availability + 0.10 × diversity + 0.10 × asset_quality</code>
+              <p>硬过滤先于评分。PrimaryPool 不满足主题相关性即淘汰；RelatedPool 没有明确锚点和关系理由即淘汰，不能靠总分覆盖。</p>
             </div>
 
+            <h3 style="margin-top: 28px">精选分类图片的代表商品数量</h3>
             <div class="decision-table-wrap" style="margin-top: 24px">
               <table>
                 <thead>
@@ -1265,7 +2604,7 @@
           <section id="images">
             <div class="section-head">
               <div>
-                <p class="kicker">03.4 · Image production</p>
+                <p class="kicker">05.3 · Image production</p>
                 <h2>三种图片生成模式</h2>
               </div>
               <p class="section-summary">
@@ -1316,34 +2655,37 @@
           <section id="automation">
             <div class="section-head">
               <div>
-                <p class="kicker">04.1 · Full-page assembly</p>
-                <h2>整页模块装配</h2>
+                <p class="kicker">05.1 · Page generation</p>
+                <h2>按组件生成完整英文页面</h2>
               </div>
               <p class="section-summary">
-                整页自动化不是一次生成一段 HTML，而是由同一份 PageGenerationSpec 驱动各模块，再复用现有设计系统组件装配 TopicLandingPage。
+                系统读取模板、商品分配和组件配置，依赖顺序生成英文文案、组件 Props 与资产任务。每个模块独立保存输入、输出和状态，失败时只重跑对应模块。
               </p>
             </div>
 
             <div class="automation-map">
               <nav aria-label="整页模块" role="tablist">
-                <button id="tab-hero" type="button" role="tab" aria-selected="true" aria-controls="panel-hero">品牌首屏</button>
+                <button id="tab-hero" type="button" role="tab" aria-selected="true" aria-controls="panel-hero">主题 Hero</button>
                 <button id="tab-shortcuts" type="button" role="tab" aria-selected="false" aria-controls="panel-shortcuts">精选分类</button>
                 <button id="tab-start" type="button" role="tab" aria-selected="false" aria-controls="panel-start">从这里开始</button>
                 <button id="tab-popular" type="button" role="tab" aria-selected="false" aria-controls="panel-popular">热门精选</button>
-                <button id="tab-reviews" type="button" role="tab" aria-selected="false" aria-controls="panel-reviews">用户评论</button>
-                <button id="tab-waterfall" type="button" role="tab" aria-selected="false" aria-controls="panel-waterfall">产品列表</button>
+                <button id="tab-brand" type="button" role="tab" aria-selected="false" aria-controls="panel-brand">品牌（非必须）</button>
+                <button id="tab-reviews" type="button" role="tab" aria-selected="false" aria-controls="panel-reviews">顾客怎么说</button>
+                <button id="tab-waterfall" type="button" role="tab" aria-selected="false" aria-controls="panel-waterfall">探索更多</button>
               </nav>
 
               <article id="panel-hero" class="module-panel" role="tabpanel" aria-labelledby="tab-hero">
                 <p class="table-kicker">ThemeHero</p>
-                <h3>品牌认知与主张</h3>
+                <h3>主题命题与主张</h3>
                 <ul>
-                  <li>从品牌资料生成一句定位、简短说明和 2–3 个标签。</li>
-                  <li>选择 2–3 个跨品类主商品；主图以真实包装合成为生产目标。</li>
-                  <li>检查文案证据、品牌发音 / 中文名、CTA 目标和移动端可读性。</li>
+                  <li>从 ThemeIntent 与已批准证据生成一句定位、最多两行说明和 2–3 个标签；每项主张都要引用证据。</li>
+                  <li>选择 2–3 个与主题意图相关、轮廓和主色有区分度的主商品；避免 Hero 只代表单一商品。</li>
+                  <li>根据主图底部颜色选择深色 / 浅色前景；移动端可使用主色渐变遮罩，桌面端保持独立背景结构。</li>
+                  <li>品牌名、商品名、商标、活性成分和包装文字不允许 AI 自由改写。</li>
                 </ul>
-                <div class="artifact-line"><strong>输入</strong><code>brand_profile + hero_candidates + locale</code></div>
+                <div class="artifact-line"><strong>输入</strong><code>theme_intent + hero_candidates + en-US</code></div>
                 <div class="artifact-line"><strong>输出</strong><code>ThemeHeroProps + hero-image.webp</code></div>
+                <div class="artifact-line"><strong>阻塞条件</strong><code>unsupported_claim | ambiguous_entity | product_identity_mismatch</code></div>
               </article>
 
               <article id="panel-shortcuts" class="module-panel" role="tabpanel" aria-labelledby="tab-shortcuts" hidden>
@@ -1351,35 +2693,55 @@
                 <h3>一级购物入口</h3>
                 <ul>
                   <li>执行本页定义的分类、选品和图片流程。</li>
-                  <li>输出 5–8 个稳定分类；超过容量则按覆盖率和购物价值压缩。</li>
-                  <li>保证中英文映射、顺序、链接和图片 manifest 一一对应。</li>
+                  <li>输出 5–8 个稳定一级分类；超过容量时按商品覆盖率、购物价值和视觉区分度压缩。</li>
+                  <li>每个分类链接到“探索更多”的同 ID Tab；不维护第二套筛选体系。</li>
+                  <li>保证英文 label、顺序、链接、代表商品和图片 manifest 与分类实体一一对应。</li>
                 </ul>
-                <div class="artifact-line"><strong>输入</strong><code>product_pool + taxonomy_rules</code></div>
+                <div class="artifact-line"><strong>输入</strong><code>primary_pool + taxonomy_rules</code></div>
                 <div class="artifact-line"><strong>输出</strong><code>ShortcutRailProps + category-*.webp</code></div>
+                <div class="artifact-line"><strong>容量</strong><code>5..8 categories × 1..2 visual products</code></div>
               </article>
 
               <article id="panel-start" class="module-panel" role="tabpanel" aria-labelledby="tab-start" hidden>
                 <p class="table-kicker">ThemeProductList</p>
                 <h3>按护肤任务开始</h3>
                 <ul>
-                  <li>从用户任务而非商品类目生成 3–5 个场景，如清洁焕新、修护焕肤。</li>
-                  <li>每个场景选择一张情境图和 3–4 个可购买商品。</li>
-                  <li>避免与“精选分类”完全重复，强调解决问题的顺序。</li>
+                  <li>从用户任务而非商品类目生成 3–5 个场景；ANUA 基线为温和清洁、舒缓调理、淡斑提亮、补水修护、日间防护。</li>
+                  <li>每个场景输出一张能解释任务的情境图和 6 个商品，商品顺序体现使用步骤或功能互补。</li>
+                  <li>同一场景内不得出现仅容量、包装或套装不同的近重复 SKU。</li>
+                  <li>场景商品允许出现在热门精选或探索更多，因为模块意图不同；但不得让多个场景拥有完全相同的商品集合。</li>
                 </ul>
-                <div class="artifact-line"><strong>输入</strong><code>brand_routines + selected_products</code></div>
+                <div class="artifact-line"><strong>输入</strong><code>theme_scenes + primary_pool</code></div>
                 <div class="artifact-line"><strong>输出</strong><code>ThemeProductListProps</code></div>
+                <div class="artifact-line"><strong>容量</strong><code>3..5 themes × 6 products</code></div>
               </article>
 
               <article id="panel-popular" class="module-panel" role="tabpanel" aria-labelledby="tab-popular" hidden>
                 <p class="table-kicker">Product rail</p>
                 <h3>高价值商品精选</h3>
                 <ul>
-                  <li>在可售商品中结合销量、评分、折扣和品类覆盖进行排序。</li>
-                  <li>保留“全量”与高价值子类标签，避免每个标签商品相同。</li>
-                  <li>价格和库存属于易变数据，生成前必须刷新。</li>
+                  <li>“全部”优先使用品牌页当前销量排序的前 8 个可售商品，不因文案偏好改变顺序。</li>
+                  <li>分类 Tab 与 ShortcutRail 的 Product Type 对齐，区别仅为前置“全部”。</li>
+                  <li>分类结果不足时少展示，不用错误分类补满；价格和库存必须来自同一快照。</li>
+                  <li>与 Hero 或场景导购重复是允许的，因为这里表达热度；但单个商品只出现一次。</li>
                 </ul>
-                <div class="artifact-line"><strong>输入</strong><code>live_catalog + merchandising_rules</code></div>
+                <div class="artifact-line"><strong>输入</strong><code>primary_pool + sales_snapshot + taxonomy + merchandising_rules</code></div>
                 <div class="artifact-line"><strong>输出</strong><code>ProductListProps</code></div>
+                <div class="artifact-line"><strong>默认</strong><code>all = first 8 sales-ranked products</code></div>
+              </article>
+
+              <article id="panel-brand" class="module-panel" role="tabpanel" aria-labelledby="tab-brand" hidden>
+                <p class="table-kicker">BrandSpotlight</p>
+                <h3>非品牌主题的品牌说明</h3>
+                <ul>
+                  <li>仅当 theme_type 为 product 或 activity 且存在合格代表品牌时生成；品牌主题输出 hidden。</li>
+                  <li>按主题相关性、商品覆盖率、可售状态和证据完整度选择品牌，并保存 selection_reason。</li>
+                  <li>品牌简介只压缩批准资料，代表商品必须属于同一品牌且与当前主题相关。</li>
+                  <li>没有清晰候选时省略组件，不使用低置信度品牌填充页面。</li>
+                </ul>
+                <div class="artifact-line"><strong>输入</strong><code>theme_intent + brand_candidates + primary_pool</code></div>
+                <div class="artifact-line"><strong>输出</strong><code>BrandSpotlightProps | hidden</code></div>
+                <div class="artifact-line"><strong>阻塞条件</strong><code>brand_theme | insufficient_evidence | product_brand_mismatch</code></div>
               </article>
 
               <article id="panel-reviews" class="module-panel" role="tabpanel" aria-labelledby="tab-reviews" hidden>
@@ -1387,80 +2749,255 @@
                 <h3>可追溯的用户证据</h3>
                 <ul>
                   <li>仅使用真实评论与对应商品，保存评论来源和抓取时间。</li>
-                  <li>按清洁、调理、护理等不同体验选取 3 条，不改写为广告语。</li>
+                  <li>按不同商品和体验主题选取 3 条；优先覆盖清洁、舒缓 / 补水和针对性护理。</li>
+                  <li>可因布局截短，但不润色成广告语；显示的评分、作者和商品必须来自同一评论记录。</li>
                   <li>缺少可靠评论时明确阻塞，不自动编造。</li>
                 </ul>
                 <div class="artifact-line"><strong>输入</strong><code>verified_reviews</code></div>
                 <div class="artifact-line"><strong>输出</strong><code>ReviewListProps</code></div>
+                <div class="artifact-line"><strong>容量</strong><code>3 traceable reviews × 3 distinct products</code></div>
               </article>
 
               <article id="panel-waterfall" class="module-panel" role="tabpanel" aria-labelledby="tab-waterfall" hidden>
                 <p class="table-kicker">ProductList waterfall</p>
                 <h3>全量发现与承接</h3>
                 <ul>
-                  <li>展示当前品牌可售商品并生成真实筛选标签。</li>
-                  <li>分页、加载更多和排序由商品数据驱动，不写死数量。</li>
-                  <li>验证首屏性能、图片加载、无重复商品和空状态。</li>
+                  <li>Tab 顺序固定为“全部 → 搭配购买 → 与 ShortcutRail 相同的一级分类”。</li>
+                  <li>“全部”和一级分类只读取 PrimaryPool；分类默认约 8 个，数据不足时按实际数量展示，不得从关联池补满。</li>
+                  <li>“搭配购买”只读取 RelatedPool.complementary，并保留 anchor_product_ids 与 relation_reason。</li>
+                  <li>RelatedPool.substitute 不在当前组件展示；需要时应进入独立的相似商品 Tab 或推荐模块。</li>
+                  <li>模块内不显示营销 badge；分页、加载更多和排序由商品数据驱动，不写死总数。</li>
                 </ul>
-                <div class="artifact-line"><strong>输入</strong><code>live_catalog + filter_schema</code></div>
+                <div class="artifact-line"><strong>输入</strong><code>primary_pool + related_pool.complementary + filter_schema</code></div>
                 <div class="artifact-line"><strong>输出</strong><code>ProductListProps</code></div>
+                <div class="artifact-line"><strong>重复规则</strong><code>cross_module = allowed; within_tab = forbidden</code></div>
               </article>
+            </div>
+          </section>
+
+          <section id="localization">
+            <div class="section-head">
+              <div>
+                <p class="kicker">05.2 · English content</p>
+                <h2>只生成一份英文内容</h2>
+              </div>
+              <p class="section-summary">
+                当前流程只输出美国市场英文页面。商品事实、实体 ID 和模块结构来自已冻结数据；AI 只在证据边界内生成自然英文文案、标签和可访问性文本。
+              </p>
+            </div>
+
+            <div class="summary-grid">
+              <article class="summary-cell">
+                <span class="meta-label">Stable</span>
+                <strong>实体 ID</strong>
+                <p>SKU、category_id、theme_id、module_id 和资产引用在整条生成链中保持稳定。</p>
+              </article>
+              <article class="summary-cell">
+                <span class="meta-label">Generated</span>
+                <strong>英文文案</strong>
+                <p>标题、说明、标签、alt、ARIA 和链接文案统一生成自然英文。</p>
+              </article>
+              <article class="summary-cell">
+                <span class="meta-label">Frozen</span>
+                <strong>商业事实</strong>
+                <p>价格、库存、规格、排序和商品集合必须来自同一 CatalogSnapshot。</p>
+              </article>
+              <article class="summary-cell">
+                <span class="meta-label">Verified</span>
+                <strong>证据引用</strong>
+                <p>每段营销与场景文案都保存 evidence_ref、prompt_version 和 content_hash。</p>
+              </article>
+            </div>
+
+            <div class="decision-table-wrap" style="margin-top: 24px">
+              <table>
+                <thead><tr><th>内容</th><th>英文生成规则</th><th>必须保留</th><th>验证方式</th></tr></thead>
+                <tbody>
+                  <tr><td>品牌与系列名称</td><td>使用官方英文名称，不自行翻译或改写商标。</td><td>大小写、数字和系列符号</td><td>品牌术语表匹配</td></tr>
+                  <tr><td>商品名称</td><td>保留品牌、系列、核心成分、品类和规格，仅规范英文语序。</td><td>浓度、单位、容量、套装数量</td><td>字段级 token 对比</td></tr>
+                  <tr><td>营销与场景文案</td><td>基于证据生成简洁自然的英文表达，不扩写未经证实的功效。</td><td>证据边界与使用顺序</td><td>evidence_ref 完整性</td></tr>
+                  <tr><td>评论</td><td>只显示英文原文评论；无可靠英文评论时隐藏模块。</td><td>原始文本、作者、评分、商品</td><td>review_id 回溯</td></tr>
+                  <tr><td>可访问性文本</td><td>根据真实商品和场景生成英文 alt 与 ARIA label。</td><td>商品身份和交互目的</td><td>语义与可访问性检查</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="logic-note">
+              <strong>输出边界</strong>
+              <p>生成结果只包含 locale = en-US。中文仅用于这份流程文档的说明，不进入 PageSpec、组件 Props 或发布页面。</p>
             </div>
           </section>
 
           <section id="contract">
             <div class="section-head">
               <div>
-                <p class="kicker">04.2 · Data contract</p>
+                <p class="kicker">05.4 · Data contract</p>
                 <h2>自动化的唯一入口</h2>
               </div>
               <p class="section-summary">
-                后续脚本应读写结构化 manifest，而不是直接修改 JSX。相同输入、规则版本和已批准资产应能重复装配出相同页面结构。
+                Runner、最终 Review 工作台和页面编译器只交换结构化 PageGenerationSpec，不直接修改 JSX。相同关键词、快照、模板版本、规则版本和资产必须得到相同结构哈希。
               </p>
             </div>
 
             <div class="contract-block">
               <button class="copy-button" type="button" data-copy-target="contract-template">复制 JSON</button>
               <pre id="contract-template"><code>{
-  "schema_version": "topic-landing-generation/v0.1",
-  "generation_id": "anua-2026-08-10-001",
-  "brand": {
-    "id": "anua",
-    "name": "ANUA",
-    "source_url": "https://www.yami.com/us/en/b/anua/11712",
-    "locales": ["en", "zh"]
+  "schema_version": "topic-landing-generation/v0.2",
+  "run": {
+    "id": "anua-us-2026-08-11-001",
+    "status": "publishable",
+    "created_at": "2026-08-11T06:00:00Z",
+    "module_attempts": { "hero": 1, "shortcuts": 1, "start_here": 2 }
   },
-  "rules": {
-    "taxonomy_version": "product-type/v0.1",
-    "selection_version": "category-hero/v0.1",
-    "image_prompt_version": "category-studio/v0.1",
-    "category_limit": 7,
-    "image_mode": "reference-generation"
+  "request": {
+    "brand_id": "anua",
+    "market": "us",
+    "locale": "en-US",
+    "theme_type": "brand",
+    "template": "topic-landing-page/v1",
+    "goal": "brand_discovery_and_guided_shopping"
   },
-  "categories": [
+  "sources": [
     {
-      "id": "cleanse-peel",
-      "label": { "zh": "清洁与去角质", "en": "Cleanse & Peel" },
-      "product_ids": ["anua-heartleaf-cleansing-foam"],
-      "hero_product_ids": ["anua-heartleaf-cleansing-foam"],
-      "classification_confidence": 0.96,
-      "status": "approved",
-      "asset": {
-        "path": "assets/category-cleanse-peel.webp",
-        "width": 600,
-        "height": 600,
-        "source_image_ids": ["source-001"],
-        "output_hash": "..."
-      }
+      "id": "brand-page-en",
+      "url": "https://www.yami.com/us/en/b/anua/11712",
+      "observed_at": "2026-08-11T06:02:00Z",
+      "content_hash": "sha256:..."
     }
   ],
+  "evidence": {
+    "catalog_snapshot_id": "catalog-anua-us-20260811T0602Z",
+    "dynamic_ttl_minutes": 30,
+    "product_count": 275,
+    "unresolved_product_ids": [],
+    "conflicts": []
+  },
+  "rules": {
+    "taxonomy_version": "product-type/v0.2",
+    "selection_version": "module-merchandising/v0.2",
+    "content_version": "topic-content-en/v0.1",
+    "image_prompt_version": "category-studio/v0.2",
+    "max_auto_repair_attempts": 2
+  },
+  "brand_profile": {
+    "positioning": "Gentle yet Effective Korean Skincare",
+    "evidence_ids": ["brand-page-en#description", "product-1022281871#ingredients"],
+    "status": "approved"
+  },
+  "taxonomy": {
+    "category_order": [
+      "cleanse-peel", "toners-pads", "serums-care", "moisturizers",
+      "sunscreens", "face-masks", "makeup"
+    ],
+    "categories": [
+      {
+        "id": "cleanse-peel",
+        "label": "Cleanse & Peel",
+        "product_ids": ["1022446461", "1022373071"],
+        "confidence": 0.96,
+        "reason": "Shared cleansing step and shopping intent",
+        "status": "approved"
+      }
+    ]
+  },
+  "product_pools": {
+    "primary": {
+      "product_ids": ["1022446461", "1022373071", "..."],
+      "rule": "strict_theme_match",
+      "status": "approved"
+    },
+    "related": {
+      "complementary": [
+        {
+          "product_id": "related-001",
+          "relation_type": "complementary",
+          "anchor_product_ids": ["1022446461"],
+          "relation_reason": "Completes the routine",
+          "confidence": 0.92
+        }
+      ],
+      "substitute": [
+        {
+          "product_id": "related-002",
+          "relation_type": "substitute",
+          "anchor_product_ids": ["1022373071"],
+          "relation_reason": "Comparable function and price tier",
+          "confidence": 0.88
+        }
+      ],
+      "status": "approved"
+    }
+  },
+  "page_plan": {
+    "module_order": [
+      "hero", "shortcuts", "start_here", "popular_picks", "brand_spotlight",
+      "reviews", "explore_more"
+    ],
+    "module_pool_policy": {
+      "hero": "primary",
+      "shortcuts": "primary",
+      "start_here": "primary",
+      "popular_picks": "primary",
+      "brand_spotlight": "primary",
+      "explore_more_all": "primary",
+      "complete_routine": "related.complementary",
+      "similar_products": "related.substitute"
+    },
+    "product_reuse_policy": {
+      "cross_module": "allowed_when_intent_differs",
+      "within_tab": "forbidden",
+      "duplicate_variant_penalty": 1
+    },
+    "status": "approved"
+  },
+  "modules": {
+    "hero": { "spec_ref": "modules/hero.json", "status": "verified" },
+    "shortcuts": { "spec_ref": "modules/shortcuts.json", "status": "verified" },
+    "start_here": {
+      "spec_ref": "modules/start-here.json",
+      "theme_count": 5,
+      "products_per_theme": 6,
+      "status": "verified"
+    },
+    "popular_picks": { "all_product_limit": 8, "status": "verified" },
+    "brand_spotlight": {
+      "pool_scope": "primary",
+      "condition": "theme_type != brand",
+      "status": "conditional"
+    },
+    "reviews": { "review_count": 3, "status": "verified" },
+    "explore_more": {
+      "tab_order": ["all", "complete-routine", "cleanse-peel", "..."],
+      "pool_scope": {
+        "all": "primary",
+        "complete-routine": "related.complementary",
+        "category-tabs": "primary"
+      },
+      "badges": false,
+      "status": "verified"
+    }
+  },
+  "content": {
+    "locale": "en-US",
+    "structure_hash": "sha256:...",
+    "content_file": "content/en-US.json",
+    "content_hash": "sha256:...",
+    "evidence_refs_complete": true
+  },
+  "assets": {
+    "manifest_path": "assets/manifest.json",
+    "identity_checks": "passed",
+    "review_status": "approved"
+  },
   "review_gates": {
-    "taxonomy": { "status": "approved", "reviewer": "..." },
-    "assets": { "status": "approved", "reviewer": "..." }
+    "user_review": { "status": "approved", "reviewer": "...", "reviewed_at": "..." }
   },
   "verification": {
+    "schema": "passed",
+    "source_freshness": "passed",
     "typecheck": "passed",
-    "storybook_tests": "passed",
+    "storybook_interactions": "passed",
+    "a11y": "passed",
     "desktop_visual": "passed",
     "mobile_visual": "passed"
   }
@@ -1471,49 +3008,200 @@
           <section id="qa">
             <div class="section-head">
               <div>
-                <p class="kicker">04.3 · QA & roadmap</p>
-                <h2>验收标准与演进顺序</h2>
+                <p class="kicker">06.1 · Automated QA</p>
+                <h2>自动 QA：通过后才进入 Review</h2>
               </div>
               <p class="section-summary">
-                自动化只有在数据、资产、运行时和视觉四层证据都通过后才算完成。任何人工审核门未通过，状态只能是部分完成或阻塞。
+                系统自动检查来源、策略、数据、资产、运行时、视觉和可访问性。全部通过才生成 Review Package；失败项只回到对应组件重跑，不重做整页。
               </p>
             </div>
 
             <div class="qa-list">
-              <div class="qa-item"><span class="qa-mark">01</span><div><strong>分类完整性</strong><p>所有有效商品有唯一一级分类；未分类和冲突商品显式列出。</p></div></div>
-              <div class="qa-item"><span class="qa-mark">02</span><div><strong>双语一致性</strong><p>分类 ID 稳定，中英文仅是 label，不产生两套排序或链接。</p></div></div>
-              <div class="qa-item"><span class="qa-mark">03</span><div><strong>商品真实性</strong><p>名称、图片、价格、库存和评论均可回溯到来源与时间。</p></div></div>
-              <div class="qa-item"><span class="qa-mark">04</span><div><strong>资产规范</strong><p>图片存在、尺寸正确、可加载、无 UI 残留，包装未被错误重绘。</p></div></div>
-              <div class="qa-item"><span class="qa-mark">05</span><div><strong>运行时验证</strong><p>类型检查和 Storybook 测试通过，数量断言不写死在共享组件。</p></div></div>
-              <div class="qa-item"><span class="qa-mark">06</span><div><strong>视觉验证</strong><p>桌面端和移动端检查裁切、标签换行、横向滚动和相邻图片区分度。</p></div></div>
+              <div class="qa-item"><span class="qa-mark">01</span><div><strong>来源与时效</strong><p>每个事实字段有允许的 source_ref；价格、库存和排序未超过 TTL。</p></div></div>
+              <div class="qa-item"><span class="qa-mark">02</span><div><strong>分类完整性</strong><p>所有有效商品有唯一一级分类；未分类、冲突和低置信度商品显式列出。</p></div></div>
+              <div class="qa-item"><span class="qa-mark">03</span><div><strong>模块策略</strong><p>每个模块符合容量、排序、重复和回退规则；模块之间表达不同购物意图。</p></div></div>
+              <div class="qa-item"><span class="qa-mark">04</span><div><strong>英文内容完整</strong><p>标题、说明、标签、商品名、alt 与 ARIA 文案均为 en-US，且事实字段和 evidence_ref 完整。</p></div></div>
+              <div class="qa-item"><span class="qa-mark">05</span><div><strong>商品真实性</strong><p>名称、图片、价格、库存和评论均可回溯；无模型生成的虚构 SKU 或功效。</p></div></div>
+              <div class="qa-item"><span class="qa-mark">06</span><div><strong>资产规范</strong><p>图片存在、尺寸正确、可加载、无 UI 残留，包装身份和文字未被错误重绘。</p></div></div>
+              <div class="qa-item"><span class="qa-mark">07</span><div><strong>运行时与交互</strong><p>Schema、类型、Storybook、锚点、Tab、横向滚动和加载更多行为通过。</p></div></div>
+              <div class="qa-item"><span class="qa-mark">08</span><div><strong>视觉与可访问性</strong><p>桌面 / 移动裁切、文本行数、对比度、键盘、ARIA、reduced motion 和无布局跳动通过。</p></div></div>
             </div>
 
             <div class="roadmap-grid" style="margin-top: 32px">
               <article class="roadmap-card current">
-                <span class="status-tag">Current</span>
-                <strong>v0.1</strong>
-                <p>固化当前分类模块的规则、数据契约、提示词和验收门。</p>
-                <ul><li>人工采集商品</li><li>人工审核分类与图片</li><li>代码接入与 Storybook QA</li></ul>
-              </article>
-              <article class="roadmap-card">
-                <span class="status-tag">Next</span>
+                <span class="status-tag">Current · Spec</span>
                 <strong>v0.2</strong>
-                <p>增加 manifest 生成器和资产任务队列，让分类模块可重复运行。</p>
-                <ul><li>商品 JSON 导入</li><li>规则化分类与评分</li><li>自动生成 fixtures patch</li></ul>
+                <p>定义完整的 AI 编排、证据策略、模块规则、英文内容契约和发布边界。</p>
+                <ul><li>现有 fixture 作为 ANUA 基线</li><li>前期生成与 QA 全自动</li><li>用户仅在最终 Review 确认</li></ul>
               </article>
               <article class="roadmap-card">
-                <span class="status-tag">Later</span>
-                <strong>v0.3–1.0</strong>
-                <p>接入实时目录，依次生成 Hero、场景导购、商品精选、评论和全量列表。</p>
-                <ul><li>模块级审核与重跑</li><li>差异报告和回滚</li><li>整页一键装配，人工批准发布</li></ul>
+                <span class="status-tag">Next · Runner</span>
+                <strong>v0.3</strong>
+                <p>实现读取 CatalogSnapshot、输出 PageGenerationSpec 的可重跑命令行 Runner。</p>
+                <ul><li>来源采集与快照缓存</li><li>规则化分类和模块规划</li><li>生成 fixture / asset manifest</li></ul>
+              </article>
+              <article class="roadmap-card">
+                <span class="status-tag">Later · Connected</span>
+                <strong>v1.0</strong>
+                <p>接入实时目录、审核台和发布系统，把已批准 Spec 编译成可发布页面。</p>
+                <ul><li>模块级差异和定向重跑</li><li>快照版本与一键回滚</li><li>用户 Review 通过后发布</li></ul>
               </article>
             </div>
           </section>
+
+          <section id="review">
+            <div class="section-head">
+              <div>
+                <p class="kicker">07 · User review</p>
+                <h2>最终 Review 是唯一人工确认门</h2>
+              </div>
+              <p class="section-summary">
+                系统把完整英文页面、自动 QA 结果、来源证据和本次变更一起提交给用户。用户只做最终确认或提出定向修改，不参与前期模板、选品和组件配置。
+              </p>
+            </div>
+
+            <div class="summary-grid">
+              <article class="summary-cell">
+                <span class="meta-label">Preview</span>
+                <strong>完整页面</strong>
+                <p>桌面与移动端真实渲染，包含全部组件、商品、英文内容和图片。</p>
+              </article>
+              <article class="summary-cell">
+                <span class="meta-label">QA</span>
+                <strong>检查报告</strong>
+                <p>展示通过项、自动修复记录、剩余风险和组件级验证证据。</p>
+              </article>
+              <article class="summary-cell">
+                <span class="meta-label">Trace</span>
+                <strong>来源回溯</strong>
+                <p>商品、文案、评论和图片都能回到对应 source_ref 与 observed_at。</p>
+              </article>
+              <article class="summary-cell">
+                <span class="meta-label">Diff</span>
+                <strong>变更范围</strong>
+                <p>标明模板版本、商品集合、组件配置和资产相较上一版本的差异。</p>
+              </article>
+            </div>
+
+            <div class="workflow" style="margin-top: 28px" aria-label="用户 Review 流程">
+              <article class="step">
+                <span class="step-index">01</span>
+                <h3>打开 Review Package</h3>
+                <p>锁定 PageGenerationSpec、QA 报告、预览地址和证据清单。</p>
+              </article>
+              <article class="step">
+                <span class="step-index">02</span>
+                <h3>检查完整页面</h3>
+                <p>核对内容、选品、模块顺序、图片、桌面与移动端表现。</p>
+              </article>
+              <article class="step" data-gate="manual">
+                <span class="step-index">03</span>
+                <h3>确认或提出修改</h3>
+                <p>通过则进入发布；修改请求必须指向模板、组件、商品或内容字段。</p>
+              </article>
+              <article class="step">
+                <span class="step-index">04</span>
+                <h3>冻结 Review 结果</h3>
+                <p>记录 reviewer、reviewed_at、结论、备注和被批准的 spec_hash。</p>
+              </article>
+            </div>
+
+            <div class="decision-table-wrap" style="margin-top: 28px">
+              <table>
+                <thead><tr><th>用户结论</th><th>系统状态</th><th>下一步</th><th>重跑边界</th></tr></thead>
+                <tbody>
+                  <tr><td>确认</td><td><code>approved</code></td><td>生成不可变发布包</td><td>不重跑</td></tr>
+                  <tr><td>需要修改</td><td><code>changes_requested</code></td><td>返回对应配置并再次自动 QA</td><td>只重跑受影响组件</td></tr>
+                  <tr><td>拒绝</td><td><code>blocked</code></td><td>停止发布并保留证据</td><td>由新 Brief 重新开始</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="logic-note">
+              <strong>不在成品上直接改</strong>
+              <p>任何修改都映射回模板、组件配置、商品分配、英文内容或图片资产，再从受影响节点生成并自动 QA；页面预览始终是结构化 Spec 的结果。</p>
+            </div>
+          </section>
+
+          <section id="publish">
+            <div class="section-head">
+              <div>
+                <p class="kicker">08 · Publish</p>
+                <h2>确认后发布，并保留回滚证据</h2>
+              </div>
+              <p class="section-summary">
+                发布只接受已通过自动 QA 且用户确认的 spec_hash。系统冻结页面、内容和资产版本，执行构建与烟雾测试，并把部署结果、来源证据和回滚入口写入发布记录。
+              </p>
+            </div>
+
+            <div class="summary-grid">
+              <article class="summary-cell">
+                <span class="meta-label">Gate</span>
+                <strong>发布前提</strong>
+                <p>QA 全部通过，user_review = approved，且审核的 spec_hash 未发生变化。</p>
+              </article>
+              <article class="summary-cell">
+                <span class="meta-label">Package</span>
+                <strong>不可变版本</strong>
+                <p>冻结 PageSpec、en-US 内容、商品快照、资产 manifest 和规则版本。</p>
+              </article>
+              <article class="summary-cell">
+                <span class="meta-label">Deploy</span>
+                <strong>发布与检查</strong>
+                <p>构建发布页面，检查状态码、关键路由、组件渲染和桌面 / 移动端访问。</p>
+              </article>
+              <article class="summary-cell">
+                <span class="meta-label">Record</span>
+                <strong>证据与回滚</strong>
+                <p>保存 release_id、URL、commit、部署时间、验证结果和上一稳定版本。</p>
+              </article>
+            </div>
+
+            <div class="workflow" style="margin-top: 28px" aria-label="确认发布流程">
+              <article class="step">
+                <span class="step-index">01</span>
+                <h3>冻结发布包</h3>
+                <p>计算 spec_hash、content_hash 和 asset_manifest_hash，禁止隐式变更。</p>
+              </article>
+              <article class="step" data-mode="generative">
+                <span class="step-index">02</span>
+                <h3>编译页面</h3>
+                <p>由已批准 Spec 装配现有组件，生成可部署的英文主题页。</p>
+              </article>
+              <article class="step" data-mode="generative">
+                <span class="step-index">03</span>
+                <h3>部署与烟雾测试</h3>
+                <p>验证公开 URL、首屏、锚点、商品链接、资源加载和响应式布局。</p>
+              </article>
+              <article class="step">
+                <span class="step-index">04</span>
+                <h3>记录或回滚</h3>
+                <p>成功则写入发布记录；失败则回滚上一稳定版本并保留失败证据。</p>
+              </article>
+            </div>
+
+            <div class="logic-note">
+              <strong>发布硬门</strong>
+              <p>没有已批准的 user_review、Review 后 spec_hash 发生变化、关键烟雾测试失败，任一条件成立都禁止发布。回滚不会覆盖失败记录。</p>
+            </div>
+          </section>
+
+          <nav class="page-pagination" aria-label="子页面导航">
+            <a href="#overview" data-page-prev hidden>
+              <span aria-hidden="true">←</span>
+              <strong></strong>
+            </a>
+            <span data-page-count aria-live="polite"></span>
+            <a href="#overview" data-page-next hidden>
+              <strong></strong>
+              <span aria-hidden="true">→</span>
+            </a>
+          </nav>
         </main>
       </div>
 
-      <footer class="footer-note">
-        <p>下一步不是“让模型再生成一次”，而是把每次判断沉淀为规则、版本和证据，让下一次生成更少依赖临时记忆。</p>
+      <footer class="footer-note" aria-label="文档版本信息">
+        <p><span>版本 v0.2</span><span>更新时间 2026-08-11</span></p>
       </footer>
     </div>
 
@@ -1545,6 +3233,100 @@
           });
         });
       });
+
+      const railLinks = [...document.querySelectorAll('.rail a[href^="#"]')];
+      const docPages = [...document.querySelectorAll("#overview, main > section[id]")];
+      const pageById = new Map(docPages.map((page) => [page.id, page]));
+      const pageOrder = railLinks
+        .map((link) => link.getAttribute("href")?.slice(1))
+        .filter(
+          (pageId, index, pageIds) =>
+            pageId && pageById.has(pageId) && pageIds.indexOf(pageId) === index,
+        );
+      const pageLabels = new Map(
+        pageOrder.map((pageId) => {
+          const link = railLinks.find((candidate) => candidate.getAttribute("href") === `#${pageId}`);
+          const label = link?.querySelector("span:last-child")?.textContent || link?.textContent || pageId;
+          return [pageId, label.trim()];
+        }),
+      );
+      const previousPageLink = document.querySelector("[data-page-prev]");
+      const nextPageLink = document.querySelector("[data-page-next]");
+      const pageCount = document.querySelector("[data-page-count]");
+      let activePageId = "";
+
+      const updatePaginationLink = (link, pageId, direction) => {
+        if (!link || !pageId) {
+          if (link) link.hidden = true;
+          return;
+        }
+
+        const label = pageLabels.get(pageId) || pageId;
+        link.hidden = false;
+        link.setAttribute("href", `#${pageId}`);
+        link.setAttribute("aria-label", `${direction}：${label}`);
+        const text = link.querySelector("strong");
+        if (text) text.textContent = label;
+      };
+
+      const showPage = (requestedPageId) => {
+        const pageId = pageById.has(requestedPageId) ? requestedPageId : "overview";
+        const currentIndex = pageOrder.indexOf(pageId);
+
+        docPages.forEach((page) => {
+          page.toggleAttribute("data-route-active", page.id === pageId);
+          page.hidden = page.id !== pageId;
+        });
+        railLinks.forEach((link) => link.removeAttribute("aria-current"));
+        const currentRailLink = railLinks.find(
+          (link) => link.getAttribute("href") === `#${pageId}`,
+        );
+        currentRailLink?.setAttribute("aria-current", "page");
+        currentRailLink?.scrollIntoView({
+          behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+          block: "nearest",
+          inline: "center",
+        });
+
+        updatePaginationLink(previousPageLink, pageOrder[currentIndex - 1], "上一页");
+        updatePaginationLink(nextPageLink, pageOrder[currentIndex + 1], "下一页");
+        if (pageCount) {
+          pageCount.textContent = `PAGE ${String(currentIndex + 1).padStart(2, "0")} / ${String(pageOrder.length).padStart(2, "0")}`;
+        }
+
+        const label = pageLabels.get(pageId) || "总览";
+        document.title = `${label} · YAMI Topic Landing Page 生成工作流`;
+        activePageId = pageId;
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: "auto" }));
+        });
+      };
+
+      const syncPageFromHash = () => {
+        const requestedPageId = location.hash.slice(1) || "overview";
+        const pageId = pageById.has(requestedPageId) ? requestedPageId : "overview";
+        if (requestedPageId !== pageId || !location.hash) {
+          history.replaceState(null, "", `#${pageId}`);
+        }
+        showPage(pageId);
+      };
+
+      document.addEventListener("click", (event) => {
+        const link = event.target.closest('a[href^="#"]');
+        if (!link) return;
+        const pageId = link.getAttribute("href")?.slice(1);
+        if (!pageId || !pageById.has(pageId)) return;
+        event.preventDefault();
+        if (pageId !== activePageId) history.pushState(null, "", `#${pageId}`);
+        showPage(pageId);
+      });
+
+      if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+      window.addEventListener("popstate", syncPageFromHash);
+      window.addEventListener("load", () => window.scrollTo({ top: 0, left: 0, behavior: "auto" }), {
+        once: true,
+      });
+      syncPageFromHash();
     </script>
   </body>
 </html>
