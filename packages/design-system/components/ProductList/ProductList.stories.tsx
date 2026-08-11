@@ -122,6 +122,15 @@ export const Showcase: Story = {
       }}
     />
   ),
+  play: async ({ canvasElement }) => {
+    const container = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-list-container"]',
+    );
+    if (!container) throw new Error("Product List container did not render");
+    if (getComputedStyle(container).rowGap !== "12px") {
+      throw new Error("Desktop Product List must use a 12px vertical gap");
+    }
+  },
 };
 
 /* Divider position and variant are Controls on every story, so these two exist
