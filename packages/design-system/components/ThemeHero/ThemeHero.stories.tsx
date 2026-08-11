@@ -427,7 +427,9 @@ export const Mobile: Story = {
       !scrimStyles.backgroundImage.includes("linear-gradient") ||
       !scrimStyles.backgroundImage.includes("/ 0.8") ||
       scrimStyles.backdropFilter !== "blur(16px)" ||
-      !scrimStyles.maskImage.includes("linear-gradient")
+      !scrimStyles.maskImage.includes("linear-gradient") ||
+      !scrimStyles.maskImage.includes("20%") ||
+      !scrimStyles.maskImage.includes("60%")
     ) {
       throw new Error(
         "Mobile ThemeHero must use a 24/32 title and a single horizontally scrollable 4px-gap tag row over a full-bleed image with bottom-aligned copy, 8px-padded full-width distributed actions and an adaptive bottom-masked 16px frosted scrim",
