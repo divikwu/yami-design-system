@@ -31,6 +31,10 @@ export interface ThemeHeroProps
   extends Omit<HTMLAttributes<HTMLElement>, "children" | "title"> {
   title: ReactNode;
   description: ReactNode;
+  /** Localized label for expanding an overflowing two-line description. */
+  descriptionExpandLabel?: ReactNode;
+  /** Localized label for collapsing an expanded description. */
+  descriptionCollapseLabel?: ReactNode;
   /** Optional short descriptive keywords rendered as non-interactive Badges. */
   tags?: readonly string[];
   /**

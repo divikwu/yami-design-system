@@ -79,6 +79,9 @@ export const Showcase: Story = {
     const overlay = content?.querySelector<HTMLElement>(
       '[data-slot="theme-product-list-overlay"]',
     );
+    const scrim = content?.querySelector<HTMLElement>(
+      '[data-slot="theme-product-list-scrim"]',
+    );
     const contentTitle = overlay?.querySelector<HTMLElement>("h3");
     const contentDescription = overlay?.querySelector<HTMLElement>("p");
 
@@ -88,6 +91,7 @@ export const Showcase: Story = {
       !content ||
       !image ||
       !overlay ||
+      !scrim ||
       !contentTitle ||
       !contentDescription
     ) {
@@ -97,6 +101,20 @@ export const Showcase: Story = {
     }
     if (!image.alt.trim() || !overlay.textContent?.includes("Start Fresh")) {
       throw new Error("ThemeProductList content requires meaningful copy and alt text");
+    }
+    const scrimStyle = getComputedStyle(scrim);
+    const scrimBox = scrim.getBoundingClientRect();
+    const contentBox = content.getBoundingClientRect();
+    if (
+      Math.abs(scrimBox.width - contentBox.width) > 1 ||
+      Math.abs(scrimBox.height - contentBox.height) > 1 ||
+      !scrimStyle.backgroundImage.includes("linear-gradient") ||
+      scrimStyle.backdropFilter !== "blur(16px)" ||
+      !scrimStyle.maskImage.includes("linear-gradient")
+    ) {
+      throw new Error(
+        "ThemeProductList scene art must use the same full-panel 20–50% black gradient and 16px frosted scrim on PC and mobile",
+      );
     }
     const expectedTitleSize = window.innerWidth >= 1440 ? "20px" : "18px";
     if (getComputedStyle(contentTitle).fontSize !== expectedTitleSize) {

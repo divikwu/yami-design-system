@@ -103,6 +103,36 @@ function getNextIndex(currentIndex: number, tabCount: number, direction: 1 | -1)
   return (currentIndex + direction + tabCount) % tabCount
 }
 
+function revealTab(tab: HTMLButtonElement, orientation: TabsOrientation) {
+  const list = tab.closest<HTMLElement>('[role="tablist"]')
+  if (!list) return
+
+  const tabRect = tab.getBoundingClientRect()
+  const listRect = list.getBoundingClientRect()
+
+  if (orientation === "vertical") {
+    if (tabRect.top < listRect.top) {
+      list.scrollTop += tabRect.top - listRect.top
+    } else if (tabRect.bottom > listRect.bottom) {
+      list.scrollTop += tabRect.bottom - listRect.bottom
+    }
+    return
+  }
+
+  if (list.scrollWidth <= list.clientWidth) return
+
+  const tabCenter = tabRect.left + tabRect.width / 2
+  const listCenter = listRect.left + listRect.width / 2
+  const prefersReducedMotion =
+    tab.ownerDocument.defaultView?.matchMedia("(prefers-reduced-motion: reduce)")
+      .matches ?? false
+
+  list.scrollTo({
+    left: list.scrollLeft + tabCenter - listCenter,
+    behavior: prefersReducedMotion ? "auto" : "smooth",
+  })
+}
+
 export const Tabs = forwardRef<HTMLDivElement, TabsProps>(function Tabs(
   {
     value,
@@ -210,10 +240,12 @@ export const TabsList = forwardRef<HTMLDivElement, TabsListProps>(function TabsL
 
     const nextTab = tabs[nextIndex]
     event.preventDefault()
-    nextTab.focus()
+    nextTab.focus({ preventScroll: true })
 
     if (context.activationMode === "automatic") {
       nextTab.click()
+    } else {
+      revealTab(nextTab, context.orientation)
     }
   }
 
@@ -308,7 +340,11 @@ export const TabsTrigger = forwardRef<HTMLButtonElement, TabsTriggerProps>(funct
         onClick?.(event)
 
         if (!event.defaultPrevented) {
+          const tab = event.currentTarget
           context.setValue(value)
+          tab.ownerDocument.defaultView?.requestAnimationFrame(() => {
+            revealTab(tab, context.orientation)
+          })
         }
       }}
     >

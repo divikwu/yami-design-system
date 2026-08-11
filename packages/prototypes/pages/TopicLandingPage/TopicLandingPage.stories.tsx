@@ -53,35 +53,101 @@ export const Pc: Story = {
             heroTitle: "Anua：温和有效的韩系护肤",
             heroDescription:
               "以温和亲肤成分结合针对性活性成分，为舒缓、补水、提亮与屏障护理提供简单清晰的日常方案。",
+            heroDescriptionExpandLabel: "更多",
+            heroDescriptionCollapseLabel: "收起",
             heroTags: [
               "Heartleaf 鱼腥草",
               "温和日常配方",
               "针对性活性护理",
             ],
-            heroPrimaryCta: "选购商品",
-            heroSecondaryCta: "探索更多",
-            firstShortcut: "粮油调味",
-            lastShortcut: "母婴玩具",
+            firstShortcut: "清洁与去角质",
+            lastShortcut: "彩妆",
             firstReview: "温和又干净，洗完很舒服",
             activityTitle: "艾努雅",
             firstTab: "精选分类",
+            exploreMoreCategory: "清洁与去角质",
+            exploreMorePairing: "搭配购买",
+            exploreMoreDescription:
+              "探索该系列更多产品，以及为你精选的搭配好物。",
+            startHereThemes: [
+              {
+                tab: "温和清洁",
+                title: "清洁彻底，也保持舒适",
+                firstProduct: "鱼腥草毛孔清洁卸妆油 200ml",
+              },
+              {
+                tab: "舒缓调理",
+                title: "先舒缓，再为后续护理打底",
+                firstProduct: "鱼腥草 77% 玻尿酸舒缓爽肤水 250ml",
+              },
+              {
+                tab: "淡斑提亮",
+                title: "集中改善暗沉与痘印",
+                firstProduct: "烟酰胺 10% + 传明酸 4% 淡斑精华 30ml",
+              },
+              {
+                tab: "补水修护",
+                title: "补足水分，稳住肌肤屏障",
+                firstProduct: "PDRN 玻尿酸胶囊 100 精华 30ml",
+              },
+              {
+                tab: "日间防护",
+                title: "保湿打底，完成日间防护",
+                firstProduct: "KPDH 清爽保湿防晒霜 SPF50+ 50ml",
+              },
+            ],
           }
         : {
             heroTitle: "Anua: Gentle yet Effective Korean Skincare",
             heroDescription:
               "Skin-friendly ingredients and targeted actives for simple daily care across soothing, hydration, brightening, and barrier support.",
+            heroDescriptionExpandLabel: "More",
+            heroDescriptionCollapseLabel: "Less",
             heroTags: [
               "Heartleaf Botanical",
               "Gentle Daily Formulas",
               "Targeted Active Care",
             ],
-            heroPrimaryCta: "Shop Products",
-            heroSecondaryCta: "Explore More",
-            firstShortcut: "Grocery",
-            lastShortcut: "Toys , Kids, Babies",
+            firstShortcut: "Cleanse & Peel",
+            lastShortcut: "Makeup",
             firstReview: "It feels so gentle and still gets all the gunk out",
             activityTitle: "Anua",
             firstTab: "Featured shortcuts",
+            exploreMoreCategory: "Cleanse & Peel",
+            exploreMorePairing: "Complete the Routine",
+            exploreMoreDescription:
+              "Discover more from the collection, plus complementary picks selected for you.",
+            startHereThemes: [
+              {
+                tab: "Cleanse & Reset",
+                title: "Thoroughly cleanse, without the tight feel",
+                firstProduct: "Heartleaf Pore Control Cleansing Oil, 200 ml",
+              },
+              {
+                tab: "Calm & Prep",
+                title: "Soothe first, then prep for what follows",
+                firstProduct:
+                  "Heartleaf 77% + Hyaluron Soothing Toner, 250 ml",
+              },
+              {
+                tab: "Brighten & Correct",
+                title: "Target dark spots and dull tone",
+                firstProduct:
+                  "Niacinamide 10% + TXA 4% Dark Spot Correcting Serum, 30 ml",
+              },
+              {
+                tab: "Hydrate & Repair",
+                title: "Replenish moisture and support the barrier",
+                firstProduct:
+                  "PDRN Hyaluronic Acid Capsule 100 Serum, 30 ml",
+              },
+              {
+                tab: "Protect & Finish",
+                title: "Moisturize, then finish with daily SPF",
+                firstProduct:
+                  "KPDH Daily Clear Moisturizing Sun Cream SPF50+, 50 ml",
+              },
+            ],
           };
     const page = canvasElement.querySelector<HTMLElement>(
       '[data-slot="topic-landing-page"]',
@@ -89,12 +155,49 @@ export const Pc: Story = {
     if (!page || page.lang !== locale) {
       throw new Error("Topic landing page must expose its content language");
     }
+    const runInteractionChecks = import.meta.env.MODE === "test";
+    const initialStoryScrollY = window.scrollY;
+    const initialStoryLocation = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    let maximumStoryScrollDelta = 0;
+    const recordStoryScroll = () => {
+      maximumStoryScrollDelta = Math.max(
+        maximumStoryScrollDelta,
+        Math.abs(window.scrollY - initialStoryScrollY),
+      );
+    };
+    window.addEventListener("scroll", recordStoryScroll, { passive: true });
+    const captureScrollRequest = async (action: () => void) => {
+      const originalScrollIntoView = Element.prototype.scrollIntoView;
+      let request:
+        | {
+            target: Element;
+            options?: boolean | ScrollIntoViewOptions;
+          }
+        | undefined;
+      Element.prototype.scrollIntoView = function scrollIntoView(
+        options?: boolean | ScrollIntoViewOptions,
+      ) {
+        request = { target: this, options };
+      };
+      try {
+        action();
+        await new Promise<void>((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+        );
+        return request;
+      } finally {
+        Element.prototype.scrollIntoView = originalScrollIntoView;
+      }
+    };
 
     const main = page.querySelector<HTMLElement>(
       '[data-slot="topic-landing-main"]',
     );
     const initialReveal = main?.querySelector<HTMLElement>(
       '[data-motion-reveal="initial"]',
+    );
+    const initialRevealContent = initialReveal?.querySelectorAll<HTMLElement>(
+      '[data-slot="theme-hero-copy"], [data-slot="theme-hero-media"]',
     );
     const scrollReveals = main?.querySelectorAll<HTMLElement>(
       '[data-motion-reveal="scroll"]',
@@ -116,25 +219,116 @@ export const Pc: Story = {
     );
     if (
       !initialReveal ||
-      scrollReveals?.length !== 2 ||
+      initialRevealContent?.length !== 2 ||
+      scrollReveals?.length !== 4 ||
       waterfallReveal?.dataset.motionReveal !== undefined ||
-      waterfallHeading?.dataset.motionReveal !== "waterfall-heading" ||
-      waterfallTabs?.dataset.motionReveal !== "waterfall-tabs" ||
+      waterfallHeading?.dataset.motionReveal !== undefined ||
+      waterfallTabs?.dataset.motionReveal !== undefined ||
       !waterfallRowItems ||
       waterfallRowItems.length <= 6 ||
       Array.from(waterfallRowItems).some(
-        (item) => item.dataset.motionReveal !== "waterfall-row",
+        (item) => item.dataset.motionReveal !== undefined,
       ) ||
-      waterfallLoadMore?.dataset.motionReveal !== "waterfall-row" ||
-      main?.dataset.motionReady === undefined
+      waterfallLoadMore?.dataset.motionReveal !== undefined ||
+      main?.dataset.motionReady !== "true"
     ) {
       throw new Error(
         "Topic landing page waterfall must reveal its heading, tabs and product rows independently",
       );
     }
     if (main.dataset.motionReady === "true") {
+      const previousInitialMotionState = initialReveal.dataset.motionState;
+      delete initialReveal.dataset.motionState;
+      const initialRootStyle = getComputedStyle(initialReveal);
+      const hiddenInitialContent = Array.from(initialRevealContent).map(
+        (target) => {
+          const style = getComputedStyle(target);
+          return {
+            opacity: style.opacity,
+            translateY: new DOMMatrixReadOnly(style.transform).m42,
+          };
+        },
+      );
+
+      initialReveal.dataset.motionState = "visible";
+      const visibleInitialContent = Array.from(initialRevealContent).map(
+        (target) => getComputedStyle(target),
+      );
+
+      if (previousInitialMotionState === undefined) {
+        delete initialReveal.dataset.motionState;
+      } else {
+        initialReveal.dataset.motionState = previousInitialMotionState;
+      }
+
+      if (
+        initialRootStyle.opacity !== "1" ||
+        initialRootStyle.transform !== "none" ||
+        hiddenInitialContent.some(
+          ({ opacity, translateY }) => opacity !== "0" || translateY !== 32,
+        ) ||
+        visibleInitialContent.some((style) => {
+          const durations = style.transitionDuration.split(", ");
+          const timings = style.transitionTimingFunction.split(", ");
+          return (
+            durations.length !== 2 ||
+            durations.some((duration) => duration !== "0.5s") ||
+            timings.length !== 2 ||
+            timings.some((timing) => timing !== "ease-in-out")
+          );
+        })
+      ) {
+        throw new Error(
+          "Topic landing Hero must keep its module static while its copy and media fade upward",
+        );
+      }
+
+      for (const revealSection of Array.from(scrollReveals)) {
+        const revealContent = revealSection.querySelector<HTMLElement>(
+          '[data-slot="shortcut-rail-container"], [data-slot="product-list-container"], [data-slot="review-list-container"]',
+        );
+        if (!revealContent) {
+          throw new Error("Topic landing module content did not render");
+        }
+
+        const previousMotionState = revealSection.dataset.motionState;
+        delete revealSection.dataset.motionState;
+        const rootStyle = getComputedStyle(revealSection);
+        const hiddenStyle = getComputedStyle(revealContent);
+        const hiddenTranslateY = new DOMMatrixReadOnly(
+          hiddenStyle.transform,
+        ).m42;
+
+        revealSection.dataset.motionState = "visible";
+        const visibleStyle = getComputedStyle(revealContent);
+        const transitionDurations =
+          visibleStyle.transitionDuration.split(", ");
+        const transitionTimings =
+          visibleStyle.transitionTimingFunction.split(", ");
+
+        if (previousMotionState === undefined) {
+          delete revealSection.dataset.motionState;
+        } else {
+          revealSection.dataset.motionState = previousMotionState;
+        }
+
+        if (
+          rootStyle.opacity !== "1" ||
+          rootStyle.transform !== "none" ||
+          hiddenStyle.opacity !== "0" ||
+          hiddenTranslateY !== 24 ||
+          transitionDurations.length !== 2 ||
+          transitionDurations.some((duration) => duration !== "0.32s") ||
+          transitionTimings.length !== 2 ||
+          transitionTimings.some((timing) => timing !== "ease-out")
+        ) {
+          throw new Error(
+            "Topic landing modules must keep their roots static while their content fades upward",
+          );
+        }
+      }
+
       const motionRevealTargets = [
-        ...Array.from(scrollReveals),
         waterfallHeading,
         waterfallTabs,
         ...Array.from(waterfallRowItems),
@@ -167,7 +361,7 @@ export const Pc: Story = {
           transitionTimings.some((timing) => timing !== "ease-out")
         ) {
           throw new Error(
-            "Topic landing page section reveals must use the compact 24px, 320ms ease-out entrance",
+            "Topic landing waterfall content must use the compact 24px, 320ms ease-out entrance",
           );
         }
       }
@@ -258,6 +452,9 @@ export const Pc: Story = {
       primaryTabsList.dataset.variant !== "primary" ||
       primaryTabsList.dataset.style !== "a" ||
       activePrimaryTab?.textContent !== localizedExpectation.firstTab ||
+      primaryTabsStyle.position !== "sticky" ||
+      primaryTabsStyle.top !== "0px" ||
+      primaryTabsStyle.zIndex !== "10" ||
       primaryTabsStyle.maxWidth !== "none" ||
       primaryTabsStyle.marginLeft !== "0px" ||
       primaryTabsStyle.marginRight !== "0px" ||
@@ -301,6 +498,9 @@ export const Pc: Story = {
     const themeProductList = page.querySelector<HTMLElement>(
       '[data-slot="theme-product-list"]',
     );
+    const themeProductListSection = page.querySelector<HTMLElement>(
+      '[data-slot="topic-landing-theme-product-list"]',
+    );
     const shortcutLinks = shortcutRail?.querySelectorAll<HTMLElement>(
       '[data-slot="shortcut-rail-link"]',
     );
@@ -310,27 +510,86 @@ export const Pc: Story = {
     if (
       !shortcutRail ||
       !themeProductList ||
+      !themeProductListSection ||
       hero.nextElementSibling !== primaryTabs ||
       primaryTabs.nextElementSibling !== shortcutRail ||
-      shortcutRail.nextElementSibling !== themeProductList ||
+      shortcutRail.nextElementSibling !== themeProductListSection ||
+      themeProductListSection.firstElementChild !== themeProductList ||
       !shortcutContainer ||
       getComputedStyle(shortcutContainer).maxWidth !==
         resolvedContentMaxWidth ||
       (typeof args.contentMaxWidth === "number" &&
         shortcutContainer.getBoundingClientRect().width >
           args.contentMaxWidth + 1) ||
-      shortcutLinks?.length !== 8 ||
+      shortcutLinks?.length !== 7 ||
       shortcutLinks[0]?.textContent?.trim() !==
         localizedExpectation.firstShortcut ||
-      shortcutLinks[7]?.textContent?.trim() !==
+      shortcutLinks[0]?.getAttribute("href") !==
+        "#explore-more-cleanse-peel" ||
+      shortcutLinks[6]?.textContent?.trim() !==
         localizedExpectation.lastShortcut ||
       shortcutRail.querySelectorAll(
         '[data-image-presentation="full-bleed"]',
-      ).length !== 8
+      ).length !== 7
     ) {
       throw new Error(
-        "Topic landing page must place Primary Style A tabs and the eight-item Full-bleed Shortcut Rail between ThemeHero and Start Here",
+        "Topic landing page must place Primary Style A tabs and the seven-item Full-bleed Shortcut Rail between ThemeHero and Start Here",
       );
+    }
+
+    if (!isDesktopTabs) {
+      const expectedModuleTitleLeft =
+        shortcutContainer.getBoundingClientRect().left +
+        Number.parseFloat(getComputedStyle(shortcutContainer).paddingLeft);
+      const moduleTitles = Array.from(
+        page.querySelectorAll<HTMLElement>(
+          '[data-slot="shortcut-rail-title"], [data-slot="product-list-title"], [data-slot="review-list-title"]',
+        ),
+      );
+      if (
+        moduleTitles.length !== 5 ||
+        moduleTitles.some(
+          (title) =>
+            Math.abs(
+              title.getBoundingClientRect().left - expectedModuleTitleLeft,
+            ) > 1,
+        )
+      ) {
+        throw new Error(
+          "Mobile topic landing module titles must align flush with the shared content edge",
+        );
+      }
+    }
+
+    if (!isDesktopTabs && locale === "en") {
+      const shortcutLabels = Array.from(
+        shortcutRail.querySelectorAll<HTMLElement>(
+          '[data-slot="shortcut-rail-label"]',
+        ),
+      );
+      const moisturizersLabel = shortcutLabels.find(
+        (label) => label.textContent?.trim() === "Moisturizers",
+      );
+      const cleanseLabel = shortcutLabels.find(
+        (label) => label.textContent?.trim() === "Cleanse & Peel",
+      );
+      const labelLineHeight = moisturizersLabel
+        ? Number.parseFloat(getComputedStyle(moisturizersLabel).lineHeight)
+        : 0;
+      if (
+        !moisturizersLabel ||
+        !cleanseLabel ||
+        getComputedStyle(moisturizersLabel).overflowWrap !== "normal" ||
+        moisturizersLabel.scrollWidth > moisturizersLabel.clientWidth ||
+        moisturizersLabel.getBoundingClientRect().height >
+          labelLineHeight + 1 ||
+        cleanseLabel.getBoundingClientRect().height <
+          labelLineHeight * 2 - 1
+      ) {
+        throw new Error(
+          "Mobile Shortcut Rail must keep single English words intact while allowing multi-word labels to wrap to two lines",
+        );
+      }
     }
 
     const normalize = (value: unknown) =>
@@ -351,6 +610,15 @@ export const Pc: Story = {
     const heroDescription = copy?.querySelector<HTMLElement>(
       '[data-slot="theme-hero-description"]',
     );
+    const heroDescriptionText = copy?.querySelector<HTMLElement>(
+      '[data-slot="theme-hero-description-text"]',
+    );
+    const heroDescriptionCopy = copy?.querySelector<HTMLElement>(
+      '[data-slot="theme-hero-description-copy"]',
+    );
+    const heroDescriptionToggle = copy?.querySelector<HTMLButtonElement>(
+      '[data-slot="theme-hero-description-toggle"]',
+    );
     const heroDescriptionStyle = heroDescription
       ? getComputedStyle(heroDescription)
       : null;
@@ -359,14 +627,33 @@ export const Pc: Story = {
     if (
       !copy ||
       !heroDescription ||
-      !normalize(copy.textContent).includes(
-        normalize(localizedExpectation.heroDescription),
-      ) ||
+      !heroDescriptionText ||
+      !heroDescriptionCopy ||
+      normalize(args.hero.description) !==
+        normalize(localizedExpectation.heroDescription) ||
+      (heroDescriptionToggle === null &&
+        normalize(heroDescriptionCopy.textContent) !==
+          normalize(localizedExpectation.heroDescription)) ||
+      (heroDescriptionToggle !== null &&
+        (!normalize(heroDescriptionCopy.textContent).endsWith("…") ||
+          !normalize(localizedExpectation.heroDescription).startsWith(
+            normalize(heroDescriptionCopy.textContent).slice(0, -1),
+          ))) ||
+      normalize(args.hero.descriptionExpandLabel) !==
+        localizedExpectation.heroDescriptionExpandLabel ||
+      normalize(args.hero.descriptionCollapseLabel) !==
+        localizedExpectation.heroDescriptionCollapseLabel ||
       heroDescriptionStyle?.fontSize !== expectedHeroDescriptionSize ||
-      heroDescriptionStyle?.lineHeight !== "20px"
+      heroDescriptionStyle?.lineHeight !== "20px" ||
+      getComputedStyle(heroDescriptionText).webkitLineClamp !== "2" ||
+      (heroDescriptionToggle !== null &&
+        (normalize(heroDescriptionToggle.textContent) !==
+          localizedExpectation.heroDescriptionExpandLabel ||
+          getComputedStyle(heroDescriptionToggle).backgroundImage !== "none" ||
+          getComputedStyle(heroDescriptionToggle).fontWeight !== "400"))
     ) {
       throw new Error(
-        "Topic landing page description must use localized ThemeHero copy at desktop 16/20 and mobile 14/20",
+        "Topic landing page description must use localized two-line ThemeHero copy at desktop 16/20 and mobile 14/20 with a plain-text localized expansion action",
       );
     }
 
@@ -411,43 +698,9 @@ export const Pc: Story = {
     const heroActions = hero.querySelector<HTMLElement>(
       '[data-slot="theme-hero-actions"]',
     );
-    const primaryAction = heroActions?.querySelector<HTMLButtonElement>(
-      '[data-action="primary"]',
-    );
-    const secondaryAction = heroActions?.querySelector<HTMLButtonElement>(
-      '[data-action="secondary"]',
-    );
-    const shopTarget = page.querySelector<HTMLElement>("#shop");
-    const exploreTarget = page.querySelector<HTMLElement>("#explore");
-    const heroActionsStyle = heroActions
-      ? getComputedStyle(heroActions)
-      : null;
-    const heroCopyStyle = getComputedStyle(copy);
-    const heroCopyContentWidth =
-      copy.getBoundingClientRect().width -
-      Number.parseFloat(heroCopyStyle.paddingLeft) -
-      Number.parseFloat(heroCopyStyle.paddingRight);
-    const heroActionsWidth = heroActions?.getBoundingClientRect().width ?? 0;
-    const expectedActionPadding = window.innerWidth >= 1024 ? "16px" : "8px";
-    if (
-      !heroActions ||
-      !primaryAction ||
-      !secondaryAction ||
-      !shopTarget ||
-      !exploreTarget ||
-      normalize(primaryAction.textContent) !== localizedExpectation.heroPrimaryCta ||
-      normalize(secondaryAction.textContent) !== localizedExpectation.heroSecondaryCta ||
-      primaryAction.getAttribute("aria-controls") !== "shop" ||
-      secondaryAction.getAttribute("aria-controls") !== "explore" ||
-      heroActionsStyle?.paddingTop !== expectedActionPadding ||
-      heroActionsStyle?.paddingBottom !== expectedActionPadding ||
-      (isMobileHero &&
-        (heroActionsStyle?.flexWrap !== "nowrap" ||
-          Math.abs(heroActionsWidth - heroCopyContentWidth) > 1)) ||
-      (!isMobileHero && heroActionsWidth >= copy.getBoundingClientRect().width)
-    ) {
+    if (heroActions) {
       throw new Error(
-        "Topic landing page must connect localized Hero actions with responsive padding and mobile full-width distribution to existing page sections",
+        "Topic landing page Hero must not render CTA actions",
       );
     }
 
@@ -538,9 +791,11 @@ export const Pc: Story = {
     }
     if (
       productLists[1]?.querySelectorAll('[data-slot="product-list-item"]')
-        .length !== 6
+        .length !== 8
     ) {
-      throw new Error("Topic landing page Standard Rail must render six products");
+      throw new Error(
+        "Topic landing page Standard Rail must render eight products",
+      );
     }
     const standardRailList = standardRail.querySelector<HTMLElement>(
       '[data-slot="product-list-items"]',
@@ -579,8 +834,36 @@ export const Pc: Story = {
     const waterfallContainer = waterfall?.querySelector<HTMLElement>(
       '[data-slot="product-list-container"]',
     );
+    const waterfallTitle = waterfall?.querySelector<HTMLElement>(
+      '[data-slot="product-list-title"]',
+    );
+    const waterfallDescription = waterfall?.querySelector<HTMLElement>(
+      '[data-slot="product-list-description"]',
+    );
+    const waterfallDescriptionStyle = waterfallDescription
+      ? getComputedStyle(waterfallDescription)
+      : null;
     if (
       !waterfallContainer ||
+      !waterfallHeading ||
+      !waterfallTitle ||
+      !waterfallDescription ||
+      !waterfallDescriptionStyle ||
+      normalize(waterfallDescription.textContent) !==
+        localizedExpectation.exploreMoreDescription ||
+      waterfallDescriptionStyle.fontSize !== "14px" ||
+      waterfallDescriptionStyle.lineHeight !== "20px" ||
+      (isDesktopTabs &&
+        getComputedStyle(waterfallHeading).alignItems !== "baseline") ||
+      (isDesktopTabs &&
+        Math.abs(
+          waterfallDescription.getBoundingClientRect().left -
+            waterfallTitle.getBoundingClientRect().right -
+            8,
+        ) > 1) ||
+      (!isDesktopTabs &&
+        waterfallDescription.getBoundingClientRect().top <
+          waterfallTitle.getBoundingClientRect().bottom) ||
       waterfallContainer.getBoundingClientRect().width >
         resolvedContentMaxWidthPx + 1
     ) {
@@ -595,6 +878,93 @@ export const Pc: Story = {
         page.getBoundingClientRect().width
     ) {
       throw new Error("Topic landing page Waterfall must remain full bleed");
+    }
+
+    const exploreMoreTabs = Array.from(
+      waterfall?.querySelectorAll<HTMLButtonElement>(
+        '[data-slot="tabs-trigger"]',
+      ) ?? [],
+    );
+    const allProductsCount = waterfall?.querySelectorAll(
+      '[data-slot="product-list-item"]',
+    ).length;
+    const categoryTab = exploreMoreTabs.find(
+      (tab) => normalize(tab.textContent) === localizedExpectation.exploreMoreCategory,
+    );
+    const pairingTab = exploreMoreTabs.find(
+      (tab) => normalize(tab.textContent) === localizedExpectation.exploreMorePairing,
+    );
+    if (
+      exploreMoreTabs.length !== 9 ||
+      !categoryTab ||
+      !pairingTab ||
+      exploreMoreTabs[1] !== pairingTab ||
+      !allProductsCount ||
+      allProductsCount <= 8 ||
+      waterfall?.querySelector('[data-slot="product-card-badges"]')
+    ) {
+      throw new Error(
+        "Explore More must render a badge-free full catalogue and nine localized tabs",
+      );
+    }
+
+    if (runInteractionChecks) {
+      const shortcutScrollRequest = await captureScrollRequest(() =>
+        shortcutLinks?.[0]?.click(),
+      );
+      if (
+        categoryTab.dataset.state !== "active" ||
+        window.location.hash !== "#explore-more-cleanse-peel" ||
+        shortcutScrollRequest?.target !== waterfall ||
+        typeof shortcutScrollRequest.options !== "object" ||
+        shortcutScrollRequest.options.block !== "start" ||
+        waterfall?.querySelectorAll('[data-slot="product-list-item"]')
+          .length !== 8 ||
+        waterfall?.querySelector('[data-slot="product-card-badges"]') ||
+        waterfall?.querySelector('[data-slot="product-list-load-more"]')
+      ) {
+        throw new Error(
+          "Featured shortcuts must select and anchor to the matching badge-free Explore More category",
+        );
+      }
+
+      pairingTab.click();
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => resolve()),
+      );
+      if (
+        waterfall?.querySelectorAll('[data-slot="product-list-item"]')
+          .length !== 8 ||
+        waterfall?.querySelector('[data-slot="product-card-badges"]') ||
+        waterfall?.querySelector('[data-slot="product-list-load-more"]')
+      ) {
+        throw new Error(
+          "Complete the Routine must show eight badge-free curated products without Load more",
+        );
+      }
+
+      exploreMoreTabs[0]?.click();
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => resolve()),
+      );
+      const resetWaterfallItems = waterfall?.querySelectorAll<HTMLElement>(
+        '[data-slot="product-list-item"]',
+      );
+      if (
+        !resetWaterfallItems ||
+        Array.from(resetWaterfallItems).some(
+          (item) => item.dataset.motionObserved !== "true",
+        )
+      ) {
+        throw new Error(
+          "Explore More must register replacement product cards for motion after switching tabs",
+        );
+      }
+      window.history.replaceState(
+        null,
+        "",
+        `${window.location.pathname}${window.location.search}`,
+      );
     }
 
     const loadMoreButton = waterfall?.querySelector<HTMLElement>(
@@ -618,6 +988,61 @@ export const Pc: Story = {
     ) {
       throw new Error(
         "Topic landing page must lead its Standard Rail with the theme content panel",
+      );
+    }
+
+    const startHereTabs = Array.from(
+      themeProductList.querySelectorAll<HTMLButtonElement>(
+        '[data-slot="tabs-trigger"]',
+      ),
+    );
+    if (startHereTabs.length !== localizedExpectation.startHereThemes.length) {
+      throw new Error("Start Here must expose all five routine themes");
+    }
+    if (runInteractionChecks) {
+      for (const scenario of localizedExpectation.startHereThemes) {
+        const trigger = startHereTabs.find(
+          (tab) => normalize(tab.textContent) === scenario.tab,
+        );
+        if (!trigger) {
+          throw new Error(`Start Here is missing the ${scenario.tab} theme`);
+        }
+
+        trigger.click();
+        await new Promise<void>((resolve) =>
+          requestAnimationFrame(() => resolve()),
+        );
+
+        const contentTitle = themeProductList.querySelector<HTMLElement>(
+          '[data-slot="theme-product-list-overlay"] h3',
+        );
+        const currentItems = themeProductList.querySelectorAll<HTMLElement>(
+          '[data-slot="product-list-item"]',
+        );
+        const firstCard = currentItems[0]?.querySelector<HTMLElement>(
+          '[data-slot="product-card"]',
+        );
+        const firstProductLink = firstCard?.querySelector<HTMLAnchorElement>(
+          'a[href*="/p/"]',
+        );
+        if (
+          trigger.dataset.state !== "active" ||
+          normalize(contentTitle?.textContent) !== scenario.title ||
+          currentItems.length !== 6 ||
+          !normalize(firstCard?.textContent).includes(scenario.firstProduct) ||
+          !firstProductLink?.href.startsWith(
+            `https://www.yami.com/us/${locale}/p/`,
+          )
+        ) {
+          throw new Error(
+            `Start Here theme ${scenario.tab} must swap its scene and six linked ANUA products`,
+          );
+        }
+      }
+
+      startHereTabs[0]?.click();
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => resolve()),
       );
     }
 
@@ -759,6 +1184,99 @@ export const Pc: Story = {
         "Topic landing page primary tabs must mirror every following module title in order",
       );
     }
+    const primaryTabTriggers = Array.from(
+      primaryTabs.querySelectorAll<HTMLButtonElement>(
+        '[data-slot="tabs-trigger"]',
+      ),
+    );
+    const primaryTabTargets = args.primaryTabs.items.map((item) =>
+      document.getElementById(item.targetId),
+    );
+    if (primaryTabTargets.some((target) => !target)) {
+      throw new Error("Topic landing page primary tab target did not render");
+    }
+    if (runInteractionChecks) {
+      for (const [index, tab] of primaryTabTriggers.entries()) {
+        const targetId = args.primaryTabs.items[index]?.targetId;
+        const target = targetId ? document.getElementById(targetId) : null;
+        const scrollRequest = await captureScrollRequest(() => tab.click());
+        if (
+          !targetId ||
+          tab.dataset.state !== "active" ||
+          tab.getAttribute("aria-controls") !== targetId ||
+          window.location.hash !== `#${targetId}` ||
+          !target ||
+          scrollRequest?.target !== target ||
+          typeof scrollRequest.options !== "object" ||
+          scrollRequest.options.block !== "start"
+        ) {
+          throw new Error(
+            "Topic landing page primary tabs must select and anchor to their matching modules",
+          );
+        }
+      }
+      await captureScrollRequest(() => primaryTabTriggers[0]?.click());
+
+      const originalTargetRects = primaryTabTargets.map((target) =>
+        target!.getBoundingClientRect.bind(target),
+      );
+      const simulateActiveSection = async (activeIndex: number) => {
+        primaryTabTargets.forEach((target, index) => {
+          const originalRect = originalTargetRects[index]!();
+          target!.getBoundingClientRect = () =>
+            new DOMRect(
+              originalRect.x,
+              index <= activeIndex ? 0 : 1000 + index * 100,
+              originalRect.width,
+              originalRect.height,
+            );
+        });
+        window.dispatchEvent(new Event("scroll"));
+        await new Promise<void>((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+        );
+      };
+
+      try {
+        await simulateActiveSection(3);
+        if (primaryTabTriggers[0]?.dataset.state !== "active") {
+          throw new Error(
+            "Topic landing page primary tabs must keep the clicked tab active during programmatic scrolling",
+          );
+        }
+        window.dispatchEvent(new Event("scrollend"));
+        await new Promise<void>((resolve) =>
+          requestAnimationFrame(() =>
+            requestAnimationFrame(() =>
+              requestAnimationFrame(() =>
+                requestAnimationFrame(() => resolve()),
+              ),
+            ),
+          ),
+        );
+        if (primaryTabTriggers[3]?.dataset.state !== "active") {
+          throw new Error(
+            "Topic landing page primary tabs must follow the active module while scrolling",
+          );
+        }
+        await simulateActiveSection(0);
+        if (primaryTabTriggers[0]?.dataset.state !== "active") {
+          throw new Error(
+            "Topic landing page primary tabs must restore the first module at the top of the page",
+          );
+        }
+      } finally {
+        primaryTabTargets.forEach((target, index) => {
+          target!.getBoundingClientRect = originalTargetRects[index]!;
+        });
+      }
+      window.history.replaceState(
+        null,
+        "",
+        `${window.location.pathname}${window.location.search}`,
+      );
+    }
+
     const titleFontFamily = args.titleFontFamily ?? "serif";
     const pageTitles = [heading, shortcutTitle, ...moduleTitles].filter(
       (title): title is HTMLElement => Boolean(title),
@@ -839,12 +1357,12 @@ export const Pc: Story = {
       : activityHeader.parentElement!;
     const activeHeaderStyle = getComputedStyle(activeHeader);
     if (
-      activeHeaderStyle.position !== "sticky" ||
-      activeHeaderStyle.top !== "0px" ||
-      activeHeaderStyle.zIndex !== "10"
+      activeHeaderStyle.position !== "static" ||
+      activeHeaderStyle.top !== "auto" ||
+      activeHeaderStyle.zIndex !== "auto"
     ) {
       throw new Error(
-        "Topic landing navigation must remain sticky above page content",
+        "Topic landing Header must scroll with the page instead of remaining sticky",
       );
     }
     if (isDesktop && !footer) {
@@ -853,6 +1371,13 @@ export const Pc: Story = {
 
     if (page.scrollWidth > page.clientWidth + 1) {
       throw new Error("Topic landing page introduces horizontal overflow");
+    }
+    window.removeEventListener("scroll", recordStoryScroll);
+    window.history.replaceState(null, "", initialStoryLocation);
+    if (maximumStoryScrollDelta > 1) {
+      throw new Error(
+        `Topic landing page interaction checks must not move the visible preview, observed ${maximumStoryScrollDelta}px`,
+      );
     }
   },
 };

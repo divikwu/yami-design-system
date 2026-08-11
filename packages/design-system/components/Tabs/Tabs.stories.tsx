@@ -53,6 +53,13 @@ const primaryItems = items.slice(0, 7)
 const segmentedItems = items.slice(0, 6)
 const secondaryItems = items.slice(0, 7)
 const tertiaryItems = items.slice(0, 7)
+const scrollableItems = [
+  { value: "cleanse", label: "Cleanse & Reset" },
+  { value: "calm", label: "Calm & Prep" },
+  { value: "brighten", label: "Brighten & Correct" },
+  { value: "hydrate", label: "Hydrate & Repair" },
+  { value: "protect", label: "Protect & Finish" },
+] as const
 
 const storyStackStyle: CSSProperties = {
   display: "flex",
@@ -382,6 +389,117 @@ export const Playground: Story = {
       ))}
     </Tabs>
   ),
+}
+
+export const ScrollableSelection: Story = {
+  render: () => (
+    <div style={{ width: 240 }}>
+      <Tabs defaultValue="cleanse">
+        <TabsList variant="tertiary" aria-label="Skincare routine">
+          {scrollableItems.map((item) => (
+            <TabsTrigger key={item.value} value={item.value}>
+              {item.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        {scrollableItems.map((item) => (
+          <TabsContent key={item.value} value={item.value}>
+            {item.label} content
+          </TabsContent>
+        ))}
+      </Tabs>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const list = canvasElement.querySelector<HTMLElement>('[role="tablist"]')
+    const middleTab = canvasElement.querySelector<HTMLButtonElement>(
+      '[role="tab"][aria-controls$="-panel-brighten"]',
+    )
+    const lastTab = canvasElement.querySelector<HTMLButtonElement>(
+      '[role="tab"][data-state="inactive"]:last-of-type',
+    )
+    if (!list || !middleTab || !lastTab) {
+      throw new Error("Scrollable Tabs test fixture did not render")
+    }
+
+    const initialListRect = list.getBoundingClientRect()
+    if (lastTab.getBoundingClientRect().right <= initialListRect.right) {
+      throw new Error("Scrollable Tabs test fixture must begin clipped")
+    }
+
+    const initialPageScrollY = window.scrollY
+    const initialScrollLeft = list.scrollLeft
+    middleTab.click()
+    let movingProgressively = false
+    let remainingDistance = Number.POSITIVE_INFINITY
+    for (let frame = 0; frame < 10; frame += 1) {
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+      const movingRect = middleTab.getBoundingClientRect()
+      const movingListRect = list.getBoundingClientRect()
+      remainingDistance = Math.abs(
+        movingRect.left + movingRect.width / 2 -
+          (movingListRect.left + movingListRect.width / 2),
+      )
+      if (list.scrollLeft > initialScrollLeft && remainingDistance > 0.5) {
+        movingProgressively = true
+        break
+      }
+      if (remainingDistance <= 0.5) break
+    }
+    if (
+      !window.matchMedia("(prefers-reduced-motion: reduce)").matches &&
+      !movingProgressively
+    ) {
+      throw new Error(
+        `Selecting a middle Tab must move progressively: scrollLeft=${initialScrollLeft}->${list.scrollLeft}, remainingDistance=${remainingDistance.toFixed(1)}`,
+      )
+    }
+
+    for (let frame = 0; frame < 60; frame += 1) {
+      const tabRect = middleTab.getBoundingClientRect()
+      const listRect = list.getBoundingClientRect()
+      const tabCenter = tabRect.left + tabRect.width / 2
+      const listCenter = listRect.left + listRect.width / 2
+      if (Math.abs(tabCenter - listCenter) <= 0.5) break
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+    }
+
+    const middleRect = middleTab.getBoundingClientRect()
+    const centeredListRect = list.getBoundingClientRect()
+    const middleCenter = middleRect.left + middleRect.width / 2
+    const listCenter = centeredListRect.left + centeredListRect.width / 2
+    if (
+      middleTab.getAttribute("aria-selected") !== "true" ||
+      Math.abs(middleCenter - listCenter) > 0.5 ||
+      window.scrollY !== initialPageScrollY
+    ) {
+      throw new Error(
+        `Selecting a middle Tab must center it without moving the page: selected=${middleTab.getAttribute("aria-selected")}, tabCenter=${middleCenter.toFixed(1)}, listCenter=${listCenter.toFixed(1)}, scrollLeft=${list.scrollLeft}, pageY=${initialPageScrollY}->${window.scrollY}`,
+      )
+    }
+
+    lastTab.click()
+    for (let frame = 0; frame < 60; frame += 1) {
+      const maxScrollLeft = list.scrollWidth - list.clientWidth
+      if (Math.abs(list.scrollLeft - maxScrollLeft) <= 0.5) break
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+    }
+
+    const selectedRect = lastTab.getBoundingClientRect()
+    const listRect = list.getBoundingClientRect()
+    const maxScrollLeft = list.scrollWidth - list.clientWidth
+    if (
+      lastTab.getAttribute("aria-selected") !== "true" ||
+      selectedRect.left < listRect.left - 0.5 ||
+      selectedRect.right > listRect.right + 0.5 ||
+      Math.abs(list.scrollLeft - maxScrollLeft) > 0.5 ||
+      window.scrollY !== initialPageScrollY
+    ) {
+      throw new Error(
+        `Selecting the last Tab must clamp it to the end without moving the page: selected=${lastTab.getAttribute("aria-selected")}, tab=${selectedRect.left.toFixed(1)}..${selectedRect.right.toFixed(1)}, list=${listRect.left.toFixed(1)}..${listRect.right.toFixed(1)}, scrollLeft=${list.scrollLeft}/${maxScrollLeft}, pageY=${initialPageScrollY}->${window.scrollY}`,
+      )
+    }
+  },
 }
 
 export const PrimaryStyleA: Story = {

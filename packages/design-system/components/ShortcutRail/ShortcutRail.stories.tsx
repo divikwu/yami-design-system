@@ -94,6 +94,21 @@ export const Showcase: Story = {
       throw new Error(`Expected 23 shortcut links, got ${links.length}`);
     }
 
+    const label = links[0]?.querySelector<HTMLElement>(
+      '[data-slot="shortcut-rail-label"]',
+    );
+    if (!label) throw new Error("Shortcut label did not render");
+    const labelStyle = getComputedStyle(label);
+    const lineHeight = Number.parseFloat(labelStyle.lineHeight);
+    const maxHeight = Number.parseFloat(labelStyle.maxHeight);
+    if (
+      labelStyle.overflow !== "hidden" ||
+      labelStyle.whiteSpace !== "normal" ||
+      Math.abs(maxHeight - lineHeight * 2) > 0.5
+    ) {
+      throw new Error("Shortcut labels must wrap and clamp at two lines");
+    }
+
     const containerStyle = getComputedStyle(container);
     const listStyle = getComputedStyle(list);
     if (
@@ -239,7 +254,7 @@ export const TitledGray: Story = {
       titleStyle.paddingTop !== "0px" ||
       titleStyle.paddingRight !== "4px" ||
       titleStyle.paddingBottom !== "0px" ||
-      titleStyle.paddingLeft !== "4px" ||
+      titleStyle.paddingLeft !== "0px" ||
       listStyle.justifyContent !== "flex-start" ||
       listStyle.padding !== "0px" ||
       surfaceStyle.backgroundColor === "rgba(0, 0, 0, 0)" ||
@@ -301,7 +316,7 @@ export const FullBleedImages: Story = {
       root.dataset.railPresentation !== "full-bleed" ||
       canvasElement.querySelector('[data-slot="shortcut-rail-progress"]') ||
       getComputedStyle(root).overflow !== "hidden" ||
-      getComputedStyle(title).paddingLeft !== "4px" ||
+      getComputedStyle(title).paddingLeft !== "0px" ||
       getComputedStyle(title).paddingRight !== "4px" ||
       listStyle.overflowX !== "auto" ||
       listStyle.paddingLeft !== "16px" ||
@@ -407,7 +422,7 @@ export const CompactViewport: Story = {
       containerStyle.paddingRight !== "16px" ||
       containerStyle.paddingTop !== "16px" ||
       containerStyle.paddingBottom !== "16px" ||
-      titleStyle.paddingLeft !== "4px" ||
+      titleStyle.paddingLeft !== "0px" ||
       titleStyle.paddingRight !== "4px" ||
       titleStyle.paddingTop !== "0px" ||
       titleStyle.paddingBottom !== "0px" ||

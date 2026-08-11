@@ -147,6 +147,7 @@ export function ShortcutRail({
                   <a
                     className={styles.link}
                     href={item.href}
+                    onClick={item.onClick}
                     data-slot="shortcut-rail-link"
                   >
                     <span
@@ -167,7 +168,12 @@ export function ShortcutRail({
                         onError={handleProgressiveImageError}
                       />
                     </span>
-                    <span className={styles.label}>{item.label}</span>
+                    <span
+                      className={styles.label}
+                      data-slot="shortcut-rail-label"
+                    >
+                      {item.label}
+                    </span>
                   </a>
                 </li>
               ))}

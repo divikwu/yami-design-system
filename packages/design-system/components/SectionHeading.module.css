@@ -5,13 +5,23 @@
  * title swap. */
 
 /* Desktop section containers own their outer inset. On mobile the heading row
- * owns the canonical 4px top/side inset, while every section container supplies
- * the shared 8px card padding. */
+ * keeps the canonical 4px top/end inset while its title starts flush with the
+ * section content edge. Every section container supplies the shared 8px card
+ * padding. */
 .root {
   display: flex;
   min-width: 0;
   align-items: center;
   gap: var(--space-200);
+}
+
+.root[data-description="true"] {
+  align-items: baseline;
+  gap: var(--space-100);
+}
+
+.root[data-description="true"] .title {
+  flex: 0 1 auto;
 }
 
 /* The canonical section-title type ramp, taken from ProductList: heading-xl
@@ -36,6 +46,18 @@
 .titleSerif {
   font-family: var(--font-family-serif);
   font-weight: var(--font-weight-semibold);
+}
+
+.description {
+  min-width: 0;
+  flex: 0 1 auto;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--font-size-body-md);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-body-md);
+  text-align: left;
+  text-wrap: pretty;
 }
 
 @media (min-width: 1024px) {
@@ -133,7 +155,19 @@
   .root {
     box-sizing: border-box;
     min-height: calc(var(--space-400) + var(--space-050));
-    padding: var(--space-050) var(--space-050) 0;
+    padding-block: var(--space-050) 0;
+    padding-inline: 0 var(--space-050);
+  }
+
+  .root[data-description="true"] {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    row-gap: var(--space-050);
+  }
+
+  .root[data-description="true"] .title,
+  .root[data-description="true"] .description {
+    flex-basis: 100%;
   }
 
   .viewAll {

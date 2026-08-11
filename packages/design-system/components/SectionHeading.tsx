@@ -6,6 +6,8 @@ export type SectionHeadingProps = {
   /** Links the heading to the section it labels. */
   id?: string;
   title: ReactNode;
+  /** Optional supporting copy rendered to the right of the title. */
+  description?: ReactNode;
   /** Shown below 1024px in place of `title`; omit to use one title at every width. */
   mobileTitle?: ReactNode;
   /**
@@ -27,6 +29,7 @@ export type SectionHeadingProps = {
   titleFontFamily?: "sans" | "serif";
   className?: string;
   titleClassName?: string;
+  descriptionClassName?: string;
   actionsClassName?: string;
 };
 
@@ -39,6 +42,7 @@ export type SectionHeadingProps = {
 export function SectionHeading({
   id,
   title,
+  description,
   mobileTitle,
   viewAllHref,
   viewAllLabel,
@@ -47,6 +51,7 @@ export function SectionHeading({
   titleFontFamily = "sans",
   className,
   titleClassName,
+  descriptionClassName,
   actionsClassName,
 }: SectionHeadingProps) {
   const join = (...names: Array<string | undefined>) =>
@@ -55,7 +60,11 @@ export function SectionHeading({
   const resolvedViewAllHref = viewAllHref?.trim();
 
   return (
-    <div className={join(styles.root, className)} data-slot={slotName("heading")}>
+    <div
+      className={join(styles.root, className)}
+      data-slot={slotName("heading")}
+      data-description={description ? "true" : undefined}
+    >
       <h2
         id={id}
         className={join(
@@ -74,6 +83,14 @@ export function SectionHeading({
           </>
         )}
       </h2>
+      {description ? (
+        <p
+          className={join(styles.description, descriptionClassName)}
+          data-slot={slotName("description")}
+        >
+          {description}
+        </p>
+      ) : null}
       {resolvedViewAllHref || actions ? (
         <div
           className={join(styles.actions, actionsClassName)}

@@ -3,6 +3,7 @@ import type {
   ThemeHeroProps,
   FooterProps,
   HeaderProps,
+  ProductListItem,
   ProductListProps,
   ReviewListProps,
   ShortcutRailProps,
@@ -13,6 +14,7 @@ import type { HTMLAttributes } from "react";
 export interface TopicLandingPagePrimaryTab {
   value: string;
   label: string;
+  targetId: string;
 }
 
 export interface TopicLandingPagePrimaryTabs {
@@ -20,6 +22,10 @@ export interface TopicLandingPagePrimaryTabs {
   defaultValue: string;
   items: TopicLandingPagePrimaryTab[];
 }
+
+export type TopicLandingPageWaterfallProps = ProductListProps & {
+  productsByTab?: Record<string, ProductListItem[]>;
+};
 
 export interface TopicLandingPageProps extends HTMLAttributes<HTMLDivElement> {
   /** Maximum width shared by every content container inside main. Numbers are treated as pixels. */
@@ -34,6 +40,6 @@ export interface TopicLandingPageProps extends HTMLAttributes<HTMLDivElement> {
   standardRail: ThemeProductListProps;
   reviewList: ReviewListProps;
   productRail: ProductListProps;
-  waterfall: ProductListProps;
+  waterfall: TopicLandingPageWaterfallProps;
   footer: FooterProps;
 }
