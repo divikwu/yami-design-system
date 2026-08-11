@@ -405,7 +405,9 @@ export const Mobile: Story = {
           style.height !== "20px" ||
           style.borderRadius !== "4px" ||
           style.fontSize !== "12px" ||
-          style.lineHeight !== "16px",
+          style.lineHeight !== "16px" ||
+          style.color !== "rgb(0, 0, 0)" ||
+          style.backgroundColor !== "rgba(255, 255, 255, 0.68)",
       ) ||
       Array.from(badges).some((badge) => badge.dataset.size !== "md") ||
       actionsStyles.paddingTop !== "8px" ||
@@ -420,12 +422,15 @@ export const Mobile: Story = {
       mediaStyles.position !== "absolute" ||
       imageStyles.objectFit !== "cover" ||
       getComputedStyle(atmosphere).display !== "none" ||
+      hero.dataset.mobileForeground !== "dark" ||
+      getComputedStyle(hero).color !== "rgba(0, 0, 0, 0.87)" ||
       !scrimStyles.backgroundImage.includes("linear-gradient") ||
+      !scrimStyles.backgroundImage.includes("/ 0.8") ||
       scrimStyles.backdropFilter !== "blur(16px)" ||
       !scrimStyles.maskImage.includes("linear-gradient")
     ) {
       throw new Error(
-        "Mobile ThemeHero must use a 24/32 title and a single horizontally scrollable 4px-gap tag row over a full-bleed image with bottom-aligned copy, 8px-padded full-width distributed actions and a bottom-masked 16px frosted scrim",
+        "Mobile ThemeHero must use a 24/32 title and a single horizontally scrollable 4px-gap tag row over a full-bleed image with bottom-aligned copy, 8px-padded full-width distributed actions and an adaptive bottom-masked 16px frosted scrim",
       );
     }
 

@@ -4,6 +4,7 @@
 
 .root {
   --theme-hero-foreground: var(--color-white-1000);
+  --theme-hero-mobile-surface-color: rgb(0 0 0);
   --button-primary-inverse: var(--color-white-1000);
   --button-primary-active-inverse: var(--color-neutral-100);
   --button-tertiary-inverse: var(--color-white-0);
@@ -216,6 +217,10 @@
     min-height: 360px;
   }
 
+  .root[data-mobile-foreground="dark"] {
+    --theme-hero-foreground: var(--color-black-900);
+  }
+
   .container {
     display: block;
     height: 100%;
@@ -273,6 +278,12 @@
     line-height: 16px;
   }
 
+  .root[data-mobile-foreground="dark"]
+    .tagBadge[data-slot="badge"][data-tone="dark"] {
+    color: var(--color-black-1000);
+    background-color: var(--color-white-700);
+  }
+
   .actions {
     flex-wrap: nowrap;
     width: 100%;
@@ -292,8 +303,13 @@
     z-index: 1;
     background: linear-gradient(
       to bottom,
-      rgb(0 0 0 / 0%) 20%,
-      rgb(0 0 0 / 45%) 50%
+      transparent 20%,
+      color-mix(
+          in srgb,
+          var(--theme-hero-mobile-surface-color) 80%,
+          transparent
+        )
+        50%
     );
     -webkit-backdrop-filter: blur(16px);
     backdrop-filter: blur(16px);

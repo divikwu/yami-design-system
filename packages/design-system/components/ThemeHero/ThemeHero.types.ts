@@ -47,6 +47,8 @@ export interface ThemeHeroProps
   image: ThemeHeroImage;
   /** Optional alternate source for the blurred decorative atmosphere. */
   backgroundImageSrc?: string;
+  /** Pre-sampled bottom-edge color used by the adaptive mobile scrim. */
+  backgroundColor?: string;
   /** Primary action rendered as the high-emphasis inverse button. */
   cta?: ThemeHeroCta;
   /** Optional lower-emphasis companion action. */

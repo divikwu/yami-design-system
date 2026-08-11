@@ -26,6 +26,7 @@ export function createThemeHeroProps(): ThemeHeroProps {
       height: 941,
     },
     backgroundImageSrc: anuaHeroAtmosphere,
+    backgroundColor: "#e6edf2",
     cta: { label: "Shop Products" },
     secondaryCta: { label: "Explore More" },
     imageLoading: "eager",

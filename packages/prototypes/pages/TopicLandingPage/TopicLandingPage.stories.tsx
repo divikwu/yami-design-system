@@ -675,6 +675,8 @@ export const Pc: Story = {
         const expectedHeight = isMobileHero ? "20px" : "24px";
         const expectedFontSize = isMobileHero ? "12px" : "14px";
         const expectedLineHeight = isMobileHero ? "16px" : "20px";
+        const usesLightBadge =
+          isMobileHero && hero.dataset.mobileForeground === "dark";
         return (
           badge.dataset.tone !== "dark" ||
           badge.dataset.size !== "md" ||
@@ -684,14 +686,18 @@ export const Pc: Story = {
           style.lineHeight !== expectedLineHeight ||
           style.paddingLeft !== "8px" ||
           style.paddingRight !== "8px" ||
-          style.backgroundColor !== "rgba(0, 0, 0, 0.08)" ||
-          style.color !== "rgb(255, 255, 255)" ||
+          style.backgroundColor !==
+            (usesLightBadge
+              ? "rgba(255, 255, 255, 0.68)"
+              : "rgba(0, 0, 0, 0.08)") ||
+          style.color !==
+            (usesLightBadge ? "rgb(0, 0, 0)" : "rgb(255, 255, 255)") ||
           style.boxShadow !== "none"
         );
       })
     ) {
       throw new Error(
-        "Topic landing page keywords must use responsive filled dark Badges with 8px inline padding",
+        "Topic landing page keywords must use responsive adaptive filled Badges with 8px inline padding",
       );
     }
 

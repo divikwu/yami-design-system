@@ -1,9 +1,12 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { useId, useLayoutEffect, useRef, useState } from "react";
 
 import { Badge } from "../Badge";
 import { Button } from "../Button";
+import { heroBannerPalette } from "../HeroBanner/imageColor";
+import { useImageBottomColor } from "../HeroBanner/useImageBottomColor";
 import {
   handleProgressiveImageError,
   handleProgressiveImageLoad,
@@ -30,10 +33,12 @@ export function ThemeHero({
   tagTone = "dark",
   image,
   backgroundImageSrc = image.src,
+  backgroundColor,
   cta,
   secondaryCta,
   imageLoading = "lazy",
   className,
+  style,
   ...rest
 }: ThemeHeroProps) {
   const titleId = useId();
@@ -49,6 +54,15 @@ export function ThemeHero({
     typeof description === "string" || typeof description === "number"
       ? String(description)
       : null;
+  const imageColor = useImageBottomColor(
+    image.src,
+    backgroundColor ?? "#000000",
+  );
+  const mobilePalette = heroBannerPalette(imageColor);
+  const rootStyle = {
+    ...style,
+    "--theme-hero-mobile-surface-color": mobilePalette.surfaceColor,
+  } as CSSProperties;
 
   useLayoutEffect(() => {
     const element = descriptionRef.current;
@@ -151,7 +165,9 @@ export function ThemeHero({
     <section
       {...rest}
       className={cx(styles.root, className)}
+      style={rootStyle}
       data-slot="theme-hero"
+      data-mobile-foreground={mobilePalette.foreground}
     >
       <div
         className={styles.atmosphere}
