@@ -33,11 +33,22 @@ const meta = {
     },
   },
   globals: {
-    locale: "en",
     theme: "light",
     viewport: { value: "yamiDesktopMd", isRotated: false },
   },
   args: createTopicLandingPageFixture(),
+  render: (args, { globals }) => {
+    const locale = globals.locale === "zh" ? "zh" : "en";
+    const localizedArgs = createTopicLandingPageFixture(locale);
+
+    return (
+      <TopicLandingPage
+        {...localizedArgs}
+        contentMaxWidth={args.contentMaxWidth}
+        titleFontFamily={args.titleFontFamily}
+      />
+    );
+  },
 } satisfies Meta<typeof TopicLandingPage>;
 
 export default meta;
@@ -47,6 +58,7 @@ export const Pc: Story = {
   name: "PC",
   play: async ({ canvasElement, args, globals }) => {
     const locale = globals.locale === "zh" ? "zh" : "en";
+    const localizedArgs = createTopicLandingPageFixture(locale);
     const localizedExpectation =
       locale === "zh"
         ? {
@@ -629,7 +641,7 @@ export const Pc: Story = {
       !heroDescription ||
       !heroDescriptionText ||
       !heroDescriptionCopy ||
-      normalize(args.hero.description) !==
+      normalize(localizedArgs.hero.description) !==
         normalize(localizedExpectation.heroDescription) ||
       (heroDescriptionToggle === null &&
         normalize(heroDescriptionCopy.textContent) !==
@@ -639,9 +651,9 @@ export const Pc: Story = {
           !normalize(localizedExpectation.heroDescription).startsWith(
             normalize(heroDescriptionCopy.textContent).slice(0, -1),
           ))) ||
-      normalize(args.hero.descriptionExpandLabel) !==
+      normalize(localizedArgs.hero.descriptionExpandLabel) !==
         localizedExpectation.heroDescriptionExpandLabel ||
-      normalize(args.hero.descriptionCollapseLabel) !==
+      normalize(localizedArgs.hero.descriptionCollapseLabel) !==
         localizedExpectation.heroDescriptionCollapseLabel ||
       heroDescriptionStyle?.fontSize !== expectedHeroDescriptionSize ||
       heroDescriptionStyle?.lineHeight !== "20px" ||
@@ -1195,7 +1207,7 @@ export const Pc: Story = {
         '[data-slot="tabs-trigger"]',
       ),
     );
-    const primaryTabTargets = args.primaryTabs.items.map((item) =>
+    const primaryTabTargets = localizedArgs.primaryTabs.items.map((item) =>
       document.getElementById(item.targetId),
     );
     if (primaryTabTargets.some((target) => !target)) {
@@ -1203,7 +1215,7 @@ export const Pc: Story = {
     }
     if (runInteractionChecks) {
       for (const [index, tab] of primaryTabTriggers.entries()) {
-        const targetId = args.primaryTabs.items[index]?.targetId;
+        const targetId = localizedArgs.primaryTabs.items[index]?.targetId;
         const target = targetId ? document.getElementById(targetId) : null;
         const scrollRequest = await captureScrollRequest(() => tab.click());
         if (
@@ -1398,26 +1410,27 @@ export const Mobile: Story = {
 
 export const Chinese: Story = {
   name: "中文",
+  tags: ["!dev", "!autodocs"],
   globals: {
     locale: "zh",
     viewport: { value: "yamiDesktopMd", isRotated: false },
   },
-  args: createTopicLandingPageFixture("zh"),
   play: Pc.play,
 };
 
 export const ChineseMobile: Story = {
   name: "中文 Mobile",
+  tags: ["!dev", "!autodocs"],
   globals: {
     locale: "zh",
     viewport: { value: "yamiMobile", isRotated: false },
   },
-  args: createTopicLandingPageFixture("zh"),
   play: Pc.play,
 };
 
 export const CustomContentWidth: Story = {
   name: "Custom Content Width",
+  tags: ["!dev", "!autodocs"],
   args: {
     contentMaxWidth: 1320,
   },
@@ -1432,6 +1445,7 @@ export const CustomContentWidth: Story = {
 
 export const SansTitles: Story = {
   name: "Sans Titles",
+  tags: ["!dev", "!autodocs"],
   args: {
     titleFontFamily: "sans",
   },
