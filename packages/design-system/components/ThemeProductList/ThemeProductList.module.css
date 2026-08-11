@@ -130,7 +130,12 @@
   }
 
   .title {
-    font-size: var(--font-size-heading-md);
-    line-height: var(--line-height-heading-md);
+    font-size: var(--font-size-body-md);
+    line-height: var(--line-height-body-md);
+  }
+
+  .description {
+    font-size: var(--font-size-caption-md);
+    line-height: var(--line-height-caption-md);
   }
 }

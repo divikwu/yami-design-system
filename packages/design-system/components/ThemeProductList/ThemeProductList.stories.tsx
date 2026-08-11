@@ -125,14 +125,38 @@ export const Showcase: Story = {
         "ThemeProductList scene art must expose the sampled foreground contrast",
       );
     }
-    const expectedTitleSize = window.innerWidth >= 1440 ? "20px" : "18px";
-    if (getComputedStyle(contentTitle).fontSize !== expectedTitleSize) {
+    const expectedTitleSize =
+      window.innerWidth < 1024
+        ? "14px"
+        : window.innerWidth >= 1440
+          ? "20px"
+          : "18px";
+    const expectedTitleLineHeight =
+      window.innerWidth < 1024
+        ? "20px"
+        : window.innerWidth >= 1440
+          ? "28px"
+          : "24px";
+    const titleStyle = getComputedStyle(contentTitle);
+    if (
+      titleStyle.fontSize !== expectedTitleSize ||
+      titleStyle.lineHeight !== expectedTitleLineHeight
+    ) {
       throw new Error(
-        `ThemeProductList content title must use heading-md (${expectedTitleSize})`,
+        `ThemeProductList content title must use ${expectedTitleSize}/${expectedTitleLineHeight}`,
       );
     }
-    if (getComputedStyle(contentDescription).fontWeight !== "400") {
-      throw new Error("ThemeProductList description must remain regular at weight 400");
+    const descriptionStyle = getComputedStyle(contentDescription);
+    const expectedDescriptionSize = window.innerWidth < 1024 ? "12px" : "14px";
+    const expectedDescriptionLineHeight = window.innerWidth < 1024 ? "16px" : "20px";
+    if (
+      descriptionStyle.fontSize !== expectedDescriptionSize ||
+      descriptionStyle.lineHeight !== expectedDescriptionLineHeight ||
+      descriptionStyle.fontWeight !== "400"
+    ) {
+      throw new Error(
+        `ThemeProductList description must use regular ${expectedDescriptionSize}/${expectedDescriptionLineHeight}`,
+      );
     }
     if (list.firstElementChild?.getAttribute("data-slot") !== "product-list-leading-content") {
       throw new Error("ThemeProductList content must reserve the first rail position");
