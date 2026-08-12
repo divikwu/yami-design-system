@@ -2,6 +2,7 @@
 
 import { Select } from "@base-ui/react/select";
 import {
+  type AnchorHTMLAttributes,
   type ButtonHTMLAttributes,
   type ReactNode,
   useId,
@@ -118,6 +119,24 @@ export function WorkbenchButton({
     .join(" ");
 
   return <button {...props} type={type} className={buttonClassName} />;
+}
+
+export interface WorkbenchLinkProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
+  variant?: WorkbenchButtonVariant;
+  size?: WorkbenchButtonSize;
+}
+
+export function WorkbenchLink({
+  variant = "secondary",
+  size = "compact",
+  className,
+  ...props
+}: WorkbenchLinkProps) {
+  const linkClassName = [styles.button, styles[variant], styles[size], className]
+    .filter(Boolean)
+    .join(" ");
+
+  return <a {...props} className={linkClassName} />;
 }
 
 export interface SegmentedOption {
