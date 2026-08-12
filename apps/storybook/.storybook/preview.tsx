@@ -41,7 +41,25 @@ const preview: Preview = {
     viewport: {
       options: YAMI_VIEWPORTS
     },
-    options: { storySort: { order: ["YAMI", ["Foundations", "Primitives", "Assets", "Components", "Pages"]] } }
+    options: {
+      storySort: {
+        order: [
+          "YAMI",
+          [
+            "Foundations",
+            "Primitives",
+            "Assets",
+            "Components",
+            "Pages",
+            [
+              "Ecommerce Home",
+              "Topic Landing Page",
+              ["Brand", "Topic", "Campaign"],
+            ],
+          ],
+        ],
+      },
+    }
   },
   decorators: [
     (Story, context) => {

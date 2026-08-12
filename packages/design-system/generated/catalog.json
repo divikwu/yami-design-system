@@ -642,6 +642,7 @@
         "exports": [
           "BrandProductRail",
           "BrandProductCampaign",
+          "BrandProductRailMobileSurface",
           "BrandProductRailProps"
         ],
         "composes": [
@@ -661,10 +662,22 @@
             "required": false,
             "description": "Optional mobile-only section heading; falls back to title."
           },
+          "titleFontFamily": {
+            "type": "\"sans\" | \"serif\"",
+            "required": false,
+            "default": "sans",
+            "description": "Optional serif treatment for editorial section headings."
+          },
           "campaigns": {
             "type": "BrandProductCampaign[]",
             "required": true,
             "description": "Ordered brand campaigns with a banner and ProductList items."
+          },
+          "mobileSurface": {
+            "type": "\"card\" | \"plain\"",
+            "required": false,
+            "default": "card",
+            "description": "Mobile section surface. Plain is full-bleed with 16px content padding and supports section dividers."
           },
           "tabs": {
             "type": "ProductListTab[]",
@@ -718,7 +731,7 @@
             "type": "\"top\" | \"bottom\" | \"none\"",
             "required": false,
             "default": "top",
-            "description": "Places the desktop section boundary above, below, or removes it; ignored below 1024px."
+            "description": "Places the section boundary above, below, or removes it; card mobile ignores it while plain mobile preserves it."
           },
           "dividerVariant": {
             "type": "\"gray\" | \"black\"",
@@ -766,7 +779,9 @@
           "--radius-surface-default",
           "--radius-full",
           "--font-family-ios",
+          "--font-family-serif",
           "--font-weight-normal",
+          "--font-weight-semibold",
           "--font-size-display-sm",
           "--font-size-heading-xl",
           "--font-size-heading-2xl",
@@ -798,8 +813,8 @@
             "selector": "brand banner title and compact ProductCard image surfaces"
           },
           "--layout-page-margin-card": {
-            "property": "mobile outer margin",
-            "selector": ".root below 1024px"
+            "property": "card mobile outer margin",
+            "selector": ".root[data-mobile-surface=card] below 1024px"
           },
           "--space-600": {
             "property": "desktop section padding and responsive panel gap calculation",
@@ -3867,8 +3882,8 @@
         "name": "ShortcutRail",
         "category": "navigation",
         "status": "stable",
-        "version": "0.1.0",
-        "description": "Responsive YAMI shortcut navigation rail with circular image icons, localized labels, native scrolling, overflow-aware paging controls, an optional left-aligned titled gray surface, and an always-plain full-width mobile surface.",
+        "version": "0.2.0",
+        "description": "Responsive YAMI shortcut navigation rail with circular image icons, localized labels, native scrolling, overflow-aware paging controls, optional card or plain section surfaces, and an optional left-aligned titled gray treatment.",
         "figma": {
           "nodeId": null,
           "componentKey": null,
@@ -3877,7 +3892,8 @@
         "exports": [
           "ShortcutRail",
           "ShortcutRailItem",
-          "ShortcutRailProps"
+          "ShortcutRailProps",
+          "ShortcutRailSurface"
         ],
         "composes": [
           "Button"
@@ -3888,6 +3904,12 @@
             "required": true,
             "description": "Ordered shortcut destinations with stable IDs, labels, icon sources, hrefs, and an optional icon or full-bleed image presentation."
           },
+          "surface": {
+            "type": "\"card\" | \"plain\"",
+            "required": false,
+            "default": "plain",
+            "description": "Section surface. Card uses the shared homepage inset, surface radius, compact padding, and primary background without a border or shadow; plain spans the available width."
+          },
           "title": {
             "type": "ReactNode",
             "required": false,
@@ -3897,7 +3919,7 @@
             "type": "\"top\" | \"bottom\" | \"none\"",
             "required": false,
             "default": "none",
-            "description": "Optional full-width surface divider edge."
+            "description": "Optional full-width divider edge for the plain surface. Card separation comes from spacing and radius."
           },
           "dividerVariant": {
             "type": "\"gray\" | \"black\"",
@@ -3941,7 +3963,7 @@
           },
           "radius": {
             "ruleId": "no-custom-radii",
-            "note": "Icon surfaces use --radius-full and links use --radius-component-default."
+            "note": "Card surfaces use --radius-surface-default, icon surfaces use --radius-full, and links use --radius-component-default."
           },
           "motion": {
             "ruleId": "elevation-on-press",
@@ -3962,6 +3984,7 @@
           "--stroke-default",
           "--stroke-thick",
           "--radius-full",
+          "--radius-surface-default",
           "--radius-component-default",
           "--font-family-ios",
           "--font-weight-normal",
@@ -3973,6 +3996,7 @@
           "--line-height-heading-xl",
           "--line-height-heading-2xl",
           "--layout-page-margin-default",
+          "--layout-page-margin-card",
           "--space-050",
           "--space-100",
           "--space-200",
@@ -3995,6 +4019,10 @@
             "property": "border-radius",
             "selector": ".iconSurface"
           },
+          "--radius-surface-default": {
+            "property": "border-radius",
+            "selector": ".root[data-surface='card']"
+          },
           "--font-size-caption-md": {
             "property": "font-size",
             "selector": ".label"
@@ -4002,6 +4030,10 @@
           "--layout-page-margin-default": {
             "property": "padding-inline and scroll-padding-inline",
             "selector": ".list below 1024px"
+          },
+          "--layout-page-margin-card": {
+            "property": "width and max-width inset",
+            "selector": ".root[data-surface='card']"
           },
           "--space-1000": {
             "property": "width / height",
@@ -4023,7 +4055,7 @@
           ],
           "ariaPattern": "nav with list/listitem links, optional visible title, and optional previous/next buttons",
           "structure": "A supplied title labels the navigation region; otherwise ariaLabel is used. Visible labels provide link names and decorative icon images use empty alt text.",
-          "interaction": "Mobile uses native horizontal scrolling. Desktop adds overflow-aware paging controls over functional edge masks."
+          "interaction": "Mobile uses native horizontal scrolling without paging chrome. Desktop adds overflow-aware paging controls over functional edge masks."
         },
         "dependencies": {
           "runtime": [

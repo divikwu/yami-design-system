@@ -46,6 +46,10 @@ const meta = {
     },
   },
   argTypes: {
+    surface: {
+      control: "inline-radio",
+      options: ["card", "plain"],
+    },
     dividerPosition: {
       control: "inline-radio",
       options: ["top", "bottom", "none"],
@@ -57,6 +61,7 @@ const meta = {
   },
   args: {
     ...getProps("zh"),
+    surface: "plain",
     dividerPosition: "none",
     dividerVariant: "gray",
   },
@@ -71,6 +76,7 @@ export const Showcase: Story = {
     return (
       <ShortcutRail
         {...getProps(locale)}
+        surface={args.surface}
         dividerPosition={args.dividerPosition}
         dividerVariant={args.dividerVariant}
       />
@@ -175,18 +181,17 @@ export const Showcase: Story = {
   },
 };
 
-export const TitledGray: Story = {
-  name: "Titled — Gray Surface",
+export const CardSurface: Story = {
+  name: "Card Surface",
   args: {
-    dividerPosition: "bottom",
-    dividerVariant: "black",
+    surface: "card",
   },
   render: (args, { globals }) => {
     const locale = localeFromGlobals(globals.locale);
     return (
       <ShortcutRail
         {...getProps(locale)}
-        title={locale === "en" ? "Featured shortcuts" : "热门分类"}
+        surface={args.surface}
         dividerPosition={args.dividerPosition}
         dividerVariant={args.dividerVariant}
       />
@@ -202,65 +207,38 @@ export const TitledGray: Story = {
     const container = canvasElement.querySelector<HTMLElement>(
       '[data-slot="shortcut-rail-container"]',
     );
-    const title = canvasElement.querySelector<HTMLElement>(
-      '[data-slot="shortcut-rail-title"]',
-    );
-    const railBody = canvasElement.querySelector<HTMLElement>(
-      '[data-slot="shortcut-rail-body"]',
-    );
-    const list = canvasElement.querySelector<HTMLElement>(
-      '[data-slot="shortcut-rail-list"]',
-    );
-    const iconSurface = canvasElement.querySelector<HTMLElement>(
-      '[data-slot="shortcut-rail-link"] > span',
-    );
-    if (
-      !root ||
-      !surface ||
-      !container ||
-      !title ||
-      !railBody ||
-      !list ||
-      !iconSurface
-    ) {
-      throw new Error("Titled Shortcut Rail must render its title and list");
+    if (!root || !surface || !container) {
+      throw new Error("Card Shortcut Rail did not render");
     }
+
     const rootStyle = getComputedStyle(root);
     const surfaceStyle = getComputedStyle(surface);
     const containerStyle = getComputedStyle(container);
-    const titleStyle = getComputedStyle(title);
-    const listStyle = getComputedStyle(list);
-    const iconSurfaceStyle = getComputedStyle(iconSurface);
+    const canvasRect = canvasElement.getBoundingClientRect();
+    const rootRect = root.getBoundingClientRect();
+    const expectedMargin = canvasRect.width < 1024 ? 8 : 48;
+    const expectedWidth = Math.min(
+      canvasRect.width - expectedMargin * 2,
+      1920 - expectedMargin * 2,
+    );
     if (
-      root.dataset.hasTitle !== "true" ||
-      root.dataset.dividerPosition !== "bottom" ||
-      root.dataset.dividerVariant !== "black" ||
-      surface.parentElement !== root ||
-      container.parentElement !== surface ||
-      surfaceStyle.width !== rootStyle.width ||
-      surfaceStyle.borderTopWidth !== "0px" ||
-      surfaceStyle.borderBottomWidth !== "2px" ||
-      title.parentElement !== container ||
-      railBody.parentElement !== container ||
-      containerStyle.maxWidth !== "1920px" ||
-      containerStyle.marginLeft !== containerStyle.marginRight ||
-      containerStyle.paddingTop !== "32px" ||
-      containerStyle.paddingBottom !== "32px" ||
-      containerStyle.paddingLeft !== "48px" ||
-      containerStyle.paddingRight !== "48px" ||
-      title.textContent?.trim().length === 0 ||
-      titleStyle.textAlign !== "left" ||
-      titleStyle.fontWeight !== "400" ||
-      titleStyle.paddingTop !== "0px" ||
-      titleStyle.paddingRight !== "4px" ||
-      titleStyle.paddingBottom !== "0px" ||
-      titleStyle.paddingLeft !== "0px" ||
-      listStyle.justifyContent !== "flex-start" ||
-      listStyle.padding !== "0px" ||
+      root.dataset.surface !== "card" ||
+      root.querySelector('[data-slot="shortcut-rail-progress"]') ||
+      Math.abs(rootRect.width - expectedWidth) > 1 ||
+      Math.abs(
+        rootRect.left - canvasRect.left - (canvasRect.width - expectedWidth) / 2,
+      ) > 1 ||
+      rootStyle.borderRadius !== "12px" ||
+      surfaceStyle.borderRadius !== "12px" ||
       surfaceStyle.backgroundColor === "rgba(0, 0, 0, 0)" ||
-      iconSurfaceStyle.backgroundColor === surfaceStyle.backgroundColor
+      surfaceStyle.borderTopWidth !== "0px" ||
+      surfaceStyle.borderBottomWidth !== "0px" ||
+      surfaceStyle.boxShadow !== "none" ||
+      containerStyle.padding !== "8px"
     ) {
-      throw new Error("Titled Shortcut Rail must be left aligned on a gray surface");
+      throw new Error(
+        "Card Shortcut Rail must use the shared inset, radius, surface, and compact padding without a border or shadow",
+      );
     }
   },
 };
@@ -276,6 +254,7 @@ export const FullBleedImages: Story = {
     return (
       <ShortcutRail
         {...props}
+        surface={args.surface}
         title={locale === "en" ? "Featured shortcuts" : "热门分类"}
         items={createFullBleedShortcutItems()}
         dividerPosition={args.dividerPosition}
@@ -359,6 +338,10 @@ export const FullBleedImages: Story = {
 
 export const CompactViewport: Story = {
   name: "Mobile — 1 Line",
+  args: {
+    surface: "card",
+    lines: 1,
+  },
   globals: {
     // "390" was never a registered preset, so this story silently rendered at
     // whatever the toolbar happened to hold. yamiMobile (375) is the DS primary
@@ -369,7 +352,7 @@ export const CompactViewport: Story = {
     docs: {
       description: {
         story:
-          "Below 1024px the rail keeps a full-width plain surface with smaller entries, a paging thumb instead of edge buttons, and a width that divides the rail by `min(5, max(4, count))` — so a long list always breaks the fifth entry at the edge.",
+          "A title-free mobile card with one row of smaller entries and native horizontal scrolling without paging chrome.",
       },
     },
   },
@@ -378,18 +361,19 @@ export const CompactViewport: Story = {
     return (
       <ShortcutRail
         {...getProps(locale)}
-        title={locale === "en" ? "Featured shortcuts" : "热门分类"}
+        surface={args.surface}
+        lines={args.lines}
         dividerPosition={args.dividerPosition}
         dividerVariant={args.dividerVariant}
       />
     );
   },
-  play: async ({ canvasElement }) => {
+  play: async ({ canvasElement, args }) => {
     const root = canvasElement.querySelector<HTMLElement>(
       '[data-slot="shortcut-rail"]',
     );
-    const title = canvasElement.querySelector<HTMLElement>(
-      '[data-slot="shortcut-rail-title"]',
+    const surface = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="shortcut-rail-surface"]',
     );
     const container = canvasElement.querySelector<HTMLElement>(
       '[data-slot="shortcut-rail-container"]',
@@ -400,66 +384,61 @@ export const CompactViewport: Story = {
     const list = canvasElement.querySelector<HTMLElement>(
       '[data-slot="shortcut-rail-list"]',
     );
-    if (!root || !container || !title || !railBody || !list) {
+    const title = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="shortcut-rail-title"]',
+    );
+    if (!root || !surface || !container || !railBody || !list) {
       throw new Error("Mobile Shortcut Rail did not render");
     }
     const rootStyle = getComputedStyle(root);
+    const surfaceStyle = getComputedStyle(surface);
     const containerStyle = getComputedStyle(container);
-    const titleStyle = getComputedStyle(title);
     const listStyle = getComputedStyle(list);
+    const canvasRect = canvasElement.getBoundingClientRect();
+    const rootRect = root.getBoundingClientRect();
+    const railBodyRect = railBody.getBoundingClientRect();
+    const expectedLines = String(args.lines ?? 1);
     if (
-      root.dataset.mobileSurface !== "plain" ||
-      Math.abs(
-        root.getBoundingClientRect().width -
-          canvasElement.getBoundingClientRect().width,
-      ) > 1 ||
-      rootStyle.marginLeft !== "0px" ||
-      rootStyle.marginRight !== "0px" ||
-      rootStyle.borderRadius !== "0px" ||
-      title.parentElement !== container ||
+      root.dataset.surface !== "card" ||
+      root.dataset.lines !== expectedLines ||
+      root.dataset.hasTitle !== undefined ||
+      title ||
+      canvasElement.querySelector('[data-slot="shortcut-rail-progress"]') ||
+      Math.abs(rootRect.width - (canvasRect.width - 16)) > 1 ||
+      Math.abs(rootRect.left - canvasRect.left - 8) > 1 ||
+      rootStyle.borderRadius !== "12px" ||
+      surfaceStyle.borderRadius !== "12px" ||
+      surfaceStyle.boxShadow !== "none" ||
+      Math.abs(railBodyRect.left - rootRect.left) > 1 ||
+      Math.abs(railBodyRect.right - rootRect.right) > 1 ||
       railBody.parentElement !== container ||
-      containerStyle.paddingLeft !== "16px" ||
-      containerStyle.paddingRight !== "16px" ||
-      containerStyle.paddingTop !== "16px" ||
-      containerStyle.paddingBottom !== "16px" ||
-      titleStyle.paddingLeft !== "0px" ||
-      titleStyle.paddingRight !== "4px" ||
-      titleStyle.paddingTop !== "0px" ||
-      titleStyle.paddingBottom !== "0px" ||
-      listStyle.paddingLeft !== "0px" ||
-      listStyle.paddingRight !== "0px" ||
+      containerStyle.padding !== "8px" ||
+      listStyle.paddingLeft !== "8px" ||
+      listStyle.paddingRight !== "8px" ||
       listStyle.paddingTop !== "0px" ||
-      listStyle.paddingBottom !== "0px"
+      listStyle.paddingBottom !== "0px" ||
+      listStyle.display !== (expectedLines === "2" ? "grid" : "flex")
     ) {
       throw new Error(
-        "Mobile Shortcut Rail must use the full-width plain surface",
+        `Mobile Shortcut Rail must use a title-free ${expectedLines}-line card surface`,
       );
     }
   },
 };
 
 export const MobileTwoLines: Story = {
+  ...CompactViewport,
   name: "Mobile — 2 Lines",
-  globals: {
-    viewport: { value: "yamiMobile", isRotated: false },
+  args: {
+    surface: "card",
+    lines: 2,
   },
   parameters: {
     docs: {
       description: {
         story:
-          "`lines={2}` flows the same entries into a two-row grid that pages as one block, so a long list stays a single swipe deep rather than a long scroll.",
+          "The same title-free mobile card and entries as `Mobile — 1 Line`, with only `lines={2}` changed.",
       },
     },
-  },
-  render: (args, { globals }) => {
-    const locale = localeFromGlobals(globals.locale);
-    return (
-      <ShortcutRail
-        {...getProps(locale)}
-        lines={2}
-        dividerPosition={args.dividerPosition}
-        dividerVariant={args.dividerVariant}
-      />
-    );
   },
 };

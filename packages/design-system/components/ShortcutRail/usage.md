@@ -60,8 +60,18 @@ divider on either edge using the shared section-divider contract:
 - Localize the navigation region and previous/next control labels.
 
 The component keeps icon and label sizes stable at narrow widths. Touch and
-trackpad users scroll the native rail; desktop users also receive token-backed
-paging controls when content overflows.
+trackpad users scroll the native rail without progress chrome; desktop users
+also receive token-backed paging controls when content overflows.
 
-On mobile, ShortcutRail always uses the full-width `plain` surface. It does not
-provide an inset card treatment.
+`surface="plain"` is the default and spans the available width. Use
+`surface="card"` when the rail belongs to a card-stacked page such as Ecommerce
+Home. The card surface uses the shared page inset, surface radius and primary
+background without a border or shadow.
+
+```tsx
+<ShortcutRail
+  items={shortcuts}
+  surface="card"
+  ariaLabel="Featured shortcuts"
+/>
+```

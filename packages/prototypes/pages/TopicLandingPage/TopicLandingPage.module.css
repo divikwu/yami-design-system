@@ -55,7 +55,16 @@
   [data-motion-reveal="scroll"]
   :is(
     [data-slot="shortcut-rail-container"],
-    [data-slot="product-list-container"],
+    [data-slot="topic-landing-theme-product-list"]
+      > [data-slot="theme-product-list"]
+      > [data-component="theme-product-list"]
+      > [data-slot="product-list-container"],
+    [data-slot="topic-landing-standard-rail"]
+      > [data-slot="product-list"]
+      > [data-slot="product-list-container"],
+    [data-slot="topic-landing-brand-rail"]
+      > [data-slot="brand-product-rail"]
+      > [data-slot="brand-product-rail-container"],
     [data-slot="review-list-container"]
   ) {
   opacity: 0;
@@ -87,7 +96,16 @@
   [data-motion-reveal="scroll"][data-motion-state="visible"]
   :is(
     [data-slot="shortcut-rail-container"],
-    [data-slot="product-list-container"],
+    [data-slot="topic-landing-theme-product-list"]
+      > [data-slot="theme-product-list"]
+      > [data-component="theme-product-list"]
+      > [data-slot="product-list-container"],
+    [data-slot="topic-landing-standard-rail"]
+      > [data-slot="product-list"]
+      > [data-slot="product-list-container"],
+    [data-slot="topic-landing-brand-rail"]
+      > [data-slot="brand-product-rail"]
+      > [data-slot="brand-product-rail-container"],
     [data-slot="review-list-container"]
   ) {
   opacity: 1;
@@ -131,6 +149,7 @@ main.main[data-slot="topic-landing-main"]
     [data-slot="theme-hero-container"],
     [data-slot="topic-landing-tabs-container"],
     [data-slot="shortcut-rail-container"],
+    [data-slot="brand-product-rail-container"],
     [data-slot="review-list-container"],
     [data-slot="product-list-container"]
   ) {
@@ -172,6 +191,7 @@ main.main[data-title-font-family="sans"]
 .shop,
 .shop > [data-slot="product-list"],
 .standardRail,
+.brandRail,
 .reviewList,
 .waterfallAnchor,
 .waterfall {
@@ -222,6 +242,10 @@ main.main[data-title-font-family="sans"]
   margin-inline: auto;
 }
 
+.brandRail {
+  width: 100%;
+}
+
 .reviewList {
   width: 100%;
 }
@@ -230,6 +254,7 @@ main.main[data-title-font-family="sans"]
  * renderable. Later sections can skip layout and paint until they approach the
  * viewport while reserving a stable estimated block size. */
 .reviewList,
+.brandRail,
 .standardRail,
 .waterfall {
   content-visibility: auto;
@@ -290,7 +315,16 @@ main.main[data-title-font-family="sans"]
     [data-motion-reveal="scroll"]
     :is(
       [data-slot="shortcut-rail-container"],
-      [data-slot="product-list-container"],
+      [data-slot="topic-landing-theme-product-list"]
+        > [data-slot="theme-product-list"]
+        > [data-component="theme-product-list"]
+        > [data-slot="product-list-container"],
+      [data-slot="topic-landing-standard-rail"]
+        > [data-slot="product-list"]
+        > [data-slot="product-list-container"],
+      [data-slot="topic-landing-brand-rail"]
+        > [data-slot="brand-product-rail"]
+        > [data-slot="brand-product-rail-container"],
       [data-slot="review-list-container"]
     ),
   .main[data-motion-ready]

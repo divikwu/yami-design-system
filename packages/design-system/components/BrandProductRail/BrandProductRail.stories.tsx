@@ -82,10 +82,17 @@ const meta = {
     },
   },
   argTypes: {
+    mobileSurface: {
+      options: ["card", "plain"],
+      control: { type: "radio" },
+      description:
+        "Mobile section surface. Plain is square, full-bleed, and uses 16px content padding.",
+    },
     dividerPosition: {
       options: ["top", "bottom", "none"],
       control: { type: "radio" },
-      description: "Desktop-only section divider edge; ignored below 1024px.",
+      description:
+        "Section divider edge. Card mobile ignores it; plain mobile preserves it.",
     },
     dividerVariant: {
       options: ["gray", "black"],
@@ -95,6 +102,7 @@ const meta = {
   },
   args: {
     ...getProps("zh"),
+    mobileSurface: "card",
     dividerPosition: "top",
     dividerVariant: "gray",
   },
@@ -109,6 +117,7 @@ export const Showcase: Story = {
     return (
       <BrandProductRail
         {...getProps(locale)}
+        mobileSurface={args.mobileSurface}
         dividerPosition={args.dividerPosition}
         dividerVariant={args.dividerVariant}
       />
@@ -233,6 +242,7 @@ export const BlackBottomDivider: Story = {
     return (
       <BrandProductRail
         {...getProps(locale)}
+        mobileSurface={args.mobileSurface}
         dividerPosition={args.dividerPosition}
         dividerVariant={args.dividerVariant}
       />
@@ -292,11 +302,14 @@ async function verifyMobileLayout({
   const media = canvasElement.querySelector<HTMLElement>(
     '[data-slot="product-card-media"]',
   );
+  const image = canvasElement.querySelector<HTMLElement>(
+    '[data-slot="product-card-image"]',
+  );
   const addButton = canvasElement.querySelector<HTMLElement>(
     '[data-slot="product-card-add-button"]',
   );
 
-  if (!pageCanvas || !panel || !banner || !media || !addButton) {
+  if (!pageCanvas || !panel || !banner || !media || !image || !addButton) {
     throw new Error("Mobile brand campaign anatomy did not render");
   }
   if (getComputedStyle(pageCanvas).backgroundColor === "rgba(0, 0, 0, 0)") {
@@ -327,6 +340,14 @@ async function verifyMobileLayout({
       `Mobile compact ProductCard media must be 96px, got ${getComputedStyle(media).width}`,
     );
   }
+  const tokenProbe = document.createElement("span");
+  tokenProbe.style.backgroundColor = "var(--fill-tertiary)";
+  document.body.append(tokenProbe);
+  const mobileImageSurface = getComputedStyle(tokenProbe).backgroundColor;
+  tokenProbe.remove();
+  if (getComputedStyle(image).backgroundColor !== mobileImageSurface) {
+    throw new Error("Mobile compact ProductCard images require the gray fill");
+  }
   if (
     getComputedStyle(addButton).width !== "40px" ||
     getComputedStyle(addButton).height !== "40px"
@@ -336,163 +357,209 @@ async function verifyMobileLayout({
 }
 
 function renderResponsiveStory(
-  _args: BrandProductRailProps,
+  args: BrandProductRailProps,
   { globals }: { globals: Record<string, unknown> },
 ) {
   const locale = localeFromGlobals(globals.locale);
-  return <BrandProductRail {...getProps(locale)} />;
+  return (
+    <BrandProductRail
+      {...getProps(locale)}
+      mobileSurface={args.mobileSurface}
+      dividerPosition={args.dividerPosition}
+      dividerVariant={args.dividerVariant}
+    />
+  );
 }
 
-function verifyDesktopColumns(expectedColumns: number) {
-  return async ({ canvasElement }: { canvasElement: HTMLElement }) => {
-    const list = canvasElement.querySelector<HTMLElement>(
-      '[data-slot="brand-product-rail-list"]',
-    );
-    const panel = canvasElement.querySelector<HTMLElement>(
-      '[data-slot="brand-product-rail-campaign"]',
-    );
-    const productList = panel?.querySelector<HTMLElement>(
-      '[data-slot="product-list"]',
-    );
-    const container = panel?.querySelector<HTMLElement>(
-      '[data-slot="product-list-container"]',
-    );
-    const firstItem = panel?.querySelector<HTMLElement>(
-      '[data-slot="product-list-item"]:first-child',
-    );
-    const secondItem = panel?.querySelector<HTMLElement>(
-      '[data-slot="product-list-item"]:nth-child(2)',
-    );
-    const firstCard = firstItem?.querySelector<HTMLElement>(
-      '[data-slot="product-card"]',
-    );
-    const firstPriceActionRow = firstCard?.querySelector<HTMLElement>(
-      '[data-slot="product-card-price-action-row"]',
-    );
-    const imageSurfaces = panel?.querySelectorAll<HTMLElement>(
-      '[data-slot="product-card-image"]',
-    );
-    const brandTitle = panel?.querySelector<HTMLElement>(
-      '[data-slot="product-list-title"]',
-    );
-    if (
-      !list ||
-      !panel ||
-      !productList ||
-      !container ||
-      !firstItem ||
-      !secondItem ||
-      !firstCard ||
-      !firstPriceActionRow ||
-      !brandTitle ||
-      !imageSurfaces?.length
-    ) {
-      throw new Error("Desktop brand rail anatomy did not render");
-    }
+async function verifyDesktopLayout({
+  canvasElement,
+}: {
+  canvasElement: HTMLElement;
+}) {
+  const railContainer = canvasElement.querySelector<HTMLElement>(
+    '[data-slot="brand-product-rail-container"]',
+  );
+  const list = canvasElement.querySelector<HTMLElement>(
+    '[data-slot="brand-product-rail-list"]',
+  );
+  const panel = canvasElement.querySelector<HTMLElement>(
+    '[data-slot="brand-product-rail-campaign"]',
+  );
+  const productList = panel?.querySelector<HTMLElement>(
+    '[data-slot="product-list"]',
+  );
+  const productListContainer = panel?.querySelector<HTMLElement>(
+    '[data-slot="product-list-container"]',
+  );
+  const firstItem = panel?.querySelector<HTMLElement>(
+    '[data-slot="product-list-item"]:first-child',
+  );
+  const secondItem = panel?.querySelector<HTMLElement>(
+    '[data-slot="product-list-item"]:nth-child(2)',
+  );
+  const firstCard = firstItem?.querySelector<HTMLElement>(
+    '[data-slot="product-card"]',
+  );
+  const firstPriceActionRow = firstCard?.querySelector<HTMLElement>(
+    '[data-slot="product-card-price-action-row"]',
+  );
+  const imageSurfaces = panel?.querySelectorAll<HTMLElement>(
+    '[data-slot="product-card-image"]',
+  );
+  const brandTitle = panel?.querySelector<HTMLElement>(
+    '[data-slot="product-list-title"]',
+  );
+  if (
+    !railContainer ||
+    !list ||
+    !panel ||
+    !productList ||
+    !productListContainer ||
+    !firstItem ||
+    !secondItem ||
+    !firstCard ||
+    !firstPriceActionRow ||
+    !brandTitle ||
+    !imageSurfaces?.length
+  ) {
+    throw new Error("Desktop brand rail anatomy did not render");
+  }
 
-    const gap = Number.parseFloat(getComputedStyle(list).columnGap);
-    const panelWidth = panel.getBoundingClientRect().width;
-    const visibleColumns = Math.round(
-      (list.clientWidth + gap) / (panelWidth + gap),
+  const gap = Number.parseFloat(getComputedStyle(list).columnGap);
+  const panelWidth = panel.getBoundingClientRect().width;
+  const visibleColumns = Math.round(
+    (list.clientWidth + gap) / (panelWidth + gap),
+  );
+  const railContainerStyle = getComputedStyle(railContainer);
+  const contentWidth =
+    railContainer.clientWidth -
+    Number.parseFloat(railContainerStyle.paddingLeft) -
+    Number.parseFloat(railContainerStyle.paddingRight);
+  const expectedColumns =
+    contentWidth <= 1280 ? 2 : contentWidth <= 1440 ? 3 : 4;
+  if (visibleColumns !== expectedColumns) {
+    throw new Error(
+      `Expected ${expectedColumns} desktop columns at ${contentWidth}px content width, got ${visibleColumns}`,
     );
-    if (visibleColumns !== expectedColumns) {
-      throw new Error(
-        `Expected ${expectedColumns} desktop columns, got ${visibleColumns}`,
-      );
-    }
+  }
 
-    const containerStyle = getComputedStyle(container);
-    if (
-      containerStyle.paddingTop !== "0px" ||
-      containerStyle.paddingRight !== "0px" ||
-      containerStyle.paddingBottom !== "0px" ||
-      containerStyle.paddingLeft !== "0px"
-    ) {
-      throw new Error("Desktop brand product containers require zero padding");
-    }
-    if (
-      getComputedStyle(panel).borderRadius !== "12px" ||
-      getComputedStyle(productList).borderRadius !== "12px"
-    ) {
-      throw new Error("Desktop brand panels require the 12px surface radius");
-    }
+  const containerStyle = getComputedStyle(productListContainer);
+  if (
+    containerStyle.paddingTop !== "0px" ||
+    containerStyle.paddingRight !== "0px" ||
+    containerStyle.paddingBottom !== "0px" ||
+    containerStyle.paddingLeft !== "0px"
+  ) {
+    throw new Error("Desktop brand product containers require zero padding");
+  }
+  if (
+    getComputedStyle(panel).borderRadius !== "12px" ||
+    getComputedStyle(productList).borderRadius !== "12px"
+  ) {
+    throw new Error("Desktop brand panels require the 12px surface radius");
+  }
 
-    const panelBounds = panel.getBoundingClientRect();
-    const itemBounds = firstItem.getBoundingClientRect();
-    if (
-      Math.abs(itemBounds.left - panelBounds.left) > 2 ||
-      Math.abs(itemBounds.right - panelBounds.right) > 2
-    ) {
-      throw new Error("Desktop product rows must span the full brand panel");
-    }
-    if (getComputedStyle(firstItem).borderTopWidth !== "0px") {
-      throw new Error("The first desktop product row must not render a divider");
-    }
-    if (getComputedStyle(secondItem).borderTopWidth === "0px") {
-      throw new Error("Following desktop product rows require full-width dividers");
-    }
-    const secondDividerStyle = getComputedStyle(secondItem, "::before");
-    if (
-      secondDividerStyle.content === "none" ||
-      secondDividerStyle.left !== "0px" ||
-      secondDividerStyle.right !== "0px" ||
-      secondDividerStyle.height !== "1px"
-    ) {
-      throw new Error("Desktop product dividers must paint edge to edge");
-    }
+  const panelBounds = panel.getBoundingClientRect();
+  const itemBounds = firstItem.getBoundingClientRect();
+  if (
+    Math.abs(itemBounds.left - panelBounds.left) > 2 ||
+    Math.abs(itemBounds.right - panelBounds.right) > 2
+  ) {
+    throw new Error("Desktop product rows must span the full brand panel");
+  }
+  if (getComputedStyle(firstItem).borderTopWidth !== "0px") {
+    throw new Error("The first desktop product row must not render a divider");
+  }
+  if (getComputedStyle(secondItem).borderTopWidth === "0px") {
+    throw new Error("Following desktop product rows require full-width dividers");
+  }
+  const secondDividerStyle = getComputedStyle(secondItem, "::before");
+  if (
+    secondDividerStyle.content === "none" ||
+    secondDividerStyle.left !== "0px" ||
+    secondDividerStyle.right !== "0px" ||
+    secondDividerStyle.height !== "1px"
+  ) {
+    throw new Error("Desktop product dividers must paint edge to edge");
+  }
 
-    const cardStyle = getComputedStyle(firstCard);
-    if (
-      cardStyle.paddingTop !== "8px" ||
-      cardStyle.paddingRight !== "8px" ||
-      cardStyle.paddingBottom !== "8px" ||
-      cardStyle.paddingLeft !== "8px"
-    ) {
-      throw new Error("Desktop compact product rows require 8px padding");
-    }
+  const cardStyle = getComputedStyle(firstCard);
+  if (
+    cardStyle.paddingTop !== "8px" ||
+    cardStyle.paddingRight !== "8px" ||
+    cardStyle.paddingBottom !== "8px" ||
+    cardStyle.paddingLeft !== "8px"
+  ) {
+    throw new Error("Desktop compact product rows require 8px padding");
+  }
 
-    const priceActionStyle = getComputedStyle(firstPriceActionRow);
-    if (
-      priceActionStyle.paddingTop !== "0px" ||
-      priceActionStyle.paddingRight !== "4px"
-    ) {
-      throw new Error(
-        "Desktop compact product price rows require 0px top and 4px right padding",
-      );
-    }
-
-    const imageSurfaceColors = new Set(
-      Array.from(imageSurfaces, (surface) =>
-        getComputedStyle(surface).backgroundColor,
-      ),
+  const priceActionStyle = getComputedStyle(firstPriceActionRow);
+  if (
+    priceActionStyle.paddingTop !== "0px" ||
+    priceActionStyle.paddingRight !== "4px"
+  ) {
+    throw new Error(
+      "Desktop compact product price rows require 0px top and 4px right padding",
     );
-    if (imageSurfaceColors.size !== 1) {
-      throw new Error(
-        "Desktop compact product images require one consistent surface color",
-      );
-    }
-    if (getComputedStyle(brandTitle).color !== "rgb(255, 255, 255)") {
-      throw new Error(
-        "Brand banner text must stay white across color themes",
-      );
-    }
+  }
 
-    const desktopItems = list.querySelectorAll<HTMLElement>(
-      '[data-slot="brand-product-rail-campaign"] [data-slot="product-list-item"]',
+  const imageSurfaceColors = new Set(
+    Array.from(imageSurfaces, (surface) =>
+      getComputedStyle(surface).backgroundColor,
+    ),
+  );
+  if (imageSurfaceColors.size !== 1) {
+    throw new Error(
+      "Desktop compact product images require one consistent surface color",
     );
-    for (const item of desktopItems) {
-      const ownerList = item.closest<HTMLElement>('[data-slot="product-list"]');
-      if (
-        !ownerList ||
-        Math.abs(item.getBoundingClientRect().width - ownerList.clientWidth) > 1
-      ) {
-        throw new Error("Desktop compact product rows must stretch to full width");
-      }
+  }
+  if (getComputedStyle(brandTitle).color !== "rgb(255, 255, 255)") {
+    throw new Error("Brand banner text must stay white across color themes");
+  }
+
+  const desktopItems = list.querySelectorAll<HTMLElement>(
+    '[data-slot="brand-product-rail-campaign"] [data-slot="product-list-item"]',
+  );
+  for (const item of desktopItems) {
+    const ownerList = item.closest<HTMLElement>('[data-slot="product-list"]');
+    if (
+      !ownerList ||
+      Math.abs(item.getBoundingClientRect().width - ownerList.clientWidth) > 1
+    ) {
+      throw new Error("Desktop compact product rows must stretch to full width");
     }
-  };
+  }
 }
 
-export const CompactViewport: Story = {
+async function verifyDesktopResponsiveLayout(context: {
+  canvasElement: HTMLElement;
+}) {
+  const storyCanvas = context.canvasElement.querySelector<HTMLElement>(
+    '[data-slot="brand-product-rail-story-canvas"]',
+  );
+  if (!storyCanvas) throw new Error("Brand product rail story canvas missing");
+
+  const originalWidth = storyCanvas.style.width;
+  try {
+    for (const viewportWidth of [1280, 1440, 1920]) {
+      storyCanvas.style.width = `${viewportWidth}px`;
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      );
+      await verifyDesktopLayout(context);
+    }
+  } finally {
+    storyCanvas.style.width = originalWidth;
+  }
+}
+
+export const Mobile: Story = {
+  name: "Mobile",
+  render: renderResponsiveStory,
+};
+
+export const MobileCardCoverage: Story = {
+  tags: ["!dev", "!autodocs"],
   globals: {
     viewport: { value: "yamiMobile", isRotated: false },
   },
@@ -500,7 +567,8 @@ export const CompactViewport: Story = {
   play: verifyMobileLayout,
 };
 
-export const MinimumViewport: Story = {
+export const MobileMinimumViewportCoverage: Story = {
+  tags: ["!dev", "!autodocs"],
   globals: {
     viewport: { value: "yamiMobileSm", isRotated: false },
   },
@@ -508,26 +576,74 @@ export const MinimumViewport: Story = {
   play: verifyMobileLayout,
 };
 
-export const DesktopTwoColumns: Story = {
+export const MobilePlainCoverage: Story = {
+  tags: ["!dev", "!autodocs"],
   globals: {
-    viewport: { value: "yamiDesktop", isRotated: false },
+    viewport: { value: "yamiMobile", isRotated: false },
+  },
+  args: {
+    mobileSurface: "plain",
+    dividerPosition: "top",
+    dividerVariant: "gray",
   },
   render: renderResponsiveStory,
-  play: verifyDesktopColumns(2),
+  play: async (context) => {
+    await verifyMobileLayout(context);
+
+    const root = context.canvasElement.querySelector<HTMLElement>(
+      '[data-slot="brand-product-rail"]',
+    );
+    const container = root?.querySelector<HTMLElement>(
+      '[data-slot="brand-product-rail-container"]',
+    );
+    const list = root?.querySelector<HTMLElement>(
+      '[data-slot="brand-product-rail-list"]',
+    );
+    const firstPanel = list?.querySelector<HTMLElement>(
+      '[data-slot="brand-product-rail-campaign"]',
+    );
+    const nestedProductList = firstPanel?.querySelector<HTMLElement>(
+      '[data-slot="product-list"]',
+    );
+    if (!root || !container || !list || !firstPanel || !nestedProductList) {
+      throw new Error("Plain mobile Brand Product Rail did not render");
+    }
+
+    const rootStyle = getComputedStyle(root);
+    const containerStyle = getComputedStyle(container);
+    const listStyle = getComputedStyle(list);
+    const rootRect = root.getBoundingClientRect();
+    const listRect = list.getBoundingClientRect();
+    if (
+      root.dataset.mobileSurface !== "plain" ||
+      nestedProductList.dataset.mobileSurface !== "plain" ||
+      rootRect.left !== 0 ||
+      rootRect.right !== window.innerWidth ||
+      rootStyle.marginLeft !== "0px" ||
+      rootStyle.marginRight !== "0px" ||
+      rootStyle.borderRadius !== "0px" ||
+      rootStyle.borderTopWidth !== "1px" ||
+      rootStyle.borderBottomWidth !== "0px" ||
+      containerStyle.padding !== "16px" ||
+      listRect.left !== 0 ||
+      listRect.right !== window.innerWidth ||
+      firstPanel.getBoundingClientRect().left !== 16 ||
+      listStyle.columnGap !== "8px" ||
+      listStyle.marginLeft !== "-16px" ||
+      listStyle.marginRight !== "-16px" ||
+      listStyle.paddingLeft !== "16px" ||
+      listStyle.paddingRight !== "16px" ||
+      listStyle.scrollPaddingInline !== "16px"
+    ) {
+      throw new Error(
+        "Plain mobile Brand Product Rail must use the full-bleed 16px surface contract",
+      );
+    }
+  },
 };
 
-export const DesktopThreeColumns: Story = {
-  globals: {
-    viewport: { value: "yamiDesktopMd", isRotated: false },
-  },
+export const Pc: Story = {
+  name: "PC",
   render: renderResponsiveStory,
-  play: verifyDesktopColumns(3),
-};
-
-export const DesktopFourColumns: Story = {
-  globals: {
-    viewport: { value: "yamiDesktopLg", isRotated: false },
-  },
-  render: renderResponsiveStory,
-  play: verifyDesktopColumns(4),
+  play: verifyDesktopResponsiveLayout,
 };

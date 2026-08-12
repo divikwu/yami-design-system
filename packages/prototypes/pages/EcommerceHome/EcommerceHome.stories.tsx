@@ -247,12 +247,19 @@ export const Pc: Story = {
       throw new Error("Ecommerce home sections frame did not render");
     }
     const sectionsStyle = getComputedStyle(sectionsFrame);
+    const expectedSectionsGap = isDesktop
+      ? "0px"
+      : getComputedStyle(page)
+          .getPropertyValue("--layout-page-margin-card")
+          .trim();
     if (
-      sectionsStyle.gap !== "0px" ||
+      sectionsStyle.gap !== expectedSectionsGap ||
       sectionsStyle.paddingTop !== "0px" ||
       sectionsStyle.paddingBottom !== "0px"
     ) {
-      throw new Error("Ecommerce home sections must not add vertical spacing");
+      throw new Error(
+        `Ecommerce home sections must use a ${expectedSectionsGap} vertical gap`,
+      );
     }
     const sectionFrames = Array.from(
       sectionsFrame.querySelectorAll<HTMLElement>(
@@ -264,10 +271,14 @@ export const Pc: Story = {
       const current = sectionFrames[index];
       if (
         Math.abs(
-          current.offsetTop - (previous.offsetTop + previous.offsetHeight),
+          current.offsetTop -
+            (previous.offsetTop + previous.offsetHeight) -
+            Number.parseFloat(expectedSectionsGap),
         ) > 1
       ) {
-        throw new Error("Ecommerce home sections must touch vertically");
+        throw new Error(
+          `Ecommerce home sections must preserve a ${expectedSectionsGap} vertical gap`,
+        );
       }
     }
 
@@ -389,12 +400,14 @@ export const Pc: Story = {
         "Ecommerce home must ask for a gray top rule and paint none of it itself",
       );
     }
+    const expectedAtmosphericBorderWidth = isDesktop ? "1px" : "0px";
     if (
       atmosphericProductList.getAttribute("data-divider-position") !== "top" ||
-      atmosphericProductListStyle.borderTopWidth !== "1px"
+      atmosphericProductListStyle.borderTopWidth !==
+        expectedAtmosphericBorderWidth
     ) {
       throw new Error(
-        `Atmospheric band must draw a 1px rule on its own top edge, got ${atmosphericProductListStyle.borderTopWidth}`,
+        `Atmospheric band must use a ${expectedAtmosphericBorderWidth} top rule at this viewport, got ${atmosphericProductListStyle.borderTopWidth}`,
       );
     }
 
@@ -419,9 +432,15 @@ export const Pc: Story = {
     );
     if (!panel) throw new Error("Atmospheric campaign panel did not render");
     const panelBox = panel.getBoundingClientRect();
-    if (panelBox.left - bandBox.left < 1 || panelBox.top - bandBox.top < 1) {
+    const panelTopOffset = panelBox.top - bandBox.top;
+    if (
+      panelBox.left - bandBox.left < 1 ||
+      (isDesktop ? panelTopOffset < 1 : Math.abs(panelTopOffset) > 1)
+    ) {
       throw new Error(
-        "The campaign panel must be inset inside the band, not fill it — otherwise the rule has no boundary to sit on",
+        isDesktop
+          ? "The campaign panel must be inset inside the desktop band"
+          : "The mobile campaign panel must be horizontally inset and top-aligned with its band",
       );
     }
 
@@ -469,4 +488,17 @@ export const Pc: Story = {
       );
     }
   },
+};
+
+export const Mobile: Story = {
+  name: "Mobile",
+  globals: {
+    viewport: { value: "yamiMobile", isRotated: false },
+  },
+  render: (_args, { globals }) => (
+    <EcommerceHomeTemplate
+      {...createEcommerceHomeFixture(localeFromGlobals(globals.locale))}
+    />
+  ),
+  play: Pc.play,
 };

@@ -31,8 +31,22 @@ consumer.
 The rail keeps its existing top gray divider by default. Set
 `dividerPosition` to `top`, `bottom`, or `none`. `dividerVariant="gray"`
 renders the 1px structural line; `dividerVariant="black"` renders the
-theme-aware 2px emphasis line. Divider configuration is desktop-only and is
-ignored below 1024px.
+theme-aware 2px emphasis line. Card-style mobile ignores this divider;
+plain-style mobile preserves it.
+
+On mobile, `mobileSurface="card"` is the default and preserves the inset,
+rounded section. Use `mobileSurface="plain"` for a square full-bleed section
+with 16px content padding. As with `ProductList`, mobile dividers are available
+only on the plain surface.
+
+```tsx
+<BrandProductRail
+  title="Beauty Brands to Try"
+  campaigns={campaigns}
+  mobileSurface="plain"
+  dividerPosition="top"
+/>
+```
 
 ```tsx
 <BrandProductRail

@@ -199,6 +199,7 @@ function createShortcutRail(locale: EcommerceHomeLocale): ShortcutRailProps {
   const localeCopy = shortcutCopy[locale];
   return {
     items: createShortcutItems(locale),
+    surface: "card",
     ariaLabel: localeCopy.ariaLabel,
     previousLabel: localeCopy.previousLabel,
     nextLabel: localeCopy.nextLabel,

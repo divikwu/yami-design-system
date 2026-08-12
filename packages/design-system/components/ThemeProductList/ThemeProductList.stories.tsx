@@ -106,18 +106,39 @@ export const Showcase: Story = {
     const scrimStyle = getComputedStyle(scrim);
     const scrimBox = scrim.getBoundingClientRect();
     const contentBox = content.getBoundingClientRect();
+    const overlayBox = overlay.getBoundingClientRect();
+    const overlayStyle = getComputedStyle(overlay);
+    const expectedOverlayHeight =
+      contentTitle.getBoundingClientRect().height +
+      contentDescription.getBoundingClientRect().height +
+      Number.parseFloat(overlayStyle.rowGap) +
+      Number.parseFloat(overlayStyle.paddingTop) +
+      Number.parseFloat(overlayStyle.paddingBottom);
     if (
-      Math.abs(scrimBox.width - contentBox.width) > 1 ||
-      Math.abs(scrimBox.height - contentBox.height) > 1 ||
+      scrim.dataset.adaptiveImageScrim !== "true" ||
+      scrim.parentElement !== overlay ||
+      Math.abs(scrimBox.width - overlayBox.width) > 1 ||
+      Math.abs(scrimBox.height - overlayBox.height) > 1 ||
+      scrimBox.height >= contentBox.height ||
+      Math.abs(overlayBox.height - expectedOverlayHeight) > 1 ||
       !scrimStyle.backgroundImage.includes("linear-gradient") ||
+      !scrimStyle.backgroundImage.includes("/ 0.8") ||
+      !scrimStyle.backgroundImage.includes("0px") ||
+      !scrimStyle.backgroundImage.includes("64px") ||
+      scrimStyle.backgroundImage.includes("20%") ||
+      scrimStyle.backgroundImage.includes("60%") ||
       !contentStyle
-        .getPropertyValue("--theme-product-list-surface-color")
+        .getPropertyValue("--adaptive-image-scrim-surface-color")
         .trim() ||
       scrimStyle.backdropFilter !== "blur(16px)" ||
-      !scrimStyle.maskImage.includes("linear-gradient")
+      !scrimStyle.maskImage.includes("linear-gradient") ||
+      !scrimStyle.maskImage.includes("0px") ||
+      !scrimStyle.maskImage.includes("64px") ||
+      scrimStyle.maskImage.includes("20%") ||
+      scrimStyle.maskImage.includes("60%")
     ) {
       throw new Error(
-        "ThemeProductList scene art must use the same adaptive full-panel 20–50% sampled-color gradient and 16px frosted scrim on PC and mobile",
+        "ThemeProductList scene art must reuse the adaptive Mobile ThemeHero scrim inside its content-driven text overlay",
       );
     }
     if (!content.matches('[data-foreground="light"], [data-foreground="dark"]')) {
@@ -125,15 +146,15 @@ export const Showcase: Story = {
         "ThemeProductList scene art must expose the sampled foreground contrast",
       );
     }
-    const overlayStyle = getComputedStyle(overlay);
     if (
       window.innerWidth < 1024 &&
-      (overlayStyle.paddingRight !== "8px" ||
+      (overlayStyle.paddingTop !== "40px" ||
+        overlayStyle.paddingRight !== "8px" ||
         overlayStyle.paddingBottom !== "8px" ||
         overlayStyle.paddingLeft !== "8px")
     ) {
       throw new Error(
-        "ThemeProductList mobile content must use 8px inline and bottom padding",
+        "ThemeProductList mobile content must use 40px top and 8px inline and bottom padding",
       );
     }
     const expectedTitleSize =

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { normalizePrototypePath, resolveEcommerceHome } from "../src";
+import { normalizePrototypePath, resolveEcommerceHome, resolveTopicLandingPage } from "../src";
 
 describe("EcommerceHome direction resolution", () => {
   it("keeps current as the fixture and overlays titles shallowly", () => {
@@ -88,5 +88,20 @@ describe("EcommerceHome direction resolution", () => {
     visit(current);
     expect(hrefs.length).toBeGreaterThan(20);
     expect(hrefs.every((href) => /^\/(?:$|products|categories|search|cart|brands|account)(?:\/|$)/.test(href))).toBe(true);
+  });
+});
+
+describe("TopicLandingPage Canvas resolution", () => {
+  it("binds storefront navigation while preserving in-page topic shortcuts", () => {
+    const navigate = vi.fn();
+    const resolved = resolveTopicLandingPage("zh", navigate);
+
+    expect(resolved.header.homeHref).toBe("/");
+    expect(resolved.header.cart.href).toBe("/cart");
+    expect(resolved.shortcutRail.items[0]?.href).toBe("#explore-more-cleanse-peel");
+    expect(resolved.standardRail.products[0]?.href).toMatch(/^\/products\//);
+
+    resolved.header.onSearchSubmit?.("heart leaf");
+    expect(navigate).toHaveBeenCalledWith("/search/heart%20leaf");
   });
 });

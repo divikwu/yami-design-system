@@ -6,7 +6,7 @@ import { TopicLandingPage } from "./TopicLandingPage";
 import { createTopicLandingPageFixture } from "./fixtures";
 
 const meta = {
-  title: "YAMI/Pages/Topic Landing Page",
+  title: "YAMI/Pages/Topic Landing Page/Brand",
   component: TopicLandingPage,
   parameters: {
     layout: "fullscreen",
@@ -14,7 +14,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "A localized editorial theme landing page with a global header, ThemeHero, a full-bleed ShortcutRail, ThemeProductList, ReviewList, a Standard Rail and a ProductList Waterfall collection, followed by the global footer.",
+          "The brand-keyword presentation of Topic Landing Page, with a global header, ThemeHero, a full-bleed ShortcutRail, ThemeProductList, ReviewList, a Standard Rail and a ProductList Waterfall collection, followed by the global footer.",
       },
       story: { inline: false, height: "2400px" },
     },
@@ -55,7 +55,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Pc: Story = {
-  name: "PC",
+  name: "Brand — PC",
   play: async ({ canvasElement, args, globals }) => {
     const locale = globals.locale === "zh" ? "zh" : "en";
     const localizedArgs = createTopicLandingPageFixture(locale);
@@ -297,7 +297,7 @@ export const Pc: Story = {
 
       for (const revealSection of Array.from(scrollReveals)) {
         const revealContent = revealSection.querySelector<HTMLElement>(
-          '[data-slot="shortcut-rail-container"], [data-slot="product-list-container"], [data-slot="review-list-container"]',
+          '[data-slot="shortcut-rail-container"], [data-slot="brand-product-rail-container"], [data-slot="product-list-container"], [data-slot="review-list-container"]',
         );
         if (!revealContent) {
           throw new Error("Topic landing module content did not render");
@@ -1401,7 +1401,7 @@ export const Pc: Story = {
 };
 
 export const Mobile: Story = {
-  name: "Mobile",
+  name: "Brand — Mobile",
   globals: {
     viewport: { value: "yamiMobile", isRotated: false },
   },
