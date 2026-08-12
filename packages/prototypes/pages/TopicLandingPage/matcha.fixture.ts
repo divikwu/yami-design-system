@@ -54,6 +54,18 @@ const productImages = {
     "./assets/matcha/products/1158009201.webp",
     import.meta.url,
   ).href,
+  "1017181931":
+    "https://cdn.yamibuy.net/item/16277a5ed23c5b87a72ec2772f13d4fe_300x300.webp",
+  "1159008391":
+    "https://cdn.yamibuy.net/item/965fcb23f9185f15426afe783f01672f_300x300.webp",
+  "1021014881":
+    "https://cdn.yamibuy.net/item/55b502e5cd63bf47ca13f225916768f5_300x300.webp",
+  "1159008381":
+    "https://cdn.yamibuy.net/item/dbd4cde8aec657f9ca7401717f293b54_300x300.webp",
+  "5021181231":
+    "https://cdn.yamibuy.net/item/4b9e09e69a77d33d48138c73a4f89c54_300x300.webp",
+  "1149004421":
+    "https://cdn.yamibuy.net/item/bc7d7fd9c62f5adbf4fabbd9a82b5afa_300x300.webp",
   "5157065631": new URL(
     "./assets/matcha/products/5157065631.webp",
     import.meta.url,
@@ -137,6 +149,32 @@ export const matchaImages = {
   whisk: new URL("./assets/matcha/scene-whisk.webp", import.meta.url).href,
   latte: new URL("./assets/matcha/scene-latte.webp", import.meta.url).href,
   sweets: new URL("./assets/matcha/scene-sweets.webp", import.meta.url).href,
+  shortcutScenes: {
+    powder: new URL(
+      "./assets/matcha/shortcut-scenes/shortcut-powder.webp",
+      import.meta.url,
+    ).href,
+    latte: new URL(
+      "./assets/matcha/shortcut-scenes/shortcut-latte.webp",
+      import.meta.url,
+    ).href,
+    snacks: new URL(
+      "./assets/matcha/shortcut-scenes/shortcut-snacks.webp",
+      import.meta.url,
+    ).href,
+    chocolate: new URL(
+      "./assets/matcha/shortcut-scenes/shortcut-chocolate.webp",
+      import.meta.url,
+    ).href,
+    sweets: new URL(
+      "./assets/matcha/shortcut-scenes/shortcut-sweets.webp",
+      import.meta.url,
+    ).href,
+    tools: new URL(
+      "./assets/matcha/shortcut-scenes/shortcut-tools.webp",
+      import.meta.url,
+    ).href,
+  },
 } as const;
 
 const brands = {
@@ -190,6 +228,54 @@ const products = {
     },
     price: 2.19,
     brand: "ito-en",
+  },
+  unsweetenedSoyMilk: {
+    id: "1017181931",
+    title: {
+      en: "Unsweetened Soy Milk, 9.46 fl oz",
+      zh: "无糖豆奶 9.46fl oz",
+    },
+    price: 1.69,
+  },
+  cannedCoconutMilk: {
+    id: "1159008391",
+    title: {
+      en: "Coconut Milk for Drinks and Desserts, 13.52 fl oz",
+      zh: "饮品甜点用椰奶 13.52fl oz",
+    },
+    price: 2.19,
+  },
+  sweetRedBeanPaste: {
+    id: "1021014881",
+    title: {
+      en: "Sweet Red Bean Paste, 17.64 oz",
+      zh: "甜红豆馅 17.64oz",
+    },
+    price: 3.69,
+  },
+  condensedCreamer: {
+    id: "1159008381",
+    title: {
+      en: "Sweetened Condensed Creamer, 45.3 oz",
+      zh: "甜炼乳 45.3oz",
+    },
+    price: 6.49,
+  },
+  brownSugarSyrup: {
+    id: "5021181231",
+    title: {
+      en: "Liquid Brown Sugar Syrup, 280g",
+      zh: "液体黑糖浆 280g",
+    },
+    price: 8.88,
+  },
+  glutinousRiceFlour: {
+    id: "1149004421",
+    title: {
+      en: "Green Elephant Glutinous Rice Flour, 1 lb",
+      zh: "绿象糯米粉 1lb",
+    },
+    price: 1.99,
   },
   marukyuIsuzu: {
     id: "1157010241",
@@ -436,10 +522,23 @@ export const matchaCategoryValues = [
   "tools",
 ] as const;
 
+export const matchaWaterfallValues = [
+  "pairings",
+  ...matchaCategoryValues,
+] as const;
+
 const categoryProductKeys: Record<
-  (typeof matchaCategoryValues)[number],
+  (typeof matchaWaterfallValues)[number],
   MatchaProductKey[]
 > = {
+  pairings: [
+    "unsweetenedSoyMilk",
+    "cannedCoconutMilk",
+    "sweetRedBeanPaste",
+    "condensedCreamer",
+    "brownSugarSyrup",
+    "glutinousRiceFlour",
+  ],
   powder: ["marukyuIsuzu", "tsujiriUji", "itoUnsweetened", "marukyuYugen"],
   latte: ["ujiLatte", "itoAlmondLatte", "instantLatte", "royalMilkTea"],
   snacks: ["glicoPocky", "glicoPejoy", "turtleChips", "tsujiriPoundCake"],
@@ -450,7 +549,7 @@ const categoryProductKeys: Record<
 
 export function createMatchaProductsByCategory(locale: TopicLandingPageLocale) {
   return Object.fromEntries(
-    matchaCategoryValues.map((value) => [
+    matchaWaterfallValues.map((value) => [
       value,
       categoryProductKeys[value].map((key) => createMatchaProduct(key, locale)),
     ]),
@@ -476,63 +575,101 @@ export function createMatchaThemes(
   const copy = {
     en: [
       {
-        value: "whisk-at-home",
-        label: "Whisk at Home",
-        title: "Start with a simple bowl",
+        value: "pure-matcha",
+        label: "Pure Matcha",
+        title: "Whisk a pure bowl of matcha",
         description:
-          "Choose an unsweetened powder, sift it, then whisk with warm water for a bright, smooth cup.",
+          "Compare unsweetened powders by grade, flavor and everyday use, then whisk your preferred matcha with warm water.",
         image: matchaImages.whisk,
         imageAlt: "Bamboo whisk resting in a bowl of freshly whisked matcha",
-        products: ["marukyuIsuzu", "tsujiriUji", "bambooWhisk"],
+        products: [
+          "marukyuIsuzu",
+          "tsujiriUji",
+          "itoUnsweetened",
+          "marukyuYugen",
+        ],
       },
       {
-        value: "make-a-latte",
-        label: "Make a Latte",
-        title: "Build a creamy matcha latte",
+        value: "matcha-drinks",
+        label: "Matcha Drinks",
+        title: "From lattes to refreshing matcha drinks",
         description:
-          "Use a balanced powder or ready-to-drink option, then pair vivid tea flavor with your preferred milk.",
+          "Explore ready-to-drink matcha, instant mixes and creamy latte formats for an easy everyday cup.",
         image: matchaImages.latte,
-        imageAlt: "Layered iced matcha latte with a bamboo whisk and matcha powder",
-        products: ["itoAlmondLatte", "instantLatte", "royalMilkTea"],
+        imageAlt: "Layered iced matcha drink with a bamboo whisk and matcha powder",
+        products: [
+          "itoAlmondLatte",
+          "instantLatte",
+          "royalMilkTea",
+          "ujiLatte",
+          "tsujiriMatchaMilk",
+          "itoEnergyShot",
+        ],
       },
       {
-        value: "pair-with-sweets",
-        label: "Pair with Sweets",
-        title: "Match earthy tea with soft sweetness",
+        value: "matcha-treats",
+        label: "Matcha Treats",
+        title: "Discover matcha tea-time treats",
         description:
-          "Mochi, cake and chocolate soften matcha's gentle bitterness for an easy afternoon pairing.",
+          "Browse mochi, cookies, cake and chocolate that make matcha flavor the centerpiece of an afternoon treat.",
         image: matchaImages.sweets,
         imageAlt: "Matcha cake, wagashi, mochi and chocolate arranged beside tea",
-        products: ["filledMochi", "glicoPocky", "hokkaidoChocolate"],
+        products: [
+          "filledMochi",
+          "glicoPocky",
+          "hokkaidoChocolate",
+          "daifuku",
+          "tsujiriPoundCake",
+          "ghanaSable",
+        ],
       },
     ],
     zh: [
       {
-        value: "whisk-at-home",
-        label: "在家点茶",
-        title: "从一碗简单抹茶开始",
-        description: "选择无糖抹茶粉，过筛后加入温水打匀，获得明亮顺滑的茶汤。",
+        value: "pure-matcha",
+        label: "纯饮点茶",
+        title: "从一碗纯抹茶开始",
+        description: "按等级、风味与日常用途比较无糖抹茶粉，选择适合自己的茶粉加水点饮。",
         image: matchaImages.whisk,
         imageAlt: "竹茶筅置于刚打好的抹茶碗中",
-        products: ["marukyuIsuzu", "tsujiriUji", "bambooWhisk"],
+        products: [
+          "marukyuIsuzu",
+          "tsujiriUji",
+          "itoUnsweetened",
+          "marukyuYugen",
+        ],
       },
       {
-        value: "make-a-latte",
-        label: "制作拿铁",
-        title: "调一杯顺滑抹茶拿铁",
-        description: "选择平衡型抹茶粉或即饮产品，再搭配喜欢的牛奶呈现鲜明茶味。",
+        value: "matcha-drinks",
+        label: "抹茶调饮",
+        title: "从拿铁到冰饮，轻松喝抹茶",
+        description: "探索即饮抹茶、冲调粉与顺滑拿铁等形态，选择更适合日常节奏的喝法。",
         image: matchaImages.latte,
-        imageAlt: "分层冰抹茶拿铁、竹茶筅与抹茶粉",
-        products: ["itoAlmondLatte", "instantLatte", "royalMilkTea"],
+        imageAlt: "分层冰抹茶饮、竹茶筅与抹茶粉",
+        products: [
+          "itoAlmondLatte",
+          "instantLatte",
+          "royalMilkTea",
+          "ujiLatte",
+          "tsujiriMatchaMilk",
+          "itoEnergyShot",
+        ],
       },
       {
-        value: "pair-with-sweets",
-        label: "搭配甜点",
-        title: "用柔和甜味衬托茶香",
-        description: "麻薯、蛋糕与巧克力能够缓和抹茶的轻微苦韵，适合下午茶搭配。",
+        value: "matcha-treats",
+        label: "抹茶茶点",
+        title: "发现抹茶风味茶点",
+        description: "从麻薯、饼干到蛋糕与巧克力，让抹茶本身成为下午茶的风味主角。",
         image: matchaImages.sweets,
         imageAlt: "抹茶蛋糕、和果子、麻薯与巧克力搭配茶饮",
-        products: ["filledMochi", "glicoPocky", "hokkaidoChocolate"],
+        products: [
+          "filledMochi",
+          "glicoPocky",
+          "hokkaidoChocolate",
+          "daifuku",
+          "tsujiriPoundCake",
+          "ghanaSable",
+        ],
       },
     ],
   } as const;
@@ -546,9 +683,9 @@ export function createMatchaThemes(
       title: theme.title,
       description: theme.description,
       href: `#explore-more-${
-        theme.value === "whisk-at-home"
+        theme.value === "pure-matcha"
           ? "powder"
-          : theme.value === "make-a-latte"
+          : theme.value === "matcha-drinks"
             ? "latte"
             : "sweets"
       }`,
@@ -607,7 +744,6 @@ export function createMatchaBrandCampaigns(
   return definitions.map((definition) => ({
     id: `matcha-${definition.brand}`,
     title: brands[definition.brand].name,
-    href: brandHref(definition.brand, locale),
     banner: {
       src: definition.banner,
       alt: definition.bannerAlt[locale],
@@ -616,7 +752,7 @@ export function createMatchaBrandCampaigns(
   }));
 }
 
-// Editorial sample copy for the prototype; these are not imported customer reviews.
+// Customer reviews supplied from Yami for the products linked below.
 export function createMatchaEditorialNotes(
   locale: TopicLandingPageLocale,
 ): ReviewCardProps[] {
@@ -625,31 +761,34 @@ export function createMatchaEditorialNotes(
       {
         key: "marukyuIsuzu" as const,
         review:
-          "A focused choice for whisking: vivid color, clean tea character and enough depth to drink simply with water.",
+          "If matcha tastes like grass, then ...... I’m a cow. Good quality, a good price, and after tasting the matcha latte made from this, you will never be able to tolerant Starbucks match latte again.",
       },
       {
         key: "itoAlmondLatte" as const,
         review:
-          "An easy chilled entry point when you want creamy texture without measuring powder or milk.",
+          "This was good but the panna cotta is one big chunk. You have to drink it with a straw. Definitely taste better chilled.",
       },
       {
-        key: "glicoPocky" as const,
+        key: "tsujiriUji" as const,
         review:
-          "Crisp biscuit and sweet matcha coating make this a friendly pairing for a stronger cup of tea.",
+          "Great color, fresh aroma, and smooth texture. The taste is rich with mild bitterness and a nice umami kick — perfect",
       },
     ],
     zh: [
       {
         key: "marukyuIsuzu" as const,
-        review: "适合点茶入门：色泽明亮、茶味干净，直接兑水也有足够层次。",
+        review:
+          "If matcha tastes like grass, then ...... I’m a cow. Good quality, a good price, and after tasting the matcha latte made from this, you will never be able to tolerant Starbucks match latte again.",
       },
       {
         key: "itoAlmondLatte" as const,
-        review: "无需称量抹茶粉和牛奶，就能获得冰凉顺滑的拿铁体验。",
+        review:
+          "This was good but the panna cotta is one big chunk. You have to drink it with a straw. Definitely taste better chilled.",
       },
       {
-        key: "glicoPocky" as const,
-        review: "酥脆饼干与甜抹茶涂层，适合搭配一杯茶味更浓的抹茶。",
+        key: "tsujiriUji" as const,
+        review:
+          "Great color, fresh aroma, and smooth texture. The taste is rich with mild bitterness and a nice umami kick — perfect",
       },
     ],
   } as const;
@@ -658,10 +797,20 @@ export function createMatchaEditorialNotes(
     const source = products[key];
     const product = createMatchaProduct(key, locale);
     return {
-      id: `matcha-editorial-note-${index + 1}`,
+      id:
+        index === 0
+          ? "matcha-customer-review-1157010241"
+          : index === 1
+            ? "matcha-customer-review-1158009201"
+            : "matcha-customer-review-1020065241",
       rating: 5,
       review,
-      reviewer: locale === "zh" ? "Yami 编辑示例" : "Yami editorial sample",
+      reviewer:
+        index === 0
+          ? "tasha奶奶"
+          : index === 1
+            ? "Kimmunicate"
+            : "user11579032227...",
       product: {
         imageSrc: productImages[source.id],
         imageAlt: source.title[locale],
