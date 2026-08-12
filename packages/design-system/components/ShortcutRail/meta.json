@@ -3,8 +3,8 @@
   "name": "ShortcutRail",
   "category": "navigation",
   "status": "stable",
-  "version": "0.1.0",
-  "description": "Responsive YAMI shortcut navigation rail with circular image icons, localized labels, native scrolling, overflow-aware paging controls, an optional left-aligned titled gray surface, and an always-plain full-width mobile surface.",
+  "version": "0.2.0",
+  "description": "Responsive YAMI shortcut navigation rail with circular image icons, localized labels, native scrolling, overflow-aware paging controls, optional card or plain section surfaces, and an optional left-aligned titled gray treatment.",
   "figma": {
     "nodeId": null,
     "componentKey": null,
@@ -13,7 +13,8 @@
   "exports": [
     "ShortcutRail",
     "ShortcutRailItem",
-    "ShortcutRailProps"
+    "ShortcutRailProps",
+    "ShortcutRailSurface"
   ],
   "composes": ["Button"],
   "props": {
@@ -21,6 +22,12 @@
       "type": "ShortcutRailItem[]",
       "required": true,
       "description": "Ordered shortcut destinations with stable IDs, labels, icon sources, hrefs, and an optional icon or full-bleed image presentation."
+    },
+    "surface": {
+      "type": "\"card\" | \"plain\"",
+      "required": false,
+      "default": "plain",
+      "description": "Section surface. Card uses the shared homepage inset, surface radius, compact padding, and primary background without a border or shadow; plain spans the available width."
     },
     "title": {
       "type": "ReactNode",
@@ -31,7 +38,7 @@
       "type": "\"top\" | \"bottom\" | \"none\"",
       "required": false,
       "default": "none",
-      "description": "Optional full-width surface divider edge."
+      "description": "Optional full-width divider edge for the plain surface. Card separation comes from spacing and radius."
     },
     "dividerVariant": {
       "type": "\"gray\" | \"black\"",
@@ -75,7 +82,7 @@
     },
     "radius": {
       "ruleId": "no-custom-radii",
-      "note": "Icon surfaces use --radius-full and links use --radius-component-default."
+      "note": "Card surfaces use --radius-surface-default, icon surfaces use --radius-full, and links use --radius-component-default."
     },
     "motion": {
       "ruleId": "elevation-on-press",
@@ -96,6 +103,7 @@
     "--stroke-default",
     "--stroke-thick",
     "--radius-full",
+    "--radius-surface-default",
     "--radius-component-default",
     "--font-family-ios",
     "--font-weight-normal",
@@ -107,6 +115,7 @@
     "--line-height-heading-xl",
     "--line-height-heading-2xl",
     "--layout-page-margin-default",
+    "--layout-page-margin-card",
     "--space-050",
     "--space-100",
     "--space-200",
@@ -129,6 +138,10 @@
       "property": "border-radius",
       "selector": ".iconSurface"
     },
+    "--radius-surface-default": {
+      "property": "border-radius",
+      "selector": ".root[data-surface='card']"
+    },
     "--font-size-caption-md": {
       "property": "font-size",
       "selector": ".label"
@@ -136,6 +149,10 @@
     "--layout-page-margin-default": {
       "property": "padding-inline and scroll-padding-inline",
       "selector": ".list below 1024px"
+    },
+    "--layout-page-margin-card": {
+      "property": "width and max-width inset",
+      "selector": ".root[data-surface='card']"
     },
     "--space-1000": {
       "property": "width / height",
@@ -153,7 +170,7 @@
     "keyboardNav": ["tab", "shift+tab", "enter"],
     "ariaPattern": "nav with list/listitem links, optional visible title, and optional previous/next buttons",
     "structure": "A supplied title labels the navigation region; otherwise ariaLabel is used. Visible labels provide link names and decorative icon images use empty alt text.",
-    "interaction": "Mobile uses native horizontal scrolling. Desktop adds overflow-aware paging controls over functional edge masks."
+    "interaction": "Mobile uses native horizontal scrolling without paging chrome. Desktop adds overflow-aware paging controls over functional edge masks."
   },
   "dependencies": {
     "runtime": ["react", "./Button"],

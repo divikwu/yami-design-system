@@ -38,7 +38,8 @@ export interface TrendingSearchesProps
   expandLabel?: (keyword: string) => string;
   /**
    * Which row opens first on mobile. Defaults to the top-ranked term, because
-   * an accordion that opens closed shows nothing but a list of words.
+   * starting fully closed shows nothing but a list of words. Other rows can
+   * then be expanded independently.
    */
   defaultExpandedId?: string;
   onAddToCart?: (productId: string) => void;

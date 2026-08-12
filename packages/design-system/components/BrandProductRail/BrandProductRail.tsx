@@ -41,7 +41,9 @@ function getPageDistance(rail: HTMLUListElement) {
 export function BrandProductRail({
   title,
   mobileTitle,
+  titleFontFamily = "sans",
   campaigns,
+  mobileSurface = "card",
   tabs,
   value,
   defaultValue,
@@ -109,6 +111,7 @@ export function BrandProductRail({
       className={cx(styles.root, className)}
       aria-labelledby={titleId}
       data-slot="brand-product-rail"
+      data-mobile-surface={mobileSurface}
       data-divider-position={dividerPosition}
       data-divider-variant={dividerVariant}
     >
@@ -118,6 +121,7 @@ export function BrandProductRail({
             id={titleId}
             title={title}
             mobileTitle={mobileTitle ?? title}
+            titleFontFamily={titleFontFamily}
             className={styles.heading}
             actionsClassName={styles.actions}
             viewAllHref={viewAllHref}
@@ -194,6 +198,7 @@ export function BrandProductRail({
                   backgroundColor: "var(--surface-primary)",
                 }}
                 layout="waterfall"
+                mobileSurface={mobileSurface}
                 presentation="compact"
                 products={campaign.products}
                 onAddToCart={

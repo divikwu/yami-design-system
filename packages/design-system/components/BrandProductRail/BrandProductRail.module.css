@@ -21,6 +21,8 @@
   box-sizing: border-box;
   width: 100%;
   max-width: 1920px;
+  container-name: brand-product-rail;
+  container-type: inline-size;
   flex-direction: column;
   gap: var(--space-200);
   margin-inline: auto;
@@ -311,13 +313,13 @@
   }
 }
 
-@media (min-width: 1025px) {
+@container brand-product-rail (min-width: 1281px) {
   .panel {
     flex-basis: calc((100% - var(--space-400)) / 3);
   }
 }
 
-@media (min-width: 1440px) {
+@container brand-product-rail (min-width: 1441px) {
   .panel {
     flex-basis: calc((100% - var(--space-600)) / 4);
   }
@@ -334,9 +336,19 @@
     border-radius: var(--radius-surface-default);
   }
 
+  .root[data-mobile-surface="plain"] {
+    width: 100%;
+    margin-inline: 0;
+    border-radius: 0;
+  }
+
   .container {
     gap: var(--space-025);
     padding: var(--space-100);
+  }
+
+  .root[data-mobile-surface="plain"] .container {
+    padding: var(--space-200);
   }
 
   .header {
@@ -374,6 +386,24 @@
     margin-inline: calc(-1 * var(--space-100));
     padding: var(--space-100) var(--space-100) 0;
     scroll-padding-inline: var(--space-100);
+  }
+
+  .root[data-mobile-surface="plain"] .list {
+    width: calc(
+      100% + var(--space-200) + var(--space-200)
+    );
+    margin-inline: calc(-1 * var(--space-200));
+    padding: var(--space-100) var(--space-200) 0;
+    scroll-padding-inline: var(--space-200);
+  }
+
+  .root[data-mobile-surface="plain"][data-divider-position="top"] {
+    border-top: var(--section-divider-width) solid var(--section-divider-color);
+  }
+
+  .root[data-mobile-surface="plain"][data-divider-position="bottom"] {
+    border-bottom: var(--section-divider-width) solid
+      var(--section-divider-color);
   }
 
   .panel {
@@ -450,6 +480,12 @@
     :global([data-slot="product-card-media"]) {
     width: calc(var(--space-1000) + var(--space-200));
     flex-basis: calc(var(--space-1000) + var(--space-200));
+  }
+
+  .panel
+    :global([data-slot="product-card"][data-presentation="compact"])
+    :global([data-slot="product-card-image"]) {
+    background-color: var(--fill-tertiary);
   }
 
   .panel

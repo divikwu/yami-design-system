@@ -22,12 +22,18 @@ export interface BrandProductCampaign {
   products: ProductListItem[];
 }
 
+export type BrandProductRailMobileSurface = "card" | "plain";
+
 export interface BrandProductRailProps
   extends Omit<HTMLAttributes<HTMLElement>, "title">,
     SectionDividerProps {
   title: ReactNode;
   mobileTitle?: ReactNode;
+  /** Optional serif treatment for editorial section headings. */
+  titleFontFamily?: "sans" | "serif";
   campaigns: BrandProductCampaign[];
+  /** Mobile section surface. Plain is full-bleed with 16px content padding and supports section dividers. */
+  mobileSurface?: BrandProductRailMobileSurface;
   tabs?: ProductListTab[];
   value?: string;
   defaultValue?: string;

@@ -1723,7 +1723,7 @@
               <article class="step" data-mode="deterministic">
                 <span class="step-index">01</span>
                 <h3>接收主题关键词</h3>
-                <p>保存用户原始输入，只检查是否为空、长度是否有效，不在这一页判断主题类型。</p>
+                <p>保留用户原始输入用于审计、复现和回溯；空值与长度检查可在进入 AI 前拦截无法解析、意外粘贴或超出输入约束的请求，避免无效调用。主题类型需结合语义和证据判断，因此交给下一步 AI 理解，避免仅凭字面规则过早误判。</p>
                 <ul><li>输入 theme_keyword</li><li>类型由下一步 AI 判断</li></ul>
               </article>
               <article class="step" data-mode="deterministic">

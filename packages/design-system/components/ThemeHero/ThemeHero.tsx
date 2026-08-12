@@ -3,6 +3,7 @@
 import type { CSSProperties } from "react";
 import { useId, useLayoutEffect, useRef, useState } from "react";
 
+import { AdaptiveImageScrim } from "../AdaptiveImageScrim";
 import { Badge } from "../Badge";
 import { Button } from "../Button";
 import { heroBannerPalette } from "../HeroBanner/imageColor";
@@ -61,7 +62,7 @@ export function ThemeHero({
   const mobilePalette = heroBannerPalette(imageColor);
   const rootStyle = {
     ...style,
-    "--theme-hero-mobile-surface-color": mobilePalette.surfaceColor,
+    "--adaptive-image-scrim-surface-color": mobilePalette.surfaceColor,
   } as CSSProperties;
 
   useLayoutEffect(() => {
@@ -184,114 +185,122 @@ export function ThemeHero({
       </div>
       <div
         className={styles.scrim}
-        data-slot="theme-hero-scrim"
         aria-hidden="true"
       />
 
       <div className={styles.container} data-slot="theme-hero-container">
         <div className={styles.copy} data-slot="theme-hero-copy">
-          <h2 id={titleId} className={styles.title} data-slot="theme-hero-title">
-            {title}
-          </h2>
           <div
-            className={styles.description}
-            data-slot="theme-hero-description"
-            data-expandable={descriptionCanExpand || undefined}
-            data-expanded={descriptionExpanded}
+            className={styles.copyContent}
+            data-slot="theme-hero-copy-content"
           >
+            <AdaptiveImageScrim
+              className={styles.mobileScrim}
+              data-slot="theme-hero-scrim"
+            />
+            <h2 id={titleId} className={styles.title} data-slot="theme-hero-title">
+              {title}
+            </h2>
             <div
-              ref={descriptionRef}
-              className={styles.descriptionText}
-              data-slot="theme-hero-description-text"
+              className={styles.description}
+              data-slot="theme-hero-description"
+              data-expandable={descriptionCanExpand || undefined}
+              data-expanded={descriptionExpanded}
             >
-              <span
-                ref={descriptionCopyRef}
-                id={descriptionId}
-                data-slot="theme-hero-description-copy"
+              <div
+                ref={descriptionRef}
+                className={styles.descriptionText}
+                data-slot="theme-hero-description-text"
               >
-                {descriptionExpanded
-                  ? description
-                  : (collapsedDescription ?? description)}
-              </span>
-              {descriptionCanExpand && (
-                <button
-                  type="button"
-                  className={styles.descriptionToggle}
-                  data-slot="theme-hero-description-toggle"
-                  aria-controls={descriptionId}
-                  aria-expanded={descriptionExpanded}
-                  onClick={() => setDescriptionExpanded((expanded) => !expanded)}
+                <span
+                  ref={descriptionCopyRef}
+                  id={descriptionId}
+                  data-slot="theme-hero-description-copy"
                 >
                   {descriptionExpanded
-                    ? descriptionCollapseLabel
-                    : descriptionExpandLabel}
-                </button>
-              )}
-            </div>
-          </div>
-          {tags && tags.length > 0 && (
-            <ul
-              className={styles.tags}
-              data-slot="theme-hero-tags"
-              aria-labelledby={titleId}
-              tabIndex={0}
-            >
-              {tags.map((tag, index) => (
-                <li key={`${tag}-${index}`}>
-                  <Badge
-                    className={styles.tagBadge}
-                    size={tagSize}
-                    tone={tagTone}
+                    ? description
+                    : (collapsedDescription ?? description)}
+                </span>
+                {descriptionCanExpand && (
+                  <button
+                    type="button"
+                    className={styles.descriptionToggle}
+                    data-slot="theme-hero-description-toggle"
+                    aria-controls={descriptionId}
+                    aria-expanded={descriptionExpanded}
+                    onClick={() => setDescriptionExpanded((expanded) => !expanded)}
                   >
-                    {tag}
-                  </Badge>
-                </li>
-              ))}
-            </ul>
-          )}
-          {(cta || secondaryCta) && (
-            <div
-              className={styles.actions}
-              data-slot="theme-hero-actions"
-              data-action-count={cta && secondaryCta ? "2" : "1"}
-            >
-              {cta && (
-                <Button
-                  className={styles.actionButton}
-                  variant="primary"
-                  form="inline"
-                  size="md"
-                  inverse
-                  data-action="primary"
-                  disabled={cta.disabled}
-                  aria-label={cta.ariaLabel}
-                  aria-controls={cta.controls}
-                  onClick={cta.onClick}
-                >
-                  {cta.label}
-                </Button>
-              )}
-              {secondaryCta && (
-                <Button
-                  className={cx(
-                    styles.actionButton,
-                    styles.secondaryActionButton,
-                  )}
-                  variant="tertiary"
-                  form="inline"
-                  size="md"
-                  inverse
-                  data-action="secondary"
-                  disabled={secondaryCta.disabled}
-                  aria-label={secondaryCta.ariaLabel}
-                  aria-controls={secondaryCta.controls}
-                  onClick={secondaryCta.onClick}
-                >
-                  {secondaryCta.label}
-                </Button>
-              )}
+                    {descriptionExpanded
+                      ? descriptionCollapseLabel
+                      : descriptionExpandLabel}
+                  </button>
+                )}
+              </div>
             </div>
-          )}
+            {tags && tags.length > 0 && (
+              <ul
+                className={styles.tags}
+                data-slot="theme-hero-tags"
+                aria-labelledby={titleId}
+                tabIndex={0}
+              >
+                {tags.map((tag, index) => (
+                  <li key={`${tag}-${index}`}>
+                    <Badge
+                      className={styles.tagBadge}
+                      size={tagSize}
+                      tone={tagTone}
+                    >
+                      {tag}
+                    </Badge>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {(cta || secondaryCta) && (
+              <div
+                className={styles.actions}
+                data-slot="theme-hero-actions"
+                data-action-count={cta && secondaryCta ? "2" : "1"}
+              >
+                {cta && (
+                  <Button
+                    className={styles.actionButton}
+                    variant="primary"
+                    form="inline"
+                    size="md"
+                    inverse
+                    data-action="primary"
+                    disabled={cta.disabled}
+                    aria-label={cta.ariaLabel}
+                    aria-controls={cta.controls}
+                    onClick={cta.onClick}
+                  >
+                    {cta.label}
+                  </Button>
+                )}
+                {secondaryCta && (
+                  <Button
+                    className={cx(
+                      styles.actionButton,
+                      styles.secondaryActionButton,
+                    )}
+                    variant="tertiary"
+                    form="inline"
+                    size="md"
+                    inverse
+                    data-action="secondary"
+                    disabled={secondaryCta.disabled}
+                    aria-label={secondaryCta.ariaLabel}
+                    aria-controls={secondaryCta.controls}
+                    onClick={secondaryCta.onClick}
+                  >
+                    {secondaryCta.label}
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className={styles.media} data-slot="theme-hero-media">

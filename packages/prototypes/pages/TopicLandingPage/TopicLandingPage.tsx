@@ -10,6 +10,7 @@ import {
 
 import {
   ActivityPageHeader,
+  BrandProductRail,
   Footer,
   Header,
   ProductList,
@@ -42,6 +43,7 @@ export function TopicLandingPage({
   standardRail,
   reviewList,
   productRail,
+  brandRail,
   waterfall,
   footer,
   className,
@@ -442,6 +444,18 @@ export function TopicLandingPage({
         >
           <ProductList {...productRail} />
         </div>
+        {brandRail && (
+          <div
+            className={styles.brandRail}
+            data-motion-reveal="scroll"
+            data-slot="topic-landing-brand-rail"
+          >
+            <BrandProductRail
+              {...brandRail}
+              titleFontFamily={titleFontFamily}
+            />
+          </div>
+        )}
         <div
           id="reviews"
           className={styles.reviewList}

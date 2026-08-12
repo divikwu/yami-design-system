@@ -1,0 +1,26 @@
+/* yami-validate-disable: no-gradient */
+
+.root {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    transparent 0,
+    color-mix(
+        in srgb,
+        var(--adaptive-image-scrim-surface-color, rgb(0 0 0)) 80%,
+        transparent
+      )
+      64px
+  );
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    black 64px
+  );
+  mask-image: linear-gradient(to bottom, transparent 0, black 64px);
+}

@@ -4,4 +4,7 @@ export type {
   TopicLandingPagePrimaryTabs,
   TopicLandingPageProps,
 } from "./TopicLandingPage.types";
-export { createTopicLandingPageFixture } from "./fixtures";
+export {
+  createTopicLandingPageFixture,
+  type TopicLandingPageLocale,
+} from "./fixtures";

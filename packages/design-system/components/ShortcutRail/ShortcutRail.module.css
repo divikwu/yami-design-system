@@ -5,6 +5,9 @@
 .root {
   --section-divider-color: var(--border-default);
   --section-divider-width: var(--stroke-default);
+  --shortcut-rail-container-inline-padding: var(
+    --layout-page-margin-default
+  );
 
   position: relative;
   box-sizing: border-box;
@@ -20,6 +23,19 @@
   --section-divider-width: var(--stroke-thick);
 }
 
+.root[data-surface="card"] {
+  --shortcut-rail-container-inline-padding: var(--space-100);
+
+  width: calc(
+    100% - var(--layout-page-margin-card) - var(--layout-page-margin-card)
+  );
+  max-width: calc(
+    1920px - var(--layout-page-margin-card) - var(--layout-page-margin-card)
+  );
+  margin-inline: auto;
+  border-radius: var(--radius-surface-default);
+}
+
 .surface {
   box-sizing: border-box;
   width: 100%;
@@ -27,15 +43,27 @@
   background: var(--surface-primary);
 }
 
+.root[data-surface="card"] .surface {
+  overflow: hidden;
+  border-radius: inherit;
+  box-shadow: none;
+}
+
+.root[data-surface="card"] .container {
+  gap: var(--space-025);
+  padding-block: var(--space-100);
+  padding-inline: var(--shortcut-rail-container-inline-padding);
+}
+
 .root[data-has-title="true"] .surface {
   background: var(--surface-secondary);
 }
 
-.root[data-divider-position="top"] .surface {
+.root[data-surface="plain"][data-divider-position="top"] .surface {
   border-top: var(--section-divider-width) solid var(--section-divider-color);
 }
 
-.root[data-divider-position="bottom"] .surface {
+.root[data-surface="plain"][data-divider-position="bottom"] .surface {
   border-bottom: var(--section-divider-width) solid var(--section-divider-color);
 }
 
@@ -48,7 +76,7 @@
   gap: var(--space-300);
   margin-inline: auto;
   padding-block: var(--space-400);
-  padding-inline: var(--layout-page-margin-default);
+  padding-inline: var(--shortcut-rail-container-inline-padding);
 }
 
 .title {
@@ -248,41 +276,40 @@
 
 /* ------------------------------------------------- mobile (<1024px)
  *
- * Figma `3183:34141 quick access links - mobile`. The surface stays plain and
- * full width, with smaller entries (68 / 56 / 36 against PC's 80 / 80 / 48)
- * and a paging thumb in place of the edge buttons — controls no one taps on
- * touch.
+ * Figma `3183:34141 quick access links - mobile`. Plain stays full width;
+ * card uses the shared homepage inset and radius. Both use smaller entries
+ * (68 / 56 / 36 against PC's 80 / 80 / 48). Edge buttons stay desktop-only;
+ * touch users scroll the native rail directly.
  *
  * The entry keeps its Figma width and the viewport decides how many fit, with
  * four as the floor — see `--shortcut-rail-item-width` below.
  */
-
-.progress {
-  display: none;
-}
 
 @media (max-width: 1023.98px) {
   .root {
     --shortcut-rail-gap: var(--space-100);
   }
 
-  /* Let the full-bleed image rail extend through the container gutter to the
-   * viewport edge. The list stays horizontally scrollable, so every fixed-size
-   * entry remains reachable without introducing page-level overflow. */
-  .root[data-rail-presentation="full-bleed"] .railBody {
-    width: calc(100% + var(--space-400));
-    margin-inline: calc(-1 * var(--space-200));
+  /* Let every rail extend through the container gutter to the surface edge.
+   * The list stays horizontally scrollable, so the next entry can remain
+   * visible beyond the inner content width without causing page overflow. */
+  .railBody {
+    width: calc(
+      100% + var(--shortcut-rail-container-inline-padding) +
+        var(--shortcut-rail-container-inline-padding)
+    );
+    margin-inline: calc(-1 * var(--shortcut-rail-container-inline-padding));
   }
 
-  .root[data-rail-presentation="full-bleed"] .list {
-    padding-inline: var(--space-200);
-    scroll-padding-inline: var(--space-200);
+  .root .list {
+    padding-inline: var(--shortcut-rail-container-inline-padding);
+    scroll-padding-inline: var(--shortcut-rail-container-inline-padding);
   }
 
   .container {
     gap: var(--space-150);
     padding-block: var(--space-200);
-    padding-inline: var(--space-200);
+    padding-inline: var(--shortcut-rail-container-inline-padding);
   }
 
   .title {
@@ -372,29 +399,4 @@
     display: none;
   }
 
-  /* Keep the paging thumb 4px below the labels; the container owns the outer
-   * bottom inset. */
-  .progress {
-    display: flex;
-    justify-content: center;
-    padding-block: var(--space-050) 0;
-  }
-
-  .progressTrack {
-    position: relative;
-    width: 48px;
-    height: var(--stroke-thick);
-    border-radius: var(--radius-full);
-    background: var(--divider-default);
-  }
-
-  .progressThumb {
-    position: absolute;
-    top: 0;
-    left: calc(var(--shortcut-rail-progress, 0) * (48px - 24px));
-    width: 24px;
-    height: 100%;
-    border-radius: var(--radius-full);
-    background: var(--divider-emphasis);
-  }
 }

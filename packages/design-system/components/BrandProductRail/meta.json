@@ -13,6 +13,7 @@
   "exports": [
     "BrandProductRail",
     "BrandProductCampaign",
+    "BrandProductRailMobileSurface",
     "BrandProductRailProps"
   ],
   "composes": ["ProductList", "ProductCard", "Button", "Tabs"],
@@ -27,10 +28,22 @@
       "required": false,
       "description": "Optional mobile-only section heading; falls back to title."
     },
+    "titleFontFamily": {
+      "type": "\"sans\" | \"serif\"",
+      "required": false,
+      "default": "sans",
+      "description": "Optional serif treatment for editorial section headings."
+    },
     "campaigns": {
       "type": "BrandProductCampaign[]",
       "required": true,
       "description": "Ordered brand campaigns with a banner and ProductList items."
+    },
+    "mobileSurface": {
+      "type": "\"card\" | \"plain\"",
+      "required": false,
+      "default": "card",
+      "description": "Mobile section surface. Plain is full-bleed with 16px content padding and supports section dividers."
     },
     "tabs": {
       "type": "ProductListTab[]",
@@ -84,7 +97,7 @@
       "type": "\"top\" | \"bottom\" | \"none\"",
       "required": false,
       "default": "top",
-      "description": "Places the desktop section boundary above, below, or removes it; ignored below 1024px."
+      "description": "Places the section boundary above, below, or removes it; card mobile ignores it while plain mobile preserves it."
     },
     "dividerVariant": {
       "type": "\"gray\" | \"black\"",
@@ -132,7 +145,9 @@
     "--radius-surface-default",
     "--radius-full",
     "--font-family-ios",
+    "--font-family-serif",
     "--font-weight-normal",
+    "--font-weight-semibold",
     "--font-size-display-sm",
     "--font-size-heading-xl",
     "--font-size-heading-2xl",
@@ -164,8 +179,8 @@
       "selector": "brand banner title and compact ProductCard image surfaces"
     },
     "--layout-page-margin-card": {
-      "property": "mobile outer margin",
-      "selector": ".root below 1024px"
+      "property": "card mobile outer margin",
+      "selector": ".root[data-mobile-surface=card] below 1024px"
     },
     "--space-600": {
       "property": "desktop section padding and responsive panel gap calculation",

@@ -40,6 +40,7 @@ function getPageDistance(rail: HTMLUListElement) {
 
 export function ShortcutRail({
   items,
+  surface = "plain",
   title,
   ariaLabel = "Featured shortcuts",
   previousLabel = "Previous shortcuts",
@@ -54,7 +55,6 @@ export function ShortcutRail({
   const titleId = useId();
   const railRef = useRef<HTMLUListElement>(null);
   const [edges, setEdges] = useState({ atStart: true, atEnd: true });
-  const [progress, setProgress] = useState(0);
   const imagePresentation =
     items.length > 0 &&
     items.every((item) => item.imagePresentation === "full-bleed")
@@ -69,7 +69,6 @@ export function ShortcutRail({
       atStart: rail.scrollLeft <= 1,
       atEnd: rail.scrollLeft >= maxScrollLeft - 1,
     });
-    setProgress(maxScrollLeft <= 0 ? 0 : rail.scrollLeft / maxScrollLeft);
   }, []);
 
   useEffect(() => {
@@ -110,7 +109,7 @@ export function ShortcutRail({
       data-lines={lines}
       data-rail-presentation={imagePresentation}
       data-has-title={title ? "true" : undefined}
-      data-mobile-surface="plain"
+      data-surface={surface}
       data-divider-position={dividerPosition}
       data-divider-variant={dividerVariant}
       style={
@@ -211,30 +210,6 @@ export function ShortcutRail({
               </span>
             )}
 
-            {/* Mobile paging cue. CSS shows it below 1024px, where the edge
-             * buttons are hidden — a thumb tracking scroll position reads
-             * better on touch than controls no one taps. Full-bleed image rails
-             * omit it. Decorative: the rail itself is the scrollable,
-             * keyboard-reachable region. */}
-            {imagePresentation !== "full-bleed" &&
-              !(edges.atStart && edges.atEnd) && (
-              <span
-                className={styles.progress}
-                data-slot="shortcut-rail-progress"
-                aria-hidden="true"
-              >
-                <span className={styles.progressTrack}>
-                  <span
-                    className={styles.progressThumb}
-                    style={
-                      {
-                        "--shortcut-rail-progress": progress,
-                      } as CSSProperties
-                    }
-                  />
-                </span>
-              </span>
-            )}
           </div>
         </div>
       </div>

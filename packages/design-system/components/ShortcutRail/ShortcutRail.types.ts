@@ -6,6 +6,8 @@ import type {
 
 import type { SectionDividerProps } from "../sectionDivider.types";
 
+export type ShortcutRailSurface = "card" | "plain";
+
 export interface ShortcutRailItem {
   /** Stable identity for React and analytics hooks. */
   id: string;
@@ -26,6 +28,8 @@ export interface ShortcutRailProps
     SectionDividerProps {
   /** Ordered shortcut destinations. */
   items: ShortcutRailItem[];
+  /** Section surface. Card is inset and rounded; plain spans the available width. */
+  surface?: ShortcutRailSurface;
   /** Optional visible section title. When present, the rail uses the titled gray-surface treatment. */
   title?: ReactNode;
   /** Localized accessible name for the navigation region. */

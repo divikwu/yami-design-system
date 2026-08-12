@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import type { ReactNode } from "react";
+import "@yami/design-system/styles/fonts.css";
+import "@yami/design-system/tokens.css";
 import "./globals.css";
 
 const yamiFont = localFont({
