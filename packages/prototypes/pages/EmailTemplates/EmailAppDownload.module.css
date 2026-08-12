@@ -1,0 +1,89 @@
+.root {
+  position: relative;
+  height: 382px;
+  overflow: hidden;
+  background-color: #ed0000;
+  color: var(--text-primary-inverse);
+  font-family: var(--font-family-ios);
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 330px;
+  height: 100%;
+  box-sizing: border-box;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--space-400) var(--space-300);
+}
+
+.heading {
+  margin: 0;
+  color: var(--color-white-1000);
+  font-size: var(--font-size-heading-xl);
+  font-weight: var(--font-weight-emphasize);
+  line-height: var(--line-height-heading-xl);
+  text-wrap: balance;
+}
+
+.description {
+  margin: var(--space-150) 0 0;
+  color: var(--color-white-1000);
+  font-size: var(--font-size-body-xl);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-body-xl);
+  text-wrap: pretty;
+}
+
+.appList {
+  display: flex;
+  width: 246px;
+  flex-direction: column;
+  gap: var(--space-150);
+  margin-top: var(--space-300);
+}
+
+.appButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 246px;
+  height: 40px;
+  border-radius: var(--radius-button-emphasis);
+  background-color: var(--color-neutral-900);
+  color: var(--color-white-1000);
+  font-size: var(--font-size-link-md);
+  font-weight: var(--font-weight-emphasize);
+  line-height: var(--line-height-link-md);
+  text-decoration: none;
+}
+
+.appButton:focus-visible {
+  outline: 2px solid var(--color-white-1000);
+  outline-offset: 2px;
+}
+
+.appIcon {
+  display: block;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.appStoreIcon {
+  filter: invert(1);
+}
+
+.phoneArtwork {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 600px;
+  height: 382px;
+  clip-path: inset(49px 44px 0 362px round 33px 33px 0 0);
+  object-fit: contain;
+  pointer-events: none;
+}
