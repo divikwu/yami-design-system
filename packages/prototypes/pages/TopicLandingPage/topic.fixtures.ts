@@ -8,12 +8,11 @@ import {
   createMatchaBrandCampaigns,
   createMatchaEditorialNotes,
   createMatchaPopularProducts,
-  createMatchaProduct,
   createMatchaProductsByCategory,
   createMatchaThemes,
   matchaCategoryValues,
+  matchaWaterfallValues,
   matchaImages,
-  type MatchaProductKey,
 } from "./matcha.fixture";
 
 const copy = {
@@ -39,11 +38,20 @@ const copy = {
     popularTitle: "Popular Matcha Picks",
     popularAll: "All",
     brandTitle: "Matcha by Brand",
-    notesTitle: "Tasting Notes",
+    notesTitle: "What Customers Say",
     moreTitle: "More Matcha",
     moreDescription:
-      "Keep exploring powders, drinks, sweets and tools selected from Yami's current matcha assortment.",
-    moreTabs: ["All", "Powder", "Latte", "Snacks", "Chocolate", "Sweets", "Tools"],
+      "Explore matcha powders, drinks, sweets and tools, plus ingredients selected for lattes and homemade desserts.",
+    moreTabs: [
+      "All",
+      "Matcha Pairings",
+      "Powder",
+      "Latte",
+      "Snacks",
+      "Chocolate",
+      "Sweets",
+      "Tools",
+    ],
     moreLabel: "Explore more matcha",
   },
   zh: {
@@ -67,22 +75,23 @@ const copy = {
     popularTitle: "热门抹茶精选",
     popularAll: "全部",
     brandTitle: "按品牌选抹茶",
-    notesTitle: "风味笔记",
+    notesTitle: "顾客怎么说",
     moreTitle: "更多抹茶",
-    moreDescription: "继续探索 Yami 当前抹茶商品中的茶粉、饮品、甜点与茶具。",
-    moreTabs: ["全部", "抹茶粉", "拿铁", "零食", "巧克力", "甜点", "茶具"],
+    moreDescription:
+      "探索抹茶粉、饮品、甜点与茶具，也可选购适合拿铁和自制甜点的搭配食材。",
+    moreTabs: [
+      "全部",
+      "抹茶好搭档",
+      "抹茶粉",
+      "拿铁",
+      "零食",
+      "巧克力",
+      "甜点",
+      "茶具",
+    ],
     moreLabel: "探索更多抹茶",
   },
 } as const;
-
-const shortcutProductKeyByCategory = {
-  powder: "marukyuIsuzu",
-  latte: "itoAlmondLatte",
-  snacks: "glicoPocky",
-  chocolate: "hokkaidoChocolate",
-  sweets: "filledMochi",
-  tools: "teaSet",
-} satisfies Record<(typeof matchaCategoryValues)[number], MatchaProductKey>;
 
 function createTabs(
   values: readonly string[],
@@ -104,10 +113,11 @@ export function createTopicKeywordLandingPageFixture(
   const themes = createMatchaThemes(locale);
   const productsByCategory = createMatchaProductsByCategory(locale);
   const popularProducts = createMatchaPopularProducts(locale);
-  const allProducts = matchaCategoryValues.flatMap(
-    (value) => productsByCategory[value],
-  );
-  const waterfallValues = ["all", ...matchaCategoryValues] as const;
+  const allProducts = [
+    ...matchaCategoryValues.flatMap((value) => productsByCategory[value]),
+    ...productsByCategory.pairings,
+  ];
+  const waterfallValues = ["all", ...matchaWaterfallValues] as const;
   const waterfallTabs = createTabs(waterfallValues, localizedCopy.moreTabs);
 
   return {
@@ -171,10 +181,7 @@ export function createTopicKeywordLandingPageFixture(
       items: matchaCategoryValues.map((value, index) => ({
         id: `matcha-shortcut-${value}`,
         label: localizedCopy.categoryLabels[index],
-        iconSrc: createMatchaProduct(
-          shortcutProductKeyByCategory[value],
-          locale,
-        ).image as string,
+        iconSrc: matchaImages.shortcutScenes[value],
         imagePresentation: "full-bleed" as const,
         href: `#explore-more-${value}`,
       })),
@@ -205,8 +212,6 @@ export function createTopicKeywordLandingPageFixture(
       title: localizedCopy.brandTitle,
       campaigns: createMatchaBrandCampaigns(locale),
       defaultValue: "matcha-ito-en",
-      viewAllHref: `https://www.yami.com/us/${locale}/search?q=matcha`,
-      viewAllLabel: localizedCopy.moreLabel,
       mobileSurface: "plain" as const,
       dividerPosition: "top" as const,
       dividerVariant: "gray" as const,
