@@ -21,7 +21,11 @@ const copy = {
     heroTitle: "Matcha, from first whisk to favorite treat",
     heroDescription:
       "Explore matcha by the way you enjoy it: whisked pure, folded into a creamy latte, or paired with chocolate, cookies and Japanese sweets.",
-    heroTags: ["Uji Matcha", "Latte Ready", "Tea-Time Treats"],
+    heroTags: [
+      "Matcha Powder & Tea Tools",
+      "Drinks & Pairings",
+      "Snacks & Sweets",
+    ],
     heroImageAlt:
       "Fresh matcha, an iced matcha latte, bamboo whisk and Japanese sweets on a sunlit stone table",
     shortcutTitle: "Explore Matcha",
@@ -59,7 +63,7 @@ const copy = {
     heroTitle: "从第一碗到心仪甜点，探索抹茶",
     heroDescription:
       "按喜欢的方式认识抹茶：纯饮点茶、顺滑拿铁，或搭配巧克力、饼干与日式甜点。",
-    heroTags: ["宇治抹茶", "拿铁友好", "下午茶甜点"],
+    heroTags: ["抹茶粉与茶具", "饮品与搭配", "零食与甜点"],
     heroImageAlt: "阳光石桌上的鲜抹茶、冰抹茶拿铁、竹茶筅与日式甜点",
     shortcutTitle: "探索抹茶",
     primaryTabsLabel: "抹茶主题导航",
