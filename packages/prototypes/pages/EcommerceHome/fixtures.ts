@@ -476,7 +476,11 @@ export function createEcommerceHomeFixture(
     {
       id: "trending-searches",
       kind: "searches",
-      props: createTrendingSearchesProps(locale),
+      props: {
+        ...createTrendingSearchesProps(locale),
+        dividerPosition: "top",
+        dividerVariant: "gray",
+      },
     },
     {
       id: "summer-stock-up",

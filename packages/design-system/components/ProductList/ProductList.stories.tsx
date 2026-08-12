@@ -465,14 +465,15 @@ export const MobilePlainVariantContract: Story = {
       !waterfallList ||
       !waterfallCard ||
       getComputedStyle(waterfallList).display !== "grid" ||
-      getComputedStyle(waterfallList).gap !== "16px" ||
+      getComputedStyle(waterfallList).columnGap !== "8px" ||
+      getComputedStyle(waterfallList).rowGap !== "16px" ||
       getComputedStyle(waterfallList).padding !== "0px" ||
       getComputedStyle(waterfall).borderRadius !== "0px" ||
       waterfallCard.dataset.surface !== "plain" ||
       getComputedStyle(waterfallCard).padding !== "0px"
     ) {
       throw new Error(
-        "Mobile plain waterfall must use a square surface with 16px spacing and no list padding",
+        "Mobile plain waterfall must use a square surface with 8px columns, 16px rows, and no list padding",
       );
     }
   },

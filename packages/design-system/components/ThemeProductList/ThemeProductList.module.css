@@ -97,11 +97,24 @@
 
 @media (max-width: 1023px) {
   .content {
-    min-height: calc(152px + var(--space-600) + var(--space-600));
+    min-height: 160px;
+  }
+
+  .content[data-foreground="dark"] {
+    color: var(--color-white-1000);
   }
 
   .overlay {
+    top: 0;
     padding: var(--space-500) var(--space-100) var(--space-100);
+  }
+
+  .overlay [data-adaptive-image-scrim] {
+    background: var(--color-black-400);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    -webkit-mask-image: none;
+    mask-image: none;
   }
 
   .title {

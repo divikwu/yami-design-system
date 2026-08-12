@@ -22,29 +22,6 @@
 }
 
 .main[data-motion-ready="true"]
-  [data-page-slot="topic-landing-waterfall"]
-  :is(
-    [data-slot="product-list-heading"],
-    [data-slot="product-list-container"] > [data-slot="tabs"],
-    [data-slot="product-list-item"],
-    [data-slot="product-list-load-more"]
-  ) {
-  opacity: 0;
-}
-
-.main[data-motion-ready="true"]
-  [data-page-slot="topic-landing-waterfall"]
-  :is(
-    [data-slot="product-list-heading"],
-    [data-slot="product-list-container"] > [data-slot="tabs"],
-    [data-slot="product-list-item"],
-    [data-slot="product-list-load-more"]
-  )[data-motion-state="visible"] {
-  opacity: 1;
-  transform: translate3d(0, 0, 0);
-}
-
-.main[data-motion-ready="true"]
   [data-motion-reveal="initial"]
   :is([data-slot="theme-hero-copy"], [data-slot="theme-hero-media"]) {
   opacity: 0;
@@ -65,20 +42,12 @@
     [data-slot="topic-landing-brand-rail"]
       > [data-slot="brand-product-rail"]
       > [data-slot="brand-product-rail-container"],
-    [data-slot="review-list-container"]
+    [data-slot="review-list-container"],
+    [data-slot="topic-landing-waterfall-section"]
+      > [data-slot="product-list"]
+      > [data-slot="product-list-container"]
   ) {
   opacity: 0;
-  transform: translate3d(0, 24px, 0);
-}
-
-.main[data-motion-ready="true"]
-  [data-page-slot="topic-landing-waterfall"]
-  :is(
-    [data-slot="product-list-heading"],
-    [data-slot="product-list-container"] > [data-slot="tabs"],
-    [data-slot="product-list-item"],
-    [data-slot="product-list-load-more"]
-  ) {
   transform: translate3d(0, 24px, 0);
 }
 
@@ -106,7 +75,10 @@
     [data-slot="topic-landing-brand-rail"]
       > [data-slot="brand-product-rail"]
       > [data-slot="brand-product-rail-container"],
-    [data-slot="review-list-container"]
+    [data-slot="review-list-container"],
+    [data-slot="topic-landing-waterfall-section"]
+      > [data-slot="product-list"]
+      > [data-slot="product-list-container"]
   ) {
   opacity: 1;
   transform: translate3d(0, 0, 0);
@@ -116,32 +88,25 @@
 }
 
 .main[data-motion-ready="true"]
-  [data-page-slot="topic-landing-waterfall"]
+  [data-motion-reveal="scroll"][data-motion-direction="up"]
   :is(
-    [data-slot="product-list-heading"],
-    [data-slot="product-list-container"] > [data-slot="tabs"],
-    [data-slot="product-list-item"],
-    [data-slot="product-list-load-more"]
-  )[data-motion-state="visible"] {
-  transition:
-    opacity 320ms ease-out,
-    transform 320ms ease-out;
-}
-
-.main[data-motion-ready="true"]
-  [data-page-slot="topic-landing-waterfall"]
-  [data-slot="product-list-container"]
-  > [data-slot="tabs"][data-motion-state="visible"] {
-  transition-delay: 80ms;
-}
-
-.main[data-motion-ready="true"]
-  [data-page-slot="topic-landing-waterfall"]
-  :is(
-    [data-slot="product-list-item"],
-    [data-slot="product-list-load-more"]
-  )[data-motion-state="visible"] {
-  transition-delay: var(--topic-landing-row-reveal-delay, 0ms);
+    [data-slot="shortcut-rail-container"],
+    [data-slot="topic-landing-theme-product-list"]
+      > [data-slot="theme-product-list"]
+      > [data-component="theme-product-list"]
+      > [data-slot="product-list-container"],
+    [data-slot="topic-landing-standard-rail"]
+      > [data-slot="product-list"]
+      > [data-slot="product-list-container"],
+    [data-slot="topic-landing-brand-rail"]
+      > [data-slot="brand-product-rail"]
+      > [data-slot="brand-product-rail-container"],
+    [data-slot="review-list-container"],
+    [data-slot="topic-landing-waterfall-section"]
+      > [data-slot="product-list"]
+      > [data-slot="product-list-container"]
+  ) {
+  transition: none;
 }
 
 main.main[data-slot="topic-landing-main"]
@@ -229,6 +194,7 @@ main.main[data-title-font-family="sans"]
     padding-inline: var(--space-200);
     scroll-padding-inline: var(--space-200);
   }
+
 }
 
 .standardRail {
@@ -267,6 +233,65 @@ main.main[data-title-font-family="sans"]
 }
 
 @media (min-width: 1024px) {
+  .main[data-motion-ready="true"]
+    [data-slot="topic-landing-waterfall-section"]
+    > [data-slot="product-list"]
+    > [data-slot="product-list-container"] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .main[data-motion-ready="true"]
+    [data-slot="topic-landing-waterfall-section"]:not(
+      [data-motion-state="visible"]
+    )
+    > [data-slot="product-list"]
+    > [data-slot="product-list-container"]
+    > :is([data-slot="product-list-heading"], [data-slot="tabs"]) {
+    opacity: 0;
+    transform: translate3d(0, 24px, 0);
+  }
+
+  .main[data-motion-ready="true"]
+    [data-slot="topic-landing-waterfall-section"][data-motion-state="visible"]
+    > [data-slot="product-list"]
+    > [data-slot="product-list-container"]
+    > :is([data-slot="product-list-heading"], [data-slot="tabs"]) {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    transition:
+      opacity 320ms ease-out,
+      transform 320ms ease-out;
+  }
+
+  .main[data-motion-ready="true"]
+    [data-slot="topic-landing-waterfall-section"][data-motion-direction="up"]
+    > [data-slot="product-list"]
+    > [data-slot="product-list-container"]
+    > :is([data-slot="product-list-heading"], [data-slot="tabs"]) {
+    transition: none;
+  }
+
+  .main[data-motion-ready="true"] [data-motion-reveal="scroll-row"] {
+    opacity: 0;
+    transform: translate3d(0, 24px, 0);
+  }
+
+  .main[data-motion-ready="true"]
+    [data-motion-reveal="scroll-row"][data-motion-state="visible"] {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    transition:
+      opacity 320ms ease-out,
+      transform 320ms ease-out;
+  }
+
+  .main[data-motion-ready="true"]
+    [data-motion-reveal="scroll-row"][data-motion-direction="up"] {
+    transition: none;
+  }
+
   .primaryTabsContainer {
     padding-inline: var(--space-600);
   }
@@ -325,16 +350,12 @@ main.main[data-title-font-family="sans"]
       [data-slot="topic-landing-brand-rail"]
         > [data-slot="brand-product-rail"]
         > [data-slot="brand-product-rail-container"],
-      [data-slot="review-list-container"]
+      [data-slot="review-list-container"],
+      [data-slot="topic-landing-waterfall-section"]
+        > [data-slot="product-list"]
+        > [data-slot="product-list-container"]
     ),
-  .main[data-motion-ready]
-    [data-page-slot="topic-landing-waterfall"]
-    :is(
-      [data-slot="product-list-heading"],
-      [data-slot="product-list-container"] > [data-slot="tabs"],
-      [data-slot="product-list-item"],
-      [data-slot="product-list-load-more"]
-    ) {
+  .main[data-motion-ready] [data-motion-reveal="scroll-row"] {
     opacity: 1;
     transform: none;
     animation: none;

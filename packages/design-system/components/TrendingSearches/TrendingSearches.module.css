@@ -5,10 +5,18 @@
  * toggles on a phone and a set of links on a desktop, never a mix. */
 
 .root {
+  --section-divider-color: var(--border-default);
+  --section-divider-width: var(--stroke-default);
+
   box-sizing: border-box;
   width: 100%;
   color: var(--text-primary);
   font-family: var(--font-family-ios);
+}
+
+.root[data-divider-variant="black"] {
+  --section-divider-color: var(--divider-emphasis);
+  --section-divider-width: var(--stroke-thick);
 }
 
 /* Below 1024px the page stacks white cards on a grey canvas, and this section
@@ -280,6 +288,14 @@
 }
 
 @media (min-width: 1024px) {
+  .root[data-divider-position="top"] {
+    border-top: var(--section-divider-width) solid var(--section-divider-color);
+  }
+
+  .root[data-divider-position="bottom"] {
+    border-bottom: var(--section-divider-width) solid var(--section-divider-color);
+  }
+
   /* A full-bleed band whose content stops at the page box, like every other
    * section on the page. */
   .container {

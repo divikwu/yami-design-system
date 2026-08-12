@@ -228,6 +228,26 @@ export const Pc: Story = {
       throw new Error("Ecommerce home hero frame must have no vertical padding");
     }
 
+    const trendingSearches = page.querySelector<HTMLElement>(
+      '[data-slot="trending-searches"]',
+    );
+    if (!trendingSearches) {
+      throw new Error("Ecommerce home trending searches did not render");
+    }
+    const trendingSearchesStyle = getComputedStyle(trendingSearches);
+    const expectedTrendingSearchesBorderWidth = isDesktop ? "1px" : "0px";
+    if (
+      trendingSearches.dataset.dividerPosition !== "top" ||
+      trendingSearches.dataset.dividerVariant !== "gray" ||
+      trendingSearchesStyle.borderTopWidth !==
+        expectedTrendingSearchesBorderWidth ||
+      trendingSearchesStyle.borderBottomWidth !== "0px"
+    ) {
+      throw new Error(
+        `Ecommerce home trending searches must use a gray ${expectedTrendingSearchesBorderWidth} top divider at this viewport`,
+      );
+    }
+
     const shortcutRail = page.querySelector<HTMLElement>(
       '[data-slot="shortcut-rail"]',
     );
