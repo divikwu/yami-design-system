@@ -13,7 +13,10 @@ const config: StorybookConfig = {
   ],
   addons: ["@storybook/addon-docs", "@storybook/addon-a11y", "@storybook/addon-vitest"],
   framework: { name: "@storybook/react-vite", options: {} },
-  staticDirs: [{ from: path.join(root, "packages/design-system/assets"), to: "/assets" }],
+  staticDirs: [
+    { from: path.join(root, "packages/design-system/assets"), to: "/assets" },
+    { from: path.join(here, "../public"), to: "/" }
+  ],
   typescript: { reactDocgen: "react-docgen" },
   viteFinal: async (viteConfig) => ({
     ...viteConfig,
