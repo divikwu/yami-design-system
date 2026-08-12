@@ -1,6 +1,7 @@
 import type { HTMLAttributes, ReactNode } from "react";
 
 import type { ProductListItem } from "../ProductList";
+import type { SectionDividerProps } from "../sectionDivider.types";
 
 export interface TrendingSearchKeyword {
   id: string;
@@ -25,7 +26,8 @@ export interface TrendingSearchKeyword {
 }
 
 export interface TrendingSearchesProps
-  extends Omit<HTMLAttributes<HTMLElement>, "title"> {
+  extends Omit<HTMLAttributes<HTMLElement>, "title">,
+    SectionDividerProps {
   title: ReactNode;
   /** Shorter title below 1024px, where the section title shares a row. */
   mobileTitle?: ReactNode;

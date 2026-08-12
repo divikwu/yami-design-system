@@ -12,13 +12,36 @@ interface LocalizedText {
   zh: string;
 }
 
-type BrandKey = "ito-en" | "marukyu-koyamaen" | "tsujiri" | "glico";
+type BrandKey =
+  | "ito-en"
+  | "marukyu-koyamaen"
+  | "tsujiri"
+  | "glico"
+  | "tramy"
+  | "bamboo-tree"
+  | "wangzhihe"
+  | "vinamilk"
+  | "zhanyi"
+  | "green-elephant"
+  | "ucc"
+  | "fukujuen"
+  | "nittoh-tea"
+  | "orion"
+  | "furuta"
+  | "lotte-japan"
+  | "chocday"
+  | "formosa-yay"
+  | "royal-family"
+  | "nestle"
+  | "uha"
+  | "kanglepin"
+  | "kawasimaya";
 
 interface MatchaProductSource {
   id: keyof typeof productImages;
   title: LocalizedText;
   price: number;
-  brand?: BrandKey;
+  brand: BrandKey;
 }
 
 const productImages = {
@@ -198,6 +221,25 @@ const brands = {
     slug: "glico",
     id: "46",
   },
+  tramy: { name: "TRAMY", slug: "tramy", id: "5784" },
+  "bamboo-tree": { name: "BAMBOO TREE", slug: "sanzhu", id: "15498" },
+  wangzhihe: { name: "WANGZHIHE", slug: "wangzhihe", id: "494" },
+  vinamilk: { name: "VINAMILK", slug: "vinamilk", id: "19437" },
+  zhanyi: { name: "ZHANYI", slug: "zhanyi", id: "7631" },
+  "green-elephant": { name: "GREEN ELEPHANT", slug: "lvxiang", id: "2782" },
+  ucc: { name: "UCC", slug: "ucc", id: "1242" },
+  fukujuen: { name: "Fukujuen", slug: "fukujoen", id: "8443" },
+  "nittoh-tea": { name: "NITTOH TEA", slug: "nitto-tea", id: "3477" },
+  orion: { name: "ORION", slug: "orion", id: "133" },
+  furuta: { name: "FURUTA", slug: "furuta", id: "37" },
+  "lotte-japan": { name: "LOTTE Japan", slug: "lotte", id: "1944" },
+  chocday: { name: "CHOCDAY", slug: "choc-apm", id: "7083" },
+  "formosa-yay": { name: "FORMOSA YAY", slug: "xin-ye", id: "1766" },
+  "royal-family": { name: "ROYAL FAMILY", slug: "royal-family", id: "28" },
+  nestle: { name: "NESTLE", slug: "nestle", id: "52" },
+  uha: { name: "UHA", slug: "uha", id: "56" },
+  kanglepin: { name: "KANGLEPIN", slug: "kanglepin", id: "16987" },
+  kawasimaya: { name: "KAWASIMAYA", slug: "kawasimaya", id: "9836" },
 } as const;
 
 // Availability and prices were verified with Yami search on 2026-08-11.
@@ -236,6 +278,7 @@ const products = {
       zh: "无糖豆奶 9.46fl oz",
     },
     price: 1.69,
+    brand: "tramy",
   },
   cannedCoconutMilk: {
     id: "1159008391",
@@ -244,6 +287,7 @@ const products = {
       zh: "饮品甜点用椰奶 13.52fl oz",
     },
     price: 2.19,
+    brand: "bamboo-tree",
   },
   sweetRedBeanPaste: {
     id: "1021014881",
@@ -252,6 +296,7 @@ const products = {
       zh: "甜红豆馅 17.64oz",
     },
     price: 3.69,
+    brand: "wangzhihe",
   },
   condensedCreamer: {
     id: "1159008381",
@@ -260,6 +305,7 @@ const products = {
       zh: "甜炼乳 45.3oz",
     },
     price: 6.49,
+    brand: "vinamilk",
   },
   brownSugarSyrup: {
     id: "5021181231",
@@ -268,6 +314,7 @@ const products = {
       zh: "液体黑糖浆 280g",
     },
     price: 8.88,
+    brand: "zhanyi",
   },
   glutinousRiceFlour: {
     id: "1149004421",
@@ -276,6 +323,7 @@ const products = {
       zh: "绿象糯米粉 1lb",
     },
     price: 1.99,
+    brand: "green-elephant",
   },
   marukyuIsuzu: {
     id: "1157010241",
@@ -338,6 +386,7 @@ const products = {
       zh: "宇治抹茶牛奶拿铁 8.79fl oz",
     },
     price: 2.49,
+    brand: "ucc",
   },
   instantLatte: {
     id: "5157069441",
@@ -346,6 +395,7 @@ const products = {
       zh: "宇治浓茶抹茶拿铁粉 4.23oz",
     },
     price: 9.99,
+    brand: "fukujuen",
   },
   royalMilkTea: {
     id: "5157065631",
@@ -354,6 +404,7 @@ const products = {
       zh: "北海道皇家奶茶即溶抹茶拿铁 8条",
     },
     price: 6.98,
+    brand: "nittoh-tea",
   },
   glicoPejoy: {
     id: "1016006971",
@@ -389,6 +440,7 @@ const products = {
       zh: "乌龟玉米脆片 抹茶巧克力味 5.64oz",
     },
     price: 4.49,
+    brand: "orion",
   },
   hokkaidoChocolate: {
     id: "1018215361",
@@ -397,6 +449,7 @@ const products = {
       zh: "北海道鲜奶油抹茶巧克力 4.02oz",
     },
     price: 5.19,
+    brand: "furuta",
   },
   ghanaSable: {
     id: "5018220131",
@@ -405,6 +458,7 @@ const products = {
       zh: "Ghana 深宇治抹茶莎布蕾巧克力 1.73oz",
     },
     price: 5.5,
+    brand: "lotte-japan",
   },
   darkChocolate: {
     id: "1018172321",
@@ -413,6 +467,7 @@ const products = {
       zh: "丝滑抹茶黑巧克力 0.53oz",
     },
     price: 2.59,
+    brand: "chocday",
   },
   filledMochi: {
     id: "1016057371",
@@ -421,6 +476,7 @@ const products = {
       zh: "抹茶夹心麻薯 6.35oz",
     },
     price: 2.59,
+    brand: "formosa-yay",
   },
   daifuku: {
     id: "1016347971",
@@ -429,6 +485,7 @@ const products = {
       zh: "日式抹茶大福 4.2oz",
     },
     price: 2.39,
+    brand: "royal-family",
   },
   latteMochi: {
     id: "1016200951",
@@ -437,6 +494,7 @@ const products = {
       zh: "浓郁抹茶拿铁麻薯 6.35oz",
     },
     price: 4.19,
+    brand: "royal-family",
   },
   kitkat: {
     id: "1017114241",
@@ -445,6 +503,7 @@ const products = {
       zh: "KitKat 抹茶拿铁威化巧克力 9枚",
     },
     price: 5.99,
+    brand: "nestle",
   },
   matchaCandy: {
     id: "1018105771",
@@ -453,6 +512,7 @@ const products = {
       zh: "Puchao 抹茶软糖 3.17oz",
     },
     price: 2.79,
+    brand: "uha",
   },
   teaSet: {
     id: "5029290231",
@@ -461,6 +521,7 @@ const products = {
       zh: "樱花渐变抹茶碗与茶筅套装 4件",
     },
     price: 33.99,
+    brand: "kanglepin",
   },
   greenTeaSet: {
     id: "1029313261",
@@ -469,6 +530,7 @@ const products = {
       zh: "浅绿色抹茶碗、茶筅与茶勺套装",
     },
     price: 14.99,
+    brand: "kawasimaya",
   },
   bambooWhisk: {
     id: "1029215511",
@@ -477,6 +539,7 @@ const products = {
       zh: "日式百本立抹茶竹茶筅",
     },
     price: 7.99,
+    brand: "kawasimaya",
   },
 } satisfies Record<string, MatchaProductSource>;
 
@@ -496,7 +559,7 @@ export function createMatchaProduct(
   locale: TopicLandingPageLocale,
 ): ProductListItem {
   const source: MatchaProductSource = products[key];
-  const brand = source.brand ? brands[source.brand] : undefined;
+  const brand = brands[source.brand];
   return {
     id: `matcha-${source.id}`,
     image: productImages[source.id],
@@ -504,12 +567,8 @@ export function createMatchaProduct(
     title: source.title[locale],
     priceCurrent: `$${source.price.toFixed(2)}`,
     href: productHref(source, locale),
-    ...(brand && source.brand
-      ? {
-          brand: brand.name,
-          brandHref: brandHref(source.brand, locale),
-        }
-      : {}),
+    brand: brand.name,
+    brandHref: brandHref(source.brand, locale),
   };
 }
 

@@ -77,6 +77,8 @@ export function TrendingSearches({
   expandLabel = (keyword) => `Show results for ${keyword}`,
   defaultExpandedId,
   onAddToCart,
+  dividerPosition = "none",
+  dividerVariant = "gray",
   className,
   ...rest
 }: TrendingSearchesProps) {
@@ -126,6 +128,8 @@ export function TrendingSearches({
       {...rest}
       className={cx(styles.root, className)}
       data-slot="trending-searches"
+      data-divider-position={dividerPosition}
+      data-divider-variant={dividerVariant}
       aria-labelledby={titleId}
     >
       <div className={styles.container} data-slot="trending-searches-container">

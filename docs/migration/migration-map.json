@@ -1044,14 +1044,14 @@
       "sourceSha256": "9b6806fc353b6b3da5f56a233c56ef4d871fb9cafe30870237f51a2c0e51860d",
       "disposition": "regenerated",
       "destination": "packages/design-system/generated/catalog.json",
-      "destinationSha256": "4a7d8e24515ae91312d4a4c1d0858a9051f41068cc2c08bdb095ddc79cb517c4"
+      "destinationSha256": "7060085ccd1c7191c58d299513854f0eef6baa85d206b8df05d37e96485bc409"
     },
     {
       "source": "catalog.json",
       "sourceSha256": "3333682325d00194fb646874f8453e3545a46813986fbac22e9e0bf18f87b5fa",
       "disposition": "regenerated",
       "destination": "packages/design-system/generated/catalog.json",
-      "destinationSha256": "4a7d8e24515ae91312d4a4c1d0858a9051f41068cc2c08bdb095ddc79cb517c4"
+      "destinationSha256": "7060085ccd1c7191c58d299513854f0eef6baa85d206b8df05d37e96485bc409"
     },
     {
       "source": "color-primitives.stories.tsx",
@@ -2591,7 +2591,7 @@
       "sourceSha256": "1bae791cecc099dce8f099b2a396d6aad61ee95e3ab920f392f75739ea3f795f",
       "disposition": "migrated",
       "destination": "packages/design-system/components/ProductList/ProductList.module.css",
-      "destinationSha256": "366f57684b7502e37d6f414f339affa96a5ad3614a167a5a2bd989149b61f31c"
+      "destinationSha256": "1e783aaccecc9fa82e77c916c2a7e97e5d7075f894092bca466a34809c64d1e9"
     },
     {
       "source": "components/ProductList/ProductList.stories.module.css",
@@ -2605,7 +2605,7 @@
       "sourceSha256": "c4d8cf26855f313e2eab39487b5920d32c73819efd92bf1e89c165d2a0dd0d85",
       "disposition": "migrated",
       "destination": "packages/design-system/components/ProductList/ProductList.stories.tsx",
-      "destinationSha256": "a775bbf8bad0c62231662f8dd3be7631d5e54bfd7870477b756deb20e8f443ae"
+      "destinationSha256": "96cd3df137666d1dddd819e1d515c3b6a448606eea4bca72caec3cd5102a0562"
     },
     {
       "source": "components/ProductList/ProductList.tsx",
@@ -3207,7 +3207,7 @@
       "sourceSha256": "7878a6b0c74e5edfe687640feb681206509774e17f0451334d41898eee52450d",
       "disposition": "migrated",
       "destination": "packages/design-system/components/TrendingSearches/TrendingSearches.module.css",
-      "destinationSha256": "7defef91ee895f5bd54ee13501cd22951d0012b2829e4ea783e0561c2e3e1ce6"
+      "destinationSha256": "30d12817af466695fe50cba60acfbec265447c882f90faca48e56599084625e5"
     },
     {
       "source": "components/TrendingSearches/TrendingSearches.stories.module.css",
@@ -3228,14 +3228,14 @@
       "sourceSha256": "a96706a66f73a7904a101cdbabc1d02b899a76ab2ded23c238d29cd64a1e29ec",
       "disposition": "migrated",
       "destination": "packages/design-system/components/TrendingSearches/TrendingSearches.tsx",
-      "destinationSha256": "e92eb6c3b268de8d915fcffd7f3b55b7f491de2de2066d39b77aaca1b2d9cec4"
+      "destinationSha256": "61cf31749285f1ec4cabb5c6bdfcbe0a2efaf8da640457249eecf7a951b1c88a"
     },
     {
       "source": "components/TrendingSearches/TrendingSearches.types.ts",
       "sourceSha256": "7dd8a511a3a3ecc8da4b761e45fedb0364facaba9180bf522a021fbbb4310f27",
       "disposition": "migrated",
       "destination": "packages/design-system/components/TrendingSearches/TrendingSearches.types.ts",
-      "destinationSha256": "27308fa41ef8b24312a64b062f9f0c87a9352ec587727b74e190819fb3209873"
+      "destinationSha256": "e853ec33dd760bc702c7d953bd06ba821e2a4795c6aae43273bea6cd8eec3e2a"
     },
     {
       "source": "components/TrendingSearches/examples.tsx",
@@ -3263,14 +3263,14 @@
       "sourceSha256": "8d6f5ec446a84fae7a50fecd474e2d48cc0f10748d42f83c7ff8e4f002f62e27",
       "disposition": "migrated",
       "destination": "packages/design-system/components/TrendingSearches/meta.json",
-      "destinationSha256": "8d6f5ec446a84fae7a50fecd474e2d48cc0f10748d42f83c7ff8e4f002f62e27"
+      "destinationSha256": "daace4caad796b3989ad850e9e28ac01c7b10f90a69b7c0b39487e3494f33144"
     },
     {
       "source": "components/TrendingSearches/usage.md",
       "sourceSha256": "5b7add8fa48803859223e1b00a99e3beff7b86d14c042724860e52bcaabe8c04",
       "disposition": "migrated",
       "destination": "packages/design-system/components/TrendingSearches/usage.md",
-      "destinationSha256": "5b7add8fa48803859223e1b00a99e3beff7b86d14c042724860e52bcaabe8c04"
+      "destinationSha256": "4c3dc270f911ec37bbcf706dd8032e0b0ae1de99a95e2dc50459374551b76d74"
     },
     {
       "source": "components/index.ts",
@@ -3459,7 +3459,7 @@
       "sourceSha256": "225ba1253425bc2cb3483aa1af46662650e028799adeffabfda4cd06da2d16be",
       "disposition": "migrated",
       "destination": "packages/prototypes/pages/EcommerceHome/EcommerceHome.stories.tsx",
-      "destinationSha256": "7e6916081e737dad356cecb92f5d87bb5b8b315eeebfe6fbc21a967c42697dbe"
+      "destinationSha256": "9087fd38ab4e74f2c97e6fa4fb2433a6f327969ff839f3503c3521addc396560"
     },
     {
       "source": "pages/EcommerceHome/EcommerceHome.tsx",
@@ -3522,7 +3522,7 @@
       "sourceSha256": "2aa187ddb7131b984b38b3291853f0d0209c29d1d4e61e4ad6784283d822848b",
       "disposition": "migrated",
       "destination": "packages/prototypes/pages/EcommerceHome/fixtures.ts",
-      "destinationSha256": "6c7472d8c32c8402e4dccc54399e454887a98e2f791712a6e0bc6cd7cd84d4a6"
+      "destinationSha256": "622241e9c512988ef869c1276eca1f1d9e572f7c45b8d806ba339db42d4eb863"
     },
     {
       "source": "pages/EcommerceHome/index.ts",
