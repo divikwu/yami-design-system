@@ -311,7 +311,7 @@ const categoryDefinitions: Array<{
   { value: "all", label: { en: "All", zh: "全部" } },
   {
     value: "complete-routine",
-    label: { en: "Complete the Routine", zh: "搭配购买" },
+    label: { en: "Related Picks", zh: "相关推荐" },
     baseKeys: ["pdrnCleansingFoamSet"],
     supplementalIds: [
       "1022582311",

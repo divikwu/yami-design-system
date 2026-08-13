@@ -65,32 +65,34 @@ export function SectionHeading({
       data-slot={slotName("heading")}
       data-description={description ? "true" : undefined}
     >
-      <h2
-        id={id}
-        className={join(
-          styles.title,
-          titleFontFamily === "serif" ? styles.titleSerif : undefined,
-          titleClassName,
-        )}
-        data-slot={slotName("title")}
-      >
-        {mobileTitle === undefined ? (
-          title
-        ) : (
-          <>
-            <span className={styles.titleDesktop}>{title}</span>
-            <span className={styles.titleMobile}>{mobileTitle}</span>
-          </>
-        )}
-      </h2>
-      {description ? (
-        <p
-          className={join(styles.description, descriptionClassName)}
-          data-slot={slotName("description")}
+      <div className={styles.copy} data-slot={slotName("copy")}>
+        <h2
+          id={id}
+          className={join(
+            styles.title,
+            titleFontFamily === "serif" ? styles.titleSerif : undefined,
+            titleClassName,
+          )}
+          data-slot={slotName("title")}
         >
-          {description}
-        </p>
-      ) : null}
+          {mobileTitle === undefined ? (
+            title
+          ) : (
+            <>
+              <span className={styles.titleDesktop}>{title}</span>
+              <span className={styles.titleMobile}>{mobileTitle}</span>
+            </>
+          )}
+        </h2>
+        {description ? (
+          <p
+            className={join(styles.description, descriptionClassName)}
+            data-slot={slotName("description")}
+          >
+            {description}
+          </p>
+        ) : null}
+      </div>
       {resolvedViewAllHref || actions ? (
         <div
           className={join(styles.actions, actionsClassName)}

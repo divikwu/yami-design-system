@@ -2745,14 +2745,14 @@
       "sourceSha256": "65fa9aa46e0037f4d69820a9c5166731a31f8bf9c3f8498e5ac52b0174ea2d0f",
       "disposition": "migrated",
       "destination": "packages/design-system/components/SectionHeading.module.css",
-      "destinationSha256": "ff305383414c7d32ef14c375b906513a617e0a25f12253a1c46b5ea0e447ff6c"
+      "destinationSha256": "b5a3ec809647e1647b974b91d2613afd739ed7f6411cf41969308414032d301b"
     },
     {
       "source": "components/SectionHeading.tsx",
       "sourceSha256": "1b6d01fe6c9441e5977a89dcad16d30b0a556a2390d20f63ff5334bc5ed19224",
       "disposition": "migrated",
       "destination": "packages/design-system/components/SectionHeading.tsx",
-      "destinationSha256": "9eeac8a21c27c1855875c3c89844f92b28f22e02adf049a1f704180be7ee1afc"
+      "destinationSha256": "25d3df62b60dc2c8f8ad43ebcf93456e39d1695bf4af87e39c872dfed3daff5f"
     },
     {
       "source": "components/ShortcutRail/ShortcutRail.module.css",

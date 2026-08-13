@@ -15,7 +15,13 @@
   gap: var(--space-200);
 }
 
-.root[data-description="true"] {
+.copy {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.root[data-description="true"] .copy {
   align-items: baseline;
   gap: var(--space-100);
 }
@@ -159,10 +165,20 @@
     padding-inline: 0 var(--space-050);
   }
 
-  .root[data-description="true"] {
+  .root[data-description="true"] .copy {
     align-items: flex-start;
+    flex-basis: 100%;
     flex-wrap: wrap;
     row-gap: var(--space-050);
+  }
+
+  .root[data-description="true"] {
+    flex-wrap: wrap;
+    row-gap: 0;
+  }
+
+  .root[data-description="true"] .actions {
+    margin-inline-start: auto;
   }
 
   .root[data-description="true"] .title,
