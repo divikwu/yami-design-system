@@ -105,8 +105,9 @@ export interface HeroBannerProps
   imageLoadingStrategy?: ImageLoadingStrategy;
   /**
    * Advances one card on an interval and wraps at the end. Pauses while the
-   * rail is hovered, holds focus, or is being scrolled, and stays off for
-   * readers who ask for reduced motion.
+   * banner is outside the viewport, the tab is hidden, the rail is hovered,
+   * or focus is held inside it. Stays off for readers who ask for reduced
+   * motion.
    */
   autoAdvance?: boolean;
   /** Seconds between automatic advances. */

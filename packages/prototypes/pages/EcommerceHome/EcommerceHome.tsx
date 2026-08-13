@@ -82,8 +82,7 @@ export function EcommerceHomeTemplate({
       waterfallLoadMore.dataset.motionReveal = "waterfall-row";
     }
     const lastWaterfallItem = waterfallItems[waterfallItems.length - 1];
-    const revealTargets = [
-      ...(initialReveal ? [initialReveal] : []),
+    const scrollRevealTargets = [
       ...revealSections,
       ...(waterfallHeading ? [waterfallHeading] : []),
       ...(waterfallTabs ? [waterfallTabs] : []),
@@ -99,7 +98,8 @@ export function EcommerceHomeTemplate({
 
     if (!("IntersectionObserver" in window)) {
       [
-        ...revealTargets,
+        ...(initialReveal ? [initialReveal] : []),
+        ...scrollRevealTargets,
         ...(waterfallLoadMore ? [waterfallLoadMore] : []),
       ].forEach((target) => {
         target.dataset.motionState = "visible";
@@ -114,21 +114,45 @@ export function EcommerceHomeTemplate({
       const currentScrollY = window.scrollY;
       if (currentScrollY === previousScrollY) return;
 
-      scrollDirection = currentScrollY > previousScrollY ? "down" : "up";
+      const nextScrollDirection =
+        currentScrollY > previousScrollY ? "down" : "up";
       previousScrollY = currentScrollY;
+      if (nextScrollDirection === scrollDirection) return;
+
+      scrollDirection = nextScrollDirection;
 
       if (scrollDirection === "up") {
-        [...revealTargets, ...(waterfallLoadMore ? [waterfallLoadMore] : [])]
+        if (initialReveal?.dataset.motionState === "visible") {
+          initialReveal.dataset.motionDirection = "up";
+        }
+        scrollRevealTargets
           .filter((target) => target.dataset.motionState === "visible")
           .forEach((target) => {
             target.dataset.motionDirection = "up";
           });
+        if (waterfallLoadMore?.dataset.motionState === "visible") {
+          waterfallLoadMore.dataset.motionDirection = "up";
+        }
       }
     };
 
     window.addEventListener("scroll", updateScrollDirection, {
       passive: true,
     });
+
+    const initialObserver = new IntersectionObserver(
+      (entries) => {
+        entries
+          .filter((entry) => entry.isIntersecting)
+          .forEach((entry) => {
+            const target = entry.target as HTMLElement;
+            target.dataset.motionDirection = scrollDirection;
+            target.dataset.motionState = "visible";
+            initialObserver.unobserve(target);
+          });
+      },
+      { rootMargin: SECTION_REVEAL_ROOT_MARGIN },
+    );
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -196,9 +220,11 @@ export function EcommerceHomeTemplate({
       },
     );
 
-    revealTargets.forEach((target) => observer.observe(target));
+    if (initialReveal) initialObserver.observe(initialReveal);
+    scrollRevealTargets.forEach((target) => observer.observe(target));
 
     return () => {
+      initialObserver.disconnect();
       observer.disconnect();
       window.removeEventListener("scroll", updateScrollDirection);
     };

@@ -2192,14 +2192,14 @@
       "sourceSha256": "ecc711c41a418cdf424e0bff80d913766bf6cd0acf2884003f57dfaa14e945c2",
       "disposition": "migrated",
       "destination": "packages/design-system/components/HeroBanner/HeroBanner.tsx",
-      "destinationSha256": "8b0842620fd24e37135559fc1564f86782fe2cf54c8c637812f93819a79c1a3d"
+      "destinationSha256": "f040ee6123e085fbf3e5855eb0372db623aff390c69e2d936ffc59e4ce6e6e3e"
     },
     {
       "source": "components/HeroBanner/HeroBanner.types.ts",
       "sourceSha256": "34a337fcd78d331bab9f86184695a836241b83a07e1b883d59dc75fbf8002b64",
       "disposition": "migrated",
       "destination": "packages/design-system/components/HeroBanner/HeroBanner.types.ts",
-      "destinationSha256": "a18cdc0982b024868645059a0da49e2441d553b96edc24bc759c6605589c249e"
+      "destinationSha256": "e6c47c1e8d3a7da650d9b4c9772ecf5587b62d5a6c89109a3bf484f6b853c604"
     },
     {
       "source": "components/HeroBanner/HeroBannerImageOnlyCard.tsx",
@@ -3459,14 +3459,14 @@
       "sourceSha256": "225ba1253425bc2cb3483aa1af46662650e028799adeffabfda4cd06da2d16be",
       "disposition": "migrated",
       "destination": "packages/prototypes/pages/EcommerceHome/EcommerceHome.stories.tsx",
-      "destinationSha256": "4887c89c6d191a00d35150197646249c6b64a80e8262558f31c2556944d3b9bf"
+      "destinationSha256": "83debb4c9de33ae8f9d88688681ee15cc3873d77395b4df420443f7fcc2cf792"
     },
     {
       "source": "pages/EcommerceHome/EcommerceHome.tsx",
       "sourceSha256": "1212ec3428b0e6fd4e2555ff9e81218615790d7ea81477ad194655817bf42872",
       "disposition": "migrated",
       "destination": "packages/prototypes/pages/EcommerceHome/EcommerceHome.tsx",
-      "destinationSha256": "0ae3d35ba4d47835cdbdc5a6e997fd2f3adf38a0f7986c46c1952f68ec836f30"
+      "destinationSha256": "016c885f73c58691a350473fa7e28f0906e361623ef1d1a7a4731d0311833c4d"
     },
     {
       "source": "pages/EcommerceHome/EcommerceHome.types.ts",
