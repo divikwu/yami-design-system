@@ -107,6 +107,29 @@ export function EcommerceHomeTemplate({
       return;
     }
 
+    let previousScrollY = window.scrollY;
+    let scrollDirection: "down" | "up" = "down";
+    let isInitialObservation = true;
+    const updateScrollDirection = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY === previousScrollY) return;
+
+      scrollDirection = currentScrollY > previousScrollY ? "down" : "up";
+      previousScrollY = currentScrollY;
+
+      if (scrollDirection === "up") {
+        [...revealTargets, ...(waterfallLoadMore ? [waterfallLoadMore] : [])]
+          .filter((target) => target.dataset.motionState === "visible")
+          .forEach((target) => {
+            target.dataset.motionDirection = "up";
+          });
+      }
+    };
+
+    window.addEventListener("scroll", updateScrollDirection, {
+      passive: true,
+    });
+
     const observer = new IntersectionObserver(
       (entries) => {
         const visibleEntries = entries.filter((entry) => entry.isIntersecting);
@@ -115,8 +138,10 @@ export function EcommerceHomeTemplate({
           .forEach((entry) => {
             const target = entry.target as HTMLElement;
             delete target.dataset.motionState;
+            delete target.dataset.motionDirection;
             if (target === lastWaterfallItem && waterfallLoadMore) {
               delete waterfallLoadMore.dataset.motionState;
+              delete waterfallLoadMore.dataset.motionDirection;
             }
           });
         const waterfallEntries = visibleEntries.filter(
@@ -146,6 +171,10 @@ export function EcommerceHomeTemplate({
 
         visibleEntries.forEach((entry) => {
           const target = entry.target as HTMLElement;
+          const revealDirection = isInitialObservation
+            ? "down"
+            : scrollDirection;
+          target.dataset.motionDirection = revealDirection;
           target.dataset.motionState = "visible";
 
           if (target === lastWaterfallItem && waterfallLoadMore) {
@@ -156,9 +185,11 @@ export function EcommerceHomeTemplate({
               "--ecommerce-home-row-reveal-delay",
               lastRowDelay,
             );
+            waterfallLoadMore.dataset.motionDirection = revealDirection;
             waterfallLoadMore.dataset.motionState = "visible";
           }
         });
+        isInitialObservation = false;
       },
       {
         rootMargin: SECTION_REVEAL_ROOT_MARGIN,
@@ -167,7 +198,10 @@ export function EcommerceHomeTemplate({
 
     revealTargets.forEach((target) => observer.observe(target));
 
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("scroll", updateScrollDirection);
+    };
   }, []);
 
   return (

@@ -18,7 +18,7 @@ export function prepareProgressiveImage(image: HTMLImageElement | null) {
 
   if (image.complete) {
     if (image.naturalWidth > 0) revealImageAfterDecode(image);
-    else image.dataset.imageState = "error";
+    else image.dataset.imageState = "pending";
     return;
   }
 

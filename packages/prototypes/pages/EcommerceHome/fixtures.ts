@@ -3,8 +3,10 @@ import type {
   FooterProps,
   HeaderProps,
   HeroBannerProps,
+  ImageSource,
   ProductListItem,
   ProductListProps,
+  ResponsiveImageSource,
   ShortcutRailProps,
 } from "@yami/design-system";
 import { createBillboardProps } from "@yami/design-system/components/Billboard/fixtures";
@@ -34,70 +36,79 @@ import type {
   EcommerceHomeProps,
   EcommerceHomeSection,
 } from "./EcommerceHome.types";
+import {
+  atmosphericImages,
+  billboardImages,
+  brandBannerImages,
+  heroCampaignImages,
+  heroProductImages,
+  shortcutImages,
+  socialPosterImages,
+  socialProductImages,
+} from "./optimizedImages.generated";
 
 export type EcommerceHomeLocale = "zh" | "en";
 
-const assets = {
-  atmosphericDesktop: new URL(
-    "../../../design-system/components/ProductList/assets/atmospheric-pc.jpg",
-    import.meta.url,
-  ).href,
-  atmosphericMobile: new URL(
-    "../../../design-system/components/ProductList/assets/atmospheric-mobile.jpg",
-    import.meta.url,
-  ).href,
-  productHighlighter: new URL(
-    "../../../design-system/components/BrandProductRail/assets/maogeping-highlighter.webp",
-    import.meta.url,
-  ).href,
-  productMask: new URL(
-    "../../../design-system/components/BrandProductRail/assets/biodance-mask.webp",
-    import.meta.url,
-  ).href,
-  productBodyWash: new URL(
-    "../../../design-system/components/BrandProductRail/assets/teabless-wash.webp",
-    import.meta.url,
-  ).href,
-  productRepairMask: new URL(
-    "../../../design-system/components/BrandProductRail/assets/voolga-mask.webp",
-    import.meta.url,
-  ).href,
-  productBbCream: new URL(
-    "../../../design-system/components/BrandProductRail/assets/glow-bb.webp",
-    import.meta.url,
-  ).href,
-  productJelly: new URL(
-    "../../../design-system/components/BrandProductRail/assets/bb-lab-jelly.webp",
-    import.meta.url,
-  ).href,
-  productCream: new URL(
-    "../../../design-system/components/BrandProductRail/assets/biodance-cream.webp",
-    import.meta.url,
-  ).href,
-  productCushion: new URL(
-    "../../../design-system/components/BrandProductRail/assets/maogeping-cushion.webp",
-    import.meta.url,
-  ).href,
-  /* Artwork for the transcribed listings below. It lives with the page rather
-   * than in a component's assets folder because the page fixture is its only
-   * consumer — no component story reaches for it. */
-  featuredEssence: new URL("./assets/sk-ii-treatment-essence.png", import.meta.url)
-    .href,
-  featuredMatcha: new URL(
-    "./assets/marukyu-koyamaen-wakatake.png",
-    import.meta.url,
-  ).href,
-  featuredSunscreen: new URL(
-    "./assets/beauty-of-joseon-relief-sun.png",
-    import.meta.url,
-  ).href,
-  featuredCleanser: new URL("./assets/beplain-cleansing-foam.jpg", import.meta.url)
-    .href,
-  featuredSunSerum: new URL("./assets/skin1004-sun-serum.jpg", import.meta.url)
-    .href,
-  featuredPowder: new URL("./assets/elegance-face-powder.png", import.meta.url)
-    .href,
+const productCardSizes =
+  "(min-width: 1440px) 12.5vw, (min-width: 1024px) 16.667vw, 50vw";
+
+function createCdnProductImage(
+  hash: string,
+  sizes = productCardSizes,
+): ResponsiveImageSource {
+  const source = (width: 300 | 600) =>
+    `https://cdn.yamibuy.net/item/${hash}_${width}x${width}.webp`;
+  return {
+    src: source(600),
+    width: 600,
+    height: 600,
+    candidates: [
+      { src: source(300), width: 300 },
+      { src: source(600), width: 600 },
+    ],
+    sizes,
+  };
+}
+
+const brandProductHashes = {
+  "maogeping-highlighter": "cdc33c77de29390c973f3657a26d7dad",
+  "maogeping-cushion": "cb5b6b665b76f8c98f1aa5e86ca46740",
+  "maogeping-concealer": "f3b0db50e04fcc15300211cd94111d83",
+  "bb-lab-glutathione": "868c0f52ce4313e6e25590c6912b76be",
+  "bb-lab-biotin": "bd38d43a3f00bf4e0aceb09fdfb74f32",
+  "bb-lab-jelly": "fd11a661be4980bfd3190c67bd80392e",
+  "biodance-mask": "c8dcfa16d92b0def7c96453886efa36e",
+  "biodance-cream": "feeaac6b8f8c411271cccf3083b6b7c6",
+  "biodance-pads": "571149d4d5b62b680da7db7c4cf4da19",
+  "glow-concealer": "2e044fe0cba3e40ba88af9314dc927e6",
+  "glow-patches": "0c9267eb8b700c650242578c3c2cac4b",
+  "glow-bb": "de65f278eea28f7c5a794c6a32a179ac",
+  "teabless-lotion": "cd20f86995dab51ce783ee9104b02d6d",
+  "teabless-wash": "eef84b24bdfa83bc6c3ac1a17cb29e59",
+  "teabless-rose": "4794d08d2d00a6ff549d75d4afcc5974",
+  "voolga-mask": "090012ed3cd043cc3ee4ed514a5d56a9",
+  "voolga-ampoule": "676f94362d286f3b93d0d1dee0b31cb2",
+  "voolga-gel": "1d3d1cb694ae79f04fe706bfba3f1111",
 } as const;
+
+const featuredProductHashes = [
+  "b21c446891140d6f29c77841b085fd28",
+  "e3c1f9f0a0fa194ebba0e3c6aa34928e",
+  "0a5b71afa1d59b2f45ce0a5b90a3b4f2",
+  "29aad4f8b0c444171882b043ca849b08",
+  "ae08094e7ec81daa6dccb333ee8e4b4e",
+  "ebde4aedd980a725501d9ed711255d2a",
+] as const;
+
+function candidateAt(
+  source: ResponsiveImageSource,
+  width: number,
+): string {
+  return (
+    source.candidates.find((candidate) => candidate.width === width)?.src ??
+    source.src
+  );
+}
 
 const copy = {
   zh: {
@@ -175,6 +186,7 @@ function createHeader(locale: EcommerceHomeLocale): HeaderProps {
     // A populated cart is the page's own scenario, not the component default.
     cart: { ...header.cart, count: 2 },
     onSearchSubmit: () => {},
+    imageLoadingStrategy: "windowed",
   };
 }
 
@@ -184,38 +196,102 @@ function createHeader(locale: EcommerceHomeLocale): HeaderProps {
  */
 function createHero(locale: EcommerceHomeLocale): HeroBannerProps {
   const localeCopy = copy[locale];
-  const items = createHeroBannerItems(locale, (slug) => `#${slug}`);
+  const campaignKeys = {
+    "back-to-school": "back-to-school",
+    "glow-skin-like-makeup": "glow-skin-like-makeup",
+    "japanese-summer-festival": "japanese-summer-festival",
+    "midnight-street-food": "midnight-street-food",
+    "trending-summer": "trending-summer",
+    "seasonal-sale": "sale-image",
+  } as const;
+  const productKeys = {
+    "glow-skin-like-makeup": [
+      "glow-foundation",
+      "glow-patches",
+      "glow-palette",
+    ],
+    "japanese-summer-festival": [
+      "yuzu-chips",
+      "hokkaido-caramel-cookies",
+      "matcha-dango",
+    ],
+    "midnight-street-food": ["green-tea", "buldak-snack", "turtle-chips"],
+    "trending-summer": ["skin-care", "summer-snack", "summer-drink"],
+    "keep-shopping": [
+      "green-tea",
+      "buldak-snack",
+      "turtle-chips",
+      "summer-drink",
+    ],
+  } as const;
+  const items: HeroBannerProps["items"] = createHeroBannerItems(
+    locale,
+    (slug) => `#${slug}`,
+  ).map((item) => {
+    const campaignKey = campaignKeys[item.id as keyof typeof campaignKeys];
+    const itemProductKeys = productKeys[item.id as keyof typeof productKeys];
+    return {
+      ...item,
+      ...(campaignKey && "image" in item && item.image
+        ? {
+            image: {
+              ...item.image,
+              src: heroCampaignImages[campaignKey],
+            },
+          }
+        : {}),
+      ...(itemProductKeys && "products" in item && item.products
+        ? {
+            products: item.products.map((product, index) => ({
+              ...product,
+              src: heroProductImages[itemProductKeys[index]],
+            })),
+          }
+        : {}),
+    } as HeroBannerProps["items"][number];
+  });
 
   return {
     items,
     ariaLabel: localeCopy.heroLabel,
     previousLabel: localeCopy.heroPrevious,
     nextLabel: localeCopy.heroNext,
-    imageLoading: "eager",
+    imageLoadingStrategy: "windowed",
   };
 }
 
 function createShortcutRail(locale: EcommerceHomeLocale): ShortcutRailProps {
   const localeCopy = shortcutCopy[locale];
   return {
-    items: createShortcutItems(locale),
+    items: createShortcutItems(locale).map((item, index) => ({
+      ...item,
+      iconSrc:
+        shortcutImages[
+          String(index + 1).padStart(2, "0") as keyof typeof shortcutImages
+        ],
+    })),
     surface: "card",
     ariaLabel: localeCopy.ariaLabel,
     previousLabel: localeCopy.previousLabel,
     nextLabel: localeCopy.nextLabel,
+    imageLoadingStrategy: "windowed",
   };
 }
 
-const productImages = [
-  assets.productHighlighter,
-  assets.productMask,
-  assets.productBodyWash,
-  assets.productRepairMask,
-  assets.productBbCream,
-  assets.productJelly,
-  assets.productCream,
-  assets.productCushion,
+const productImageIds = [
+  "maogeping-highlighter",
+  "biodance-mask",
+  "teabless-wash",
+  "voolga-mask",
+  "glow-bb",
+  "bb-lab-jelly",
+  "biodance-cream",
+  "maogeping-cushion",
 ] as const;
+
+const productImages = productImageIds.map((id) =>
+  createCdnProductImage(brandProductHashes[id]),
+);
 
 const productBrands = [
   "MAOGEPING",
@@ -253,7 +329,7 @@ function createProducts(locale: EcommerceHomeLocale): ProductListItem[] {
  * reviews, no $335.40 to strike through. These do. Brands stay in `brand`, so
  * the titles hold none — the storefront splits them the same way. */
 type FeaturedProduct = {
-  image: string;
+  image: ImageSource;
   brand: string;
   priceCurrent: string;
   priceOriginal: string;
@@ -265,7 +341,7 @@ type FeaturedProduct = {
 
 const featuredProducts: readonly FeaturedProduct[] = [
   {
-    image: assets.featuredEssence,
+    image: createCdnProductImage(featuredProductHashes[0]),
     brand: "SK-II",
     priceCurrent: "$208.99",
     priceOriginal: "$335.40",
@@ -275,7 +351,7 @@ const featuredProducts: readonly FeaturedProduct[] = [
     badge: { type: "discount", label: "-37%" },
   },
   {
-    image: assets.featuredMatcha,
+    image: createCdnProductImage(featuredProductHashes[1]),
     brand: "MARUKYU KOYAMAEN",
     priceCurrent: "$42.99",
     priceOriginal: "$69.99",
@@ -285,7 +361,7 @@ const featuredProducts: readonly FeaturedProduct[] = [
     badge: { type: "low-price" },
   },
   {
-    image: assets.featuredSunscreen,
+    image: createCdnProductImage(featuredProductHashes[2]),
     brand: "Beauty of Joseon",
     priceCurrent: "$22.99",
     priceOriginal: "$39.98",
@@ -295,7 +371,7 @@ const featuredProducts: readonly FeaturedProduct[] = [
     badge: { type: "low-price" },
   },
   {
-    image: assets.featuredCleanser,
+    image: createCdnProductImage(featuredProductHashes[3]),
     brand: "beplain",
     priceCurrent: "$16.13",
     priceOriginal: "$26.00",
@@ -305,7 +381,7 @@ const featuredProducts: readonly FeaturedProduct[] = [
     badge: { type: "low-price" },
   },
   {
-    image: assets.featuredSunSerum,
+    image: createCdnProductImage(featuredProductHashes[4]),
     brand: "SKIN1004",
     priceCurrent: "$24.28",
     priceOriginal: "$34.99",
@@ -315,7 +391,7 @@ const featuredProducts: readonly FeaturedProduct[] = [
     badge: { type: "discount", label: "-30%" },
   },
   {
-    image: assets.featuredPowder,
+    image: createCdnProductImage(featuredProductHashes[5]),
     brand: "ELEGANCE",
     priceCurrent: "$119.99",
     priceOriginal: "$144.99",
@@ -383,6 +459,7 @@ function createProductSection(
     previousLabel: locale === "en" ? "Previous products" : "上一组商品",
     nextLabel: locale === "en" ? "Next products" : "下一组商品",
     onAddToCart: () => {},
+    imageLoadingStrategy: "windowed" as const,
   };
 
   if (!atmospheric) {
@@ -395,8 +472,10 @@ function createProductSection(
     dividerPosition: "top",
     dividerVariant: "gray",
     backgroundColor: "#FFF8EB",
-    backgroundImage: assets.atmosphericDesktop,
-    backgroundImageMobile: assets.atmosphericMobile,
+    backgroundImage: candidateAt(atmosphericImages.desktop, 1920),
+    backgroundImage2x: candidateAt(atmosphericImages.desktop, 3840),
+    backgroundImageMobile: candidateAt(atmosphericImages.mobile, 600),
+    backgroundImageMobile2x: candidateAt(atmosphericImages.mobile, 1200),
   };
 }
 
@@ -424,7 +503,107 @@ function createForYouSection(locale: EcommerceHomeLocale): ProductListProps {
 }
 
 function createBrandRail(locale: EcommerceHomeLocale): BrandProductRailProps {
-  return createBrandProductRailProps(locale, "#all-brands");
+  const rail = createBrandProductRailProps(locale, "#all-brands");
+  return {
+    ...rail,
+    imageLoadingStrategy: "windowed",
+    campaigns: rail.campaigns.map((campaign) => ({
+      ...campaign,
+      banner: {
+        ...campaign.banner,
+        src:
+          brandBannerImages[
+            campaign.id as keyof typeof brandBannerImages
+          ] ?? campaign.banner.src,
+      },
+      products: campaign.products.map((product) => {
+        const hash =
+          brandProductHashes[
+            product.id as keyof typeof brandProductHashes
+          ];
+        return hash
+          ? { ...product, image: createCdnProductImage(hash) }
+          : product;
+      }),
+    })),
+  };
+}
+
+function createSocialGallery(locale: EcommerceHomeLocale) {
+  const gallery = createSocialMediaGalleryFixture(locale);
+  return {
+    ...gallery,
+    imageLoadingStrategy: "windowed" as const,
+    cards: gallery.cards.map((card, index) => {
+      const assetIndex = index % 6;
+      return {
+        ...card,
+        posterSrc:
+          socialPosterImages[
+            String(assetIndex + 1) as keyof typeof socialPosterImages
+          ],
+        products: card.products?.map((product, productIndex) => ({
+          ...product,
+          imageSrc:
+            socialProductImages[
+              String(
+                ((assetIndex + productIndex) % 5) + 1,
+              ) as keyof typeof socialProductImages
+            ],
+        })),
+      };
+    }),
+  };
+}
+
+const trendingProductIds = [
+  "maogeping-highlighter",
+  "biodance-mask",
+  "glow-bb",
+  "bb-lab-jelly",
+  "biodance-cream",
+  "teabless-lotion",
+  "glow-patches",
+  "maogeping-cushion",
+] as const;
+
+function createTrendingSearches(locale: EcommerceHomeLocale) {
+  const searches = createTrendingSearchesProps(locale);
+  return {
+    ...searches,
+    imageLoadingStrategy: "windowed" as const,
+    keywords: searches.keywords.map((keyword, keywordIndex) => {
+      const imageForIndex = (index: number) => {
+        const id = trendingProductIds[index % trendingProductIds.length];
+        return createCdnProductImage(brandProductHashes[id]);
+      };
+      return {
+        ...keyword,
+        thumbnail: keyword.thumbnail
+          ? { ...keyword.thumbnail, src: imageForIndex(keywordIndex * 2) }
+          : undefined,
+        products: keyword.products.map((product, productIndex) => ({
+          ...product,
+          image: imageForIndex(keywordIndex * 2 + productIndex),
+        })),
+      };
+    }),
+  };
+}
+
+function createBillboard(locale: EcommerceHomeLocale) {
+  const billboard = createBillboardProps(locale, "#new-user-offer");
+  return {
+    ...billboard,
+    revealOnLoad: true,
+    image: {
+      ...billboard.image,
+      src: locale === "zh" ? billboardImages.zhDesktop : billboardImages.enDesktop,
+      mobile: billboard.image.mobile
+        ? { ...billboard.image.mobile, src: billboardImages.mobile }
+        : undefined,
+    },
+  };
 }
 
 function createFooter(locale: EcommerceHomeLocale): FooterProps {
@@ -444,6 +623,7 @@ function createFooter(locale: EcommerceHomeLocale): FooterProps {
     copyright: localeCopy.copyright,
     legalLinks: createFooterLegalLinks(locale),
     paymentMarks: createFooterPaymentMarks(),
+    imageLoading: "lazy",
   };
 }
 
@@ -456,7 +636,7 @@ export function createEcommerceHomeFixture(
     {
       id: "new-user-offer",
       kind: "billboard",
-      props: createBillboardProps(locale, "#new-user-offer"),
+      props: createBillboard(locale),
     },
     {
       id: "trending-products",
@@ -471,13 +651,13 @@ export function createEcommerceHomeFixture(
     {
       id: "social-media",
       kind: "social",
-      props: createSocialMediaGalleryFixture(locale),
+      props: createSocialGallery(locale),
     },
     {
       id: "trending-searches",
       kind: "searches",
       props: {
-        ...createTrendingSearchesProps(locale),
+        ...createTrendingSearches(locale),
         dividerPosition: "top",
         dividerVariant: "gray",
       },

@@ -7,11 +7,13 @@ import {
 
 import { AspectRatio } from "../AspectRatio";
 import { Badge } from "../Badge";
+import type { ImageSource } from "../image.types";
 import {
   handleProgressiveImageError,
   handleProgressiveImageLoad,
   prepareProgressiveImage,
 } from "../progressiveImage";
+import { ResponsiveImage } from "../ResponsiveImage";
 
 import styles from "./ProductCard.module.css";
 import { ProductCardAddButton } from "./ProductCardAddButton";
@@ -28,7 +30,7 @@ const PRODUCT_IMAGE_BADGE_TYPES: readonly ProductBadge["type"][] = [
 ];
 
 interface ProductCardMediaProps {
-  image?: string;
+  image?: ImageSource;
   imageAlt?: string;
   imageLoading?: ImgHTMLAttributes<HTMLImageElement>["loading"];
   imageFetchPriority?: ImgHTMLAttributes<HTMLImageElement>["fetchPriority"];
@@ -65,15 +67,15 @@ export function ProductCardMedia({
         data-slot="product-card-image"
       >
         {image ? (
-          <img
+          <ResponsiveImage
             ref={prepareProgressiveImage}
-            src={image}
+            source={image}
             alt={imageAlt ?? ""}
-            width={1}
-            height={1}
+            fallbackWidth={1}
+            fallbackHeight={1}
             loading={imageLoading}
-            decoding="async"
             fetchPriority={imageFetchPriority}
+            revealOnLoad={false}
             className={styles.image}
             onLoad={handleProgressiveImageLoad}
             onError={handleProgressiveImageError}

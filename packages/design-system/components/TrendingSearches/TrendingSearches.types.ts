@@ -2,6 +2,7 @@ import type { HTMLAttributes, ReactNode } from "react";
 
 import type { ProductListItem } from "../ProductList";
 import type { SectionDividerProps } from "../sectionDivider.types";
+import type { ImageLoadingStrategy, ImageSource } from "../image.types";
 
 export interface TrendingSearchKeyword {
   id: string;
@@ -15,7 +16,7 @@ export interface TrendingSearchKeyword {
    * Row artwork, mobile only. The collapsed list is six near-identical rows of
    * text; the thumbnail is what makes them scannable.
    */
-  thumbnail?: { src: string; alt: string };
+  thumbnail?: { src: ImageSource; alt: string };
   /**
    * Results for the term. Desktop shows the leading two — the card is a
    * fixed-height preview, not a list — and mobile scrolls the whole set.
@@ -45,4 +46,5 @@ export interface TrendingSearchesProps
    */
   defaultExpandedId?: string;
   onAddToCart?: (productId: string) => void;
+  imageLoadingStrategy?: ImageLoadingStrategy;
 }

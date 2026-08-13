@@ -143,11 +143,15 @@ export const Pc: Story = {
       ];
       for (const revealTarget of compactRevealTargets) {
         const previousMotionState = revealTarget.dataset.motionState;
+        const previousMotionDirection =
+          revealTarget.dataset.motionDirection;
         delete revealTarget.dataset.motionState;
+        delete revealTarget.dataset.motionDirection;
         const hiddenTranslateY = new DOMMatrixReadOnly(
           getComputedStyle(revealTarget).transform,
         ).m42;
 
+        revealTarget.dataset.motionDirection = "down";
         revealTarget.dataset.motionState = "visible";
         const visibleStyle = getComputedStyle(revealTarget);
         const transitionDurations =
@@ -155,10 +159,19 @@ export const Pc: Story = {
         const transitionTimings =
           visibleStyle.transitionTimingFunction.split(", ");
 
+        revealTarget.dataset.motionDirection = "up";
+        const upwardDuration =
+          getComputedStyle(revealTarget).transitionDuration;
+
         if (previousMotionState === undefined) {
           delete revealTarget.dataset.motionState;
         } else {
           revealTarget.dataset.motionState = previousMotionState;
+        }
+        if (previousMotionDirection === undefined) {
+          delete revealTarget.dataset.motionDirection;
+        } else {
+          revealTarget.dataset.motionDirection = previousMotionDirection;
         }
 
         if (
@@ -166,10 +179,11 @@ export const Pc: Story = {
           transitionDurations.length !== 2 ||
           transitionDurations.some((duration) => duration !== "0.32s") ||
           transitionTimings.length !== 2 ||
-          transitionTimings.some((timing) => timing !== "ease-out")
+          transitionTimings.some((timing) => timing !== "ease-out") ||
+          upwardDuration !== "0s"
         ) {
           throw new Error(
-            "Ecommerce home section reveals must match Topic Landing's 24px, 320ms ease-out entrance",
+            "Ecommerce home section reveals must use a 24px, 320ms ease-out entrance only while scrolling down",
           );
         }
       }

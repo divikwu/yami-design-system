@@ -15,6 +15,7 @@ import {
   handleProgressiveImageLoad,
   prepareProgressiveImage,
 } from "../progressiveImage";
+import { ImageLoadingWindow, ResponsiveImage } from "../ResponsiveImage";
 
 import styles from "./ShortcutRail.module.css";
 import type { ShortcutRailProps } from "./ShortcutRail.types";
@@ -46,6 +47,7 @@ export function ShortcutRail({
   previousLabel = "Previous shortcuts",
   nextLabel = "Next shortcuts",
   lines = 1,
+  imageLoadingStrategy = "native",
   dividerPosition = "none",
   dividerVariant = "gray",
   className,
@@ -135,14 +137,22 @@ export function ShortcutRail({
           )}
 
           <div className={styles.railBody} data-slot="shortcut-rail-body">
-            <ul
-              ref={railRef}
-              className={styles.list}
-              data-slot="shortcut-rail-list"
-              onScroll={updateEdges}
+            <ImageLoadingWindow
+              strategy={imageLoadingStrategy}
+              rootRef={railRef}
             >
+              <ul
+                ref={railRef}
+                className={styles.list}
+                data-slot="shortcut-rail-list"
+                onScroll={updateEdges}
+              >
               {items.map((item) => (
-                <li key={item.id} className={styles.item}>
+                <li
+                  key={item.id}
+                  className={styles.item}
+                  data-image-window-item="true"
+                >
                   <a
                     className={styles.link}
                     href={item.href}
@@ -156,13 +166,14 @@ export function ShortcutRail({
                       }
                       aria-hidden="true"
                     >
-                      <img
+                      <ResponsiveImage
                         ref={prepareProgressiveImage}
                         className={styles.icon}
-                        src={item.iconSrc}
+                        source={item.iconSrc}
                         alt=""
                         loading="lazy"
                         decoding="async"
+                        revealOnLoad={false}
                         onLoad={handleProgressiveImageLoad}
                         onError={handleProgressiveImageError}
                       />
@@ -176,7 +187,8 @@ export function ShortcutRail({
                   </a>
                 </li>
               ))}
-            </ul>
+              </ul>
+            </ImageLoadingWindow>
 
             {!edges.atStart && (
               <span

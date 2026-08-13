@@ -435,6 +435,12 @@
   flex: 0 0 auto;
 }
 
+.categoryMedia:has(.categoryImage[data-image-state]) {
+  overflow: hidden;
+  border-radius: var(--radius-full);
+  background: var(--fill-skeleton);
+}
+
 .categoryBuiltinIcon {
   display: block;
   width: 24px;
@@ -449,6 +455,20 @@
   width: 24px;
   height: 24px;
   object-fit: contain;
+}
+
+.categoryImage[data-image-state] {
+  background: var(--surface-primary);
+  transition: opacity 240ms ease-out;
+}
+
+.categoryImage[data-image-state='pending'],
+.categoryImage[data-image-state='error'] {
+  opacity: 0;
+}
+
+.categoryImage[data-image-state='loaded'] {
+  opacity: 1;
 }
 
 /* Promotion counts and flags only — never a decorative accent
@@ -544,6 +564,10 @@
 @media (prefers-reduced-motion: reduce) {
   .railList {
     scroll-behavior: auto;
+  }
+
+  .categoryImage {
+    transition: none;
   }
 }
 

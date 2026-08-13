@@ -1,5 +1,6 @@
 import styles from "./HeroBanner.module.css";
 import type { HeroBannerImageOnlyCardProps } from "./HeroBanner.types";
+import { ResponsiveImage } from "../ResponsiveImage";
 
 export function HeroBannerImageOnlyCard({
   item,
@@ -15,12 +16,13 @@ export function HeroBannerImageOnlyCard({
       data-product-layout="none"
       aria-label={item.image.alt}
     >
-      <img
+      <ResponsiveImage
         className={styles.image}
-        src={item.image.src}
+        source={item.image.src}
         alt={item.image.alt}
         loading={priority ? "eager" : imageLoading}
         fetchPriority={priority ? "high" : "auto"}
+        activateImmediately={priority}
       />
     </a>
   );

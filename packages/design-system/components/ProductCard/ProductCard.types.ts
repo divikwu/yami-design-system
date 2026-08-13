@@ -1,6 +1,7 @@
 import type { ImgHTMLAttributes, MouseEventHandler, ReactNode } from "react";
 
 import type { BadgeColor, BadgeEmphasis, BadgeType } from "../Badge";
+import type { ImageSource } from "../image.types";
 
 export type ProductBadgeType = Exclude<BadgeType, "best-sellers" | "price">;
 
@@ -59,7 +60,7 @@ interface ProductCardBaseProps {
 type ProductCardImageProps =
   | {
       /** Product image URL. */
-      image: string;
+      image: ImageSource;
       /** Accessible product image description. Required whenever image is provided. */
       imageAlt: string;
       /** Native image loading strategy. Defaults to lazy; use eager for above-fold cards. */

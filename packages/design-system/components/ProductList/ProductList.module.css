@@ -101,6 +101,16 @@
     --product-list-background-image-mobile,
     var(--product-list-background-image, none)
   );
+  background-image: var(
+    --product-list-background-image-mobile-set,
+    var(
+      --product-list-background-image-set,
+      var(
+        --product-list-background-image-mobile,
+        var(--product-list-background-image, none)
+      )
+    )
+  );
   background-position: top center;
   background-repeat: no-repeat;
   background-size: 100% auto;
@@ -575,6 +585,16 @@
     background-image: var(
       --product-list-background-image,
       var(--product-list-background-image-mobile, none)
+    );
+    background-image: var(
+      --product-list-background-image-set,
+      var(
+        --product-list-background-image-mobile-set,
+        var(
+          --product-list-background-image,
+          var(--product-list-background-image-mobile, none)
+        )
+      )
     );
     /* The inset the page used to apply. It belongs here: the band spans the
      * page, the panel sits inside it. */

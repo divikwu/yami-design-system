@@ -134,19 +134,15 @@
   color: var(--text-primary);
 }
 
-/* The glyphs ship as monochrome artwork with #000000de baked into the fill, so
- * they are painted as masks in currentColor rather than drawn as images — the
- * row then follows --text-primary into dark theme (#ffffff) instead of staying
- * black on a dark band. `filter: invert()` would land on 87% white and read a
- * step dimmer than the heading beside it. Same treatment as Header's zipcode
- * icon. */
 .socialIcon {
   display: block;
   width: 24px;
   height: 24px;
-  background: currentColor;
-  -webkit-mask: var(--footer-social-icon) center / contain no-repeat;
-  mask: var(--footer-social-icon) center / contain no-repeat;
+  object-fit: contain;
+}
+
+:global(.dark) .socialIcon {
+  filter: brightness(0) invert(1);
 }
 
 /* The 24px glyphs sit below the 44px target, so each gains a transparent
@@ -318,6 +314,7 @@
 .paymentRow {
   display: flex;
   align-items: center;
+  min-height: 22px;
   margin: 0 0 var(--space-300);
   padding: 0;
   gap: var(--space-150);

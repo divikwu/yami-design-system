@@ -1,10 +1,11 @@
 import type { HTMLAttributes, ReactNode } from "react";
+import type { ImageLoadingStrategy, ImageSource } from "../image.types";
 
 export interface SocialVideoProduct {
   /** Stable identity for React and analytics hooks. */
   id: string;
   /** Square product image shown in the card footer. */
-  imageSrc: string;
+  imageSrc: ImageSource;
   /** Product image alternative text. */
   imageAlt: string;
   /** Optional title shown by the single-product treatment. */
@@ -18,13 +19,13 @@ export interface SocialVideoCardProps
   /** Stable identity for React and analytics hooks. */
   id: string;
   /** Poster image used for the social video surface. */
-  posterSrc: string;
+  posterSrc: ImageSource;
   /** Accessible description of the poster frame. */
   posterAlt: string;
   /** Social account name. */
   username: ReactNode;
   /** Decorative social platform mark used beside the creator handle. */
-  platformIconSrc: string;
+  platformIconSrc: ImageSource;
   /** Text shown in the footer when no product images are supplied. */
   caption: ReactNode;
   /** Optional destination for the video media. */
@@ -51,4 +52,5 @@ export interface SocialMediaGalleryProps
   previousLabel?: string;
   /** Localized label for the next-page control. */
   nextLabel?: string;
+  imageLoadingStrategy?: ImageLoadingStrategy;
 }

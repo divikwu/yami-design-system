@@ -18,6 +18,7 @@ export interface HeroBannerPalette {
 
 const LIGHT_FOREGROUND_LUMINANCE_CUTOFF = 0.25;
 const MAX_WHITE_TEXT_SURFACE_LUMINANCE = 1.05 / 4.5 - 0.05;
+const imageBottomColorCache = new Map<string, Promise<string | undefined>>();
 
 function parseColor(value: string): RgbColor | undefined {
   const hex = value.match(/^#([\da-f]{6})$/i)?.[1];
@@ -140,23 +141,37 @@ export function dominantColorFromPixels(
   )}, ${Math.round(dominant.blue / dominant.count)})`;
 }
 
-export async function extractImageBottomColor(
+async function sampleImageBottomColor(
   src: string,
+  sourceImage?: HTMLImageElement,
 ): Promise<string | undefined> {
-  if (!src || typeof document === "undefined" || typeof Image === "undefined") {
-    return undefined;
+  const image = sourceImage ?? new Image();
+  const loaded =
+    sourceImage && sourceImage.complete && sourceImage.naturalWidth > 0
+      ? Promise.resolve()
+      : new Promise<void>((resolve, reject) => {
+          if (sourceImage) {
+            sourceImage.addEventListener("load", () => resolve(), {
+              once: true,
+            });
+            sourceImage.addEventListener(
+              "error",
+              () => reject(new Error("Unable to sample campaign image")),
+              { once: true },
+            );
+            return;
+          }
+
+          image.onload = () => resolve();
+          image.onerror = () =>
+            reject(new Error("Unable to sample campaign image"));
+        });
+
+  if (!sourceImage) {
+    image.crossOrigin = "anonymous";
+    image.decoding = "async";
+    image.src = src;
   }
-
-  const image = new Image();
-  image.crossOrigin = "anonymous";
-  image.decoding = "async";
-
-  const loaded = new Promise<void>((resolve, reject) => {
-    image.onload = () => resolve();
-    image.onerror = () => reject(new Error("Unable to sample campaign image"));
-  });
-
-  image.src = src;
 
   try {
     await loaded;
@@ -187,4 +202,20 @@ export async function extractImageBottomColor(
   } catch {
     return undefined;
   }
+}
+
+export function extractImageBottomColor(
+  src: string,
+  sourceImage?: HTMLImageElement,
+): Promise<string | undefined> {
+  if (!src || typeof document === "undefined" || typeof Image === "undefined") {
+    return Promise.resolve(undefined);
+  }
+
+  const cached = imageBottomColorCache.get(src);
+  if (cached) return cached;
+
+  const sampled = sampleImageBottomColor(src, sourceImage);
+  imageBottomColorCache.set(src, sampled);
+  return sampled;
 }

@@ -21,6 +21,10 @@
   overflow: hidden;
 }
 
+.link:has(.image[data-image-state]) {
+  background: var(--surface-primary);
+}
+
 .link:focus-visible {
   outline: var(--stroke-thick) solid var(--border-focus);
   outline-offset: var(--space-025);
@@ -34,6 +38,25 @@
   display: block;
   width: 100%;
   height: auto;
+}
+
+.image[data-image-state] {
+  transition: opacity 240ms ease-out;
+}
+
+.image[data-image-state="pending"],
+.image[data-image-state="error"] {
+  opacity: 0;
+}
+
+.image[data-image-state="loaded"] {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .image {
+    transition: none;
+  }
 }
 
 @media (min-width: 1024px) {
