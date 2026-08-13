@@ -78,9 +78,10 @@ export const Pc: Story = {
             activityTitle: "艾努雅",
             firstTab: "精选分类",
             exploreMoreCategory: "清洁与去角质",
-            exploreMorePairing: "搭配购买",
+            exploreMorePairing: "相关推荐",
             exploreMoreDescription:
               "探索该系列更多产品，以及为你精选的搭配好物。",
+            startHereTitle: "打造你的 ANUA 护肤流程",
             startHereThemes: [
               {
                 tab: "温和清洁",
@@ -124,11 +125,12 @@ export const Pc: Story = {
             lastShortcut: "Makeup",
             firstReview: "It feels so gentle and still gets all the gunk out",
             activityTitle: "Anua",
-            firstTab: "Featured shortcuts",
+            firstTab: "Explore by Type",
             exploreMoreCategory: "Cleanse & Peel",
-            exploreMorePairing: "Complete the Routine",
+            exploreMorePairing: "Related Picks",
             exploreMoreDescription:
               "Discover more from the collection, plus complementary picks selected for you.",
+            startHereTitle: "Build Your Anua Routine",
             startHereThemes: [
               {
                 tab: "Cleanse & Reset",
@@ -514,7 +516,7 @@ export const Pc: Story = {
         Node.DOCUMENT_POSITION_FOLLOWING
     ) {
       throw new Error(
-        "Topic landing page must render localized Primary Style A tabs immediately before Featured shortcuts",
+        "Topic landing page must render localized Primary Style A tabs immediately before Explore by Type",
       );
     }
     if (!isDesktopTabs) {
@@ -787,6 +789,40 @@ export const Pc: Story = {
       );
     }
 
+    const startHereTitle = productLists[0]?.querySelector<HTMLElement>(
+      '[data-slot="product-list-title"]',
+    );
+    const startHereDescription = productLists[0]?.querySelector<HTMLElement>(
+      '[data-slot="product-list-description"]',
+    );
+    const startHereCopy = productLists[0]?.querySelector<HTMLElement>(
+      '[data-slot="product-list-copy"]',
+    );
+    const startHereHeading = productLists[0]?.querySelector<HTMLElement>(
+      '[data-slot="product-list-heading"]',
+    );
+    const startHereActions = productLists[0]?.querySelector<HTMLElement>(
+      '[data-slot="product-list-actions"]',
+    );
+    if (
+      !startHereTitle ||
+      startHereDescription ||
+      !startHereCopy ||
+      !startHereHeading ||
+      normalize(startHereTitle.textContent) !==
+        localizedExpectation.startHereTitle ||
+      (isDesktopTabs &&
+        startHereActions &&
+        Math.abs(
+          startHereActions.getBoundingClientRect().right -
+            startHereHeading.getBoundingClientRect().right,
+        ) > 1)
+    ) {
+      throw new Error(
+        "Start here must render the localized routine title without supporting copy",
+      );
+    }
+
     for (const productList of productLists.filter(
       (list) => list.dataset.layout === "rail",
     )) {
@@ -887,6 +923,9 @@ export const Pc: Story = {
     const waterfallTitle = waterfall?.querySelector<HTMLElement>(
       '[data-slot="product-list-title"]',
     );
+    const waterfallCopy = waterfall?.querySelector<HTMLElement>(
+      '[data-slot="product-list-copy"]',
+    );
     const waterfallDescription = waterfall?.querySelector<HTMLElement>(
       '[data-slot="product-list-description"]',
     );
@@ -897,6 +936,7 @@ export const Pc: Story = {
       !waterfallContainer ||
       !waterfallHeading ||
       !waterfallTitle ||
+      !waterfallCopy ||
       !waterfallDescription ||
       !waterfallDescriptionStyle ||
       normalize(waterfallDescription.textContent) !==
@@ -904,7 +944,7 @@ export const Pc: Story = {
       waterfallDescriptionStyle.fontSize !== "14px" ||
       waterfallDescriptionStyle.lineHeight !== "20px" ||
       (isDesktopTabs &&
-        getComputedStyle(waterfallHeading).alignItems !== "baseline") ||
+        getComputedStyle(waterfallCopy).alignItems !== "baseline") ||
       (isDesktopTabs &&
         Math.abs(
           waterfallDescription.getBoundingClientRect().left -
@@ -974,7 +1014,7 @@ export const Pc: Story = {
         waterfall?.querySelector('[data-slot="product-list-load-more"]')
       ) {
         throw new Error(
-          "Featured shortcuts must select and anchor to the matching badge-free Explore More category",
+          "Explore by Type must select and anchor to the matching badge-free Explore More category",
         );
       }
 
@@ -989,7 +1029,7 @@ export const Pc: Story = {
         waterfall?.querySelector('[data-slot="product-list-load-more"]')
       ) {
         throw new Error(
-          "Complete the Routine must show eight badge-free curated products without Load more",
+          "Related Picks must show eight badge-free curated products without Load more",
         );
       }
 
