@@ -16,48 +16,25 @@ async function waitForStablePreview(page: Page) {
   });
   await preview.locator("body").evaluate(async () => {
     await document.fonts.ready;
-    const waitForFrame = () =>
-      new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-    const getVisibleImages = () =>
-      Array.from(document.images).filter((image) => {
+    const visibleImages = Array.from(document.images)
+      .filter((image) => {
         const bounds = image.getBoundingClientRect();
         return (
           bounds.width > 0 &&
           bounds.height > 0 &&
-          bounds.right >= 0 &&
-          bounds.left <= window.innerWidth &&
           bounds.bottom >= 0 &&
           bounds.top <= window.innerHeight
         );
+      })
+      .map((image) => {
+        if (image.complete) return Promise.resolve();
+        return new Promise<void>((resolve) => {
+          image.addEventListener("load", () => resolve(), { once: true });
+          image.addEventListener("error", () => resolve(), { once: true });
+        });
       });
-
-    await waitForFrame();
-    await waitForFrame();
-
-    const activationDeadline = performance.now() + 3_000;
-    while (
-      getVisibleImages().some(
-        (image) => image.dataset.imageLoadingState === "pending",
-      ) &&
-      performance.now() < activationDeadline
-    ) {
-      await new Promise<void>((resolve) => window.setTimeout(resolve, 50));
-    }
-
     await Promise.race([
-      Promise.all(
-        getVisibleImages().map(async (image) => {
-          if (!image.complete) {
-            await new Promise<void>((resolve) => {
-              image.addEventListener("load", () => resolve(), { once: true });
-              image.addEventListener("error", () => resolve(), { once: true });
-            });
-          }
-          if (image.naturalWidth > 0 && typeof image.decode === "function") {
-            await image.decode().catch(() => undefined);
-          }
-        }),
-      ),
+      Promise.all(visibleImages),
       new Promise<void>((resolve) => window.setTimeout(resolve, 3_000)),
     ]);
     await new Promise<void>((resolve) => {
