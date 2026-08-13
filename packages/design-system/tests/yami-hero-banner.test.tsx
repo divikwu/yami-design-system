@@ -36,6 +36,7 @@ interface HeroBannerTestProps {
   previousLabel?: string
   nextLabel?: string
   autoAdvance?: boolean
+  autoAdvanceInterval?: number
   imageLoadingStrategy?: "native" | "windowed"
 }
 
@@ -122,6 +123,8 @@ describe("YAMI HeroBanner contracts", () => {
   afterEach(async () => {
     await act(async () => root.unmount())
     container.remove()
+    vi.useRealTimers()
+    vi.unstubAllGlobals()
     vi.restoreAllMocks()
   })
 
@@ -496,6 +499,87 @@ describe("YAMI HeroBanner contracts", () => {
     expect(container.querySelector('[data-slot="hero-banner-progress"]')?.textContent).toContain(
       "5 / 6",
     )
+  })
+
+  it("pauses auto-advance outside the viewport and resumes when visible", async () => {
+    vi.useFakeTimers()
+    Object.defineProperty(window, "matchMedia", {
+      configurable: true,
+      value: vi.fn().mockReturnValue({ matches: false }),
+    })
+
+    let visibilityCallback: IntersectionObserverCallback | undefined
+    const observe = vi.fn()
+    const disconnect = vi.fn()
+    class MockIntersectionObserver {
+      constructor(callback: IntersectionObserverCallback) {
+        visibilityCallback = callback
+      }
+
+      observe = observe
+      disconnect = disconnect
+    }
+    vi.stubGlobal("IntersectionObserver", MockIntersectionObserver)
+
+    await act(async () => {
+      root.render(
+        <HeroBanner
+          items={items.slice(0, 2)}
+          autoAdvanceInterval={0.1}
+        />,
+      )
+    })
+
+    const section = container.querySelector<HTMLElement>(
+      '[data-slot="hero-banner"]',
+    )!
+    const rail = container.querySelector<HTMLElement>(
+      '[data-slot="hero-banner-list"]',
+    )!
+    Object.defineProperties(rail, {
+      clientWidth: { configurable: true, value: 300 },
+      scrollWidth: { configurable: true, value: 900 },
+      scrollLeft: { configurable: true, writable: true, value: 0 },
+      scrollTo: { configurable: true, value: vi.fn() },
+    })
+    Object.defineProperties(rail.children[0]!, {
+      offsetLeft: { configurable: true, value: 0 },
+      offsetWidth: { configurable: true, value: 140 },
+    })
+    Object.defineProperty(rail.children[1]!, "offsetLeft", {
+      configurable: true,
+      value: 156,
+    })
+
+    expect(observe).toHaveBeenCalledWith(section)
+
+    await act(async () => {
+      visibilityCallback?.(
+        [
+          {
+            isIntersecting: false,
+            target: section,
+          } as unknown as IntersectionObserverEntry,
+        ],
+        {} as IntersectionObserver,
+      )
+      await vi.advanceTimersByTimeAsync(500)
+    })
+    expect(rail.scrollTo).not.toHaveBeenCalled()
+
+    await act(async () => {
+      visibilityCallback?.(
+        [
+          {
+            isIntersecting: true,
+            target: section,
+          } as unknown as IntersectionObserverEntry,
+        ],
+        {} as IntersectionObserver,
+      )
+      await vi.advanceTimersByTimeAsync(100)
+    })
+    expect(rail.scrollTo).toHaveBeenCalledTimes(1)
   })
 })
 

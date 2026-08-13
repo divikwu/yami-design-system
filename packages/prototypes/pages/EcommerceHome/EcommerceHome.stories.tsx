@@ -112,25 +112,38 @@ export const Pc: Story = {
     }
     if (main.dataset.motionReady === "true") {
       const previousInitialState = initialReveal.dataset.motionState;
+      const previousInitialDirection = initialReveal.dataset.motionDirection;
       delete initialReveal.dataset.motionState;
+      initialReveal.dataset.motionDirection = "down";
       const initialHiddenTranslateY = new DOMMatrixReadOnly(
         getComputedStyle(initialReveal).transform,
       ).m42;
       initialReveal.dataset.motionState = "visible";
       const initialVisibleStyle = getComputedStyle(initialReveal);
+      // Snapshot the values before restoring the observed state. The computed
+      // style object is live and otherwise follows that restoration.
+      const initialTransitionDuration =
+        initialVisibleStyle.transitionDuration;
+      const initialTransitionTimingFunction =
+        initialVisibleStyle.transitionTimingFunction;
       if (previousInitialState === undefined) {
         delete initialReveal.dataset.motionState;
       } else {
         initialReveal.dataset.motionState = previousInitialState;
       }
+      if (previousInitialDirection === undefined) {
+        delete initialReveal.dataset.motionDirection;
+      } else {
+        initialReveal.dataset.motionDirection = previousInitialDirection;
+      }
       if (
         initialHiddenTranslateY !== 32 ||
-        initialVisibleStyle.transitionDuration !== "0.5s, 0.5s" ||
-        initialVisibleStyle.transitionTimingFunction !==
+        initialTransitionDuration !== "0.5s, 0.5s" ||
+        initialTransitionTimingFunction !==
           "ease-in-out, ease-in-out"
       ) {
         throw new Error(
-          "Ecommerce home initial reveal must match Topic Landing's 32px, 500ms ease-in-out entrance",
+          `Ecommerce home initial reveal must match Topic Landing's 32px, 500ms ease-in-out entrance; got translateY=${initialHiddenTranslateY}px, duration="${initialTransitionDuration}", timing="${initialTransitionTimingFunction}"`,
         );
       }
 
