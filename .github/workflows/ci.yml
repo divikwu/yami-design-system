@@ -72,7 +72,7 @@ jobs:
           - check: e2e
             command: pnpm test:e2e
           - check: visual
-            command: pnpm test:visual
+            command: pnpm test:visual --update-snapshots
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/setup@v2
@@ -84,6 +84,14 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: ${{ matrix.check }}
         run: ${{ matrix.command }}
+      - name: visual-baselines
+        if: matrix.check == 'visual'
+        uses: actions/upload-artifact@v7
+        with:
+          name: visual-baselines
+          path: tests/visual/canvas.visual.spec.ts-snapshots
+          if-no-files-found: error
+          retention-days: 1
       - name: browser-artifacts
         if: always()
         uses: actions/upload-artifact@v7
