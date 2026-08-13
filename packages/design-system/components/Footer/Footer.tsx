@@ -41,6 +41,7 @@ export function Footer({
   socialLabel = 'Follow YAMI',
   legalLabel = 'Legal',
   paymentLabel = 'Accepted payment methods',
+  imageLoading,
   className,
   ...rest
 }: FooterProps) {
@@ -100,15 +101,27 @@ export function Footer({
                   {socialLinks.map((social) => (
                     <li key={social.id}>
                       {social.href ? <a className={styles.socialLink} href={social.href} aria-label={social.label} data-slot="footer-social-link">
-                        <span
+                        <img
                           className={styles.socialIcon}
-                          style={{
-                            ['--footer-social-icon' as string]: `url("${social.icon.src}")`,
-                          }}
+                          src={social.icon.src}
+                          alt=""
+                          width={24}
+                          height={24}
+                          loading={imageLoading}
+                          decoding="async"
                           data-slot="footer-social-icon"
                         />
                       </a> : <span className={styles.socialLink} role="img" aria-label={social.label} data-slot="footer-social-link">
-                        <span className={styles.socialIcon} style={{ ['--footer-social-icon' as string]: `url("${social.icon.src}")` }} data-slot="footer-social-icon" />
+                        <img
+                          className={styles.socialIcon}
+                          src={social.icon.src}
+                          alt=""
+                          width={24}
+                          height={24}
+                          loading={imageLoading}
+                          decoding="async"
+                          data-slot="footer-social-icon"
+                        />
                       </span>}
                     </li>
                   ))}
@@ -134,6 +147,7 @@ export function Footer({
                       href={app.href}
                       label={app.label}
                       icon={app.icon}
+                      imageLoading={imageLoading}
                       data-store={app.id}
                     />
                   ))}
@@ -161,6 +175,8 @@ export function Footer({
                   className={styles.paymentMark}
                   src={mark.icon.src}
                   alt={mark.label}
+                  loading={imageLoading}
+                  decoding="async"
                   data-slot="footer-payment-mark"
                 />
               </li>

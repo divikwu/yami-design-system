@@ -26,6 +26,7 @@
  */
 
 import { useState } from 'react'
+import { ResponsiveImage } from '../ResponsiveImage'
 
 import styles from './Header.module.css'
 import { HeaderCategoryRail } from './HeaderCategoryRail'
@@ -62,22 +63,22 @@ function BrandLockup({
   image: HeaderImage
 }) {
   if (!darkImage) {
-    return <img className={className} src={image.src} alt={image.alt} height={height} />
+    return <ResponsiveImage className={className} source={image.src} alt={image.alt} height={height} />
   }
 
   return (
     <>
-      <img
+      <ResponsiveImage
         className={cx(className, styles.logoLight)}
         data-theme="light"
-        src={image.src}
+        source={image.src}
         alt={image.alt}
         height={height}
       />
-      <img
+      <ResponsiveImage
         className={cx(className, styles.logoDark)}
         data-theme="dark"
-        src={darkImage.src}
+        source={darkImage.src}
         alt={darkImage.alt}
         height={height}
       />
@@ -126,6 +127,7 @@ export function Header({
   scanLabel = 'Search by photo',
   nextCategoriesLabel = 'More categories',
   previousCategoriesLabel = 'Previous categories',
+  imageLoadingStrategy = 'native',
   className,
   style,
   ...rest
@@ -251,9 +253,9 @@ export function Header({
               data-slot="header-locale"
               aria-label={locale.label}
             >
-              <img
+              <ResponsiveImage
                 className={styles.flag}
-                src={locale.flag.src}
+                source={locale.flag.src}
                 alt={locale.flag.alt}
                 width={20}
                 height={20}
@@ -324,6 +326,7 @@ export function Header({
           ariaLabel={categoriesLabel}
           previousLabel={previousCategoriesLabel}
           nextLabel={nextCategoriesLabel}
+          imageLoadingStrategy={imageLoadingStrategy}
         />
       </div>
     </header>

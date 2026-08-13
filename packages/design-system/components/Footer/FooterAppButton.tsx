@@ -20,6 +20,7 @@ export function FooterAppButton({
   label,
   icon,
   children,
+  imageLoading,
   className,
   ...rest
 }: FooterAppButtonProps) {
@@ -30,7 +31,15 @@ export function FooterAppButton({
       {...rest}
     >
       {icon ? (
-        <img className={styles.appButtonIcon} src={icon.src} alt="" width={24} height={24} />
+        <img
+          className={styles.appButtonIcon}
+          src={icon.src}
+          alt=""
+          width={24}
+          height={24}
+          loading={imageLoading}
+          decoding="async"
+        />
       ) : null}
       {children}
       <span className={styles.appButtonLabel} data-slot="footer-app-button-label">

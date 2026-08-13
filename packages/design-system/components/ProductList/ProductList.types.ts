@@ -9,6 +9,7 @@ import type {
   ProductCardProps,
 } from "../ProductCard";
 import type { SectionDividerProps } from "../sectionDivider.types";
+import type { ImageLoadingStrategy, ImageSource } from "../image.types";
 
 export type ProductListAppearance =
   | "standard"
@@ -63,6 +64,8 @@ interface ProductListBaseProps
   loading?: boolean;
   loadingLabel?: string;
   skeletonCount?: number;
+  /** Opt-in request window for horizontal rails. Waterfall keeps native lazy loading. */
+  imageLoadingStrategy?: ImageLoadingStrategy;
 }
 
 type StandardAppearanceProps = {
@@ -71,13 +74,15 @@ type StandardAppearanceProps = {
   backgroundColor?: never;
   backgroundImage?: never;
   backgroundImageMobile?: never;
+  backgroundImage2x?: never;
+  backgroundImageMobile2x?: never;
 };
 
 type ThemedAppearanceProps = {
   appearance: "themed";
   banner: {
-    src: string;
-    mobileSrc?: string;
+    src: ImageSource;
+    mobileSrc?: ImageSource;
     alt: string;
     backgroundColor?: string;
     mobileBackgroundColor?: string;
@@ -85,6 +90,8 @@ type ThemedAppearanceProps = {
   backgroundColor?: never;
   backgroundImage?: never;
   backgroundImageMobile?: never;
+  backgroundImage2x?: never;
+  backgroundImageMobile2x?: never;
 };
 
 type AtmosphericAppearanceProps = {
@@ -93,6 +100,8 @@ type AtmosphericAppearanceProps = {
   backgroundColor?: string;
   backgroundImage?: string;
   backgroundImageMobile?: string;
+  backgroundImage2x?: string;
+  backgroundImageMobile2x?: string;
 };
 
 export type ProductListProps = ProductListBaseProps &

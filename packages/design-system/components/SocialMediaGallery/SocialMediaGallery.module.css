@@ -103,6 +103,10 @@
   overflow: hidden;
 }
 
+.media:has(.poster[data-image-state]) {
+  background: var(--fill-skeleton);
+}
+
 .mediaLink {
   position: absolute;
   inset: 0;
@@ -119,6 +123,19 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.poster[data-image-state] {
+  transition: opacity 240ms ease-out;
+}
+
+.poster[data-image-state="pending"],
+.poster[data-image-state="error"] {
+  opacity: 0;
+}
+
+.poster[data-image-state="loaded"] {
+  opacity: 1;
 }
 
 .identity {
@@ -179,21 +196,25 @@
  * 31px natural width come to 227. A container query cannot read a custom
  * property, so the number is literal — recompute it if the thumbnail or gap
  * sizes move. */
-.productRowWide,
-.productRowNarrow {
+.productRow {
   display: contents;
 }
 
-.productRowWide {
+.productRow > [data-product-index="2"],
+.moreProducts.wideCount {
   display: none;
 }
 
 @container social-video-card (min-width: 228px) {
-  .productRowWide {
-    display: contents;
+  .productRow > [data-product-index="2"] {
+    display: block;
   }
 
-  .productRowNarrow {
+  .moreProducts.wideCount {
+    display: grid;
+  }
+
+  .moreProducts.narrowCount {
     display: none;
   }
 }
@@ -204,6 +225,10 @@
   overflow: hidden;
   border-radius: var(--radius-tag-primary);
   background: var(--color-white-1000);
+}
+
+.productLink:has(.productImage[data-image-state]) {
+  background: var(--fill-skeleton);
 }
 
 .productLink:focus-visible {
@@ -217,6 +242,20 @@
   height: 100%;
   border-radius: inherit;
   object-fit: contain;
+}
+
+.productImage[data-image-state] {
+  background: var(--color-white-1000);
+  transition: opacity 240ms ease-out;
+}
+
+.productImage[data-image-state="pending"],
+.productImage[data-image-state="error"] {
+  opacity: 0;
+}
+
+.productImage[data-image-state="loaded"] {
+  opacity: 1;
 }
 
 .card[data-product-mode="single"] .productLink,
@@ -349,5 +388,10 @@
 @media (prefers-reduced-motion: reduce) {
   .list {
     scroll-behavior: auto;
+  }
+
+  .poster,
+  .productImage {
+    transition: none;
   }
 }

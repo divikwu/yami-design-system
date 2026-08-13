@@ -10,6 +10,7 @@ import {
 
 import { RailNavigation } from "../Button/RailNavigation";
 import { SectionHeading } from "../SectionHeading";
+import { ImageLoadingWindow } from "../ResponsiveImage";
 
 import styles from "./SocialMediaGallery.module.css";
 import type { SocialMediaGalleryProps } from "./SocialMediaGallery.types";
@@ -42,6 +43,7 @@ export function SocialMediaGallery({
   viewAllLabel = "See all",
   previousLabel = "Previous social videos",
   nextLabel = "Next social videos",
+  imageLoadingStrategy = "native",
   className,
   ...rest
 }: SocialMediaGalleryProps) {
@@ -111,18 +113,24 @@ export function SocialMediaGallery({
           }
         />
 
-        <ul
-          ref={railRef}
-          className={styles.list}
-          data-slot="social-media-gallery-list"
-          onScroll={updateEdges}
-        >
+        <ImageLoadingWindow strategy={imageLoadingStrategy} rootRef={railRef}>
+          <ul
+            ref={railRef}
+            className={styles.list}
+            data-slot="social-media-gallery-list"
+            onScroll={updateEdges}
+          >
           {cards.map((card) => (
-            <li key={card.id} className={styles.item}>
+            <li
+              key={card.id}
+              className={styles.item}
+              data-image-window-item="true"
+            >
               <SocialVideoCard {...card} />
             </li>
           ))}
-        </ul>
+          </ul>
+        </ImageLoadingWindow>
       </div>
     </section>
   );

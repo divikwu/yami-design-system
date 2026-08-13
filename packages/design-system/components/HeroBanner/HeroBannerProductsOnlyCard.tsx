@@ -1,4 +1,6 @@
-import type { CSSProperties } from "react";
+import { type CSSProperties, useState } from "react";
+
+import { getImageSourceUrl, ResponsiveImage } from "../ResponsiveImage";
 
 import styles from "./HeroBanner.module.css";
 import type { HeroBannerProductsOnlyCardProps } from "./HeroBanner.types";
@@ -11,10 +13,14 @@ export function HeroBannerProductsOnlyCard({
 }: HeroBannerProductsOnlyCardProps) {
   const products = item.products.slice(0, 4);
   const productLayout = products.length === 4 ? "grid" : "strip";
+  const [canSampleImage, setCanSampleImage] = useState(false);
   // Sampling the borrowed artwork lands on the exact colour that sibling paints.
   const borrowedColor = useImageBottomColor(
-    borrowedSurface?.imageSrc ?? "",
+    borrowedSurface?.imageSrc
+      ? getImageSourceUrl(borrowedSurface.imageSrc)
+      : "",
     borrowedSurface?.color,
+    canSampleImage,
   );
   const surfaceColor = item.backgroundColor ?? borrowedColor;
   const palette = heroBannerPalette(surfaceColor);
@@ -46,11 +52,16 @@ export function HeroBannerProductsOnlyCard({
         >
           {products.map((product, productIndex) => (
             <span
-              key={`${product.src}-${productIndex}`}
+              key={`${getImageSourceUrl(product.src)}-${productIndex}`}
               className={styles.product}
               data-slot="hero-banner-product"
             >
-              <img src={product.src} alt={product.alt} loading="lazy" />
+              <ResponsiveImage
+                source={product.src}
+                alt={product.alt}
+                loading="lazy"
+                onActivated={() => setCanSampleImage(true)}
+              />
             </span>
           ))}
         </div>

@@ -12,7 +12,15 @@ interface ProductCardTestProps {
   href: string
   title: ReactNode
   priceCurrent: ReactNode
-  image?: string
+  image?:
+    | string
+    | {
+        src: string
+        width: number
+        height: number
+        candidates: Array<{ src: string; width: number }>
+        sizes: string
+      }
   imageAlt?: string
   imageLoading?: "eager" | "lazy"
   imageFetchPriority?: "high" | "low" | "auto"
@@ -262,6 +270,46 @@ describe("YAMI ProductCard interaction contracts", () => {
     expect(image?.loading).toBe("eager")
     expect(image?.decoding).toBe("async")
     expect(image?.getAttribute("fetchpriority")).toBe("high")
+  })
+
+  it("renders structured responsive image sources with sorted unique candidates", async () => {
+    const { ProductCard } = await vi.importActual<{
+      ProductCard: ComponentType<ProductCardTestProps>
+    }>("../components/ProductCard/ProductCard.tsx")
+
+    await act(async () => {
+      root.render(
+        <ProductCard
+          href="/product/matcha"
+          image={{
+            src: "/matcha-300.webp",
+            width: 600,
+            height: 600,
+            candidates: [
+              { src: "/matcha-600.webp", width: 600 },
+              { src: "/matcha-300.webp", width: 300 },
+              { src: "/matcha-300-duplicate.webp", width: 300 },
+            ],
+            sizes: "(min-width: 1024px) 20vw, 50vw",
+          }}
+          imageAlt="Uji matcha powder pouch"
+          title="Uji Matcha Powder"
+          priceCurrent="$24.99"
+        />,
+      )
+    })
+
+    const image = container.querySelector<HTMLImageElement>("img")
+    expect(image?.getAttribute("src")).toBe("/matcha-300.webp")
+    expect(image?.getAttribute("srcset")).toBe(
+      "/matcha-300.webp 300w, /matcha-600.webp 600w",
+    )
+    expect(image?.getAttribute("sizes")).toBe(
+      "(min-width: 1024px) 20vw, 50vw",
+    )
+    expect(image?.width).toBe(600)
+    expect(image?.height).toBe(600)
+    expect(image?.decoding).toBe("async")
   })
 
   it("exposes the dedicated add-to-cart child component", async () => {

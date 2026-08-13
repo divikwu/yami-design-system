@@ -5,6 +5,7 @@ import { useCallback, useId, useRef, useState } from "react";
 import { RailNavigation } from "../Button/RailNavigation";
 import { ProductCard, type ProductCardProps } from "../ProductCard";
 import { SectionHeading } from "../SectionHeading";
+import { ImageLoadingWindow, ResponsiveImage } from "../ResponsiveImage";
 
 import styles from "./TrendingSearches.module.css";
 import type { TrendingSearchesProps } from "./TrendingSearches.types";
@@ -77,6 +78,7 @@ export function TrendingSearches({
   expandLabel = (keyword) => `Show results for ${keyword}`,
   defaultExpandedId,
   onAddToCart,
+  imageLoadingStrategy = "native",
   dividerPosition = "none",
   dividerVariant = "gray",
   className,
@@ -154,12 +156,13 @@ export function TrendingSearches({
           }
         />
 
-        <ul
-          ref={railRef}
-          className={styles.rail}
-          data-slot="trending-searches-list"
-          onScroll={updateEdges}
-        >
+        <ImageLoadingWindow strategy={imageLoadingStrategy} rootRef={railRef}>
+          <ul
+            ref={railRef}
+            className={styles.rail}
+            data-slot="trending-searches-list"
+            onScroll={updateEdges}
+          >
           {keywords.map((entry, index) => {
             const expanded = expandedIds.has(entry.id);
             const entryPanelId = `${panelId}-${entry.id}`;
@@ -170,6 +173,7 @@ export function TrendingSearches({
                 className={styles.item}
                 data-slot="trending-searches-item"
                 data-expanded={expanded}
+                data-image-window-item="true"
               >
                 {/* Mobile: the whole row is the toggle. Desktop hides it
                  * outright rather than leaving a control that does nothing. */}
@@ -191,9 +195,9 @@ export function TrendingSearches({
                      * blend with its own background. Same split ProductCard
                      * uses for product media. */
                     <span className={styles.thumbnail}>
-                      <img
+                      <ResponsiveImage
                         className={styles.thumbnailImage}
-                        src={entry.thumbnail.src}
+                        source={entry.thumbnail.src}
                         alt={entry.thumbnail.alt}
                         width="40"
                         height="40"
@@ -272,7 +276,8 @@ export function TrendingSearches({
               </li>
             );
           })}
-        </ul>
+          </ul>
+        </ImageLoadingWindow>
       </div>
     </section>
   );

@@ -1,8 +1,9 @@
 import type { ComponentProps } from 'react'
+import type { ImageLoadingStrategy, ImageSource } from '../image.types'
 
 /** An image slot. Category artwork, the brand lockup, and the locale flag are all images. */
 export interface HeaderImage {
-  src: string
+  src: ImageSource
   alt: string
 }
 
@@ -147,6 +148,7 @@ export interface HeaderProps extends Omit<ComponentProps<'header'>, 'children'> 
   nextCategoriesLabel?: string
   /** Localized accessible name for the rail's backward paging control. */
   previousCategoriesLabel?: string
+  imageLoadingStrategy?: ImageLoadingStrategy
 }
 
 export interface HeaderSearchProps {
@@ -171,4 +173,5 @@ export interface HeaderCategoryRailProps {
   ariaLabel: string
   previousLabel: string
   nextLabel: string
+  imageLoadingStrategy?: ImageLoadingStrategy
 }

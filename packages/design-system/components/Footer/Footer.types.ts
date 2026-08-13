@@ -1,4 +1,4 @@
-import type { ComponentProps, ReactNode } from 'react'
+import type { ComponentProps, ImgHTMLAttributes, ReactNode } from 'react'
 
 /** An image slot. Social glyphs and app-store badge artwork are both images. */
 export interface FooterImage {
@@ -104,6 +104,7 @@ export interface FooterAppButtonProps extends Omit<ComponentProps<'a'>, 'childre
   icon?: FooterImage
   /** Escape hatch for callers supplying an inline SVG mark instead of an image. */
   children?: ReactNode
+  imageLoading?: ImgHTMLAttributes<HTMLImageElement>['loading']
 }
 
 export interface FooterProps extends Omit<ComponentProps<'footer'>, 'children' | 'title'> {
@@ -135,4 +136,6 @@ export interface FooterProps extends Omit<ComponentProps<'footer'>, 'children' |
   legalLabel?: string
   /** Localized accessible name for the payment mark list. */
   paymentLabel?: string
+  /** Opt-in loading mode for footer raster marks. */
+  imageLoading?: ImgHTMLAttributes<HTMLImageElement>['loading']
 }

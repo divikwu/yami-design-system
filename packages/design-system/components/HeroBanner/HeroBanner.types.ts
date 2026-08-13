@@ -5,14 +5,15 @@ import type {
 } from "react";
 
 import type { SectionDividerProps } from "../sectionDivider.types";
+import type { ImageLoadingStrategy, ImageSource } from "../image.types";
 
 export interface HeroBannerImage {
-  src: string;
+  src: ImageSource;
   alt: string;
 }
 
 export interface HeroBannerProduct {
-  src: string;
+  src: ImageSource;
   alt: string;
 }
 
@@ -90,7 +91,7 @@ export interface HeroBannerProductsOnlyCardProps
    * reproduces the sibling's surface exactly. `color` is the sibling's declared
    * value, used until sampling resolves. `item.backgroundColor` always wins.
    */
-  borrowedSurface?: { imageSrc?: string; color?: string };
+  borrowedSurface?: { imageSrc?: ImageSource; color?: string };
 }
 
 export interface HeroBannerProps
@@ -101,6 +102,7 @@ export interface HeroBannerProps
   previousLabel?: string;
   nextLabel?: string;
   imageLoading?: ImgHTMLAttributes<HTMLImageElement>["loading"];
+  imageLoadingStrategy?: ImageLoadingStrategy;
   /**
    * Advances one card on an interval and wraps at the end. Pauses while the
    * rail is hovered, holds focus, or is being scrolled, and stays off for

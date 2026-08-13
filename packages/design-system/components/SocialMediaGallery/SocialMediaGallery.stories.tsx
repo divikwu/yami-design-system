@@ -97,34 +97,36 @@ export const Showcase: Story = {
         "All product images must render at 56 by 56 pixels",
       );
     }
-    // A multi-product footer carries a three- and a two-thumbnail row and a
-    // container query renders one. Each row states its own overflow, so the
-    // two must account for the same catalogue — that consistency is the whole
-    // reason both rows exist instead of one row with a thumbnail hidden in
-    // CSS, which would leave the count reading one short.
+    // A multi-product footer carries one set of image nodes so the hidden
+    // compact variant cannot trigger duplicate requests. Its wide and narrow
+    // overflow labels must still account for the same catalogue.
     const rows = Array.from(
       multipleFooter.querySelectorAll<HTMLElement>("[data-product-row]"),
     );
-    const totals = rows.map(
-      (row) =>
-        row.querySelectorAll("a").length +
-        Number(
-          row.querySelector(":scope > span")?.textContent?.replace("+", "") ?? 0,
-        ),
-    );
-    if (rows.length !== 2 || new Set(totals).size !== 1) {
+    const row = rows[0];
+    const productCount =
+      row?.querySelectorAll<HTMLElement>("[data-product-index]").length ?? 0;
+    const overflowFor = (mode: "wide" | "narrow") =>
+      Number(
+        row
+          ?.querySelector<HTMLElement>(`[data-product-overflow="${mode}"]`)
+          ?.textContent?.replace("+", "") ?? 0,
+      );
+    const totals = [
+      productCount + overflowFor("wide"),
+      Math.min(productCount, 2) + overflowFor("narrow"),
+    ];
+    if (rows.length !== 1 || new Set(totals).size !== 1) {
       throw new Error(
-        `Both thumbnail rows must account for the same products, got ${totals.join(" and ")}`,
+        `Both responsive thumbnail modes must account for the same products, got ${totals.join(" and ")}`,
       );
     }
 
-    const renderedRow = rows.find(
-      (row) => getComputedStyle(row).display !== "none",
+    const moreProducts = Array.from(
+      multipleFooter.querySelectorAll<HTMLElement>("[data-product-overflow]"),
+    ).find(
+      (indicator) => getComputedStyle(indicator).display !== "none",
     );
-    if (!renderedRow) {
-      throw new Error("Multi-product footer rendered no thumbnail row");
-    }
-    const moreProducts = renderedRow.querySelector<HTMLElement>(":scope > span");
     if (
       !moreProducts ||
       Math.abs(moreProducts.getBoundingClientRect().height - 56) > 1
