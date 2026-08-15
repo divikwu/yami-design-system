@@ -35,9 +35,24 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+function ecommerceHomeStoryHref(locale: SearchResultsLocale) {
+  return `/iframe.html?id=yami-pages-ecommerce-home--pc&viewMode=story&globals=locale:${locale}`;
+}
+
+function createSearchResultsStoryFixture(locale: SearchResultsLocale) {
+  const fixture = createSearchResultsFixture(locale);
+  return {
+    ...fixture,
+    header: {
+      ...fixture.header,
+      homeHref: ecommerceHomeStoryHref(locale),
+    },
+  };
+}
+
 const renderResults: NonNullable<Story["render"]> = (_args, { globals }) => (
   <SearchResultsPage
-    {...createSearchResultsFixture(localeFromGlobals(globals.locale))}
+    {...createSearchResultsStoryFixture(localeFromGlobals(globals.locale))}
   />
 );
 
@@ -53,7 +68,7 @@ function SimulatedFilterLoading({ locale }: { locale: SearchResultsLocale }) {
 
   return (
     <SearchResultsPage
-      {...createSearchResultsFixture(locale)}
+      {...createSearchResultsStoryFixture(locale)}
       filtersLoading={filtersLoading}
     />
   );
@@ -65,24 +80,66 @@ const renderSimulatedFilterLoading: NonNullable<Story["render"]> = (
 ) => <SimulatedFilterLoading locale={localeFromGlobals(globals.locale)} />;
 
 export const Results: Story = {
+  name: "PC",
   render: renderResults,
-  play: async ({ canvasElement }) => {
+  play: async ({ canvasElement, globals }) => {
     const document = canvasElement.ownerDocument;
+    const homeLink = canvasElement.querySelector<HTMLAnchorElement>(
+      '[data-slot="header-brand"]'
+    );
     const categoryButton = [...canvasElement.querySelectorAll("button")].find(
       (button) => button.textContent?.trim() === "Category"
     );
+    const productCards = canvasElement.querySelectorAll<HTMLElement>(
+      '[data-slot="product-card"]'
+    );
+    const firstProducts = Array.from(productCards)
+      .slice(0, 3)
+      .map((card) => card.textContent ?? "");
+    if (
+      homeLink?.getAttribute("href") !==
+      ecommerceHomeStoryHref(localeFromGlobals(globals.locale))
+    ) {
+      throw new Error("Search results logo must link to Ecommerce Home");
+    }
     if (
       !categoryButton ||
       categoryButton.getAttribute("aria-expanded") === "true" ||
-      document.querySelector('[data-slot="filter-chip-category-menu"]')
+      document.querySelector('[data-slot="filter-chip-category-menu"]') ||
+      productCards.length !== 24 ||
+      !firstProducts[0]?.includes("AOZEN") ||
+      !firstProducts[0].includes("$19.99") ||
+      !firstProducts[1]?.includes("MARUKYU KOYAMAEN") ||
+      !firstProducts[1].includes("$35.99") ||
+      !firstProducts[2]?.includes("TSUJIRI") ||
+      !firstProducts[2].includes("$9.99")
     ) {
-      throw new Error("Category popup must be closed on initial render");
+      throw new Error(
+        "Search results must open with the current Yami matcha powder product snapshot"
+      );
+    }
+
+    const searchPanel = createSearchResultsFixture(
+      localeFromGlobals(globals.locale)
+    ).header.searchPanel;
+    const recentMatcha = searchPanel?.recent[0];
+    const popularMatcha = searchPanel?.popular[0];
+    if (
+      typeof recentMatcha === "string" ||
+      recentMatcha?.label !== "matcha powder" ||
+      !recentMatcha.href?.includes("search-results--results") ||
+      popularMatcha?.label !== "matcha" ||
+      !popularMatcha.href?.includes("topic-landing-page-topic")
+    ) {
+      throw new Error(
+        "Search results discovery data must match Ecommerce Home"
+      );
     }
   },
 };
 
 export const ResultsInteractions: Story = {
-  name: "Results interaction tests",
+  name: "PC interaction tests",
   tags: ["!dev"],
   render: renderSimulatedFilterLoading,
   play: async ({ canvasElement }) => {
@@ -547,7 +604,7 @@ export const ResultsInteractions: Story = {
 
     const showResultsButton = [
       ...allFiltersDialog.querySelectorAll("button"),
-    ].find((button) => button.textContent?.includes("Show 30 results"));
+    ].find((button) => /^Show [\d,]+ results$/.test(button.textContent?.trim() ?? ""));
     const allFiltersFooter = showResultsButton?.closest("footer");
     if (
       !showResultsButton ||
@@ -600,7 +657,7 @@ export const Mobile: Story = {
   },
   render: (_args, { globals }) => (
     <SearchResultsPage
-      {...createSearchResultsFixture(localeFromGlobals(globals.locale))}
+      {...createSearchResultsStoryFixture(localeFromGlobals(globals.locale))}
     />
   ),
   play: async ({ canvasElement }) => {
@@ -616,7 +673,7 @@ export const MobileInteractions: Story = {
   },
   render: (_args, { globals }) => (
     <SearchResultsPage
-      {...createSearchResultsFixture(localeFromGlobals(globals.locale))}
+      {...createSearchResultsStoryFixture(localeFromGlobals(globals.locale))}
     />
   ),
   play: async ({ canvasElement }) => {
@@ -911,7 +968,7 @@ export const FiltersLoading: Story = {
   name: "Filters loading",
   render: (_args, { globals }) => (
     <SearchResultsPage
-      {...createSearchResultsFixture(localeFromGlobals(globals.locale))}
+      {...createSearchResultsStoryFixture(localeFromGlobals(globals.locale))}
       filtersLoading
     />
   ),
@@ -935,7 +992,7 @@ export const FiltersLoading: Story = {
 
 export const Empty: Story = {
   render: (_args, { globals }) => {
-    const fixture = createSearchResultsFixture(
+    const fixture = createSearchResultsStoryFixture(
       localeFromGlobals(globals.locale)
     );
     return <SearchResultsPage {...fixture} products={[]} />;

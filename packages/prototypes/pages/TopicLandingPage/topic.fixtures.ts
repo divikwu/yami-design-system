@@ -123,13 +123,22 @@ export function createTopicKeywordLandingPageFixture(
   ];
   const waterfallValues = ["all", ...matchaWaterfallValues] as const;
   const waterfallTabs = createTabs(waterfallValues, localizedCopy.moreTabs);
+  const pcHomeHref =
+    `/iframe.html?id=yami-pages-ecommerce-home--pc&viewMode=story&globals=locale%3A${locale}`;
+  const mobileHomeHref =
+    `/iframe.html?id=yami-pages-ecommerce-home--mobile&viewMode=story&globals=locale%3A${locale}`;
 
   return {
     ...base,
     titleFontFamily: "serif" as const,
+    header: {
+      ...base.header,
+      homeHref: pcHomeHref,
+    },
     activityHeader: {
       ...base.activityHeader,
       title: localizedCopy.activityTitle,
+      homeHref: mobileHomeHref,
     },
     hero: {
       ...base.hero,

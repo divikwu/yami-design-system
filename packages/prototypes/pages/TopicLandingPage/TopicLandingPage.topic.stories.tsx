@@ -52,6 +52,12 @@ export const Pc: Story = {
   name: "Topic — PC",
   play: async ({ canvasElement }) => {
     assertPlainShortcutRail(canvasElement);
+    const homeLink = canvasElement.querySelector<HTMLAnchorElement>(
+      '[data-slot="header-brand"]',
+    );
+    if (!homeLink?.href.includes("yami-pages-ecommerce-home--pc")) {
+      throw new Error("Matcha Topic logo must return to Ecommerce Home");
+    }
   },
 };
 
