@@ -1,0 +1,1473 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="YAMI 组件库项目的现状、目标用户、短长期价值、使用方式、Figma 边界与协作 Review 说明。"
+    />
+    <title>YAMI 组件库项目说明</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #0a0a0a;
+        --muted: #525252;
+        --paper: #f5f5f5;
+        --paper-deep: #ebebeb;
+        --surface: #fafafa;
+        --surface-strong: #ffffff;
+        --line: #d4d4d4;
+        --line-strong: #b4b4b4;
+        --accent: #d92b2b;
+        --accent-soft: #ffd8dc;
+        --success: #0c7656;
+        --success-soft: #dcefe8;
+        --warning: #ad6400;
+        --warning-soft: #fff0d2;
+        --info: #245a9b;
+        --info-soft: #dce9f8;
+        --display: "New York", "Noto Serif SC", "Songti SC", serif;
+        --body: "Avenir Next", "PingFang SC", "Hiragino Sans GB", sans-serif;
+        --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        background:
+          linear-gradient(rgba(23, 23, 23, 0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(23, 23, 23, 0.04) 1px, transparent 1px),
+          var(--paper);
+        background-size: 24px 24px;
+        font-family: var(--body);
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      button {
+        font: inherit;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      .shell {
+        width: min(1440px, 100%);
+        min-height: 100vh;
+        margin: 0 auto;
+        border-inline: 1px solid var(--line);
+        background: color-mix(in srgb, var(--paper) 94%, transparent);
+      }
+
+      .document-header {
+        position: sticky;
+        z-index: 20;
+        top: 0;
+        display: flex;
+        min-height: 56px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 10px 24px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.96);
+        backdrop-filter: blur(12px);
+      }
+
+      .document-header-title {
+        margin: 0;
+        font-family: var(--display);
+        font-size: 16px;
+        font-weight: 700;
+        line-height: 1.25;
+      }
+
+      .document-header-meta {
+        margin: 0;
+        color: var(--muted);
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 248px minmax(0, 1fr);
+      }
+
+      .rail {
+        position: sticky;
+        top: 56px;
+        height: calc(100vh - 56px);
+        overflow-y: auto;
+        padding: 28px 22px 40px;
+        border-right: 1px solid var(--line-strong);
+        background: rgba(245, 245, 245, 0.94);
+      }
+
+      .rail-title,
+      .eyebrow,
+      .kicker,
+      .meta-label,
+      .status-tag,
+      .metric-label {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      .rail-title {
+        margin: 0 0 22px;
+        color: var(--muted);
+      }
+
+      .rail a {
+        display: grid;
+        grid-template-columns: 30px minmax(0, 1fr);
+        gap: 8px;
+        align-items: baseline;
+        padding: 10px 8px;
+        border-left: 2px solid transparent;
+        color: var(--muted);
+        font-size: 14px;
+        text-decoration: none;
+      }
+
+      .rail a span:first-child {
+        font-family: var(--mono);
+        font-size: 10px;
+      }
+
+      .rail a:hover,
+      .rail a:focus-visible,
+      .rail a[aria-current="true"] {
+        border-left-color: var(--accent);
+        color: var(--ink);
+        outline: none;
+        background: #fff;
+      }
+
+      main {
+        min-width: 0;
+      }
+
+      .masthead {
+        position: relative;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 230px;
+        gap: 36px;
+        min-height: 560px;
+        padding: 52px clamp(24px, 5vw, 72px) 48px;
+        overflow: hidden;
+        border-bottom: 1px solid var(--line-strong);
+        background:
+          radial-gradient(circle at 84% 16%, rgba(217, 43, 43, 0.13), transparent 25%),
+          linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(235, 235, 235, 0.72));
+      }
+
+      .masthead::after {
+        position: absolute;
+        right: -92px;
+        bottom: -186px;
+        width: 480px;
+        aspect-ratio: 1;
+        border: 92px solid rgba(217, 43, 43, 0.07);
+        border-radius: 50%;
+        content: "";
+      }
+
+      .masthead-copy,
+      .version-card,
+      .value-strip {
+        position: relative;
+        z-index: 1;
+      }
+
+      .eyebrow {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 56px;
+      }
+
+      .brand-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        outline: 1px solid var(--accent);
+        background: var(--accent);
+        box-shadow: inset 0 0 0 4px #fff;
+      }
+
+      h1 {
+        max-width: 850px;
+        margin-bottom: 26px;
+        font-family: var(--display);
+        font-size: clamp(56px, 7.2vw, 96px);
+        font-weight: 700;
+        letter-spacing: -0.06em;
+        line-height: 1.06;
+      }
+
+      .lede {
+        max-width: 760px;
+        margin-bottom: 0;
+        color: #393939;
+        font-size: clamp(17px, 2vw, 21px);
+      }
+
+      .version-card {
+        align-self: end;
+        padding: 20px;
+        border: 1px solid var(--ink);
+        background: rgba(250, 250, 250, 0.94);
+      }
+
+      .version-card strong {
+        display: block;
+        margin: 6px 0 16px;
+        font-family: var(--display);
+        font-size: 34px;
+      }
+
+      .version-card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .value-strip {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        margin-top: 60px;
+        border-top: 1px solid var(--line-strong);
+        border-left: 1px solid var(--line-strong);
+      }
+
+      .value-strip article {
+        min-height: 118px;
+        padding: 18px;
+        border-right: 1px solid var(--line-strong);
+        border-bottom: 1px solid var(--line-strong);
+        background: rgba(250, 250, 250, 0.82);
+      }
+
+      .value-strip strong {
+        display: block;
+        margin: 18px 0 6px;
+        font-family: var(--display);
+        font-size: 24px;
+        line-height: 1.24;
+      }
+
+      section {
+        scroll-margin-top: 56px;
+        padding: 72px clamp(24px, 5vw, 72px);
+        border-bottom: 1px solid var(--line-strong);
+      }
+
+      section:nth-of-type(even) {
+        background: rgba(255, 255, 255, 0.42);
+      }
+
+      .section-head {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 14px;
+        margin-bottom: 40px;
+      }
+
+      h2 {
+        margin-bottom: 0;
+        font-family: var(--display);
+        font-size: clamp(40px, 5vw, 58px);
+        letter-spacing: -0.04em;
+        line-height: 1.12;
+      }
+
+      h3 {
+        margin-bottom: 9px;
+        font-size: 18px;
+        line-height: 1.3;
+      }
+
+      .kicker {
+        margin-bottom: 12px;
+        color: var(--accent);
+      }
+
+      .section-summary {
+        max-width: 820px;
+        margin: 0;
+        color: var(--muted);
+        font-size: 15px;
+      }
+
+      .status-tag {
+        display: inline-flex;
+        width: fit-content;
+        align-items: center;
+        padding: 5px 8px;
+        border: 1px solid currentColor;
+        color: var(--muted);
+        background: #fff;
+      }
+
+      .status-tag.current {
+        color: var(--accent);
+        background: var(--accent-soft);
+      }
+
+      .status-tag.validated {
+        color: var(--success);
+        background: var(--success-soft);
+      }
+
+      .status-tag.hypothesis {
+        color: var(--warning);
+        background: var(--warning-soft);
+      }
+
+      .status-tag.pending {
+        color: var(--info);
+        background: var(--info-soft);
+      }
+
+      .summary-grid,
+      .role-grid,
+      .goal-grid,
+      .boundary-grid,
+      .review-grid {
+        display: grid;
+        border-top: 1px solid var(--line-strong);
+        border-left: 1px solid var(--line-strong);
+      }
+
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .summary-cell,
+      .role-card,
+      .goal-card,
+      .boundary-card,
+      .review-card {
+        min-height: 166px;
+        padding: 22px;
+        border-right: 1px solid var(--line-strong);
+        border-bottom: 1px solid var(--line-strong);
+        background: var(--surface);
+      }
+
+      .summary-cell {
+        display: grid;
+        grid-template-columns: 112px minmax(180px, 0.45fr) minmax(0, 1fr);
+        gap: 22px;
+        min-height: 0;
+        align-items: start;
+      }
+
+      .summary-cell strong {
+        display: block;
+        margin: 0;
+        font-family: var(--display);
+        font-size: 28px;
+        line-height: 1.18;
+      }
+
+      .summary-cell p,
+      .role-card p,
+      .goal-card p,
+      .boundary-card p,
+      .review-card p {
+        margin-bottom: 0;
+        color: var(--muted);
+      }
+
+      .record-list {
+        margin: 0;
+        padding-left: 18px;
+        color: var(--muted);
+      }
+
+      .record-list li + li {
+        margin-top: 5px;
+      }
+
+      .impact-table {
+        border-top: 1px solid var(--line-strong);
+        border-left: 1px solid var(--line-strong);
+      }
+
+      .impact-row {
+        display: grid;
+        grid-template-columns: minmax(220px, 0.75fr) minmax(0, 1.6fr);
+        border-right: 1px solid var(--line-strong);
+        border-bottom: 1px solid var(--line-strong);
+        background: var(--surface);
+      }
+
+      .impact-goal,
+      .impact-cost {
+        padding: 22px;
+      }
+
+      .impact-goal {
+        border-right: 1px solid var(--line-strong);
+      }
+
+      .impact-goal strong {
+        display: block;
+        margin-top: 12px;
+        font-family: var(--display);
+        font-size: 26px;
+        line-height: 1.2;
+      }
+
+      .impact-cost p {
+        margin: 12px 0 0;
+        color: var(--muted);
+        font-size: 15px;
+      }
+
+      .evidence-note,
+      .logic-note {
+        display: grid;
+        grid-template-columns: minmax(150px, 0.3fr) minmax(0, 1fr);
+        gap: 24px;
+        margin-top: 24px;
+        padding: 22px 24px;
+        border-left: 4px solid var(--accent);
+        background: var(--ink);
+        color: #fff;
+      }
+
+      .evidence-note p,
+      .logic-note p {
+        margin: 0;
+        color: #d4d4d4;
+      }
+
+      .role-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .role-card {
+        min-height: 210px;
+      }
+
+      .role-card h3,
+      .goal-card h3,
+      .boundary-card h3,
+      .review-card h3 {
+        margin-top: 24px;
+      }
+
+      .role-priority {
+        display: block;
+        margin-top: 20px;
+        color: var(--muted);
+        font-family: var(--mono);
+        font-size: 11px;
+      }
+
+      .goal-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .goal-card {
+        min-height: 240px;
+      }
+
+      .goal-card ul,
+      .boundary-card ul,
+      .review-card ul,
+      .step p {
+        color: var(--muted);
+      }
+
+      .goal-card ul,
+      .boundary-card ul,
+      .review-card ul {
+        margin: 16px 0 0;
+        padding-left: 18px;
+      }
+
+      .goal-card li + li,
+      .boundary-card li + li,
+      .review-card li + li {
+        margin-top: 7px;
+      }
+
+      .metric-bar {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        margin-top: 24px;
+        border: 1px solid var(--line-strong);
+        background: var(--surface-strong);
+      }
+
+      .metric {
+        min-height: 124px;
+        padding: 18px;
+        border-right: 1px solid var(--line-strong);
+      }
+
+      .metric:last-child {
+        border-right: 0;
+      }
+
+      .metric strong {
+        display: block;
+        margin-top: 18px;
+        font-family: var(--display);
+        font-size: 22px;
+      }
+
+      .workflow {
+        position: relative;
+        display: grid;
+        gap: 0;
+        padding-left: 54px;
+      }
+
+      .workflow::before {
+        position: absolute;
+        top: 18px;
+        bottom: 18px;
+        left: 18px;
+        width: 1px;
+        background: var(--line-strong);
+        content: "";
+      }
+
+      .step {
+        position: relative;
+        min-height: 126px;
+        padding: 18px 22px 22px;
+        border-top: 1px solid var(--line-strong);
+        border-right: 1px solid var(--line-strong);
+        border-left: 1px solid var(--line-strong);
+        background: var(--surface);
+      }
+
+      .step:last-child {
+        border-bottom: 1px solid var(--line-strong);
+      }
+
+      .step::before {
+        position: absolute;
+        top: 23px;
+        left: -46px;
+        width: 20px;
+        height: 20px;
+        border: 1px solid var(--accent);
+        border-radius: 50%;
+        background: var(--paper);
+        box-shadow: inset 0 0 0 5px var(--paper);
+        content: "";
+      }
+
+      .step.current::before {
+        background: var(--accent);
+      }
+
+      .step-index {
+        color: var(--accent);
+      }
+
+      .step h3 {
+        margin-top: 9px;
+      }
+
+      .step p {
+        max-width: 780px;
+        margin-bottom: 0;
+      }
+
+      .boundary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .boundary-card {
+        min-height: 310px;
+      }
+
+      .boundary-card.figma {
+        background: #fff;
+      }
+
+      .boundary-card.code {
+        color: #fff;
+        background: var(--ink);
+      }
+
+      .boundary-card.code p,
+      .boundary-card.code ul {
+        color: #d4d4d4;
+      }
+
+      .boundary-card .large-label {
+        display: block;
+        margin-top: 42px;
+        font-family: var(--display);
+        font-size: clamp(38px, 4vw, 54px);
+        letter-spacing: -0.04em;
+        line-height: 1.08;
+      }
+
+      .boundary-card .large-label + p {
+        margin-top: 14px;
+      }
+
+      .review-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .review-card {
+        min-height: 280px;
+      }
+
+      .review-card .review-number {
+        display: block;
+        color: var(--accent);
+        font-family: var(--display);
+        font-size: 42px;
+        line-height: 1;
+      }
+
+      .decision-table-wrap {
+        margin-top: 28px;
+        overflow-x: auto;
+        border: 1px solid var(--line-strong);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--surface);
+      }
+
+      th,
+      td {
+        min-width: 150px;
+        padding: 14px 16px;
+        border-right: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        color: var(--muted);
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      th:last-child,
+      td:last-child {
+        border-right: 0;
+      }
+
+      .next-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .next-card {
+        min-height: 250px;
+        padding: 22px;
+        border: 1px solid var(--line-strong);
+        background: var(--surface);
+      }
+
+      .next-card.recommended {
+        border: 2px solid var(--accent);
+        background: linear-gradient(145deg, #fff, var(--accent-soft) 180%);
+      }
+
+      .next-card strong {
+        display: block;
+        margin: 32px 0 10px;
+        font-family: var(--display);
+        font-size: 28px;
+        line-height: 1.18;
+      }
+
+      .next-card p {
+        margin-bottom: 0;
+        color: var(--muted);
+      }
+
+      .decision-panel {
+        display: grid;
+        grid-template-columns: minmax(150px, 0.32fr) minmax(0, 1fr);
+        gap: 32px;
+        padding: 30px;
+        color: #fff;
+        background: var(--ink);
+      }
+
+      .decision-panel strong {
+        display: block;
+        margin-bottom: 12px;
+        font-family: var(--display);
+        font-size: clamp(32px, 4vw, 48px);
+        line-height: 1.12;
+      }
+
+      .decision-panel p,
+      .decision-panel ul {
+        color: #d4d4d4;
+      }
+
+      .decision-panel p {
+        margin-bottom: 18px;
+      }
+
+      .decision-panel ul {
+        margin: 0;
+        padding-left: 18px;
+      }
+
+      .decision-panel li + li {
+        margin-top: 7px;
+      }
+
+      .footer-note {
+        padding: 20px 24px;
+        border-top: 1px solid var(--line-strong);
+        background: #fff;
+      }
+
+      .footer-note p {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        margin: 0;
+        color: var(--muted);
+        font-family: var(--mono);
+        font-size: 11px;
+      }
+
+      @media (max-width: 1040px) {
+        .layout {
+          display: block;
+        }
+
+        .rail {
+          position: sticky;
+          z-index: 15;
+          top: 56px;
+          display: flex;
+          height: auto;
+          gap: 2px;
+          overflow-x: auto;
+          padding: 8px 16px;
+          border-right: 0;
+          border-bottom: 1px solid var(--line-strong);
+          white-space: nowrap;
+        }
+
+        .rail-title {
+          display: none;
+        }
+
+        .rail a {
+          display: inline-grid;
+          min-width: max-content;
+          grid-template-columns: 24px auto;
+          padding: 8px 10px;
+          border-bottom: 2px solid transparent;
+          border-left: 0;
+        }
+
+        .rail a:hover,
+        .rail a:focus-visible,
+        .rail a[aria-current="true"] {
+          border-bottom-color: var(--accent);
+          border-left: 0;
+        }
+
+        section {
+          scroll-margin-top: 108px;
+        }
+
+        .summary-grid,
+        .metric-bar {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .summary-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .metric:nth-child(2) {
+          border-right: 0;
+        }
+
+        .metric:nth-child(-n + 2) {
+          border-bottom: 1px solid var(--line-strong);
+        }
+
+        .review-grid,
+        .next-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .document-header-meta {
+          display: none;
+        }
+
+        .masthead {
+          display: block;
+          min-height: 0;
+          padding: 32px 20px 36px;
+        }
+
+        .eyebrow {
+          margin-bottom: 56px;
+        }
+
+        h1 {
+          font-size: 50px;
+          line-height: 1.06;
+        }
+
+        .version-card {
+          margin-top: 38px;
+        }
+
+        .value-strip,
+        .summary-grid,
+        .role-grid,
+        .goal-grid,
+        .boundary-grid,
+        .metric-bar {
+          grid-template-columns: 1fr;
+        }
+
+        .impact-row {
+          grid-template-columns: 1fr;
+        }
+
+        .impact-goal {
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+
+        .value-strip {
+          margin-top: 40px;
+        }
+
+        .summary-cell {
+          display: block;
+        }
+
+        .summary-cell strong {
+          margin: 20px 0 8px;
+        }
+
+        section {
+          padding: 52px 20px;
+        }
+
+        .metric {
+          border-right: 0;
+          border-bottom: 1px solid var(--line-strong);
+        }
+
+        .metric:last-child {
+          border-bottom: 0;
+        }
+
+        .evidence-note,
+        .logic-note,
+        .decision-panel {
+          grid-template-columns: 1fr;
+          gap: 8px;
+        }
+
+        .workflow {
+          padding-left: 38px;
+        }
+
+        .workflow::before {
+          left: 12px;
+        }
+
+        .step::before {
+          left: -37px;
+        }
+
+        .footer-note p {
+          display: block;
+        }
+      }
+
+      @media print {
+        body {
+          background: #fff;
+        }
+
+        .document-header,
+        .rail {
+          display: none;
+        }
+
+        .layout {
+          display: block;
+        }
+
+        section,
+        .masthead {
+          break-inside: avoid;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="document-header" aria-label="文档标题">
+        <p class="document-header-title">YAMI 组件库项目说明</p>
+        <p class="document-header-meta">Exploration brief · 2026.08</p>
+      </header>
+
+      <div class="layout">
+        <nav class="rail" aria-label="页面章节">
+          <p class="rail-title">DOCUMENT INDEX</p>
+          <a href="#overview"><span>00</span><span>项目总览</span></a>
+          <a href="#why-now"><span>01</span><span>如果不做</span></a>
+          <a href="#progress"><span>02</span><span>推进现状</span></a>
+          <a href="#users"><span>03</span><span>潜在用户</span></a>
+          <a href="#short-term"><span>04</span><span>短期目标</span></a>
+          <a href="#long-term"><span>05</span><span>长期方向</span></a>
+          <a href="#onboarding"><span>06</span><span>如何上手</span></a>
+          <a href="#figma"><span>07</span><span>Figma 边界</span></a>
+          <a href="#collaboration"><span>08</span><span>协作与 Review</span></a>
+          <a href="#next"><span>09</span><span>下一步验证</span></a>
+          <a href="#decision"><span>10</span><span>是否推进</span></a>
+        </nav>
+
+        <main>
+          <header id="overview" class="masthead">
+            <div class="masthead-copy">
+              <p class="eyebrow"><span class="brand-dot" aria-hidden="true"></span>YAMI · Design to Code</p>
+              <h1>组件库项目<br />说明</h1>
+              <p class="lede">
+                以同一套可执行规范连接设计侧与开发侧，统一组件、视觉规则和交互标准；结合真实 React 组件和 AI 辅助，更快完成可交互、响应式、接近实现的高保真原型。
+              </p>
+            </div>
+
+            <aside class="version-card" aria-label="文档状态">
+              <span class="meta-label">Project phase</span>
+              <strong>探索期</strong>
+              <p>已完成代码级原型尝试</p>
+              <p>正在验证协作与接入价值</p>
+            </aside>
+
+            <div class="value-strip" aria-label="项目价值概览">
+              <article>
+                <span class="meta-label">Core purpose</span>
+                <strong>统一设计与开发规范</strong>
+              </article>
+              <article>
+                <span class="meta-label">AI foundation</span>
+                <strong>构建 AI 生成基础</strong>
+              </article>
+              <article>
+                <span class="meta-label">Prototype</span>
+                <strong>更快完成原型</strong>
+              </article>
+              <article>
+                <span class="meta-label">Responsive</span>
+                <strong>真实多端表现</strong>
+              </article>
+              <article>
+                <span class="meta-label">Handoff</span>
+                <strong>减少设计转译成本</strong>
+              </article>
+            </div>
+          </header>
+
+          <section id="why-now">
+            <div class="section-head">
+              <div>
+                <p class="kicker">01 · Cost of inaction</p>
+                <h2>如果不做会怎么样</h2>
+              </div>
+              <p class="section-summary">
+                核心问题是设计规范与前端实现之间存在脱节：设计侧难以确认规则是否真实落地，开发侧缺少统一、可复用的实现约束。进入真实产品环境后，多站点并行建设会进一步放大这种脱节；同时设计侧受资源和推动边界限制，难以单独完成跨站点治理。
+              </p>
+            </div>
+
+            <div class="impact-table" aria-label="项目目标与不推进的后果">
+              <article class="impact-row">
+                <div class="impact-goal">
+                  <span class="meta-label">Core purpose</span>
+                  <strong>统一设计与开发规范</strong>
+                </div>
+                <div class="impact-cost">
+                  <span class="meta-label">如果不做</span>
+                  <p>设计规范与前端实现持续脱节：设计侧无法确认规则是否真实落地，开发侧缺少统一的组件与实现约束，二次解释、设计走查和返工持续发生；多个站点会进一步放大这一问题。</p>
+                </div>
+              </article>
+              <article class="impact-row">
+                <div class="impact-goal">
+                  <span class="meta-label">AI foundation</span>
+                  <strong>构建 AI 生成基础</strong>
+                </div>
+                <div class="impact-cost">
+                  <span class="meta-label">如果不做</span>
+                  <p>缺少结构化 Tokens、组件契约、页面模式和验证规则，AI 只能自由生成或依赖预置模板与数据填充，难以稳定产出符合规范的页面。</p>
+                </div>
+              </article>
+              <article class="impact-row">
+                <div class="impact-goal">
+                  <span class="meta-label">Prototype</span>
+                  <strong>更快完成原型</strong>
+                </div>
+                <div class="impact-cost">
+                  <span class="meta-label">如果不做</span>
+                  <p>每个页面继续重复搭建组件和基础交互，原型效率与完成度更多依赖个人经验，难以形成可复用的制作能力。</p>
+                </div>
+              </article>
+              <article class="impact-row">
+                <div class="impact-goal">
+                  <span class="meta-label">Responsive</span>
+                  <strong>真实多端表现</strong>
+                </div>
+                <div class="impact-cost">
+                  <span class="meta-label">如果不做</span>
+                  <p>交互、动效和响应式规则仍停留在静态交付和文字说明中，需要前端重新理解、实现，再通过设计走查发现偏差。</p>
+                </div>
+              </article>
+              <article class="impact-row">
+                <div class="impact-goal">
+                  <span class="meta-label">Handoff</span>
+                  <strong>减少设计转译成本</strong>
+                </div>
+                <div class="impact-cost">
+                  <span class="meta-label">如果不做</span>
+                  <p>设计稿、组件说明和前端实现继续分离，沟通、标注、二次实现与返工会持续发生，设计和开发难以共享同一事实来源。</p>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section id="progress">
+            <div class="section-head">
+              <div>
+                <p class="kicker">02 · Current progress</p>
+                <h2>已经走到哪里</h2>
+              </div>
+              <p class="section-summary">
+                项目已经从“讨论组件库形式”进入“用真实页面验证价值”的阶段。已有收获值得继续验证，但效率提升和代码复用程度仍需要数据支持。
+              </p>
+            </div>
+
+            <div class="summary-grid">
+              <article class="summary-cell">
+                <span class="status-tag validated">已沟通</span>
+                <strong>前期初步讨论</strong>
+                <ul class="record-list">
+                  <li>沟通团队：Pre-purchase Channel 的 Web、App 开发</li>
+                  <li>参与成员：Divik Wu、Gavin Wang、Roger Wang、Raymond Zhang、Stone Nan、Rick Zhao</li>
+                  <li>初次沟通时间：6 月底</li>
+                </ul>
+              </article>
+              <article class="summary-cell">
+                <span class="status-tag validated">已确认</span>
+                <strong>Storybook</strong>
+                <p>讨论结论：初步确认使用 Storybook 作为统一组件库的制作与维护方式，用于组件查看与验证，并作为设计侧与前端侧统一规范的共同入口。</p>
+              </article>
+              <article class="summary-cell">
+                <span class="status-tag validated">已完成</span>
+                <strong>代码原型</strong>
+                <p>已经交付代码级 Landing Page 原型，包含真实交互、动效和响应式表现。</p>
+              </article>
+              <article class="summary-cell">
+                <span class="status-tag current">进行中</span>
+                <strong>前端接入</strong>
+                <p>原型已交付前端维护和接入，下一步协作方式仍需明确。</p>
+              </article>
+              <article class="summary-cell">
+                <span class="status-tag hypothesis">待验证</span>
+                <strong>效率收益</strong>
+                <p>初步感受到完成度和沟通效率提升，但尚未形成可量化结论。</p>
+              </article>
+            </div>
+
+            <div class="evidence-note">
+              <strong>证据边界</strong>
+              <p>以已交付的 Landing Page 为例，“页面效果从约 60 分提升到约 90 分”是当前的主观观察。后续仍需通过开发耗时、返工次数、Review 轮次和规范问题数量进行验证。</p>
+            </div>
+          </section>
+
+          <section id="users">
+            <div class="section-head">
+              <div>
+                <p class="kicker">03 · Potential users</p>
+                <h2>谁会使用，谁来协作</h2>
+              </div>
+              <p class="section-summary">
+                这套代码组件库不强制要求设计师使用。是否采用，应根据具体任务、个人能力和协作方式判断：适合用代码快速制作或验证的场景可以采用；更适合在 Figma 中探索，或直接由前端实现的场景，可以继续使用原有方式。角色参与因事而异、因人而异，按需协作即可。
+              </p>
+            </div>
+
+            <div class="role-grid">
+              <article class="role-card">
+                <span class="status-tag current">按场景使用</span>
+                <h3>设计师与产品经理</h3>
+                <p>使用规范、组件和页面模式快速制作高保真原型，明确页面目标、用户任务和内容范围。</p>
+                <span class="role-priority">待验证：产品经理是否直接操作，或主要提供 Brief</span>
+              </article>
+              <article class="role-card">
+                <span class="status-tag validated">按需协作</span>
+                <h3>前端开发</h3>
+                <p>复用 React 组件、Design Tokens、类型和交互实现，并验证原型代码进入业务项目的真实成本。</p>
+              </article>
+              <article class="role-card">
+                <span class="status-tag pending">涉及公共资产时</span>
+                <h3>设计系统维护者</h3>
+                <p>维护 Tokens、公共组件、设计规则、Storybook 文档以及自动化质量门槛。</p>
+              </article>
+              <article class="role-card">
+                <span class="status-tag pending">需要业务确认时</span>
+                <h3>业务 Stakeholder</h3>
+                <p>查看完整页面原型，确认业务目标、内容、流程与最终交付方向。</p>
+              </article>
+            </div>
+          </section>
+
+          <section id="short-term">
+            <div class="section-head">
+              <div>
+                <p class="kicker">04 · Short-term goal</p>
+                <h2>短期希望解决什么？</h2>
+              </div>
+              <p class="section-summary">
+                短期不同时承诺统一所有前端代码、自动发布或替代 Figma。当前只验证原型效率和设计到开发交付是否得到改善。
+              </p>
+            </div>
+
+            <div class="goal-grid">
+              <article class="goal-card">
+                <span class="status-tag current">目标 A</span>
+                <h3>提升原型制作效率与完成度</h3>
+                <ul>
+                  <li>更快完成符合 YAMI 设计标准的高保真页面。</li>
+                  <li>直接呈现真实交互、动效和响应式行为。</li>
+                  <li>减少重复定义颜色、间距、组件状态和多端规则。</li>
+                </ul>
+              </article>
+              <article class="goal-card">
+                <span class="status-tag current">目标 B</span>
+                <h3>改善设计到开发的交付链路</h3>
+                <ul>
+                  <li>减少前端重新理解设计稿和重复实现交互的时间。</li>
+                  <li>减少设计走查、返工和沟通轮次。</li>
+                  <li>让修改意见能指向组件、Token、内容或页面组合。</li>
+                </ul>
+              </article>
+            </div>
+
+            <div class="metric-bar" aria-label="短期验证指标">
+              <article class="metric"><span class="metric-label">Time</span><strong>原型制作耗时</strong></article>
+              <article class="metric"><span class="metric-label">Delivery</span><strong>前端接入耗时</strong></article>
+              <article class="metric"><span class="metric-label">Review</span><strong>走查与返工轮次</strong></article>
+              <article class="metric"><span class="metric-label">Quality</span><strong>规范问题数量</strong></article>
+            </div>
+          </section>
+
+          <section id="long-term">
+            <div class="section-head">
+              <div>
+                <p class="kicker">05 · Long-term direction</p>
+                <h2>长期期望解决什么？</h2>
+              </div>
+              <p class="section-summary">
+                长期方向是让设计规范、组件、原型和前端实现逐步使用同一套可执行资产。但“统一前端代码”只有在真实业务项目采用并形成版本机制后才能成立。
+              </p>
+            </div>
+
+            <div class="workflow" aria-label="长期能力演进">
+              <article class="step current">
+                <span class="step-index">01 · Token</span>
+                <h3>统一视觉规则来源</h3>
+                <p>以 Design Tokens 表达颜色、字体、间距和响应式等视觉规则，减少多处维护。</p>
+              </article>
+              <article class="step current">
+                <span class="step-index">02 · Component</span>
+                <h3>使用真实组件制作原型</h3>
+                <p>让 Storybook 组件同时服务于设计确认、原型制作和前端实现。</p>
+              </article>
+              <article class="step">
+                <span class="step-index">03 · Delivery</span>
+                <h3>建立可执行的设计交付</h3>
+                <p>通过自动 QA 检查设计规范、运行时、视觉和可访问性，再进入人工确认。</p>
+              </article>
+              <article class="step">
+                <span class="step-index">04 · Adoption</span>
+                <h3>验证业务前端直接复用</h3>
+                <p>通过真实项目接入验证组件包、版本升级和维护成本，决定是否能够形成统一代码资产。</p>
+              </article>
+            </div>
+
+            <div class="logic-note">
+              <strong>当前表述</strong>
+              <p>项目有机会提高设计原型与前端实现的一致性，并逐步验证组件代码能否直接复用；现阶段不宣称已经实现设计与业务前端代码统一。</p>
+            </div>
+          </section>
+
+          <section id="onboarding">
+            <div class="section-head">
+              <div>
+                <p class="kicker">06 · How to start</p>
+                <h2>从 Brief 到真实原型</h2>
+              </div>
+              <p class="section-summary">
+                当前操作链路仍以代码和 AI Agent 为主。下一阶段需要专门验证设计师与产品经理能否独立完成，并补充面向非开发用户的操作说明。
+              </p>
+            </div>
+
+            <div class="workflow" aria-label="原型制作流程">
+              <article class="step current">
+                <span class="step-index">01 · Brief</span>
+                <h3>明确页面目标与范围</h3>
+                <p>写清楚用户任务、核心内容、业务限制和目标设备，避免只描述视觉样式。</p>
+              </article>
+              <article class="step current">
+                <span class="step-index">02 · Reference</span>
+                <h3>查看规范和现有组件</h3>
+                <p>在 Storybook 中查看组件状态、使用规则、页面模式以及桌面和移动端表现。</p>
+              </article>
+              <article class="step current">
+                <span class="step-index">03 · Generate</span>
+                <h3>使用 AI 辅助制作 React 原型</h3>
+                <p>根据设计规范、组件目录和已有页面 Recipe 生成或修改页面，不重新发明已有组件。</p>
+              </article>
+              <article class="step">
+                <span class="step-index">04 · Verify</span>
+                <h3>检查真实交互与多端表现</h3>
+                <p>在 Storybook 中检查交互、动效、桌面端、移动端以及关键状态。</p>
+              </article>
+              <article class="step">
+                <span class="step-index">05 · Refine</span>
+                <h3>进行定向修改</h3>
+                <p>将反馈落实到组件 Props、Design Tokens、内容或页面组合，然后重新验证。</p>
+              </article>
+            </div>
+          </section>
+
+          <section id="figma">
+            <div class="section-head">
+              <div>
+                <p class="kicker">07 · Figma boundary</p>
+                <h2>不是替代，而是阶段分工</h2>
+              </div>
+              <p class="section-summary">
+                当前不以全面替代 Figma 为目标。Figma 继续承担自由探索和评议，代码组件库聚焦标准化、高保真和接近实现的阶段。
+              </p>
+            </div>
+
+            <div class="boundary-grid">
+              <article class="boundary-card figma">
+                <span class="status-tag pending">探索阶段</span>
+                <span class="large-label">Figma</span>
+                <p>适合自由探索、视觉发散、快速布局、设计评议和非代码协作。</p>
+                <ul>
+                  <li>快速尝试不同方向</li>
+                  <li>低成本讨论视觉与布局</li>
+                  <li>支持广泛的设计协作</li>
+                </ul>
+              </article>
+              <article class="boundary-card code">
+                <span class="status-tag current">收敛阶段</span>
+                <span class="large-label">代码组件库</span>
+                <p>适合使用既有规范和真实组件，完成响应式、可交互、接近实现的高保真原型。</p>
+                <ul>
+                  <li>复用标准组件和页面模式</li>
+                  <li>直接表达交互与多端行为</li>
+                  <li>减少标注和二次实现</li>
+                </ul>
+              </article>
+            </div>
+
+            <div class="logic-note">
+              <strong>优先验证</strong>
+              <p>是否能够减少标准组件重复拼装、多端稿件维护、手工标注，以及前端重新实现交互原型的工作量。</p>
+            </div>
+          </section>
+
+          <section id="collaboration">
+            <div class="section-head">
+              <div>
+                <p class="kicker">08 · Collaboration &amp; review</p>
+                <h2>协作方式暂不定案</h2>
+              </div>
+              <p class="section-summary">
+                当前优先研究设计到开发的完整链路。可以将“分布式制作、集中式治理”和三层 Review 作为验证假设，而不是已经落地的组织机制。
+              </p>
+            </div>
+
+            <div class="review-grid">
+              <article class="review-card">
+                <span class="review-number">01</span>
+                <h3>自动 QA</h3>
+                <p>检查组件规范、类型、运行时、交互、响应式、视觉和可访问性。</p>
+                <ul><li>减少基础规范错误</li><li>保留可重复验证结果</li></ul>
+              </article>
+              <article class="review-card">
+                <span class="review-number">02</span>
+                <h3>设计与产品 Review</h3>
+                <p>检查视觉表现、组件使用、用户流程、内容和业务目标。</p>
+                <ul><li>反馈指向具体责任字段</li><li>避免模糊的“感觉不对”</li></ul>
+              </article>
+              <article class="review-card">
+                <span class="review-number">03</span>
+                <h3>工程与发布 Review</h3>
+                <p>检查代码质量、组件复用、性能、接入成本及公共资产变更。</p>
+                <ul><li>原型确认与代码合并分离</li><li>正式发布独立确认</li></ul>
+              </article>
+            </div>
+
+            <div class="decision-table-wrap">
+              <table>
+                <thead><tr><th>待决策问题</th><th>当前假设</th><th>需要验证</th></tr></thead>
+                <tbody>
+                  <tr><td>页面由谁完成</td><td>不同设计师或产品团队可分布制作</td><td>非开发角色能否独立完成流程</td></tr>
+                  <tr><td>公共资产由谁维护</td><td>Tokens、基础组件与规则集中治理</td><td>Owner、修改权限与审批边界</td></tr>
+                  <tr><td>新模式如何沉淀</td><td>经过 Review 后进入公共组件或页面模式</td><td>通用性判断和版本发布流程</td></tr>
+                  <tr><td>谁做最终确认</td><td>设计、产品、工程分别确认职责范围</td><td>真实团队 RACI 与发布责任人</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section id="next">
+            <div class="section-head">
+              <div>
+                <p class="kicker">09 · Next validation</p>
+                <h2>下一步不是扩功能，而是补证据</h2>
+              </div>
+              <p class="section-summary">
+                选择一个边界明确的真实页面，从 Brief、原型、Review 到前端接入完整走一遍，用事实决定是否继续投入和采用哪种协作模式。
+              </p>
+            </div>
+
+            <div class="next-grid">
+              <article class="next-card recommended">
+                <span class="status-tag current">优先</span>
+                <strong>完成一个端到端案例</strong>
+                <p>记录设计、生成、修改、Review 和前端接入全过程，找到真实阻塞点。</p>
+              </article>
+              <article class="next-card">
+                <span class="status-tag hypothesis">量化</span>
+                <strong>建立前后对比指标</strong>
+                <p>比较原型耗时、开发耗时、返工轮次、规范问题和最终完成度。</p>
+              </article>
+              <article class="next-card">
+                <span class="status-tag pending">决策</span>
+                <strong>确定角色与 Review</strong>
+                <p>根据真实案例明确谁制作、谁维护、谁审核，以及哪些代码能够直接复用。</p>
+              </article>
+            </div>
+
+            <div class="logic-note">
+              <strong>项目判断标准</strong>
+              <p>如果真实案例能稳定减少制作时间、沟通与返工，同时保持设计质量和前端可维护性，这个方向值得继续；否则需要收窄场景或调整链路。</p>
+            </div>
+          </section>
+
+          <section id="decision">
+            <div class="section-head">
+              <div>
+                <p class="kicker">10 · Decision</p>
+                <h2>是否继续推进？</h2>
+              </div>
+              <p class="section-summary">
+                当前证据支持继续验证，但还不足以支持全面推广。建议以一个真实业务页面为范围推进下一阶段，并在完成后作正式决策。
+              </p>
+            </div>
+
+            <div class="decision-panel">
+              <div><span class="status-tag current">建议决策</span></div>
+              <div>
+                <strong>有条件推进下一阶段验证</strong>
+                <p>推进的是端到端真实案例，不是组件库的全面推广，也不承诺立即统一所有前端代码或替代 Figma。</p>
+                <ul>
+                  <li>完成一个从 Brief、原型、Review 到前端接入的真实页面。</li>
+                  <li>记录制作耗时、开发耗时、返工轮次、规范问题和维护成本。</li>
+                  <li>若效率、质量与可维护性同时改善，则继续投入；否则收窄场景或停止推进。</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+
+      <footer class="footer-note" aria-label="文档信息">
+        <p><span>YAMI Component Library Exploration</span><span>更新时间 2026-08-15</span></p>
+      </footer>
+    </div>
+
+    <script>
+      const sections = [...document.querySelectorAll("main [id]")];
+      const links = [...document.querySelectorAll(".rail a")];
+      const linkById = new Map(links.map((link) => [link.hash.slice(1), link]));
+
+      const setCurrent = (id) => {
+        links.forEach((link) => link.removeAttribute("aria-current"));
+        linkById.get(id)?.setAttribute("aria-current", "true");
+      };
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          const visible = entries
+            .filter((entry) => entry.isIntersecting)
+            .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+          if (visible) setCurrent(visible.target.id);
+        },
+        { rootMargin: "-20% 0px -68% 0px", threshold: [0, 0.2, 0.5] },
+      );
+
+      sections.forEach((section) => observer.observe(section));
+      setCurrent(location.hash.slice(1) || "overview");
+    </script>
+  </body>
+</html>
