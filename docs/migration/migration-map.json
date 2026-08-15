@@ -1933,7 +1933,7 @@
       "sourceSha256": "04ab3284f5403eb211b8b31f665f0713d397e34d006fff7e6e28eef52a472375",
       "disposition": "migrated",
       "destination": "packages/design-system/components/Header/HeaderSearch.tsx",
-      "destinationSha256": "1f3177c8486fd1bf04054103532a7565a8197986ead106fc2ed2b5bd9dda5337"
+      "destinationSha256": "f7f1ff23eb5c7d0b9e638ceb7de0a1a80358d63977a254ce5ec6bf856d811d9e"
     },
     {
       "source": "components/Header/assets/README.md",
