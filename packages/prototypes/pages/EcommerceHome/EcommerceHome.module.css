@@ -1,7 +1,8 @@
 .root {
+  position: relative;
   box-sizing: border-box;
   width: 100%;
-  overflow: hidden;
+  overflow: clip;
   background: var(--background-primary);
   color: var(--text-primary);
   font-family: var(--font-family-ios);
@@ -177,6 +178,71 @@ main.main[data-slot="ecommerce-home-main"]
     contain-intrinsic-block-size: auto 3001px;
   }
 
+  .root::before {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    inline-size: 100%;
+    max-block-size: 440px;
+    aspect-ratio: 1;
+    background: linear-gradient(
+      to bottom,
+      color-mix(
+        in srgb,
+        var(--ecommerce-home-atmosphere-color, var(--background-primary)) 16%,
+        var(--background-primary)
+      ),
+      var(--background-secondary)
+    );
+    content: "";
+    pointer-events: none;
+  }
+
+  .stickyHeader {
+    background: transparent;
+  }
+
+  .stickyHeader[data-scrolled] {
+    background: var(--background-primary);
+  }
+
+  .stickyHeader[data-scrolled] :global([data-slot="header-mobile"]) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: var(--space-200);
+    padding-block: var(--space-100);
+  }
+
+  .stickyHeader[data-scrolled] :global([data-slot="header-mobile-bar"]) {
+    display: contents;
+  }
+
+  .stickyHeader[data-scrolled] :global([data-slot="header-mobile-brand"]) {
+    position: absolute;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      opacity 150ms ease-out,
+      visibility 0ms linear 150ms;
+  }
+
+  .stickyHeader[data-scrolled]
+    :global([data-slot="header-mobile-actions"]) {
+    grid-row: 1;
+    grid-column: 2;
+  }
+
+  .stickyHeader[data-scrolled]
+    :global([data-slot="header-mobile-search-row"]) {
+    min-width: 0;
+    grid-row: 1;
+    grid-column: 1;
+    padding-bottom: 0;
+    animation: mobile-header-search-collapse 150ms ease-out;
+  }
+
   .root {
     background: var(--background-secondary);
   }
@@ -205,6 +271,14 @@ main.main[data-slot="ecommerce-home-main"]
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .stickyHeader[data-scrolled]
+    :global([data-slot="header-mobile-brand"]),
+  .stickyHeader[data-scrolled]
+    :global([data-slot="header-mobile-search-row"]) {
+    animation: none;
+    transition: none;
+  }
+
   .main[data-motion-ready]
     :is(
       [data-motion-reveal="initial"],
@@ -217,6 +291,16 @@ main.main[data-slot="ecommerce-home-main"]
     transform: none;
     animation: none;
     transition: none;
+  }
+}
+
+@keyframes mobile-header-search-collapse {
+  from {
+    transform: translateY(48px);
+  }
+
+  to {
+    transform: translateY(0);
   }
 }
 

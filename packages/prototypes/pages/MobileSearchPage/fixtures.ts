@@ -16,6 +16,9 @@ interface MobileSearchLink {
 const yamiSearchHref = (query: string) =>
   `https://www.yami.com/us/en/search?q=${encodeURIComponent(query)}`;
 
+const mobileSearchResultsHref =
+  "/?path=/story/yami-pages-search-results--mobile&globals=locale%3Aen";
+
 const recentSearchLabels = [
   "Coffee",
   "korean spicy noodle",
@@ -26,7 +29,10 @@ const recentSearchLabels = [
   "milk tea",
 ] as const;
 export const recentSearches: readonly MobileSearchLink[] =
-  recentSearchLabels.map((label) => ({ label, href: yamiSearchHref(label) }));
+  recentSearchLabels.map((label) => ({
+    label,
+    href: mobileSearchResultsHref,
+  }));
 
 const popularSearchLabels = [
   "Matcha powder",
@@ -41,12 +47,9 @@ const popularSearchLabels = [
   "Oreo",
 ] as const;
 export const popularSearches: readonly MobileSearchLink[] =
-  popularSearchLabels.map((label, index) => ({
+  popularSearchLabels.map((label) => ({
     label,
-    href:
-      index === 0
-        ? "/iframe.html?id=yami-pages-search-results--results&viewMode=story&globals=locale%3Aen"
-        : yamiSearchHref(label),
+    href: mobileSearchResultsHref,
   }));
 
 export const hotDeals: readonly MobileSearchLink[] = [

@@ -66,7 +66,9 @@ export function MobileSearchPage({
       <header className={styles.header} data-slot="mobile-search-header">
         <a
           className={styles.back}
+          data-slot="mobile-search-back"
           href={backHref}
+          target={backHref ? "_top" : undefined}
           aria-label="Back"
           onClick={(event) => {
             if (backHref) return;
@@ -170,7 +172,7 @@ export function MobileSearchPage({
             <ol className={styles.popular}>
               {popularSearches.map((item) => (
                 <li key={item.label}>
-                  <a href={item.href} target={item.href.startsWith("https://") ? "_top" : undefined}>
+                  <a href={item.href} target="_top">
                     <span>{item.label}</span>
                   </a>
                 </li>

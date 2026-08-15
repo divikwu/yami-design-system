@@ -55,6 +55,7 @@ export interface SearchResultsPageProps
   extends Omit<ComponentProps<"div">, "children"> {
   locale?: SearchResultsLocale;
   contentMaxWidth?: number | string;
+  mobileBackHref?: string;
   query: string;
   resultCount?: number;
   header: HeaderProps;

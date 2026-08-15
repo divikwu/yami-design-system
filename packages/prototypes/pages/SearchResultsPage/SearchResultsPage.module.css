@@ -274,6 +274,10 @@
 }
 
 @media (max-width: 1023.98px) {
+  .clear {
+    display: none;
+  }
+
   .desktopHeader {
     display: none;
   }
@@ -361,6 +365,12 @@
     )
     > :global([data-slot="product-list-container"]) {
     padding-top: 0;
+  }
+
+  .results[data-view="list"][data-layout="waterfall"]
+    :global([data-slot="product-list-items"]) {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--space-200);
   }
 
   .toolbar {
@@ -493,7 +503,6 @@
   }
 
   .pagination {
-    justify-content: flex-start;
-    padding-inline: var(--space-200);
+    display: none;
   }
 }

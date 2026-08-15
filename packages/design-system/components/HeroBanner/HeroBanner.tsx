@@ -46,6 +46,40 @@ function getPageMetrics(rail: HTMLDivElement) {
   };
 }
 
+function getActiveSurfaceColor(rail: HTMLDivElement) {
+  const railRect = rail.getBoundingClientRect();
+  const activeItem = Array.from(rail.children)
+    .filter(
+      (item): item is HTMLElement =>
+        item instanceof HTMLElement &&
+        getComputedStyle(item).display !== "none",
+    )
+    .reduce<HTMLElement | undefined>((mostVisible, item) => {
+      if (!mostVisible) return item;
+      const itemRect = item.getBoundingClientRect();
+      const mostVisibleRect = mostVisible.getBoundingClientRect();
+      const visibleWidth = Math.max(
+        0,
+        Math.min(itemRect.right, railRect.right) -
+          Math.max(itemRect.left, railRect.left),
+      );
+      const mostVisibleWidth = Math.max(
+        0,
+        Math.min(mostVisibleRect.right, railRect.right) -
+          Math.max(mostVisibleRect.left, railRect.left),
+      );
+      return visibleWidth > mostVisibleWidth ? item : mostVisible;
+    }, undefined);
+  const card = activeItem?.querySelector<HTMLElement>(
+    '[data-slot="hero-banner-item"]',
+  );
+  const copy = card?.querySelector<HTMLElement>(
+    '[data-slot="hero-banner-copy"]',
+  );
+  const surface = copy?.parentElement ?? card;
+  return surface ? getComputedStyle(surface).backgroundColor : undefined;
+}
+
 type BorrowedSurface = { imageSrc?: ImageSource; color?: string };
 
 /**
@@ -243,6 +277,7 @@ export function HeroBanner({
   dividerVariant = "gray",
   autoAdvance = true,
   autoAdvanceInterval = 5,
+  onActiveSurfaceColorChange,
   className,
   ...rest
 }: HeroBannerProps) {
@@ -282,6 +317,18 @@ export function HeroBanner({
     });
   }, [items.length, looping]);
 
+  const syncActiveSurfaceColor = useCallback(() => {
+    const rail = railRef.current;
+    if (!rail || !onActiveSurfaceColorChange) return;
+    const color = getActiveSurfaceColor(rail);
+    if (color) onActiveSurfaceColorChange(color);
+  }, [onActiveSurfaceColorChange]);
+
+  const handleRailScroll = useCallback(() => {
+    updateRailState();
+    syncActiveSurfaceColor();
+  }, [syncActiveSurfaceColor, updateRailState]);
+
   useEffect(() => {
     updateRailState();
     const rail = railRef.current;
@@ -290,6 +337,21 @@ export function HeroBanner({
     observer.observe(rail);
     return () => observer.disconnect();
   }, [items.length, updateRailState]);
+
+  useEffect(() => {
+    const rail = railRef.current;
+    if (!rail || !onActiveSurfaceColorChange) return;
+
+    syncActiveSurfaceColor();
+
+    const observer = new MutationObserver(syncActiveSurfaceColor);
+    observer.observe(rail, {
+      attributes: true,
+      attributeFilter: ["style"],
+      subtree: true,
+    });
+    return () => observer.disconnect();
+  }, [onActiveSurfaceColorChange, syncActiveSurfaceColor]);
 
   /* One banner per press, matching the auto-advance and the "N / 7" the
    * counter shows. Paging a whole view instead would step the counter by
@@ -363,8 +425,9 @@ export function HeroBanner({
     const setWidth = itemStep * items.length;
     if (setWidth > 0 && rail.scrollLeft >= setWidth) {
       rail.scrollLeft -= setWidth;
+      syncActiveSurfaceColor();
     }
-  }, [looping, items.length]);
+  }, [looping, items.length, syncActiveSurfaceColor]);
 
   useEffect(() => {
     const rail = railRef.current;
@@ -469,7 +532,7 @@ export function HeroBanner({
           data-slot="hero-banner-list"
           role="list"
           tabIndex={0}
-          onScroll={updateRailState}
+          onScroll={handleRailScroll}
         >
         {items.map((item, index) => (
           <div

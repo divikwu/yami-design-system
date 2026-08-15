@@ -64,6 +64,129 @@ export const Pc: Story = {
     ) {
       throw new Error("Ecommerce home navigation must remain sticky at the top");
     }
+    const storyWindow = canvasElement.ownerDocument.defaultView;
+    if (storyWindow?.matchMedia("(max-width: 1023.98px)").matches) {
+      const atmosphereStyle = getComputedStyle(page, "::before");
+      const atmosphereWidth = Number.parseFloat(atmosphereStyle.width);
+      const atmosphereHeight = Number.parseFloat(atmosphereStyle.height);
+      const activeHeroCopy = page.querySelector<HTMLElement>(
+        '[data-slot="hero-banner-item"] [data-slot="hero-banner-copy"]',
+      );
+      const activeHeroSurfaceColor = activeHeroCopy?.parentElement
+        ? getComputedStyle(activeHeroCopy.parentElement).backgroundColor
+        : undefined;
+      const atmosphereColorProbe = document.createElement("span");
+      atmosphereColorProbe.style.color =
+        `color-mix(in srgb, ${activeHeroSurfaceColor} 16%, var(--background-primary))`;
+      page.append(atmosphereColorProbe);
+      const expectedAtmosphereColor = getComputedStyle(
+        atmosphereColorProbe,
+      ).color;
+      atmosphereColorProbe.remove();
+      if (
+        atmosphereStyle.position !== "absolute" ||
+        !atmosphereStyle.backgroundImage.includes("linear-gradient") ||
+        !activeHeroSurfaceColor ||
+        !atmosphereStyle.backgroundImage.includes(expectedAtmosphereColor) ||
+        Math.abs(atmosphereWidth - page.getBoundingClientRect().width) > 1 ||
+        Math.abs(atmosphereHeight - Math.min(atmosphereWidth, 440)) > 1 ||
+        atmosphereHeight > 440
+      ) {
+        throw new Error(
+          "Mobile ecommerce home atmosphere must be a full-width 16%-banner-to-page gradient with a 1:1 height capped at 440px",
+        );
+      }
+
+      const heroRail = page.querySelector<HTMLElement>(
+        '[data-slot="hero-banner-list"]',
+      );
+      const visibleHeroItems = heroRail
+        ? Array.from(heroRail.children)
+            .filter(
+              (item): item is HTMLElement =>
+                item instanceof HTMLElement &&
+                getComputedStyle(item).display !== "none",
+            )
+            .sort((a, b) => a.offsetLeft - b.offsetLeft)
+        : [];
+      const nextHeroItem = visibleHeroItems[1];
+      const nextHeroCopy = nextHeroItem?.querySelector<HTMLElement>(
+        '[data-slot="hero-banner-copy"]',
+      );
+      const nextHeroSurfaceColor = nextHeroCopy?.parentElement
+        ? getComputedStyle(nextHeroCopy.parentElement).backgroundColor
+        : undefined;
+      if (!heroRail || !nextHeroItem || !nextHeroSurfaceColor) {
+        throw new Error(
+          "Mobile ecommerce home needs two color-bearing banners",
+        );
+      }
+      heroRail.scrollLeft = nextHeroItem.offsetLeft;
+      heroRail.dispatchEvent(
+        new storyWindow.Event("scroll", { bubbles: true }),
+      );
+      if (
+        getComputedStyle(page)
+          .getPropertyValue("--ecommerce-home-atmosphere-color")
+          .trim() !== nextHeroSurfaceColor
+      ) {
+        throw new Error(
+          "Mobile ecommerce home atmosphere must follow the dominant banner in the same scroll event",
+        );
+      }
+      heroRail.scrollLeft = visibleHeroItems[0]?.offsetLeft ?? 0;
+      heroRail.dispatchEvent(
+        new storyWindow.Event("scroll", { bubbles: true }),
+      );
+
+      if (
+        stickyHeader?.hasAttribute("data-scrolled") ||
+        stickyHeaderStyle.backgroundColor !== "rgba(0, 0, 0, 0)"
+      ) {
+        throw new Error(
+          "Mobile ecommerce home header must be transparent at the top",
+        );
+      }
+
+      storyWindow.scrollTo(0, 1);
+      await new Promise<void>((resolve) =>
+        storyWindow.requestAnimationFrame(() => resolve()),
+      );
+      if (
+        !stickyHeader.hasAttribute("data-scrolled") ||
+        getComputedStyle(stickyHeader).backgroundColor === "rgba(0, 0, 0, 0)"
+      ) {
+        throw new Error(
+          "Mobile ecommerce home header must gain a background after scrolling",
+        );
+      }
+      await new Promise<void>((resolve) =>
+        storyWindow.setTimeout(resolve, 200),
+      );
+      const mobileBrand = stickyHeader.querySelector<HTMLElement>(
+        '[data-slot="header-mobile-brand"]',
+      );
+      const mobileSearchRow = stickyHeader.querySelector<HTMLElement>(
+        '[data-slot="header-mobile-search-row"]',
+      );
+      const mobileActions = stickyHeader.querySelector<HTMLElement>(
+        '[data-slot="header-mobile-actions"]',
+      );
+      if (
+        !mobileBrand ||
+        !mobileSearchRow ||
+        !mobileActions ||
+        getComputedStyle(mobileBrand).opacity !== "0" ||
+        getComputedStyle(mobileBrand).visibility !== "hidden" ||
+        mobileSearchRow.getBoundingClientRect().top !==
+          mobileActions.getBoundingClientRect().top
+      ) {
+        throw new Error(
+          "Scrolled mobile ecommerce header must replace the logo row with search while keeping its actions",
+        );
+      }
+      storyWindow.scrollTo(0, 0);
+    }
 
     const main = page.querySelector<HTMLElement>(
       '[data-slot="ecommerce-home-main"]',
