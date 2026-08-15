@@ -10,7 +10,7 @@
     "nodeId": "4795:90512",
     "componentKey": "f0a1bb4e8c7540460de93a68de180508560150a3",
     "pageNodeId": "2857:32277",
-    "notes": "Figma CheckBox is a 24x24 component frame with a 20x20 visible control.",
+    "notes": "The visible component is 20x20 with a 24x24 pointer target.",
     "stateMapping": "Status=Default/Hover/Selected/Disable_Selected/Disable_Unselected maps to unchecked hover, checked, checked+disabled, and unchecked+disabled. Indeterminate is code-only."
   },
   "variants": {
@@ -29,8 +29,8 @@
   "rules": {
     "focus": { "ruleId": "focus-style", "note": "Uses a 2px --border-focus ring with 2px offset." },
     "disabled": { "ruleId": "no-opacity-disabled", "note": "Disabled states use --fill-disabled and semantic background colors." },
-    "radii": { "ruleId": "no-custom-radii", "note": "Visible square uses --radius-tag-primary, matching Figma's 4px radius." },
-    "tapTarget": { "ruleId": "tap-target", "note": "20px visible square inside 24px frame with an expanded 44px pointer target." },
+    "radii": { "ruleId": "no-custom-radii", "note": "Visible square uses --radius-tag-primary for a 4px radius." },
+    "tapTarget": { "ruleId": "tap-target", "note": "20px component with an invisible 2px extension on every side, producing a 24px pointer target. Parent labels may provide a larger target." },
     "color": { "ruleId": "semantic-color-only", "note": "Selected state is neutral --text-primary, not operational or brand red." }
   },
   "tokens": [
@@ -40,7 +40,7 @@
     "--fill-disabled",
     "--text-primary",
     "--text-primary-inverse",
-    "--text-secondary",
+    "--border-default",
     "--border-focus",
     "--radius-tag-primary",
     "--space-025",
@@ -52,7 +52,7 @@
     "--background-primary": { "property": "background", "selector": ".root::before" },
     "--surface-secondary": { "property": "background", "selector": ".root:hover:not([data-disabled])::before" },
     "--text-primary": { "property": "background/border-color", "selector": ".root[data-checked]::before, .root[data-indeterminate]::before" },
-    "--text-secondary": { "property": "border-color", "selector": ".root::before" },
+    "--border-default": { "property": "border-color", "selector": ".root::before" },
     "--fill-disabled": { "property": "background/border-color", "selector": ".root[data-disabled]::before" },
     "--border-focus": { "property": "outline-color", "selector": ".root:focus-visible" },
     "--radius-tag-primary": { "property": "border-radius", "selector": ".root::before" }
@@ -60,7 +60,7 @@
   "accessibility": {
     "role": "checkbox",
     "wcagLevel": "AA",
-    "tapTargetMin": 44,
+    "tapTargetMin": 24,
     "keyboardNav": ["tab", "shift+tab", "space"],
     "ariaPattern": "checkbox",
     "notes": "Base UI renders role=checkbox plus a hidden native form input. Provide a visible label or aria-label."

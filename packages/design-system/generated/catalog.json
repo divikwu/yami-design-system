@@ -1428,7 +1428,7 @@
           "nodeId": "4795:90512",
           "componentKey": "f0a1bb4e8c7540460de93a68de180508560150a3",
           "pageNodeId": "2857:32277",
-          "notes": "Figma CheckBox is a 24x24 component frame with a 20x20 visible control.",
+          "notes": "The visible component is 20x20 with a 24x24 pointer target.",
           "stateMapping": "Status=Default/Hover/Selected/Disable_Selected/Disable_Unselected maps to unchecked hover, checked, checked+disabled, and unchecked+disabled. Indeterminate is code-only."
         },
         "variants": {
@@ -1497,11 +1497,11 @@
           },
           "radii": {
             "ruleId": "no-custom-radii",
-            "note": "Visible square uses --radius-tag-primary, matching Figma's 4px radius."
+            "note": "Visible square uses --radius-tag-primary for a 4px radius."
           },
           "tapTarget": {
             "ruleId": "tap-target",
-            "note": "20px visible square inside 24px frame with an expanded 44px pointer target."
+            "note": "20px component with an invisible 2px extension on every side, producing a 24px pointer target. Parent labels may provide a larger target."
           },
           "color": {
             "ruleId": "semantic-color-only",
@@ -1515,7 +1515,7 @@
           "--fill-disabled",
           "--text-primary",
           "--text-primary-inverse",
-          "--text-secondary",
+          "--border-default",
           "--border-focus",
           "--radius-tag-primary",
           "--space-025",
@@ -1536,7 +1536,7 @@
             "property": "background/border-color",
             "selector": ".root[data-checked]::before, .root[data-indeterminate]::before"
           },
-          "--text-secondary": {
+          "--border-default": {
             "property": "border-color",
             "selector": ".root::before"
           },
@@ -1556,7 +1556,7 @@
         "accessibility": {
           "role": "checkbox",
           "wcagLevel": "AA",
-          "tapTargetMin": 44,
+          "tapTargetMin": 24,
           "keyboardNav": [
             "tab",
             "shift+tab",
@@ -1701,6 +1701,170 @@
           "./examples.tsx#InverseDivider",
           "./examples.tsx#BetweenSectionsExample",
           "./examples.tsx#InlineInfoRowExample"
+        ]
+      }
+    },
+    {
+      "id": "FilterChip",
+      "source": "components/FilterChip",
+      "meta": {
+        "$schema": "../../../schema/component.json",
+        "name": "FilterChip",
+        "category": "form",
+        "status": "experimental",
+        "version": "0.1.0",
+        "description": "Interactive 36px filter-pill family with filled and outlined variants, optional icons, single-, multiple-, and hierarchical category popovers, and horizontally scrollable grouping.",
+        "figma": {
+          "nodeId": "1123:65336",
+          "componentKey": null,
+          "notes": "Filter popup geometry and selection patterns follow English Site Optimization 2026 nodes 1123:65336 and 1252:78302. Distinct from the non-interactive Tag component."
+        },
+        "variants": {
+          "variant": [
+            "filled",
+            "outlined"
+          ],
+          "selected": [
+            "false",
+            "true"
+          ]
+        },
+        "exports": [
+          "FilterChip",
+          "FilterChipCategoryMenu",
+          "FilterChipGroup",
+          "FilterChipMenu",
+          "FilterChipProps",
+          "FilterChipGroupProps",
+          "FilterChipCategoryMenuProps",
+          "FilterChipCategoryOption",
+          "FilterChipMenuOption",
+          "FilterChipMenuProps",
+          "FilterChipMultipleMenuProps",
+          "FilterChipSingleMenuProps",
+          "FilterChipVariant"
+        ],
+        "props": {
+          "variant": {
+            "type": "enum",
+            "values": [
+              "filled",
+              "outlined"
+            ],
+            "required": false,
+            "default": "outlined",
+            "description": "Filled suggested-filter treatment or outlined toolbar-control treatment."
+          },
+          "selected": {
+            "type": "boolean",
+            "required": false,
+            "description": "Exposes aria-pressed and applies a 1px selected stroke that increases to 2px on hover."
+          },
+          "leftIcon": {
+            "type": "ReactNode",
+            "required": false,
+            "description": "Optional leading icon."
+          },
+          "rightIcon": {
+            "type": "ReactNode",
+            "required": false,
+            "description": "Optional trailing icon, commonly the 12px arrow-down asset."
+          }
+        },
+        "rules": {
+          "interaction": {
+            "ruleId": "native-semantics",
+            "note": "FilterChip renders a button; FilterChipMenu uses Base UI Popover with Checkbox or RadioGroup semantics."
+          },
+          "focus": {
+            "ruleId": "focus-style",
+            "note": "Uses a 2px --border-focus outline with 2px offset."
+          },
+          "radius": {
+            "ruleId": "no-custom-radii",
+            "note": "Uses --radius-full for the pill geometry."
+          },
+          "color": {
+            "ruleId": "semantic-color-only",
+            "note": "Surfaces, borders, text, and interaction states use semantic tokens."
+          }
+        },
+        "tokens": [
+          "--border-default",
+          "--border-focus",
+          "--color-black-200",
+          "--fill-primary",
+          "--fill-secondary",
+          "--font-family-ios",
+          "--font-size-body-md",
+          "--font-weight-normal",
+          "--line-height-body-md",
+          "--radius-full",
+          "--radius-sm",
+          "--space-050",
+          "--space-100",
+          "--space-150",
+          "--space-300",
+          "--stroke-default",
+          "--text-primary",
+          "--text-secondary"
+        ],
+        "tokenBindings": {
+          "--fill-secondary": {
+            "property": "background-color",
+            "selector": ".filled"
+          },
+          "--fill-primary": {
+            "property": "background-color",
+            "selector": ".outlined, .filled[aria-pressed='true']"
+          },
+          "--border-default": {
+            "property": "border-color",
+            "selector": ".outlined"
+          },
+          "--border-focus": {
+            "property": "inset box-shadow / outline-color",
+            "selector": ".filled[aria-pressed='true'], :focus-visible"
+          },
+          "--color-black-200": {
+            "property": "background-color",
+            "selector": ".categoryToggle:hover"
+          },
+          "--radius-full": {
+            "property": "border-radius",
+            "selector": ".chip"
+          }
+        },
+        "accessibility": {
+          "role": "button / radio group / checkbox group supplied by consumer",
+          "wcagLevel": "AA",
+          "tapTargetMin": 36,
+          "keyboardNav": [
+            "tab",
+            "shift+tab",
+            "space",
+            "enter",
+            "arrow keys"
+          ],
+          "ariaPattern": "toggle button trigger with RadioGroup or Checkbox controls in popup",
+          "notes": "Provide accessible labels for chip groups and popup menus."
+        },
+        "dependencies": {
+          "runtime": [
+            "react",
+            "@base-ui/react"
+          ],
+          "peer": [
+            "@base-ui/react"
+          ],
+          "devOnly": [
+            "@storybook/react-vite",
+            "storybook"
+          ]
+        },
+        "usageRef": "./usage.md",
+        "examples": [
+          "./examples.tsx#FilterChipExample"
         ]
       }
     },
@@ -3541,7 +3705,7 @@
           "nodeId": "4795:90633",
           "componentKey": "8012bc4680692313a0305812a3b3774e6b9252e5",
           "pageNodeId": "2857:32277",
-          "notes": "Figma Radio Button is an item-level 24x24 set. RadioGroup is a code-side accessibility composition.",
+          "notes": "The visible Radio Button is 20x20 with a 24x24 pointer target. RadioGroup is a code-side accessibility composition.",
           "stateMapping": "Property 1=Default/Hover/Selected/Disable_Selected/Disable_Unselected maps to unchecked hover, checked, checked+disabled, and unchecked+disabled."
         },
         "variants": {
@@ -3632,7 +3796,7 @@
           },
           "tapTarget": {
             "ruleId": "tap-target",
-            "note": "20px visible circle inside 24px frame with an expanded 44px pointer target."
+            "note": "20px component with an invisible 2px extension on every side, producing a 24px pointer target. Parent labels may provide a larger target."
           },
           "color": {
             "ruleId": "semantic-color-only",
@@ -3645,7 +3809,7 @@
           "--surface-secondary",
           "--fill-disabled",
           "--text-primary",
-          "--text-secondary",
+          "--border-default",
           "--border-focus",
           "--radius-button-primary",
           "--space-025",
@@ -3667,7 +3831,7 @@
             "property": "border-color/background",
             "selector": ".item[data-checked]::before, .dot"
           },
-          "--text-secondary": {
+          "--border-default": {
             "property": "border-color",
             "selector": ".item::before"
           },
@@ -3687,7 +3851,7 @@
         "accessibility": {
           "role": "radiogroup with radio children",
           "wcagLevel": "AA",
-          "tapTargetMin": 44,
+          "tapTargetMin": 24,
           "keyboardNav": [
             "tab",
             "shift+tab",

@@ -1,14 +1,14 @@
 {
   "$schema": "../schema/icons-meta.json",
   "version": "0.1.0",
-  "generatedAt": "2026-08-04T10:21:24.000Z",
+  "generatedAt": "2026-08-13T09:17:49.000Z",
   "canvases": [
     16,
     24
   ],
   "categories": {
     "action": {
-      "count": 15,
+      "count": 19,
       "canvas": 24
     },
     "area": {
@@ -106,6 +106,14 @@
       "sha1": "2400814605"
     },
     {
+      "name": "filter",
+      "category": "action",
+      "path": "assets/icons/action/filter.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "40bcfec408"
+    },
+    {
       "name": "heart",
       "category": "action",
       "path": "assets/icons/action/heart.svg",
@@ -120,6 +128,22 @@
       "width": 24,
       "height": 24,
       "sha1": "0e131786b7"
+    },
+    {
+      "name": "layout-grid",
+      "category": "action",
+      "path": "assets/icons/action/layout-grid.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "9b46799f0d"
+    },
+    {
+      "name": "layout-list",
+      "category": "action",
+      "path": "assets/icons/action/layout-list.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "d8fd67fe4f"
     },
     {
       "name": "post-drafts",
@@ -160,6 +184,14 @@
       "width": 24,
       "height": 24,
       "sha1": "9a1831c548"
+    },
+    {
+      "name": "sort",
+      "category": "action",
+      "path": "assets/icons/action/sort.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "e80188afde"
     },
     {
       "name": "canada",

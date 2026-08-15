@@ -10,7 +10,7 @@
     "nodeId": "4795:90633",
     "componentKey": "8012bc4680692313a0305812a3b3774e6b9252e5",
     "pageNodeId": "2857:32277",
-    "notes": "Figma Radio Button is an item-level 24x24 set. RadioGroup is a code-side accessibility composition.",
+    "notes": "The visible Radio Button is 20x20 with a 24x24 pointer target. RadioGroup is a code-side accessibility composition.",
     "stateMapping": "Property 1=Default/Hover/Selected/Disable_Selected/Disable_Unselected maps to unchecked hover, checked, checked+disabled, and unchecked+disabled."
   },
   "variants": {
@@ -40,7 +40,7 @@
     "focus": { "ruleId": "focus-style", "note": "Uses a 2px --border-focus ring with 2px offset." },
     "disabled": { "ruleId": "no-opacity-disabled", "note": "Disabled states use --fill-disabled and semantic background colors." },
     "radii": { "ruleId": "no-custom-radii", "note": "Circular geometry uses --radius-button-primary rather than a raw radius." },
-    "tapTarget": { "ruleId": "tap-target", "note": "20px visible circle inside 24px frame with an expanded 44px pointer target." },
+    "tapTarget": { "ruleId": "tap-target", "note": "20px component with an invisible 2px extension on every side, producing a 24px pointer target. Parent labels may provide a larger target." },
     "color": { "ruleId": "semantic-color-only", "note": "Selected state is neutral --text-primary, not operational or brand red." }
   },
   "tokens": [
@@ -49,7 +49,7 @@
     "--surface-secondary",
     "--fill-disabled",
     "--text-primary",
-    "--text-secondary",
+    "--border-default",
     "--border-focus",
     "--radius-button-primary",
     "--space-025",
@@ -62,7 +62,7 @@
     "--background-primary": { "property": "background", "selector": ".item::before" },
     "--surface-secondary": { "property": "background", "selector": ".item:hover:not([data-disabled])::before" },
     "--text-primary": { "property": "border-color/background", "selector": ".item[data-checked]::before, .dot" },
-    "--text-secondary": { "property": "border-color", "selector": ".item::before" },
+    "--border-default": { "property": "border-color", "selector": ".item::before" },
     "--fill-disabled": { "property": "border-color/background", "selector": ".item[data-disabled]::before, .item[data-disabled] .dot" },
     "--border-focus": { "property": "outline-color", "selector": ".item:focus-visible" },
     "--radius-button-primary": { "property": "border-radius", "selector": ".item::before, .dot" }
@@ -70,7 +70,7 @@
   "accessibility": {
     "role": "radiogroup with radio children",
     "wcagLevel": "AA",
-    "tapTargetMin": 44,
+    "tapTargetMin": 24,
     "keyboardNav": ["tab", "shift+tab", "arrow-left", "arrow-right", "arrow-up", "arrow-down"],
     "ariaPattern": "radiogroup",
     "notes": "Base UI preserves exclusive selection, roving focus, and hidden native form inputs. Name both the group and every item."

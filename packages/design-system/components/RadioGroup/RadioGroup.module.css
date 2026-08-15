@@ -6,8 +6,8 @@
 .item {
   position: relative;
   display: inline-flex;
-  width: var(--space-300);
-  height: var(--space-300);
+  width: 20px;
+  height: 20px;
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
@@ -20,17 +20,17 @@
 
 .item::before {
   position: absolute;
-  inset: var(--space-025);
+  inset: 0;
   box-sizing: border-box;
   content: "";
-  border: 1.5px solid var(--text-secondary);
+  border: 1.5px solid var(--border-default);
   border-radius: var(--radius-button-primary);
   background: var(--background-primary);
 }
 
 .item::after {
   position: absolute;
-  inset: calc(var(--space-100) * -1 - var(--space-025));
+  inset: calc(var(--space-025) * -1);
   content: "";
 }
 
@@ -38,8 +38,14 @@
   background: var(--surface-secondary);
 }
 
-.item[data-checked]::before {
+.selected::before,
+.item[aria-checked="true"]::before {
   border-color: var(--text-primary);
+}
+
+.selected:hover:not([data-disabled])::before,
+.item[aria-checked="true"]:hover:not([data-disabled])::before {
+  background: var(--button-secondary-active);
 }
 
 .item:focus-visible {
@@ -65,6 +71,10 @@
   height: 20px;
   place-items: center;
   pointer-events: none;
+}
+
+.indicator[data-unchecked] {
+  visibility: hidden;
 }
 
 .dot {

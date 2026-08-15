@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react"
 import type { Meta, StoryObj } from "@storybook/react-vite"
+import { userEvent } from "storybook/test"
 
 import { Checkbox } from "./Checkbox"
 
@@ -74,7 +75,8 @@ function Example({
     <label htmlFor={id} style={{ ...optionStyle, color: disabled ? "var(--text-disabled)" : undefined }}>
       <Checkbox
         id={id}
-        defaultChecked={checked}
+        data-demo={id === "checkbox-default" ? "unchecked" : undefined}
+        checked={checked}
         disabled={disabled}
         indeterminate={indeterminate}
       />
@@ -103,12 +105,52 @@ export const Showcase: Story = {
     const checkbox = canvasElement.querySelector<HTMLElement>('[data-demo="interactive"]')
     if (!checkbox) throw new Error("Checkbox interaction specimen did not render")
 
+    const rootStyle = getComputedStyle(checkbox)
+    const visibleStyle = getComputedStyle(checkbox, "::before")
+    const hitAreaStyle = getComputedStyle(checkbox, "::after")
+    const uncheckedCheckbox = canvasElement.querySelector<HTMLElement>(
+      '[data-demo="unchecked"]',
+    )
+    const indicator = uncheckedCheckbox?.querySelector<HTMLElement>(
+      '[data-slot="checkbox-indicator"]',
+    )
+    if (
+      rootStyle.width !== "20px" ||
+      rootStyle.height !== "20px" ||
+      visibleStyle.width !== "20px" ||
+      visibleStyle.height !== "20px" ||
+      visibleStyle.borderRadius !== "4px" ||
+      hitAreaStyle.inset !== "-2px"
+    ) {
+      throw new Error("Checkbox must retain its 20px control, 24px pointer target, and 4px radius")
+    }
+    if (visibleStyle.borderColor !== "rgba(0, 0, 0, 0.08)") {
+      throw new Error("Unchecked Checkbox must use the subtle default border token")
+    }
+
+    if (!uncheckedCheckbox) throw new Error("Unchecked Checkbox specimen did not render")
+    await userEvent.hover(uncheckedCheckbox)
+    if (
+      indicator &&
+      getComputedStyle(uncheckedCheckbox).color !== "rgba(0, 0, 0, 0)"
+    ) {
+      throw new Error("Unchecked Checkbox must not reveal its indicator on hover")
+    }
+    await userEvent.unhover(uncheckedCheckbox)
+
     checkbox.click()
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
 
     if (checkbox.getAttribute("aria-checked") !== "true") {
       throw new Error("Checkbox did not expose its selected state")
     }
+    await userEvent.hover(checkbox)
+    const selectedHover = getComputedStyle(checkbox, "::before")
+    const selectedHoverRgb = selectedHover.backgroundColor.match(/[\d.]+/g)?.slice(0, 3).map(Number)
+    if (!selectedHoverRgb || selectedHoverRgb.some((channel) => channel > 64)) {
+      throw new Error("Selected Checkbox hover must retain a dark selected surface")
+    }
+    await userEvent.unhover(checkbox)
     canvasElement.dataset.checkboxInteractionContract = "passed"
   },
 }

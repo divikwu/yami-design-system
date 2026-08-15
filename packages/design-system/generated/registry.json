@@ -68,6 +68,12 @@
       "path": "registry-items/divider.json"
     },
     {
+      "name": "filter-chip",
+      "title": "FilterChip",
+      "type": "component",
+      "path": "registry-items/filter-chip.json"
+    },
+    {
       "name": "footer",
       "title": "Footer",
       "type": "component",
