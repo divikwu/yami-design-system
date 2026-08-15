@@ -129,6 +129,7 @@ export function HeaderSearch({
         type="search"
         autoComplete="off"
         placeholder={placeholder}
+        role={canOpenPanel ? 'combobox' : undefined}
         aria-label={searchLabel}
         aria-expanded={canOpenPanel ? isOpen : undefined}
         aria-controls={canOpenPanel ? panelId : undefined}
