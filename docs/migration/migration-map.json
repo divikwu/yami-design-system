@@ -2493,7 +2493,7 @@
       "sourceSha256": "40b81a864b6e6b8dff2d70745f1153deed7db740e99636c10398fb9fa75a72a5",
       "disposition": "migrated",
       "destination": "packages/design-system/components/ProductCard/ProductCard.module.css",
-      "destinationSha256": "19ce015500f9e661abb0813fdbb1ac5e15841dfb3f97bb3c8396677a8433569f"
+      "destinationSha256": "5b88a41d0f8ce3be1029df4d2702a9d97c68bda921a62f2057ba4f72da4e5670"
     },
     {
       "source": "components/ProductCard/ProductCard.stories.tsx",
