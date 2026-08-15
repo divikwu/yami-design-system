@@ -56,10 +56,10 @@ const titleStyle: CSSProperties = {
   lineHeight: "var(--line-height-caption-md)",
 }
 
-function Option({ value, children, disabled = false }: { value: string; children: ReactNode; disabled?: boolean }) {
+function Option({ value, children, disabled = false, demo }: { value: string; children: ReactNode; disabled?: boolean; demo?: string }) {
   return (
     <label style={{ ...optionStyle, color: disabled ? "var(--text-disabled)" : undefined }}>
-      <RadioGroupItem value={value} disabled={disabled} />
+      <RadioGroupItem value={value} disabled={disabled} data-demo={demo} />
       <span>{children}</span>
     </label>
   )
@@ -72,10 +72,10 @@ export const Showcase: Story = {
         <p style={titleStyle}>Figma states</p>
         <div style={stateRowStyle}>
           <RadioGroup aria-label="Default example">
-            <Option value="default">Default</Option>
+            <Option value="default" demo="unchecked">Default</Option>
           </RadioGroup>
-          <RadioGroup aria-label="Selected example" defaultValue="selected">
-            <Option value="selected">Selected</Option>
+          <RadioGroup aria-label="Selected example" value="selected">
+            <Option value="selected" demo="selected">Selected</Option>
           </RadioGroup>
           <RadioGroup aria-label="Disabled selected example" defaultValue="selected" disabled>
             <Option value="selected">Disabled selected</Option>
@@ -99,7 +99,23 @@ export const Showcase: Story = {
   play: async ({ canvasElement }) => {
     const group = canvasElement.querySelector<HTMLElement>('[data-demo="interactive"]')
     const radios = Array.from(group?.querySelectorAll<HTMLElement>('[role="radio"]') ?? [])
+    const unchecked = canvasElement.querySelector<HTMLElement>('[data-demo="unchecked"]')
     if (radios.length !== 3) throw new Error("RadioGroup interaction specimen did not render")
+    if (!unchecked) throw new Error("RadioGroup state specimens did not render")
+
+    const uncheckedStyle = getComputedStyle(unchecked)
+    const uncheckedSurface = getComputedStyle(unchecked, "::before")
+    const hitArea = getComputedStyle(unchecked, "::after")
+    if (
+      uncheckedStyle.width !== "20px" ||
+      uncheckedStyle.height !== "20px" ||
+      uncheckedSurface.width !== "20px" ||
+      uncheckedSurface.height !== "20px" ||
+      hitArea.inset !== "-2px" ||
+      uncheckedSurface.borderColor !== "rgba(0, 0, 0, 0.08)"
+    ) {
+      throw new Error("RadioGroupItem must match the Checkbox geometry and subtle border")
+    }
 
     radios[1].click()
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))

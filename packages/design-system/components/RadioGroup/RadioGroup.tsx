@@ -27,10 +27,12 @@ export function RadioGroup<Value>({ className, ...props }: RadioGroupProps<Value
 }
 
 export function RadioGroupItem<Value>({ className, ...props }: RadioGroupItemProps<Value>) {
-  const mergedClassName =
-    typeof className === "function"
-      ? (state: RadioPrimitive.Root.State) => cx(styles.item, className(state))
-      : cx(styles.item, className)
+  const mergedClassName = (state: RadioPrimitive.Root.State) =>
+    cx(
+      styles.item,
+      state.checked && styles.selected,
+      typeof className === "function" ? className(state) : className,
+    )
 
   return (
     <RadioPrimitive.Root
