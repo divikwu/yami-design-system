@@ -236,7 +236,9 @@ export function EcommerceHomeTemplate({
       className={cx(styles.root, className)}
       data-slot="ecommerce-home"
     >
-      <Header {...header} />
+      <div className={styles.stickyHeader} data-slot="ecommerce-home-header">
+        <Header {...header} />
+      </div>
 
       <main
         ref={mainRef}

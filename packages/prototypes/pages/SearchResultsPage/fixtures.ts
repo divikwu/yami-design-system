@@ -1,4 +1,4 @@
-import type { FooterProps, HeaderProps } from "@yami/design-system";
+import type { FooterProps } from "@yami/design-system";
 import {
   createFooterAppLinks,
   createFooterColumns,
@@ -7,14 +7,15 @@ import {
   createFooterSocialLinks,
   footerCopy,
 } from "@yami/design-system/components/Footer/fixtures";
-import { createHeaderProps } from "@yami/design-system/components/Header/fixtures";
 
 import { createMatchaProductsByCategory } from "../TopicLandingPage/matcha.fixture";
+import { createStorefrontHeader } from "../storefront-header.fixture";
 
 import type {
   SearchResultsLocale,
   SearchResultsPageProps,
 } from "./SearchResultsPage.types";
+import { createLiveMatchaSearchProducts } from "./live-matcha-products.fixture";
 
 const copy = {
   en: {
@@ -170,14 +171,6 @@ const copy = {
   },
 } as const;
 
-function createHeader(locale: SearchResultsLocale): HeaderProps {
-  const header = createHeaderProps(locale, { href: (slot) => `#${slot}` });
-  return {
-    ...header,
-    cart: { ...header.cart, count: 2 },
-  };
-}
-
 function createFooter(locale: SearchResultsLocale): FooterProps {
   const localeCopy = footerCopy[locale];
   return {
@@ -202,27 +195,30 @@ export function createSearchResultsFixture(
   locale: SearchResultsLocale
 ): SearchResultsPageProps {
   const categoryProducts = createMatchaProductsByCategory(locale);
-  const products = Array.from(
-    new Map(
-      Object.values(categoryProducts)
-        .flat()
-        .map((product, index) => [
-          product.id,
-          {
-            ...product,
-            priceOriginal:
-              typeof product.priceCurrent === "string"
-                ? `$${(
-                    Number.parseFloat(product.priceCurrent.slice(1)) * 1.2
-                  ).toFixed(2)}`
-                : undefined,
-            rating: 4.9,
-            ratingCount: `${1888 - index * 17}`,
-            soldCount: locale === "en" ? "100+ Sold" : "周销 100+",
-          },
-        ])
-    ).values()
-  );
+  const products =
+    locale === "en"
+      ? createLiveMatchaSearchProducts()
+      : Array.from(
+          new Map(
+            Object.values(categoryProducts)
+              .flat()
+              .map((product, index) => [
+                product.id,
+                {
+                  ...product,
+                  priceOriginal:
+                    typeof product.priceCurrent === "string"
+                      ? `$${(
+                          Number.parseFloat(product.priceCurrent.slice(1)) * 1.2
+                        ).toFixed(2)}`
+                      : undefined,
+                  rating: 4.9,
+                  ratingCount: `${1888 - index * 17}`,
+                  soldCount: "周销 100+",
+                },
+              ])
+          ).values()
+        );
   const beautyIds = products.slice(0, 10).map((product) => product.id);
   const valueIds = products
     .filter(
@@ -235,9 +231,9 @@ export function createSearchResultsFixture(
   return {
     locale,
     contentMaxWidth: 1440,
-    query: locale === "en" ? "matcha" : "抹茶",
-    resultCount: 4033,
-    header: createHeader(locale),
+    query: locale === "en" ? "matcha powder" : "抹茶粉",
+    resultCount: locale === "en" ? 1500 : 4033,
+    header: createStorefrontHeader(locale),
     footer: createFooter(locale),
     products,
     filters: [

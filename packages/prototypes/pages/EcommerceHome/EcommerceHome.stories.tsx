@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { userEvent } from "storybook/test";
 
 import {
   createProductListProducts,
@@ -51,6 +52,18 @@ export const Pc: Story = {
       '[data-slot="ecommerce-home"]',
     );
     if (!page) throw new Error("Ecommerce home did not render");
+
+    const stickyHeader = page.querySelector<HTMLElement>(
+      '[data-slot="ecommerce-home-header"]',
+    );
+    const stickyHeaderStyle = stickyHeader && getComputedStyle(stickyHeader);
+    if (
+      stickyHeaderStyle?.position !== "sticky" ||
+      stickyHeaderStyle.top !== "0px" ||
+      Number.parseInt(stickyHeaderStyle.zIndex, 10) < 1
+    ) {
+      throw new Error("Ecommerce home navigation must remain sticky at the top");
+    }
 
     const main = page.querySelector<HTMLElement>(
       '[data-slot="ecommerce-home-main"]',
@@ -533,6 +546,85 @@ export const Pc: Story = {
       throw new Error(
         `The document must not scroll horizontally: ${doc.scrollWidth}px > ${doc.clientWidth}px`,
       );
+    }
+  },
+};
+
+export const SearchFocused: Story = {
+  name: "Search — Focused",
+  globals: {
+    locale: "en",
+    viewport: { value: "yamiDesktopXl", isRotated: false },
+  },
+  render: () => (
+    <EcommerceHomeTemplate {...createEcommerceHomeFixture("en")} />
+  ),
+  play: async ({ canvasElement }) => {
+    const field = canvasElement.querySelector<HTMLInputElement>(
+      '[data-slot="header-search"][data-variant="pc"] [data-slot="header-search-field"]',
+    );
+    if (!field) throw new Error("PC search field did not render");
+
+    await userEvent.click(field);
+
+    const panel = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="header-search-panel"]',
+    );
+    const scrim = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="header-search"] [aria-label="Close search"]',
+    );
+    const matchaLink = panel?.querySelector<HTMLAnchorElement>(
+      'a[href*="yami-pages-topic-landing-page-topic--pc"]',
+    );
+    const matchaSearchLink = panel?.querySelector<HTMLAnchorElement>(
+      'a[href*="yami-pages-search-results--results"]',
+    );
+    if (
+      panel?.dataset.state !== "discovery" ||
+      !scrim ||
+      matchaLink?.textContent?.trim() !== "matcha" ||
+      matchaSearchLink?.textContent?.trim() !== "matcha powder" ||
+      !panel.textContent?.includes("Recent Searches") ||
+      !panel.textContent.includes("Popular Searches") ||
+      !panel.textContent.includes("Hot Deals") ||
+      getComputedStyle(panel).borderRadius !== "16px"
+    ) {
+      throw new Error("Focused search must match the Figma discovery state");
+    }
+  },
+};
+
+export const SearchWithQuery: Story = {
+  name: "Search — With Query",
+  globals: {
+    locale: "en",
+    viewport: { value: "yamiDesktopXl", isRotated: false },
+  },
+  render: () => (
+    <EcommerceHomeTemplate {...createEcommerceHomeFixture("en")} />
+  ),
+  play: async ({ canvasElement }) => {
+    const field = canvasElement.querySelector<HTMLInputElement>(
+      '[data-slot="header-search"][data-variant="pc"] [data-slot="header-search-field"]',
+    );
+    if (!field) throw new Error("PC search field did not render");
+
+    await userEvent.click(field);
+    await userEvent.type(field, "mat");
+
+    const panel = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="header-search-panel"]',
+    );
+    const suggestions = panel?.querySelectorAll("button");
+    const firstSuggestion = suggestions?.item(0);
+    if (
+      field.value !== "mat" ||
+      panel?.dataset.state !== "suggestions" ||
+      suggestions?.length !== 12 ||
+      firstSuggestion?.textContent?.trim() !== "mat" ||
+      getComputedStyle(firstSuggestion).borderColor !== "rgba(0, 0, 0, 0.87)"
+    ) {
+      throw new Error("Typed search must match the Figma keyword state");
     }
   },
 };

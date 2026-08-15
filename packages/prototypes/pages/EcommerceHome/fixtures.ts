@@ -12,7 +12,6 @@ import type {
 import { createBillboardProps } from "@yami/design-system/components/Billboard/fixtures";
 import { createBrandProductRailProps } from "@yami/design-system/components/BrandProductRail/fixtures";
 import { createHeroBannerItems } from "@yami/design-system/components/HeroBanner/fixtures";
-import { createHeaderProps } from "@yami/design-system/components/Header/fixtures";
 import {
   createProductListProducts,
   createProductListTabs,
@@ -46,6 +45,7 @@ import {
   socialPosterImages,
   socialProductImages,
 } from "./optimizedImages.generated";
+import { createStorefrontHeader } from "../storefront-header.fixture";
 
 export type EcommerceHomeLocale = "zh" | "en";
 
@@ -180,12 +180,9 @@ const copy = {
  * everything non-navigating.
  */
 function createHeader(locale: EcommerceHomeLocale): HeaderProps {
-  const header = createHeaderProps(locale, { href: (slot) => `#${slot}` });
+  const header = createStorefrontHeader(locale);
   return {
     ...header,
-    // A populated cart is the page's own scenario, not the component default.
-    cart: { ...header.cart, count: 2 },
-    onSearchSubmit: () => {},
     imageLoadingStrategy: "windowed",
   };
 }

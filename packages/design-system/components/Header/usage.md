@@ -192,12 +192,20 @@ The field is a 40px pill with an embedded 52 × 32 submit.
 Production rotates hot searches through the placeholder. That is a data
 concern — drive it by changing `searchPlaceholder`.
 
+Pass `searchPanel` to enable the PC discovery states. Focusing an empty field
+opens recent, popular, and deal tags over a page scrim; typing switches the
+same panel to image-backed keyword suggestions. The panel closes on its scrim,
+submit, or <kbd>Escape</kbd>. Its content remains caller-owned so search data
+can change without changing the component.
+
 Below 1024px the same field renders as a 36px pill with a 48 × 28 submit on its
 own row, plus a visual-search control that reports through `onScan`. That
 control consumes `assets/icons/action/camera.svg` — **not** `action/scan.svg`,
 which is the barcode glyph. Give it a localized `scanLabel`; without one the
 control is not rendered at all, since an unnamed icon button is unusable to
-assistive tech.
+assistive tech. Set `mobileSearchHref` when mobile search lives on a dedicated
+page; activating the field then opens that destination instead of editing the
+header field in place.
 
 ### Why the search field is not an `Input`
 

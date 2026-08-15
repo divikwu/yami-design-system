@@ -272,6 +272,185 @@
   background: var(--button-primary-active);
 }
 
+/* PC search discovery states from English Site Optimization 2026. The search
+ * stays above the page scrim while its panel replaces the category rail. */
+.search[data-open] {
+  position: relative;
+  z-index: 10;
+}
+
+.searchScrim {
+  position: fixed;
+  z-index: -1;
+  top: 64px;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 0;
+  border: 0;
+  background: var(--color-black-400);
+  cursor: default;
+}
+
+.searchPanel {
+  position: absolute;
+  z-index: 1;
+  top: calc(100% + var(--space-050));
+  left: 0;
+  display: flex;
+  width: 100%;
+  box-sizing: border-box;
+  flex-direction: column;
+  gap: var(--stroke-default);
+  overflow: hidden;
+  border: var(--stroke-default) solid var(--border-default);
+  border-radius: var(--radius-xl);
+  background: var(--background-secondary);
+  color: var(--text-primary);
+}
+
+.searchPanelSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-150);
+  padding: var(--space-200);
+  background: var(--surface-primary);
+}
+
+.searchPanelHeading {
+  display: flex;
+  min-height: var(--line-height-heading-sm);
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: var(--space-050);
+}
+
+.searchPanelHeading h2 {
+  margin: 0;
+  font-size: var(--font-size-heading-sm);
+  font-weight: var(--font-weight-emphasize);
+  line-height: var(--line-height-heading-sm);
+}
+
+.searchPanelHeading button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--font-size-link-md);
+  line-height: var(--line-height-link-md);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.searchTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-100);
+}
+
+.searchTags :is(button, a) {
+  display: inline-flex;
+  min-width: 48px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-050);
+  padding: var(--space-050) var(--space-150);
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--fill-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--font-size-body-md);
+  line-height: var(--line-height-body-md);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.searchTags :is(button, a):hover {
+  background: var(--button-secondary-active);
+}
+
+.searchTags em {
+  color: var(--text-emphasis);
+  font-size: var(--font-size-link-sm);
+  font-style: italic;
+  font-weight: var(--font-weight-emphasize);
+  line-height: var(--line-height-link-sm);
+}
+
+.searchSuggestionGrid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--space-150);
+  padding: var(--space-200);
+  background: var(--surface-primary);
+}
+
+.searchSuggestion {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  overflow: hidden;
+  padding: 0;
+  border: var(--stroke-default) solid transparent;
+  border-radius: var(--radius-component-default);
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  font: inherit;
+}
+
+.searchSuggestion[data-selected] {
+  border-color: var(--border-focus);
+}
+
+.searchSuggestion:focus-visible {
+  outline: var(--stroke-thick) solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+.searchSuggestionMedia {
+  display: flex;
+  width: 100%;
+  aspect-ratio: 1;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: var(--radius-component-default);
+  background: var(--fill-secondary);
+}
+
+.searchSuggestionMedia img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  mix-blend-mode: darken;
+}
+
+.searchSuggestionLabel {
+  display: block;
+  min-height: calc(var(--line-height-body-md) + var(--space-100));
+  padding: 0 var(--space-050) var(--space-100);
+  overflow: hidden;
+  font-size: var(--font-size-body-md);
+  line-height: var(--line-height-body-md);
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.searchSuggestionLabel strong {
+  font-weight: var(--font-weight-emphasize);
+}
+
 /* ------------------------------------------------------------ actions */
 
 .actions {
