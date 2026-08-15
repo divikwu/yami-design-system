@@ -50,7 +50,7 @@ ProductCard DOM and interaction contract.
 |---|---|
 | `rich` | Full commerce information in grids, rails, and waterfall layouts |
 | `minimal` | Image-first grid with a price badge and optional quick add |
-| `compact` | Standalone left-image, right-content horizontal product row |
+| `compact` | Standalone horizontal row with 132×132 media, flexible right-side product information, and quick add beside price |
 
 ProductList chooses these presentations from its layout. Pass
 `presentation` directly only when ProductCard is used outside ProductList.

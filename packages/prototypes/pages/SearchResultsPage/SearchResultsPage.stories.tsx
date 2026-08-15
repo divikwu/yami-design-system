@@ -39,10 +39,15 @@ function ecommerceHomeStoryHref(locale: SearchResultsLocale) {
   return `/iframe.html?id=yami-pages-ecommerce-home--pc&viewMode=story&globals=locale:${locale}`;
 }
 
+function mobileSearchStoryHref(locale: SearchResultsLocale) {
+  return `/?path=/story/yami-pages-mobile-search--empty&globals=locale%3A${locale}`;
+}
+
 function createSearchResultsStoryFixture(locale: SearchResultsLocale) {
   const fixture = createSearchResultsFixture(locale);
   return {
     ...fixture,
+    mobileBackHref: mobileSearchStoryHref(locale),
     header: {
       ...fixture.header,
       homeHref: ecommerceHomeStoryHref(locale),
@@ -635,7 +640,13 @@ function assertMobilePopularRail(canvasElement: HTMLElement) {
   const productListContainer = canvasElement.querySelector<HTMLElement>(
     '[data-slot="product-list-container"]'
   );
-  if (!popularList || !productListContainer) {
+  const pagination = canvasElement.querySelector<HTMLElement>(
+    '[data-slot="search-results-pagination"]'
+  );
+  const clearFilters = canvasElement.querySelector<HTMLElement>(
+    '[data-slot="search-results-clear-filters"]'
+  );
+  if (!popularList || !productListContainer || !pagination) {
     throw new Error("Mobile search results layout is incomplete");
   }
   const style = getComputedStyle(popularList);
@@ -645,7 +656,9 @@ function assertMobilePopularRail(canvasElement: HTMLElement) {
     style.paddingRight !== "12px" ||
     style.scrollPaddingLeft !== "12px" ||
     style.scrollPaddingRight !== "12px" ||
-    getComputedStyle(productListContainer).paddingTop !== "0px"
+    getComputedStyle(productListContainer).paddingTop !== "0px" ||
+    getComputedStyle(pagination).display !== "none" ||
+    (clearFilters && getComputedStyle(clearFilters).display !== "none")
   ) {
     throw new Error("Mobile search results spacing is incorrect");
   }
@@ -662,6 +675,21 @@ export const Mobile: Story = {
   ),
   play: async ({ canvasElement }) => {
     assertMobilePopularRail(canvasElement);
+    const backLink = canvasElement.querySelector<HTMLAnchorElement>(
+      '[data-slot="search-results-mobile-back"]'
+    );
+    const layoutToggle = canvasElement.querySelector<HTMLButtonElement>(
+      '[data-slot="search-results-layout-toggle"]'
+    );
+    if (
+      backLink?.getAttribute("href") !==
+        "/?path=/story/yami-pages-mobile-search--empty&globals=locale%3Aen" ||
+      backLink.getAttribute("target") !== "_top" ||
+      layoutToggle?.getAttribute("aria-pressed") !== "false" ||
+      layoutToggle.getAttribute("aria-label") !== "Switch to list view"
+    ) {
+      throw new Error("Mobile search results must open in grid view");
+    }
   },
 };
 
@@ -683,6 +711,85 @@ export const MobileInteractions: Story = {
 
     const document = canvasElement.ownerDocument;
     const viewport = document.defaultView;
+    const layoutToggle = canvasElement.querySelector<HTMLButtonElement>(
+      '[data-slot="search-results-layout-toggle"]'
+    );
+    const productList = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-list"]'
+    );
+    const productItems = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-list-items"]'
+    );
+    const popularFilter = canvasElement.querySelector<HTMLButtonElement>(
+      '[data-search-results-popular-filter="true"]'
+    );
+    if (!layoutToggle || !productList || !productItems || !popularFilter) {
+      throw new Error("Mobile product layout toggle did not render");
+    }
+
+    await userEvent.click(popularFilter);
+    await waitFor(() => {
+      const clearFilters = canvasElement.querySelector<HTMLElement>(
+        '[data-slot="search-results-clear-filters"]'
+      );
+      if (!clearFilters || getComputedStyle(clearFilters).display !== "none") {
+        throw new Error("Mobile clear filters action must stay hidden");
+      }
+    });
+    await userEvent.click(popularFilter);
+
+    await userEvent.click(layoutToggle);
+    await waitFor(() => {
+      const firstCard = productItems.querySelector<HTMLElement>(
+        '[data-slot="product-card"]'
+      );
+      const media = firstCard?.querySelector<HTMLElement>(
+        '[data-slot="product-card-media"]'
+      );
+      const content = firstCard?.querySelector<HTMLElement>(
+        '[data-slot="product-card-content"]'
+      );
+      const priceActionRow = firstCard?.querySelector<HTMLElement>(
+        '[data-slot="product-card-price-action-row"]'
+      );
+      const mediaRect = media?.getBoundingClientRect();
+      const contentStyle = content ? getComputedStyle(content) : undefined;
+      if (
+        layoutToggle.getAttribute("aria-pressed") !== "true" ||
+        layoutToggle.getAttribute("aria-label") !== "Switch to grid view" ||
+        productList.dataset.view !== "list" ||
+        firstCard?.dataset.presentation !== "compact" ||
+        !content ||
+        !priceActionRow ||
+        mediaRect?.width !== 132 ||
+        mediaRect.height !== 132 ||
+        getComputedStyle(productItems).rowGap !== "16px" ||
+        contentStyle?.flexGrow !== "1" ||
+        contentStyle.paddingTop !== "0px" ||
+        contentStyle.paddingRight !== "0px" ||
+        contentStyle.paddingBottom !== "0px" ||
+        contentStyle.paddingLeft !== "0px" ||
+        getComputedStyle(priceActionRow).display !== "flex"
+      ) {
+        throw new Error("Mobile product list did not switch to horizontal cards");
+      }
+    });
+
+    await userEvent.click(layoutToggle);
+    await waitFor(() => {
+      const firstCard = productItems.querySelector<HTMLElement>(
+        '[data-slot="product-card"]'
+      );
+      if (
+        layoutToggle.getAttribute("aria-pressed") !== "false" ||
+        layoutToggle.getAttribute("aria-label") !== "Switch to list view" ||
+        productList.dataset.view !== "grid" ||
+        firstCard?.dataset.presentation !== "rich"
+      ) {
+        throw new Error("Mobile product list did not return to grid cards");
+      }
+    });
+
     const controlList = canvasElement.querySelector<HTMLElement>(
       '[data-search-results-control-list="true"]'
     );

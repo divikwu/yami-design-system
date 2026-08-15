@@ -52,6 +52,10 @@ const mobileListIcon = new URL(
   "../../../design-system/assets/icons/action/layout-list.svg",
   import.meta.url
 ).href;
+const mobileGridIcon = new URL(
+  "../../../design-system/assets/icons/action/layout-grid.svg",
+  import.meta.url
+).href;
 const mobileCartIcon = new URL(
   "../../../design-system/assets/icons/base/cart.svg",
   import.meta.url
@@ -99,6 +103,7 @@ function FilterSkeleton({ widths }: { widths: readonly number[] }) {
 export function SearchResultsPage({
   locale = "en",
   contentMaxWidth = 1440,
+  mobileBackHref,
   query,
   resultCount,
   header,
@@ -123,6 +128,7 @@ export function SearchResultsPage({
   const [sort, setSort] = useState<SortValue>("featured");
   const [allFiltersOpen, setAllFiltersOpen] = useState(false);
   const [page, setPage] = useState(1);
+  const [productView, setProductView] = useState<"grid" | "list">("grid");
 
   const visibleProducts = useMemo(() => {
     const selectedFilters = filters.filter((filter) =>
@@ -213,14 +219,20 @@ export function SearchResultsPage({
         className={styles.mobileHeader}
         data-slot="search-results-mobile-header"
       >
-        <button
+        <a
           className={styles.mobileHeaderAction}
-          type="button"
+          data-slot="search-results-mobile-back"
+          href={mobileBackHref}
+          target={mobileBackHref ? "_top" : undefined}
           aria-label={locale === "zh" ? "返回" : "Back"}
-          onClick={() => window.history.back()}
+          onClick={(event) => {
+            if (mobileBackHref) return;
+            event.preventDefault();
+            window.history.back();
+          }}
         >
           <img src={mobileBackIcon} alt="" width={24} height={24} />
-        </button>
+        </a>
         <form
           className={styles.mobileSearch}
           role="search"
@@ -234,9 +246,33 @@ export function SearchResultsPage({
             onChange={(event) => setDraftQuery(event.currentTarget.value)}
           />
         </form>
-        <span className={styles.mobileHeaderAction} aria-hidden="true">
-          <img src={mobileListIcon} alt="" width={24} height={24} />
-        </span>
+        <button
+          className={styles.mobileHeaderAction}
+          type="button"
+          aria-label={
+            productView === "grid"
+              ? locale === "zh"
+                ? "切换为横向列表"
+                : "Switch to list view"
+              : locale === "zh"
+                ? "切换为网格"
+                : "Switch to grid view"
+          }
+          aria-pressed={productView === "list"}
+          data-slot="search-results-layout-toggle"
+          onClick={() =>
+            setProductView((current) =>
+              current === "grid" ? "list" : "grid"
+            )
+          }
+        >
+          <img
+            src={productView === "grid" ? mobileListIcon : mobileGridIcon}
+            alt=""
+            width={24}
+            height={24}
+          />
+        </button>
         {header.cart.href ? (
           <a
             className={styles.mobileHeaderAction}
@@ -476,6 +512,7 @@ export function SearchResultsPage({
                 {filterIds.length > 0 && (
                   <button
                     className={styles.clear}
+                    data-slot="search-results-clear-filters"
                     type="button"
                     onClick={() => setFilterIds([])}
                   >
@@ -490,10 +527,12 @@ export function SearchResultsPage({
         {visibleProducts.length > 0 ? (
           <ProductList
             className={styles.results}
+            data-view={productView}
             title={copy.productsTitle}
             products={visibleProducts}
             layout="waterfall"
             mobileSurface="plain"
+            presentation={productView === "list" ? "compact" : undefined}
             dividerPosition="none"
             loadingLabel={copy.loading}
             onAddToCart={() => {}}

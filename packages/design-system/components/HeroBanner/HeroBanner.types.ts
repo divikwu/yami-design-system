@@ -112,4 +112,6 @@ export interface HeroBannerProps
   autoAdvance?: boolean;
   /** Seconds between automatic advances. */
   autoAdvanceInterval?: number;
+  /** Reports the rendered surface color beneath the active banner copy. */
+  onActiveSurfaceColorChange?: (color: string) => void;
 }
