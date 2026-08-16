@@ -8,13 +8,14 @@ import type {
   ProductListTab,
 } from "../ProductList";
 import type { SectionDividerProps } from "../sectionDivider.types";
+import type { ImageLoadingStrategy, ImageSource } from "../image.types";
 
 export interface BrandProductCampaign {
   id: string;
   title: ReactNode;
   href?: string;
   banner: {
-    src: string;
+    src: ImageSource;
     alt: string;
     badgeSrc?: string;
     badgeAlt?: string;
@@ -43,4 +44,5 @@ export interface BrandProductRailProps
   previousLabel?: string;
   nextLabel?: string;
   onAddToCart?: (campaignId: string, productId: string) => void;
+  imageLoadingStrategy?: ImageLoadingStrategy;
 }

@@ -1,8 +1,9 @@
 import type { HTMLAttributes, ImgHTMLAttributes } from "react";
+import type { ImageSource } from "../image.types";
 
 export interface BillboardArtwork {
   /** Artwork source. */
-  src: string;
+  src: ImageSource;
   /**
    * Intrinsic pixel dimensions. Supplying them reserves the band's height
    * before the artwork arrives — the component has no content of its own to
@@ -46,4 +47,6 @@ export interface BillboardProps
   label: string;
   /** Artwork loading strategy; eager for a band above the fold. */
   imageLoading?: ImgHTMLAttributes<HTMLImageElement>["loading"];
+  /** Reveal the artwork after decode while retaining the band surface underneath. */
+  revealOnLoad?: boolean;
 }

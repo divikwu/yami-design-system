@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { ImageLoadingWindow, ResponsiveImage } from '../ResponsiveImage'
 
 import styles from './Header.module.css'
 import type { HeaderCategoryRailProps } from './Header.types'
@@ -40,6 +41,7 @@ export function HeaderCategoryRail({
   ariaLabel,
   previousLabel,
   nextLabel,
+  imageLoadingStrategy = 'native',
 }: HeaderCategoryRailProps) {
   const railRef = useRef<HTMLUListElement>(null)
   const [edges, setEdges] = useState({ atStart: true, atEnd: true })
@@ -84,17 +86,19 @@ export function HeaderCategoryRail({
 
   return (
     <nav className={styles.rail} data-slot="header-categories" aria-label={ariaLabel}>
-      <ul
-        ref={railRef}
-        className={styles.railList}
-        data-slot="header-categories-list"
-        onScroll={updateEdges}
-      >
+      <ImageLoadingWindow strategy={imageLoadingStrategy} rootRef={railRef}>
+        <ul
+          ref={railRef}
+          className={styles.railList}
+          data-slot="header-categories-list"
+          onScroll={updateEdges}
+        >
         {categories.map((category) => (
           <li
             key={category.id}
             className={styles.railItem}
             data-group-start={category.startsGroup || undefined}
+            data-image-window-item="true"
           >
             {category.startsGroup && (
               <span className={styles.railGroupDivider} aria-hidden="true" />
@@ -111,9 +115,9 @@ export function HeaderCategoryRail({
               )}
               <span className={styles.categoryMedia}>
                 {category.image ? (
-                  <img
+                  <ResponsiveImage
                     className={styles.categoryImage}
-                    src={category.image.src}
+                    source={category.image.src}
                     alt={category.image.alt}
                     width={24}
                     height={24}
@@ -135,7 +139,8 @@ export function HeaderCategoryRail({
             </a>
           </li>
         ))}
-      </ul>
+        </ul>
+      </ImageLoadingWindow>
 
       {!edges.atStart && (
         <>

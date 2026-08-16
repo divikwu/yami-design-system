@@ -4,6 +4,8 @@ import type { RefObject } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { RailNavigation } from "../Button/RailNavigation";
+import type { ImageSource } from "../image.types";
+import { ImageLoadingWindow } from "../ResponsiveImage";
 
 import styles from "./HeroBanner.module.css";
 import { HeroBannerImageOnlyCard } from "./HeroBannerImageOnlyCard";
@@ -78,7 +80,7 @@ function getActiveSurfaceColor(rail: HTMLDivElement) {
   return surface ? getComputedStyle(surface).backgroundColor : undefined;
 }
 
-type BorrowedSurface = { imageSrc?: string; color?: string };
+type BorrowedSurface = { imageSrc?: ImageSource; color?: string };
 
 /**
  * Surfaces available to borrow from — siblings that actually paint one.
@@ -270,6 +272,7 @@ export function HeroBanner({
   previousLabel = "Previous promotions",
   nextLabel = "Next promotions",
   imageLoading = "lazy",
+  imageLoadingStrategy = "native",
   dividerPosition = "none",
   dividerVariant = "gray",
   autoAdvance = true,
@@ -494,9 +497,9 @@ export function HeroBanner({
 
     const observer = supportsViewportObservation
       ? new IntersectionObserver(([entry]) => {
-            inViewport = entry?.isIntersecting ?? false;
-            syncTimer();
-          })
+          inViewport = entry?.isIntersecting ?? false;
+          syncTimer();
+        })
       : undefined;
     observer?.observe(root);
     syncTimer();
@@ -522,14 +525,15 @@ export function HeroBanner({
       data-divider-variant={dividerVariant}
       aria-label={ariaLabel}
     >
-      <div
-        ref={railRef}
-        className={styles.list}
-        data-slot="hero-banner-list"
-        role="list"
-        tabIndex={0}
-        onScroll={handleRailScroll}
-      >
+      <ImageLoadingWindow strategy={imageLoadingStrategy} rootRef={railRef}>
+        <div
+          ref={railRef}
+          className={styles.list}
+          data-slot="hero-banner-list"
+          role="list"
+          tabIndex={0}
+          onScroll={handleRailScroll}
+        >
         {items.map((item, index) => (
           <div
             key={item.id}
@@ -538,6 +542,7 @@ export function HeroBanner({
               item.image === undefined && styles.productsOnlyItem,
             )}
             role="listitem"
+            data-image-window-item="true"
             style={tailOrder ? { order: tailOrder[item.id] } : undefined}
           >
             <HeroBannerItemCard
@@ -566,6 +571,7 @@ export function HeroBanner({
               )}
               inert
               data-loop-clone="true"
+              data-image-window-item="true"
               style={
                 tailOrder
                   ? { order: tailOrder[item.id] + items.length }
@@ -580,7 +586,8 @@ export function HeroBanner({
               />
             </div>
           ))}
-      </div>
+        </div>
+      </ImageLoadingWindow>
 
       {items.length > 1 && (
         <div className={styles.controls}>

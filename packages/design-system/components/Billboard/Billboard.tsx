@@ -1,5 +1,10 @@
 import styles from "./Billboard.module.css";
 import type { BillboardProps } from "./Billboard.types";
+import {
+  buildImageSrcSet,
+  getImageSourceUrl,
+  ResponsiveImage,
+} from "../ResponsiveImage";
 
 function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
@@ -20,6 +25,7 @@ export function Billboard({
   href,
   label,
   imageLoading = "lazy",
+  revealOnLoad = false,
   className,
   ...rest
 }: BillboardProps) {
@@ -40,19 +46,38 @@ export function Billboard({
           {image.mobile && (
             <source
               media="(max-width: 1023.98px)"
-              srcSet={image.mobile.src}
-              width={image.mobile.width}
-              height={image.mobile.height}
+              srcSet={
+                typeof image.mobile.src === "string"
+                  ? image.mobile.src
+                  : buildImageSrcSet(image.mobile.src) ||
+                    getImageSourceUrl(image.mobile.src)
+              }
+              sizes={
+                typeof image.mobile.src === "string"
+                  ? undefined
+                  : image.mobile.src.sizes
+              }
+              width={
+                typeof image.mobile.src === "string"
+                  ? image.mobile.width
+                  : image.mobile.src.width
+              }
+              height={
+                typeof image.mobile.src === "string"
+                  ? image.mobile.height
+                  : image.mobile.src.height
+              }
             />
           )}
-          <img
+          <ResponsiveImage
             className={styles.image}
-            src={image.src}
+            source={image.src}
             alt={image.alt}
             width={image.width}
             height={image.height}
             loading={imageLoading}
             decoding="async"
+            revealOnLoad={revealOnLoad}
             data-slot="billboard-image"
           />
         </picture>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useId, useRef, useState } from 'react'
+import { ResponsiveImage } from '../ResponsiveImage'
 
 import styles from './Header.module.css'
 import type { HeaderSearchProps, HeaderSearchTag } from './Header.types'
@@ -128,6 +129,7 @@ export function HeaderSearch({
         type="search"
         autoComplete="off"
         placeholder={placeholder}
+        role={canOpenPanel ? 'combobox' : undefined}
         aria-label={searchLabel}
         aria-expanded={canOpenPanel ? isOpen : undefined}
         aria-controls={canOpenPanel ? panelId : undefined}
@@ -191,8 +193,8 @@ export function HeaderSearch({
                       onClick={() => chooseQuery(suggestion.label)}
                     >
                       <span className={styles.searchSuggestionMedia}>
-                        <img
-                          src={suggestion.image.src}
+                        <ResponsiveImage
+                          source={suggestion.image.src}
                           alt={suggestion.image.alt}
                           width={200}
                           height={200}

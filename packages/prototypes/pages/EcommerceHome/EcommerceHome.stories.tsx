@@ -292,13 +292,15 @@ export const Pc: Story = {
       ];
       for (const revealTarget of compactRevealTargets) {
         const previousMotionState = revealTarget.dataset.motionState;
-        const previousMotionDirection = revealTarget.dataset.motionDirection;
+        const previousMotionDirection =
+          revealTarget.dataset.motionDirection;
         delete revealTarget.dataset.motionState;
-        revealTarget.dataset.motionDirection = "down";
+        delete revealTarget.dataset.motionDirection;
         const hiddenTranslateY = new DOMMatrixReadOnly(
           getComputedStyle(revealTarget).transform,
         ).m42;
 
+        revealTarget.dataset.motionDirection = "down";
         revealTarget.dataset.motionState = "visible";
         const visibleStyle = getComputedStyle(revealTarget);
         const transitionDurations =
@@ -307,9 +309,8 @@ export const Pc: Story = {
           visibleStyle.transitionTimingFunction.split(", ");
 
         revealTarget.dataset.motionDirection = "up";
-        const upwardStyle = getComputedStyle(revealTarget);
-        const upwardTransitionDurations =
-          upwardStyle.transitionDuration.split(", ");
+        const upwardDuration =
+          getComputedStyle(revealTarget).transitionDuration;
 
         if (previousMotionState === undefined) {
           delete revealTarget.dataset.motionState;
@@ -327,17 +328,11 @@ export const Pc: Story = {
           transitionDurations.length !== 2 ||
           transitionDurations.some((duration) => duration !== "0.32s") ||
           transitionTimings.length !== 2 ||
-          transitionTimings.some((timing) => timing !== "ease-out")
+          transitionTimings.some((timing) => timing !== "ease-out") ||
+          upwardDuration !== "0s"
         ) {
           throw new Error(
-            "Ecommerce home section reveals must match Topic Landing's 24px, 320ms ease-out entrance",
-          );
-        }
-        if (
-          upwardTransitionDurations.some((duration) => duration !== "0s")
-        ) {
-          throw new Error(
-            "Ecommerce home sections must not animate when entering during upward scrolling",
+            "Ecommerce home section reveals must use a 24px, 320ms ease-out entrance only while scrolling down",
           );
         }
       }

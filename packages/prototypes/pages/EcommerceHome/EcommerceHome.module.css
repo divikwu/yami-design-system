@@ -98,6 +98,17 @@ main.main[data-slot="ecommerce-home-main"]
 }
 
 .main[data-motion-ready="true"]
+  :is(
+    [data-motion-reveal="initial"],
+    [data-motion-reveal="scroll"],
+    [data-motion-reveal="waterfall-heading"],
+    [data-motion-reveal="waterfall-tabs"],
+    [data-motion-reveal="waterfall-row"]
+  )[data-motion-direction="up"] {
+  transition: none;
+}
+
+.main[data-motion-ready="true"]
   [data-motion-reveal="waterfall-tabs"][data-motion-state="visible"] {
   transition-delay: 80ms;
 }
@@ -105,17 +116,6 @@ main.main[data-slot="ecommerce-home-main"]
 .main[data-motion-ready="true"]
   [data-motion-reveal="waterfall-row"][data-motion-state="visible"] {
   transition-delay: var(--ecommerce-home-row-reveal-delay, 0ms);
-}
-
-.main[data-motion-ready="true"]
-  :is(
-    [data-motion-reveal="initial"],
-    [data-motion-reveal="scroll"],
-    [data-motion-reveal="waterfall-heading"],
-    [data-motion-reveal="waterfall-tabs"],
-    [data-motion-reveal="waterfall-row"]
-  )[data-motion-state="visible"][data-motion-direction="up"] {
-  transition: none;
 }
 
 .hero {
@@ -133,6 +133,17 @@ main.main[data-slot="ecommerce-home-main"]
 
 .section {
   min-width: 0;
+}
+
+/* Keep the waterfall on native image lazy-loading, but let the browser skip
+ * layout and paint work for the final, fully off-screen feed. The intrinsic
+ * block size matches the stable fixture so the skipped subtree keeps its
+ * scroll geometry and cannot pull the footer upward. */
+.section[data-kind="products"]:has(
+    > [data-slot="product-list"][data-layout="waterfall"]
+  ) {
+  content-visibility: auto;
+  contain-intrinsic-block-size: auto 1337px;
 }
 
 /* A themed band is inset from the page: 48px beside it and 32px above and
@@ -161,6 +172,12 @@ main.main[data-slot="ecommerce-home-main"]
  * background, and the white panels that carry the PC layout have to give way,
  * or the cards would sit on white and read as one undivided sheet. */
 @media (max-width: 1023.98px) {
+  .section[data-kind="products"]:has(
+      > [data-slot="product-list"][data-layout="waterfall"]
+    ) {
+    contain-intrinsic-block-size: auto 3001px;
+  }
+
   .root::before {
     position: absolute;
     inset-block-start: 0;

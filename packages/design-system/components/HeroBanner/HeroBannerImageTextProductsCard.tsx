@@ -1,6 +1,8 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import { type CSSProperties, useRef, useState } from "react";
+
+import { getImageSourceUrl, ResponsiveImage } from "../ResponsiveImage";
 
 import styles from "./HeroBanner.module.css";
 import type { HeroBannerImageTextProductsCardProps } from "./HeroBanner.types";
@@ -14,9 +16,13 @@ export function HeroBannerImageTextProductsCard({
 }: HeroBannerImageTextProductsCardProps) {
   const products = item.products.slice(0, 4);
   const productLayout = products.length === 4 ? "grid" : "strip";
+  const imageRef = useRef<HTMLImageElement>(null);
+  const [canSampleImage, setCanSampleImage] = useState(priority);
   const imageColor = useImageBottomColor(
-    item.image.src,
+    getImageSourceUrl(item.image.src),
     item.backgroundColor,
+    canSampleImage,
+    imageRef,
   );
   const palette = heroBannerPalette(imageColor);
   const style = palette.surfaceColor
@@ -35,12 +41,16 @@ export function HeroBannerImageTextProductsCard({
       data-product-layout={productLayout}
       data-foreground={palette.foreground}
     >
-      <img
+      <ResponsiveImage
+        ref={imageRef}
         className={styles.image}
-        src={item.image.src}
+        source={item.image.src}
         alt={item.image.alt}
         loading={priority ? "eager" : imageLoading}
         fetchPriority={priority ? "high" : "auto"}
+        crossOrigin="anonymous"
+        activateImmediately={priority}
+        onActivated={() => setCanSampleImage(true)}
       />
       <div className={styles.content}>
         <span className={styles.gradient} aria-hidden="true" />
@@ -59,13 +69,17 @@ export function HeroBannerImageTextProductsCard({
           >
             {products.map((product, productIndex) => (
               <span
-                key={`${product.src}-${productIndex}`}
+                key={`${getImageSourceUrl(product.src)}-${productIndex}`}
                 className={styles.product}
                 data-slot="hero-banner-product"
-                data-empty={product.src ? undefined : "true"}
+                data-empty={getImageSourceUrl(product.src) ? undefined : "true"}
               >
-                {product.src && (
-                  <img src={product.src} alt={product.alt} loading="lazy" />
+                {getImageSourceUrl(product.src) && (
+                  <ResponsiveImage
+                    source={product.src}
+                    alt={product.alt}
+                    loading="lazy"
+                  />
                 )}
               </span>
             ))}

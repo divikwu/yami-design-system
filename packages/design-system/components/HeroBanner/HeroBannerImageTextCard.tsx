@@ -1,6 +1,9 @@
 "use client";
 
 import type { CSSProperties } from "react";
+import { useRef, useState } from "react";
+
+import { getImageSourceUrl, ResponsiveImage } from "../ResponsiveImage";
 
 import styles from "./HeroBanner.module.css";
 import type { HeroBannerImageTextCardProps } from "./HeroBanner.types";
@@ -12,9 +15,13 @@ export function HeroBannerImageTextCard({
   imageLoading = "lazy",
   priority = false,
 }: HeroBannerImageTextCardProps) {
+  const imageRef = useRef<HTMLImageElement>(null);
+  const [canSampleImage, setCanSampleImage] = useState(priority);
   const imageColor = useImageBottomColor(
-    item.image.src,
+    getImageSourceUrl(item.image.src),
     item.backgroundColor,
+    canSampleImage,
+    imageRef,
   );
   const palette = heroBannerPalette(imageColor);
   const style = palette.surfaceColor
@@ -33,12 +40,16 @@ export function HeroBannerImageTextCard({
       data-product-layout="none"
       data-foreground={palette.foreground}
     >
-      <img
+      <ResponsiveImage
+        ref={imageRef}
         className={styles.image}
-        src={item.image.src}
+        source={item.image.src}
         alt={item.image.alt}
         loading={priority ? "eager" : imageLoading}
         fetchPriority={priority ? "high" : "auto"}
+        crossOrigin="anonymous"
+        activateImmediately={priority}
+        onActivated={() => setCanSampleImage(true)}
       />
       <div className={styles.content}>
         <span className={styles.gradient} aria-hidden="true" />

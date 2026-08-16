@@ -30,6 +30,8 @@ export interface ThemeProductListProps
     | "backgroundColor"
     | "backgroundImage"
     | "backgroundImageMobile"
+    | "backgroundImage2x"
+    | "backgroundImageMobile2x"
     | "content"
     | "layout"
     | "leadingContent"

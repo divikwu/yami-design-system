@@ -119,26 +119,23 @@ export const Showcase: Story = {
       scrim.parentElement !== overlay ||
       Math.abs(scrimBox.width - overlayBox.width) > 1 ||
       Math.abs(scrimBox.height - overlayBox.height) > 1 ||
-      scrimBox.height >= contentBox.height ||
-      Math.abs(overlayBox.height - expectedOverlayHeight) > 1 ||
-      !scrimStyle.backgroundImage.includes("linear-gradient") ||
-      !scrimStyle.backgroundImage.includes("/ 0.8") ||
-      !scrimStyle.backgroundImage.includes("0px") ||
-      !scrimStyle.backgroundImage.includes("64px") ||
-      scrimStyle.backgroundImage.includes("20%") ||
-      scrimStyle.backgroundImage.includes("60%") ||
-      !contentStyle
-        .getPropertyValue("--adaptive-image-scrim-surface-color")
-        .trim() ||
-      scrimStyle.backdropFilter !== "blur(16px)" ||
-      !scrimStyle.maskImage.includes("linear-gradient") ||
-      !scrimStyle.maskImage.includes("0px") ||
-      !scrimStyle.maskImage.includes("64px") ||
-      scrimStyle.maskImage.includes("20%") ||
-      scrimStyle.maskImage.includes("60%")
+      (window.innerWidth < 1024
+        ? Math.abs(scrimBox.height - contentBox.height) > 1
+        : scrimBox.height >= contentBox.height ||
+          Math.abs(overlayBox.height - expectedOverlayHeight) > 1) ||
+      (window.innerWidth < 1024
+        ? scrimStyle.backgroundColor !== "rgba(0, 0, 0, 0.29)" ||
+          scrimStyle.backdropFilter !== "none" ||
+          scrimStyle.maskImage !== "none"
+        : !scrimStyle.backgroundImage.includes("linear-gradient") ||
+          !contentStyle
+            .getPropertyValue("--adaptive-image-scrim-surface-color")
+            .trim() ||
+          scrimStyle.backdropFilter !== "blur(16px)" ||
+          !scrimStyle.maskImage.includes("linear-gradient"))
     ) {
       throw new Error(
-        "ThemeProductList scene art must reuse the adaptive Mobile ThemeHero scrim inside its content-driven text overlay",
+        "ThemeProductList scene art must use the mobile brand scrim and preserve the adaptive desktop scrim",
       );
     }
     if (!content.matches('[data-foreground="light"], [data-foreground="dark"]')) {

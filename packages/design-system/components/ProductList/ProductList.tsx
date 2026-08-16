@@ -18,6 +18,12 @@ import {
   handleProgressiveImageLoad,
   prepareProgressiveImage,
 } from "../progressiveImage";
+import {
+  buildImageSrcSet,
+  getImageSourceUrl,
+  ImageLoadingWindow,
+  ResponsiveImage,
+} from "../ResponsiveImage";
 import { SectionHeading } from "../SectionHeading";
 import { Tabs, TabsList, TabsTrigger } from "../Tabs";
 
@@ -85,7 +91,10 @@ export function ProductList(props: ProductListProps) {
     backgroundColor,
     backgroundImage,
     backgroundImageMobile,
+    backgroundImage2x,
+    backgroundImageMobile2x,
     layout = "rail",
+    imageLoadingStrategy,
     mobileSurface = "card",
     presentation: presentationOverride,
     tabs,
@@ -167,6 +176,20 @@ export function ProductList(props: ProductListProps) {
           )})`,
         }
       : {}),
+    ...(backgroundImage && backgroundImage2x
+      ? {
+          "--product-list-background-image-set": `image-set(url(${JSON.stringify(
+            backgroundImage,
+          )}) 1x, url(${JSON.stringify(backgroundImage2x)}) 2x)`,
+        }
+      : {}),
+    ...(backgroundImageMobile && backgroundImageMobile2x
+      ? {
+          "--product-list-background-image-mobile-set": `image-set(url(${JSON.stringify(
+            backgroundImageMobile,
+          )}) 1x, url(${JSON.stringify(backgroundImageMobile2x)}) 2x)`,
+        }
+      : {}),
   } as CSSProperties;
   const presentation =
     presentationOverride ?? PRESENTATION_BY_LAYOUT[layout];
@@ -193,14 +216,25 @@ export function ProductList(props: ProductListProps) {
             {banner.mobileSrc && (
               <source
                 media="(max-width: 1023px)"
-                srcSet={banner.mobileSrc}
+                srcSet={
+                  typeof banner.mobileSrc === "string"
+                    ? banner.mobileSrc
+                    : buildImageSrcSet(banner.mobileSrc) ||
+                      getImageSourceUrl(banner.mobileSrc)
+                }
+                sizes={
+                  typeof banner.mobileSrc === "string"
+                    ? undefined
+                    : banner.mobileSrc.sizes
+                }
               />
             )}
-            <img
+            <ResponsiveImage
               ref={prepareProgressiveImage}
-              src={banner.src}
+              source={banner.src}
               alt={banner.alt}
               decoding="async"
+              revealOnLoad={false}
               onLoad={handleProgressiveImageLoad}
               onError={handleProgressiveImageError}
             />
@@ -265,18 +299,22 @@ export function ProductList(props: ProductListProps) {
           </div>
         )}
 
-        <HorizontalScrollList
-          id={listId}
-          ref={layout === "rail" ? railRef : undefined}
-          className={styles.list}
-          enabled={layout === "rail"}
-          surface={railSurface}
-          data-slot="product-list-items"
-          role="list"
-          tabIndex={layout === "rail" ? 0 : undefined}
-          aria-label={layout === "rail" ? "Products" : undefined}
-          onScroll={layout === "rail" ? updateRailState : undefined}
+        <ImageLoadingWindow
+          strategy={layout === "rail" ? imageLoadingStrategy : undefined}
+          rootRef={layout === "rail" ? railRef : undefined}
         >
+          <HorizontalScrollList
+            id={listId}
+            ref={layout === "rail" ? railRef : undefined}
+            className={styles.list}
+            enabled={layout === "rail"}
+            surface={railSurface}
+            data-slot="product-list-items"
+            role="list"
+            tabIndex={layout === "rail" ? 0 : undefined}
+            aria-label={layout === "rail" ? "Products" : undefined}
+            onScroll={layout === "rail" ? updateRailState : undefined}
+          >
           {leadingContent && (
             <div
               className={styles.leadingContent}
@@ -296,6 +334,7 @@ export function ProductList(props: ProductListProps) {
                 className={styles.item}
                 data-slot="product-list-item"
                 role="listitem"
+                data-image-window-item={layout === "rail" ? "true" : undefined}
               >
                 <ProductCard
                   {...(product as ProductCardProps)}
@@ -306,7 +345,8 @@ export function ProductList(props: ProductListProps) {
               </div>
             ))
           )}
-        </HorizontalScrollList>
+          </HorizontalScrollList>
+        </ImageLoadingWindow>
 
         {loading && (
           <span className={styles.srOnly} role="status">

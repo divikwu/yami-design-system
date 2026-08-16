@@ -5,6 +5,7 @@ import type {
 } from "react";
 
 import type { SectionDividerProps } from "../sectionDivider.types";
+import type { ImageLoadingStrategy, ImageSource } from "../image.types";
 
 export type ShortcutRailSurface = "card" | "plain";
 
@@ -14,7 +15,7 @@ export interface ShortcutRailItem {
   /** Visible localized label. */
   label: ReactNode;
   /** Decorative icon source. The visible label names the destination. */
-  iconSrc: string;
+  iconSrc: ImageSource;
   /** Image treatment inside the circular surface. Full bleed fills and crops the entire circle. */
   imagePresentation?: "icon" | "full-bleed";
   /** Destination for the shortcut. */
@@ -44,4 +45,6 @@ export interface ShortcutRailProps
    * a long list stays one swipe deep. PC always renders a single row.
    */
   lines?: 1 | 2;
+  /** Opt-in horizontal image request window. Defaults to native loading. */
+  imageLoadingStrategy?: ImageLoadingStrategy;
 }

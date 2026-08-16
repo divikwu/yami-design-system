@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import {
   dominantColorFromPixels,
+  extractImageBottomColor,
   heroBannerPalette,
 } from "../components/HeroBanner/imageColor"
 
@@ -36,6 +37,7 @@ interface HeroBannerTestProps {
   nextLabel?: string
   autoAdvance?: boolean
   autoAdvanceInterval?: number
+  imageLoadingStrategy?: "native" | "windowed"
 }
 
 interface HeroBannerCardTestProps {
@@ -169,6 +171,30 @@ describe("YAMI HeroBanner contracts", () => {
     expect(card?.querySelector("img")?.alt).toBe("YAMI seasonal campaign")
     expect(card?.querySelector('[data-slot="hero-banner-copy"]')).toBeNull()
     expect(card?.querySelector('[data-slot="hero-banner-products"]')).toBeNull()
+  })
+
+  it("keeps the campaign surface visible until its image is decoded", async () => {
+    await act(async () => {
+      root.render(
+        <HeroBanner
+          items={items}
+          autoAdvance={false}
+          imageLoadingStrategy="windowed"
+        />,
+      )
+    })
+
+    const image = container.querySelector<HTMLImageElement>(
+      '[data-slot="hero-banner-item"] > img',
+    )!
+    expect(image.dataset.imageState).toBe("pending")
+
+    await act(async () => {
+      image.dispatchEvent(new Event("load", { bubbles: true }))
+      await Promise.resolve()
+    })
+
+    expect(image.dataset.imageState).toBe("loaded")
   })
 
   it("exposes an image-and-text campaign card", async () => {
@@ -319,6 +345,43 @@ describe("YAMI HeroBanner contracts", () => {
     )
     expect(campaignImage?.loading).toBe("eager")
     expect(campaignImage?.getAttribute("fetchpriority")).toBe("high")
+  })
+
+  it("keeps exactly one campaign eager while windowed originals and loop clones wait for activation", async () => {
+    class PendingIntersectionObserver {
+      constructor(_callback: IntersectionObserverCallback) {}
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+      takeRecords() { return [] }
+      readonly root = null
+      readonly rootMargin = "0px"
+      readonly thresholds = [0]
+    }
+    vi.stubGlobal("IntersectionObserver", PendingIntersectionObserver)
+
+    await act(async () => {
+      root.render(
+        <HeroBanner items={items} imageLoadingStrategy="windowed" />,
+      )
+    })
+
+    const campaignImages = Array.from(
+      container.querySelectorAll<HTMLImageElement>(
+        '[data-slot="hero-banner-item"] > img',
+      ),
+    )
+    expect(campaignImages).toHaveLength(6)
+    expect(campaignImages.filter((image) => image.loading === "eager")).toHaveLength(1)
+    expect(
+      campaignImages.filter(
+        (image) => image.getAttribute("fetchpriority") === "high",
+      ),
+    ).toHaveLength(1)
+    expect(campaignImages[0]?.getAttribute("src")).toBe("/street-food.webp")
+    expect(
+      campaignImages.slice(1).every((image) => !image.hasAttribute("src")),
+    ).toBe(true)
   })
 
   it("infers the Figma product treatment from thumbnail count", async () => {
@@ -561,5 +624,50 @@ describe("YAMI HeroBanner image color extraction", () => {
     ])
 
     expect(dominantColorFromPixels(pixels)).toBe("rgb(106, 180, 110)")
+  })
+
+  it("shares one image load and canvas sample for repeated URLs", async () => {
+    let imageCount = 0
+    class FakeImage {
+      crossOrigin = ""
+      decoding = "auto"
+      naturalWidth = 100
+      naturalHeight = 100
+      onload: (() => void) | null = null
+      onerror: (() => void) | null = null
+
+      constructor() {
+        imageCount += 1
+      }
+
+      set src(_value: string) {
+        queueMicrotask(() => this.onload?.())
+      }
+    }
+    vi.stubGlobal("Image", FakeImage)
+
+    const originalCreateElement = document.createElement.bind(document)
+    vi.spyOn(document, "createElement").mockImplementation((tagName: string) => {
+      if (tagName !== "canvas") return originalCreateElement(tagName)
+      return {
+        width: 0,
+        height: 0,
+        getContext: () => ({
+          drawImage: () => {},
+          getImageData: () => ({
+            data: new Uint8ClampedArray([106, 180, 110, 255]),
+          }),
+        }),
+      } as unknown as HTMLCanvasElement
+    })
+
+    const [first, second] = await Promise.all([
+      extractImageBottomColor("/shared-campaign-cache-test.webp"),
+      extractImageBottomColor("/shared-campaign-cache-test.webp"),
+    ])
+
+    expect(first).toBe("rgb(106, 180, 110)")
+    expect(second).toBe(first)
+    expect(imageCount).toBe(1)
   })
 })

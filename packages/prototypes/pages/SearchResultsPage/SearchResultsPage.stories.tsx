@@ -609,7 +609,7 @@ export const ResultsInteractions: Story = {
 
     const showResultsButton = [
       ...allFiltersDialog.querySelectorAll("button"),
-    ].find((button) => button.textContent?.includes("Show 30 results"));
+    ].find((button) => /^Show [\d,]+ results$/.test(button.textContent?.trim() ?? ""));
     const allFiltersFooter = showResultsButton?.closest("footer");
     if (
       !showResultsButton ||

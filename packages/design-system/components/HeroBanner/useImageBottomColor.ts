@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type RefObject } from "react";
 
 import { extractImageBottomColor } from "./imageColor";
 
 export function useImageBottomColor(
   src: string,
   fallback?: string,
+  enabled = true,
+  imageRef?: RefObject<HTMLImageElement | null>,
 ): string | undefined {
   const [color, setColor] = useState(fallback);
 
@@ -14,14 +16,18 @@ export function useImageBottomColor(
     let active = true;
     setColor(fallback);
 
-    void extractImageBottomColor(src).then((nextColor) => {
+    if (!enabled) return () => {
+      active = false;
+    };
+
+    void extractImageBottomColor(src, imageRef?.current ?? undefined).then((nextColor) => {
       if (active && nextColor) setColor(nextColor);
     });
 
     return () => {
       active = false;
     };
-  }, [fallback, src]);
+  }, [enabled, fallback, imageRef, src]);
 
   return color;
 }

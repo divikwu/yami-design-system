@@ -13,6 +13,7 @@ import { RailNavigation } from "../Button/RailNavigation";
 import { SectionHeading } from "../SectionHeading";
 import { ProductList } from "../ProductList";
 import { Tabs, TabsList, TabsTrigger } from "../Tabs";
+import { ImageLoadingWindow, ResponsiveImage } from "../ResponsiveImage";
 
 import styles from "./BrandProductRail.module.css";
 import type { BrandProductRailProps } from "./BrandProductRail.types";
@@ -53,6 +54,7 @@ export function BrandProductRail({
   previousLabel = "Previous brands",
   nextLabel = "Next brands",
   onAddToCart,
+  imageLoadingStrategy = "native",
   dividerPosition = "top",
   dividerVariant = "gray",
   className,
@@ -163,22 +165,24 @@ export function BrandProductRail({
           )}
         </div>
 
-        <ul
-          id={listId}
-          ref={railRef}
-          className={styles.list}
-          data-slot="brand-product-rail-list"
-          role="list"
-          tabIndex={0}
-          aria-label={typeof title === "string" ? title : undefined}
-          onScroll={updateEdges}
-        >
+        <ImageLoadingWindow strategy={imageLoadingStrategy} rootRef={railRef}>
+          <ul
+            id={listId}
+            ref={railRef}
+            className={styles.list}
+            data-slot="brand-product-rail-list"
+            role="list"
+            tabIndex={0}
+            aria-label={typeof title === "string" ? title : undefined}
+            onScroll={updateEdges}
+          >
           {campaigns.map((campaign) => (
             <li
               key={campaign.id}
               className={styles.panel}
               data-slot="brand-product-rail-campaign"
               role="listitem"
+              data-image-window-item="true"
             >
               <ProductList
                 title={
@@ -215,10 +219,11 @@ export function BrandProductRail({
                 />
               )}
               {campaign.banner.badgeSrc && (
-                <img
+                <ResponsiveImage
                   className={styles.badge}
-                  src={campaign.banner.badgeSrc}
+                  source={campaign.banner.badgeSrc}
                   alt={campaign.banner.badgeAlt ?? ""}
+                  loading="lazy"
                   aria-hidden={
                     campaign.banner.badgeAlt ? undefined : true
                   }
@@ -226,7 +231,8 @@ export function BrandProductRail({
               )}
             </li>
           ))}
-        </ul>
+          </ul>
+        </ImageLoadingWindow>
       </div>
     </section>
   );

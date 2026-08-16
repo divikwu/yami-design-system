@@ -8,3 +8,4 @@ export {
   createTopicLandingPageFixture,
   type TopicLandingPageLocale,
 } from "./fixtures";
+export { createTopicKeywordLandingPageFixture } from "./topic.fixtures";

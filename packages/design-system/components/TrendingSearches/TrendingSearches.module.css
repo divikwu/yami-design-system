@@ -119,6 +119,19 @@
   object-fit: cover;
 }
 
+.thumbnailImage[data-image-state] {
+  transition: opacity 240ms ease-out;
+}
+
+.thumbnailImage[data-image-state="pending"],
+.thumbnailImage[data-image-state="error"] {
+  opacity: 0;
+}
+
+.thumbnailImage[data-image-state="loaded"] {
+  opacity: 1;
+}
+
 /* Multiply against a dark tile would sink the product into it. */
 :global(.dark) .thumbnailImage {
   mix-blend-mode: normal;
@@ -152,6 +165,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .thumbnailImage {
+    transition: none;
+  }
+
   .chevron {
     transition: none;
   }

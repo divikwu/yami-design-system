@@ -1,4 +1,5 @@
 import styles from "./SocialMediaGallery.module.css";
+import { ResponsiveImage } from "../ResponsiveImage";
 import type {
   SocialVideoCardProps,
   SocialVideoProduct,
@@ -8,21 +9,37 @@ function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
-function ProductImage({ product }: { product: SocialVideoProduct }) {
+function ProductImage({
+  product,
+  index,
+}: {
+  product: SocialVideoProduct;
+  index?: number;
+}) {
   const image = (
-    <img
+    <ResponsiveImage
       className={styles.productImage}
-      src={product.imageSrc}
+      source={product.imageSrc}
       alt={product.imageAlt}
       loading="lazy"
       decoding="async"
     />
   );
 
-  if (!product.href) return image;
+  if (!product.href) {
+    return (
+      <span className={styles.productLink} data-product-index={index}>
+        {image}
+      </span>
+    );
+  }
 
   return (
-    <a className={styles.productLink} href={product.href}>
+    <a
+      className={styles.productLink}
+      href={product.href}
+      data-product-index={index}
+    >
       {image}
     </a>
   );
@@ -34,9 +51,9 @@ function CardMedia({
   posterAlt,
 }: Pick<SocialVideoCardProps, "href" | "posterSrc" | "posterAlt">) {
   const media = (
-    <img
+    <ResponsiveImage
       className={styles.poster}
-      src={posterSrc}
+      source={posterSrc}
       alt={posterAlt}
       loading="lazy"
       decoding="async"
@@ -80,10 +97,10 @@ export function SocialVideoCard({
    * 256px wide, at 1440px the rail switches to six per view and the same card
    * drops to 211px). Rendering both also keeps the overflow number correct,
    * which hiding the third thumbnail in CSS alone could not. */
-  const wideRow = visibleProducts.slice(0, 3);
-  const narrowRow = visibleProducts.slice(0, 2);
-  const overflowFor = (row: typeof visibleProducts) =>
-    Math.max(0, products.length - row.length) + additionalProductCount;
+  const wideOverflow =
+    Math.max(0, products.length - 3) + additionalProductCount;
+  const narrowOverflow =
+    Math.max(0, products.length - 2) + additionalProductCount;
 
   return (
     <article
@@ -98,9 +115,9 @@ export function SocialVideoCard({
         <CardMedia href={href} posterSrc={posterSrc} posterAlt={posterAlt} />
 
         <div className={styles.identity}>
-          <img
+          <ResponsiveImage
             className={styles.platform}
-            src={platformIconSrc}
+            source={platformIconSrc}
             alt=""
             aria-hidden="true"
             width="24"
@@ -128,23 +145,28 @@ export function SocialVideoCard({
           </>
         ) : (
           <>
-            <span className={styles.productRowWide} data-product-row="wide">
-              {wideRow.map((product) => (
-                <ProductImage key={product.id} product={product} />
+            <span className={styles.productRow} data-product-row="responsive">
+              {visibleProducts.map((product, index) => (
+                <ProductImage
+                  key={product.id}
+                  product={product}
+                  index={index}
+                />
               ))}
-              {overflowFor(wideRow) > 0 && (
-                <span className={styles.moreProducts}>
-                  +{overflowFor(wideRow)}
+              {wideOverflow > 0 && (
+                <span
+                  className={`${styles.moreProducts} ${styles.wideCount}`}
+                  data-product-overflow="wide"
+                >
+                  +{wideOverflow}
                 </span>
               )}
-            </span>
-            <span className={styles.productRowNarrow} data-product-row="narrow">
-              {narrowRow.map((product) => (
-                <ProductImage key={product.id} product={product} />
-              ))}
-              {overflowFor(narrowRow) > 0 && (
-                <span className={styles.moreProducts}>
-                  +{overflowFor(narrowRow)}
+              {narrowOverflow > 0 && (
+                <span
+                  className={`${styles.moreProducts} ${styles.narrowCount}`}
+                  data-product-overflow="narrow"
+                >
+                  +{narrowOverflow}
                 </span>
               )}
             </span>
