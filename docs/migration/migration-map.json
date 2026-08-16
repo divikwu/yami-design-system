@@ -2787,7 +2787,7 @@
       "sourceSha256": "2354f51b6aeb487e5f7097c78c6f4d68ec92965eec0c35c7c512b01c86216ae6",
       "disposition": "migrated",
       "destination": "packages/design-system/components/ShortcutRail/ShortcutRail.types.ts",
-      "destinationSha256": "a76002a6c08505e57396dd3c4a20439f9794889aaa1dc4208ef9a005fdbb8d7d"
+      "destinationSha256": "3c878b956fc9edadcd1227bacd8d8f58d3ca01305248a1bd7ca9eaffc108fed5"
     },
     {
       "source": "components/ShortcutRail/assets/01-trending.png",
