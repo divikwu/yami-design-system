@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { userEvent } from "storybook/test";
 
 import {
   createProductListProducts,
@@ -51,6 +52,141 @@ export const Pc: Story = {
       '[data-slot="ecommerce-home"]',
     );
     if (!page) throw new Error("Ecommerce home did not render");
+
+    const stickyHeader = page.querySelector<HTMLElement>(
+      '[data-slot="ecommerce-home-header"]',
+    );
+    const stickyHeaderStyle = stickyHeader && getComputedStyle(stickyHeader);
+    if (
+      stickyHeaderStyle?.position !== "sticky" ||
+      stickyHeaderStyle.top !== "0px" ||
+      Number.parseInt(stickyHeaderStyle.zIndex, 10) < 1
+    ) {
+      throw new Error("Ecommerce home navigation must remain sticky at the top");
+    }
+    const storyWindow = canvasElement.ownerDocument.defaultView;
+    if (storyWindow?.matchMedia("(max-width: 1023.98px)").matches) {
+      const atmosphereStyle = getComputedStyle(page, "::before");
+      const atmosphereWidth = Number.parseFloat(atmosphereStyle.width);
+      const atmosphereHeight = Number.parseFloat(atmosphereStyle.height);
+      const activeHeroCopy = page.querySelector<HTMLElement>(
+        '[data-slot="hero-banner-item"] [data-slot="hero-banner-copy"]',
+      );
+      const activeHeroSurfaceColor = activeHeroCopy?.parentElement
+        ? getComputedStyle(activeHeroCopy.parentElement).backgroundColor
+        : undefined;
+      const atmosphereColorProbe = document.createElement("span");
+      atmosphereColorProbe.style.color =
+        `color-mix(in srgb, ${activeHeroSurfaceColor} 16%, var(--background-primary))`;
+      page.append(atmosphereColorProbe);
+      const expectedAtmosphereColor = getComputedStyle(
+        atmosphereColorProbe,
+      ).color;
+      atmosphereColorProbe.remove();
+      if (
+        atmosphereStyle.position !== "absolute" ||
+        !atmosphereStyle.backgroundImage.includes("linear-gradient") ||
+        !activeHeroSurfaceColor ||
+        !atmosphereStyle.backgroundImage.includes(expectedAtmosphereColor) ||
+        Math.abs(atmosphereWidth - page.getBoundingClientRect().width) > 1 ||
+        Math.abs(atmosphereHeight - Math.min(atmosphereWidth, 440)) > 1 ||
+        atmosphereHeight > 440
+      ) {
+        throw new Error(
+          "Mobile ecommerce home atmosphere must be a full-width 16%-banner-to-page gradient with a 1:1 height capped at 440px",
+        );
+      }
+
+      const heroRail = page.querySelector<HTMLElement>(
+        '[data-slot="hero-banner-list"]',
+      );
+      const visibleHeroItems = heroRail
+        ? Array.from(heroRail.children)
+            .filter(
+              (item): item is HTMLElement =>
+                item instanceof HTMLElement &&
+                getComputedStyle(item).display !== "none",
+            )
+            .sort((a, b) => a.offsetLeft - b.offsetLeft)
+        : [];
+      const nextHeroItem = visibleHeroItems[1];
+      const nextHeroCopy = nextHeroItem?.querySelector<HTMLElement>(
+        '[data-slot="hero-banner-copy"]',
+      );
+      const nextHeroSurfaceColor = nextHeroCopy?.parentElement
+        ? getComputedStyle(nextHeroCopy.parentElement).backgroundColor
+        : undefined;
+      if (!heroRail || !nextHeroItem || !nextHeroSurfaceColor) {
+        throw new Error(
+          "Mobile ecommerce home needs two color-bearing banners",
+        );
+      }
+      heroRail.scrollLeft = nextHeroItem.offsetLeft;
+      heroRail.dispatchEvent(
+        new storyWindow.Event("scroll", { bubbles: true }),
+      );
+      if (
+        getComputedStyle(page)
+          .getPropertyValue("--ecommerce-home-atmosphere-color")
+          .trim() !== nextHeroSurfaceColor
+      ) {
+        throw new Error(
+          "Mobile ecommerce home atmosphere must follow the dominant banner in the same scroll event",
+        );
+      }
+      heroRail.scrollLeft = visibleHeroItems[0]?.offsetLeft ?? 0;
+      heroRail.dispatchEvent(
+        new storyWindow.Event("scroll", { bubbles: true }),
+      );
+
+      if (
+        stickyHeader?.hasAttribute("data-scrolled") ||
+        stickyHeaderStyle.backgroundColor !== "rgba(0, 0, 0, 0)"
+      ) {
+        throw new Error(
+          "Mobile ecommerce home header must be transparent at the top",
+        );
+      }
+
+      storyWindow.scrollTo(0, 1);
+      await new Promise<void>((resolve) =>
+        storyWindow.requestAnimationFrame(() => resolve()),
+      );
+      if (
+        !stickyHeader.hasAttribute("data-scrolled") ||
+        getComputedStyle(stickyHeader).backgroundColor === "rgba(0, 0, 0, 0)"
+      ) {
+        throw new Error(
+          "Mobile ecommerce home header must gain a background after scrolling",
+        );
+      }
+      await new Promise<void>((resolve) =>
+        storyWindow.setTimeout(resolve, 200),
+      );
+      const mobileBrand = stickyHeader.querySelector<HTMLElement>(
+        '[data-slot="header-mobile-brand"]',
+      );
+      const mobileSearchRow = stickyHeader.querySelector<HTMLElement>(
+        '[data-slot="header-mobile-search-row"]',
+      );
+      const mobileActions = stickyHeader.querySelector<HTMLElement>(
+        '[data-slot="header-mobile-actions"]',
+      );
+      if (
+        !mobileBrand ||
+        !mobileSearchRow ||
+        !mobileActions ||
+        getComputedStyle(mobileBrand).opacity !== "0" ||
+        getComputedStyle(mobileBrand).visibility !== "hidden" ||
+        mobileSearchRow.getBoundingClientRect().top !==
+          mobileActions.getBoundingClientRect().top
+      ) {
+        throw new Error(
+          "Scrolled mobile ecommerce header must replace the logo row with search while keeping its actions",
+        );
+      }
+      storyWindow.scrollTo(0, 0);
+    }
 
     const main = page.querySelector<HTMLElement>(
       '[data-slot="ecommerce-home-main"]',
@@ -112,25 +248,38 @@ export const Pc: Story = {
     }
     if (main.dataset.motionReady === "true") {
       const previousInitialState = initialReveal.dataset.motionState;
+      const previousInitialDirection = initialReveal.dataset.motionDirection;
       delete initialReveal.dataset.motionState;
+      initialReveal.dataset.motionDirection = "down";
       const initialHiddenTranslateY = new DOMMatrixReadOnly(
         getComputedStyle(initialReveal).transform,
       ).m42;
       initialReveal.dataset.motionState = "visible";
       const initialVisibleStyle = getComputedStyle(initialReveal);
+      // Snapshot the values before restoring the observed state. The computed
+      // style object is live and otherwise follows that restoration.
+      const initialTransitionDuration =
+        initialVisibleStyle.transitionDuration;
+      const initialTransitionTimingFunction =
+        initialVisibleStyle.transitionTimingFunction;
       if (previousInitialState === undefined) {
         delete initialReveal.dataset.motionState;
       } else {
         initialReveal.dataset.motionState = previousInitialState;
       }
+      if (previousInitialDirection === undefined) {
+        delete initialReveal.dataset.motionDirection;
+      } else {
+        initialReveal.dataset.motionDirection = previousInitialDirection;
+      }
       if (
         initialHiddenTranslateY !== 32 ||
-        initialVisibleStyle.transitionDuration !== "0.5s, 0.5s" ||
-        initialVisibleStyle.transitionTimingFunction !==
+        initialTransitionDuration !== "0.5s, 0.5s" ||
+        initialTransitionTimingFunction !==
           "ease-in-out, ease-in-out"
       ) {
         throw new Error(
-          "Ecommerce home initial reveal must match Topic Landing's 32px, 500ms ease-in-out entrance",
+          `Ecommerce home initial reveal must match Topic Landing's 32px, 500ms ease-in-out entrance; got translateY=${initialHiddenTranslateY}px, duration="${initialTransitionDuration}", timing="${initialTransitionTimingFunction}"`,
         );
       }
 
@@ -143,7 +292,9 @@ export const Pc: Story = {
       ];
       for (const revealTarget of compactRevealTargets) {
         const previousMotionState = revealTarget.dataset.motionState;
+        const previousMotionDirection = revealTarget.dataset.motionDirection;
         delete revealTarget.dataset.motionState;
+        revealTarget.dataset.motionDirection = "down";
         const hiddenTranslateY = new DOMMatrixReadOnly(
           getComputedStyle(revealTarget).transform,
         ).m42;
@@ -155,10 +306,20 @@ export const Pc: Story = {
         const transitionTimings =
           visibleStyle.transitionTimingFunction.split(", ");
 
+        revealTarget.dataset.motionDirection = "up";
+        const upwardStyle = getComputedStyle(revealTarget);
+        const upwardTransitionDurations =
+          upwardStyle.transitionDuration.split(", ");
+
         if (previousMotionState === undefined) {
           delete revealTarget.dataset.motionState;
         } else {
           revealTarget.dataset.motionState = previousMotionState;
+        }
+        if (previousMotionDirection === undefined) {
+          delete revealTarget.dataset.motionDirection;
+        } else {
+          revealTarget.dataset.motionDirection = previousMotionDirection;
         }
 
         if (
@@ -170,6 +331,13 @@ export const Pc: Story = {
         ) {
           throw new Error(
             "Ecommerce home section reveals must match Topic Landing's 24px, 320ms ease-out entrance",
+          );
+        }
+        if (
+          upwardTransitionDurations.some((duration) => duration !== "0s")
+        ) {
+          throw new Error(
+            "Ecommerce home sections must not animate when entering during upward scrolling",
           );
         }
       }
@@ -228,6 +396,26 @@ export const Pc: Story = {
       throw new Error("Ecommerce home hero frame must have no vertical padding");
     }
 
+    const trendingSearches = page.querySelector<HTMLElement>(
+      '[data-slot="trending-searches"]',
+    );
+    if (!trendingSearches) {
+      throw new Error("Ecommerce home trending searches did not render");
+    }
+    const trendingSearchesStyle = getComputedStyle(trendingSearches);
+    const expectedTrendingSearchesBorderWidth = isDesktop ? "1px" : "0px";
+    if (
+      trendingSearches.dataset.dividerPosition !== "top" ||
+      trendingSearches.dataset.dividerVariant !== "gray" ||
+      trendingSearchesStyle.borderTopWidth !==
+        expectedTrendingSearchesBorderWidth ||
+      trendingSearchesStyle.borderBottomWidth !== "0px"
+    ) {
+      throw new Error(
+        `Ecommerce home trending searches must use a gray ${expectedTrendingSearchesBorderWidth} top divider at this viewport`,
+      );
+    }
+
     const shortcutRail = page.querySelector<HTMLElement>(
       '[data-slot="shortcut-rail"]',
     );
@@ -247,12 +435,19 @@ export const Pc: Story = {
       throw new Error("Ecommerce home sections frame did not render");
     }
     const sectionsStyle = getComputedStyle(sectionsFrame);
+    const expectedSectionsGap = isDesktop
+      ? "0px"
+      : getComputedStyle(page)
+          .getPropertyValue("--layout-page-margin-card")
+          .trim();
     if (
-      sectionsStyle.gap !== "0px" ||
+      sectionsStyle.gap !== expectedSectionsGap ||
       sectionsStyle.paddingTop !== "0px" ||
       sectionsStyle.paddingBottom !== "0px"
     ) {
-      throw new Error("Ecommerce home sections must not add vertical spacing");
+      throw new Error(
+        `Ecommerce home sections must use a ${expectedSectionsGap} vertical gap`,
+      );
     }
     const sectionFrames = Array.from(
       sectionsFrame.querySelectorAll<HTMLElement>(
@@ -264,10 +459,14 @@ export const Pc: Story = {
       const current = sectionFrames[index];
       if (
         Math.abs(
-          current.offsetTop - (previous.offsetTop + previous.offsetHeight),
+          current.offsetTop -
+            (previous.offsetTop + previous.offsetHeight) -
+            Number.parseFloat(expectedSectionsGap),
         ) > 1
       ) {
-        throw new Error("Ecommerce home sections must touch vertically");
+        throw new Error(
+          `Ecommerce home sections must preserve a ${expectedSectionsGap} vertical gap`,
+        );
       }
     }
 
@@ -389,12 +588,14 @@ export const Pc: Story = {
         "Ecommerce home must ask for a gray top rule and paint none of it itself",
       );
     }
+    const expectedAtmosphericBorderWidth = isDesktop ? "1px" : "0px";
     if (
       atmosphericProductList.getAttribute("data-divider-position") !== "top" ||
-      atmosphericProductListStyle.borderTopWidth !== "1px"
+      atmosphericProductListStyle.borderTopWidth !==
+        expectedAtmosphericBorderWidth
     ) {
       throw new Error(
-        `Atmospheric band must draw a 1px rule on its own top edge, got ${atmosphericProductListStyle.borderTopWidth}`,
+        `Atmospheric band must use a ${expectedAtmosphericBorderWidth} top rule at this viewport, got ${atmosphericProductListStyle.borderTopWidth}`,
       );
     }
 
@@ -419,9 +620,15 @@ export const Pc: Story = {
     );
     if (!panel) throw new Error("Atmospheric campaign panel did not render");
     const panelBox = panel.getBoundingClientRect();
-    if (panelBox.left - bandBox.left < 1 || panelBox.top - bandBox.top < 1) {
+    const panelTopOffset = panelBox.top - bandBox.top;
+    if (
+      panelBox.left - bandBox.left < 1 ||
+      (isDesktop ? panelTopOffset < 1 : Math.abs(panelTopOffset) > 1)
+    ) {
       throw new Error(
-        "The campaign panel must be inset inside the band, not fill it — otherwise the rule has no boundary to sit on",
+        isDesktop
+          ? "The campaign panel must be inset inside the desktop band"
+          : "The mobile campaign panel must be horizontally inset and top-aligned with its band",
       );
     }
 
@@ -469,4 +676,96 @@ export const Pc: Story = {
       );
     }
   },
+};
+
+export const SearchFocused: Story = {
+  name: "Search — Focused",
+  globals: {
+    locale: "en",
+    viewport: { value: "yamiDesktopXl", isRotated: false },
+  },
+  render: () => (
+    <EcommerceHomeTemplate {...createEcommerceHomeFixture("en")} />
+  ),
+  play: async ({ canvasElement }) => {
+    const field = canvasElement.querySelector<HTMLInputElement>(
+      '[data-slot="header-search"][data-variant="pc"] [data-slot="header-search-field"]',
+    );
+    if (!field) throw new Error("PC search field did not render");
+
+    await userEvent.click(field);
+
+    const panel = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="header-search-panel"]',
+    );
+    const scrim = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="header-search"] [aria-label="Close search"]',
+    );
+    const matchaLink = panel?.querySelector<HTMLAnchorElement>(
+      'a[href*="yami-pages-topic-landing-page-topic--pc"]',
+    );
+    const matchaSearchLink = panel?.querySelector<HTMLAnchorElement>(
+      'a[href*="yami-pages-search-results--results"]',
+    );
+    if (
+      panel?.dataset.state !== "discovery" ||
+      !scrim ||
+      matchaLink?.textContent?.trim() !== "matcha" ||
+      matchaSearchLink?.textContent?.trim() !== "matcha powder" ||
+      !panel.textContent?.includes("Recent Searches") ||
+      !panel.textContent.includes("Popular Searches") ||
+      !panel.textContent.includes("Hot Deals") ||
+      getComputedStyle(panel).borderRadius !== "16px"
+    ) {
+      throw new Error("Focused search must match the Figma discovery state");
+    }
+  },
+};
+
+export const SearchWithQuery: Story = {
+  name: "Search — With Query",
+  globals: {
+    locale: "en",
+    viewport: { value: "yamiDesktopXl", isRotated: false },
+  },
+  render: () => (
+    <EcommerceHomeTemplate {...createEcommerceHomeFixture("en")} />
+  ),
+  play: async ({ canvasElement }) => {
+    const field = canvasElement.querySelector<HTMLInputElement>(
+      '[data-slot="header-search"][data-variant="pc"] [data-slot="header-search-field"]',
+    );
+    if (!field) throw new Error("PC search field did not render");
+
+    await userEvent.click(field);
+    await userEvent.type(field, "mat");
+
+    const panel = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="header-search-panel"]',
+    );
+    const suggestions = panel?.querySelectorAll("button");
+    const firstSuggestion = suggestions?.item(0);
+    if (
+      field.value !== "mat" ||
+      panel?.dataset.state !== "suggestions" ||
+      suggestions?.length !== 12 ||
+      firstSuggestion?.textContent?.trim() !== "mat" ||
+      getComputedStyle(firstSuggestion).borderColor !== "rgba(0, 0, 0, 0.87)"
+    ) {
+      throw new Error("Typed search must match the Figma keyword state");
+    }
+  },
+};
+
+export const Mobile: Story = {
+  name: "Mobile",
+  globals: {
+    viewport: { value: "yamiMobile", isRotated: false },
+  },
+  render: (_args, { globals }) => (
+    <EcommerceHomeTemplate
+      {...createEcommerceHomeFixture(localeFromGlobals(globals.locale))}
+    />
+  ),
+  play: Pc.play,
 };

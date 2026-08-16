@@ -10,6 +10,7 @@ import {
 
 import {
   ActivityPageHeader,
+  BrandProductRail,
   Footer,
   Header,
   ProductList,
@@ -42,6 +43,7 @@ export function TopicLandingPage({
   standardRail,
   reviewList,
   productRail,
+  brandRail,
   waterfall,
   footer,
   className,
@@ -152,6 +154,48 @@ export function TopicLandingPage({
 
   useLayoutEffect(() => {
     const primaryTabsElement = primaryTabsRef.current;
+    if (
+      !primaryTabsElement ||
+      !window.matchMedia("(max-width: 1023.98px)").matches
+    ) {
+      return;
+    }
+
+    const tabList = primaryTabsElement.querySelector<HTMLElement>(
+      '[role="tablist"]',
+    );
+    const activeTab = tabList?.querySelector<HTMLElement>(
+      '[role="tab"][data-state="active"]',
+    );
+    if (!tabList || !activeTab || tabList.scrollWidth <= tabList.clientWidth) {
+      return;
+    }
+
+    const animationFrame = window.requestAnimationFrame(() => {
+      const tabRect = activeTab.getBoundingClientRect();
+      const listRect = tabList.getBoundingClientRect();
+      const reducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
+      const centeredScrollLeft =
+        tabList.scrollLeft +
+        tabRect.left +
+        tabRect.width / 2 -
+        (listRect.left + listRect.width / 2);
+      tabList.scrollTo({
+        left: Math.min(
+          Math.max(centeredScrollLeft, 0),
+          tabList.scrollWidth - tabList.clientWidth,
+        ),
+        behavior: reducedMotion ? "auto" : "smooth",
+      });
+    });
+
+    return () => window.cancelAnimationFrame(animationFrame);
+  }, [primaryTabValue]);
+
+  useLayoutEffect(() => {
+    const primaryTabsElement = primaryTabsRef.current;
     if (!primaryTabsElement) return;
 
     let animationFrame = 0;
@@ -245,35 +289,47 @@ export function TopicLandingPage({
     const revealSections = Array.from(
       main.querySelectorAll<HTMLElement>('[data-motion-reveal="scroll"]'),
     );
+    const waterfallRowItems = window.matchMedia("(min-width: 1024px)").matches
+      ? Array.from(
+          main.querySelectorAll<HTMLElement>(
+            '[data-slot="topic-landing-waterfall-section"] [data-slot="product-list-item"]',
+          ),
+        )
+      : [];
+    waterfallRowItems.forEach((target) => {
+      target.dataset.motionReveal = "scroll-row";
+    });
+    const waterfallRows = waterfallRowItems.reduce<HTMLElement[][]>(
+      (rows, target) => {
+        const previousRow = rows.at(-1);
+        const previousTop = previousRow?.[0]?.offsetTop;
+        if (
+          previousTop === undefined ||
+          Math.abs(target.offsetTop - previousTop) > 1
+        ) {
+          rows.push([target]);
+        } else {
+          previousRow?.push(target);
+        }
+        return rows;
+      },
+      [],
+    );
+    const waterfallRowByTrigger = new Map(
+      waterfallRows.map((row) => [row[0], row]),
+    );
+    const revealTargets = [
+      ...revealSections,
+      ...waterfallRows.map((row) => row[0]),
+    ];
     const initialReveal = main.querySelector<HTMLElement>(
       '[data-motion-reveal="initial"]',
     );
-    const waterfall = main.querySelector<HTMLElement>(
-      '[data-page-slot="topic-landing-waterfall"]',
-    );
-    const waterfallHeading = waterfall?.querySelector<HTMLElement>(
-      '[data-slot="product-list-heading"]',
-    );
-    const waterfallTabs = waterfall?.querySelector<HTMLElement>(
-      '[data-slot="product-list-container"] > [data-slot="tabs"]',
-    );
-    const waterfallItems = Array.from(
-      waterfall?.querySelectorAll<HTMLElement>(
-        '[data-slot="product-list-item"]',
-      ) ?? [],
-    );
-    const waterfallLoadMore = waterfall?.querySelector<HTMLElement>(
-      '[data-slot="product-list-load-more"]',
-    );
-    const lastWaterfallItem = waterfallItems[waterfallItems.length - 1];
-    const revealTargets = [
-      ...(initialReveal ? [initialReveal] : []),
-      ...revealSections,
-      ...(waterfallHeading ? [waterfallHeading] : []),
-      ...(waterfallTabs ? [waterfallTabs] : []),
-      ...waterfallItems,
-    ];
+    initialReveal?.setAttribute("data-motion-observed", "true");
     revealTargets.forEach((target) => {
+      target.dataset.motionObserved = "true";
+    });
+    waterfallRowItems.forEach((target) => {
       target.dataset.motionObserved = "true";
     });
 
@@ -283,15 +339,48 @@ export function TopicLandingPage({
     }
 
     if (!("IntersectionObserver" in window)) {
-      [
-        ...revealTargets,
-        ...(waterfallLoadMore ? [waterfallLoadMore] : []),
-      ].forEach((target) => {
+      initialReveal?.setAttribute("data-motion-state", "visible");
+      revealTargets.forEach((target) => {
         target.dataset.motionState = "visible";
       });
       return;
     }
 
+    const initialObserver = new IntersectionObserver(
+      (entries) => {
+        entries
+          .filter((entry) => entry.isIntersecting)
+          .forEach((entry) => {
+            const target = entry.target as HTMLElement;
+            target.dataset.motionState = "visible";
+            initialObserver.unobserve(target);
+          });
+      },
+      { rootMargin: SECTION_REVEAL_ROOT_MARGIN },
+    );
+    let previousScrollY = window.scrollY;
+    let scrollDirection: "down" | "up" = "down";
+    let isInitialObservation = true;
+    const updateScrollDirection = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY !== previousScrollY) {
+        scrollDirection = currentScrollY > previousScrollY ? "down" : "up";
+        previousScrollY = currentScrollY;
+        if (scrollDirection === "up") {
+          revealSections.forEach((target) => {
+            if (target.dataset.motionState === "visible") {
+              target.dataset.motionDirection = "up";
+            }
+          });
+          waterfallRowItems.forEach((target) => {
+            if (target.dataset.motionState === "visible") {
+              target.dataset.motionDirection = "up";
+            }
+          });
+        }
+      }
+    };
+    window.addEventListener("scroll", updateScrollDirection, { passive: true });
     const observer = new IntersectionObserver(
       (entries) => {
         const visibleEntries = entries.filter((entry) => entry.isIntersecting);
@@ -299,58 +388,43 @@ export function TopicLandingPage({
           .filter((entry) => !entry.isIntersecting)
           .forEach((entry) => {
             const target = entry.target as HTMLElement;
-            delete target.dataset.motionState;
-            if (target === lastWaterfallItem && waterfallLoadMore) {
-              delete waterfallLoadMore.dataset.motionState;
-            }
+            const targets = waterfallRowByTrigger.get(target) ?? [target];
+            targets.forEach((controlledTarget) => {
+              delete controlledTarget.dataset.motionState;
+              delete controlledTarget.dataset.motionDirection;
+            });
           });
-        const waterfallEntries = visibleEntries.filter(
-          (entry) =>
-            (entry.target as HTMLElement).dataset.slot === "product-list-item",
-        );
-        const visibleRowTops = Array.from(
-          new Set(
-            waterfallEntries.map((entry) =>
-              Math.round(entry.boundingClientRect.top),
-            ),
-          ),
-        ).sort((a, b) => a - b);
-
-        waterfallEntries.forEach((entry) => {
-          const target = entry.target as HTMLElement;
-          const rowIndex = visibleRowTops.indexOf(
-            Math.round(entry.boundingClientRect.top),
-          );
-          target.style.setProperty(
-            "--topic-landing-row-reveal-delay",
-            `${Math.max(rowIndex, 0) * 120}ms`,
-          );
-        });
-
         visibleEntries.forEach((entry) => {
           const target = entry.target as HTMLElement;
-          target.dataset.motionState = "visible";
-
-          if (target === lastWaterfallItem && waterfallLoadMore) {
-            const lastRowDelay = target.style.getPropertyValue(
-              "--topic-landing-row-reveal-delay",
-            );
-            waterfallLoadMore.style.setProperty(
-              "--topic-landing-row-reveal-delay",
-              lastRowDelay,
-            );
-            waterfallLoadMore.dataset.motionState = "visible";
-          }
+          const targets = waterfallRowByTrigger.get(target) ?? [target];
+          targets.forEach((controlledTarget) => {
+            controlledTarget.dataset.motionDirection = isInitialObservation
+              ? "down"
+              : scrollDirection;
+            controlledTarget.dataset.motionState = "visible";
+          });
         });
+        isInitialObservation = false;
       },
       {
         rootMargin: SECTION_REVEAL_ROOT_MARGIN,
       },
     );
 
+    if (initialReveal) initialObserver.observe(initialReveal);
     revealTargets.forEach((target) => observer.observe(target));
 
-    return () => observer.disconnect();
+    return () => {
+      initialObserver.disconnect();
+      observer.disconnect();
+      window.removeEventListener("scroll", updateScrollDirection);
+      waterfallRowItems.forEach((target) => {
+        delete target.dataset.motionReveal;
+        delete target.dataset.motionObserved;
+        delete target.dataset.motionState;
+        delete target.dataset.motionDirection;
+      });
+    };
   }, [activeWaterfallTab, visibleWaterfallProducts]);
 
   return (
@@ -442,6 +516,18 @@ export function TopicLandingPage({
         >
           <ProductList {...productRail} />
         </div>
+        {brandRail && (
+          <div
+            className={styles.brandRail}
+            data-motion-reveal="scroll"
+            data-slot="topic-landing-brand-rail"
+          >
+            <BrandProductRail
+              {...brandRail}
+              titleFontFamily={titleFontFamily}
+            />
+          </div>
+        )}
         <div
           id="reviews"
           className={styles.reviewList}
@@ -450,7 +536,12 @@ export function TopicLandingPage({
         >
           <ReviewList {...reviewList} />
         </div>
-        <div id="product-list" className={styles.waterfallAnchor}>
+        <div
+          id="product-list"
+          className={styles.waterfallAnchor}
+          data-motion-reveal="scroll"
+          data-slot="topic-landing-waterfall-section"
+        >
           <ProductList
             {...waterfallProps}
             id={`explore-more-${activeWaterfallTab}`}

@@ -551,7 +551,8 @@ Responsive shortcut navigation for homepage and discovery surfaces.
 | Axis | Contract |
 | --- | --- |
 | **Geometry** | Every entry keeps a 64px `--surface-secondary` icon circle, a 32px image slot, and a single `caption-md` label. Page padding follows `--layout-page-margin-default`. |
-| **Responsive behavior** | Icon and label sizes remain stable at narrow widths. Touch and trackpad users retain native horizontal scrolling; desktop adds edge controls only when content overflows. |
+| **Surface** | `plain` spans the available width. `card` uses `--layout-page-margin-card`, `--radius-surface-default`, and `--surface-primary` with no border or shadow; Ecommerce Home uses the card surface while discovery pages may remain plain. |
+| **Responsive behavior** | Icon and label sizes remain stable at narrow widths. Touch and trackpad users retain native horizontal scrolling without progress chrome; desktop adds edge controls only when content overflows. |
 | **Paging** | Each edge composes the shared YAMI `RailNavigationButton`. A functional `--surface-primary` to transparent mask sits behind the control so clipped content remains legible without adding a shadow. |
 | **Structure** | A labelled `nav` contains a semantic list of destination links. Visible labels name the links; icon artwork is decorative and uses empty alt text. |
 

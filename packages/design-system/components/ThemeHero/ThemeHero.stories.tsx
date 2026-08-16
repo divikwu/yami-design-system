@@ -68,6 +68,9 @@ export const Showcase: Story = {
     const image = canvasElement.querySelector<HTMLImageElement>(
       '[data-slot="theme-hero-media"] img',
     );
+    const mobileScrim = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="theme-hero-scrim"]',
+    );
     if (
       !hero ||
       !copy ||
@@ -82,7 +85,8 @@ export const Showcase: Story = {
       !primaryButton ||
       !secondaryButton ||
       !media ||
-      !image
+      !image ||
+      !mobileScrim
     ) {
       throw new Error("ThemeHero did not render its copy, badges, artwork and actions");
     }
@@ -162,6 +166,9 @@ export const Showcase: Story = {
     }
     if (!image.alt.trim()) {
       throw new Error("ThemeHero foreground artwork requires meaningful alt text");
+    }
+    if (getComputedStyle(mobileScrim).display !== "none") {
+      throw new Error("Desktop ThemeHero must not render the mobile copy scrim");
     }
     const primaryStyle = getComputedStyle(primaryButton);
     const secondaryStyle = getComputedStyle(secondaryButton);
@@ -279,6 +286,9 @@ export const Mobile: Story = {
     const copy = canvasElement.querySelector<HTMLElement>(
       '[data-slot="theme-hero-copy"]',
     );
+    const copyContent = copy?.querySelector<HTMLElement>(
+      '[data-slot="theme-hero-copy-content"]',
+    );
     const title = copy?.querySelector<HTMLElement>("h2");
     const description = copy?.querySelector<HTMLElement>(
       '[data-slot="theme-hero-description"]',
@@ -318,6 +328,7 @@ export const Mobile: Story = {
     if (
       !hero ||
       !copy ||
+      !copyContent ||
       !title ||
       !description ||
       !descriptionText ||
@@ -339,6 +350,8 @@ export const Mobile: Story = {
     const heroBox = hero.getBoundingClientRect();
     const mediaBox = media.getBoundingClientRect();
     const copyStyles = getComputedStyle(copy);
+    const copyContentStyles = getComputedStyle(copyContent);
+    const copyContentBox = copyContent.getBoundingClientRect();
     const titleStyles = getComputedStyle(title);
     const descriptionStyles = getComputedStyle(description);
     const descriptionTextStyles = getComputedStyle(descriptionText);
@@ -357,11 +370,13 @@ export const Mobile: Story = {
     const secondaryButtonStyles = getComputedStyle(secondaryButton);
     const mediaStyles = getComputedStyle(media);
     const imageStyles = getComputedStyle(image);
+    const imageBox = image.getBoundingClientRect();
     const scrimStyles = getComputedStyle(scrim);
+    const scrimBox = scrim.getBoundingClientRect();
     const copyContentWidth =
-      copy.getBoundingClientRect().width -
-      Number.parseFloat(copyStyles.paddingLeft) -
-      Number.parseFloat(copyStyles.paddingRight);
+      copyContentBox.width -
+      Number.parseFloat(copyContentStyles.paddingLeft) -
+      Number.parseFloat(copyContentStyles.paddingRight);
 
     if (
       heroBox.height < 359 ||
@@ -370,7 +385,12 @@ export const Mobile: Story = {
       Math.abs(mediaBox.height - heroBox.height) > 1 ||
       copyStyles.position !== "absolute" ||
       copyStyles.justifyContent !== "flex-end" ||
-      copyStyles.rowGap !== "8px" ||
+      copyContentStyles.position !== "relative" ||
+      copyContentStyles.rowGap !== "8px" ||
+      copyContentStyles.paddingTop !== "40px" ||
+      copyContentStyles.paddingRight !== "16px" ||
+      copyContentStyles.paddingBottom !== "16px" ||
+      copyContentStyles.paddingLeft !== "16px" ||
       titleStyles.fontSize !== "24px" ||
       titleStyles.lineHeight !== "32px" ||
       descriptionStyles.fontSize !== "14px" ||
@@ -425,38 +445,66 @@ export const Mobile: Story = {
       primaryButtonStyles.borderRadius !== "9999px" ||
       secondaryButtonStyles.borderRadius !== "9999px" ||
       mediaStyles.position !== "absolute" ||
+      imageStyles.position !== "absolute" ||
+      imageStyles.top !== "-40px" ||
       imageStyles.objectFit !== "cover" ||
+      Math.abs(imageBox.top - (heroBox.top - 40)) > 1 ||
+      Math.abs(imageBox.height - (heroBox.height + 40)) > 1 ||
+      Math.abs(imageBox.bottom - heroBox.bottom) > 1 ||
       getComputedStyle(atmosphere).display !== "none" ||
       hero.dataset.mobileForeground !== "dark" ||
       getComputedStyle(hero).color !== "rgba(0, 0, 0, 0.87)" ||
+      scrim.dataset.adaptiveImageScrim !== "true" ||
+      scrim.parentElement !== copyContent ||
+      Math.abs(scrimBox.width - copyContentBox.width) > 1 ||
+      Math.abs(scrimBox.height - copyContentBox.height) > 1 ||
+      scrimBox.height >= heroBox.height ||
+      Math.abs(scrimBox.bottom - heroBox.bottom) > 1 ||
       !scrimStyles.backgroundImage.includes("linear-gradient") ||
       !scrimStyles.backgroundImage.includes("/ 0.8") ||
+      !scrimStyles.backgroundImage.includes("0px") ||
+      !scrimStyles.backgroundImage.includes("64px") ||
+      scrimStyles.backgroundImage.includes("20%") ||
+      scrimStyles.backgroundImage.includes("60%") ||
       scrimStyles.backdropFilter !== "blur(16px)" ||
       !scrimStyles.maskImage.includes("linear-gradient") ||
-      !scrimStyles.maskImage.includes("20%") ||
-      !scrimStyles.maskImage.includes("60%")
+      !scrimStyles.maskImage.includes("0px") ||
+      !scrimStyles.maskImage.includes("64px") ||
+      scrimStyles.maskImage.includes("20%") ||
+      scrimStyles.maskImage.includes("60%")
     ) {
       throw new Error(
         "Mobile ThemeHero must use a 24/32 title and a single horizontally scrollable 4px-gap tag row over a full-bleed image with bottom-aligned copy, 8px-padded full-width distributed actions and an adaptive bottom-masked 16px frosted scrim",
       );
     }
 
+    const collapsedScrimHeight = scrim.getBoundingClientRect().height;
     descriptionToggle.click();
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    const expandedScrimHeight = scrim.getBoundingClientRect().height;
     if (
       descriptionToggle.getAttribute("aria-expanded") !== "true" ||
       descriptionToggle.textContent?.trim() !== "Less" ||
       getComputedStyle(descriptionText).webkitLineClamp !== "none" ||
-      descriptionText.scrollHeight !== descriptionText.clientHeight
+      descriptionText.scrollHeight !== descriptionText.clientHeight ||
+      expandedScrimHeight <= collapsedScrimHeight ||
+      Math.abs(
+        expandedScrimHeight - copyContent.getBoundingClientRect().height,
+      ) > 1
     ) {
       throw new Error(
-        "Mobile ThemeHero description must reveal its full content and expose a collapse action",
+        "Mobile ThemeHero description must reveal its full content and grow its content-bound scrim",
       );
     }
 
     descriptionToggle.click();
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-    if (descriptionToggle.getAttribute("aria-expanded") !== "false") {
+    if (
+      descriptionToggle.getAttribute("aria-expanded") !== "false" ||
+      Math.abs(
+        scrim.getBoundingClientRect().height - collapsedScrimHeight,
+      ) > 1
+    ) {
       throw new Error("Mobile ThemeHero description must collapse again");
     }
 

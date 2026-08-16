@@ -43,8 +43,8 @@ export function bindNavigation<T>(value: T, navigate: Navigate): T {
   if (!value || typeof value !== "object" || isValidElement(value)) return value;
   const output: Record<string, unknown> = {};
   for (const [key, item] of Object.entries(value as Record<string, unknown>)) {
-    if (key === "href" && typeof item === "string") {
-      output.href = normalizePrototypePath(item);
+    if ((key === "href" || key.endsWith("Href")) && typeof item === "string") {
+      output[key] = normalizePrototypePath(item);
     } else if (key === "onAddToCart" && typeof item === "function") {
       output[key] = () => navigate("/cart");
     } else if (typeof item !== "function") output[key] = bindNavigation(item, navigate);

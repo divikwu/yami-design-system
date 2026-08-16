@@ -1,6 +1,11 @@
 "use client";
 
-import { useLayoutEffect, useRef, type CSSProperties } from "react";
+import {
+  useCallback,
+  useLayoutEffect,
+  useRef,
+  type CSSProperties,
+} from "react";
 
 import {
   Billboard,
@@ -33,15 +38,25 @@ export function EcommerceHomeTemplate({
   className,
   ...rest
 }: EcommerceHomeProps) {
+  const rootRef = useRef<HTMLDivElement>(null);
   const mainRef = useRef<HTMLElement>(null);
+  const stickyHeaderRef = useRef<HTMLDivElement>(null);
   const contentMaxWidthValue =
     typeof contentMaxWidth === "number"
       ? `${contentMaxWidth}px`
       : contentMaxWidth;
+  const updateAtmosphereColor = useCallback((color: string) => {
+    rootRef.current?.style.setProperty(
+      "--ecommerce-home-atmosphere-color",
+      color,
+    );
+  }, []);
 
   useLayoutEffect(() => {
     const main = mainRef.current;
     if (!main) return;
+
+    const stickyHeader = stickyHeaderRef.current;
 
     const reducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
@@ -82,30 +97,76 @@ export function EcommerceHomeTemplate({
       waterfallLoadMore.dataset.motionReveal = "waterfall-row";
     }
     const lastWaterfallItem = waterfallItems[waterfallItems.length - 1];
-    const revealTargets = [
-      ...(initialReveal ? [initialReveal] : []),
+    const scrollRevealTargets = [
       ...revealSections,
       ...(waterfallHeading ? [waterfallHeading] : []),
       ...(waterfallTabs ? [waterfallTabs] : []),
       ...waterfallItems,
     ];
 
+    let previousScrollY = window.scrollY;
+    let scrollDirection: "down" | "up" = "down";
+    const updateScrollState = () => {
+      const currentScrollY = window.scrollY;
+      stickyHeader?.toggleAttribute("data-scrolled", currentScrollY > 0);
+      if (currentScrollY === previousScrollY) return;
+
+      const nextScrollDirection =
+        currentScrollY > previousScrollY ? "down" : "up";
+      previousScrollY = currentScrollY;
+      if (nextScrollDirection === scrollDirection) return;
+
+      scrollDirection = nextScrollDirection;
+
+      if (scrollDirection === "up") {
+        if (initialReveal?.dataset.motionState === "visible") {
+          initialReveal.dataset.motionDirection = "up";
+        }
+        scrollRevealTargets.forEach((target) => {
+          if (target.dataset.motionState === "visible") {
+            target.dataset.motionDirection = "up";
+          }
+        });
+        if (waterfallLoadMore?.dataset.motionState === "visible") {
+          waterfallLoadMore.dataset.motionDirection = "up";
+        }
+      }
+    };
+    updateScrollState();
+    window.addEventListener("scroll", updateScrollState, { passive: true });
+
     if (reducedMotion) {
       main.dataset.motionReady = "reduced";
-      return;
+      return () => window.removeEventListener("scroll", updateScrollState);
     }
 
     main.dataset.motionReady = "true";
 
     if (!("IntersectionObserver" in window)) {
       [
-        ...revealTargets,
+        ...(initialReveal ? [initialReveal] : []),
+        ...scrollRevealTargets,
         ...(waterfallLoadMore ? [waterfallLoadMore] : []),
       ].forEach((target) => {
         target.dataset.motionState = "visible";
       });
-      return;
+      return () => window.removeEventListener("scroll", updateScrollState);
     }
+    let isInitialObservation = true;
+
+    const initialObserver = new IntersectionObserver(
+      (entries) => {
+        entries
+          .filter((entry) => entry.isIntersecting)
+          .forEach((entry) => {
+            const target = entry.target as HTMLElement;
+            target.dataset.motionDirection = scrollDirection;
+            target.dataset.motionState = "visible";
+            initialObserver.unobserve(target);
+          });
+      },
+      { rootMargin: SECTION_REVEAL_ROOT_MARGIN },
+    );
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -115,8 +176,10 @@ export function EcommerceHomeTemplate({
           .forEach((entry) => {
             const target = entry.target as HTMLElement;
             delete target.dataset.motionState;
+            delete target.dataset.motionDirection;
             if (target === lastWaterfallItem && waterfallLoadMore) {
               delete waterfallLoadMore.dataset.motionState;
+              delete waterfallLoadMore.dataset.motionDirection;
             }
           });
         const waterfallEntries = visibleEntries.filter(
@@ -146,6 +209,8 @@ export function EcommerceHomeTemplate({
 
         visibleEntries.forEach((entry) => {
           const target = entry.target as HTMLElement;
+          const direction = isInitialObservation ? "down" : scrollDirection;
+          target.dataset.motionDirection = direction;
           target.dataset.motionState = "visible";
 
           if (target === lastWaterfallItem && waterfallLoadMore) {
@@ -156,27 +221,41 @@ export function EcommerceHomeTemplate({
               "--ecommerce-home-row-reveal-delay",
               lastRowDelay,
             );
+            waterfallLoadMore.dataset.motionDirection = direction;
             waterfallLoadMore.dataset.motionState = "visible";
           }
         });
+        isInitialObservation = false;
       },
       {
         rootMargin: SECTION_REVEAL_ROOT_MARGIN,
       },
     );
 
-    revealTargets.forEach((target) => observer.observe(target));
+    if (initialReveal) initialObserver.observe(initialReveal);
+    scrollRevealTargets.forEach((target) => observer.observe(target));
 
-    return () => observer.disconnect();
+    return () => {
+      initialObserver.disconnect();
+      observer.disconnect();
+      window.removeEventListener("scroll", updateScrollState);
+    };
   }, []);
 
   return (
     <div
       {...rest}
+      ref={rootRef}
       className={cx(styles.root, className)}
       data-slot="ecommerce-home"
     >
-      <Header {...header} />
+      <div
+        ref={stickyHeaderRef}
+        className={styles.stickyHeader}
+        data-slot="ecommerce-home-header"
+      >
+        <Header {...header} />
+      </div>
 
       <main
         ref={mainRef}
@@ -191,7 +270,10 @@ export function EcommerceHomeTemplate({
       >
         <div className={styles.initialReveal} data-motion-reveal="initial">
           <div className={styles.hero} data-slot="ecommerce-home-hero">
-            <HeroBanner {...hero} />
+            <HeroBanner
+              {...hero}
+              onActiveSurfaceColorChange={updateAtmosphereColor}
+            />
           </div>
 
           <ShortcutRail {...shortcutRail} />

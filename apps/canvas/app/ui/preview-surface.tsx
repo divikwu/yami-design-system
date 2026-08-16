@@ -1,17 +1,20 @@
 "use client";
 
-import { DirectionManifestV1Schema, tokenOverridesToStyle, type DirectionManifestV1 } from "@yami/contracts";
-import { EcommerceHomeTemplate, resolveEcommerceHome } from "@yami/prototypes";
+import { tokenOverridesToStyle, type DirectionManifestV1 } from "@yami/contracts";
+import {
+  EcommerceHomeTemplate,
+  resolveEcommerceHome,
+  resolveTopicLandingPage,
+  TopicLandingPage,
+} from "@yami/prototypes";
 import { motion, useReducedMotion } from "motion/react";
 import { useSearchParams } from "next/navigation";
 import { CSSProperties, useCallback, useEffect, useMemo, useState } from "react";
-import fixture from "../generated-direction.fixture.json";
 import { findDraft } from "../lib/drafts";
 import { getPreviewMotion, type PreviewTransition } from "../lib/motion";
-import "@yami/design-system/tokens.css";
 import "@yami/design-system/styles/base.css";
 
-const fixed = DirectionManifestV1Schema.parse(fixture);
+const anuaTopicPaths = new Set(["/brands/anua", "/brands/11712"]);
 
 export function PreviewSurface({ localeOverride }: { localeOverride?: "en" | "zh" } = {}) {
   const params = useSearchParams();
@@ -26,7 +29,7 @@ export function PreviewSurface({ localeOverride }: { localeOverride?: "en" | "zh
   const navigate = useCallback((nextPath: string) => window.parent.postMessage({ type: "yami-design-system:v1:navigate", path: nextPath }, window.location.origin), []);
 
   useEffect(() => {
-    setManifest(direction === "current" ? null : direction === fixed.id ? fixed : findDraft(direction));
+    setManifest(direction === "current" ? null : findDraft(direction));
     setReady(true);
   }, [direction]);
 
@@ -36,6 +39,11 @@ export function PreviewSurface({ localeOverride }: { localeOverride?: "en" | "zh
       if (!target) return;
       const destination = new URL(target.href, window.location.href);
       if (destination.origin !== window.location.origin) return;
+      if (
+        destination.pathname === window.location.pathname &&
+        destination.search === window.location.search &&
+        destination.hash
+      ) return;
       event.preventDefault();
       navigate(destination.pathname);
     };
@@ -43,14 +51,17 @@ export function PreviewSurface({ localeOverride }: { localeOverride?: "en" | "zh
     return () => document.removeEventListener("click", interceptNavigation, true);
   }, [navigate]);
 
-  const props = useMemo(() => ready && path === "/" ? resolveEcommerceHome(locale, manifest, navigate) : null, [ready, path, locale, manifest, navigate]);
-  const tokenStyle = tokenOverridesToStyle(manifest?.pages.home?.tokenOverrides ?? {}) as CSSProperties;
+  const homeProps = useMemo(() => ready && path === "/" ? resolveEcommerceHome(locale, manifest, navigate) : null, [ready, path, locale, manifest, navigate]);
+  const topicProps = useMemo(() => ready && anuaTopicPaths.has(path) ? resolveTopicLandingPage(locale, navigate) : null, [ready, path, locale, navigate]);
+  const tokenStyle = path === "/"
+    ? tokenOverridesToStyle(manifest?.pages.home?.tokenOverrides ?? {}) as CSSProperties
+    : {};
   const { initial, duration } = getPreviewMotion(transition, Boolean(reduced));
 
   if (!ready) return <div className="preview-loading" aria-label="正在加载方向" />;
   return (
     <motion.div className={`prototype-root${theme === "dark" ? " dark" : ""}`} data-theme={theme} style={tokenStyle} initial={initial} animate={{ opacity: 1, y: 0 }} transition={{ duration }}>
-      {props ? <EcommerceHomeTemplate {...props} /> : <PlaceholderRoute path={path} onBack={() => navigate("/")} />}
+      {homeProps ? <EcommerceHomeTemplate {...homeProps} /> : topicProps ? <TopicLandingPage {...topicProps} /> : <PlaceholderRoute path={path} onBack={() => navigate("/")} />}
     </motion.div>
   );
 }

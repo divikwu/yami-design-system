@@ -185,7 +185,7 @@ const pageCopy = {
     ],
     heroImageAlt:
       "Anua Korean skincare products displayed on a clear circular stand",
-    shortcutTitle: "Featured shortcuts",
+    shortcutTitle: "Explore by Type",
     primaryTabsLabel: "Topic navigation",
     shortcutLabels: [
       "Cleanse & Peel",

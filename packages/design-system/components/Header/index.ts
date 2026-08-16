@@ -12,5 +12,8 @@ export type {
   HeaderLocale,
   HeaderProps,
   HeaderSearchProps,
+  HeaderSearchPanel,
+  HeaderSearchSuggestion,
+  HeaderSearchTag,
   HeaderZipcode,
 } from './Header.types'

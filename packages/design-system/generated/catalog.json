@@ -642,6 +642,7 @@
         "exports": [
           "BrandProductRail",
           "BrandProductCampaign",
+          "BrandProductRailMobileSurface",
           "BrandProductRailProps"
         ],
         "composes": [
@@ -661,10 +662,22 @@
             "required": false,
             "description": "Optional mobile-only section heading; falls back to title."
           },
+          "titleFontFamily": {
+            "type": "\"sans\" | \"serif\"",
+            "required": false,
+            "default": "sans",
+            "description": "Optional serif treatment for editorial section headings."
+          },
           "campaigns": {
             "type": "BrandProductCampaign[]",
             "required": true,
             "description": "Ordered brand campaigns with a banner and ProductList items."
+          },
+          "mobileSurface": {
+            "type": "\"card\" | \"plain\"",
+            "required": false,
+            "default": "card",
+            "description": "Mobile section surface. Plain is full-bleed with 16px content padding and supports section dividers."
           },
           "tabs": {
             "type": "ProductListTab[]",
@@ -718,7 +731,7 @@
             "type": "\"top\" | \"bottom\" | \"none\"",
             "required": false,
             "default": "top",
-            "description": "Places the desktop section boundary above, below, or removes it; ignored below 1024px."
+            "description": "Places the section boundary above, below, or removes it; card mobile ignores it while plain mobile preserves it."
           },
           "dividerVariant": {
             "type": "\"gray\" | \"black\"",
@@ -766,7 +779,9 @@
           "--radius-surface-default",
           "--radius-full",
           "--font-family-ios",
+          "--font-family-serif",
           "--font-weight-normal",
+          "--font-weight-semibold",
           "--font-size-display-sm",
           "--font-size-heading-xl",
           "--font-size-heading-2xl",
@@ -798,8 +813,8 @@
             "selector": "brand banner title and compact ProductCard image surfaces"
           },
           "--layout-page-margin-card": {
-            "property": "mobile outer margin",
-            "selector": ".root below 1024px"
+            "property": "card mobile outer margin",
+            "selector": ".root[data-mobile-surface=card] below 1024px"
           },
           "--space-600": {
             "property": "desktop section padding and responsive panel gap calculation",
@@ -1413,7 +1428,7 @@
           "nodeId": "4795:90512",
           "componentKey": "f0a1bb4e8c7540460de93a68de180508560150a3",
           "pageNodeId": "2857:32277",
-          "notes": "Figma CheckBox is a 24x24 component frame with a 20x20 visible control.",
+          "notes": "The visible component is 20x20 with a 24x24 pointer target.",
           "stateMapping": "Status=Default/Hover/Selected/Disable_Selected/Disable_Unselected maps to unchecked hover, checked, checked+disabled, and unchecked+disabled. Indeterminate is code-only."
         },
         "variants": {
@@ -1482,11 +1497,11 @@
           },
           "radii": {
             "ruleId": "no-custom-radii",
-            "note": "Visible square uses --radius-tag-primary, matching Figma's 4px radius."
+            "note": "Visible square uses --radius-tag-primary for a 4px radius."
           },
           "tapTarget": {
             "ruleId": "tap-target",
-            "note": "20px visible square inside 24px frame with an expanded 44px pointer target."
+            "note": "20px component with an invisible 2px extension on every side, producing a 24px pointer target. Parent labels may provide a larger target."
           },
           "color": {
             "ruleId": "semantic-color-only",
@@ -1500,7 +1515,7 @@
           "--fill-disabled",
           "--text-primary",
           "--text-primary-inverse",
-          "--text-secondary",
+          "--border-default",
           "--border-focus",
           "--radius-tag-primary",
           "--space-025",
@@ -1521,7 +1536,7 @@
             "property": "background/border-color",
             "selector": ".root[data-checked]::before, .root[data-indeterminate]::before"
           },
-          "--text-secondary": {
+          "--border-default": {
             "property": "border-color",
             "selector": ".root::before"
           },
@@ -1541,7 +1556,7 @@
         "accessibility": {
           "role": "checkbox",
           "wcagLevel": "AA",
-          "tapTargetMin": 44,
+          "tapTargetMin": 24,
           "keyboardNav": [
             "tab",
             "shift+tab",
@@ -1686,6 +1701,170 @@
           "./examples.tsx#InverseDivider",
           "./examples.tsx#BetweenSectionsExample",
           "./examples.tsx#InlineInfoRowExample"
+        ]
+      }
+    },
+    {
+      "id": "FilterChip",
+      "source": "components/FilterChip",
+      "meta": {
+        "$schema": "../../../schema/component.json",
+        "name": "FilterChip",
+        "category": "form",
+        "status": "experimental",
+        "version": "0.1.0",
+        "description": "Interactive 36px filter-pill family with filled and outlined variants, optional icons, single-, multiple-, and hierarchical category popovers, and horizontally scrollable grouping.",
+        "figma": {
+          "nodeId": "1123:65336",
+          "componentKey": null,
+          "notes": "Filter popup geometry and selection patterns follow English Site Optimization 2026 nodes 1123:65336 and 1252:78302. Distinct from the non-interactive Tag component."
+        },
+        "variants": {
+          "variant": [
+            "filled",
+            "outlined"
+          ],
+          "selected": [
+            "false",
+            "true"
+          ]
+        },
+        "exports": [
+          "FilterChip",
+          "FilterChipCategoryMenu",
+          "FilterChipGroup",
+          "FilterChipMenu",
+          "FilterChipProps",
+          "FilterChipGroupProps",
+          "FilterChipCategoryMenuProps",
+          "FilterChipCategoryOption",
+          "FilterChipMenuOption",
+          "FilterChipMenuProps",
+          "FilterChipMultipleMenuProps",
+          "FilterChipSingleMenuProps",
+          "FilterChipVariant"
+        ],
+        "props": {
+          "variant": {
+            "type": "enum",
+            "values": [
+              "filled",
+              "outlined"
+            ],
+            "required": false,
+            "default": "outlined",
+            "description": "Filled suggested-filter treatment or outlined toolbar-control treatment."
+          },
+          "selected": {
+            "type": "boolean",
+            "required": false,
+            "description": "Exposes aria-pressed and applies a 1px selected stroke that increases to 2px on hover."
+          },
+          "leftIcon": {
+            "type": "ReactNode",
+            "required": false,
+            "description": "Optional leading icon."
+          },
+          "rightIcon": {
+            "type": "ReactNode",
+            "required": false,
+            "description": "Optional trailing icon, commonly the 12px arrow-down asset."
+          }
+        },
+        "rules": {
+          "interaction": {
+            "ruleId": "native-semantics",
+            "note": "FilterChip renders a button; FilterChipMenu uses Base UI Popover with Checkbox or RadioGroup semantics."
+          },
+          "focus": {
+            "ruleId": "focus-style",
+            "note": "Uses a 2px --border-focus outline with 2px offset."
+          },
+          "radius": {
+            "ruleId": "no-custom-radii",
+            "note": "Uses --radius-full for the pill geometry."
+          },
+          "color": {
+            "ruleId": "semantic-color-only",
+            "note": "Surfaces, borders, text, and interaction states use semantic tokens."
+          }
+        },
+        "tokens": [
+          "--border-default",
+          "--border-focus",
+          "--color-black-200",
+          "--fill-primary",
+          "--fill-secondary",
+          "--font-family-ios",
+          "--font-size-body-md",
+          "--font-weight-normal",
+          "--line-height-body-md",
+          "--radius-full",
+          "--radius-sm",
+          "--space-050",
+          "--space-100",
+          "--space-150",
+          "--space-300",
+          "--stroke-default",
+          "--text-primary",
+          "--text-secondary"
+        ],
+        "tokenBindings": {
+          "--fill-secondary": {
+            "property": "background-color",
+            "selector": ".filled"
+          },
+          "--fill-primary": {
+            "property": "background-color",
+            "selector": ".outlined, .filled[aria-pressed='true']"
+          },
+          "--border-default": {
+            "property": "border-color",
+            "selector": ".outlined"
+          },
+          "--border-focus": {
+            "property": "inset box-shadow / outline-color",
+            "selector": ".filled[aria-pressed='true'], :focus-visible"
+          },
+          "--color-black-200": {
+            "property": "background-color",
+            "selector": ".categoryToggle:hover"
+          },
+          "--radius-full": {
+            "property": "border-radius",
+            "selector": ".chip"
+          }
+        },
+        "accessibility": {
+          "role": "button / radio group / checkbox group supplied by consumer",
+          "wcagLevel": "AA",
+          "tapTargetMin": 36,
+          "keyboardNav": [
+            "tab",
+            "shift+tab",
+            "space",
+            "enter",
+            "arrow keys"
+          ],
+          "ariaPattern": "toggle button trigger with RadioGroup or Checkbox controls in popup",
+          "notes": "Provide accessible labels for chip groups and popup menus."
+        },
+        "dependencies": {
+          "runtime": [
+            "react",
+            "@base-ui/react"
+          ],
+          "peer": [
+            "@base-ui/react"
+          ],
+          "devOnly": [
+            "@storybook/react-vite",
+            "storybook"
+          ]
+        },
+        "usageRef": "./usage.md",
+        "examples": [
+          "./examples.tsx#FilterChipExample"
         ]
       }
     },
@@ -2086,6 +2265,16 @@
             "required": false,
             "description": "Fires on form submit with the current query."
           },
+          "searchPanel": {
+            "type": "HeaderSearchPanel",
+            "required": false,
+            "description": "PC search discovery content. Focus with an empty query shows recent, popular, and deal tags; a non-empty query switches to image suggestions."
+          },
+          "mobileSearchHref": {
+            "type": "string",
+            "required": false,
+            "description": "Destination opened when the mobile search field is activated."
+          },
           "onScan": {
             "type": "() => void",
             "required": false,
@@ -2198,6 +2387,9 @@
         },
         "tokens": [
           "--surface-primary",
+          "--background-secondary",
+          "--fill-secondary",
+          "--color-black-400",
           "--text-primary",
           "--text-primary-inverse",
           "--text-secondary",
@@ -2209,9 +2401,12 @@
           "--button-primary",
           "--button-primary-active",
           "--button-secondary",
+          "--button-secondary-active",
           "--button-tertiary-active",
           "--radius-button-primary",
           "--radius-component-default",
+          "--radius-xl",
+          "--radius-full",
           "--stroke-default",
           "--stroke-thick",
           "--font-family-ios",
@@ -2219,6 +2414,8 @@
           "--font-weight-emphasize",
           "--font-size-body-md",
           "--line-height-body-md",
+          "--font-size-heading-sm",
+          "--line-height-heading-sm",
           "--font-size-link-md",
           "--line-height-link-md",
           "--font-size-link-sm",
@@ -2296,11 +2493,12 @@
             "tab",
             "shift+tab",
             "enter",
-            "space"
+            "space",
+            "escape"
           ],
-          "ariaPattern": "header banner + role=search form + nav with a list of category links; halls form an exclusive radiogroup",
+          "ariaPattern": "header banner + role=search form with an optional labelled suggestion dialog + nav with a list of category links; halls form an exclusive radiogroup",
           "structure": "Category artwork carries the category name as alt and repeats it as a visible label. The leading Categories entry uses a decorative glyph and relies on its visible label. The account control shows its label visibly. The locale control names itself via aria-label and hides the short code from assistive technology. The cart folds its item count into aria-label because the chrome shows no visible count.",
-          "interaction": "The category rail scrolls natively; paging controls page by one viewport minus a single anchor entry and unmount at the boundaries. Reduced motion switches paging to immediate scrolling. Promotion badges sit in the category entry's top-right corner and are clipped to one line so a multi-badge entry cannot change the row height.",
+          "interaction": "The PC search panel opens on focus, switches from discovery tags to image suggestions after input, closes on its scrim, submit, or Escape, and leaves mobile unchanged. The category rail scrolls natively; paging controls page by one viewport minus a single anchor entry and unmount at the boundaries. Reduced motion switches paging to immediate scrolling. Promotion badges sit in the category entry's top-right corner and are clipped to one line so a multi-badge entry cannot change the row height.",
           "notes": "PC only. Below 1024px the rail scrolls rather than reflowing — the mobile header is a separate component."
         },
         "dependencies": {
@@ -3526,7 +3724,7 @@
           "nodeId": "4795:90633",
           "componentKey": "8012bc4680692313a0305812a3b3774e6b9252e5",
           "pageNodeId": "2857:32277",
-          "notes": "Figma Radio Button is an item-level 24x24 set. RadioGroup is a code-side accessibility composition.",
+          "notes": "The visible Radio Button is 20x20 with a 24x24 pointer target. RadioGroup is a code-side accessibility composition.",
           "stateMapping": "Property 1=Default/Hover/Selected/Disable_Selected/Disable_Unselected maps to unchecked hover, checked, checked+disabled, and unchecked+disabled."
         },
         "variants": {
@@ -3617,7 +3815,7 @@
           },
           "tapTarget": {
             "ruleId": "tap-target",
-            "note": "20px visible circle inside 24px frame with an expanded 44px pointer target."
+            "note": "20px component with an invisible 2px extension on every side, producing a 24px pointer target. Parent labels may provide a larger target."
           },
           "color": {
             "ruleId": "semantic-color-only",
@@ -3630,7 +3828,7 @@
           "--surface-secondary",
           "--fill-disabled",
           "--text-primary",
-          "--text-secondary",
+          "--border-default",
           "--border-focus",
           "--radius-button-primary",
           "--space-025",
@@ -3652,7 +3850,7 @@
             "property": "border-color/background",
             "selector": ".item[data-checked]::before, .dot"
           },
-          "--text-secondary": {
+          "--border-default": {
             "property": "border-color",
             "selector": ".item::before"
           },
@@ -3672,7 +3870,7 @@
         "accessibility": {
           "role": "radiogroup with radio children",
           "wcagLevel": "AA",
-          "tapTargetMin": 44,
+          "tapTargetMin": 24,
           "keyboardNav": [
             "tab",
             "shift+tab",
@@ -3867,8 +4065,8 @@
         "name": "ShortcutRail",
         "category": "navigation",
         "status": "stable",
-        "version": "0.1.0",
-        "description": "Responsive YAMI shortcut navigation rail with circular image icons, localized labels, native scrolling, overflow-aware paging controls, an optional left-aligned titled gray surface, and an always-plain full-width mobile surface.",
+        "version": "0.2.0",
+        "description": "Responsive YAMI shortcut navigation rail with circular image icons, localized labels, native scrolling, overflow-aware paging controls, optional card or plain section surfaces, and an optional left-aligned titled gray treatment.",
         "figma": {
           "nodeId": null,
           "componentKey": null,
@@ -3877,7 +4075,8 @@
         "exports": [
           "ShortcutRail",
           "ShortcutRailItem",
-          "ShortcutRailProps"
+          "ShortcutRailProps",
+          "ShortcutRailSurface"
         ],
         "composes": [
           "Button"
@@ -3888,6 +4087,12 @@
             "required": true,
             "description": "Ordered shortcut destinations with stable IDs, labels, icon sources, hrefs, and an optional icon or full-bleed image presentation."
           },
+          "surface": {
+            "type": "\"card\" | \"plain\"",
+            "required": false,
+            "default": "plain",
+            "description": "Section surface. Card uses the shared homepage inset, surface radius, compact padding, and primary background without a border or shadow; plain spans the available width."
+          },
           "title": {
             "type": "ReactNode",
             "required": false,
@@ -3897,7 +4102,7 @@
             "type": "\"top\" | \"bottom\" | \"none\"",
             "required": false,
             "default": "none",
-            "description": "Optional full-width surface divider edge."
+            "description": "Optional full-width divider edge for the plain surface. Card separation comes from spacing and radius."
           },
           "dividerVariant": {
             "type": "\"gray\" | \"black\"",
@@ -3941,7 +4146,7 @@
           },
           "radius": {
             "ruleId": "no-custom-radii",
-            "note": "Icon surfaces use --radius-full and links use --radius-component-default."
+            "note": "Card surfaces use --radius-surface-default, icon surfaces use --radius-full, and links use --radius-component-default."
           },
           "motion": {
             "ruleId": "elevation-on-press",
@@ -3962,6 +4167,7 @@
           "--stroke-default",
           "--stroke-thick",
           "--radius-full",
+          "--radius-surface-default",
           "--radius-component-default",
           "--font-family-ios",
           "--font-weight-normal",
@@ -3973,6 +4179,7 @@
           "--line-height-heading-xl",
           "--line-height-heading-2xl",
           "--layout-page-margin-default",
+          "--layout-page-margin-card",
           "--space-050",
           "--space-100",
           "--space-200",
@@ -3995,6 +4202,10 @@
             "property": "border-radius",
             "selector": ".iconSurface"
           },
+          "--radius-surface-default": {
+            "property": "border-radius",
+            "selector": ".root[data-surface='card']"
+          },
           "--font-size-caption-md": {
             "property": "font-size",
             "selector": ".label"
@@ -4002,6 +4213,10 @@
           "--layout-page-margin-default": {
             "property": "padding-inline and scroll-padding-inline",
             "selector": ".list below 1024px"
+          },
+          "--layout-page-margin-card": {
+            "property": "width and max-width inset",
+            "selector": ".root[data-surface='card']"
           },
           "--space-1000": {
             "property": "width / height",
@@ -4023,7 +4238,7 @@
           ],
           "ariaPattern": "nav with list/listitem links, optional visible title, and optional previous/next buttons",
           "structure": "A supplied title labels the navigation region; otherwise ariaLabel is used. Visible labels provide link names and decorative icon images use empty alt text.",
-          "interaction": "Mobile uses native horizontal scrolling. Desktop adds overflow-aware paging controls over functional edge masks."
+          "interaction": "Mobile uses native horizontal scrolling without paging chrome. Desktop adds overflow-aware paging controls over functional edge masks."
         },
         "dependencies": {
           "runtime": [
@@ -5106,6 +5321,18 @@
             "type": "string",
             "required": false,
             "description": "Which row opens first on mobile. Defaults to the top-ranked term."
+          },
+          "dividerPosition": {
+            "type": "\"top\" | \"bottom\" | \"none\"",
+            "required": false,
+            "default": "none",
+            "description": "Optional desktop-only full-width section divider edge."
+          },
+          "dividerVariant": {
+            "type": "\"gray\" | \"black\"",
+            "required": false,
+            "default": "gray",
+            "description": "Divider color and width treatment: gray is 1px and black is 2px emphasis."
           },
           "onAddToCart": {
             "type": "(productId: string) => void",

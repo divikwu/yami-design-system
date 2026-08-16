@@ -11,7 +11,6 @@ Create a Yami Design System DirectionManifestV1 JSON design direction.
 
 Read:
 - packages/contracts/src/manifest.ts
-- apps/canvas/app/generated-direction.fixture.json
 - docs/adr/001-architecture-and-migration-contract.md
 
 Requirements:

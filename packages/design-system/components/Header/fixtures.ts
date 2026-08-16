@@ -8,7 +8,12 @@
  * page template passes a builder to get real anchors.
  */
 
-import type { HeaderCategory, HeaderHall, HeaderProps } from './Header.types'
+import type {
+  HeaderCategory,
+  HeaderHall,
+  HeaderProps,
+  HeaderSearchPanel,
+} from './Header.types'
 
 export type HeaderLocale = 'en' | 'zh'
 
@@ -32,6 +37,64 @@ const darkMobileLogoZh = new URL('../../assets/logos/yami-ui-cn-mobile-fill-inve
 // Locale flag comes from the maintained DS icon set (Assets → Icons → area),
 // not from this component's fixture folder.
 const flagUs = new URL('../../assets/icons/area/united-states.svg', import.meta.url).href
+const SEARCH_SUGGESTION_IMAGES = {
+  mat: new URL('./assets/search-suggestions/mat.jpeg', import.meta.url).href,
+  'matcha bowl': new URL('./assets/search-suggestions/matcha-bowl.jpeg', import.meta.url).href,
+  'matcha cake': new URL('./assets/search-suggestions/matcha-cake.png', import.meta.url).href,
+  'matcha candy': new URL('./assets/search-suggestions/matcha-candy.png', import.meta.url).href,
+  'matcha chocolate': new URL('./assets/search-suggestions/matcha-chocolate.jpeg', import.meta.url).href,
+  'matcha cookie': new URL('./assets/search-suggestions/matcha-cookie.jpeg', import.meta.url).href,
+  'matcha latte': new URL('./assets/search-suggestions/matcha-latte.jpeg', import.meta.url).href,
+  'matcha powder': new URL('./assets/search-suggestions/matcha-powder.jpeg', import.meta.url).href,
+  'matcha set': new URL('./assets/search-suggestions/matcha-set.jpeg', import.meta.url).href,
+  'matcha snack': new URL('./assets/search-suggestions/matcha-snack.jpeg', import.meta.url).href,
+  'matcha whisk': new URL('./assets/search-suggestions/matcha-whisk.jpeg', import.meta.url).href,
+  matcha: new URL('./assets/search-suggestions/matcha.png', import.meta.url).href,
+} as const
+
+const SEARCH_PANEL_EN = {
+  recentTitle: 'Recent Searches',
+  clearLabel: 'Clear',
+  recent: ['Coffee', 'korean spicy noodle', 'Japanese candy', 'ramen', 'coffee', 'wet wipes', 'milk tea'],
+  popularTitle: 'Popular Searches',
+  popular: [
+    { label: "Father's Day Gifts" },
+    { label: 'C-Beauty Spotlight' },
+    { label: 'Monchhichi, Hello Kitty, and More!' },
+    { label: 'Natural Korean Skincare iUNIK New' },
+    { label: 'Natural Korean Skincare iUNIK New' },
+    { label: 'K-Pharmacy Trendy Picks Hot' },
+  ],
+  hotDealsTitle: 'Hot Deals',
+  hotDeals: [
+    { label: "Father's Day Gifts" },
+    { label: 'C-Beauty Spotlight', badge: 'Sale' },
+    { label: 'Monchhichi, Hello Kitty, and More!', badge: 'Sale' },
+    { label: 'Natural Korean Skincare iUNIK New' },
+    { label: 'Natural Korean Skincare iUNIK New', badge: 'New' },
+    { label: 'K-Pharmacy Trendy Picks Hot' },
+  ],
+  suggestions: [
+    'mat',
+    'matcha bowl',
+    'matcha cake',
+    'matcha candy',
+    'matcha chocolate',
+    'matcha cookie',
+    'matcha latte',
+    'matcha powder',
+    'matcha set',
+    'matcha snack',
+    'matcha whisk',
+    'matcha',
+  ].map((label) => ({
+    label,
+    image: {
+      src: SEARCH_SUGGESTION_IMAGES[label as keyof typeof SEARCH_SUGGESTION_IMAGES],
+      alt: label,
+    },
+  })),
+} satisfies HeaderSearchPanel
 /**
  * Category artwork, mirrored from the production PC header.
  *
@@ -229,6 +292,7 @@ function createArgs(locale: HeaderLocale): HeaderProps {
     scanLabel: site.scanLabel,
     categories: toCategories(site.categories),
     searchPlaceholder: site.searchPlaceholder,
+    searchPanel: locale === 'en' ? SEARCH_PANEL_EN : undefined,
     account: { label: site.account },
     locale: {
       label: site.localeCode,

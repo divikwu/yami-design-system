@@ -29,7 +29,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "The terms shoppers are searching for, each with the results behind it. The two breakpoints are different layouts over the same data: desktop is a rail of keyword cards showing every term's leading two results, mobile is a ranked accordion where one term at a time opens onto a scrolling rail and a search CTA.",
+          "The terms shoppers are searching for, each with the results behind it. The two breakpoints are different layouts over the same data: desktop is a rail of keyword cards showing every term's leading two results, mobile is a ranked disclosure list where each term independently opens onto a scrolling rail and a search CTA.",
       },
       // Rendered in its own frame, like BrandProductRail and Footer. Inline,
       // the component sits in the docs document and its media queries read the
@@ -325,6 +325,27 @@ export const MobileAccordion: Story = {
     if (toggles[0].getAttribute("aria-expanded") !== "true") {
       throw new Error("The open row's toggle must report aria-expanded=true");
     }
+    if (
+      toggles.some((toggle) => getComputedStyle(toggle).columnGap !== "8px")
+    ) {
+      throw new Error("Mobile accordion rows must use an 8px column gap");
+    }
+    const chevrons = toggles.map((toggle) => toggle.querySelector("svg"));
+    if (
+      chevrons.some((chevron) => {
+        if (!chevron) return true;
+        const style = getComputedStyle(chevron);
+        return (
+          style.width !== "12px" ||
+          style.height !== "12px" ||
+          style.marginInlineEnd !== "4px"
+        );
+      })
+    ) {
+      throw new Error(
+        "Mobile accordion chevrons must be 12px with 4px inline-end spacing",
+      );
+    }
 
     const panelOf = (index: number) =>
       items[index].querySelector<HTMLElement>(
@@ -333,6 +354,20 @@ export const MobileAccordion: Story = {
     const firstPanel = panelOf(0);
     const secondPanel = panelOf(1);
     if (!firstPanel || !secondPanel) throw new Error("Panels did not render");
+    const mobileTagline = firstPanel.querySelector<HTMLElement>("p");
+    if (!mobileTagline) throw new Error("Mobile tagline did not render");
+    const mobileTaglineStyle = getComputedStyle(mobileTagline);
+    if (
+      mobileTaglineStyle.paddingTop !== "6px" ||
+      mobileTaglineStyle.paddingRight !== "8px" ||
+      mobileTaglineStyle.paddingBottom !== "6px" ||
+      mobileTaglineStyle.paddingLeft !== "8px" ||
+      mobileTaglineStyle.columnGap !== "12px"
+    ) {
+      throw new Error(
+        "Mobile tagline must use 6px vertical padding, 8px inline padding, and a 12px column gap",
+      );
+    }
     if (getComputedStyle(secondPanel).display !== "none") {
       throw new Error("A closed row must not show its results");
     }
@@ -476,14 +511,37 @@ export const MobileAccordion: Story = {
     await userEvent.click(toggles[1]);
     if (
       items[1].dataset.expanded !== "true" ||
-      items[0].dataset.expanded === "true"
+      items[0].dataset.expanded !== "true"
     ) {
       throw new Error(
-        "Opening a row must close the one that was open — the accordion shows one term at a time",
+        "Opening another row must keep the previously expanded row open",
       );
     }
-    if (getComputedStyle(firstPanel).display !== "none") {
-      throw new Error("The row that closed must hide its results");
+    if (
+      toggles[0].getAttribute("aria-expanded") !== "true" ||
+      toggles[1].getAttribute("aria-expanded") !== "true"
+    ) {
+      throw new Error("Each open row must report aria-expanded=true");
+    }
+    if (
+      getComputedStyle(firstPanel).display === "none" ||
+      getComputedStyle(secondPanel).display === "none"
+    ) {
+      throw new Error("Each expanded row must keep its results visible");
+    }
+
+    await userEvent.click(toggles[1]);
+    if (
+      items[1].dataset.expanded !== "false" ||
+      items[0].dataset.expanded !== "true"
+    ) {
+      throw new Error("Closing one row must not change another expanded row");
+    }
+    if (
+      getComputedStyle(secondPanel).display !== "none" ||
+      getComputedStyle(firstPanel).display === "none"
+    ) {
+      throw new Error("Only the row clicked a second time should hide");
     }
   },
 };

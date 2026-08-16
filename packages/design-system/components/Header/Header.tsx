@@ -114,6 +114,8 @@ export function Header({
   searchValue,
   onSearchValueChange,
   onSearchSubmit,
+  searchPanel,
+  mobileSearchHref,
   onScan,
   account,
   locale,
@@ -205,6 +207,7 @@ export function Header({
             onValueChange={onSearchValueChange}
             onSubmit={onSearchSubmit}
             searchLabel={searchLabel}
+            openHref={mobileSearchHref}
             scanLabel={scanLabel}
             onScan={onScan}
           />
@@ -288,6 +291,7 @@ export function Header({
           onValueChange={onSearchValueChange}
           onSubmit={onSearchSubmit}
           searchLabel={searchLabel}
+          panel={searchPanel}
         />
 
         <div className={styles.actions} data-slot="header-actions">

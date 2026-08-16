@@ -37,6 +37,10 @@ Give each keyword three or more products. Desktop previews two and mobile
 scrolls the rest — a term with exactly two leaves the mobile rail nothing to
 scroll.
 
+Use `dividerPosition` with `dividerVariant` when the desktop section needs a
+full-width boundary. The divider is intentionally omitted below 1024px, where
+the card spacing and radius provide separation.
+
 ## Accessibility
 
 The row toggles exist only below 1024px and the per-card links only above it;

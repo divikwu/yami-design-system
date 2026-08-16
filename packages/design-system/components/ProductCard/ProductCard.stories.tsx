@@ -210,6 +210,68 @@ export const LongContent: Story = {
   },
 };
 
+export const Horizontal: Story = {
+  render: (_args, { globals }) => {
+    const product = getProduct(globals.locale);
+
+    return (
+      <div style={{ width: "min(480px, 100%)" }}>
+        <ProductCard
+          {...product}
+          presentation="compact"
+          onAddToCart={() => {}}
+        />
+      </div>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const root = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-card"]',
+    );
+    const media = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-card-media"]',
+    );
+    const content = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-card-content"]',
+    );
+    const priceActionRow = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-card-price-action-row"]',
+    );
+    const price = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-card-price"]',
+    );
+    const quickAdd = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-card-quick-add"]',
+    );
+
+    if (!root || !media || !content || !priceActionRow || !price || !quickAdd) {
+      throw new Error("Horizontal ProductCard anatomy did not render");
+    }
+
+    const mediaRect = media.getBoundingClientRect();
+    const priceRect = price.getBoundingClientRect();
+    const quickAddRect = quickAdd.getBoundingClientRect();
+    const contentStyle = getComputedStyle(content);
+    if (
+      getComputedStyle(root).flexDirection !== "row" ||
+      mediaRect.width !== 132 ||
+      mediaRect.height !== 132 ||
+      contentStyle.flexGrow !== "1" ||
+      contentStyle.paddingTop !== "0px" ||
+      contentStyle.paddingRight !== "0px" ||
+      contentStyle.paddingBottom !== "0px" ||
+      contentStyle.paddingLeft !== "0px" ||
+      getComputedStyle(priceActionRow).display !== "flex" ||
+      priceRect.bottom <= quickAddRect.top ||
+      quickAddRect.bottom <= priceRect.top
+    ) {
+      throw new Error(
+        "Horizontal ProductCard must use 132px media, flexible content, and one price-action row",
+      );
+    }
+  },
+};
+
 export const AdaptiveSalesLabel: Story = {
   render: (_args, { globals }) => {
     const product = {

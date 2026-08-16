@@ -86,6 +86,31 @@ export interface HeaderCart {
   count?: number
 }
 
+export interface HeaderSearchTag {
+  label: string
+  /** Optional destination. Omit to fill the search field when selected. */
+  href?: string
+  /** Optional promotional suffix such as "Sale" or "New". */
+  badge?: string
+}
+
+export interface HeaderSearchSuggestion {
+  label: string
+  image: HeaderImage
+}
+
+/** Content shown below the PC search field while it is active. */
+export interface HeaderSearchPanel {
+  recentTitle: string
+  clearLabel: string
+  recent: Array<string | HeaderSearchTag>
+  popularTitle: string
+  popular: HeaderSearchTag[]
+  hotDealsTitle: string
+  hotDeals: HeaderSearchTag[]
+  suggestions: HeaderSearchSuggestion[]
+}
+
 export interface HeaderProps extends Omit<ComponentProps<'header'>, 'children'> {
   /** Brand lockup — `assets/logos/yami-ui-<lang>-pc-fill.svg`, 52px tall at PC. */
   logo: HeaderImage
@@ -124,6 +149,10 @@ export interface HeaderProps extends Omit<ComponentProps<'header'>, 'children'> 
   searchValue?: string
   onSearchValueChange?: (value: string) => void
   onSearchSubmit?: (query: string) => void
+  /** PC search discovery content. Omit to keep the field without a popover. */
+  searchPanel?: HeaderSearchPanel
+  /** Destination opened when the mobile search field is activated. */
+  mobileSearchHref?: string
   /** Visual search, mobile field only. Omit while the entry is not configured. */
   onScan?: () => void
 
@@ -155,6 +184,9 @@ export interface HeaderSearchProps {
   onValueChange: ((value: string) => void) | undefined
   onSubmit: ((query: string) => void) | undefined
   searchLabel: string
+  panel?: HeaderSearchPanel
+  /** Destination opened when the mobile field is activated. */
+  openHref?: string
   /**
    * `pc` is the 40px field embedded in the utility row. `mobile` is the 36px
    * field on its own row below the brand bar, which carries an extra

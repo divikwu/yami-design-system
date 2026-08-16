@@ -15,10 +15,13 @@ export const Checkbox = forwardRef<HTMLElement, CheckboxProps>(function Checkbox
   { className, ...props },
   ref,
 ) {
-  const mergedClassName =
-    typeof className === "function"
-      ? (state: CheckboxPrimitive.Root.State) => cx(styles.root, className(state))
-      : cx(styles.root, className)
+  const mergedClassName = (state: CheckboxPrimitive.Root.State) =>
+    cx(
+      styles.root,
+      (state.checked || state.indeterminate) && styles.selected,
+      state.indeterminate && styles.indeterminate,
+      typeof className === "function" ? className(state) : className,
+    )
 
   return (
     <CheckboxPrimitive.Root
@@ -27,7 +30,10 @@ export const Checkbox = forwardRef<HTMLElement, CheckboxProps>(function Checkbox
       className={mergedClassName}
       data-slot="checkbox"
     >
-      <CheckboxPrimitive.Indicator className={styles.indicator} data-slot="checkbox-indicator">
+      <CheckboxPrimitive.Indicator
+        className={styles.indicator}
+        data-slot="checkbox-indicator"
+      >
         <svg className={styles.checkIcon} aria-hidden="true" viewBox="0 0 14 14">
           <path d="M3 7.1 5.55 9.5 11 4.5" />
         </svg>

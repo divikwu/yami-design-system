@@ -6,7 +6,7 @@ import { TopicLandingPage } from "./TopicLandingPage";
 import { createTopicLandingPageFixture } from "./fixtures";
 
 const meta = {
-  title: "YAMI/Pages/Topic Landing Page",
+  title: "YAMI/Pages/Topic Landing Page/Brand",
   component: TopicLandingPage,
   parameters: {
     layout: "fullscreen",
@@ -14,7 +14,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "A localized editorial theme landing page with a global header, ThemeHero, a full-bleed ShortcutRail, ThemeProductList, ReviewList, a Standard Rail and a ProductList Waterfall collection, followed by the global footer.",
+          "The brand-keyword presentation of Topic Landing Page, with a global header, ThemeHero, a full-bleed ShortcutRail, ThemeProductList, ReviewList, a Standard Rail and a ProductList Waterfall collection, followed by the global footer.",
       },
       story: { inline: false, height: "2400px" },
     },
@@ -55,7 +55,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Pc: Story = {
-  name: "PC",
+  name: "Brand — PC",
   play: async ({ canvasElement, args, globals }) => {
     const locale = globals.locale === "zh" ? "zh" : "en";
     const localizedArgs = createTopicLandingPageFixture(locale);
@@ -78,9 +78,10 @@ export const Pc: Story = {
             activityTitle: "艾努雅",
             firstTab: "精选分类",
             exploreMoreCategory: "清洁与去角质",
-            exploreMorePairing: "搭配购买",
+            exploreMorePairing: "相关推荐",
             exploreMoreDescription:
               "探索该系列更多产品，以及为你精选的搭配好物。",
+            startHereTitle: "打造你的 ANUA 护肤流程",
             startHereThemes: [
               {
                 tab: "温和清洁",
@@ -124,11 +125,12 @@ export const Pc: Story = {
             lastShortcut: "Makeup",
             firstReview: "It feels so gentle and still gets all the gunk out",
             activityTitle: "Anua",
-            firstTab: "Featured shortcuts",
+            firstTab: "Explore by Type",
             exploreMoreCategory: "Cleanse & Peel",
-            exploreMorePairing: "Complete the Routine",
+            exploreMorePairing: "Related Picks",
             exploreMoreDescription:
               "Discover more from the collection, plus complementary picks selected for you.",
+            startHereTitle: "Build Your Anua Routine",
             startHereThemes: [
               {
                 tab: "Cleanse & Reset",
@@ -214,38 +216,49 @@ export const Pc: Story = {
     const scrollReveals = main?.querySelectorAll<HTMLElement>(
       '[data-motion-reveal="scroll"]',
     );
+    const expectedScrollRevealSlots = [
+      "topic-landing-shortcut-rail",
+      "topic-landing-theme-product-list",
+      "topic-landing-standard-rail",
+      ...(main?.querySelector('[data-slot="topic-landing-brand-rail"]')
+        ? ["topic-landing-brand-rail"]
+        : []),
+      "topic-landing-review-list",
+      "topic-landing-waterfall-section",
+    ];
     const waterfallReveal = main?.querySelector<HTMLElement>(
       '[data-page-slot="topic-landing-waterfall"]',
-    );
-    const waterfallHeading = waterfallReveal?.querySelector<HTMLElement>(
-      '[data-slot="product-list-heading"]',
-    );
-    const waterfallTabs = waterfallReveal?.querySelector<HTMLElement>(
-      '[data-slot="product-list-container"] > [data-slot="tabs"]',
     );
     const waterfallRowItems = waterfallReveal?.querySelectorAll<HTMLElement>(
       '[data-slot="product-list-item"]',
     );
-    const waterfallLoadMore = waterfallReveal?.querySelector<HTMLElement>(
-      '[data-slot="product-list-load-more"]',
+    const waterfallSection = waterfallReveal?.closest<HTMLElement>(
+      '[data-slot="topic-landing-waterfall-section"]',
     );
+    const isDesktopMotion = page.getBoundingClientRect().width >= 1024;
     if (
       !initialReveal ||
       initialRevealContent?.length !== 2 ||
-      scrollReveals?.length !== 4 ||
+      !scrollReveals ||
+      Array.from(scrollReveals).some(
+        (section, index) =>
+          section.dataset.slot !== expectedScrollRevealSlots[index],
+      ) ||
+      scrollReveals.length !== expectedScrollRevealSlots.length ||
       waterfallReveal?.dataset.motionReveal !== undefined ||
-      waterfallHeading?.dataset.motionReveal !== undefined ||
-      waterfallTabs?.dataset.motionReveal !== undefined ||
+      waterfallSection?.dataset.motionReveal !== "scroll" ||
       !waterfallRowItems ||
       waterfallRowItems.length <= 6 ||
-      Array.from(waterfallRowItems).some(
-        (item) => item.dataset.motionReveal !== undefined,
+      Array.from(waterfallRowItems).some((item) =>
+        isDesktopMotion
+          ? item.dataset.motionReveal !== "scroll-row" ||
+            item.dataset.motionObserved !== "true"
+          : item.dataset.motionReveal !== undefined,
       ) ||
-      waterfallLoadMore?.dataset.motionReveal !== undefined ||
       main?.dataset.motionReady !== "true"
     ) {
       throw new Error(
-        "Topic landing page waterfall must reveal its heading, tabs and product rows independently",
+        "Topic landing page content modules must use one consistent scroll reveal boundary",
       );
     }
     if (main.dataset.motionReady === "true") {
@@ -296,9 +309,14 @@ export const Pc: Story = {
       }
 
       for (const revealSection of Array.from(scrollReveals)) {
-        const revealContent = revealSection.querySelector<HTMLElement>(
-          '[data-slot="shortcut-rail-container"], [data-slot="product-list-container"], [data-slot="review-list-container"]',
-        );
+        const revealContent =
+          isDesktopMotion && revealSection === waterfallSection
+            ? revealSection.querySelector<HTMLElement>(
+                '[data-slot="product-list-heading"]',
+              )
+            : revealSection.querySelector<HTMLElement>(
+                '[data-slot="shortcut-rail-container"], [data-slot="brand-product-rail-container"], [data-slot="product-list-container"], [data-slot="review-list-container"]',
+              );
         if (!revealContent) {
           throw new Error("Topic landing module content did not render");
         }
@@ -340,43 +358,56 @@ export const Pc: Story = {
         }
       }
 
-      const motionRevealTargets = [
-        waterfallHeading,
-        waterfallTabs,
-        ...Array.from(waterfallRowItems),
-        waterfallLoadMore,
-      ];
-      for (const revealTarget of motionRevealTargets) {
-        const previousMotionState = revealTarget.dataset.motionState;
-        delete revealTarget.dataset.motionState;
-        const hiddenTransform = getComputedStyle(revealTarget).transform;
-        const hiddenTranslateY = new DOMMatrixReadOnly(hiddenTransform).m42;
+      if (isDesktopMotion) {
+        const firstWaterfallItem = waterfallRowItems[0];
+        if (!firstWaterfallItem) {
+          throw new Error("Topic landing waterfall products did not render");
+        }
+        const previousMotionState = firstWaterfallItem.dataset.motionState;
+        const previousMotionDirection =
+          firstWaterfallItem.dataset.motionDirection;
+        delete firstWaterfallItem.dataset.motionState;
+        delete firstWaterfallItem.dataset.motionDirection;
+        const hiddenStyle = getComputedStyle(firstWaterfallItem);
+        const hiddenTranslateY = new DOMMatrixReadOnly(
+          hiddenStyle.transform,
+        ).m42;
 
-        revealTarget.dataset.motionState = "visible";
-        const visibleStyle = getComputedStyle(revealTarget);
-        const transitionDurations =
-          visibleStyle.transitionDuration.split(", ");
-        const transitionTimings =
-          visibleStyle.transitionTimingFunction.split(", ");
+        firstWaterfallItem.dataset.motionDirection = "down";
+        firstWaterfallItem.dataset.motionState = "visible";
+        const downwardStyle = getComputedStyle(firstWaterfallItem);
+        const downwardDurations =
+          downwardStyle.transitionDuration.split(", ");
+
+        firstWaterfallItem.dataset.motionDirection = "up";
+        const upwardDuration =
+          getComputedStyle(firstWaterfallItem).transitionDuration;
 
         if (previousMotionState === undefined) {
-          delete revealTarget.dataset.motionState;
+          delete firstWaterfallItem.dataset.motionState;
         } else {
-          revealTarget.dataset.motionState = previousMotionState;
+          firstWaterfallItem.dataset.motionState = previousMotionState;
+        }
+        if (previousMotionDirection === undefined) {
+          delete firstWaterfallItem.dataset.motionDirection;
+        } else {
+          firstWaterfallItem.dataset.motionDirection =
+            previousMotionDirection;
         }
 
         if (
+          hiddenStyle.opacity !== "0" ||
           hiddenTranslateY !== 24 ||
-          transitionDurations.length !== 2 ||
-          transitionDurations.some((duration) => duration !== "0.32s") ||
-          transitionTimings.length !== 2 ||
-          transitionTimings.some((timing) => timing !== "ease-out")
+          downwardDurations.length !== 2 ||
+          downwardDurations.some((duration) => duration !== "0.32s") ||
+          upwardDuration !== "0s"
         ) {
           throw new Error(
-            "Topic landing waterfall content must use the compact 24px, 320ms ease-out entrance",
+            "Desktop waterfall rows must animate only while entering on downward scroll",
           );
         }
       }
+
     }
     const contentContainers = main?.querySelectorAll<HTMLElement>(
       '[data-slot="theme-hero-container"], [data-slot="topic-landing-tabs-container"], [data-slot="shortcut-rail-container"], [data-slot="review-list-container"], [data-slot="product-list-container"]',
@@ -485,7 +516,7 @@ export const Pc: Story = {
         Node.DOCUMENT_POSITION_FOLLOWING
     ) {
       throw new Error(
-        "Topic landing page must render localized Primary Style A tabs immediately before Featured shortcuts",
+        "Topic landing page must render localized Primary Style A tabs immediately before Explore by Type",
       );
     }
     if (!isDesktopTabs) {
@@ -758,6 +789,40 @@ export const Pc: Story = {
       );
     }
 
+    const startHereTitle = productLists[0]?.querySelector<HTMLElement>(
+      '[data-slot="product-list-title"]',
+    );
+    const startHereDescription = productLists[0]?.querySelector<HTMLElement>(
+      '[data-slot="product-list-description"]',
+    );
+    const startHereCopy = productLists[0]?.querySelector<HTMLElement>(
+      '[data-slot="product-list-copy"]',
+    );
+    const startHereHeading = productLists[0]?.querySelector<HTMLElement>(
+      '[data-slot="product-list-heading"]',
+    );
+    const startHereActions = productLists[0]?.querySelector<HTMLElement>(
+      '[data-slot="product-list-actions"]',
+    );
+    if (
+      !startHereTitle ||
+      startHereDescription ||
+      !startHereCopy ||
+      !startHereHeading ||
+      normalize(startHereTitle.textContent) !==
+        localizedExpectation.startHereTitle ||
+      (isDesktopTabs &&
+        startHereActions &&
+        Math.abs(
+          startHereActions.getBoundingClientRect().right -
+            startHereHeading.getBoundingClientRect().right,
+        ) > 1)
+    ) {
+      throw new Error(
+        "Start here must render the localized routine title without supporting copy",
+      );
+    }
+
     for (const productList of productLists.filter(
       (list) => list.dataset.layout === "rail",
     )) {
@@ -852,8 +917,14 @@ export const Pc: Story = {
     const waterfallContainer = waterfall?.querySelector<HTMLElement>(
       '[data-slot="product-list-container"]',
     );
+    const waterfallHeading = waterfall?.querySelector<HTMLElement>(
+      '[data-slot="product-list-heading"]',
+    );
     const waterfallTitle = waterfall?.querySelector<HTMLElement>(
       '[data-slot="product-list-title"]',
+    );
+    const waterfallCopy = waterfall?.querySelector<HTMLElement>(
+      '[data-slot="product-list-copy"]',
     );
     const waterfallDescription = waterfall?.querySelector<HTMLElement>(
       '[data-slot="product-list-description"]',
@@ -865,6 +936,7 @@ export const Pc: Story = {
       !waterfallContainer ||
       !waterfallHeading ||
       !waterfallTitle ||
+      !waterfallCopy ||
       !waterfallDescription ||
       !waterfallDescriptionStyle ||
       normalize(waterfallDescription.textContent) !==
@@ -872,7 +944,7 @@ export const Pc: Story = {
       waterfallDescriptionStyle.fontSize !== "14px" ||
       waterfallDescriptionStyle.lineHeight !== "20px" ||
       (isDesktopTabs &&
-        getComputedStyle(waterfallHeading).alignItems !== "baseline") ||
+        getComputedStyle(waterfallCopy).alignItems !== "baseline") ||
       (isDesktopTabs &&
         Math.abs(
           waterfallDescription.getBoundingClientRect().left -
@@ -942,7 +1014,7 @@ export const Pc: Story = {
         waterfall?.querySelector('[data-slot="product-list-load-more"]')
       ) {
         throw new Error(
-          "Featured shortcuts must select and anchor to the matching badge-free Explore More category",
+          "Explore by Type must select and anchor to the matching badge-free Explore More category",
         );
       }
 
@@ -957,7 +1029,7 @@ export const Pc: Story = {
         waterfall?.querySelector('[data-slot="product-list-load-more"]')
       ) {
         throw new Error(
-          "Complete the Routine must show eight badge-free curated products without Load more",
+          "Related Picks must show eight badge-free curated products without Load more",
         );
       }
 
@@ -965,17 +1037,15 @@ export const Pc: Story = {
       await new Promise<void>((resolve) =>
         requestAnimationFrame(() => resolve()),
       );
-      const resetWaterfallItems = waterfall?.querySelectorAll<HTMLElement>(
-        '[data-slot="product-list-item"]',
+      const resetWaterfallSection = waterfall?.closest<HTMLElement>(
+        '[data-slot="topic-landing-waterfall-section"]',
       );
       if (
-        !resetWaterfallItems ||
-        Array.from(resetWaterfallItems).some(
-          (item) => item.dataset.motionObserved !== "true",
-        )
+        resetWaterfallSection?.dataset.motionObserved !== "true" ||
+        resetWaterfallSection.dataset.motionReveal !== "scroll"
       ) {
         throw new Error(
-          "Explore More must register replacement product cards for motion after switching tabs",
+          "Explore More must preserve its module-level motion boundary after switching tabs",
         );
       }
       window.history.replaceState(
@@ -1401,7 +1471,7 @@ export const Pc: Story = {
 };
 
 export const Mobile: Story = {
-  name: "Mobile",
+  name: "Brand — Mobile",
   globals: {
     viewport: { value: "yamiMobile", isRotated: false },
   },

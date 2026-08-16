@@ -43,6 +43,18 @@
       "required": false,
       "description": "Which row opens first on mobile. Defaults to the top-ranked term."
     },
+    "dividerPosition": {
+      "type": "\"top\" | \"bottom\" | \"none\"",
+      "required": false,
+      "default": "none",
+      "description": "Optional desktop-only full-width section divider edge."
+    },
+    "dividerVariant": {
+      "type": "\"gray\" | \"black\"",
+      "required": false,
+      "default": "gray",
+      "description": "Divider color and width treatment: gray is 1px and black is 2px emphasis."
+    },
     "onAddToCart": {
       "type": "(productId: string) => void",
       "required": false,

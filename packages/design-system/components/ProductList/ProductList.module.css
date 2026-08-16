@@ -469,7 +469,8 @@
   }
 
   .root[data-mobile-surface="plain"][data-layout="waterfall"] .list {
-    gap: var(--space-200);
+    column-gap: var(--space-100);
+    row-gap: var(--space-200);
     padding: 0;
     scroll-padding-inline: 0;
   }

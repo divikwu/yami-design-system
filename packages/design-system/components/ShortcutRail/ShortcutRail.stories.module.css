@@ -1,5 +1,5 @@
-/* ShortcutRail uses the same full-width plain surface at every breakpoint. */
 .pageCanvas {
   box-sizing: border-box;
   min-height: 100vh;
+  background: var(--background-secondary);
 }

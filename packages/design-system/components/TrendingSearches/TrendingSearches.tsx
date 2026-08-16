@@ -61,11 +61,11 @@ function ChevronIcon({ direction }: { direction: "down" | "right" }) {
  *
  * The two breakpoints are different components in everything but data. Desktop
  * is a rail of keyword cards, all open, because a wide row has space to show
- * four terms and their leading results at once. Mobile is a ranked accordion:
- * six terms fit in a screen only as a list, and the results for one of them
- * are worth a scroll. The shared markup renders both and CSS hides the half
- * that does not apply — `display: none` also takes it out of the
- * accessibility tree, so a reader meets one structure, never both.
+ * four terms and their leading results at once. Mobile is a ranked disclosure
+ * list: six terms fit in a screen as rows, and each row can independently show
+ * its results. The shared markup renders both and CSS hides the half that does
+ * not apply — `display: none` also takes it out of the accessibility tree, so
+ * a reader meets one structure, never both.
  */
 export function TrendingSearches({
   title,
@@ -77,14 +77,17 @@ export function TrendingSearches({
   expandLabel = (keyword) => `Show results for ${keyword}`,
   defaultExpandedId,
   onAddToCart,
+  dividerPosition = "none",
+  dividerVariant = "gray",
   className,
   ...rest
 }: TrendingSearchesProps) {
   const titleId = useId();
   const panelId = useId();
   const railRef = useRef<HTMLUListElement>(null);
-  const [expandedId, setExpandedId] = useState<string | null>(
-    defaultExpandedId ?? keywords[0]?.id ?? null,
+  const initialExpandedId = defaultExpandedId ?? keywords[0]?.id;
+  const [expandedIds, setExpandedIds] = useState<ReadonlySet<string>>(
+    () => new Set(initialExpandedId ? [initialExpandedId] : []),
   );
   const [edges, setEdges] = useState({ atStart: true, atEnd: false });
 
@@ -111,11 +114,22 @@ export function TrendingSearches({
     rail.scrollBy({ left: direction * step, behavior: "smooth" });
   }, []);
 
+  const toggleExpanded = useCallback((id: string) => {
+    setExpandedIds((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
   return (
     <section
       {...rest}
       className={cx(styles.root, className)}
       data-slot="trending-searches"
+      data-divider-position={dividerPosition}
+      data-divider-variant={dividerVariant}
       aria-labelledby={titleId}
     >
       <div className={styles.container} data-slot="trending-searches-container">
@@ -147,7 +161,7 @@ export function TrendingSearches({
           onScroll={updateEdges}
         >
           {keywords.map((entry, index) => {
-            const expanded = entry.id === expandedId;
+            const expanded = expandedIds.has(entry.id);
             const entryPanelId = `${panelId}-${entry.id}`;
 
             return (
@@ -166,7 +180,7 @@ export function TrendingSearches({
                   aria-expanded={expanded}
                   aria-controls={entryPanelId}
                   aria-label={expandLabel(entry.keyword)}
-                  onClick={() => setExpandedId(expanded ? null : entry.id)}
+                  onClick={() => toggleExpanded(entry.id)}
                 >
                   <span className={styles.rank} aria-hidden="true">
                     {index + 1}

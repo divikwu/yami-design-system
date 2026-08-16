@@ -1,5 +1,6 @@
 import type {
   ActivityPageHeaderProps,
+  BrandProductRailProps,
   ThemeHeroProps,
   FooterProps,
   HeaderProps,
@@ -40,6 +41,8 @@ export interface TopicLandingPageProps extends HTMLAttributes<HTMLDivElement> {
   standardRail: ThemeProductListProps;
   reviewList: ReviewListProps;
   productRail: ProductListProps;
+  /** Optional brand collection rendered immediately after Popular Picks. */
+  brandRail?: BrandProductRailProps;
   waterfall: TopicLandingPageWaterfallProps;
   footer: FooterProps;
 }

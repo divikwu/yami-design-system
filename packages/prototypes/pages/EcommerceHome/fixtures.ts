@@ -1,7 +1,6 @@
 import type {
   BrandProductRailProps,
   FooterProps,
-  HeaderProps,
   HeroBannerProps,
   ProductListItem,
   ProductListProps,
@@ -10,7 +9,6 @@ import type {
 import { createBillboardProps } from "@yami/design-system/components/Billboard/fixtures";
 import { createBrandProductRailProps } from "@yami/design-system/components/BrandProductRail/fixtures";
 import { createHeroBannerItems } from "@yami/design-system/components/HeroBanner/fixtures";
-import { createHeaderProps } from "@yami/design-system/components/Header/fixtures";
 import {
   createProductListProducts,
   createProductListTabs,
@@ -34,6 +32,7 @@ import type {
   EcommerceHomeProps,
   EcommerceHomeSection,
 } from "./EcommerceHome.types";
+import { createStorefrontHeader } from "../storefront-header.fixture";
 
 export type EcommerceHomeLocale = "zh" | "en";
 
@@ -163,22 +162,6 @@ const copy = {
 } as const;
 
 /**
- * The page reuses the component's own storefront fixture, so the rail, copy,
- * and brand assets cannot drift from `Header`'s stories. The page only supplies
- * destinations — it is a linked template, where the component story renders
- * everything non-navigating.
- */
-function createHeader(locale: EcommerceHomeLocale): HeaderProps {
-  const header = createHeaderProps(locale, { href: (slot) => `#${slot}` });
-  return {
-    ...header,
-    // A populated cart is the page's own scenario, not the component default.
-    cart: { ...header.cart, count: 2 },
-    onSearchSubmit: () => {},
-  };
-}
-
-/**
  * The hero reuses the component's own lineup, so the page template and the
  * HeroBanner Showcase cannot drift. Only the destinations are the page's.
  */
@@ -199,6 +182,7 @@ function createShortcutRail(locale: EcommerceHomeLocale): ShortcutRailProps {
   const localeCopy = shortcutCopy[locale];
   return {
     items: createShortcutItems(locale),
+    surface: "card",
     ariaLabel: localeCopy.ariaLabel,
     previousLabel: localeCopy.previousLabel,
     nextLabel: localeCopy.nextLabel,
@@ -475,7 +459,11 @@ export function createEcommerceHomeFixture(
     {
       id: "trending-searches",
       kind: "searches",
-      props: createTrendingSearchesProps(locale),
+      props: {
+        ...createTrendingSearchesProps(locale),
+        dividerPosition: "top",
+        dividerVariant: "gray",
+      },
     },
     {
       id: "summer-stock-up",
@@ -492,7 +480,7 @@ export function createEcommerceHomeFixture(
   return {
     id: "home",
     contentMaxWidth: 1920,
-    header: createHeader(locale),
+    header: createStorefrontHeader(locale),
     hero: createHero(locale),
     shortcutRail: createShortcutRail(locale),
     sections,

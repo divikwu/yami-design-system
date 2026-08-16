@@ -1,0 +1,135 @@
+{
+  "$schema": "../../../schema/component.json",
+  "name": "FilterChip",
+  "category": "form",
+  "status": "experimental",
+  "version": "0.1.0",
+  "description": "Interactive 36px filter-pill family with filled and outlined variants, optional icons, single-, multiple-, and hierarchical category popovers, and horizontally scrollable grouping.",
+  "figma": {
+    "nodeId": "1123:65336",
+    "componentKey": null,
+    "notes": "Filter popup geometry and selection patterns follow English Site Optimization 2026 nodes 1123:65336 and 1252:78302. Distinct from the non-interactive Tag component."
+  },
+  "variants": {
+    "variant": ["filled", "outlined"],
+    "selected": ["false", "true"]
+  },
+  "exports": [
+    "FilterChip",
+    "FilterChipCategoryMenu",
+    "FilterChipGroup",
+    "FilterChipMenu",
+    "FilterChipProps",
+    "FilterChipGroupProps",
+    "FilterChipCategoryMenuProps",
+    "FilterChipCategoryOption",
+    "FilterChipMenuOption",
+    "FilterChipMenuProps",
+    "FilterChipMultipleMenuProps",
+    "FilterChipSingleMenuProps",
+    "FilterChipVariant"
+  ],
+  "props": {
+    "variant": {
+      "type": "enum",
+      "values": ["filled", "outlined"],
+      "required": false,
+      "default": "outlined",
+      "description": "Filled suggested-filter treatment or outlined toolbar-control treatment."
+    },
+    "selected": {
+      "type": "boolean",
+      "required": false,
+      "description": "Exposes aria-pressed and applies a 1px selected stroke that increases to 2px on hover."
+    },
+    "leftIcon": {
+      "type": "ReactNode",
+      "required": false,
+      "description": "Optional leading icon."
+    },
+    "rightIcon": {
+      "type": "ReactNode",
+      "required": false,
+      "description": "Optional trailing icon, commonly the 12px arrow-down asset."
+    }
+  },
+  "rules": {
+    "interaction": {
+      "ruleId": "native-semantics",
+      "note": "FilterChip renders a button; FilterChipMenu uses Base UI Popover with Checkbox or RadioGroup semantics."
+    },
+    "focus": {
+      "ruleId": "focus-style",
+      "note": "Uses a 2px --border-focus outline with 2px offset."
+    },
+    "radius": {
+      "ruleId": "no-custom-radii",
+      "note": "Uses --radius-full for the pill geometry."
+    },
+    "color": {
+      "ruleId": "semantic-color-only",
+      "note": "Surfaces, borders, text, and interaction states use semantic tokens."
+    }
+  },
+  "tokens": [
+    "--border-default",
+    "--border-focus",
+    "--color-black-200",
+    "--fill-primary",
+    "--fill-secondary",
+    "--font-family-ios",
+    "--font-size-body-md",
+    "--font-weight-normal",
+    "--line-height-body-md",
+    "--radius-full",
+    "--radius-sm",
+    "--space-050",
+    "--space-100",
+    "--space-150",
+    "--space-300",
+    "--stroke-default",
+    "--text-primary",
+    "--text-secondary"
+  ],
+  "tokenBindings": {
+    "--fill-secondary": {
+      "property": "background-color",
+      "selector": ".filled"
+    },
+    "--fill-primary": {
+      "property": "background-color",
+      "selector": ".outlined, .filled[aria-pressed='true']"
+    },
+    "--border-default": {
+      "property": "border-color",
+      "selector": ".outlined"
+    },
+    "--border-focus": {
+      "property": "inset box-shadow / outline-color",
+      "selector": ".filled[aria-pressed='true'], :focus-visible"
+    },
+    "--color-black-200": {
+      "property": "background-color",
+      "selector": ".categoryToggle:hover"
+    },
+    "--radius-full": {
+      "property": "border-radius",
+      "selector": ".chip"
+    }
+  },
+  "accessibility": {
+    "role": "button / radio group / checkbox group supplied by consumer",
+    "wcagLevel": "AA",
+    "tapTargetMin": 36,
+    "keyboardNav": ["tab", "shift+tab", "space", "enter", "arrow keys"],
+    "ariaPattern": "toggle button trigger with RadioGroup or Checkbox controls in popup",
+    "notes": "Provide accessible labels for chip groups and popup menus."
+  },
+  "dependencies": {
+    "runtime": ["react", "@base-ui/react"],
+    "peer": ["@base-ui/react"],
+    "devOnly": ["@storybook/react-vite", "storybook"]
+  },
+  "usageRef": "./usage.md",
+  "examples": ["./examples.tsx#FilterChipExample"]
+}

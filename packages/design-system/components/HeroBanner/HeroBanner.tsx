@@ -44,6 +44,40 @@ function getPageMetrics(rail: HTMLDivElement) {
   };
 }
 
+function getActiveSurfaceColor(rail: HTMLDivElement) {
+  const railRect = rail.getBoundingClientRect();
+  const activeItem = Array.from(rail.children)
+    .filter(
+      (item): item is HTMLElement =>
+        item instanceof HTMLElement &&
+        getComputedStyle(item).display !== "none",
+    )
+    .reduce<HTMLElement | undefined>((mostVisible, item) => {
+      if (!mostVisible) return item;
+      const itemRect = item.getBoundingClientRect();
+      const mostVisibleRect = mostVisible.getBoundingClientRect();
+      const visibleWidth = Math.max(
+        0,
+        Math.min(itemRect.right, railRect.right) -
+          Math.max(itemRect.left, railRect.left),
+      );
+      const mostVisibleWidth = Math.max(
+        0,
+        Math.min(mostVisibleRect.right, railRect.right) -
+          Math.max(mostVisibleRect.left, railRect.left),
+      );
+      return visibleWidth > mostVisibleWidth ? item : mostVisible;
+    }, undefined);
+  const card = activeItem?.querySelector<HTMLElement>(
+    '[data-slot="hero-banner-item"]',
+  );
+  const copy = card?.querySelector<HTMLElement>(
+    '[data-slot="hero-banner-copy"]',
+  );
+  const surface = copy?.parentElement ?? card;
+  return surface ? getComputedStyle(surface).backgroundColor : undefined;
+}
+
 type BorrowedSurface = { imageSrc?: string; color?: string };
 
 /**
@@ -240,10 +274,12 @@ export function HeroBanner({
   dividerVariant = "gray",
   autoAdvance = true,
   autoAdvanceInterval = 5,
+  onActiveSurfaceColorChange,
   className,
   ...rest
 }: HeroBannerProps) {
   const borrowedBackgrounds = useBorrowedBackgrounds(items);
+  const rootRef = useRef<HTMLElement>(null);
   const railRef = useRef<HTMLDivElement>(null);
   const tailOrder = useTailSlotOrder(items, railRef);
   /* Looping rides with auto-advance: a rail that moves on its own has to have
@@ -278,6 +314,18 @@ export function HeroBanner({
     });
   }, [items.length, looping]);
 
+  const syncActiveSurfaceColor = useCallback(() => {
+    const rail = railRef.current;
+    if (!rail || !onActiveSurfaceColorChange) return;
+    const color = getActiveSurfaceColor(rail);
+    if (color) onActiveSurfaceColorChange(color);
+  }, [onActiveSurfaceColorChange]);
+
+  const handleRailScroll = useCallback(() => {
+    updateRailState();
+    syncActiveSurfaceColor();
+  }, [syncActiveSurfaceColor, updateRailState]);
+
   useEffect(() => {
     updateRailState();
     const rail = railRef.current;
@@ -286,6 +334,21 @@ export function HeroBanner({
     observer.observe(rail);
     return () => observer.disconnect();
   }, [items.length, updateRailState]);
+
+  useEffect(() => {
+    const rail = railRef.current;
+    if (!rail || !onActiveSurfaceColorChange) return;
+
+    syncActiveSurfaceColor();
+
+    const observer = new MutationObserver(syncActiveSurfaceColor);
+    observer.observe(rail, {
+      attributes: true,
+      attributeFilter: ["style"],
+      subtree: true,
+    });
+    return () => observer.disconnect();
+  }, [onActiveSurfaceColorChange, syncActiveSurfaceColor]);
 
   /* One banner per press, matching the auto-advance and the "N / 7" the
    * counter shows. Paging a whole view instead would step the counter by
@@ -321,8 +384,9 @@ export function HeroBanner({
    *
    * Paused while the pointer is over the rail or something inside holds
    * focus, so it cannot move out from under a reader or a keyboard user, and
-   * left off entirely for reduced motion — an auto-advancing carousel is
-   * exactly the moving content that setting asks to stop. */
+   * while the banner or browser tab is not visible, so the timer does no work
+   * off screen. Left off entirely for reduced motion — an auto-advancing
+   * carousel is exactly the moving content that setting asks to stop. */
   const advanceOneCard = useCallback(() => {
     const rail = railRef.current;
     if (!rail) return;
@@ -358,8 +422,9 @@ export function HeroBanner({
     const setWidth = itemStep * items.length;
     if (setWidth > 0 && rail.scrollLeft >= setWidth) {
       rail.scrollLeft -= setWidth;
+      syncActiveSurfaceColor();
     }
-  }, [looping, items.length]);
+  }, [looping, items.length, syncActiveSurfaceColor]);
 
   useEffect(() => {
     const rail = railRef.current;
@@ -382,42 +447,75 @@ export function HeroBanner({
 
   useEffect(() => {
     if (!autoAdvance || items.length <= 1) return;
+    const root = rootRef.current;
     const rail = railRef.current;
-    if (!rail) return;
+    if (!root || !rail) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    let paused = false;
+    let timer: number | undefined;
+    let pausedByInteraction = false;
+    const supportsViewportObservation =
+      typeof IntersectionObserver !== "undefined";
+    let inViewport = !supportsViewportObservation;
+
+    const stopTimer = () => {
+      window.clearInterval(timer);
+      timer = undefined;
+    };
+    const startTimer = () => {
+      if (timer !== undefined) return;
+      timer = window.setInterval(() => {
+        if (!pausedByInteraction && inViewport && !document.hidden) {
+          advanceOneCard();
+        }
+      }, autoAdvanceInterval * 1000);
+    };
+    const syncTimer = () => {
+      if (pausedByInteraction || !inViewport || document.hidden) {
+        stopTimer();
+      } else {
+        startTimer();
+      }
+    };
     const pause = () => {
-      paused = true;
+      pausedByInteraction = true;
+      syncTimer();
     };
     const resume = () => {
-      paused = false;
+      pausedByInteraction = false;
+      syncTimer();
     };
 
     rail.addEventListener("pointerenter", pause);
     rail.addEventListener("pointerleave", resume);
     rail.addEventListener("focusin", pause);
     rail.addEventListener("focusout", resume);
+    document.addEventListener("visibilitychange", syncTimer);
 
-    const timer = window.setInterval(() => {
-      // A hidden tab keeps firing timers but cannot animate; advancing there
-      // would queue up jumps that all land at once on return.
-      if (paused || document.hidden) return;
-      advanceOneCard();
-    }, autoAdvanceInterval * 1000);
+    const observer = supportsViewportObservation
+      ? new IntersectionObserver(([entry]) => {
+            inViewport = entry?.isIntersecting ?? false;
+            syncTimer();
+          })
+      : undefined;
+    observer?.observe(root);
+    syncTimer();
 
     return () => {
-      window.clearInterval(timer);
+      stopTimer();
+      observer?.disconnect();
       rail.removeEventListener("pointerenter", pause);
       rail.removeEventListener("pointerleave", resume);
       rail.removeEventListener("focusin", pause);
       rail.removeEventListener("focusout", resume);
+      document.removeEventListener("visibilitychange", syncTimer);
     };
   }, [autoAdvance, autoAdvanceInterval, advanceOneCard, items.length]);
 
   return (
     <section
       {...rest}
+      ref={rootRef}
       className={cx(styles.root, className)}
       data-slot="hero-banner"
       data-divider-position={dividerPosition}
@@ -430,7 +528,7 @@ export function HeroBanner({
         data-slot="hero-banner-list"
         role="list"
         tabIndex={0}
-        onScroll={updateRailState}
+        onScroll={handleRailScroll}
       >
         {items.map((item, index) => (
           <div

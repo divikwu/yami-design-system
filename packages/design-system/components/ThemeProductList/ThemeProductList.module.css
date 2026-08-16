@@ -1,5 +1,3 @@
-/* yami-validate-disable: no-gradient */
-
 .content,
 .link {
   display: block;
@@ -8,8 +6,6 @@
 }
 
 .content {
-  --theme-product-list-surface-color: rgb(0 0 0);
-
   position: relative;
   min-height: calc(
     var(--theme-product-card-width, 152px) + var(--space-600) +
@@ -54,31 +50,6 @@
   opacity: 1;
 }
 
-.scrim {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background: linear-gradient(
-    to bottom,
-    transparent 20%,
-    color-mix(
-        in srgb,
-        var(--theme-product-list-surface-color) 80%,
-        transparent
-      )
-      50%
-  );
-  -webkit-backdrop-filter: blur(16px);
-  backdrop-filter: blur(16px);
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    transparent 45%,
-    black 100%
-  );
-  mask-image: linear-gradient(to bottom, transparent 45%, black 100%);
-}
-
 .overlay {
   position: absolute;
   right: 0;
@@ -88,9 +59,14 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-050);
+  overflow: hidden;
   justify-content: flex-end;
-  min-height: 120px;
   padding: var(--space-400) var(--space-200) var(--space-200);
+}
+
+.overlay > :not([data-adaptive-image-scrim]) {
+  position: relative;
+  z-index: 1;
 }
 
 .title,
@@ -121,12 +97,24 @@
 
 @media (max-width: 1023px) {
   .content {
-    min-height: calc(152px + var(--space-600) + var(--space-600));
+    min-height: 160px;
+  }
+
+  .content[data-foreground="dark"] {
+    color: var(--color-white-1000);
   }
 
   .overlay {
-    min-height: 112px;
-    padding: var(--space-300) var(--space-100) var(--space-100);
+    top: 0;
+    padding: var(--space-500) var(--space-100) var(--space-100);
+  }
+
+  .overlay [data-adaptive-image-scrim] {
+    background: var(--color-black-400);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    -webkit-mask-image: none;
+    mask-image: none;
   }
 
   .title {

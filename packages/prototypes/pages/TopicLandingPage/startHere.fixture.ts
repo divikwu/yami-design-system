@@ -711,7 +711,8 @@ export function createStartHereProps(locale: Locale): ThemeProductListProps {
   const firstTheme = themes[0];
 
   return {
-    title: locale === "zh" ? "从这里开始" : "Start here",
+    title:
+      locale === "zh" ? "打造你的 ANUA 护肤流程" : "Build Your Anua Routine",
     content: firstTheme.content,
     products: firstTheme.products,
     themes,

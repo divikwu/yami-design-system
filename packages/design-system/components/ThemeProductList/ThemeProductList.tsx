@@ -3,6 +3,7 @@
 import type { CSSProperties } from "react";
 import { useState } from "react";
 
+import { AdaptiveImageScrim } from "../AdaptiveImageScrim";
 import { heroBannerPalette } from "../HeroBanner/imageColor";
 import { useImageBottomColor } from "../HeroBanner/useImageBottomColor";
 import { ProductList } from "../ProductList";
@@ -32,7 +33,7 @@ function ThemeProductListContentPanel({
   const palette = heroBannerPalette(imageColor);
   const style = palette.surfaceColor
     ? ({
-        "--theme-product-list-surface-color": palette.surfaceColor,
+        "--adaptive-image-scrim-surface-color": palette.surfaceColor,
       } as CSSProperties)
     : undefined;
   const panel = (
@@ -52,12 +53,8 @@ function ThemeProductListContentPanel({
         onLoad={handleProgressiveImageLoad}
         onError={handleProgressiveImageError}
       />
-      <div
-        className={styles.scrim}
-        data-slot="theme-product-list-scrim"
-        aria-hidden="true"
-      />
       <div className={styles.overlay} data-slot="theme-product-list-overlay">
+        <AdaptiveImageScrim data-slot="theme-product-list-scrim" />
         <h3 className={styles.title}>{title}</h3>
         <p className={styles.description}>{description}</p>
       </div>
