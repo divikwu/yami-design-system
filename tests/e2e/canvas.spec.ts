@@ -49,10 +49,31 @@ test("renders Ecommerce Home and routes iframe links through parent history", as
   const backButton = page.getByRole("button", { name: "返回上一步" });
   await expect(backButton).toHaveCount(0);
   await expect(page.locator(".path-readout")).toHaveCSS("border-left-color", "rgb(34, 34, 34)");
-  await expect(page.getByRole("button", { name: "导入 AI 方案", exact: true })).toHaveCSS("background-color", "rgb(34, 34, 34)");
-  await workbenchSelect(page, "设计方案").click();
-  await expect(page.getByRole("option")).toHaveCount(1);
-  await page.keyboard.press("Escape");
+  const importButton = page.locator(".canvas-header").getByRole("button", { name: "导入", exact: true });
+  await expect(importButton).toBeVisible();
+  const storybookLink = page.getByRole("link", { name: "Storybook ↗", exact: true });
+  const controlStyles = async (locator: typeof importButton) => locator.evaluate((element) => {
+    const styles = getComputedStyle(element);
+    return {
+      height: styles.height,
+      padding: styles.padding,
+      border: styles.border,
+      borderRadius: styles.borderRadius,
+      background: styles.backgroundColor,
+      color: styles.color,
+      fontSize: styles.fontSize,
+      fontWeight: styles.fontWeight,
+      lineHeight: styles.lineHeight,
+    };
+  });
+  expect(await controlStyles(storybookLink)).toEqual(await controlStyles(importButton));
+  await expect(page.locator(".control-panel").getByRole("button", { name: "导入", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "导入 AI 方案", exact: true })).toHaveCount(0);
+  await expect(page.getByText("AI 设计工作流", { exact: true })).toHaveCount(0);
+  await expect(workbenchSelect(page, "设计方案")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "导出" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "重命名" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "删除" })).toHaveCount(0);
   const preview = page.frameLocator('iframe[title="YAMI 原型预览"]');
   await expect(preview.getByRole("heading", { name: "热销榜单" })).toBeVisible();
   await preview.getByRole("link", { name: /护肤精华露/ }).click();
@@ -69,9 +90,9 @@ test("renders accessible workbench controls and switches device by keyboard", as
   await page.goto("/workbench?path=%2F&direction=current&locale=en&theme=light&viewport=360");
   await expect(page).toHaveURL(/viewport=402/);
   await expect(page.getByText("402 PX · LIGHT · EN")).toBeVisible();
+  await expect(page.locator(".canvas-header").getByRole("button", { name: "导入", exact: true })).toBeVisible();
 
   await expectWorkbenchSelectValue(page, "页面", "/");
-  await expectWorkbenchSelectValue(page, "设计方案", "current");
   await expectWorkbenchSelectValue(page, "语言", "en");
   await expectWorkbenchSelectValue(page, "主题", "light");
   await expect(workbenchSelect(page, "页面")).toHaveCSS("height", "36px");
@@ -87,19 +108,20 @@ test("renders accessible workbench controls and switches device by keyboard", as
   await expect(page.getByRole("option", { name: "Ecommerce Home", exact: true })).toHaveCSS("min-height", "32px");
   await expect(page.getByRole("option", { name: "Ecommerce Home", exact: true })).toHaveCSS("border-radius", "0px");
   await page.keyboard.press("Escape");
+  await workbenchSelect(page, "页面").focus();
   await page.keyboard.press("Tab");
-  await expect(workbenchSelect(page, "设计方案")).toBeFocused();
-  await expect(workbenchSelect(page, "设计方案")).toHaveCSS("outline-width", "2px");
+  await expect(workbenchSelect(page, "语言")).toBeFocused();
+  await expect(workbenchSelect(page, "语言")).toHaveCSS("outline-width", "2px");
 
   const fieldLabels = page.locator('[data-slot="workbench-field-label"]');
-  await expect(fieldLabels).toHaveCount(5);
+  await expect(fieldLabels).toHaveCount(4);
   for (const fieldLabel of await fieldLabels.all()) {
     await expect(fieldLabel).toHaveCSS("font-size", "12px");
     await expect(fieldLabel).toHaveCSS("line-height", "16px");
   }
 
   const selectIcons = page.locator('[data-slot="workbench-select-icon"]');
-  await expect(selectIcons).toHaveCount(4);
+  await expect(selectIcons).toHaveCount(3);
   const selectBounds = await workbenchSelect(page, "页面").boundingBox();
   const iconBounds = await selectIcons.first().boundingBox();
   expect(selectBounds).not.toBeNull();
@@ -142,17 +164,6 @@ test("renders accessible workbench controls and switches device by keyboard", as
   await desktop.click();
   await expect(desktop).toBeChecked();
   await expect(page).toHaveURL(/viewport=1440/);
-
-  const exportButton = page.getByRole("button", { name: "导出" });
-  await expect(exportButton).toBeDisabled();
-  await expect(page.getByRole("button", { name: "重命名" })).toBeDisabled();
-  await expect(page.getByRole("button", { name: "删除" })).toBeDisabled();
-  await expect(exportButton).toHaveCSS("height", "32px");
-  await expect(exportButton).toHaveCSS("border-radius", "0px");
-  await expect(exportButton).toHaveCSS("opacity", "1");
-  const importAiButton = page.getByRole("button", { name: "导入 AI 方案", exact: true });
-  await expect(importAiButton).toHaveCSS("height", "36px");
-  await expect(importAiButton).toHaveCSS("border-radius", "0px");
 
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
@@ -197,20 +208,14 @@ test("scopes Ecommerce Home direction colors to Ecommerce Home", async ({ page }
   await expect(shortcutSurface).toHaveCSS("background-color", "rgb(245, 245, 245)");
 });
 
-test("switches direction without losing path, locale, theme or viewport", async ({ page }) => {
+test("preserves a legacy direction deep link without exposing direction controls", async ({ page }) => {
   await seedTestDirection(page);
-  await page.goto("/workbench?path=%2F&direction=current&locale=zh&theme=dark&viewport=402");
-  await chooseWorkbenchOption(page, "设计方案", "Test Direction");
+  await page.goto("/workbench?path=%2F&direction=test-direction&locale=zh&theme=dark&viewport=402");
   await expect(page).toHaveURL(/direction=test-direction/);
   await expect(page).toHaveURL(/theme=dark/);
   await expect(page).toHaveURL(/viewport=402/);
   await expect(page.frameLocator('iframe[title="YAMI 原型预览"]').getByRole("heading", { name: "Test Selection" })).toBeVisible();
-
-  await chooseWorkbenchOption(page, "设计方案", "当前方案");
-  await chooseWorkbenchOption(page, "设计方案", "Test Direction");
-  await expectWorkbenchSelectValue(page, "设计方案", "test-direction");
-  await expect(page).toHaveURL(/direction=test-direction/);
-  await expect(page).toHaveURL(/theme=dark/);
+  await expect(workbenchSelect(page, "设计方案")).toHaveCount(0);
 });
 
 test("routes cart, category, account and search destinations into prototype shells", async ({ page }) => {
@@ -277,55 +282,44 @@ test("rejects rogue and unknown messages while rapid iframe navigation settles s
   await expectCanvasPath(page, "/");
 });
 
-test("migrates drafts from the former yami-canvas storage key", async ({ page }) => {
-  const draft = {
-    schemaVersion: 1,
-    id: "legacy-review",
-    name: "Legacy Review",
-    extends: "current",
-    pages: { home: {} },
-  };
-  await page.addInitScript((legacyDraft) => {
-    if (window.top === window) {
-      localStorage.setItem("yami-canvas:drafts:v1", JSON.stringify([legacyDraft]));
-    }
-  }, draft);
+test("imports a page from the Storybook page index", async ({ page }) => {
+  await page.route("http://localhost:6006/index.json", (route) => route.fulfill({
+    contentType: "application/json",
+    headers: { "Access-Control-Allow-Origin": "*" },
+    body: JSON.stringify({
+      v: 5,
+      entries: {
+        "yami-pages-ecommerce-home--pc": { id: "yami-pages-ecommerce-home--pc", type: "story", title: "YAMI/Pages/Ecommerce Home", name: "PC" },
+        "yami-pages-ecommerce-home--mobile": { id: "yami-pages-ecommerce-home--mobile", type: "story", title: "YAMI/Pages/Ecommerce Home", name: "Mobile" },
+        "yami-pages-topic-landing-page-topic--pc": { id: "yami-pages-topic-landing-page-topic--pc", type: "story", title: "YAMI/Pages/Topic Landing Page/Topic", name: "Topic — PC" },
+        "yami-components-button--primary": { id: "yami-components-button--primary", type: "story", title: "YAMI/Components/Button", name: "Primary" },
+      },
+    }),
+  }));
+  await page.route("http://localhost:6006/iframe.html*", (route) => route.fulfill({
+    contentType: "text/html",
+    body: "<!doctype html><html><body><main><h1>Imported Topic Page</h1></main></body></html>",
+  }));
 
-  await page.goto("/workbench?path=%2F&direction=legacy-review&locale=en&theme=light&viewport=1440");
-  await expectWorkbenchSelectValue(page, "设计方案", "legacy-review");
-  await expect.poll(() => page.evaluate(() => localStorage.getItem("yami-design-system:drafts:v1"))).toContain("legacy-review");
-  await expect.poll(() => page.evaluate(() => localStorage.getItem("yami-canvas:drafts:v1"))).toBeNull();
-});
+  await page.goto("/workbench?path=%2F&direction=current&locale=en&theme=light&viewport=402");
+  await page.getByRole("button", { name: "导入", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "从 Storybook 导入页面" });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole("button", { name: "Ecommerce Home", exact: true })).toHaveCount(1);
+  await expect(dialog.getByRole("button", { name: "Topic Landing Page / Topic", exact: true })).toHaveCount(1);
+  await expect(dialog.getByText("YAMI/Components/Button", { exact: true })).toHaveCount(0);
 
-test("imports, exports, renames and deletes a validated local direction", async ({ page }) => {
-  await page.goto("/workbench?path=%2F&direction=current&locale=en&theme=dark&viewport=768");
-  const manifest = {
-    schemaVersion: 1,
-    id: "team-review",
-    name: "Team Review",
-    extends: "current",
-    pages: { home: { sections: [{ id: "trending-products", kind: "products", props: { title: "Team Selection" } }] } },
-  };
-  await page.locator('input[type="file"]').setInputFiles({ name: "team-review.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(manifest)) });
-  await expectWorkbenchSelectValue(page, "设计方案", "team-review");
-  await expect(page.frameLocator('iframe[title="YAMI 原型预览"]').getByRole("heading", { name: "Team Selection" })).toBeVisible();
-  await expect.poll(() => page.evaluate(() => localStorage.getItem("yami-design-system:drafts:v1"))).toContain("team-review");
+  await dialog.getByRole("button", { name: "Topic Landing Page / Topic", exact: true }).click();
+  await expect(dialog).not.toBeVisible();
+  await expect.poll(() => new URL(page.url()).searchParams.get("story")).toBe("yami-pages-topic-landing-page-topic--pc");
+  await expect.poll(() => new URL(page.url()).searchParams.get("path")).toBeNull();
+  await expectWorkbenchSelectValue(page, "页面", "storybook:yami-pages-topic-landing-page-topic--pc");
+  await expect(page.getByText("yami-pages-topic-landing-page-topic--pc", { exact: true })).toBeVisible();
+  await expect(page.frameLocator('iframe[title="YAMI 原型预览"]').getByRole("heading", { name: "Imported Topic Page" })).toBeVisible();
 
-  const downloadPromise = page.waitForEvent("download");
-  await page.getByRole("button", { name: "导出" }).click();
-  expect((await downloadPromise).suggestedFilename()).toBe("team-review.json");
-
-  page.once("dialog", (dialog) => dialog.accept("Team Approved"));
-  await page.getByRole("button", { name: "重命名" }).click();
-  await expect(workbenchSelect(page, "设计方案")).toContainText("Team Approved");
-
-  await page.getByRole("button", { name: "删除" }).click();
-  await expectWorkbenchSelectValue(page, "设计方案", "current");
-  await expect.poll(() => page.evaluate(() => localStorage.getItem("yami-design-system:drafts:v1"))).toBe("[]");
-
-  await page.locator('input[type="file"]').setInputFiles({ name: "invalid.json", mimeType: "application/json", buffer: Buffer.from('{"schemaVersion":1}') });
-  await expect(page.getByRole("status")).toHaveText("JSON 不符合 Direction Manifest V1");
-  await expectWorkbenchSelectValue(page, "设计方案", "current");
+  await chooseWorkbenchOption(page, "页面", "Ecommerce Home");
+  await expectCanvasPath(page, "/");
+  await expect.poll(() => new URL(page.url()).searchParams.get("story")).toBeNull();
 });
 
 test("uses the complete iframe state on first render and after deep-link refresh", async ({ page }) => {

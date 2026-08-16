@@ -2,7 +2,9 @@
 
 import { Select } from "@base-ui/react/select";
 import {
+  type AnchorHTMLAttributes,
   type ButtonHTMLAttributes,
+  type InputHTMLAttributes,
   type ReactNode,
   useId,
 } from "react";
@@ -17,6 +19,35 @@ export interface WorkbenchSelectOption {
   value: string;
   label: ReactNode;
   disabled?: boolean;
+}
+
+export interface WorkbenchTextFieldProps
+  extends InputHTMLAttributes<HTMLInputElement> {
+  label: ReactNode;
+}
+
+export function WorkbenchTextField({
+  label,
+  id,
+  className,
+  ...props
+}: WorkbenchTextFieldProps) {
+  const generatedId = useId();
+  const inputId = id ?? generatedId;
+  const inputClassName = [styles.textInput, className].filter(Boolean).join(" ");
+
+  return (
+    <div className={styles.field}>
+      <label
+        className={styles.label}
+        data-slot="workbench-field-label"
+        htmlFor={inputId}
+      >
+        {label}
+      </label>
+      <input {...props} id={inputId} className={inputClassName} />
+    </div>
+  );
 }
 
 export interface WorkbenchSelectProps {
@@ -118,6 +149,24 @@ export function WorkbenchButton({
     .join(" ");
 
   return <button {...props} type={type} className={buttonClassName} />;
+}
+
+export interface WorkbenchLinkProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
+  variant?: WorkbenchButtonVariant;
+  size?: WorkbenchButtonSize;
+}
+
+export function WorkbenchLink({
+  variant = "secondary",
+  size = "compact",
+  className,
+  ...props
+}: WorkbenchLinkProps) {
+  const linkClassName = [styles.button, styles[variant], styles[size], className]
+    .filter(Boolean)
+    .join(" ");
+
+  return <a {...props} className={linkClassName} />;
 }
 
 export interface SegmentedOption {

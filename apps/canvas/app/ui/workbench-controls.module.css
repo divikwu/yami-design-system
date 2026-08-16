@@ -11,6 +11,47 @@
   line-height: 16px;
 }
 
+.textInput {
+  width: 100%;
+  height: 36px;
+  min-width: 0;
+  margin: 0;
+  padding: 0 10px;
+  border: 1px solid var(--border-default);
+  border-radius: 0;
+  outline: 0;
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: var(--font-size-caption-md);
+  line-height: var(--line-height-caption-md);
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.textInput::placeholder {
+  color: var(--text-disabled);
+}
+
+.textInput:hover:not(:disabled) {
+  border-color: var(--text-secondary);
+  background: var(--surface-secondary);
+}
+
+.textInput:focus-visible {
+  position: relative;
+  z-index: 1;
+  border-color: var(--text-secondary);
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+.textInput:disabled {
+  border-color: var(--button-disabled);
+  background: var(--button-disabled);
+  color: var(--text-disabled);
+  cursor: not-allowed;
+}
+
 .selectTrigger {
   display: flex;
   width: 100%;

@@ -99,7 +99,7 @@
       "sourceSha256": "3b2f5b6f4971c5e6849952bc489d67f852ec61629a2cf3c5ae58edf9570e3458",
       "disposition": "migrated",
       "destination": "packages/design-system/assets/icons/README.md",
-      "destinationSha256": "3b2f5b6f4971c5e6849952bc489d67f852ec61629a2cf3c5ae58edf9570e3458"
+      "destinationSha256": "b8de4cdf235518c3c2bc7ea122eb521210754fd8c96501aa7d8a8da3d267aeba"
     },
     {
       "source": "assets/icons/action/arrow-left.svg",
