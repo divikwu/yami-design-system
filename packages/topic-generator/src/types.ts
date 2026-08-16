@@ -1,3 +1,4 @@
+/** Public contracts shared by the TOPIC GENERATOR product, CLI, and UI hosts. */
 export const YAMI_SITE = "us" as const;
 export const PRODUCT_SELECTION_STRATEGIES = ["relevance", "category-role"] as const;
 export const CONTENT_LANGUAGES = ["en", "zh"] as const;
@@ -9,6 +10,34 @@ export type ContentLanguage = (typeof CONTENT_LANGUAGES)[number];
 export type PlanStatus = "ready" | "degraded" | "blocked";
 export type ProductPool = "primary" | "related";
 export type ProductRole = "core" | "pairing" | "accessory";
+export type ThemeType = "brand" | "product" | "activity" | "uncertain";
+export type ThemeEntityType = "brand" | "category" | "attribute" | "scenario" | "unknown";
+export type ShoppingIntent = "browse-brand" | "find-product" | "assemble-scenario" | "clarify";
+
+export interface ThemeIntentCategory {
+  id: string;
+  label: string;
+  path: string[];
+  evidenceCount: number;
+}
+
+export interface ThemeIntent {
+  source: "catalog-evidence" | "search-fallback";
+  themeType: ThemeType;
+  catalogDomain: string;
+  attributeSchemaVersion: "catalog-v1";
+  entityType: ThemeEntityType;
+  canonicalEntity: { id: string; label: string } | null;
+  shoppingIntent: ShoppingIntent;
+  shoppingGoal: string;
+  needs: string[];
+  mustInclude: string[];
+  mustExclude: string[];
+  searchTerms: string[];
+  categories: ThemeIntentCategory[];
+  reason: string;
+  confidence: number;
+}
 
 export interface YamiProduct {
   id: string;
@@ -18,6 +47,43 @@ export interface YamiProduct {
   imageUrl: string;
   productUrl: string;
   sourceRank: number;
+  brandId?: number;
+  categoryL1Id?: number;
+  categoryL2Id?: number;
+  categoryL3Id?: number;
+  categoryL1Name?: string;
+  categoryL2Name?: string;
+  categoryL3Name?: string;
+  soldCount?: number;
+  rating?: number;
+}
+
+export interface CatalogBrandEvidence {
+  id: string;
+  label: string;
+  aliases: string[];
+  resultCount: number;
+}
+
+export interface CatalogCategoryEvidence {
+  id: string;
+  label: string;
+  aliases: string[];
+  path: string[];
+  resultCount: number;
+  productCount: number;
+}
+
+export interface CatalogAttributeEvidence {
+  id: string;
+  label: string;
+  aliases: string[];
+}
+
+export interface CatalogEvidence {
+  brands: CatalogBrandEvidence[];
+  categories: CatalogCategoryEvidence[];
+  attributes: CatalogAttributeEvidence[];
 }
 
 export interface YamiSearchSnapshot {
@@ -26,6 +92,9 @@ export interface YamiSearchSnapshot {
   sourceUrl: string;
   fetchedAt: string;
   products: YamiProduct[];
+  provider?: "yami-catalog-search" | "yami-web-search";
+  evidence?: CatalogEvidence;
+  intent?: ThemeIntent;
 }
 
 export interface TopicProduct extends YamiProduct {
@@ -47,7 +116,7 @@ export interface TopicCategorySelection {
   id: string;
   label: string;
   role: ProductRole;
-  source: "inferred-product-type";
+  source: "catalog-category" | "inferred-product-type";
   productIds: string[];
   reason: string;
 }
@@ -89,9 +158,10 @@ export interface TopicPagePlan {
   };
   status: PlanStatus;
   statusReason: string;
+  intent: ThemeIntent;
   generatedAt: string;
   source: {
-    provider: "yami-web-search";
+    provider: "yami-catalog-search" | "yami-web-search";
     searchUrl: string;
     note: string;
   };

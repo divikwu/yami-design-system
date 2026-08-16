@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { TopicGenerator } from "./topic-generator-client";
+import {
+  TopicGenerator,
+  topicGeneratorMetadata,
+} from "@yami/topic-generator/web";
 
-export const metadata: Metadata = {
-  title: "Topic Page Generator · Yami Design System",
-  description: "Search Yami products and assemble an explainable Topic Landing Page plan.",
-};
+export const metadata: Metadata = topicGeneratorMetadata;
 
 export default function TopicGeneratorPage() {
   return <TopicGenerator />;

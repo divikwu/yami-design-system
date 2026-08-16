@@ -24,17 +24,19 @@ import type {
   TopicPagePlan,
   TopicPlanMatrix,
   TopicProduct,
-} from "@/app/lib/topic-generator/types";
+} from "../src/types";
 import {
   SegmentedControl,
   WorkbenchButton,
   WorkbenchLink,
   WorkbenchSelect,
   WorkbenchTextField,
-} from "@/app/ui/workbench-controls";
+} from "./workbench-controls";
+import { TopicAnalysisView } from "./topic-analysis-view";
+import { themeIntentDisplayCopy } from "./theme-intent-copy";
 import styles from "./topic-generator.module.css";
 
-type ResultView = "preview" | "pools" | "workflow" | "rules";
+type ResultView = "preview" | "pools" | "workflow" | "analysis" | "rules";
 type WorkflowMode = "diagram" | "details";
 
 interface GeneratorError {
@@ -425,8 +427,17 @@ function PoolsView({ plan }: { plan: TopicPagePlan }) {
   );
 }
 
-function WorkflowView({ language }: { language: ContentLanguage }) {
+function WorkflowView({
+  language,
+  plan,
+}: {
+  language: ContentLanguage;
+  plan: TopicPagePlan | null;
+}) {
   const isChinese = language === "zh";
+  const displayIntent = plan
+    ? themeIntentDisplayCopy(plan.intent, plan.keyword, language)
+    : null;
   const [workflowMode, setWorkflowMode] = useState<WorkflowMode>("diagram");
   const intentHelpDialog = useRef<HTMLDialogElement>(null);
   const steps = [
@@ -462,10 +473,10 @@ function WorkflowView({ language }: { language: ContentLanguage }) {
       actionGroups: isChinese
         ? [
             {
-              title: "AI 理解主题与购物意图",
+              title: "目录证据驱动的主题理解",
               items: [
-                "解析主题实体、修饰条件、购物目标和场景",
-                "生成候选 ThemeIntent",
+                "读取商品接口返回的品牌、分类、标签与可售商品",
+                "解析主题实体、修饰条件、购物目标和场景并生成 ThemeIntent",
                 "此阶段不直接选择商品",
               ],
             },
@@ -481,10 +492,10 @@ function WorkflowView({ language }: { language: ContentLanguage }) {
           ]
         : [
             {
-              title: "AI interprets the topic and shopping intent",
+              title: "Catalog-evidenced topic interpretation",
               items: [
-                "Parse the topic entity, modifiers, shopping goal, and scenarios",
-                "Create a candidate ThemeIntent",
+                "Read brands, categories, tags, and available products from the catalog interface",
+                "Interpret the entity, modifiers, shopping goal, and scenarios as ThemeIntent",
                 "Do not select products at this stage",
               ],
             },
@@ -804,7 +815,7 @@ function WorkflowView({ language }: { language: ContentLanguage }) {
             <div>
               <span>{isChinese ? "步骤 02 · 解析规则说明" : "Step 02 · Interpretation rules"}</span>
               <h3 id="intent-help-title">
-                {isChinese ? "AI 如何理解主题词与购物意图" : "How AI interprets the topic and shopping intent"}
+                {isChinese ? "AI 如何理解主题词与购物意图" : "How AI and the system interpret the topic and shopping intent"}
               </h3>
             </div>
             <button
@@ -819,52 +830,199 @@ function WorkflowView({ language }: { language: ContentLanguage }) {
           <div className={styles.intentHelpBody}>
             <p id="intent-help-description" className={styles.intentHelpIntro}>
               {isChinese
-                ? "这里展示可审阅的结构化解析规则，不展示模型的隐藏思考过程，也不会在尚未执行时伪造本次解析结果。"
-                : "This shows reviewable structured interpretation rules, not hidden model reasoning or fabricated results before a run."}
+                ? "当前实现把语义建议与商品事实分开：Codex 或 Kiro 产品 Agent 只为歧义主题词提交可选 SemanticProposal；CatalogSnapshot 记录 Yami 目录证据；TopicIntent Module 逐字段接受或拒绝提案。Canvas Web 默认不运行模型，也不需要模型密钥。"
+                : "The implementation separates semantic suggestions from product facts: a Codex or Kiro product Agent may submit an optional SemanticProposal only for ambiguous topics; CatalogSnapshot records Yami evidence; the TopicIntent Module accepts or rejects proposal fields. Canvas Web runs no model and needs no model key by default."}
             </p>
             <section className={styles.intentHelpSection}>
               <span>01</span>
-              <h4>{isChinese ? "读取生成配置" : "Read generation settings"}</h4>
+              <h4>{isChinese ? "输入" : "Input"}</h4>
               <ul>
-                <li>{isChinese ? "主题输入：theme_keyword 与 raw_keyword" : "Topic input: theme_keyword and raw_keyword"}</li>
-                <li>{isChinese ? "销售站点：固定为美国站 site=us" : "Sales site: fixed to site=us"}</li>
-                <li>{isChinese ? "运行配置：内容语言、选品策略与证据边界" : "Run settings: content language, selection strategy, and evidence boundary"}</li>
+                <li>{isChinese ? "读取用户关键词；当前只去除首尾空格，并校验长度为 2–80 个字符。" : "Read the user's keyword; currently only trim surrounding whitespace and validate a length of 2–80 characters."}</li>
+                <li>{isChinese ? "销售站点固定为美国站 site=us；当前运行不推断 locale 或 currency。" : "Fix the sales site to site=us; the current run does not infer locale or currency."}</li>
+                <li>{isChinese ? "先调用结构化目录 Adapter 读取 brandAgg、categoryAgg、tagAgg 与可售商品；失败后才使用公开搜索 Adapter，并保存每次尝试。" : "Try the structured catalog Adapter for brandAgg, categoryAgg, tagAgg, and available products first; use the public-search Adapter only after failure and retain every attempt."}</li>
+                <li>{isChinese ? "Codex/Kiro CLI 可为歧义词附加 semantic-proposal/v1；Web 默认不附加 Agent 提案。" : "Codex/Kiro CLI may attach semantic-proposal/v1 for an ambiguous phrase; Web attaches no Agent proposal by default."}</li>
               </ul>
             </section>
             <section className={styles.intentHelpSection}>
               <span>02</span>
-              <h4>{isChinese ? "生成候选 ThemeIntent" : "Create a candidate ThemeIntent"}</h4>
+              <h4>{isChinese ? "处理" : "Process"}</h4>
               <dl className={styles.intentHelpFields}>
                 <div>
-                  <dt>{isChinese ? "主题实体" : "Topic entity"}</dt>
-                  <dd>{isChinese ? "用户要找的品牌、商品或活动" : "The brand, product, or activity the user seeks"}</dd>
+                  <dt>
+                    <span>01</span>
+                  </dt>
+                  <dd>
+                    <p><strong>{isChinese ? "识别核心实体与修饰条件" : "Identify the core entity and modifiers"}</strong></p>
+                    <ul>
+                      <li>{isChinese ? "品牌实体：关键词精确命中 brandAgg 的中英文品牌名。" : "Brand entity: the keyword exactly matches a Chinese or English brand name in brandAgg."}</li>
+                      <li>{isChinese ? "品类实体：关键词精确命中 categoryAgg 的真实目录节点；否则使用可售商品覆盖最多的三级分类作为候选。" : "Category entity: the keyword exactly matches a real categoryAgg node; otherwise use the level-three category covering the most available products."}</li>
+                      <li>{isChinese ? "属性与场景：属性必须命中 tagAgg；收纳、补给、节日、季节等场景词按可审阅词表识别。当前 catalog-v1 尚不验证配料、营养、尺寸等商品详情字段。" : "Attributes and scenarios: attributes must match tagAgg; storage, restock, occasion, and season terms use a reviewable vocabulary. catalog-v1 does not yet verify ingredient, nutrition, or dimension details."}</li>
+                    </ul>
+                  </dd>
                 </div>
                 <div>
-                  <dt>{isChinese ? "修饰条件" : "Modifiers"}</dt>
-                  <dd>{isChinese ? "功效、口味、材质、规格或适用对象" : "Benefits, flavor, material, size, or intended user"}</dd>
+                  <dt>
+                    <span>02</span>
+                  </dt>
+                  <dd>
+                    <p>
+                      <strong>{isChinese ? "理解购物意图：" : "Interpret shopping intent: "}</strong>
+                      {isChinese ? "把关键词补全为可执行的购物目标，重点回答三个维度：" : "Complete the keyword as an actionable shopping goal across three dimensions:"}
+                    </p>
+                    <ul>
+                      <li>{isChinese ? "系统先生成目录规则基线：brand 浏览品牌商品，product 寻找品类或属性商品，activity 围绕场景组合多个真实分类。" : "The system first builds a catalog-rule baseline: brand browses brand products, product finds category or attribute products, and activity assembles multiple real categories around a scenario."}</li>
+                      <li>{isChinese ? "只有基线仍有歧义时，Agent 才可建议场景解释；提案必须由多个目录分类支撑，且不能覆盖精确品牌或品类。" : "Only when the baseline remains ambiguous may the Agent suggest a scenario interpretation; multiple catalog categories must support it, and it cannot override an exact brand or category."}</li>
+                      <li>{isChinese ? "每个提案字段会记录为 accepted、partially-accepted 或 rejected；最终只保留一个主实体。" : "Each proposal field is recorded as accepted, partially accepted, or rejected; the final intent keeps one primary entity."}</li>
+                      <li>{isChinese ? "confidence 由证据类型决定：精确目录命中高于标签或场景命中，网页回退最低。" : "Confidence follows evidence quality: exact catalog matches rank above tag or scenario matches, while web fallback is lowest."}</li>
+                    </ul>
+                  </dd>
                 </div>
                 <div>
-                  <dt>{isChinese ? "购物目标" : "Shopping goal"}</dt>
-                  <dd>{isChinese ? "浏览品牌、寻找商品、搭配购买或解决需求" : "Browse a brand, find a product, pair purchases, or solve a need"}</dd>
+                  <dt>
+                    <span>03</span>
+                  </dt>
+                  <dd>
+                    <p><strong>{isChinese ? "形成商品检索约束" : "Build product retrieval constraints"}</strong></p>
+                    <ul>
+                      <li>{isChinese ? "must_include：保留规范品牌、品类、原关键词或已命中的目录标签；当前版本不自动生成 must_exclude。" : "must_include retains the canonical brand, category, original keyword, or matched catalog tags; the current version does not generate must_exclude automatically."}</li>
+                      <li>{isChinese ? "search_terms：由原关键词、规范实体、标签和候选分类组成；当前版本不凭空生成别名。" : "search_terms combines the original keyword, canonical entity, tags, and candidate categories; the current version does not invent aliases."}</li>
+                      <li>{isChinese ? "两阶段检索：先宽搜形成 CatalogSnapshot 证据，再用候选分类 ID 重搜商品；第二次检索失败时保留首轮快照，之后才解析 ThemeIntent。" : "Two-stage retrieval: broad search first forms CatalogSnapshot evidence, then candidate category IDs narrow the product search; the first snapshot remains usable if narrowing fails, and ThemeIntent is resolved afterward."}</li>
+                      <li>{isChinese ? "Schema 版本固定为 catalog-v1；需要商品详情属性后再升级版本。" : "The schema version is catalog-v1; upgrade it when product-detail attributes are available."}</li>
+                    </ul>
+                  </dd>
                 </div>
                 <div>
-                  <dt>{isChinese ? "使用场景" : "Scenario"}</dt>
-                  <dd>{isChinese ? "使用时机、空间、节日、流程或人群" : "Timing, space, occasion, routine, or audience"}</dd>
-                </div>
-                <div>
-                  <dt>{isChinese ? "主题类型" : "Topic type"}</dt>
-                  <dd>brand / product / activity</dd>
+                  <dt>
+                    <span>04</span>
+                  </dt>
+                  <dd>
+                    <p>
+                      <strong>{isChinese ? "映射主题类型：" : "Map the topic type: "}</strong>
+                      {isChinese ? "按主题语义映射为以下类型：" : "Map the topic semantics to one of these types:"}
+                    </p>
+                    <ul>
+                      <li><code>brand</code>{isChinese ? "：围绕一个品牌浏览商品。" : ": browse products around one brand."}</li>
+                      <li><code>product</code>{isChinese ? "：寻找或比较具体商品、品类或领域属性。" : ": find or compare a specific product, category, or domain attribute."}</li>
+                      <li><code>activity</code>{isChinese ? "：围绕节日、季节或场景组合商品。" : ": assemble products around an occasion, season, or scenario."}</li>
+                      <li>{isChinese ? "说明：成分、功效、口味、材质、尺寸、规格等都属于领域属性，不新增主题类型，通常路由到 product。" : "Note: ingredients, benefits, flavor, material, dimensions, and size are domain attributes rather than new topic types, and usually map to product."}</li>
+                    </ul>
+                  </dd>
                 </div>
               </dl>
             </section>
+            <section className={styles.intentHelpSection}>
+              <span>03</span>
+              <h4>{isChinese ? "主题理解示例" : "Topic interpretation examples"}</h4>
+              <div className={styles.intentHelpExamples}>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>{isChinese ? "主题词" : "Topic"}</th>
+                      <th>{isChinese ? "实体与修饰条件" : "Entity and modifiers"}</th>
+                      <th>{isChinese ? "购物意图" : "Shopping intent"}</th>
+                      <th>{isChinese ? "检索约束" : "Search constraints"}</th>
+                      <th>{isChinese ? "主题类型" : "Topic type"}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><strong>ANUA</strong></td>
+                      <td>{isChinese ? "品牌实体" : "Brand entity"}</td>
+                      <td>{isChinese ? "浏览并购买 ANUA 的代表商品" : "Browse and buy representative ANUA products"}</td>
+                      <td>{isChinese ? "必须属于 ANUA；召回核心系列与代表商品" : "Must belong to ANUA; recall core lines and representative products"}</td>
+                      <td><code>brand</code></td>
+                    </tr>
+                    <tr>
+                      <td><strong>{isChinese ? "鱼腥草爽肤水" : "Heartleaf toner"}</strong></td>
+                      <td>{isChinese ? "成分 + 品类" : "Ingredient + category"}</td>
+                      <td>{isChinese ? "在最强目录分类中寻找匹配鱼腥草爽肤水关键词的商品" : "Find products matching the heartleaf toner keyword in the strongest catalog category"}</td>
+                      <td>{isChinese ? "保留原关键词与真实分类；当前不把标题中的鱼腥草当作已验证成分" : "Keep the original keyword and real category; do not treat heartleaf in a title as a verified ingredient"}</td>
+                      <td><code>product</code></td>
+                    </tr>
+                    <tr>
+                      <td><strong>{isChinese ? "无糖抹茶零食" : "Sugar-free matcha snacks"}</strong></td>
+                      <td>{isChinese ? "食品口味 + 营养限制" : "Food flavor + dietary constraint"}</td>
+                      <td>{isChinese ? "寻找同时命中 Sugar Free 与 Matcha 目录标签的零食" : "Find snacks matching both Sugar Free and Matcha catalog tags"}</td>
+                      <td>{isChinese ? "使用 tagAgg 与真实分类作为证据；配料、糖分和过敏原仍需商品详情接口" : "Use tagAgg and real categories as evidence; ingredients, sugar, and allergens still require product-detail data"}</td>
+                      <td><code>product</code></td>
+                    </tr>
+                    <tr>
+                      <td><strong>{isChinese ? "小户型厨房收纳" : "Small-kitchen organization"}</strong></td>
+                      <td>{isChinese ? "家居空间 + 使用场景" : "Home space + usage scenario"}</td>
+                      <td>{isChinese ? "组合宽搜结果覆盖的厨房收纳真实分类" : "Assemble real kitchen-storage categories covered by broad search"}</td>
+                      <td>{isChinese ? "按候选分类 ID 二次检索；尺寸、材质与承重尚未验证" : "Requery by candidate category IDs; dimensions, materials, and load capacity remain unverified"}</td>
+                      <td><code>activity</code></td>
+                    </tr>
+                    <tr>
+                      <td><strong>{isChinese ? "洗衣日用补给" : "Laundry restock"}</strong></td>
+                      <td>{isChinese ? "日用功能 + 补给场景" : "Daily function + restock scenario"}</td>
+                      <td>{isChinese ? "按补给场景组织当前检索覆盖的洗衣相关分类" : "Organize laundry-related categories covered by the current search as a restock scenario"}</td>
+                      <td>{isChinese ? "按真实分类二次检索；功能、规格与香型仍需商品详情证据" : "Requery real categories; function, size, and scent still require product-detail evidence"}</td>
+                      <td><code>activity</code></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+            <section className={styles.intentHelpSection}>
+              <span>04</span>
+              <h4>{isChinese ? "输出 ThemeIntent" : "Output ThemeIntent"}</h4>
+              <ul>
+                <li><strong>{isChinese ? "主题分类：" : "Topic classification: "}</strong>theme_type、catalog_domain、attribute_schema_version</li>
+                <li><strong>{isChinese ? "规范化实体：" : "Canonical entity: "}</strong>entity_type、canonical_entity</li>
+                <li><strong>{isChinese ? "购物意图：" : "Shopping intent: "}</strong>shopping_intent、shopping_goal、needs</li>
+                <li><strong>{isChinese ? "检索约束：" : "Search constraints: "}</strong>must_include、must_exclude、search_terms</li>
+                <li><strong>{isChinese ? "判断说明：" : "Decision explanation: "}</strong>reason、confidence</li>
+                <li>
+                  <strong>{isChinese ? "运行审计：" : "Run review: "}</strong>
+                  {isChinese
+                    ? "Adapter attempts、proposalReview；CLI 可选输出带 SHA-256 的 Run Artifacts"
+                    : "Adapter attempts, proposalReview; the CLI can optionally output SHA-256 Run Artifacts"}
+                </li>
+              </ul>
+            </section>
             <div className={styles.intentHelpOutput}>
-              <span>{isChinese ? "输出" : "Output"}</span>
-              <strong>ThemeIntent</strong>
-              <p>
-                {isChinese
-                  ? "当前入口仅说明通用解析规则；接入真实 ThemeIntent 后，再展示本次主题实体、购物意图、检索约束与证据摘要。"
-                  : "This entry currently explains the generic interpretation rules. Once real ThemeIntent data is connected, it can show the run-specific topic entity, shopping intent, search constraints, and evidence summary."}
-              </p>
+              <span>{isChinese ? "当前实现状态" : "Current implementation"}</span>
+              <strong>
+                {plan
+                  ? `${plan.intent.themeType} · ${plan.intent.canonicalEntity?.label ?? (isChinese ? "待确认实体" : "Unresolved entity")}`
+                  : isChinese ? "等待生成本次 ThemeIntent" : "Waiting to generate this run's ThemeIntent"}
+              </strong>
+              {plan ? (
+                <>
+                  <p>{displayIntent?.shoppingGoal}</p>
+                  <ul>
+                    <li>
+                      {isChinese ? "证据来源：" : "Evidence source: "}
+                      {plan.intent.source === "catalog-evidence"
+                        ? isChinese ? "Yami 商品目录接口" : "Yami catalog interface"
+                        : isChinese ? "公开搜索页回退" : "Public search fallback"}
+                    </li>
+                    <li>
+                      {isChinese ? "规范实体：" : "Canonical entity: "}
+                      {plan.intent.entityType} · {plan.intent.canonicalEntity?.id ?? "—"}
+                    </li>
+                    <li>
+                      {isChinese ? "必须包含：" : "Must include: "}
+                      {plan.intent.mustInclude.join("、") || "—"}
+                    </li>
+                    <li>
+                      {isChinese ? "候选分类：" : "Candidate categories: "}
+                      {plan.intent.categories.map((category) => category.label).join("、") || "—"}
+                    </li>
+                    <li>
+                      {isChinese ? "判断依据：" : "Reason: "}
+                      {displayIntent?.reason} · {Math.round(plan.intent.confidence * 100)}%
+                    </li>
+                  </ul>
+                </>
+              ) : (
+                <p>
+                  {isChinese
+                    ? "生成页面后，这里会展示本次真实主题实体、购物目标、检索约束、目录分类与判断依据。"
+                    : "After generation, this area shows the run's entity, shopping goal, retrieval constraints, catalog categories, and evidence."}
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -876,6 +1034,38 @@ function WorkflowView({ language }: { language: ContentLanguage }) {
 function RulesView({ plan }: { plan: TopicPagePlan }) {
   return (
     <div className={styles.rulesView}>
+      <section>
+        <header className={styles.viewHeading}>
+          <div><span>02 · ThemeIntent</span><h3>{plan.intent.canonicalEntity?.label ?? plan.keyword}</h3></div>
+          <p>{plan.intent.shoppingGoal}</p>
+        </header>
+        <div className={styles.decisionList}>
+          <article>
+            <span className={styles.decisionIndex}>01</span>
+            <div>
+              <strong>{plan.language === "zh" ? "主题与购物意图" : "Topic and shopping intent"}</strong>
+              <p>{plan.intent.themeType} · {plan.intent.entityType} · {plan.intent.shoppingIntent}</p>
+            </div>
+            <span className={styles.isVisible}>{Math.round(plan.intent.confidence * 100)}%</span>
+          </article>
+          <article>
+            <span className={styles.decisionIndex}>02</span>
+            <div>
+              <strong>{plan.language === "zh" ? "检索约束" : "Retrieval constraints"}</strong>
+              <p>{plan.intent.mustInclude.join(" · ") || plan.intent.searchTerms.join(" · ")}</p>
+            </div>
+            <span className={styles.isVisible}>{plan.intent.source}</span>
+          </article>
+          <article>
+            <span className={styles.decisionIndex}>03</span>
+            <div>
+              <strong>{plan.language === "zh" ? "目录证据" : "Catalog evidence"}</strong>
+              <p>{plan.intent.categories.map((category) => `${category.label} (${category.evidenceCount})`).join(" · ") || plan.intent.reason}</p>
+            </div>
+            <span className={styles.isVisible}>{plan.intent.catalogDomain}</span>
+          </article>
+        </div>
+      </section>
       {plan.selectionStrategy.id === "category-role" && (
         <section>
           <header className={styles.viewHeading}>
@@ -885,8 +1075,12 @@ function RulesView({ plan }: { plan: TopicPagePlan }) {
             </div>
             <p>
               {plan.language === "zh"
-                ? "由当前商品快照推断；目标配比为 5 core / 3 pairing / 2 accessory。"
-                : "Inferred from the current product snapshot against a 5:3:2 role target."}
+                ? plan.selectedCategories.some((category) => category.source === "catalog-category")
+                  ? "使用 Yami 真实商品目录分类；目标配比为 5 core / 3 pairing / 2 accessory。"
+                  : "由当前商品快照推断；目标配比为 5 core / 3 pairing / 2 accessory。"
+                : plan.selectedCategories.some((category) => category.source === "catalog-category")
+                  ? "Uses real Yami catalog categories against a 5:3:2 role target."
+                  : "Inferred from the current product snapshot against a 5:3:2 role target."}
             </p>
           </header>
           <div className={styles.decisionList}>
@@ -989,16 +1183,15 @@ export function TopicGenerator() {
   }
 
   return (
-    <main className={`canvas-shell ${styles.generatorShell}`}>
-      <header className="canvas-header">
-        <div className="brand-lockup">
-          <strong>PROTOTYPE</strong>
-          <span className={styles.headerContext}>/ TOPIC GENERATOR</span>
+    <main className={styles.generatorShell}>
+      <header className={styles.generatorHeader}>
+        <div className={styles.brandLockup}>
+          <strong>TOPIC GENERATOR</strong>
         </div>
       </header>
 
-      <section className="canvas-grid">
-        <aside className={`control-panel ${styles.generatorControls}`}>
+      <section className={styles.generatorGrid}>
+        <aside className={styles.generatorControls}>
           <form onSubmit={generate} className={styles.generatorForm}>
             <div
               className={styles.keywordControl}
@@ -1071,7 +1264,7 @@ export function TopicGenerator() {
             </WorkbenchButton>
           </form>
 
-          <div className="path-readout">
+          <div className={styles.pathReadout}>
             <span>当前运行</span>
             <code>
               {loading
@@ -1084,10 +1277,10 @@ export function TopicGenerator() {
 
         </aside>
 
-        <section className="preview-stage" aria-label="Topic 页面生成预览区">
-          <div className="stage-bar">
+        <section className={styles.previewStage} aria-label="Topic 页面生成预览区">
+          <div className={styles.stageBar}>
             <nav className={styles.stageViews} aria-label="生成结果视图">
-              {(["workflow", "preview", "pools", "rules"] as const).map((tab) => (
+              {(["workflow", "analysis", "preview", "pools", "rules"] as const).map((tab) => (
                 <button
                   key={tab}
                   type="button"
@@ -1097,31 +1290,35 @@ export function TopicGenerator() {
                 >
                   {tab === "workflow"
                     ? "自动化流程"
-                    : tab === "preview"
-                      ? "页面预览"
-                      : tab === "pools"
-                        ? "商品池"
-                        : "规则与 QA"}
+                    : tab === "analysis"
+                      ? "主题词分析"
+                      : tab === "preview"
+                        ? "页面预览"
+                        : tab === "pools"
+                          ? "商品池"
+                          : "规则与 QA"}
                 </button>
               ))}
             </nav>
-            <span className="stage-meta">
+            <span className={styles.stageMeta}>
               {plan
                 ? `${plan.language.toUpperCase()} · ${plan.selectionStrategy.label.toUpperCase()} · ${plan.status.toUpperCase()}`
                 : `1440 PX · LIGHT · ${language.toUpperCase()}`}
             </span>
           </div>
 
-          <div className={`device-mat ${styles.generatorMat}`}>
+          <div className={`${styles.deviceMat} ${styles.generatorMat}`}>
             <div
-              className={`preview-frame-wrap ${styles.generatorFrame}`}
+              className={`${styles.previewFrameWrap} ${styles.generatorFrame}`}
               style={{ width: "min(100%, 1440px)" }}
             >
               <div className={styles.frameViewport}>
                 {view === "workflow" ? (
                   <div className={`${styles.resultBody} ${styles.workflowResultBody}`}>
-                    <WorkflowView language={language} />
+                    <WorkflowView language={language} plan={plan} />
                   </div>
+                ) : view === "analysis" && plan && !loading ? (
+                  <TopicAnalysisView plan={plan} />
                 ) : loading ? (
                   <LoadingState keyword={keyword.trim()} language={language} />
                 ) : error ? (

@@ -1,8 +1,10 @@
 import type {
   YamiProduct,
   YamiSearchSnapshot,
-} from "./types";
-import { YAMI_SITE } from "./types";
+} from "./types.js";
+import { YAMI_SITE } from "./types.js";
+
+/** Public search fallback used when structured catalog evidence is unavailable. */
 
 const YAMI_ORIGIN = "https://www.yami.com";
 const MAX_PRODUCTS = 30;
@@ -186,5 +188,6 @@ export async function searchYamiProducts(
     sourceUrl,
     fetchedAt: new Date().toISOString(),
     products,
+    provider: "yami-web-search",
   };
 }

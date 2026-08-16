@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "semantic-proposal/v1",
+  "themeType": "activity",
+  "entityType": "scenario",
+  "canonicalEntity": {
+    "label": "movie night"
+  },
+  "shoppingIntent": "assemble-scenario",
+  "needs": [
+    "Popcorn",
+    "Soft Drinks"
+  ],
+  "mustInclude": [
+    "movie night"
+  ],
+  "mustExclude": [],
+  "searchTerms": [
+    "movie night",
+    "Popcorn",
+    "Soft Drinks"
+  ]
+}
