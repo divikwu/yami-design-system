@@ -29,7 +29,7 @@ jobs:
           - check: package-boundaries
             command: pnpm check:boundaries
           - check: build
-            command: pnpm --filter @yami/canvas build
+            command: pnpm --filter @yami/topic-generator-app build && pnpm --filter @yami/canvas build
           - check: storybook
             command: pnpm --filter @yami/storybook build
           - check: storybook-interactions

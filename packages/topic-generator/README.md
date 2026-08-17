@@ -1,12 +1,12 @@
 # TOPIC GENERATOR
 
-TOPIC GENERATOR 是一个从购物主题词生成可审阅 `ThemeIntent` 与 Topic 页面计划的独立产品包。核心、CLI、Web、测试、文档与 Agent 集成都以本目录为唯一可编辑源；Canvas 目前仅托管 `/topic-generator` 路由和目录查询入口。
+TOPIC GENERATOR 是一个从购物主题词生成可审阅 `ThemeIntent` 与 Topic 页面计划的独立产品。`packages/topic-generator` 是可复用核心，`apps/topic-generator` 是独立 Web 与 HTTP 宿主；Canvas 不参与它的运行时。
 
 ## 当前产品边界
 
 ```text
 Codex / Kiro product Agent ── optional SemanticProposal ─┐
-CLI / Web / Canvas ──────────────────────────────────────┼─> TopicIntent Module
+CLI / standalone Web Host ───────────────────────────────┼─> TopicIntent Module
                                                         │         │
 Yami structured Adapter ──┐                              │         ├─> PagePlan
 Yami public-search Adapter ├─> CatalogSnapshot Seam ─────┘         └─> Run Artifacts
@@ -17,9 +17,10 @@ test / future Adapter ─────┘
 - CLI：`topic-generator`，输出可被其他项目消费的 `theme-intent/v2` JSON；可接收 Agent 提案并显式保存运行产物。
 - Eval：`topic-intent-eval`，用稳定的语义期望对比实时 Yami 目录分析，不复制或冻结商品库存。
 - Web：`web`，提供可被 Next.js 宿主加载的产品界面。
+- Host：`apps/topic-generator`，独立暴露 `/` 与 `/api/topic-generator`，默认端口 3300。
 - Codex：`integrations/codex/topic-intent`，根目录以发现链接暴露该 Skill。
 - Kiro：`integrations/kiro/topic-generator.json`，根目录以发现链接暴露该 Agent。
-- Canvas：只保留页面和 API 两个兼容入口，不保存产品实现。
+- Canvas：独立的设计系统与原型产品，不依赖 Topic Generator 包。
 
 ## 运行
 
@@ -30,10 +31,10 @@ pnpm topic-generator:analyze -- --keyword "movie night" \
   --proposal ./proposal.json \
   --output ./topic-generator-runs \
   --pretty
-pnpm dev
+pnpm dev:topic-generator
 ```
 
-Web 页面：`http://127.0.0.1:3200/topic-generator`
+Web 页面：`http://127.0.0.1:3300/`
 
 ## 实现原则
 
@@ -54,10 +55,9 @@ Web 页面：`http://127.0.0.1:3200/topic-generator`
 
 ## 独立打包路线
 
-本目录已具备 `pnpm pack --dry-run` 可审阅边界。若后续需要单独发送完整 Web 应用，按以下顺序继续，避免形成两个实现：
+当前 Web 运行时已经独立于 Canvas。若后续需要发送到工作区之外，继续完成两项分发工作即可：
 
-1. 新建独立宿主 App，只消费 `@yami/topic-generator` 的公开入口。
-2. 将包的 `private` 改为 `false`，补齐许可证与发布元数据。
-3. 为新站点实现 `CatalogSnapshotAdapter`，复用现有 TopicIntent 与 PagePlan Modules。
+1. 将核心包的 `private` 改为 `false`，补齐许可证与发布元数据。
+2. 为独立 App 增加目标环境的部署配置与访问控制。
 
-`product.manifest.json` 记录当前可迁移状态；`canvas-hosted` 表示产品 UI 已独立、但完整 Web 运行时仍由 Canvas 提供。
+`product.manifest.json` 记录当前可迁移状态；`standalone-host` 表示完整 Web 运行时由 `apps/topic-generator` 提供。

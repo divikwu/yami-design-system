@@ -10,11 +10,12 @@
     "packageManager": "pnpm@11.20.0"
   },
   "entrypoints": {
-    "web": "/topic-generator",
+    "web": "/",
     "api": "/api/topic-generator",
     "cli": "topic-generator",
     "evaluationCli": "topic-intent-eval",
-    "package": "@yami/topic-generator"
+    "package": "@yami/topic-generator",
+    "webHostPackage": "@yami/topic-generator-app"
   },
   "integrations": {
     "codexSkill": "integrations/codex/topic-intent/SKILL.md",
@@ -50,7 +51,7 @@
     "skill": "ready",
     "kiroAgent": "ready",
     "webSource": "ready",
-    "webRuntime": "canvas-hosted",
+    "webRuntime": "standalone-host",
     "archive": "not-built"
   }
 }

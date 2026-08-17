@@ -2,7 +2,8 @@
 
 ## Status
 
-Accepted by the repository owner on 2026-08-17.
+Accepted by the repository owner on 2026-08-17. The Canvas-host clause was
+superseded by ADR 005 on 2026-08-17.
 
 ## Context
 

@@ -3,7 +3,9 @@ import path from "node:path";
 import process from "node:process";
 
 const root = process.cwd();
+const ignoredDirectories = new Set([".next", "coverage", "dist", "node_modules"]);
 const rules = [
+  { dir: "apps/canvas", forbidden: ["@yami/topic-generator"] },
   { dir: "packages/design-system", forbidden: ["@yami/contracts", "@yami/prototypes", "next/", "motion/", "zod", "@design-labs/", "@astryxdesign/"] },
   { dir: "packages/contracts", forbidden: ["@yami/design-system", "@yami/prototypes", "next/", "motion/", "react", "@design-labs/", "@astryxdesign/"] },
   { dir: "packages/prototypes", forbidden: ["next/", "motion/", "@design-labs/", "@astryxdesign/"] }
@@ -11,7 +13,9 @@ const rules = [
 
 async function files(dir) {
   const entries = await fs.readdir(dir, { withFileTypes: true });
-  const values = await Promise.all(entries.map((entry) => entry.isDirectory() ? files(path.join(dir, entry.name)) : /\.(ts|tsx|js|mjs)$/.test(entry.name) ? [path.join(dir, entry.name)] : []));
+  const values = await Promise.all(entries.map((entry) => entry.isDirectory()
+    ? ignoredDirectories.has(entry.name) ? [] : files(path.join(dir, entry.name))
+    : /\.(ts|tsx|js|mjs)$/.test(entry.name) ? [path.join(dir, entry.name)] : []));
   return values.flat();
 }
 
