@@ -4,14 +4,19 @@ import type {
   ProductSelectionStrategy,
   TopicCategorySelection,
   TopicGroup,
+  TopicGenerationMode,
   TopicModulePlan,
   TopicPagePlan,
   TopicPlanMatrix,
   TopicPlanVariants,
   TopicProduct,
+  ThemeIntent,
   YamiProduct,
   YamiSearchSnapshot,
-} from "./types";
+} from "./types.js";
+import { buildSearchFallbackIntent } from "./yami-catalog.js";
+
+/** Compile verified intent evidence into reviewable page-plan variants. */
 
 const PRIMARY_LIMIT = 18;
 const RELATED_LIMIT = 6;
@@ -44,12 +49,23 @@ const STRATEGY_META: Record<
 
 const PRODUCT_TYPE_LABELS_ZH: Record<string, string> = {
   "Noodles & Meals": "面食与即食",
+  "Instant Noodles & Self-heating HotPot": "方便面与自热火锅",
+  "Instant Noodles & Ramen & Cup Noodles & Tteokbokki": "方便面、拉面、杯面与年糕",
+  "Dry Noodle & Vermicelli": "干面与粉丝",
+  "Spicy Rice Noodles": "辣味米粉",
+  "Chips, Rice Crackers, Noodle Snack": "薯片、米饼与面食零食",
   Cleansers: "洁面",
+  "Cleanser & Exfoliators": "洁面与去角质",
   Toners: "爽肤水",
+  "Toning Pads": "爽肤棉",
   "Serums & Essences": "精华与精粹",
+  "Serums & Value Sets": "精华与套装",
   Moisturizers: "面霜与保湿",
+  "Lotions & Creams": "乳液与面霜",
   "Sun Care": "防晒护理",
+  Sunscreen: "防晒",
   Masks: "面膜",
+  "Sheet Masks": "片状面膜",
   Makeup: "彩妆",
   "Hair & Body": "洗护与身体护理",
   Snacks: "零食",
@@ -147,6 +163,7 @@ function keywordNamesBrand(products: YamiProduct[], keyword: string) {
 }
 
 function deriveProductType(product: YamiProduct) {
+  if (product.categoryL3Name) return product.categoryL3Name;
   const title = normalized(product.title);
   return (
     PRODUCT_TYPE_RULES.find((rule) =>
@@ -215,7 +232,11 @@ function selectionReason(
   return `${roleLabel}${language === "zh" ? "分类" : " category"} · ${productType} · ${reason}`;
 }
 
-function buildCategoryRoleMap(products: YamiProduct[], keyword: string) {
+function buildCategoryRoleMap(
+  products: YamiProduct[],
+  keyword: string,
+  intent?: ThemeIntent,
+) {
   const productsByType = new Map<string, YamiProduct[]>();
 
   products.forEach((product) => {
@@ -242,9 +263,14 @@ function buildCategoryRoleMap(products: YamiProduct[], keyword: string) {
     const hasTitleMatch = group.some((product) =>
       productTitleMatchesTopic(product, keyword),
     );
+    const isCanonicalCategory = intent?.entityType === "category" &&
+      intent.canonicalEntity !== null &&
+      group.some((product) => String(product.categoryL3Id) === intent.canonicalEntity?.id);
     roles.set(
       productType,
-      hasKnownTopicType && productType === topicProductType
+      isCanonicalCategory
+        ? "core"
+        : hasKnownTopicType && productType === topicProductType
         ? "core"
         : ACCESSORY_PRODUCT_TYPES.has(productType)
           ? "accessory"
@@ -271,7 +297,19 @@ function categorySelectionReason(
   products: YamiProduct[],
   keyword: string,
   language: ContentLanguage,
+  intent?: ThemeIntent,
 ) {
+  const isCanonicalCategory = intent?.entityType === "category" &&
+    intent.canonicalEntity !== null &&
+    products.some((product) =>
+      deriveProductType(product) === productType &&
+      String(product.categoryL3Id) === intent.canonicalEntity?.id
+    );
+  if (isCanonicalCategory) {
+    return language === "zh"
+      ? "主题实体已由商品目录精确验证为此分类。"
+      : "The topic entity is verified as this exact catalog category.";
+  }
   const topicProductType = deriveProductType({
     id: "topic",
     title: keyword,
@@ -492,11 +530,12 @@ function createModules(
     : primary;
   const brand = dominantBrand(primary, keyword);
   const zh = language === "zh";
+  const usesCatalogCategories = primary.some((product) => product.categoryL3Name);
 
   return [
     {
       id: "hero",
-      label: zh ? "主题 Hero" : "Theme Hero",
+      label: zh ? "主题主视觉" : "Theme Hero",
       heading: `${zh ? "探索" : "Explore"} ${displayKeyword(keyword)}`,
       description: zh
         ? "一个主题命题，由 3 张真实商品图提供证据。"
@@ -507,7 +546,7 @@ function createModules(
       reason: zh
         ? usesRoles
           ? "使用最多 3 件核心角色商品；不生成虚构包装。"
-          : "使用 PrimaryPool 前 3 件商品；不生成虚构包装。"
+          : "使用主商品池前 3 件商品；不生成虚构包装。"
         : usesRoles
           ? "Uses up to three core-role products; no synthetic packaging."
           : "Uses the first three products from PrimaryPool; no synthetic packaging.",
@@ -517,8 +556,12 @@ function createModules(
       label: zh ? "精选分类" : "Featured Categories",
       heading: zh ? "按类型选购" : "Shop by type",
       description: zh
-        ? "依据商品标题规则生成轻量分类入口。"
-        : "Product-title rules create lightweight category shortcuts.",
+        ? usesCatalogCategories
+          ? "依据 Yami 真实商品目录生成分类入口。"
+          : "依据商品标题规则生成轻量分类入口。"
+        : usesCatalogCategories
+          ? "Yami catalog categories create the category shortcuts."
+          : "Product-title rules create lightweight category shortcuts.",
       required: true,
       visible: shortcutGroups.length > 1,
       productIds: groupRepresentatives,
@@ -581,7 +624,7 @@ function createModules(
       reason: zh
         ? usesRoles
           ? "只使用核心角色商品，并保留各角色内的 Yami 原始顺序。"
-          : "按 Yami 原始结果顺序使用最多 8 件 PrimaryPool 商品。"
+          : "按 Yami 原始结果顺序使用最多 8 件主商品池商品。"
         : usesRoles
           ? "Uses core-role products only and preserves Yami order within the role."
           : "Uses up to eight PrimaryPool products in original Yami result order.",
@@ -617,7 +660,7 @@ function createModules(
       visible: false,
       productIds: [],
       reason: zh
-        ? "搜索结果不提供评论证据，因此 MVP 中隐藏。"
+        ? "搜索结果不提供评论证据，因此当前版本中隐藏。"
         : "Hidden in MVP because search results do not provide review evidence.",
     },
     {
@@ -627,17 +670,21 @@ function createModules(
       description: zh
         ? usesRoles
           ? "只展示搭配和周边角色商品。"
-          : "完整 PrimaryPool，按推断的商品类型分组。"
+          : usesCatalogCategories
+            ? "完整主商品池，按 Yami 目录分类分组。"
+            : "完整主商品池，按推断的商品类型分组。"
         : usesRoles
           ? "Pairing- and accessory-role products only."
-          : "The complete PrimaryPool, grouped by inferred product type.",
+          : usesCatalogCategories
+            ? "The complete PrimaryPool, grouped by Yami catalog category."
+            : "The complete PrimaryPool, grouped by inferred product type.",
       required: true,
       visible: exploreMoreProducts.length > 0,
       productIds: exploreMoreProducts.map((product) => product.id),
       reason: zh
         ? usesRoles
-          ? "使用 PrimaryPool 中的 pairing / accessory；RelatedPool 不参与补位。"
-          : "仅包含 PrimaryPool；RelatedPool 不会填充核心模块。"
+          ? "使用主商品池中的搭配和周边商品；关联商品池不参与补位。"
+          : "仅包含主商品池；关联商品池不会填充核心模块。"
         : usesRoles
           ? "Uses pairing and accessory products from PrimaryPool; RelatedPool never fills gaps."
           : "Contains PrimaryPool only; RelatedPool never fills a core module.",
@@ -649,6 +696,7 @@ export function buildTopicPagePlan(
   snapshot: YamiSearchSnapshot,
   strategy: ProductSelectionStrategy,
   language: ContentLanguage = "en",
+  generationMode: TopicGenerationMode = "page",
 ): TopicPagePlan {
   const directProducts = snapshot.products.filter((product) => {
     const match = productMatches(product, snapshot.keyword);
@@ -659,7 +707,11 @@ export function buildTopicPagePlan(
   const eligiblePrimarySource = usesContextualFallback
     ? snapshot.products.slice(0, 12)
     : directProducts;
-  const categoryRoles = buildCategoryRoleMap(snapshot.products, snapshot.keyword);
+  const categoryRoles = buildCategoryRoleMap(
+    snapshot.products,
+    snapshot.keyword,
+    snapshot.intent,
+  );
   const selectedCategories = selectCategories(snapshot.products, categoryRoles);
   const primarySource = strategy === "category-role"
     ? selectProductsByCategory(snapshot.products, selectedCategories, PRIMARY_LIMIT)
@@ -722,7 +774,9 @@ export function buildTopicPagePlan(
           id: slug(productType),
           label: productTypeLabel(productType, language),
           role,
-          source: "inferred-product-type",
+          source: primary.some((product) =>
+            product.productType === productType && typeof product.categoryL3Id === "number"
+          ) ? "catalog-category" : "inferred-product-type",
           productIds: primary
             .filter((product) => product.productType === productType)
             .map((product) => product.id),
@@ -732,12 +786,15 @@ export function buildTopicPagePlan(
             snapshot.products,
             snapshot.keyword,
             language,
+            snapshot.intent,
           ),
         };
       })
     : [];
   const groups = buildGroups(primary);
-  const modules = createModules(primary, groups, snapshot.keyword, language, strategy);
+  const modules = generationMode === "page"
+    ? createModules(primary, groups, snapshot.keyword, language, strategy)
+    : [];
   const strategyMeta = STRATEGY_META[language][strategy];
   const siteName = language === "zh" ? "美国站" : "United States";
   const topic = displayKeyword(snapshot.keyword);
@@ -753,6 +810,16 @@ export function buildTopicPagePlan(
   ) as Record<ProductRole, number>;
   const hasInsufficientCategoryCoverage = strategy === "category-role" &&
     (categorySelections.length < 3 || categoryRoleCounts.core === 0);
+  const hasWeakIntentEvidence = Boolean(
+    snapshot.intent && (
+      snapshot.intent.confidence < 0.75 ||
+      snapshot.intent.decision.status !== "resolved" ||
+      snapshot.intent.constraints.some((constraint) => constraint.status !== "verified")
+    ),
+  );
+  const usesCatalogCategories = categorySelections.some(
+    (category) => category.source === "catalog-category",
+  );
 
   let status: TopicPagePlan["status"] = "ready";
   let statusReason = strategy === "category-role"
@@ -767,10 +834,15 @@ export function buildTopicPagePlan(
     statusReason = language === "zh"
       ? "可用商品少于 3 件，无法安全装配页面。"
       : "Fewer than three usable products were found; the page cannot be assembled safely.";
+  } else if (hasWeakIntentEvidence) {
+    status = "degraded";
+    statusReason = language === "zh"
+      ? `购物意图证据不足（${snapshot.intent?.decision.evidenceLevel === "high" ? "高" : snapshot.intent?.decision.evidenceLevel === "medium" ? "中" : "低"}证据），必须复核未验证的关键词约束。`
+      : `Shopping-intent evidence is incomplete (${snapshot.intent?.decision.evidenceLevel ?? "low"} evidence, ${snapshot.intent?.decision.status ?? "needs-review"}); unverified keyword constraints require review.`;
   } else if (hasInsufficientCategoryCoverage) {
     status = "degraded";
     statusReason = language === "zh"
-      ? `仅识别到 ${categorySelections.length} 个候选分类（${categoryRoleCounts.core} core / ${categoryRoleCounts.pairing} pairing / ${categoryRoleCounts.accessory} accessory），需要人工 Review。`
+      ? `仅识别到 ${categorySelections.length} 个候选分类（${categoryRoleCounts.core} 个核心 / ${categoryRoleCounts.pairing} 个搭配 / ${categoryRoleCounts.accessory} 个周边），需要人工复核。`
       : `Only ${categorySelections.length} candidate categories were identified (${categoryRoleCounts.core} core / ${categoryRoleCounts.pairing} pairing / ${categoryRoleCounts.accessory} accessory); manual review is required.`;
   } else if (usesContextualFallback || primary.length < 8) {
     status = "degraded";
@@ -779,7 +851,7 @@ export function buildTopicPagePlan(
         ? "标题或品牌的直接匹配不足，已将 Yami 排名前列结果作为上下文候选。"
         : "Too few literal title or brand matches; top-ranked Yami results were used as contextual candidates."
       : language === "zh"
-        ? "PrimaryPool 可用，但少于 8 件的目标数量。"
+        ? "主商品池可用，但少于 8 件的目标数量。"
         : "The PrimaryPool is usable but smaller than the eight-product target.";
   }
 
@@ -788,31 +860,44 @@ export function buildTopicPagePlan(
         "商品目录固定为 Yami 美国站；规划器不会推断站点。",
         "构建商品池前会移除不可售商品卡片。",
         "价格不在当前页面展示，也不参与过滤、相关性或模块排序。",
-        "所有可见页面模块仅使用 PrimaryPool 商品。",
-        "MVP 使用模板文案并保留来源商品图，确保商品身份不变。",
+        generationMode === "page"
+          ? "所有可见页面模块仅使用主商品池商品。"
+          : "本次仅输出商品池；未生成标题、描述、页面模块或图片装配。",
+        ...(generationMode === "page"
+          ? ["当前版本使用模板文案并保留来源商品图，确保商品身份不变。"]
+          : []),
         strategy === "relevance"
           ? "精准匹配在关键词和品牌匹配后保留 Yami 原始顺序。"
-          : `分类由当前商品快照推断；实际为 ${categoryRoleCounts.core} core / ${categoryRoleCounts.pairing} pairing / ${categoryRoleCounts.accessory} accessory，目标配比为 5:3:2。`,
+          : usesCatalogCategories
+            ? `分类来自 Yami 商品目录；实际为 ${categoryRoleCounts.core} 个核心 / ${categoryRoleCounts.pairing} 个搭配 / ${categoryRoleCounts.accessory} 个周边，目标配比为 5:3:2。`
+            : `分类由当前商品快照推断；实际为 ${categoryRoleCounts.core} core / ${categoryRoleCounts.pairing} pairing / ${categoryRoleCounts.accessory} accessory，目标配比为 5:3:2。`,
       ]
     : [
         "Catalog is fixed to Yami United States; site is never inferred by the planner.",
         "Unavailable cards are removed before pool construction.",
         "Price is not displayed and is never used for filtering, relevance, or module order.",
-        "All visible page modules use PrimaryPool products only.",
-        "Copy is template-based and source images preserve product identity in this MVP.",
+        generationMode === "page"
+          ? "All visible page modules use PrimaryPool products only."
+          : "This run stops at product pools; no title, description, page modules, or image assembly was generated.",
+        ...(generationMode === "page"
+          ? ["Copy is template-based and source images preserve product identity in this MVP."]
+          : []),
         strategy === "relevance"
           ? "Precise relevance preserves Yami order after keyword and brand matching."
-          : `Categories are inferred from the current product snapshot; actual coverage is ${categoryRoleCounts.core} core / ${categoryRoleCounts.pairing} pairing / ${categoryRoleCounts.accessory} accessory against a 5:3:2 target.`,
+          : usesCatalogCategories
+            ? `Categories come from the Yami product catalog; actual coverage is ${categoryRoleCounts.core} core / ${categoryRoleCounts.pairing} pairing / ${categoryRoleCounts.accessory} accessory against a 5:3:2 target.`
+            : `Categories are inferred from the current product snapshot; actual coverage is ${categoryRoleCounts.core} core / ${categoryRoleCounts.pairing} pairing / ${categoryRoleCounts.accessory} accessory against a 5:3:2 target.`,
       ];
   if (usesContextualFallback) {
     qualityNotes.push(
       language === "zh"
-        ? "每件商品的入选原因都会标记上下文回退，发布前需要人工 Review。"
+        ? "每件商品的入选原因都会标记上下文回退，发布前需要人工复核。"
         : "Contextual fallback is visible in each product reason and should be reviewed before publishing.",
     );
   }
 
   return {
+    generationMode,
     keyword: snapshot.keyword,
     site: snapshot.site,
     language,
@@ -822,15 +907,20 @@ export function buildTopicPagePlan(
     },
     status,
     statusReason,
+    intent: snapshot.intent ?? buildSearchFallbackIntent(snapshot.keyword, snapshot.products),
     generatedAt: snapshot.fetchedAt,
     source: {
-      provider: "yami-web-search",
+      provider: snapshot.provider ?? "yami-web-search",
       searchUrl: snapshot.sourceUrl,
-      note: language === "zh"
-        ? "数据来自 Yami 公开搜索结果第一页；目录 API 可用后替换此数据源。"
-        : "Public Yami search page, page 1. Replace this provider when the catalog API is available.",
+      note: snapshot.provider === "yami-catalog-search"
+        ? language === "zh"
+          ? "数据来自 Yami 商品目录接口；品牌、分类与商品身份保留为本次生成证据。"
+          : "Data comes from the Yami catalog interface; brand, category, and product identities are retained as run evidence."
+        : language === "zh"
+          ? "目录接口不可用，本次回退到 Yami 公开搜索结果第一页。"
+          : "The catalog interface was unavailable; this run fell back to page 1 of public Yami search.",
     },
-    content: {
+    content: generationMode === "page" ? {
       eyebrow: `${siteName} · ${language === "zh" ? "Yami 精选" : "Yami edit"}`,
       headline: `${language === "zh" ? "探索" : "Explore"} ${topic}`,
       description: language === "zh"
@@ -844,12 +934,23 @@ export function buildTopicPagePlan(
         ? groupNames
         : [language === "zh" ? "精选匹配" : "Top matches"],
       copyMode: "deterministic-template",
+    } : {
+      eyebrow: "",
+      headline: "",
+      description: "",
+      tags: [],
+      copyMode: "not-generated",
     },
-    assetStrategy: {
+    assetStrategy: generationMode === "page" ? {
       mode: "source-product-images",
       note: language === "zh"
         ? "使用经过验证的 Yami 商品图；当前明确禁用生成式图片编辑。"
         : "Uses verified product imagery from Yami; generative image editing is intentionally disabled.",
+    } : {
+      mode: "not-generated",
+      note: language === "zh"
+        ? "本次仅执行选品，未装配页面图片。"
+        : "This run only selected products; no page imagery was assembled.",
     },
     pools: {
       primaryIds: primary.map((product) => product.id),
@@ -867,27 +968,27 @@ export function buildTopicPagePlan(
           ? `${strategyMeta.label} · ${primary.length} 件主商品 · ${related.length} 件关联商品`
           : `${strategyMeta.label} · ${primary.length} primary · ${related.length} related`,
       },
-      {
+      ...(generationMode === "page" ? [{
         stage: "04",
         label: language === "zh" ? "分配页面模块" : "Assign modules",
         output: language === "zh"
           ? `${modules.filter((module) => module.visible).length} 个显示 · ${modules.filter((module) => !module.visible).length} 个隐藏`
           : `${modules.filter((module) => module.visible).length} visible · ${modules.filter((module) => !module.visible).length} hidden`,
-      },
+      } as const,
       {
         stage: "05",
         label: language === "zh" ? "生成内容" : "Compose content",
         output: language === "zh"
           ? "模板文案 · 来源商品图 · 页面预览"
           : "Template copy · source product images · page preview",
-      },
+      } as const,
       {
         stage: "06",
         label: language === "zh" ? "执行自动 QA" : "Run automatic QA",
         output: status === "ready"
           ? language === "zh" ? "等待用户 Review" : "Ready for user review"
           : statusReason,
-      },
+      } as const] : []),
     ],
     qualityNotes,
   };
@@ -896,16 +997,20 @@ export function buildTopicPagePlan(
 export function buildTopicPagePlans(
   snapshot: YamiSearchSnapshot,
   language: ContentLanguage = "en",
+  generationMode: TopicGenerationMode = "page",
 ): TopicPlanVariants {
   return {
-    relevance: buildTopicPagePlan(snapshot, "relevance", language),
-    "category-role": buildTopicPagePlan(snapshot, "category-role", language),
+    relevance: buildTopicPagePlan(snapshot, "relevance", language, generationMode),
+    "category-role": buildTopicPagePlan(snapshot, "category-role", language, generationMode),
   };
 }
 
-export function buildTopicPagePlanMatrix(snapshot: YamiSearchSnapshot): TopicPlanMatrix {
+export function buildTopicPagePlanMatrix(
+  snapshot: YamiSearchSnapshot,
+  generationMode: TopicGenerationMode = "page",
+): TopicPlanMatrix {
   return {
-    en: buildTopicPagePlans(snapshot, "en"),
-    zh: buildTopicPagePlans(snapshot, "zh"),
+    en: buildTopicPagePlans(snapshot, "en", generationMode),
+    zh: buildTopicPagePlans(snapshot, "zh", generationMode),
   };
 }

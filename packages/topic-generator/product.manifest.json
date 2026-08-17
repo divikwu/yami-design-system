@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "topic-generator-product/v1",
+  "id": "topic-generator",
+  "displayName": "TOPIC GENERATOR",
+  "version": "0.3.0",
+  "status": "workspace-product",
+  "distribution": "private-workspace",
+  "runtime": {
+    "node": "~24",
+    "packageManager": "pnpm@11.20.0"
+  },
+  "entrypoints": {
+    "web": "/topic-generator",
+    "api": "/api/topic-generator",
+    "cli": "topic-generator",
+    "evaluationCli": "topic-intent-eval",
+    "package": "@yami/topic-generator"
+  },
+  "integrations": {
+    "codexSkill": "integrations/codex/topic-intent/SKILL.md",
+    "kiroAgent": "integrations/kiro/topic-generator.json"
+  },
+  "providers": [
+    {
+      "id": "yami-catalog-search",
+      "authentication": "none",
+      "fallback": "yami-web-search"
+    },
+    {
+      "id": "yami-web-search",
+      "authentication": "none",
+      "fallback": null
+    }
+  ],
+  "contracts": {
+    "semanticProposal": "semantic-proposal/v1",
+    "themeIntent": "theme-intent/v2",
+    "catalogSnapshot": "catalog-snapshot/v1",
+    "pagePlans": "page-plans/v1",
+    "runArtifact": "topic-generator-run/v1"
+  },
+  "documents": {
+    "readme": "README.md",
+    "architecture": "docs/architecture.md",
+    "core": "docs/core.md"
+  },
+  "standaloneReadiness": {
+    "core": "ready",
+    "cli": "ready",
+    "skill": "ready",
+    "kiroAgent": "ready",
+    "webSource": "ready",
+    "webRuntime": "canvas-hosted",
+    "archive": "not-built"
+  }
+}

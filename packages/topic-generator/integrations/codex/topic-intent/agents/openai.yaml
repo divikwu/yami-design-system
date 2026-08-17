@@ -1,0 +1,6 @@
+interface:
+  display_name: "TOPIC GENERATOR"
+  short_description: "分析 Yami 购物主题词、意图与目录证据"
+  default_prompt: "Use $topic-intent to analyze this keyword and explain the conclusion with catalog evidence."
+policy:
+  allow_implicit_invocation: true

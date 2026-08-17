@@ -12,6 +12,8 @@
   "engines": { "node": "~24" },
   "scripts": {
     "dev": "pnpm --filter @yami/canvas dev",
+    "topic-generator:analyze": "pnpm --filter @yami/topic-generator analyze",
+    "topic-generator:evaluate": "pnpm --filter @yami/topic-generator evaluate",
     "dev:storybook": "pnpm --filter @yami/storybook storybook",
     "build": "pnpm check:images && pnpm check:generated && pnpm check:boundaries && pnpm -r --filter='./packages/*' --filter='./apps/*' run build",
     "typecheck": "pnpm -r --if-present run typecheck",
