@@ -937,8 +937,8 @@ function WorkflowView({
           <div className={styles.intentHelpBody}>
             <p id="intent-help-description" className={styles.intentHelpIntro}>
               {isChinese
-                ? "当前实现把语义建议与商品事实分开：Codex 或 Kiro 产品 Agent 只为歧义主题词提交可选 SemanticProposal；CatalogSnapshot 记录 Yami 目录证据；TopicIntent Module 逐字段接受或拒绝提案。Canvas Web 默认不运行模型，也不需要模型密钥。"
-                : "The implementation separates semantic suggestions from product facts: a Codex or Kiro product Agent may submit an optional SemanticProposal only for ambiguous topics; CatalogSnapshot records Yami evidence; the TopicIntent Module accepts or rejects proposal fields. Canvas Web runs no model and needs no model key by default."}
+                ? "当前实现把语义建议与商品事实分开：Codex 或 Kiro 产品 Agent 只为歧义主题词提交可选 SemanticProposal；CatalogSnapshot 记录 Yami 目录证据；TopicIntent Module 逐字段接受或拒绝提案。独立 Web Host 默认不运行模型，也不需要模型密钥。"
+                : "The implementation separates semantic suggestions from product facts: a Codex or Kiro product Agent may submit an optional SemanticProposal only for ambiguous topics; CatalogSnapshot records Yami evidence; the TopicIntent Module accepts or rejects proposal fields. The standalone Web Host runs no model and needs no model key by default."}
             </p>
             <section className={styles.intentHelpSection}>
               <span>01</span>

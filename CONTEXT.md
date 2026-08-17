@@ -46,6 +46,10 @@ _Avoid_: QA report, generated page
 A versioned file that records one stage of a run, its source references, and a content hash. A run may contain ThemeIntent, CatalogSnapshot, PagePlan, PageGenerationSpec, and ReviewPackage artifacts.
 _Avoid_: Cache, log
 
+**Topic Generator Host**:
+The standalone Web and HTTP Adapter under `apps/topic-generator`. It exposes the reusable TopicIntent and PagePlan Modules from `packages/topic-generator` without making Canvas part of their runtime.
+_Avoid_: Canvas route, TopicIntent Module
+
 ## Flagged ambiguities
 
 **AI analysis**:

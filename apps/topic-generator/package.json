@@ -1,0 +1,26 @@
+{
+  "name": "@yami/topic-generator-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "predev": "pnpm --filter @yami/topic-generator build",
+    "dev": "next dev -p 3300",
+    "prebuild": "pnpm --filter @yami/topic-generator build",
+    "build": "next build",
+    "start": "next start -p 3300",
+    "pretypecheck": "pnpm --filter @yami/topic-generator build",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@yami/design-system": "workspace:*",
+    "@yami/topic-generator": "workspace:*",
+    "next": "16.3.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
+    "typescript": "6.0.3"
+  }
+}

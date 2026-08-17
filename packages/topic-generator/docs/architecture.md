@@ -50,7 +50,7 @@ CatalogSnapshot Adapters ─> CatalogSnapshot ─> TopicIntent Module
 - No model-provider key, model SDK, or deployed model inference.
 - No direct database access or credentials.
 - No server-side draft persistence.
-- The Canvas host may expose the catalog-only HTTP handler; a public host must add rate limiting and abuse monitoring.
+- The standalone Topic Generator Host exposes the catalog-only HTTP handler; a public deployment must add rate limiting and abuse monitoring.
 - Product facts come from the CatalogSnapshot; proposal prose and confidence are never evidence.
 
 ## Reference project

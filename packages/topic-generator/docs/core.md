@@ -55,7 +55,7 @@ pnpm topic-generator:evaluate -- --limit 5 --pretty
 
 ## Runtime boundary
 
-部署应用不执行模型推理，也不读取模型 Provider Key。Codex/Kiro Agent 在外部生成可选提案，Canvas 的 HTTP handler 只调用目录 Adapter、TopicIntent 与 PagePlan Modules。详见产品内的 [`architecture.md`](architecture.md)；仓库治理决策记录在 ADR 004。
+部署应用不执行模型推理，也不读取模型 Provider Key。Codex/Kiro Agent 在外部生成可选提案，独立 Topic Generator Host 的 HTTP handler 只调用目录 Adapter、TopicIntent 与 PagePlan Modules。详见产品内的 [`architecture.md`](architecture.md)；仓库治理决策记录在 ADR 004 与 ADR 005。
 
 ## Validate
 
@@ -63,4 +63,5 @@ pnpm topic-generator:evaluate -- --limit 5 --pretty
 pnpm --filter @yami/topic-generator test
 pnpm --filter @yami/topic-generator typecheck
 pnpm --filter @yami/topic-generator build
+pnpm --filter @yami/topic-generator-app build
 ```

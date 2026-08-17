@@ -12,6 +12,9 @@
   "engines": { "node": "~24" },
   "scripts": {
     "dev": "pnpm --filter @yami/canvas dev",
+    "dev:canvas": "pnpm --filter @yami/canvas dev",
+    "dev:topic-generator": "pnpm --filter @yami/topic-generator-app dev",
+    "build:topic-generator": "pnpm --filter @yami/topic-generator-app build",
     "topic-generator:analyze": "pnpm --filter @yami/topic-generator analyze",
     "topic-generator:evaluate": "pnpm --filter @yami/topic-generator evaluate",
     "dev:storybook": "pnpm --filter @yami/storybook storybook",
