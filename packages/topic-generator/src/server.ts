@@ -4,6 +4,7 @@ import {
 } from "./analyze.js";
 import { CatalogSnapshotLoadError } from "./catalog-snapshot.js";
 import { buildTopicPagePlanMatrix } from "./planner.js";
+import type { TopicGenerationMode } from "./types.js";
 
 function errorResponse(
   status: number,
@@ -38,6 +39,13 @@ export async function handleTopicGeneratorPost(
     typeof payload.keyword === "string"
       ? payload.keyword.trim()
       : "";
+  const generationMode: TopicGenerationMode =
+    typeof payload === "object" &&
+    payload !== null &&
+    "mode" in payload &&
+    payload.mode === "selection"
+      ? "selection"
+      : "page";
 
   if (keyword.length < 2 || keyword.length > 80) {
     return errorResponse(
@@ -49,7 +57,7 @@ export async function handleTopicGeneratorPost(
 
   try {
     const { snapshot } = await analyzeTopicIntent(keyword, options);
-    return Response.json({ plans: buildTopicPagePlanMatrix(snapshot) });
+    return Response.json({ plans: buildTopicPagePlanMatrix(snapshot, generationMode) });
   } catch (error) {
     if (error instanceof CatalogSnapshotLoadError) {
       return errorResponse(

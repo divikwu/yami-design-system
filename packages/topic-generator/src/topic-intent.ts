@@ -6,6 +6,7 @@ import type {
   ShoppingIntent,
   ThemeEntityType,
   ThemeIntent,
+  ThemeIntentConstraint,
   ThemeType,
   YamiSearchSnapshot,
 } from "./types.js";
@@ -132,6 +133,12 @@ function uniqueStrings(values: string[]) {
   );
 }
 
+function uniqueEvidenceRefs(values: ThemeIntent["evidenceRefs"]) {
+  return values.filter((value, index, all) =>
+    all.findIndex((candidate) => candidate.id === value.id) === index
+  );
+}
+
 function evidencePhrases(snapshot: YamiSearchSnapshot) {
   return uniqueStrings([
     snapshot.keyword,
@@ -189,6 +196,82 @@ function baseIntent(snapshot: YamiSearchSnapshot) {
   return snapshot.provider === "yami-catalog-search" || snapshot.evidence
     ? resolveCatalogThemeIntent(snapshot)
     : buildSearchFallbackIntent(snapshot.keyword, snapshot.products);
+}
+
+function semanticShopperAction(keyword: string) {
+  const query = normalized(keyword);
+  if (["restock", "replenish", "补给"].some((term) => query.includes(normalized(term)))) {
+    return "replenish" as const;
+  }
+  if (["gift", "礼物"].some((term) => query.includes(normalized(term)))) {
+    return "gift" as const;
+  }
+  return "bundle" as const;
+}
+
+function constraintEvidenceIds(intent: ThemeIntent, value: string) {
+  const candidate = normalized(value);
+  return intent.evidenceRefs
+    .filter((evidence) => {
+      const label = normalized(evidence.label);
+      return label === candidate || label.includes(candidate) || candidate.includes(label);
+    })
+    .map((evidence) => evidence.id);
+}
+
+function completeConstraintCoverage(intent: ThemeIntent): ThemeIntent {
+  const constraints = intent.constraints.reduce<ThemeIntentConstraint[]>((result, item) => {
+    const existing = result.find((candidate) =>
+      candidate.kind === item.kind && normalized(candidate.value) === normalized(item.value)
+    );
+    if (!existing) return [...result, { ...item }];
+    existing.evidenceIds = uniqueStrings([...existing.evidenceIds, ...item.evidenceIds]);
+    if (item.status === "verified") existing.status = "verified";
+    else if (item.status === "unverified" && existing.status === "rejected") {
+      existing.status = "unverified";
+    }
+    return result;
+  }, []);
+  const append = (
+    value: string,
+    kind: ThemeIntentConstraint["kind"],
+    fallbackStatus: ThemeIntentConstraint["status"],
+  ) => {
+    if (constraints.some((item) => normalized(item.value) === normalized(value))) return;
+    const evidenceIds = constraintEvidenceIds(intent, value);
+    const hasCatalogEvidence = evidenceIds.some((id) =>
+      id.startsWith("catalog-brand:") ||
+      id.startsWith("catalog-category:") ||
+      id.startsWith("catalog-attribute:")
+    );
+    constraints.push({
+      id: `${kind}:${normalized(value).replace(/\s+/g, "-") || "value"}`,
+      kind,
+      value,
+      status: hasCatalogEvidence ? "verified" : fallbackStatus,
+      evidenceIds,
+    });
+  };
+
+  intent.mustInclude.forEach((value) => append(
+    value,
+    normalized(value) === normalized(intent.canonicalEntity?.label ?? "")
+      ? "core-entity"
+      : "modifier",
+    "unverified",
+  ));
+  intent.mustExclude.forEach((value) => append(value, "exclusion", "unverified"));
+
+  return {
+    ...intent,
+    conditions: uniqueStrings([
+      ...intent.conditions,
+      ...constraints
+        .filter((item) => item.kind === "modifier" || item.kind === "scenario")
+        .map((item) => item.value),
+    ]),
+    constraints,
+  };
 }
 
 function reviewAgainstBase(
@@ -317,6 +400,47 @@ function scenarioResolution(
     rejectedFields,
   );
 
+  const confidence = 0.78;
+  const shopperAction = semanticShopperAction(snapshot.keyword);
+  const shoppingGoal = shopperAction === "replenish"
+    ? `Find products needed to replenish ${snapshot.keyword}.`
+    : shopperAction === "gift"
+      ? `Assemble products suitable for ${snapshot.keyword}.`
+      : `Assemble products that collectively support ${snapshot.keyword}.`;
+  const categoryEvidenceRefs = availableCategories.map((category) => ({
+    id: `catalog-category:${category.id}`,
+    source: "catalog-category" as const,
+    label: category.label,
+    count: category.evidenceCount,
+  }));
+  const selectedCandidateId = `activity:scenario:${normalized(snapshot.keyword).replace(/\s+/g, "-")}:assemble-scenario:${shopperAction}`;
+  const scenarioCandidate = {
+    id: selectedCandidateId,
+    themeType: "activity" as const,
+    entityType: "scenario" as const,
+    canonicalEntity: {
+      id: normalized(snapshot.keyword).replace(/\s+/g, "-"),
+      label: snapshot.keyword,
+    },
+    shoppingIntent: "assemble-scenario" as const,
+    shopperAction,
+    score: confidence,
+    evidenceLevel: "medium" as const,
+    reason: `The Agent Semantic Proposal identifies a shopping scenario, and ${availableCategories.length} catalog categories provide supporting product evidence.`,
+    supportingEvidenceIds: categoryEvidenceRefs.map((evidence) => evidence.id),
+    competingCandidateIds: intent.candidates.map((candidate) => candidate.id),
+  };
+  const baselineCandidates = intent.candidates
+    .filter((candidate) => candidate.id !== selectedCandidateId)
+    .map((candidate) => ({
+      ...candidate,
+      competingCandidateIds: uniqueStrings([
+        ...candidate.competingCandidateIds,
+        selectedCandidateId,
+      ]),
+    }));
+  const topBaselineScore = baselineCandidates[0]?.score;
+
   return {
     intent: {
       ...intent,
@@ -327,19 +451,42 @@ function scenarioResolution(
         label: snapshot.keyword,
       },
       shoppingIntent: "assemble-scenario",
-      shoppingGoal: `Assemble products that collectively support ${snapshot.keyword}.`,
+      shopperAction,
+      shoppingGoal,
       needs: needs.length > 0
         ? needs
         : availableCategories.map((category) => category.label),
       mustInclude,
       mustExclude,
+      conditions: uniqueStrings([snapshot.keyword, ...mustInclude]),
       searchTerms: uniqueStrings([
         snapshot.keyword,
         ...searchTerms,
         ...availableCategories.map((category) => category.label),
       ]),
+      constraints: [{
+        id: `scenario:${normalized(snapshot.keyword).replace(/\s+/g, "-")}`,
+        kind: "scenario",
+        value: snapshot.keyword,
+        status: "unverified",
+        evidenceIds: categoryEvidenceRefs.map((evidence) => evidence.id),
+      }],
+      evidenceRefs: uniqueEvidenceRefs([
+        ...intent.evidenceRefs,
+        ...categoryEvidenceRefs,
+      ]),
+      candidates: [scenarioCandidate, ...baselineCandidates],
+      decision: {
+        status: "resolved",
+        selectedCandidateId,
+        evidenceLevel: "medium",
+        selectedCandidateMargin: typeof topBaselineScore === "number"
+          ? Number((confidence - topBaselineScore).toFixed(2))
+          : null,
+        requiresAgentReview: false,
+      },
       reason: `The Agent Semantic Proposal identifies a shopping scenario, and ${availableCategories.length} catalog categories provide supporting product evidence.`,
-      confidence: 0.78,
+      confidence,
     },
     proposalReview: {
       status: reviewStatus(acceptedFields, rejectedFields),
@@ -359,7 +506,7 @@ export function resolveTopicIntent(
   const intent = baseIntent(snapshot);
   if (!proposal) {
     return {
-      intent,
+      intent: completeConstraintCoverage(intent),
       proposalReview: {
         status: "not-provided",
         acceptedFields: [],
@@ -370,6 +517,10 @@ export function resolveTopicIntent(
   }
 
   const phrases = evidencePhrases(snapshot);
-  return scenarioResolution(snapshot, intent, proposal, phrases) ??
+  const resolution = scenarioResolution(snapshot, intent, proposal, phrases) ??
     reviewAgainstBase(intent, proposal, phrases);
+  return {
+    ...resolution,
+    intent: completeConstraintCoverage(resolution.intent),
+  };
 }

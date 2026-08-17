@@ -13,6 +13,7 @@ import {
 
 function analysis(): TopicIntentAnalysis {
   const intent: ThemeIntent = {
+    schemaVersion: "theme-intent/v2",
     source: "catalog-evidence",
     themeType: "brand",
     catalogDomain: "Beauty",
@@ -20,8 +21,10 @@ function analysis(): TopicIntentAnalysis {
     entityType: "brand",
     canonicalEntity: { id: "100", label: "ANUA" },
     shoppingIntent: "browse-brand",
+    shopperAction: "browse",
     shoppingGoal: "Browse ANUA products.",
     needs: ["Toners"],
+    conditions: [],
     mustInclude: ["ANUA"],
     mustExclude: [],
     searchTerms: ["ANUA"],
@@ -31,6 +34,38 @@ function analysis(): TopicIntentAnalysis {
       path: ["Beauty", "Toners"],
       evidenceCount: 1,
     }],
+    constraints: [{
+      id: "core-entity:anua",
+      kind: "core-entity",
+      value: "ANUA",
+      status: "verified",
+      evidenceIds: ["catalog-brand:100"],
+    }],
+    evidenceRefs: [{
+      id: "catalog-brand:100",
+      source: "catalog-brand",
+      label: "ANUA",
+    }],
+    candidates: [{
+      id: "brand:brand:100:browse-brand:browse",
+      themeType: "brand",
+      entityType: "brand",
+      canonicalEntity: { id: "100", label: "ANUA" },
+      shoppingIntent: "browse-brand",
+      shopperAction: "browse",
+      score: 0.95,
+      evidenceLevel: "high",
+      reason: "Exact catalog brand evidence.",
+      supportingEvidenceIds: ["catalog-brand:100"],
+      competingCandidateIds: [],
+    }],
+    decision: {
+      status: "resolved",
+      selectedCandidateId: "brand:brand:100:browse-brand:browse",
+      evidenceLevel: "high",
+      selectedCandidateMargin: null,
+      requiresAgentReview: false,
+    },
     reason: "Exact catalog brand evidence.",
     confidence: 0.95,
   };
@@ -94,7 +129,7 @@ describe("RunArtifact Module", () => {
         schemaVersion: "topic-generator-run/v1",
         keyword: "ANUA",
         artifacts: [
-          { name: "theme-intent", file: "theme-intent.json", schemaVersion: "theme-intent/v1" },
+          { name: "theme-intent", file: "theme-intent.json", schemaVersion: "theme-intent/v2" },
           { name: "catalog-snapshot", file: "catalog-snapshot.json", schemaVersion: "catalog-snapshot/v1" },
           { name: "page-plans", file: "page-plans.json", schemaVersion: "page-plans/v1" },
         ],

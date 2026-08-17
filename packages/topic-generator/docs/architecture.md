@@ -21,7 +21,7 @@ CatalogSnapshot Adapters ─> CatalogSnapshot ─> TopicIntent Module
 
 ### TopicIntent Module
 
-`resolveTopicIntent(snapshot, proposal?)` is the semantic Interface. It derives a catalog-rule baseline, validates every proposed field, and returns ThemeIntent plus `proposalReview`. Exact catalog brand and category evidence cannot be overridden by a SemanticProposal.
+`resolveTopicIntent(snapshot, proposal?)` is the semantic Interface. It derives ranked catalog-backed candidates, separates the core entity from shopper action and conditions, records constraint verification, and validates every proposed field. Close candidates remain `ambiguous`; exact catalog brand and category evidence cannot be overridden by a SemanticProposal.
 
 ### CatalogSnapshot Seam
 
@@ -34,6 +34,10 @@ CatalogSnapshot Adapters ─> CatalogSnapshot ─> TopicIntent Module
 ### RunArtifact Module
 
 `buildTopicGeneratorRunArtifacts` creates versioned artifact payloads and SHA-256 descriptors. `writeTopicGeneratorRunArtifacts` writes them only to an explicit CLI output directory; there is no implicit server draft store.
+
+### Evaluation Module
+
+`evaluateTopicIntentCases` compares stable semantic expectations with live catalog analysis. Evaluation cases do not store product inventory; deterministic unit fixtures cover rule mechanics while the evaluation CLI separately reports semantic mismatches and live Adapter failures.
 
 ## Agent and Skill roles
 

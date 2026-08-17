@@ -2,8 +2,12 @@ import type {
   CatalogAttributeEvidence,
   CatalogBrandEvidence,
   CatalogCategoryEvidence,
+  IntentEvidenceLevel,
   ThemeIntent,
+  ThemeIntentCandidate,
   ThemeIntentCategory,
+  ThemeIntentConstraint,
+  ThemeIntentEvidenceRef,
   YamiProduct,
   YamiSearchSnapshot,
 } from "./types.js";
@@ -100,6 +104,25 @@ const SCENARIO_TERMS = [
   "组合",
 ] as const;
 
+const ATTRIBUTE_GENERIC_TERMS = new Set([
+  "and",
+  "for",
+  "free",
+  "no",
+  "the",
+  "with",
+]);
+
+const CATALOG_TERM_EQUIVALENTS_V1 = [
+  ["爽肤水", "化妆水", "toner", "toners"],
+  ["无糖", "0糖", "sugar free"],
+  ["零食", "snack", "snacks"],
+  ["收纳", "storage", "organization", "organizing"],
+  ["厨房", "kitchen"],
+  ["洗衣", "laundry"],
+  ["补给", "restock", "replenish"],
+] as const;
+
 export interface YamiCatalogResult {
   snapshot: YamiSearchSnapshot;
   intent: ThemeIntent;
@@ -130,6 +153,137 @@ function uniqueStrings(values: Array<string | undefined>) {
     );
 }
 
+function containsNonAscii(value: string) {
+  return Array.from(value).some((character) =>
+    (character.codePointAt(0) ?? 0) > 0x7f
+  );
+}
+
+function expandedCategoryAliases(values: Array<string | undefined>) {
+  const base = uniqueStrings(values);
+  const segments = base.flatMap((value) =>
+    value.split(/\s*(?:,|&|\/)\s*/u).filter(Boolean)
+  );
+  const headNouns = segments.flatMap((segment) => {
+    if (containsNonAscii(segment)) return [];
+    const tokens = segment.trim().split(/\s+/u);
+    return tokens.length > 1 ? [tokens.at(-1)] : [];
+  });
+  return uniqueStrings([...base, ...segments, ...headNouns]);
+}
+
+const AMBIGUOUS_CANDIDATE_MARGIN = 0.1;
+
+function evidenceLevel(score: number): IntentEvidenceLevel {
+  if (score >= 0.9) return "high";
+  if (score >= 0.7) return "medium";
+  return "low";
+}
+
+function evidenceRef(
+  source: ThemeIntentEvidenceRef["source"],
+  id: string,
+  label: string,
+  count?: number,
+): ThemeIntentEvidenceRef {
+  return {
+    id: `${source}:${id}`,
+    source,
+    label,
+    ...(typeof count === "number" ? { count } : {}),
+  };
+}
+
+function constraint(
+  kind: ThemeIntentConstraint["kind"],
+  value: string,
+  status: ThemeIntentConstraint["status"],
+  evidenceIds: string[],
+): ThemeIntentConstraint {
+  return {
+    id: `${kind}:${normalized(value).replace(/\s+/g, "-") || "value"}`,
+    kind,
+    value,
+    status,
+    evidenceIds,
+  };
+}
+
+function candidateId(intent: ThemeIntent) {
+  const entity = intent.canonicalEntity?.id ?? normalized(intent.shoppingGoal).replace(/\s+/g, "-");
+  return `${intent.themeType}:${intent.entityType}:${entity}:${intent.shoppingIntent}:${intent.shopperAction}`;
+}
+
+function candidateFromIntent(intent: ThemeIntent): ThemeIntentCandidate {
+  return {
+    id: candidateId(intent),
+    themeType: intent.themeType,
+    entityType: intent.entityType,
+    canonicalEntity: intent.canonicalEntity,
+    shoppingIntent: intent.shoppingIntent,
+    shopperAction: intent.shopperAction,
+    score: intent.confidence,
+    evidenceLevel: evidenceLevel(intent.confidence),
+    reason: intent.reason,
+    supportingEvidenceIds: intent.evidenceRefs.map((evidence) => evidence.id),
+    competingCandidateIds: [],
+  };
+}
+
+function pendingCandidateFields(confidence: number) {
+  return {
+    candidates: [],
+    decision: {
+      status: evidenceLevel(confidence) === "low" ? "needs-review" : "resolved",
+      selectedCandidateId: "",
+      evidenceLevel: evidenceLevel(confidence),
+      selectedCandidateMargin: null,
+      requiresAgentReview: evidenceLevel(confidence) === "low",
+    },
+  } satisfies Pick<ThemeIntent, "candidates" | "decision">;
+}
+
+function selectIntent(candidates: ThemeIntent[]) {
+  const uniqueCandidates = candidates.filter((intent, index, all) =>
+    all.findIndex((candidate) => candidateId(candidate) === candidateId(intent)) === index
+  );
+  const ranked = [...uniqueCandidates].sort((left, right) =>
+    right.confidence - left.confidence || candidateId(left).localeCompare(candidateId(right))
+  );
+  const selected = ranked[0];
+  if (!selected) {
+    throw new Error("Catalog intent is not implemented for this keyword yet.");
+  }
+
+  const candidateRecords = ranked.map(candidateFromIntent);
+  const selectedCandidateMargin = candidateRecords.length > 1
+    ? Number((candidateRecords[0]!.score - candidateRecords[1]!.score).toFixed(2))
+    : null;
+  const status = evidenceLevel(selected.confidence) === "low"
+    ? "needs-review"
+    : selectedCandidateMargin !== null && selectedCandidateMargin < AMBIGUOUS_CANDIDATE_MARGIN
+      ? "ambiguous"
+      : "resolved";
+  const candidatesWithCompetition = candidateRecords.map((candidate) => ({
+    ...candidate,
+    competingCandidateIds: candidateRecords
+      .filter((other) => other.id !== candidate.id)
+      .map((other) => other.id),
+  }));
+
+  return {
+    ...selected,
+    candidates: candidatesWithCompetition,
+    decision: {
+      status,
+      selectedCandidateId: candidateId(selected),
+      evidenceLevel: evidenceLevel(selected.confidence),
+      selectedCandidateMargin,
+      requiresAgentReview: status !== "resolved",
+    },
+  } satisfies ThemeIntent;
+}
+
 function categoryLabel(node: CatalogCategoryNode) {
   return node.category_ename?.trim() || node.category_name?.trim() || "";
 }
@@ -140,7 +294,7 @@ function flattenCategories(
 ): FlatCategory[] {
   return nodes.flatMap((node) => {
     const label = categoryLabel(node);
-    const aliases = uniqueStrings([node.category_ename, node.category_name]);
+    const aliases = expandedCategoryAliases([node.category_ename, node.category_name]);
     const path = label ? [...parentPath, label] : parentPath;
     const current = typeof node.category_id === "number" && label
       ? [{
@@ -268,14 +422,172 @@ function exactBrand(keyword: string, brands: CatalogBrandEvidence[]) {
 
 function exactCategory(keyword: string, categories: CatalogCategoryEvidence[]) {
   const query = normalized(keyword);
-  return categories.find((category) =>
-    category.aliases.some((alias) => normalized(alias) === query)
+  return categories
+    .filter((category) => category.aliases.some((alias) => normalized(alias) === query))
+    .sort((left, right) =>
+      normalized(left.label).length - normalized(right.label).length ||
+      right.resultCount - left.resultCount ||
+      left.path.length - right.path.length
+    )[0];
+}
+
+function semanticToken(value: string) {
+  const token = normalized(value);
+  return /^[a-z0-9]+$/u.test(token) && token.length > 3 && token.endsWith("s")
+    ? token.slice(0, -1)
+    : token;
+}
+
+function directTermPresent(keyword: string, term: string) {
+  const query = normalized(keyword);
+  const candidate = normalized(term);
+  if (!candidate) return false;
+  if (containsNonAscii(candidate) || candidate.includes(" ")) {
+    return query.includes(candidate);
+  }
+  return query.split(" ").map(semanticToken).includes(semanticToken(candidate));
+}
+
+function equivalentTermsPresent(keyword: string, phrase: string) {
+  const candidate = normalized(phrase);
+  return CATALOG_TERM_EQUIVALENTS_V1.find((group) =>
+    group.some((term) => normalized(term) === candidate)
+  )?.filter((term) => directTermPresent(keyword, term)) ?? [];
+}
+
+function semanticQueryTokens(keyword: string) {
+  const tokens = new Set(normalized(keyword).split(" ").map(semanticToken));
+  CATALOG_TERM_EQUIVALENTS_V1.forEach((group) => {
+    if (!group.some((term) => directTermPresent(keyword, term))) return;
+    group.forEach((term) => {
+      normalized(term).split(" ").map(semanticToken).forEach((token) => tokens.add(token));
+    });
+  });
+  return tokens;
+}
+
+function phraseContained(keyword: string, phrase: string) {
+  const query = normalized(keyword);
+  const candidate = normalized(phrase);
+  if (!candidate) return false;
+  if (query.includes(candidate) || equivalentTermsPresent(keyword, phrase).length > 0) {
+    return true;
+  }
+  if (containsNonAscii(candidate)) return false;
+  const queryTokens = semanticQueryTokens(keyword);
+  return candidate.split(" ").map(semanticToken).every((token) => queryTokens.has(token));
+}
+
+function phrasePosition(keyword: string, phrase: string) {
+  const query = normalized(keyword);
+  const candidate = normalized(phrase);
+  const directPosition = query.lastIndexOf(candidate);
+  if (directPosition >= 0) return directPosition;
+  const equivalentPosition = Math.max(
+    -1,
+    ...equivalentTermsPresent(keyword, phrase).map((term) =>
+      query.lastIndexOf(normalized(term))
+    ),
   );
+  if (equivalentPosition >= 0 || containsNonAscii(candidate)) return equivalentPosition;
+  const queryTokens = query.split(" ").map(semanticToken);
+  return Math.max(
+    ...candidate.split(" ").map(semanticToken).map((token) => queryTokens.lastIndexOf(token)),
+  );
+}
+
+function containedCategory(keyword: string, categories: CatalogCategoryEvidence[]) {
+  return categories
+    .flatMap((category) => category.aliases.some((alias) => phraseContained(keyword, alias))
+      ? [category]
+      : [])
+    .sort((left, right) =>
+      Math.max(...right.aliases.map((alias) => phrasePosition(keyword, alias))) -
+        Math.max(...left.aliases.map((alias) => phrasePosition(keyword, alias))) ||
+      right.path.length - left.path.length ||
+      Math.max(...right.aliases.map((alias) => normalized(alias).length)) -
+        Math.max(...left.aliases.map((alias) => normalized(alias).length))
+    )[0];
+}
+
+function residualCondition(
+  keyword: string,
+  categoryAliases: string[],
+  attributes: MatchedAttribute[],
+) {
+  const query = normalized(keyword);
+  const consumed = uniqueStrings([
+    ...categoryAliases.flatMap((alias) => {
+      if (!phraseContained(keyword, alias)) return [];
+      const equivalents = equivalentTermsPresent(keyword, alias);
+      return equivalents.length > 0 ? equivalents : [alias];
+    }),
+    ...attributes.flatMap((attribute) =>
+      attribute.direct ? [attribute.label] : attribute.overlap
+    ),
+  ]);
+  if (containsNonAscii(query)) {
+    return consumed.reduce(
+      (value, term) => value.replace(normalized(term), ""),
+      query,
+    ).trim();
+  }
+  const consumedTokens = new Set(
+    consumed.flatMap((value) => normalized(value).split(" ").map(semanticToken)),
+  );
+  return query
+    .split(" ")
+    .filter((token) => !consumedTokens.has(semanticToken(token)))
+    .join(" ")
+    .trim();
 }
 
 function isScenarioKeyword(keyword: string) {
   const query = normalized(keyword);
   return SCENARIO_TERMS.some((term) => query.includes(normalized(term)));
+}
+
+function scenarioShopperAction(keyword: string) {
+  const query = normalized(keyword);
+  if (["restock", "replenish", "补给"].some((term) => query.includes(normalized(term)))) {
+    return "replenish" as const;
+  }
+  if (["gift", "礼物"].some((term) => query.includes(normalized(term)))) {
+    return "gift" as const;
+  }
+  return "bundle" as const;
+}
+
+function catalogQueryCandidates(keyword: string) {
+  if (!isScenarioKeyword(keyword)) return [keyword];
+  const query = normalized(keyword);
+  const candidates = [keyword];
+  if (query.includes("movie") && query.includes("night")) candidates.push("movie snacks");
+  if (query.includes("厨房") && query.includes("收纳")) candidates.push("厨房收纳");
+  if (query.includes("洗衣")) candidates.push("洗衣用品");
+  const retrievalStopTerms = new Set([
+    "basket",
+    "essentials",
+    "gift",
+    "holiday",
+    "night",
+    "restock",
+    "routine",
+    "small",
+    "travel",
+    "winter",
+  ]);
+  const stripped = query
+    .split(" ")
+    .filter((term) => !retrievalStopTerms.has(term))
+    .join(" ")
+    .trim();
+  if (stripped.length >= 2) candidates.push(stripped);
+  const strippedChinese = ["小户型", "日用", "补给", "日常", "场景", "组合"]
+    .reduce((value, term) => value.replaceAll(term, ""), keyword)
+    .trim();
+  if (strippedChinese.length >= 2) candidates.push(strippedChinese);
+  return uniqueStrings(candidates);
 }
 
 function matchedAttributes(
@@ -288,7 +600,13 @@ function matchedAttributes(
     const matches = attribute.aliases.map((alias) => {
       const labelTerms = normalized(alias).split(" ").filter((term) => term.length > 1);
       const overlap = labelTerms.filter((term) => queryTerms.has(term));
-      return { label: alias, overlap, direct: query.includes(normalized(alias)) };
+      const direct = query.includes(normalized(alias));
+      const meaningfulOverlap = overlap.filter((term) => !ATTRIBUTE_GENERIC_TERMS.has(term));
+      return {
+        label: alias,
+        overlap: direct ? overlap : meaningfulOverlap,
+        direct,
+      };
     }).sort((left, right) =>
       Number(right.direct) - Number(left.direct) || right.overlap.length - left.overlap.length
     );
@@ -315,16 +633,47 @@ function toIntentCategories(snapshot: YamiSearchSnapshot): ThemeIntentCategory[]
     }));
 }
 
+function toCoreIntentCategory(
+  category: CatalogCategoryEvidence,
+  availableCategories: ThemeIntentCategory[],
+): ThemeIntentCategory {
+  const evidenceCount = availableCategories
+    .filter((candidate) => candidate.path.some((label) =>
+      normalized(label) === normalized(category.label)
+    ))
+    .reduce((total, candidate) => total + candidate.evidenceCount, 0);
+  return {
+    id: category.id,
+    label: category.label,
+    path: category.path,
+    evidenceCount: evidenceCount || category.productCount || category.resultCount,
+  };
+}
+
 function buildBrandIntent(
   keyword: string,
   brand: CatalogBrandEvidence,
   categories: ThemeIntentCategory[],
 ): ThemeIntent {
+  const confidence = 0.95;
   const evidenceCount = categories.reduce(
     (total, category) => total + category.evidenceCount,
     0,
   );
+  const brandEvidence = evidenceRef(
+    "catalog-brand",
+    brand.id,
+    brand.label,
+    brand.resultCount,
+  );
+  const productEvidence = evidenceRef(
+    "catalog-products",
+    normalized(keyword).replace(/\s+/g, "-"),
+    `${evidenceCount} available products`,
+    evidenceCount,
+  );
   return {
+    schemaVersion: "theme-intent/v2",
     source: "catalog-evidence",
     themeType: "brand",
     catalogDomain: categories[0]?.path[0] ?? "catalog",
@@ -332,14 +681,21 @@ function buildBrandIntent(
     entityType: "brand",
     canonicalEntity: { id: brand.id, label: brand.label },
     shoppingIntent: "browse-brand",
+    shopperAction: "browse",
     shoppingGoal: `Browse and compare ${brand.label} products available on Yami.`,
     needs: categories.map((category) => category.label),
+    conditions: [],
     mustInclude: [brand.label],
     mustExclude: [],
     searchTerms: uniqueStrings([keyword, brand.label]),
     categories,
+    constraints: [
+      constraint("core-entity", brand.label, "verified", [brandEvidence.id]),
+    ],
+    evidenceRefs: [brandEvidence, productEvidence],
+    ...pendingCandidateFields(confidence),
     reason: `The keyword exactly matches a catalog brand represented by ${evidenceCount} available products in the catalog snapshot.`,
-    confidence: 0.95,
+    confidence,
   };
 }
 
@@ -348,7 +704,15 @@ function buildProductIntent(
   category: CatalogCategoryEvidence,
   categories: ThemeIntentCategory[],
 ): ThemeIntent {
+  const confidence = 0.92;
+  const categoryEvidence = evidenceRef(
+    "catalog-category",
+    category.id,
+    category.label,
+    category.productCount || category.resultCount,
+  );
   return {
+    schemaVersion: "theme-intent/v2",
     source: "catalog-evidence",
     themeType: "product",
     catalogDomain: category.path[0] ?? "catalog",
@@ -356,14 +720,21 @@ function buildProductIntent(
     entityType: "category",
     canonicalEntity: { id: category.id, label: category.label },
     shoppingIntent: "find-product",
+    shopperAction: "find",
     shoppingGoal: `Find and compare ${category.label} products available on Yami.`,
     needs: category.path.slice(1),
+    conditions: [],
     mustInclude: [category.label],
     mustExclude: [],
     searchTerms: uniqueStrings([keyword, category.label]),
     categories,
+    constraints: [
+      constraint("core-entity", category.label, "verified", [categoryEvidence.id]),
+    ],
+    evidenceRefs: [categoryEvidence],
+    ...pendingCandidateFields(confidence),
     reason: "The keyword exactly matches an enabled catalog category represented in the product results.",
-    confidence: 0.92,
+    confidence,
   };
 }
 
@@ -372,7 +743,15 @@ function buildInferredProductIntent(
   category: ThemeIntentCategory,
   categories: ThemeIntentCategory[],
 ): ThemeIntent {
+  const confidence = 0.74;
+  const categoryEvidence = evidenceRef(
+    "catalog-category",
+    category.id,
+    category.label,
+    category.evidenceCount,
+  );
   return {
+    schemaVersion: "theme-intent/v2",
     source: "catalog-evidence",
     themeType: "product",
     catalogDomain: category.path[0] ?? "catalog",
@@ -380,14 +759,22 @@ function buildInferredProductIntent(
     entityType: "category",
     canonicalEntity: { id: category.id, label: category.label },
     shoppingIntent: "find-product",
+    shopperAction: "find",
     shoppingGoal: `Find ${keyword} products within the strongest matching catalog categories.`,
     needs: category.path.slice(1),
+    conditions: [keyword],
     mustInclude: [keyword],
     mustExclude: [],
     searchTerms: [keyword, category.label],
     categories,
+    constraints: [
+      constraint("core-entity", category.label, "verified", [categoryEvidence.id]),
+      constraint("modifier", keyword, "unverified", []),
+    ],
+    evidenceRefs: [categoryEvidence],
+    ...pendingCandidateFields(confidence),
     reason: "The keyword is not a canonical catalog label; the entity is inferred from the strongest category represented by available products.",
-    confidence: 0.74,
+    confidence,
   };
 }
 
@@ -395,7 +782,24 @@ function buildScenarioIntent(
   keyword: string,
   categories: ThemeIntentCategory[],
 ): ThemeIntent {
+  const confidence = categories.length > 1 ? 0.84 : 0.82;
+  const shopperAction = scenarioShopperAction(keyword);
+  const scenarioTerm = SCENARIO_TERMS.find((term) =>
+    normalized(keyword).includes(normalized(term))
+  );
+  const scenarioEvidence = evidenceRef(
+    "scenario-vocabulary",
+    normalized(scenarioTerm ?? keyword).replace(/\s+/g, "-"),
+    scenarioTerm ?? keyword,
+  );
+  const categoryEvidence = categories.map((category) => evidenceRef(
+    "catalog-category",
+    category.id,
+    category.label,
+    category.evidenceCount,
+  ));
   return {
+    schemaVersion: "theme-intent/v2",
     source: "catalog-evidence",
     themeType: "activity",
     catalogDomain: categories[0]?.path[0] ?? "catalog",
@@ -406,55 +810,119 @@ function buildScenarioIntent(
       label: keyword,
     },
     shoppingIntent: "assemble-scenario",
-    shoppingGoal: `Assemble products that collectively support ${keyword}.`,
+    shopperAction,
+    shoppingGoal: shopperAction === "replenish"
+      ? `Find products needed to replenish ${keyword}.`
+      : shopperAction === "gift"
+        ? `Assemble products suitable for ${keyword}.`
+        : `Assemble products that collectively support ${keyword}.`,
     needs: categories.map((category) => category.label),
+    conditions: [keyword],
     mustInclude: [],
     mustExclude: [],
     searchTerms: [keyword, ...categories.map((category) => category.label)],
     categories,
+    constraints: [
+      constraint("scenario", keyword, "unverified", [scenarioEvidence.id]),
+    ],
+    evidenceRefs: [scenarioEvidence, ...categoryEvidence],
+    ...pendingCandidateFields(confidence),
     reason: "The keyword expresses a shopping scenario and the catalog results cover multiple product categories.",
-    confidence: categories.length > 1 ? 0.84 : 0.72,
+    confidence,
   };
 }
 
 function buildAttributeIntent(
   keyword: string,
   attributes: MatchedAttribute[],
+  coreCategory: ThemeIntentCategory,
+  coreCategoryAliases: string[],
   categories: ThemeIntentCategory[],
 ): ThemeIntent {
-  const primaryAttribute = attributes.find((attribute) => attribute.direct);
-  const constraints = [
-    keyword,
-    primaryAttribute?.label,
-    ...attributes.flatMap((attribute) => attribute.overlap.map((term) =>
-      term.replace(/\b\p{L}/gu, (letter) => letter.toLocaleUpperCase())
-    )),
-  ];
-  const mustInclude = uniqueStrings(constraints);
+  const categoryTokens = new Set(
+    coreCategoryAliases.flatMap((alias) => normalized(alias).split(" ").map(semanticToken)),
+  );
+  const relevantAttributes = attributes.filter((attribute) =>
+    attribute.direct || attribute.overlap.some((term) => !categoryTokens.has(semanticToken(term)))
+  );
+  const confidence = relevantAttributes.some((attribute) => attribute.direct)
+    ? 0.82
+    : relevantAttributes.length > 0
+      ? 0.76
+      : 0.75;
+  const primaryAttribute = relevantAttributes.find((attribute) => attribute.direct);
+  const conditionLabels = uniqueStrings(relevantAttributes.flatMap((attribute) =>
+    attribute.direct
+      ? [attribute.label]
+      : attribute.overlap.map((term) =>
+          term.replace(/\b\p{L}/gu, (letter) => letter.toLocaleUpperCase())
+        )
+  ));
+  const mustInclude = uniqueStrings([
+    coreCategory.label,
+    ...relevantAttributes.filter((attribute) => attribute.direct).map((attribute) => attribute.label),
+  ]);
+  const residual = residualCondition(keyword, coreCategoryAliases, relevantAttributes);
+  const categoryEvidence = evidenceRef(
+    "catalog-category",
+    coreCategory.id,
+    coreCategory.label,
+    coreCategory.evidenceCount,
+  );
+  const attributeEvidence = relevantAttributes.map(({ attribute, label }) => evidenceRef(
+    "catalog-attribute",
+    attribute.id,
+    label,
+  ));
+  const evidenceIdByAttribute = new Map(
+    relevantAttributes.map(({ attribute }, index) => [attribute.id, attributeEvidence[index]!.id]),
+  );
+  const intentConstraints = relevantAttributes.map(({ attribute, label, direct }) =>
+    constraint(
+      "modifier",
+      direct
+        ? label
+        : uniqueStrings(relevantAttributes.find((item) => item.attribute.id === attribute.id)?.overlap ?? [label]).join(" "),
+      direct ? "verified" : "unverified",
+      [evidenceIdByAttribute.get(attribute.id)!],
+    )
+  );
+  intentConstraints.unshift(
+    constraint("core-entity", coreCategory.label, "verified", [categoryEvidence.id]),
+  );
+  if (residual) {
+    intentConstraints.push(constraint("modifier", residual, "unverified", []));
+  }
 
   return {
+    schemaVersion: "theme-intent/v2",
     source: "catalog-evidence",
     themeType: "product",
-    catalogDomain: categories[0]?.path[0] ?? "catalog",
+    catalogDomain: coreCategory.path[0] ?? categories[0]?.path[0] ?? "catalog",
     attributeSchemaVersion: "catalog-v1",
-    entityType: "attribute",
-    canonicalEntity: primaryAttribute
-      ? { id: `tag:${primaryAttribute.attribute.id}`, label: primaryAttribute.label }
-      : {
-          id: `attribute:${normalized(keyword).replace(/\s+/g, "-")}`,
-          label: keyword,
-        },
+    entityType: "category",
+    canonicalEntity: { id: coreCategory.id, label: coreCategory.label },
     shoppingIntent: "find-product",
+    shopperAction: "filter",
     shoppingGoal: `Find products matching ${keyword} and verify the catalog constraints.`,
-    needs: mustInclude,
+    needs: uniqueStrings([...coreCategory.path.slice(1), ...conditionLabels]),
+    conditions: uniqueStrings([
+      ...conditionLabels,
+      residual,
+    ]),
     mustInclude,
     mustExclude: [],
     searchTerms: [keyword, ...mustInclude, ...categories.map((category) => category.label)],
     categories,
+    constraints: intentConstraints,
+    evidenceRefs: [categoryEvidence, ...attributeEvidence],
+    ...pendingCandidateFields(confidence),
     reason: primaryAttribute
       ? "The keyword directly contains a catalog-backed attribute and is supported by product-category evidence."
-      : "Catalog attributes only partially overlap the keyword, so the complete keyword remains an unverified product constraint.",
-    confidence: primaryAttribute ? 0.82 : 0.68,
+      : relevantAttributes.length > 0
+        ? "Catalog attributes partially overlap the keyword; unsupported modifiers remain explicit unverified constraints."
+        : "The keyword contains a catalog category plus an unverified modifier that requires product-detail evidence.",
+    confidence,
   };
 }
 
@@ -467,22 +935,38 @@ export function resolveCatalogThemeIntent(snapshot: YamiSearchSnapshot): ThemeIn
   const categories = toIntentCategories(snapshot);
   const brand = exactBrand(snapshot.keyword, evidence.brands);
   const category = exactCategory(snapshot.keyword, evidence.categories);
+  const keywordCategory = category ?? containedCategory(snapshot.keyword, evidence.categories);
   const scenario = isScenarioKeyword(snapshot.keyword) && categories.length > 0;
   const attributes = matchedAttributes(snapshot.keyword, evidence.attributes);
   const inferredCategory = categories[0];
-  if (!brand && !category && !scenario && attributes.length === 0 && !inferredCategory) {
-    throw new Error("Catalog intent is not implemented for this keyword yet.");
+  const coreCategory = keywordCategory
+    ? toCoreIntentCategory(keywordCategory, categories)
+    : inferredCategory;
+  const coreCategoryEvidence = keywordCategory ?? evidence.categories.find((candidate) =>
+    candidate.id === coreCategory?.id
+  );
+  const candidates: ThemeIntent[] = [];
+  if (brand) candidates.push(buildBrandIntent(snapshot.keyword, brand, categories));
+  if (category) candidates.push(buildProductIntent(snapshot.keyword, category, categories));
+  if (scenario) candidates.push(buildScenarioIntent(snapshot.keyword, categories));
+  if (
+    coreCategory &&
+    coreCategoryEvidence &&
+    (attributes.length > 0 || Boolean(keywordCategory && !category))
+  ) {
+    candidates.push(buildAttributeIntent(
+      snapshot.keyword,
+      attributes,
+      coreCategory,
+      coreCategoryEvidence.aliases,
+      categories,
+    ));
+  }
+  if (inferredCategory && inferredCategory.id !== category?.id) {
+    candidates.push(buildInferredProductIntent(snapshot.keyword, inferredCategory, categories));
   }
 
-  return brand
-    ? buildBrandIntent(snapshot.keyword, brand, categories)
-    : category
-      ? buildProductIntent(snapshot.keyword, category, categories)
-      : scenario
-        ? buildScenarioIntent(snapshot.keyword, categories)
-        : attributes.length > 0
-          ? buildAttributeIntent(snapshot.keyword, attributes, categories)
-          : buildInferredProductIntent(snapshot.keyword, inferredCategory!, categories);
+  return selectIntent(candidates);
 }
 
 export function parseYamiCatalogResponse(
@@ -501,7 +985,15 @@ export function buildSearchFallbackIntent(
   const query = normalized(keyword);
   const matchingBrand = products.find((product) => normalized(product.brand) === query)?.brand;
   const isBrand = Boolean(matchingBrand);
-  return {
+  const confidence = isBrand ? 0.56 : 0.35;
+  const fallbackEvidence = evidenceRef(
+    "search-fallback",
+    normalized(keyword).replace(/\s+/g, "-"),
+    `${products.length} public search results`,
+    products.length,
+  );
+  const intent: ThemeIntent = {
+    schemaVersion: "theme-intent/v2",
     source: "search-fallback",
     themeType: isBrand ? "brand" : "uncertain",
     catalogDomain: "unknown",
@@ -511,17 +1003,30 @@ export function buildSearchFallbackIntent(
       ? { id: normalized(matchingBrand), label: matchingBrand }
       : null,
     shoppingIntent: isBrand ? "browse-brand" : "clarify",
+    shopperAction: isBrand ? "browse" : "clarify",
     shoppingGoal: isBrand
       ? `Browse ${matchingBrand} products from the fallback search results.`
       : `Review fallback search results for ${keyword}.`,
     needs: [],
+    conditions: [keyword],
     mustInclude: [keyword],
     mustExclude: [],
     searchTerms: [keyword],
     categories: [],
+    constraints: [
+      constraint(
+        isBrand ? "core-entity" : "modifier",
+        matchingBrand ?? keyword,
+        "unverified",
+        [fallbackEvidence.id],
+      ),
+    ],
+    evidenceRefs: [fallbackEvidence],
+    ...pendingCandidateFields(confidence),
     reason: "The structured catalog interface was unavailable, so the plan uses public search-page evidence and requires review.",
-    confidence: isBrand ? 0.56 : 0.35,
+    confidence,
   };
+  return selectIntent([intent]);
 }
 
 async function requestCatalog(keyword: string, categoryIds?: string[]) {
@@ -587,8 +1092,18 @@ function parseCatalogSnapshotOrThrow(keyword: string, response: CatalogResponse)
 export async function fetchYamiCatalogSnapshot(
   keyword: string,
 ): Promise<YamiSearchSnapshot> {
-  const broad = parseCatalogSnapshotOrThrow(keyword, await requestCatalog(keyword));
-  if (broad.products.length === 0) {
+  let broad: YamiSearchSnapshot | undefined;
+  let retrievalKeyword = keyword;
+  for (const candidate of catalogQueryCandidates(keyword)) {
+    const snapshot = parseCatalogSnapshotOrThrow(keyword, await requestCatalog(candidate));
+    if (snapshot.products.length === 0) continue;
+    if (!broad || snapshot.products.length > broad.products.length) {
+      broad = { ...snapshot, retrievalTerms: [candidate] };
+      retrievalKeyword = candidate;
+    }
+    if (snapshot.products.length >= 12) break;
+  }
+  if (!broad) {
     throw new YamiCatalogError(
       "no_products",
       "No currently available catalog products were found for this keyword.",
@@ -606,10 +1121,14 @@ export async function fetchYamiCatalogSnapshot(
   try {
     const narrowed = parseCatalogSnapshotOrThrow(
       keyword,
-      await requestCatalog(keyword, categoryIds),
+      await requestCatalog(retrievalKeyword, categoryIds),
     );
     if (narrowed.products.length > 0) {
-      return { ...narrowed, evidence: broad.evidence };
+      return {
+        ...narrowed,
+        evidence: broad.evidence,
+        retrievalTerms: broad.retrievalTerms,
+      };
     }
   } catch {
     // The broad CatalogSnapshot remains valid evidence when narrowing fails.

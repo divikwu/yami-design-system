@@ -47,6 +47,7 @@ describe("TOPIC GENERATOR portable entry points", () => {
         warnings: [],
       },
       intent: {
+        schemaVersion: "theme-intent/v2",
         source: "catalog-evidence",
         themeType: "brand",
         catalogDomain: "beauty",
@@ -54,12 +55,46 @@ describe("TOPIC GENERATOR portable entry points", () => {
         entityType: "brand",
         canonicalEntity: { id: "1", label: "ANUA" },
         shoppingIntent: "browse-brand",
+        shopperAction: "browse",
         shoppingGoal: "Browse ANUA products",
         needs: [],
+        conditions: [],
         mustInclude: ["ANUA"],
         mustExclude: [],
         searchTerms: ["ANUA"],
         categories: [],
+        constraints: [{
+          id: "core-entity:anua",
+          kind: "core-entity",
+          value: "ANUA",
+          status: "verified",
+          evidenceIds: ["catalog-brand:1"],
+        }],
+        evidenceRefs: [{
+          id: "catalog-brand:1",
+          source: "catalog-brand",
+          label: "ANUA",
+        }],
+        candidates: [{
+          id: "brand:brand:1:browse-brand:browse",
+          themeType: "brand",
+          entityType: "brand",
+          canonicalEntity: { id: "1", label: "ANUA" },
+          shoppingIntent: "browse-brand",
+          shopperAction: "browse",
+          score: 0.96,
+          evidenceLevel: "high",
+          reason: "Exact catalog brand match.",
+          supportingEvidenceIds: ["catalog-brand:1"],
+          competingCandidateIds: [],
+        }],
+        decision: {
+          status: "resolved",
+          selectedCandidateId: "brand:brand:1:browse-brand:browse",
+          evidenceLevel: "high",
+          selectedCandidateMargin: null,
+          requiresAgentReview: false,
+        },
         reason: "Exact catalog brand match.",
         confidence: 0.96,
       },
@@ -84,7 +119,7 @@ describe("TOPIC GENERATOR portable entry points", () => {
 
     expect(buildTopicIntentReport(analysis)).toMatchObject({
       product: "TOPIC GENERATOR",
-      schemaVersion: "theme-intent/v1",
+      schemaVersion: "theme-intent/v2",
       intent: { reason: "Exact catalog brand match." },
       evidence: {
         provider: "yami-catalog-search",
@@ -106,6 +141,54 @@ describe("TOPIC GENERATOR portable entry points", () => {
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toMatchObject({
       error: { code: "invalid_keyword" },
+    });
+  });
+
+  it("honors the selection-only HTTP mode", async () => {
+    const adapters: CatalogSnapshotAdapter[] = [{
+      id: "fixture",
+      load: async () => ({
+        keyword: "ANUA",
+        site: "us",
+        sourceUrl: "https://example.com/search?q=ANUA",
+        fetchedAt: "2026-08-17T00:00:00.000Z",
+        provider: "yami-catalog-search",
+        products: ["1", "2", "3"].map((id, index) => ({
+          id,
+          title: `ANUA product ${id}`,
+          brand: "ANUA",
+          price: "$19.99",
+          imageUrl: `https://example.com/${id}.webp`,
+          productUrl: `https://example.com/${id}`,
+          sourceRank: index + 1,
+        })),
+        evidence: {
+          brands: [{ id: "anua", label: "ANUA", aliases: ["ANUA"], resultCount: 3 }],
+          categories: [],
+          attributes: [],
+        },
+      }),
+    }];
+    const response = await handleTopicGeneratorPost(
+      new Request("http://localhost/api/topic-generator", {
+        method: "POST",
+        body: JSON.stringify({ keyword: "ANUA", mode: "selection" }),
+      }),
+      { adapters },
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      plans: {
+        en: {
+          relevance: {
+            generationMode: "selection",
+            modules: [],
+            content: { copyMode: "not-generated" },
+            assetStrategy: { mode: "not-generated" },
+          },
+        },
+      },
     });
   });
 

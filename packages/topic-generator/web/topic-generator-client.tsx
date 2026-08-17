@@ -20,6 +20,7 @@ import { useMemo, useRef, useState } from "react";
 import type {
   ContentLanguage,
   ProductSelectionStrategy,
+  TopicGenerationMode,
   TopicModulePlan,
   TopicPagePlan,
   TopicPlanMatrix,
@@ -61,25 +62,120 @@ const LANGUAGE_OPTIONS = [
   { value: "en", label: "English" },
   { value: "zh", label: "中文" },
 ] as const;
-const STRATEGY_OPTIONS = [
-  { value: "relevance", label: "精准匹配" },
-  { value: "category-role", label: "分类角色" },
-] as const;
+const STRATEGY_OPTIONS = {
+  en: [
+    { value: "relevance", label: "Relevance" },
+    { value: "category-role", label: "Category roles" },
+  ],
+  zh: [
+    { value: "relevance", label: "精准匹配" },
+    { value: "category-role", label: "分类角色" },
+  ],
+} as const;
+
+function evidenceLevelLabel(plan: TopicPagePlan, uiLanguage: ContentLanguage) {
+  const labels = uiLanguage === "zh"
+    ? { high: "高证据", medium: "中证据", low: "低证据" }
+    : { high: "High evidence", medium: "Medium evidence", low: "Low evidence" };
+  return labels[plan.intent.decision.evidenceLevel];
+}
+
+function resultLocaleLabel(language: ContentLanguage) {
+  return language === "zh" ? "ZH-CN" : "EN-US";
+}
+
+function planStatusLabel(plan: TopicPagePlan, language: ContentLanguage) {
+  const labels = language === "zh"
+    ? { ready: "就绪", degraded: "需复核", blocked: "已阻止" }
+    : { ready: "Ready", degraded: "Needs review", blocked: "Blocked" };
+  return labels[plan.status];
+}
+
+function productCountLabel(count: number, language: ContentLanguage) {
+  if (language === "zh") return `${count} 件商品`;
+  return `${count} ${count === 1 ? "product" : "products"}`;
+}
+
+function itemCountLabel(count: number, language: ContentLanguage) {
+  if (language === "zh") return `${count} 件`;
+  return `${count} ${count === 1 ? "item" : "items"}`;
+}
+const UI_COPY = {
+  en: {
+    keywordLabel: "Search keyword",
+    keywordPlaceholder: "e.g. ANUA, ramen",
+    examplesLabel: "Example keywords",
+    interfaceLanguage: "Language",
+    searching: "SEARCHING YAMI…",
+    strategyLabel: "Product selection strategy",
+    selectProducts: "Select products",
+    selectingProducts: "Selecting…",
+    generatePage: "Generate page",
+    generatingPage: "Generating…",
+    currentRun: "Current run",
+    waiting: "Waiting for input",
+    previewLabel: "Topic page generation workspace",
+    resultViewsLabel: "Result views",
+    tabs: {
+      workflow: "Automation workflow",
+      analysis: "Keyword analysis",
+      preview: "Page preview",
+      pools: "Product pools",
+      rules: "Rules & QA",
+    },
+    generatedPlan: "Generated English page plan",
+    selectedPlan: "Selected English product pools",
+    sourceLink: "View Yami source ↗",
+    visibleModules: "Visible modules",
+    assetMode: "Asset mode",
+    sourceImages: "Source images",
+  },
+  zh: {
+    keywordLabel: "搜索关键词",
+    keywordPlaceholder: "例如 ANUA、ramen",
+    examplesLabel: "示例关键词",
+    interfaceLanguage: "语言",
+    searching: "正在搜索 YAMI…",
+    strategyLabel: "选品策略",
+    selectProducts: "选品",
+    selectingProducts: "选品中…",
+    generatePage: "生成页面",
+    generatingPage: "生成中…",
+    currentRun: "当前运行",
+    waiting: "等待输入",
+    previewLabel: "Topic 页面生成工作区",
+    resultViewsLabel: "生成结果视图",
+    tabs: {
+      workflow: "自动化流程",
+      analysis: "主题词分析",
+      preview: "页面预览",
+      pools: "商品池",
+      rules: "规则与 QA",
+    },
+    generatedPlan: "已生成中文页面方案",
+    selectedPlan: "已生成中文商品池",
+    sourceLink: "查看 Yami 来源 ↗",
+    visibleModules: "显示模块",
+    assetMode: "图片模式",
+    sourceImages: "来源商品图",
+  },
+} as const;
 const PREVIEW_COPY = {
   en: {
-    ready: "Generator ready",
-    headline: <>One keyword.<br />One reviewable page plan.</>,
-    description: "Search live Yami inventory, freeze a small product pool, then assign only the modules that have enough evidence to render.",
+    ready: "Topic page generator",
+    headline: <>From keyword to a{" "}<br />reviewable topic page</>,
+    description: "Start with intent analysis and product selection, then generate the title, description, and product imagery.",
     blueprintLabel: "Planned Topic Landing Page modules",
     hero: "Theme Hero",
     categories: "Featured categories",
     popular: "Popular picks",
-    explore: "Explore more · PrimaryPool only",
+    explore: "Explore more",
     running: "Run in progress",
     building: (keyword: string) => `Building “${keyword}”`,
+    selecting: (keyword: string) => `Selecting products for “${keyword}”`,
     loadingSteps: [
       "Searching the Yami United States catalog",
-      "Freezing one candidate snapshot for both strategies and languages",
+      "Freezing one candidate snapshot for both strategies",
       "Assigning products to eligible modules",
       "Composing copy and page preview",
     ],
@@ -88,19 +184,20 @@ const PREVIEW_COPY = {
     sourceLink: "Open the source search ↗",
   },
   zh: {
-    ready: "生成器已就绪",
-    headline: <>一个关键词。<br />一份可审阅的<br />页面方案。</>,
-    description: "搜索 Yami 实时商品，冻结精简商品池，并只装配具备足够证据的页面模块。",
+    ready: "主题页生成器",
+    headline: <>从主题词到<br />可审阅的主题页</>,
+    description: "先完成主题识别与选品，再生成标题、描述和商品图片。",
     blueprintLabel: "规划中的 Topic Landing Page 模块",
     hero: "主题 Hero",
     categories: "精选分类",
     popular: "热门精选",
-    explore: "探索更多 · 仅使用 PrimaryPool",
+    explore: "探索更多",
     running: "正在生成",
     building: (keyword: string) => `正在生成“${keyword}”`,
+    selecting: (keyword: string) => `正在为“${keyword}”选品`,
     loadingSteps: [
       "搜索 Yami 美国站商品目录",
-      "为两套策略和两种语言冻结同一候选快照",
+      "为两套策略冻结同一候选快照",
       "将商品分配给符合条件的模块",
       "生成文案与页面预览",
     ],
@@ -119,6 +216,7 @@ const PREVIEW_COPY = {
   explore: string;
   running: string;
   building(keyword: string): string;
+  selecting(keyword: string): string;
   loadingSteps: string[];
   blocked: string;
   errorTitle: string;
@@ -204,9 +302,11 @@ function EmptyState({ language }: { language: ContentLanguage }) {
 function LoadingState({
   keyword,
   language,
+  mode,
 }: {
   keyword: string;
   language: ContentLanguage;
+  mode: TopicGenerationMode;
 }) {
   const copy = PREVIEW_COPY[language];
 
@@ -214,9 +314,9 @@ function LoadingState({
     <section className={styles.loadingState} aria-live="polite">
       <div className={styles.loadingMark}><span /></div>
       <span className={styles.kicker}>{copy.running}</span>
-      <h2>{copy.building(keyword)}</h2>
+      <h2>{mode === "selection" ? copy.selecting(keyword) : copy.building(keyword)}</h2>
       <ol>
-        {copy.loadingSteps.map((step, index) => (
+        {copy.loadingSteps.slice(0, mode === "selection" ? 3 : undefined).map((step, index) => (
           <li key={step}>
             <span>{String(index + 1).padStart(2, "0")}</span> {step}
           </li>
@@ -250,8 +350,6 @@ function ErrorState({
 }
 
 function PreviewView({ plan }: { plan: TopicPagePlan }) {
-  const productUnit = plan.language === "zh" ? "件商品" : "products";
-  const itemUnit = plan.language === "zh" ? "件" : "items";
   const productMap = useMemo(
     () => new Map(plan.products.map((product) => [product.id, product])),
     [plan.products],
@@ -322,7 +420,7 @@ function PreviewView({ plan }: { plan: TopicPagePlan }) {
               return (
                 <a key={group.id} href={`#group-${group.id}`}>
                   <img src={product.imageUrl} alt="" width={750} height={750} loading="lazy" />
-                  <span><strong>{group.label}</strong>{group.productIds.length} {productUnit}</span>
+                  <span><strong>{group.label}</strong>{productCountLabel(group.productIds.length, plan.language)}</span>
                 </a>
               );
             })}
@@ -371,7 +469,7 @@ function PreviewView({ plan }: { plan: TopicPagePlan }) {
               <section key={group.id} id={`group-${group.id}`} className={styles.exploreGroup}>
                 <header>
                   <h4>{group.label}</h4>
-                  <span>{group.productIds.length} {itemUnit}</span>
+                  <span>{itemCountLabel(group.productIds.length, plan.language)}</span>
                 </header>
                 <div className={styles.exploreRow}>
                   {group.productIds.map((id) => {
@@ -388,19 +486,26 @@ function PreviewView({ plan }: { plan: TopicPagePlan }) {
   );
 }
 
-function PoolsView({ plan }: { plan: TopicPagePlan }) {
+function PoolsView({
+  plan,
+  uiLanguage,
+}: {
+  plan: TopicPagePlan;
+  uiLanguage: ContentLanguage;
+}) {
+  const zh = uiLanguage === "zh";
   const primary = plan.products.filter((product) => product.pool === "primary");
   const related = plan.products.filter((product) => product.pool === "related");
   const primaryDescription = plan.selectionStrategy.id === "category-role"
-    ? "selected by category role for module assignment"
-    : "eligible for core modules";
+    ? zh ? "按分类角色选择，用于模块分配" : "selected by category role for module assignment"
+    : zh ? "可用于核心模块" : "eligible for core modules";
 
   return (
     <div className={styles.poolView}>
       <section>
         <header className={styles.viewHeading}>
-          <div><span>03 · Product pool</span><h3>PrimaryPool</h3></div>
-          <p>{primary.length} products · {primaryDescription}</p>
+          <div><span>03 · {zh ? "商品池" : "Product pool"}</span><h3>{zh ? "主商品池" : "PrimaryPool"}</h3></div>
+          <p>{productCountLabel(primary.length, uiLanguage)} · {primaryDescription}</p>
         </header>
         <div className={styles.poolGrid}>
           {primary.map((product) => (
@@ -410,8 +515,8 @@ function PoolsView({ plan }: { plan: TopicPagePlan }) {
       </section>
       <section>
         <header className={styles.viewHeading}>
-          <div><span>Fallback only</span><h3>RelatedPool</h3></div>
-          <p>{related.length} products · never used to fill core modules</p>
+          <div><span>{zh ? "仅作回退" : "Fallback only"}</span><h3>{zh ? "相关商品池" : "RelatedPool"}</h3></div>
+          <p>{productCountLabel(related.length, uiLanguage)} · {zh ? "不用于填充核心模块" : "never used to fill core modules"}</p>
         </header>
         {related.length > 0 ? (
           <div className={styles.poolGrid}>
@@ -420,7 +525,9 @@ function PoolsView({ plan }: { plan: TopicPagePlan }) {
             ))}
           </div>
         ) : (
-          <p className={styles.noRelated}>No related candidates were needed for this run.</p>
+          <p className={styles.noRelated}>
+            {zh ? "本次运行不需要相关候选商品。" : "No related candidates were needed for this run."}
+          </p>
         )}
       </section>
     </div>
@@ -428,15 +535,15 @@ function PoolsView({ plan }: { plan: TopicPagePlan }) {
 }
 
 function WorkflowView({
-  language,
+  uiLanguage,
   plan,
 }: {
-  language: ContentLanguage;
+  uiLanguage: ContentLanguage;
   plan: TopicPagePlan | null;
 }) {
-  const isChinese = language === "zh";
+  const isChinese = uiLanguage === "zh";
   const displayIntent = plan
-    ? themeIntentDisplayCopy(plan.intent, plan.keyword, language)
+    ? themeIntentDisplayCopy(plan.intent, plan.keyword, uiLanguage)
     : null;
   const [workflowMode, setWorkflowMode] = useState<WorkflowMode>("diagram");
   const intentHelpDialog = useRef<HTMLDialogElement>(null);
@@ -450,8 +557,8 @@ function WorkflowView({
         : "Define the scope and constraints for this page generation run",
       input: isChinese ? "关键词" : "Keyword",
       config: isChinese
-        ? "美国站（固定）、内容语言（用户选择）、选品策略（用户选择）"
-        : "US site (fixed), content language (user selected), selection strategy (user selected)",
+        ? "美国站（固定）、页面语言（随顶部语言选择）、选品策略（用户选择）"
+        : "US site (fixed), page language (follows the header language control), selection strategy (user selected)",
       action: isChinese ? "校验关键词并冻结本次生成配置" : "Validate the keyword and freeze the generation settings for this run",
       result: "GenerationBrief",
       state: "input",
@@ -465,8 +572,8 @@ function WorkflowView({
         : "Resolve shopping intent, template, component contracts, and product slot rules",
       input: "GenerationBrief",
       read: isChinese
-        ? "theme_keyword、raw_keyword、site=us、content_language、selection_strategy、source_scope、site_config_version、run_id 与 brief_hash；确认主题路由输入、固定站点、生成配置和证据边界"
-        : "theme_keyword, raw_keyword, site=us, content_language, selection_strategy, source_scope, site_config_version, run_id, and brief_hash; confirm the routing input, fixed site, generation settings, and evidence boundary",
+        ? "theme_keyword、raw_keyword、site=us、target_locale=zh-CN、selection_strategy、source_scope、site_config_version、run_id 与 brief_hash；确认主题路由输入、目标页面语言、生成配置和证据边界"
+        : "theme_keyword, raw_keyword, site=us, target_locale=en-US, selection_strategy, source_scope, site_config_version, run_id, and brief_hash; confirm the routing input, target page language, generation settings, and evidence boundary",
       action: isChinese
         ? "解析主题意图，匹配页面模板，并加载组件与商品槽位规则"
         : "Interpret the topic intent, match a page template, and load component and product slot rules",
@@ -547,7 +654,7 @@ function WorkflowView({
         ? "并行生成文案与视觉资产，汇合后确定性装配页面"
         : "Generate copy and visual assets in parallel, then assemble the page deterministically",
       input: isChinese ? "PagePlan + 来源证据" : "PagePlan + source evidence",
-      action: isChinese ? "生成所选语言文案、绑定来源商品图、生成所需资产并装配组件" : "Generate localized copy, bind source product imagery, create required assets, and assemble modules",
+      action: isChinese ? "生成中文页面文案、绑定来源商品图、生成所需资产并装配组件" : "Generate English page copy, bind source product imagery, create required assets, and assemble modules",
       result: "PageGenerationSpec + Preview + AssetManifest",
       rollback: isChinese ? "文案或图片问题只重跑 05 的受影响节点" : "Rerun only the affected copy or image nodes in 05",
       state: "automatic",
@@ -873,7 +980,7 @@ function WorkflowView({
                       <li>{isChinese ? "系统先生成目录规则基线：brand 浏览品牌商品，product 寻找品类或属性商品，activity 围绕场景组合多个真实分类。" : "The system first builds a catalog-rule baseline: brand browses brand products, product finds category or attribute products, and activity assembles multiple real categories around a scenario."}</li>
                       <li>{isChinese ? "只有基线仍有歧义时，Agent 才可建议场景解释；提案必须由多个目录分类支撑，且不能覆盖精确品牌或品类。" : "Only when the baseline remains ambiguous may the Agent suggest a scenario interpretation; multiple catalog categories must support it, and it cannot override an exact brand or category."}</li>
                       <li>{isChinese ? "每个提案字段会记录为 accepted、partially-accepted 或 rejected；最终只保留一个主实体。" : "Each proposal field is recorded as accepted, partially accepted, or rejected; the final intent keeps one primary entity."}</li>
-                      <li>{isChinese ? "confidence 由证据类型决定：精确目录命中高于标签或场景命中，网页回退最低。" : "Confidence follows evidence quality: exact catalog matches rank above tag or scenario matches, while web fallback is lowest."}</li>
+                      <li>{isChinese ? "证据等级由命中类型决定：精确目录命中高于标签或场景命中，网页回退最低；未校准的规则分数不作为真实正确率展示。" : "Evidence level follows match quality: exact catalog matches rank above tag or scenario matches, while web fallback is lowest; uncalibrated rule scores are not presented as real accuracy."}</li>
                     </ul>
                   </dd>
                 </div>
@@ -972,7 +1079,7 @@ function WorkflowView({
                 <li><strong>{isChinese ? "规范化实体：" : "Canonical entity: "}</strong>entity_type、canonical_entity</li>
                 <li><strong>{isChinese ? "购物意图：" : "Shopping intent: "}</strong>shopping_intent、shopping_goal、needs</li>
                 <li><strong>{isChinese ? "检索约束：" : "Search constraints: "}</strong>must_include、must_exclude、search_terms</li>
-                <li><strong>{isChinese ? "判断说明：" : "Decision explanation: "}</strong>reason、confidence</li>
+                <li><strong>{isChinese ? "判断说明：" : "Decision explanation: "}</strong>reason、decision、evidenceLevel</li>
                 <li>
                   <strong>{isChinese ? "运行审计：" : "Run review: "}</strong>
                   {isChinese
@@ -1012,7 +1119,7 @@ function WorkflowView({
                     </li>
                     <li>
                       {isChinese ? "判断依据：" : "Reason: "}
-                      {displayIntent?.reason} · {Math.round(plan.intent.confidence * 100)}%
+                      {displayIntent?.reason} · {evidenceLevelLabel(plan, uiLanguage)} · {plan.intent.decision.status}
                     </li>
                   </ul>
                 </>
@@ -1031,27 +1138,36 @@ function WorkflowView({
   );
 }
 
-function RulesView({ plan }: { plan: TopicPagePlan }) {
+function RulesView({
+  plan,
+  uiLanguage,
+}: {
+  plan: TopicPagePlan;
+  uiLanguage: ContentLanguage;
+}) {
+  const zh = uiLanguage === "zh";
+  const intentCopy = themeIntentDisplayCopy(plan.intent, plan.keyword, uiLanguage);
+
   return (
     <div className={styles.rulesView}>
       <section>
         <header className={styles.viewHeading}>
           <div><span>02 · ThemeIntent</span><h3>{plan.intent.canonicalEntity?.label ?? plan.keyword}</h3></div>
-          <p>{plan.intent.shoppingGoal}</p>
+          <p>{intentCopy.shoppingGoal}</p>
         </header>
         <div className={styles.decisionList}>
           <article>
             <span className={styles.decisionIndex}>01</span>
             <div>
-              <strong>{plan.language === "zh" ? "主题与购物意图" : "Topic and shopping intent"}</strong>
+              <strong>{zh ? "主题与购物意图" : "Topic and shopping intent"}</strong>
               <p>{plan.intent.themeType} · {plan.intent.entityType} · {plan.intent.shoppingIntent}</p>
             </div>
-            <span className={styles.isVisible}>{Math.round(plan.intent.confidence * 100)}%</span>
+            <span className={styles.isVisible}>{evidenceLevelLabel(plan, uiLanguage)}</span>
           </article>
           <article>
             <span className={styles.decisionIndex}>02</span>
             <div>
-              <strong>{plan.language === "zh" ? "检索约束" : "Retrieval constraints"}</strong>
+              <strong>{zh ? "检索约束" : "Retrieval constraints"}</strong>
               <p>{plan.intent.mustInclude.join(" · ") || plan.intent.searchTerms.join(" · ")}</p>
             </div>
             <span className={styles.isVisible}>{plan.intent.source}</span>
@@ -1059,7 +1175,7 @@ function RulesView({ plan }: { plan: TopicPagePlan }) {
           <article>
             <span className={styles.decisionIndex}>03</span>
             <div>
-              <strong>{plan.language === "zh" ? "目录证据" : "Catalog evidence"}</strong>
+              <strong>{zh ? "目录证据" : "Catalog evidence"}</strong>
               <p>{plan.intent.categories.map((category) => `${category.label} (${category.evidenceCount})`).join(" · ") || plan.intent.reason}</p>
             </div>
             <span className={styles.isVisible}>{plan.intent.catalogDomain}</span>
@@ -1071,10 +1187,10 @@ function RulesView({ plan }: { plan: TopicPagePlan }) {
           <header className={styles.viewHeading}>
             <div>
               <span>03 · Category selection</span>
-              <h3>{plan.language === "zh" ? "候选分类与角色" : "Candidate categories and roles"}</h3>
+              <h3>{zh ? "候选分类与角色" : "Candidate categories and roles"}</h3>
             </div>
             <p>
-              {plan.language === "zh"
+              {zh
                 ? plan.selectedCategories.some((category) => category.source === "catalog-category")
                   ? "使用 Yami 真实商品目录分类；目标配比为 5 core / 3 pairing / 2 accessory。"
                   : "由当前商品快照推断；目标配比为 5 core / 3 pairing / 2 accessory。"
@@ -1092,8 +1208,7 @@ function RulesView({ plan }: { plan: TopicPagePlan }) {
                 <div>
                   <strong>{category.label}</strong>
                   <p>
-                    {category.reason} · {category.productIds.length}{" "}
-                    {plan.language === "zh" ? "件商品" : "products"}
+                    {category.reason} · {productCountLabel(category.productIds.length, uiLanguage)}
                   </p>
                 </div>
                 <span className={styles.isVisible}>{category.role}</span>
@@ -1104,8 +1219,8 @@ function RulesView({ plan }: { plan: TopicPagePlan }) {
       )}
       <section>
         <header className={styles.viewHeading}>
-          <div><span>04 · PagePlan</span><h3>Module decisions</h3></div>
-          <p>Optional modules must earn their place.</p>
+          <div><span>04 · PagePlan</span><h3>{zh ? "模块决策" : "Module decisions"}</h3></div>
+          <p>{zh ? "可选模块必须具备足够证据才会显示。" : "Optional modules must earn their place."}</p>
         </header>
         <div className={styles.decisionList}>
           {plan.modules.map((module, index) => (
@@ -1116,7 +1231,7 @@ function RulesView({ plan }: { plan: TopicPagePlan }) {
                 <p>{module.reason}</p>
               </div>
               <span className={module.visible ? styles.isVisible : styles.isHidden}>
-                {module.visible ? "Visible" : "Hidden"}
+                {module.visible ? (zh ? "显示" : "Visible") : (zh ? "隐藏" : "Hidden")}
               </span>
             </article>
           ))}
@@ -1124,8 +1239,8 @@ function RulesView({ plan }: { plan: TopicPagePlan }) {
       </section>
       <section className={styles.qaPanel}>
         <header>
-          <span>06 · Automatic QA</span>
-          <strong>{plan.status}</strong>
+          <span>06 · {zh ? "自动 QA" : "Automatic QA"}</span>
+          <strong>{planStatusLabel(plan, uiLanguage)}</strong>
         </header>
         <p>{plan.statusReason}</p>
         <ul>{plan.qualityNotes.map((note) => <li key={note}>{note}</li>)}</ul>
@@ -1137,28 +1252,34 @@ function RulesView({ plan }: { plan: TopicPagePlan }) {
 export function TopicGenerator() {
   const [keyword, setKeyword] = useState("ANUA");
   const [examplesOpen, setExamplesOpen] = useState(false);
-  const [language, setLanguage] = useState<ContentLanguage>("zh");
+  const [uiLanguage, setUiLanguage] = useState<ContentLanguage>("zh");
   const [strategy, setStrategy] = useState<ProductSelectionStrategy>("relevance");
   const [plans, setPlans] = useState<TopicPlanMatrix | null>(null);
-  const [view, setView] = useState<ResultView>("workflow");
+  const [view, setView] = useState<ResultView>("preview");
+  const [activeMode, setActiveMode] = useState<TopicGenerationMode>("page");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<GeneratorError | null>(null);
-  const plan = plans?.[language]?.[strategy] ?? null;
+  const plan = plans?.[uiLanguage]?.[strategy] ?? null;
+  const copy = UI_COPY[uiLanguage];
+  const targetLocale = resultLocaleLabel(uiLanguage);
+  const strategyLabel = STRATEGY_OPTIONS[uiLanguage].find(
+    (option) => option.value === strategy,
+  )?.label ?? strategy;
 
-  async function generate(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function generate(mode: TopicGenerationMode) {
     const normalizedKeyword = keyword.trim();
     if (normalizedKeyword.length < 2) return;
 
+    setActiveMode(mode);
     setLoading(true);
     setError(null);
-    setView("preview");
+    setView(mode === "selection" ? "pools" : "preview");
 
     try {
       const response = await fetch("/api/topic-generator", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ keyword: normalizedKeyword }),
+        body: JSON.stringify({ keyword: normalizedKeyword, mode }),
       });
       const payload = (await response.json()) as {
         plans?: TopicPlanMatrix;
@@ -1170,7 +1291,7 @@ export function TopicGenerator() {
       }
 
       setPlans(payload.plans);
-      setView("preview");
+      setView(mode === "selection" ? "pools" : "preview");
     } catch (caught) {
       const generatorError = caught as GeneratorError;
       setError({
@@ -1183,16 +1304,34 @@ export function TopicGenerator() {
   }
 
   return (
-    <main className={styles.generatorShell}>
+    <main
+      className={styles.generatorShell}
+      lang={uiLanguage === "zh" ? "zh-CN" : "en"}
+    >
       <header className={styles.generatorHeader}>
         <div className={styles.brandLockup}>
           <strong>TOPIC GENERATOR</strong>
+        </div>
+        <div className={styles.headerLanguage}>
+          <SegmentedControl
+            label={copy.interfaceLanguage}
+            options={LANGUAGE_OPTIONS}
+            value={uiLanguage}
+            onValueChange={(value) => setUiLanguage(value as ContentLanguage)}
+            name="ui-language"
+          />
         </div>
       </header>
 
       <section className={styles.generatorGrid}>
         <aside className={styles.generatorControls}>
-          <form onSubmit={generate} className={styles.generatorForm}>
+          <form
+            onSubmit={(event: FormEvent<HTMLFormElement>) => {
+              event.preventDefault();
+              void generate("page");
+            }}
+            className={styles.generatorForm}
+          >
             <div
               className={styles.keywordControl}
               onBlurCapture={(event) => {
@@ -1203,12 +1342,12 @@ export function TopicGenerator() {
               }}
             >
               <WorkbenchTextField
-                label="搜索关键词"
+                label={copy.keywordLabel}
                 value={keyword}
                 onChange={(event) => setKeyword(event.target.value)}
                 minLength={2}
                 maxLength={80}
-                placeholder="例如 ANUA、ramen"
+                placeholder={copy.keywordPlaceholder}
                 autoComplete="off"
                 onPointerDown={() => setExamplesOpen(true)}
                 aria-expanded={examplesOpen}
@@ -1218,7 +1357,7 @@ export function TopicGenerator() {
                 <div
                   id="topic-keyword-examples"
                   className={styles.examples}
-                  aria-label="示例关键词"
+                  aria-label={copy.examplesLabel}
                 >
                   {EXAMPLE_KEYWORDS.map((example) => (
                     <WorkbenchButton
@@ -1235,75 +1374,76 @@ export function TopicGenerator() {
                 </div>
               ) : null}
             </div>
-            <div className={styles.languageTabs}>
-              <SegmentedControl
-                label="内容语言"
-                options={LANGUAGE_OPTIONS}
-                value={language}
-                onValueChange={(value) => setLanguage(value as ContentLanguage)}
-                name="content-language"
-                disabled={loading}
-              />
-            </div>
             <WorkbenchSelect
-              label="选品策略"
-              options={STRATEGY_OPTIONS}
+              label={copy.strategyLabel}
+              options={STRATEGY_OPTIONS[uiLanguage]}
               value={strategy}
               onValueChange={(value) => setStrategy(value as ProductSelectionStrategy)}
               name="selection-strategy"
               disabled={loading}
             />
-            <WorkbenchButton
-              className={styles.generateButton}
-              type="submit"
-              variant="emphasis"
-              size="default"
-              disabled={loading || keyword.trim().length < 2}
-            >
-              {loading ? "正在生成…" : "生成 Topic 页面"}
-            </WorkbenchButton>
+            <div className={styles.generatorActions}>
+              <WorkbenchButton
+                className={styles.generateButton}
+                type="submit"
+                variant="emphasis"
+                size="default"
+                disabled={loading || keyword.trim().length < 2}
+              >
+                {loading && activeMode === "page"
+                  ? copy.generatingPage
+                  : copy.generatePage}
+              </WorkbenchButton>
+              <WorkbenchButton
+                className={styles.selectionButton}
+                type="button"
+                variant="secondary"
+                size="default"
+                disabled={loading || keyword.trim().length < 2}
+                onClick={() => void generate("selection")}
+              >
+                {loading && activeMode === "selection"
+                  ? copy.selectingProducts
+                  : copy.selectProducts}
+              </WorkbenchButton>
+            </div>
           </form>
 
           <div className={styles.pathReadout}>
-            <span>当前运行</span>
+            <span>{copy.currentRun}</span>
             <code>
               {loading
-                ? "SEARCHING YAMI…"
+                ? copy.searching
                 : plan
-                  ? `${plan.site.toUpperCase()} · ${plan.language.toUpperCase()} · ${plan.selectionStrategy.id.toUpperCase()} · ${plan.status.toUpperCase()}`
-                  : "等待输入"}
+                  ? `${plan.site.toUpperCase()} · ${targetLocale} · ${strategyLabel.toUpperCase()} · ${planStatusLabel(plan, uiLanguage).toUpperCase()}`
+                  : copy.waiting}
             </code>
           </div>
 
         </aside>
 
-        <section className={styles.previewStage} aria-label="Topic 页面生成预览区">
+        <section className={styles.previewStage} aria-label={copy.previewLabel}>
           <div className={styles.stageBar}>
-            <nav className={styles.stageViews} aria-label="生成结果视图">
-              {(["workflow", "analysis", "preview", "pools", "rules"] as const).map((tab) => (
+            <nav className={styles.stageViews} aria-label={copy.resultViewsLabel}>
+              {(["preview", "workflow", "analysis", "pools", "rules"] as const).map((tab) => (
                 <button
                   key={tab}
                   type="button"
-                  disabled={tab !== "workflow" && (!plan || loading)}
+                  disabled={
+                    (tab !== "workflow" && (!plan || loading)) ||
+                    (plan?.generationMode === "selection" && (tab === "preview" || tab === "rules"))
+                  }
                   aria-current={view === tab ? "page" : undefined}
                   onClick={() => setView(tab)}
                 >
-                  {tab === "workflow"
-                    ? "自动化流程"
-                    : tab === "analysis"
-                      ? "主题词分析"
-                      : tab === "preview"
-                        ? "页面预览"
-                        : tab === "pools"
-                          ? "商品池"
-                          : "规则与 QA"}
+                  {copy.tabs[tab]}
                 </button>
               ))}
             </nav>
             <span className={styles.stageMeta}>
               {plan
-                ? `${plan.language.toUpperCase()} · ${plan.selectionStrategy.label.toUpperCase()} · ${plan.status.toUpperCase()}`
-                : `1440 PX · LIGHT · ${language.toUpperCase()}`}
+                ? `${targetLocale} · ${strategyLabel.toUpperCase()} · ${planStatusLabel(plan, uiLanguage).toUpperCase()}`
+                : `1440 PX · LIGHT · ${targetLocale}`}
             </span>
           </div>
 
@@ -1315,56 +1455,64 @@ export function TopicGenerator() {
               <div className={styles.frameViewport}>
                 {view === "workflow" ? (
                   <div className={`${styles.resultBody} ${styles.workflowResultBody}`}>
-                    <WorkflowView language={language} plan={plan} />
+                    <WorkflowView uiLanguage={uiLanguage} plan={plan} />
                   </div>
                 ) : view === "analysis" && plan && !loading ? (
-                  <TopicAnalysisView plan={plan} />
+                  <TopicAnalysisView plan={plan} uiLanguage={uiLanguage} />
                 ) : loading ? (
-                  <LoadingState keyword={keyword.trim()} language={language} />
+                  <LoadingState
+                    keyword={keyword.trim()}
+                    language={uiLanguage}
+                    mode={activeMode}
+                  />
                 ) : error ? (
-                  <ErrorState error={error} language={language} />
+                  <ErrorState error={error} language={uiLanguage} />
                 ) : !plan ? (
-                  <EmptyState language={language} />
+                  <EmptyState language={uiLanguage} />
                 ) : (
                   <>
                     <header className={styles.runHeader}>
                       <div>
                         <span>
-                          {plan.language === "zh" ? "已生成页面方案" : "Generated plan"}
-                          {` · ${plan.site.toUpperCase()} · ${plan.selectionStrategy.label}`}
+                          {plan.generationMode === "selection"
+                            ? copy.selectedPlan
+                            : copy.generatedPlan}
+                          {` · ${plan.site.toUpperCase()} · ${strategyLabel}`}
                         </span>
                         <h2>{plan.keyword}</h2>
                         <p>{plan.statusReason}</p>
                       </div>
                       <div className={styles.runMeta}>
-                        <span className={styles[plan.status]}>{plan.status}</span>
+                        <span className={styles[plan.status]}>{planStatusLabel(plan, uiLanguage)}</span>
                         <WorkbenchLink
                           href={plan.source.searchUrl}
                           target="_blank"
                           rel="noreferrer"
                         >
-                          查看 Yami 来源 ↗
+                          {copy.sourceLink}
                         </WorkbenchLink>
                       </div>
                     </header>
 
                     <div className={styles.statBar}>
-                      <div><span>PrimaryPool</span><strong>{plan.pools.primaryIds.length}</strong></div>
-                      <div><span>RelatedPool</span><strong>{plan.pools.relatedIds.length}</strong></div>
+                      <div><span>{uiLanguage === "zh" ? "主商品池" : "PrimaryPool"}</span><strong>{plan.pools.primaryIds.length}</strong></div>
+                      <div><span>{uiLanguage === "zh" ? "相关商品池" : "RelatedPool"}</span><strong>{plan.pools.relatedIds.length}</strong></div>
                       <div>
-                        <span>{plan.language === "zh" ? "显示模块" : "Visible modules"}</span>
+                        <span>{copy.visibleModules}</span>
                         <strong>{plan.modules.filter((module) => module.visible).length}</strong>
                       </div>
                       <div>
-                        <span>{plan.language === "zh" ? "图片模式" : "Asset mode"}</span>
-                        <strong>{plan.language === "zh" ? "来源商品图" : "Source images"}</strong>
+                        <span>{copy.assetMode}</span>
+                        <strong>{copy.sourceImages}</strong>
                       </div>
                     </div>
 
-                    <div className={styles.resultBody}>
-                      {view === "preview" && <PreviewView plan={plan} />}
-                      {view === "pools" && <PoolsView plan={plan} />}
-                      {view === "rules" && <RulesView plan={plan} />}
+                    <div className={`${styles.resultBody} ${view === "pools" ? styles.poolResultBody : ""}`}>
+                      {view === "preview" && plan.generationMode === "page" && (
+                        <PreviewView plan={plan} />
+                      )}
+                      {view === "pools" && <PoolsView plan={plan} uiLanguage={uiLanguage} />}
+                      {view === "rules" && <RulesView plan={plan} uiLanguage={uiLanguage} />}
                     </div>
                   </>
                 )}

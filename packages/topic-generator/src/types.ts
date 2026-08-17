@@ -13,6 +13,62 @@ export type ProductRole = "core" | "pairing" | "accessory";
 export type ThemeType = "brand" | "product" | "activity" | "uncertain";
 export type ThemeEntityType = "brand" | "category" | "attribute" | "scenario" | "unknown";
 export type ShoppingIntent = "browse-brand" | "find-product" | "assemble-scenario" | "clarify";
+export type ShopperAction =
+  | "browse"
+  | "find"
+  | "compare"
+  | "filter"
+  | "replenish"
+  | "bundle"
+  | "gift"
+  | "clarify";
+export type IntentEvidenceLevel = "high" | "medium" | "low";
+export type IntentDecisionStatus = "resolved" | "ambiguous" | "needs-review";
+export type IntentConstraintStatus = "verified" | "unverified" | "rejected";
+export type IntentConstraintKind = "core-entity" | "modifier" | "scenario" | "exclusion";
+
+export interface ThemeIntentEvidenceRef {
+  id: string;
+  source:
+    | "catalog-brand"
+    | "catalog-category"
+    | "catalog-attribute"
+    | "catalog-products"
+    | "scenario-vocabulary"
+    | "search-fallback";
+  label: string;
+  count?: number;
+}
+
+export interface ThemeIntentConstraint {
+  id: string;
+  kind: IntentConstraintKind;
+  value: string;
+  status: IntentConstraintStatus;
+  evidenceIds: string[];
+}
+
+export interface ThemeIntentCandidate {
+  id: string;
+  themeType: ThemeType;
+  entityType: ThemeEntityType;
+  canonicalEntity: { id: string; label: string } | null;
+  shoppingIntent: ShoppingIntent;
+  shopperAction: ShopperAction;
+  score: number;
+  evidenceLevel: IntentEvidenceLevel;
+  reason: string;
+  supportingEvidenceIds: string[];
+  competingCandidateIds: string[];
+}
+
+export interface ThemeIntentDecision {
+  status: IntentDecisionStatus;
+  selectedCandidateId: string;
+  evidenceLevel: IntentEvidenceLevel;
+  selectedCandidateMargin: number | null;
+  requiresAgentReview: boolean;
+}
 
 export interface ThemeIntentCategory {
   id: string;
@@ -22,6 +78,7 @@ export interface ThemeIntentCategory {
 }
 
 export interface ThemeIntent {
+  schemaVersion: "theme-intent/v2";
   source: "catalog-evidence" | "search-fallback";
   themeType: ThemeType;
   catalogDomain: string;
@@ -29,12 +86,18 @@ export interface ThemeIntent {
   entityType: ThemeEntityType;
   canonicalEntity: { id: string; label: string } | null;
   shoppingIntent: ShoppingIntent;
+  shopperAction: ShopperAction;
   shoppingGoal: string;
   needs: string[];
+  conditions: string[];
   mustInclude: string[];
   mustExclude: string[];
   searchTerms: string[];
   categories: ThemeIntentCategory[];
+  constraints: ThemeIntentConstraint[];
+  evidenceRefs: ThemeIntentEvidenceRef[];
+  candidates: ThemeIntentCandidate[];
+  decision: ThemeIntentDecision;
   reason: string;
   confidence: number;
 }
@@ -93,6 +156,7 @@ export interface YamiSearchSnapshot {
   fetchedAt: string;
   products: YamiProduct[];
   provider?: "yami-catalog-search" | "yami-web-search";
+  retrievalTerms?: string[];
   evidence?: CatalogEvidence;
   intent?: ThemeIntent;
 }
@@ -147,7 +211,10 @@ export interface WorkflowStep {
   output: string;
 }
 
+export type TopicGenerationMode = "selection" | "page";
+
 export interface TopicPagePlan {
+  generationMode: TopicGenerationMode;
   keyword: string;
   site: YamiSite;
   language: ContentLanguage;
@@ -170,10 +237,10 @@ export interface TopicPagePlan {
     headline: string;
     description: string;
     tags: string[];
-    copyMode: "deterministic-template";
+    copyMode: "deterministic-template" | "not-generated";
   };
   assetStrategy: {
-    mode: "source-product-images";
+    mode: "source-product-images" | "not-generated";
     note: string;
   };
   pools: {

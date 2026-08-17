@@ -52,9 +52,9 @@ export function buildTopicGeneratorRunArtifacts(
     {
       name: "theme-intent",
       file: "theme-intent.json",
-      schemaVersion: "theme-intent/v1",
+      schemaVersion: analysis.intent.schemaVersion,
       value: {
-        schemaVersion: "theme-intent/v1",
+        schemaVersion: analysis.intent.schemaVersion,
         keyword: analysis.snapshot.keyword,
         intent: analysis.intent,
         proposalReview: analysis.proposalReview,

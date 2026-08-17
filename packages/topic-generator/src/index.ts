@@ -1,5 +1,6 @@
 export * from "./analyze.js";
 export * from "./catalog-snapshot.js";
+export * from "./evaluate.js";
 export * from "./planner.js";
 export * from "./run-artifact.js";
 export * from "./server.js";

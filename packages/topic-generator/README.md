@@ -14,7 +14,8 @@ test / future Adapter ─────┘
 ```
 
 - Core：`src`，负责 CatalogSnapshot、受证据约束的 ThemeIntent、HTTP handler、页面规划与 Run Artifacts。
-- CLI：`topic-generator`，输出可被其他项目消费的 `theme-intent/v1` JSON；可接收 Agent 提案并显式保存运行产物。
+- CLI：`topic-generator`，输出可被其他项目消费的 `theme-intent/v2` JSON；可接收 Agent 提案并显式保存运行产物。
+- Eval：`topic-intent-eval`，用稳定的语义期望对比实时 Yami 目录分析，不复制或冻结商品库存。
 - Web：`web`，提供可被 Next.js 宿主加载的产品界面。
 - Codex：`integrations/codex/topic-intent`，根目录以发现链接暴露该 Skill。
 - Kiro：`integrations/kiro/topic-generator.json`，根目录以发现链接暴露该 Agent。
@@ -24,6 +25,7 @@ test / future Adapter ─────┘
 
 ```bash
 pnpm topic-generator:analyze -- --keyword "ANUA" --pretty
+pnpm topic-generator:evaluate -- --limit 5 --pretty
 pnpm topic-generator:analyze -- --keyword "movie night" \
   --proposal ./proposal.json \
   --output ./topic-generator-runs \
@@ -38,9 +40,10 @@ Web 页面：`http://127.0.0.1:3200/topic-generator`
 1. 一个产品 Agent 负责歧义语言；Skill 只负责教 Codex 如何调用，不承载运行时业务逻辑。
 2. Agent 可提交 `semantic-proposal/v1`，但 TopicIntent Module 会按 CatalogSnapshot 接受、缩窄或拒绝字段。Agent 不能声明品牌、品类、属性、可售或库存事实。
 3. Yami 结构化 Adapter 提供品牌、品类、属性与商品证据；失败后才尝试公开搜索 Adapter，且每次尝试都会记录。
-4. `reason` 只给可审阅依据，不暴露或伪造模型隐藏思考过程；`confidence` 不能替代目录证据。
+4. `reason` 只给可审阅依据，不暴露或伪造模型隐藏思考过程；界面展示证据等级与歧义状态，不把未校准规则分数呈现为正确率。
 5. PagePlan 是确定性结果；`--output` 才会写入带版本与 SHA-256 的 Run Artifacts，默认不持久化。
 6. 部署运行时不使用模型 SDK、Provider Key 或服务端草稿存储。
+7. ThemeIntent 同时保存核心实体、购物动作、修饰条件、逐项约束状态和候选解释；候选接近时进入 `ambiguous`，不隐藏冲突。
 
 ## Agent 提案
 

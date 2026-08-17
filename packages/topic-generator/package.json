@@ -1,6 +1,6 @@
 {
   "name": "@yami/topic-generator",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "Portable TOPIC GENERATOR product with intent analysis, Yami catalog retrieval, CLI, and Web UI",
   "type": "module",
@@ -12,11 +12,15 @@
     },
     "./web": "./web/index.ts"
   },
-  "bin": { "topic-generator": "./bin/topic-generator.mjs" },
+  "bin": {
+    "topic-generator": "./bin/topic-generator.mjs",
+    "topic-intent-eval": "./bin/topic-intent-eval.mjs"
+  },
   "files": [
     "bin",
     "dist",
     "docs",
+    "evals",
     "integrations",
     "web",
     "global.d.ts",
@@ -27,7 +31,8 @@
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
     "build": "tsc -p tsconfig.build.json",
-    "analyze": "pnpm run build && node dist/cli.js"
+    "analyze": "pnpm run build && node dist/cli.js",
+    "evaluate": "pnpm run build && node dist/evaluate-cli.js"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",

@@ -83,13 +83,24 @@ describe("TopicIntent Module", () => {
     );
 
     expect(result.intent).toMatchObject({
+      schemaVersion: "theme-intent/v2",
       themeType: "activity",
       entityType: "scenario",
       canonicalEntity: { id: "movie-night", label: "movie night" },
       shoppingIntent: "assemble-scenario",
+      shopperAction: "bundle",
       needs: ["Popcorn", "Soft Drinks"],
       confidence: 0.78,
+      decision: {
+        status: "resolved",
+        evidenceLevel: "medium",
+        requiresAgentReview: false,
+      },
     });
+    expect(result.intent.constraints).toContainEqual(expect.objectContaining({
+      value: "movie night",
+      status: "unverified",
+    }));
     expect(result.intent.reason).toContain("Semantic Proposal");
     expect(result.intent.reason).toContain("2 catalog categories");
     expect(result.proposalReview).toMatchObject({

@@ -116,13 +116,14 @@ export function buildTopicIntentReport(
 ) {
   return {
     product: "TOPIC GENERATOR",
-    schemaVersion: "theme-intent/v1",
+    schemaVersion: analysis.intent.schemaVersion,
     keyword: analysis.snapshot.keyword,
     analyzedAt: analysis.snapshot.fetchedAt,
     intent: analysis.intent,
     evidence: {
       provider: analysis.snapshot.provider,
       sourceUrl: analysis.snapshot.sourceUrl,
+      retrievalTerms: analysis.snapshot.retrievalTerms ?? [analysis.snapshot.keyword],
       fallbackUsed: analysis.fallbackUsed,
       attempts: analysis.attempts,
       productCount: analysis.snapshot.products.length,

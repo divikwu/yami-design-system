@@ -103,6 +103,144 @@ describe("TOPIC GENERATOR Yami search provider", () => {
     }
   });
 
+  it("retries a zero-result scenario with a reviewable retrieval query", async () => {
+    const emptyPayload = { messageId: "10000", body: { items: [] } };
+    const payload = {
+      messageId: "10000",
+      body: {
+        categoryAgg: [
+          {
+            category_id: 9,
+            category_name: "火锅底料",
+            category_ename: "Hot Pot Soup Base",
+            result_count: 1,
+            children: [],
+          },
+          {
+            category_id: 10,
+            category_name: "火锅食材",
+            category_ename: "Hot Pot Ingredients",
+            result_count: 1,
+            children: [],
+          },
+        ],
+        items: [
+          {
+            item_number: "hot-pot-1",
+            goods_ename: "Hot Pot Soup Base",
+            category_l3_id: 9,
+            image_url: "/item/hot-pot.webp",
+            slug: "hot-pot-soup-base",
+            status: "A",
+            goods_number: 8,
+          },
+          {
+            item_number: "hot-pot-2",
+            goods_ename: "Hot Pot Fish Ball",
+            category_l3_id: 10,
+            image_url: "/item/fish-ball.webp",
+            slug: "hot-pot-fish-ball",
+            status: "A",
+            goods_number: 8,
+          },
+        ],
+      },
+    };
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => emptyPayload })
+      .mockResolvedValue({ ok: true, json: async () => payload });
+    vi.stubGlobal("fetch", fetchMock);
+
+    try {
+      const result = await searchYamiCatalog("hot pot night essentials");
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+      expect(JSON.parse(String(fetchMock.mock.calls[1]?.[1]?.body))).toMatchObject({
+        keywords: "hot pot",
+      });
+      expect(result.snapshot.retrievalTerms).toEqual(["hot pot"]);
+      expect(result.intent).toMatchObject({
+        themeType: "activity",
+        shopperAction: "bundle",
+      });
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("rewrites a low-coverage Chinese scenario query before resolving intent", async () => {
+    const lowCoveragePayload = {
+      messageId: "10000",
+      body: {
+        categoryAgg: [{
+          category_id: 80,
+          category_name: "餐厅家具",
+          category_ename: "Dining & Kitchen Furniture",
+          result_count: 1,
+          children: [],
+        }],
+        items: [{
+          item_number: "furniture-1",
+          goods_ename: "Small Kitchen Shelf",
+          category_l3_id: 80,
+          image_url: "/item/furniture.webp",
+          slug: "small-kitchen-shelf",
+          status: "A",
+          goods_number: 2,
+        }],
+      },
+    };
+    const broadPayload = {
+      messageId: "10000",
+      body: {
+        categoryAgg: [
+          {
+            category_id: 81,
+            category_name: "厨房收纳",
+            category_ename: "Kitchen Storage",
+            result_count: 8,
+            children: [],
+          },
+          {
+            category_id: 82,
+            category_name: "置物架",
+            category_ename: "Storage Racks",
+            result_count: 5,
+            children: [],
+          },
+        ],
+        items: Array.from({ length: 12 }, (_, index) => ({
+          item_number: `storage-${index}`,
+          goods_ename: `Kitchen Storage Product ${index}`,
+          category_l3_id: index < 8 ? 81 : 82,
+          image_url: `/item/storage-${index}.webp`,
+          slug: `kitchen-storage-${index}`,
+          status: "A",
+          goods_number: 2,
+        })),
+      },
+    };
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => lowCoveragePayload })
+      .mockResolvedValue({ ok: true, json: async () => broadPayload });
+    vi.stubGlobal("fetch", fetchMock);
+
+    try {
+      const result = await searchYamiCatalog("小户型厨房收纳");
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+      expect(JSON.parse(String(fetchMock.mock.calls[1]?.[1]?.body))).toMatchObject({
+        keywords: "厨房收纳",
+      });
+      expect(result.snapshot.retrievalTerms).toEqual(["厨房收纳"]);
+      expect(result.intent).toMatchObject({
+        themeType: "activity",
+        entityType: "scenario",
+        shopperAction: "bundle",
+      });
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("builds a catalog-evidenced brand intent from the product interface", () => {
     const result = parseYamiCatalogResponse("ANUA", {
       messageId: "10000",
@@ -163,12 +301,27 @@ describe("TOPIC GENERATOR Yami search provider", () => {
     });
 
     expect(result.intent).toMatchObject({
+      schemaVersion: "theme-intent/v2",
       source: "catalog-evidence",
       themeType: "brand",
       entityType: "brand",
       canonicalEntity: { id: "100", label: "ANUA" },
       shoppingIntent: "browse-brand",
+      shopperAction: "browse",
+      decision: {
+        status: "resolved",
+        evidenceLevel: "high",
+        requiresAgentReview: false,
+      },
     });
+    expect(result.intent.constraints).toContainEqual(expect.objectContaining({
+      value: "ANUA",
+      status: "verified",
+    }));
+    expect(result.intent.candidates.map(({ entityType }) => entityType)).toEqual([
+      "brand",
+      "category",
+    ]);
     expect(result.snapshot.products[0]).toMatchObject({
       id: "1001",
       categoryL3Id: 500,
@@ -274,6 +427,57 @@ describe("TOPIC GENERATOR Yami search provider", () => {
       canonicalEntity: { id: "1691", label: "Matcha" },
       confidence: 0.92,
     });
+  });
+
+  it("keeps competing exact entity interpretations instead of hiding a collision", () => {
+    const result = parseYamiCatalogResponse("Matcha", {
+      messageId: "10000",
+      body: {
+        brandAgg: [{
+          brand_id: 800,
+          brand_name: "抹茶牌",
+          brand_ename: "Matcha",
+          result_count: 4,
+        }],
+        categoryAgg: [{
+          category_id: 3,
+          category_name: "茶饮冲调",
+          category_ename: "Tea & Beverages",
+          children: [{
+            category_id: 1691,
+            category_name: "抹茶",
+            category_ename: "Matcha",
+            result_count: 4,
+            children: [],
+          }],
+        }],
+        items: [{
+          item_number: "collision-1",
+          goods_ename: "Matcha Green Tea",
+          brand_id: 800,
+          brand_ename: "Matcha",
+          category_l1_id: 3,
+          category_l3_id: 1691,
+          image_url: "/item/collision_0x0.webp",
+          slug: "matcha-green-tea",
+          status: "A",
+          goods_number: 5,
+        }],
+      },
+    });
+
+    expect(result.intent).toMatchObject({
+      entityType: "brand",
+      decision: {
+        status: "ambiguous",
+        selectedCandidateMargin: 0.03,
+        requiresAgentReview: true,
+      },
+    });
+    expect(result.intent.candidates.map(({ entityType }) => entityType)).toEqual([
+      "brand",
+      "category",
+    ]);
   });
 
   it("recognizes a multi-category shopping scenario without a model call", () => {
@@ -405,11 +609,13 @@ describe("TOPIC GENERATOR Yami search provider", () => {
 
     expect(result.intent).toMatchObject({
       themeType: "product",
-      entityType: "attribute",
+      entityType: "category",
       shoppingIntent: "find-product",
-      canonicalEntity: { id: "tag:437", label: "Sugar Free" },
+      shopperAction: "filter",
+      canonicalEntity: { id: "1", label: "Snack" },
     });
-    expect(result.intent.mustInclude).toEqual(expect.arrayContaining(["Sugar Free", "Matcha"]));
+    expect(result.intent.mustInclude).toEqual(expect.arrayContaining(["Snack", "Sugar Free"]));
+    expect(result.intent.conditions).toEqual(expect.arrayContaining(["Sugar Free", "Matcha"]));
   });
 
   it("keeps the full keyword as an unverified constraint when tags only partially overlap", () => {
@@ -453,17 +659,25 @@ describe("TOPIC GENERATOR Yami search provider", () => {
     });
 
     expect(result.intent).toMatchObject({
-      entityType: "attribute",
-      canonicalEntity: {
-        id: "attribute:sugar-free-matcha-snacks",
-        label: "sugar free matcha snacks",
+      entityType: "category",
+      canonicalEntity: { id: "1", label: "Snack" },
+      confidence: 0.76,
+      shopperAction: "filter",
+      decision: {
+        status: "ambiguous",
+        evidenceLevel: "medium",
+        requiresAgentReview: true,
       },
-      confidence: 0.68,
     });
-    expect(result.intent.mustInclude).toContain("sugar free matcha snacks");
+    expect(result.intent.mustInclude).toContain("Snack");
+    expect(result.intent.conditions).toContain("sugar free");
+    expect(result.intent.constraints).toContainEqual(expect.objectContaining({
+      value: "sugar free",
+      status: "unverified",
+    }));
   });
 
-  it("uses the strongest returned category when the keyword is not a canonical label", () => {
+  it("separates an unverified modifier from a contained catalog category", () => {
     const result = parseYamiCatalogResponse("heartleaf toner", {
       messageId: "10000",
       body: {
@@ -515,8 +729,63 @@ describe("TOPIC GENERATOR Yami search provider", () => {
       entityType: "category",
       canonicalEntity: { id: "501", label: "Toners" },
       shoppingIntent: "find-product",
+      shopperAction: "filter",
     });
-    expect(result.intent.mustInclude).toContain("heartleaf toner");
+    expect(result.intent.mustInclude).toContain("Toners");
+    expect(result.intent.conditions).toContain("heartleaf");
+    expect(result.intent.constraints).toContainEqual(expect.objectContaining({
+      value: "heartleaf",
+      status: "unverified",
+    }));
+  });
+
+  it("normalizes a Chinese shopper term to the catalog category while retaining its modifier", () => {
+    const result = parseYamiCatalogResponse("鱼腥草爽肤水", {
+      messageId: "10000",
+      body: {
+        categoryAgg: [{
+          category_id: 5,
+          category_name: "美妆个护",
+          category_ename: "Beauty",
+          children: [{
+            category_id: 50,
+            category_name: "面部护理",
+            category_ename: "Skin Care",
+            children: [{
+              category_id: 501,
+              category_name: "化妆水",
+              category_ename: "Toners",
+              result_count: 7,
+              children: [],
+            }],
+          }],
+        }],
+        items: [{
+          item_number: "5002",
+          goods_ename: "Heartleaf Soothing Toner",
+          category_l1_id: 5,
+          category_l2_id: 50,
+          category_l3_id: 501,
+          image_url: "/item/heartleaf-toner.webp",
+          slug: "heartleaf-soothing-toner",
+          status: "A",
+          goods_number: 5,
+        }],
+      },
+    });
+
+    expect(result.intent).toMatchObject({
+      themeType: "product",
+      entityType: "category",
+      canonicalEntity: { id: "501", label: "Toners" },
+      shopperAction: "filter",
+      decision: { status: "ambiguous" },
+    });
+    expect(result.intent.conditions).toContain("鱼腥草");
+    expect(result.intent.constraints).toContainEqual(expect.objectContaining({
+      value: "鱼腥草",
+      status: "unverified",
+    }));
   });
 
   it("builds a United States catalog URL", () => {
@@ -669,6 +938,7 @@ describe("Topic page planner", () => {
         keyword: "matcha",
         provider: "yami-catalog-search",
         intent: {
+          schemaVersion: "theme-intent/v2",
           source: "catalog-evidence",
           themeType: "product",
           catalogDomain: "Tea & Beverages",
@@ -676,8 +946,10 @@ describe("Topic page planner", () => {
           entityType: "category",
           canonicalEntity: { id: "1691", label: "Matcha" },
           shoppingIntent: "find-product",
+          shopperAction: "find",
           shoppingGoal: "Find Matcha products.",
           needs: ["Tea"],
+          conditions: [],
           mustInclude: ["Matcha"],
           mustExclude: [],
           searchTerms: ["matcha"],
@@ -685,6 +957,39 @@ describe("Topic page planner", () => {
             { id: "1691", label: "Matcha", path: ["Tea & Beverages", "Tea", "Matcha"], evidenceCount: 1 },
             { id: "101", label: "Cookies", path: ["Snack", "Cookies & Cakes", "Cookies"], evidenceCount: 1 },
           ],
+          constraints: [{
+            id: "core-entity:matcha",
+            kind: "core-entity",
+            value: "Matcha",
+            status: "verified",
+            evidenceIds: ["catalog-category:1691"],
+          }],
+          evidenceRefs: [{
+            id: "catalog-category:1691",
+            source: "catalog-category",
+            label: "Matcha",
+            count: 1,
+          }],
+          candidates: [{
+            id: "product:category:1691:find-product:find",
+            themeType: "product",
+            entityType: "category",
+            canonicalEntity: { id: "1691", label: "Matcha" },
+            shoppingIntent: "find-product",
+            shopperAction: "find",
+            score: 0.92,
+            evidenceLevel: "high",
+            reason: "Exact catalog category match.",
+            supportingEvidenceIds: ["catalog-category:1691"],
+            competingCandidateIds: [],
+          }],
+          decision: {
+            status: "resolved",
+            selectedCandidateId: "product:category:1691:find-product:find",
+            evidenceLevel: "high",
+            selectedCandidateMargin: null,
+            requiresAgentReview: false,
+          },
           reason: "Exact catalog category match.",
           confidence: 0.92,
         },
@@ -707,24 +1012,65 @@ describe("Topic page planner", () => {
         keyword: "sugar free matcha snacks",
         provider: "yami-catalog-search",
         intent: {
+          schemaVersion: "theme-intent/v2",
           source: "catalog-evidence",
           themeType: "product",
           catalogDomain: "Snack",
           attributeSchemaVersion: "catalog-v1",
-          entityType: "attribute",
-          canonicalEntity: {
-            id: "attribute:sugar-free-matcha-snacks",
-            label: "sugar free matcha snacks",
-          },
+          entityType: "category",
+          canonicalEntity: { id: "1", label: "Snack" },
           shoppingIntent: "find-product",
+          shopperAction: "filter",
           shoppingGoal: "Find products matching the complete keyword.",
           needs: ["Sugar Free", "Matcha"],
-          mustInclude: ["sugar free matcha snacks"],
+          conditions: ["sugar free", "matcha"],
+          mustInclude: ["Snack"],
           mustExclude: [],
           searchTerms: ["sugar free matcha snacks"],
           categories: [],
+          constraints: [
+            {
+              id: "core-entity:snack",
+              kind: "core-entity",
+              value: "Snack",
+              status: "verified",
+              evidenceIds: ["catalog-category:1"],
+            },
+            {
+              id: "modifier:sugar-free",
+              kind: "modifier",
+              value: "sugar free",
+              status: "unverified",
+              evidenceIds: [],
+            },
+          ],
+          evidenceRefs: [{
+            id: "catalog-category:1",
+            source: "catalog-category",
+            label: "Snack",
+          }],
+          candidates: [{
+            id: "product:category:1:find-product:filter",
+            themeType: "product",
+            entityType: "category",
+            canonicalEntity: { id: "1", label: "Snack" },
+            shoppingIntent: "find-product",
+            shopperAction: "filter",
+            score: 0.76,
+            evidenceLevel: "medium",
+            reason: "Catalog tags only partially overlap the keyword.",
+            supportingEvidenceIds: ["catalog-category:1"],
+            competingCandidateIds: [],
+          }],
+          decision: {
+            status: "ambiguous",
+            selectedCandidateId: "product:category:1:find-product:filter",
+            evidenceLevel: "medium",
+            selectedCandidateMargin: 0.02,
+            requiresAgentReview: true,
+          },
           reason: "Catalog tags only partially overlap the keyword.",
-          confidence: 0.68,
+          confidence: 0.76,
         },
       },
       "relevance",
@@ -899,9 +1245,27 @@ describe("Topic page planner", () => {
     expect(chinese.generatedAt).toBe(english.generatedAt);
     expect(chinese.pools).toEqual(english.pools);
     expect(chinese.content.headline).toBe("探索 ANUA");
+    expect(chinese.statusReason).toBe("10 件直接匹配商品已可用于模块规划。");
     expect(chinese.groups.find((group) => group.id === "cleansers")?.label).toBe("洁面");
     expect(chinese.modules.find((module) => module.id === "shortcuts")?.heading).toBe("按类型选购");
+    expect(chinese.products[0]?.brand).toBe(english.products[0]?.brand);
+    expect(chinese.products[0]?.title).toBe(english.products[0]?.title);
     expect(chinese.products[0]?.selectionReason).toContain("关键词直接命中");
+  });
+
+  it("stops after product pools in selection mode", () => {
+    const plan = buildTopicPagePlan(snapshot(products), "relevance", "en", "selection");
+
+    expect(plan.generationMode).toBe("selection");
+    expect(plan.pools.primaryIds).not.toHaveLength(0);
+    expect(plan.modules).toEqual([]);
+    expect(plan.content).toMatchObject({
+      headline: "",
+      description: "",
+      copyMode: "not-generated",
+    });
+    expect(plan.assetStrategy.mode).toBe("not-generated");
+    expect(plan.workflow.map((step) => step.stage)).toEqual(["03"]);
   });
 
   it("enables a brand spotlight only for a query-matched dominant brand", () => {

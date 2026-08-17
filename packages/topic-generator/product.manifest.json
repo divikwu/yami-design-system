@@ -2,7 +2,7 @@
   "schemaVersion": "topic-generator-product/v1",
   "id": "topic-generator",
   "displayName": "TOPIC GENERATOR",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "status": "workspace-product",
   "distribution": "private-workspace",
   "runtime": {
@@ -13,6 +13,7 @@
     "web": "/topic-generator",
     "api": "/api/topic-generator",
     "cli": "topic-generator",
+    "evaluationCli": "topic-intent-eval",
     "package": "@yami/topic-generator"
   },
   "integrations": {
@@ -33,7 +34,7 @@
   ],
   "contracts": {
     "semanticProposal": "semantic-proposal/v1",
-    "themeIntent": "theme-intent/v1",
+    "themeIntent": "theme-intent/v2",
     "catalogSnapshot": "catalog-snapshot/v1",
     "pagePlans": "page-plans/v1",
     "runArtifact": "topic-generator-run/v1"

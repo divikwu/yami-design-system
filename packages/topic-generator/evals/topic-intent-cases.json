@@ -1,0 +1,206 @@
+[
+  {
+    "id": "brand-anua",
+    "keyword": "ANUA",
+    "description": "Exact catalog brand",
+    "expected": { "themeType": "brand", "entityType": "brand", "shopperAction": "browse", "canonicalLabel": "ANUA", "decisionStatus": "resolved" }
+  },
+  {
+    "id": "brand-cosrx",
+    "keyword": "COSRX",
+    "description": "Exact catalog brand",
+    "expected": { "themeType": "brand", "entityType": "brand", "shopperAction": "browse", "canonicalLabel": "COSRX" }
+  },
+  {
+    "id": "brand-sk-ii",
+    "keyword": "SK-II",
+    "description": "Hyphenated catalog brand",
+    "expected": { "themeType": "brand", "entityType": "brand", "shopperAction": "browse", "canonicalLabel": "SK-II" }
+  },
+  {
+    "id": "brand-shiseido",
+    "keyword": "Shiseido",
+    "description": "Beauty catalog brand",
+    "expected": { "themeType": "brand", "entityType": "brand", "shopperAction": "browse", "canonicalLabel": "Shiseido" }
+  },
+  {
+    "id": "brand-nongshim",
+    "keyword": "Nongshim",
+    "description": "Food catalog brand",
+    "expected": { "themeType": "brand", "entityType": "brand", "shopperAction": "browse", "canonicalLabel": "Nongshim" }
+  },
+  {
+    "id": "brand-la-roche-posay",
+    "keyword": "La Roche-Posay",
+    "description": "Multi-token catalog brand",
+    "expected": { "themeType": "brand", "entityType": "brand", "shopperAction": "browse", "canonicalLabel": "La Roche-Posay" }
+  },
+  {
+    "id": "category-ramen",
+    "keyword": "ramen",
+    "description": "Product category",
+    "expected": { "themeType": "product", "entityType": "category", "shopperAction": "find", "canonicalLabel": "Ramen" }
+  },
+  {
+    "id": "category-matcha",
+    "keyword": "matcha",
+    "description": "Product category",
+    "expected": { "themeType": "product", "entityType": "category", "shopperAction": "find", "canonicalLabel": "Matcha" }
+  },
+  {
+    "id": "category-sunscreen",
+    "keyword": "sunscreen",
+    "description": "Beauty category",
+    "expected": { "themeType": "product", "entityType": "category", "shopperAction": "find", "canonicalLabel": "Sunscreen" }
+  },
+  {
+    "id": "category-sheet-masks",
+    "keyword": "sheet masks",
+    "description": "Multi-token beauty category",
+    "expected": { "themeType": "product", "entityType": "category", "shopperAction": "find", "canonicalLabel": "Sheet Masks" }
+  },
+  {
+    "id": "category-toners",
+    "keyword": "toners",
+    "description": "Beauty category",
+    "expected": { "themeType": "product", "entityType": "category", "shopperAction": "find", "canonicalLabel": "Toners" }
+  },
+  {
+    "id": "category-rice",
+    "keyword": "rice",
+    "description": "Food category",
+    "expected": { "themeType": "product", "entityType": "category", "shopperAction": "find", "canonicalLabel": "Rice" }
+  },
+  {
+    "id": "category-body-lotion",
+    "keyword": "body lotion",
+    "description": "Body-care category",
+    "expected": { "themeType": "product", "entityType": "category", "shopperAction": "find", "canonicalLabel": "Body Lotion" }
+  },
+  {
+    "id": "category-candy",
+    "keyword": "candy",
+    "description": "Snack category",
+    "expected": { "themeType": "product", "entityType": "category", "shopperAction": "find", "canonicalLabel": "Candy" }
+  },
+  {
+    "id": "filter-sugar-free-snacks",
+    "keyword": "sugar free snacks",
+    "description": "Nutrition modifier plus category",
+    "expected": { "themeType": "product", "entityType": "category", "shopperAction": "filter", "requiredConditions": ["Sugar Free"] }
+  },
+  {
+    "id": "filter-heartleaf-toner",
+    "keyword": "heartleaf toner",
+    "description": "Ingredient modifier plus category",
+    "expected": { "themeType": "product", "entityType": "category", "shopperAction": "filter", "requiredConditions": ["Heartleaf"] }
+  },
+  {
+    "id": "filter-spicy-ramen",
+    "keyword": "spicy ramen",
+    "description": "Flavor modifier plus category",
+    "expected": { "themeType": "product", "entityType": "category", "shopperAction": "filter", "requiredConditions": ["Spicy"] }
+  },
+  {
+    "id": "filter-vegan-snacks",
+    "keyword": "vegan snacks",
+    "description": "Diet modifier plus category",
+    "expected": { "themeType": "product", "entityType": "category", "shopperAction": "filter", "requiredConditions": ["Vegan"] }
+  },
+  {
+    "id": "filter-sensitive-skin-sunscreen",
+    "keyword": "sensitive skin sunscreen",
+    "description": "Skin concern plus category",
+    "expected": { "themeType": "product", "entityType": "category", "shopperAction": "filter", "requiredConditions": ["Sensitive Skin"] }
+  },
+  {
+    "id": "filter-low-sodium-noodles",
+    "keyword": "low sodium noodles",
+    "description": "Nutrition modifier plus category",
+    "expected": { "themeType": "product", "entityType": "category", "shopperAction": "filter", "requiredConditions": ["Low Sodium"] }
+  },
+  {
+    "id": "filter-matcha-cookies",
+    "keyword": "matcha cookies",
+    "description": "Flavor modifier plus category",
+    "expected": { "themeType": "product", "entityType": "category", "shopperAction": "filter", "requiredConditions": ["Matcha"] }
+  },
+  {
+    "id": "filter-fragrance-free-lotion",
+    "keyword": "fragrance free lotion",
+    "description": "Formula modifier plus category",
+    "expected": { "themeType": "product", "entityType": "category", "shopperAction": "filter", "requiredConditions": ["Fragrance Free"] }
+  },
+  {
+    "id": "scenario-small-kitchen-storage",
+    "keyword": "small kitchen storage",
+    "description": "Space and storage scenario",
+    "expected": { "themeType": "activity", "entityType": "scenario", "shopperAction": "bundle" }
+  },
+  {
+    "id": "scenario-laundry-restock",
+    "keyword": "laundry restock",
+    "description": "Replenishment scenario",
+    "expected": { "themeType": "activity", "entityType": "scenario", "shopperAction": "replenish" }
+  },
+  {
+    "id": "scenario-winter-skincare-routine",
+    "keyword": "winter skincare routine",
+    "description": "Seasonal routine scenario",
+    "expected": { "themeType": "activity", "entityType": "scenario", "shopperAction": "bundle" }
+  },
+  {
+    "id": "scenario-holiday-gift-basket",
+    "keyword": "holiday gift basket",
+    "description": "Gift scenario",
+    "expected": { "themeType": "activity", "entityType": "scenario", "shopperAction": "gift" }
+  },
+  {
+    "id": "scenario-hot-pot-essentials",
+    "keyword": "hot pot night essentials",
+    "description": "Meal occasion scenario",
+    "expected": { "themeType": "activity", "entityType": "scenario", "shopperAction": "bundle" }
+  },
+  {
+    "id": "scenario-school-lunch-essentials",
+    "keyword": "school lunch essentials",
+    "description": "School meal scenario",
+    "expected": { "themeType": "activity", "entityType": "scenario", "shopperAction": "bundle" }
+  },
+  {
+    "id": "scenario-travel-skincare-essentials",
+    "keyword": "travel skincare essentials",
+    "description": "Travel routine scenario",
+    "expected": { "themeType": "activity", "entityType": "scenario", "shopperAction": "bundle" }
+  },
+  {
+    "id": "scenario-movie-night-essentials",
+    "keyword": "movie night essentials",
+    "description": "Entertainment occasion scenario",
+    "expected": { "themeType": "activity", "entityType": "scenario", "shopperAction": "bundle" }
+  },
+  {
+    "id": "zh-filter-heartleaf-toner",
+    "keyword": "鱼腥草爽肤水",
+    "description": "Chinese ingredient modifier plus catalog category alias",
+    "expected": { "themeType": "product", "entityType": "category", "shopperAction": "filter", "canonicalLabel": "Toners", "requiredConditions": ["鱼腥草"] }
+  },
+  {
+    "id": "zh-filter-sugar-free-matcha-snacks",
+    "keyword": "无糖抹茶零食",
+    "description": "Chinese nutrition and flavor modifiers plus category",
+    "expected": { "themeType": "product", "entityType": "category", "shopperAction": "filter", "canonicalLabel": "Snack", "requiredConditions": ["无糖", "抹茶"] }
+  },
+  {
+    "id": "zh-scenario-small-kitchen-storage",
+    "keyword": "小户型厨房收纳",
+    "description": "Chinese space and storage scenario",
+    "expected": { "themeType": "activity", "entityType": "scenario", "shopperAction": "bundle" }
+  },
+  {
+    "id": "zh-scenario-laundry-restock",
+    "keyword": "洗衣日用补给",
+    "description": "Chinese replenishment scenario",
+    "expected": { "themeType": "activity", "entityType": "scenario", "shopperAction": "replenish" }
+  }
+]
