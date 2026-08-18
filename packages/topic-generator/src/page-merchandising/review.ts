@@ -24,12 +24,28 @@ function exactOrder(left: readonly string[], right: readonly string[]) {
   return left.length === right.length && left.every((value, index) => value === right[index]);
 }
 
-function sourceSceneProductIds(selection: ProductSelectionResult) {
+const DETERMINISTIC_SELECTION_MODULE_IDS = new Set<TopicModuleId>([
+  "start-here",
+  "popular-picks",
+  "brand-spotlight",
+  "explore-more",
+]);
+
+const REFERENCE_MODULE_IDS = new Set<TopicModuleId>(["hero", "shortcuts"]);
+
+function sourceSceneProductOrder(selection: ProductSelectionResult) {
   return new Map(selection.scenes.map((scene) => [
     scene.id,
-    new Set(scene.productGroups.flatMap(({ core, pairing, accessory }) =>
+    scene.productGroups.flatMap(({ core, pairing, accessory }) =>
       [core, pairing, accessory].filter((id): id is string => Boolean(id))
-    )),
+    ),
+  ]));
+}
+
+function sourceSceneProductIds(selection: ProductSelectionResult) {
+  return new Map([...sourceSceneProductOrder(selection)].map(([sceneId, productIds]) => [
+    sceneId,
+    new Set(productIds),
   ]));
 }
 
@@ -110,7 +126,16 @@ export function reviewModuleMerchandisingProposal(
   const primaryIds = new Set(selection.pools.primaryIds);
   const relatedIds = new Set(selection.pools.relatedIds);
   const sourceScenesById = new Map(selection.scenes.map((scene) => [scene.id, scene]));
+  const sourceProductOrderByScene = sourceSceneProductOrder(selection);
   const sourceProductsByScene = sourceSceneProductIds(selection);
+  const selectionModulesById = new Map<
+    TopicModuleId,
+    ProductSelectionResult["modules"][number]
+  >(selection.modules.map((module) => [module.id, module]));
+  const preserveModuleAssignments = config.assignmentAuthority === "product-selection";
+  const selectionOwnedProductIds = new Set(
+    selection.modules.flatMap(({ productIds }) => productIds),
+  );
   const firstModuleByProduct = new Map<string, TopicModuleId>();
   const seenModuleIds = new Set<TopicModuleId>();
   const modules: PageMerchandisingModuleProposal[] = [];
@@ -144,6 +169,9 @@ export function reviewModuleMerchandisingProposal(
     if (visible && rule.maximumProducts === 0) {
       issues.push(`Module ${id} cannot be visible without supported evidence.`);
     }
+    const selectionModule = preserveModuleAssignments && DETERMINISTIC_SELECTION_MODULE_IDS.has(id)
+      ? selectionModulesById.get(id)
+      : undefined;
 
     const rawScenes = Array.isArray(module.scenes) ? module.scenes : [];
     if (!Array.isArray(module.scenes)) issues.push(`Module ${id} scenes must be an array.`);
@@ -222,6 +250,15 @@ export function reviewModuleMerchandisingProposal(
         if (!rule.allowedRoles.includes(product.role as ProductRole)) {
           issues.push(`Product ${productId} cannot fill the ${product.role} role in module ${id}.`);
         }
+        if (selectionModule && !selectionModule.productIds.includes(productId)) {
+          issues.push(`Product ${productId} is not assigned to module ${id} by ProductSelectionResult.`);
+        }
+        if (preserveModuleAssignments && REFERENCE_MODULE_IDS.has(id) &&
+            !selectionOwnedProductIds.has(productId)) {
+          issues.push(
+            `Product ${productId} can be referenced by module ${id} only after ProductSelection assigns it to an owned module.`,
+          );
+        }
       }
 
       if (rule.sceneRange) {
@@ -250,17 +287,49 @@ export function reviewModuleMerchandisingProposal(
       }
 
       const firstModule = firstModuleByProduct.get(productId);
-      if (firstModule && firstModule !== id && !reuseReason) {
-        issues.push(`Product ${productId} is reused across modules without a reuseReason.`);
+      if (firstModule && firstModule !== id) {
+        if (preserveModuleAssignments && !REFERENCE_MODULE_IDS.has(firstModule) &&
+            !REFERENCE_MODULE_IDS.has(id)) {
+          issues.push(
+            `Product ${productId} cannot be reused across ProductSelection-owned modules ${firstModule} and ${id}.`,
+          );
+        } else if (!reuseReason) {
+          issues.push(`Product ${productId} is reused across modules without a reuseReason.`);
+        }
       }
       if (!firstModule) firstModuleByProduct.set(productId, id);
       if (productId) assignments.push({ productId, ...(sceneId ? { sceneId } : {}), ...(reuseReason ? { reuseReason } : {}) });
     });
     scenes.forEach((scene) => {
-      if ((productIdsByScene.get(scene.id)?.size ?? 0) === 0) {
+      const assignedProductIds = assignments
+        .filter((assignment) => assignment.sceneId === scene.id)
+        .map(({ productId }) => productId);
+      if (assignedProductIds.length === 0) {
         issues.push(`Module ${id} scene ${scene.id} has no product assignments.`);
       }
+      if (preserveModuleAssignments && id === "start-here") {
+        const expectedProductIds = sourceProductOrderByScene.get(scene.sourceSceneId) ?? [];
+        if (!exactOrder(assignedProductIds, expectedProductIds)) {
+          issues.push(
+            `Page scene ${scene.id} must preserve every product from source scene ${scene.sourceSceneId} in order.`,
+          );
+        }
+      }
     });
+    if (visible && selectionModule && !exactOrder(
+      assignments.map(({ productId }) => productId),
+      selectionModule.productIds,
+    )) {
+      issues.push(`Module ${id} must preserve ProductSelectionResult product order.`);
+    }
+    if (visible && preserveModuleAssignments && id === "start-here" && !exactOrder(
+      scenes.map(({ sourceSceneId }) => sourceSceneId),
+      selection.scenes.map(({ id: sourceSceneId }) => sourceSceneId),
+    )) {
+      issues.push(
+        "Module start-here must preserve each ProductSelectionResult source scene exactly once and in order.",
+      );
+    }
 
     modules.push({ id, visible, shoppingGoal, reason, scenes, assignments });
   });

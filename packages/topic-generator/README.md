@@ -74,7 +74,9 @@ Web 页面：`http://127.0.0.1:3300/`
 3. 未被目录证据覆盖的核心修饰词会让基线保持 `needs-review`。当多个真实分类有证据时，可请求 `semantic-proposal/v1`；提案会与目录候选统一排序，候选差距不足时仍为 `ambiguous`，不能直接覆盖更强目录证据。
 4. Yami 结构化 Adapter 提供品牌、品类、属性与商品证据；共享同一通用别名的分类按当前商品覆盖量优先。普通拉丁商品查询会先按标题、品牌和商品分类字段过滤接口可能返回的通用推荐。两个 Adapter 都按商品 ID 稳定去重，并在 `snapshot.quality` 记录观测、接收、拒绝、截断数量及字段缺失、不可售、重复和关键词不匹配原因；分类 `productCount` 始终按最终去重商品池重算。场景分类必须由分类路径、中英文别名或商品分类字段支撑场景核心词，至少两个功能性分类才能自动确认；仅商品标题命中时保留为低证据候选并进入复核。分类数量或季节等通用修饰词不能单独成为场景证据。失败后才尝试公开搜索 Adapter，且每次尝试都会记录；网页 fallback 只保留标题或品牌命中关键词的可售商品，零相关结果按 `no_products` 失败。公开背景资料只辅助场景理解和文案事实，不进入商品或库存证据。
 5. `reason` 只给可审阅依据，不暴露或伪造模型隐藏思考过程；界面分别展示主题解释状态和商品条件验证状态。`confidence` 仅为兼容规则分数，审阅应使用 `decision.status`、`evidenceLevel`、候选差值、约束状态和证据来源。
-6. ProductSelection 配置以 `<id>@<version>` 共享；PageMerchandising 只消费 ready 的 ProductSelectionResult，在冻结商品池内分配页面模块，不重新选品或推断分类角色。
+6. ProductSelection 配置以 `<id>@<version>` 共享；分类角色的 PageMerchandising `@2` 模板
+   完整继承 ready ProductSelectionResult 的模块商品、顺序、场景分组与全局去重，只补充展示
+   语义以及 Hero/Shortcuts 引用，不重新选品或推断分类角色。
 7. 分类角色要求 SHA-256 绑定的完整 taxonomy artifact；不从搜索商品推断，也不复制目标仓库的数据库访问。
 8. 每次候选召回产生独立的质量报告；请求失败、缺失请求或商品引用缺失等高风险错误会阻止自动选品，低覆盖、分类标题语义异常和重复商品等中风险问题保持可见但不会由 Agent 静默修复。场景提案中的商品 ID 必须全局唯一，不能跨场景或商品组重复使用。
 9. CLI 只有显式 `--output` 才写入带版本与 SHA-256 的 Run Artifacts；Web 本地执行模式则按 ADR 007 保存私有 Execution Task、状态、日志和资产。
@@ -171,10 +173,13 @@ Visual 响应除提案外必须返回每个任务的 `taskId/ref/mimeType/dataBa
 
 选品结果 ready 后，增加版本化模板参数即可请求受约束的页面策略任务：
 
-Brand、Topic、Campaign 三个 `@1` 模板要求 4–6 个已验证来源场景，因此使用
+Brand、Topic、Campaign 三个 `@2` 模板要求 4–6 个已验证来源场景，因此使用
 `category-role/landing-page-agent@1`。`topic-landing/relevance@1` 专门消费没有分类与场景的
 `relevance/default@1`：它隐藏 StartHere 和 Reviews，并只用冻结的相关性商品生成 Hero、
 快捷入口、热门与探索模块，不虚构购物场景。
+
+新的分类角色运行使用 Brand、Topic、Campaign `@2` 模板。它们以 ProductSelection 为商品
+分配 authority；对应 `@1` 只用于历史任务回放，不再出现在新的 Agent 任务注册表中。
 
 ```bash
 pnpm topic-generator:analyze -- --keyword "Matcha" \
@@ -183,7 +188,7 @@ pnpm topic-generator:analyze -- --keyword "Matcha" \
   --category-proposal ./categories.json \
   --candidate-snapshot ./candidates.json \
   --scene-proposal ./scenes.json \
-  --page-template topic-landing/topic@1 \
+  --page-template topic-landing/topic@2 \
   --pretty
 ```
 

@@ -13,7 +13,7 @@ Return exactly one object:
   "themeIntentDigest": "sha256:...",
   "requestedPageTypeRef": null,
   "requestedSelectionStrategyRef": "relevance/default@1",
-  "pageTypeRef": "landing-page/brand@1",
+  "pageTypeRef": "landing-page/brand@2",
   "selectionStrategyRef": "relevance/default@1",
   "templateRef": "topic-landing/relevance@1",
   "reason": "Use the registered brand route requested by the caller."

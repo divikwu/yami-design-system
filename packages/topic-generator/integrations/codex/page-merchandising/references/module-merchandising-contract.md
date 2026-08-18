@@ -27,7 +27,7 @@ or override this field; the compiler copies it into PagePlan v2.
   "keyword": "Matcha",
   "site": "us",
   "strategyRef": "category-role/landing-page-agent@1",
-  "templateRef": "topic-landing/topic@1",
+  "templateRef": "topic-landing/topic@2",
   "themeIntentDigest": "sha256:...",
   "productSelectionDigest": "sha256:...",
   "moduleOrder": [
@@ -84,10 +84,14 @@ non-empty reviewable `reason`.
   `productSelectionDigest` exactly.
 - Satisfy each rule's required visibility, product count, allowed pools, allowed roles, and optional
   scene count.
+- For category-role `@2`, visible StartHere, Popular Picks, Brand Spotlight, and Explore More must
+  copy the corresponding `selectionModules[].productIds` exactly and in order.
 - Supply `sceneId` only in a scene-based module. Every assignment in that module must reference a
-  proposed scene whose `sourceSceneId` contains the same product.
-- Use each product at most once inside a scene. When a product appears in another module, include a
-  concise `reuseReason` on the later assignment.
+  proposed scene whose `sourceSceneId` contains the same product. Category-role `@2` must preserve
+  every source scene exactly once and copy the complete ordered products from both source groups.
+- Hero and Shortcuts may reference only products already owned by a ProductSelection module. Include
+  a concise `reuseReason` on the later reference. ProductSelection-owned modules may never reuse a
+  product; `reuseReason` does not grant permission.
 - Keep `shoppingGoal`, module `reason`, scene `reason`, and `reuseReason` concise and reviewable.
   They are planning rationale, not hidden reasoning or final marketing copy.
 

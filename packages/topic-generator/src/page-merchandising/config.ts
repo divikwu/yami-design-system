@@ -23,6 +23,7 @@ export interface PageMerchandisingModuleRule {
 export interface PageMerchandisingTemplateConfig {
   schemaVersion: "page-merchandising-template/v1";
   ref: TopicPageTemplateRef;
+  assignmentAuthority: "proposal" | "product-selection";
   moduleOrder: readonly TopicModuleId[];
   modules: readonly PageMerchandisingModuleRule[];
 }
@@ -117,28 +118,56 @@ function modules(brandMaximumProducts: number): PageMerchandisingModuleRule[] {
   ];
 }
 
-const CONFIGS: readonly PageMerchandisingTemplateConfig[] = [
+const LEGACY_CONFIGS: readonly PageMerchandisingTemplateConfig[] = [
   {
     schemaVersion: "page-merchandising-template/v1",
     ref: "topic-landing/brand@1",
+    assignmentAuthority: "proposal",
     moduleOrder: MODULE_ORDER,
     modules: modules(0),
   },
   {
     schemaVersion: "page-merchandising-template/v1",
     ref: "topic-landing/topic@1",
+    assignmentAuthority: "proposal",
     moduleOrder: MODULE_ORDER,
     modules: modules(18),
   },
   {
     schemaVersion: "page-merchandising-template/v1",
     ref: "topic-landing/campaign@1",
+    assignmentAuthority: "proposal",
+    moduleOrder: MODULE_ORDER,
+    modules: modules(18),
+  },
+];
+
+const CONFIGS: readonly PageMerchandisingTemplateConfig[] = [
+  {
+    schemaVersion: "page-merchandising-template/v1",
+    ref: "topic-landing/brand@2",
+    assignmentAuthority: "product-selection",
+    moduleOrder: MODULE_ORDER,
+    modules: modules(0),
+  },
+  {
+    schemaVersion: "page-merchandising-template/v1",
+    ref: "topic-landing/topic@2",
+    assignmentAuthority: "product-selection",
+    moduleOrder: MODULE_ORDER,
+    modules: modules(18),
+  },
+  {
+    schemaVersion: "page-merchandising-template/v1",
+    ref: "topic-landing/campaign@2",
+    assignmentAuthority: "product-selection",
     moduleOrder: MODULE_ORDER,
     modules: modules(18),
   },
   {
     schemaVersion: "page-merchandising-template/v1",
     ref: "topic-landing/relevance@1",
+    assignmentAuthority: "proposal",
     moduleOrder: MODULE_ORDER,
     modules: [
       {
@@ -222,7 +251,7 @@ export function listPageMerchandisingTemplateConfigs() {
 export function getPageMerchandisingTemplateConfig(
   ref: TopicPageTemplateRef,
 ): PageMerchandisingTemplateConfig {
-  const config = CONFIGS.find((candidate) => candidate.ref === ref);
+  const config = [...LEGACY_CONFIGS, ...CONFIGS].find((candidate) => candidate.ref === ref);
   if (!config) throw new Error(`Unknown PageMerchandising template: ${ref}`);
   return config;
 }

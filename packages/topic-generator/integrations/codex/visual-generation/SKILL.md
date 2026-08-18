@@ -34,7 +34,7 @@ pnpm topic-generator:analyze -- --keyword "<keyword>" \
   --category-proposal "<categories.json>" \
   --candidate-snapshot "<candidates.json>" \
   --scene-proposal "<scenes.json>" \
-  --page-template topic-landing/topic@1 \
+  --page-template topic-landing/topic@2 \
   --module-proposal "<modules.json>" \
   --content-language zh \
   --content-proposal "<content.zh.json>" \

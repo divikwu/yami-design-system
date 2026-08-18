@@ -138,17 +138,27 @@ ThemeIntent or ProductSelection digest drift, unknown products, pool/role violat
 drift, invalid module capacity, and unexplained cross-module reuse before compiling a digest-bound
 `topic-page-plan/v2`.
 
+The active category-role templates `topic-landing/brand@2`, `topic-landing/topic@2`, and
+`topic-landing/campaign@2` give ProductSelection assignment authority. StartHere, Popular Picks,
+Brand Spotlight, and Explore More must preserve the upstream module IDs and order; StartHere also
+preserves every source scene and both role-correct groups. Hero and Shortcuts may reference only
+products already owned by those modules. `reuseReason` is audit metadata and cannot authorize reuse
+between ProductSelection-owned modules. Preflight applies the same ownership and capacity rules
+before Agent work.
+
 `runPageMerchandisingAgentWorkflow` injects the PageMerchandising capability of the Strategy Agent.
 The Agent proposes module shopping goals, scene reshaping, and assignments; the
 Module owns validation, task IDs, and compilation. Legacy PagePlan v1 remains available for current
 Web compatibility and is not silently upgraded.
 
-The versioned refs `topic-landing/brand@1`, `topic-landing/topic@1`, and
-`topic-landing/campaign@1` map directly to the maintained Storybook variants under
+The active versioned refs `topic-landing/brand@2`, `topic-landing/topic@2`, and
+`topic-landing/campaign@2` map directly to the maintained Storybook variants under
 `YAMI/Pages/Topic Landing Page`. The corresponding page type is inferred only from a resolved
 ThemeIntent; Campaign therefore requires `activity` rather than a product or brand guess.
 `topic-landing/relevance@1` is the no-scene fallback for
 `relevance/default@1`; it hides scene-dependent modules rather than inventing source scenes.
+The category-role `@1` templates remain addressable only for old execution-plan replay and are not
+listed in new Agent task contexts.
 
 ### PageContent Module
 
