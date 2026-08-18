@@ -13,8 +13,8 @@ Use the package CLI as the deterministic runtime. Act as the Product Agent only 
   returned state requests it. Treat this shared Skill as the current Product Agent implementation.
 - Do not claim that the standalone Web page can invoke an interactive Codex or Kiro session. Use
   the CLI workflow from the workspace instead.
-- Reserve `createHttpProductSelectionAgent` for a future API-hosted Agent. Keep its proposal
-  contracts identical to the interactive workflow so moving hosts does not change selection rules.
+- Use `createHttpProductSelectionAgent` only for the automatic API Host. Keep its proposal contracts
+  identical to the interactive workflow so moving hosts does not change selection rules.
 - Never replace an unavailable Agent with fixture, inferred, or hard-coded proposals outside tests.
 
 ## Choose a strategy
@@ -93,7 +93,11 @@ this developer-only flow.
 
 ## Architecture boundary
 
-The Product Agent decides category semantics and shopping scenes. The Skill provides the calling convention. `@yami/topic-generator` owns schema validation, Yami requests, sorting, role quotas, module allocation, global deduplication, and PagePlan compilation.
+The TOPIC GENERATOR Agent decides category semantics and source shopping scenes. The Skill provides
+the calling convention. `@yami/topic-generator` owns schema validation, Yami requests, sorting,
+role quotas, selection-stage candidate grouping, and global deduplication. The later
+`page-merchandising` Skill may propose final PagePlan v2 module visibility and assignments only
+inside this frozen result; it cannot retrieve or replace products.
 
 Programmatic hosts may inject the same Product Agent through
 `runProductSelectionAgentWorkflow`; this only collapses the resumable calls and does not move any

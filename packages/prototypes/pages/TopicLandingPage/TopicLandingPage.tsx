@@ -497,17 +497,19 @@ export function TopicLandingPage({
         >
           <ShortcutRail {...shortcutRail} items={linkedShortcutItems} />
         </div>
-        <div
-          id="shop"
-          className={styles.shopReveal}
-          data-motion-reveal="scroll"
-          data-slot="topic-landing-theme-product-list"
-        >
-          <ThemeProductList
-            {...standardRail}
-            className={cx(styles.shop, standardRail.className)}
-          />
-        </div>
+        {standardRail && (
+          <div
+            id="shop"
+            className={styles.shopReveal}
+            data-motion-reveal="scroll"
+            data-slot="topic-landing-theme-product-list"
+          >
+            <ThemeProductList
+              {...standardRail}
+              className={cx(styles.shop, standardRail.className)}
+            />
+          </div>
+        )}
         <div
           id="popular-picks"
           className={styles.standardRail}
@@ -528,14 +530,16 @@ export function TopicLandingPage({
             />
           </div>
         )}
-        <div
-          id="reviews"
-          className={styles.reviewList}
-          data-motion-reveal="scroll"
-          data-slot="topic-landing-review-list"
-        >
-          <ReviewList {...reviewList} />
-        </div>
+        {reviewList && (
+          <div
+            id="reviews"
+            className={styles.reviewList}
+            data-motion-reveal="scroll"
+            data-slot="topic-landing-review-list"
+          >
+            <ReviewList {...reviewList} />
+          </div>
+        )}
         <div
           id="product-list"
           className={styles.waterfallAnchor}

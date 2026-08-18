@@ -1,0 +1,14 @@
+.prototypePreview {
+  min-height: 100%;
+  background: var(--background-primary);
+  color: var(--text-primary);
+  --font-family-ios: var(--font-yami), Arial, sans-serif;
+  --font-family-android: var(--font-yami), Arial, sans-serif;
+  --font-family-win: var(--font-yami), Arial, sans-serif;
+}
+
+.prototypePreview :global([data-slot="topic-landing-global-header"]),
+.prototypePreview :global([data-slot="topic-landing-activity-header"]),
+.prototypePreview :global([data-slot="footer"]) {
+  display: none;
+}

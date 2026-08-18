@@ -38,8 +38,8 @@ export interface TopicLandingPageProps extends HTMLAttributes<HTMLDivElement> {
   hero: ThemeHeroProps;
   primaryTabs: TopicLandingPagePrimaryTabs;
   shortcutRail: ShortcutRailProps;
-  standardRail: ThemeProductListProps;
-  reviewList: ReviewListProps;
+  standardRail?: ThemeProductListProps;
+  reviewList?: ReviewListProps;
   productRail: ProductListProps;
   /** Optional brand collection rendered immediately after Popular Picks. */
   brandRail?: BrandProductRailProps;

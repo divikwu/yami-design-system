@@ -959,19 +959,23 @@ describe("Topic page planner", () => {
     expect(chinese.products[0]?.selectionReason).toContain("关键词直接命中");
   });
 
-  it("stops after product pools in selection mode", () => {
+  it("stops after module assignment in selection mode", () => {
     const plan = buildTopicPagePlan(snapshot(products), "relevance", "en", "selection");
 
     expect(plan.generationMode).toBe("selection");
     expect(plan.pools.primaryIds).not.toHaveLength(0);
-    expect(plan.modules).toEqual([]);
+    expect(plan.modules.length).toBeGreaterThan(0);
+    expect(plan.modules.every((module) => module.heading === "" && module.description === ""))
+      .toBe(true);
+    expect(plan.modules.find(({ id }) => id === "popular-picks")?.productIds)
+      .toEqual(plan.pools.primaryIds.slice(0, 8));
     expect(plan.content).toMatchObject({
       headline: "",
       description: "",
       copyMode: "not-generated",
     });
     expect(plan.assetStrategy.mode).toBe("not-generated");
-    expect(plan.workflow.map((step) => step.stage)).toEqual(["03"]);
+    expect(plan.workflow.map((step) => step.stage)).toEqual(["03", "04"]);
   });
 
   it("enables a brand spotlight only for a query-matched dominant brand", () => {

@@ -99,7 +99,7 @@ describe("TopicLandingPage Canvas resolution", () => {
     expect(resolved.header.homeHref).toBe("/");
     expect(resolved.header.cart.href).toBe("/cart");
     expect(resolved.shortcutRail.items[0]?.href).toBe("#explore-more-cleanse-peel");
-    expect(resolved.standardRail.products[0]?.href).toMatch(/^\/products\//);
+    expect(resolved.standardRail?.products[0]?.href).toMatch(/^\/products\//);
 
     resolved.header.onSearchSubmit?.("heart leaf");
     expect(navigate).toHaveBeenCalledWith("/search/heart%20leaf");

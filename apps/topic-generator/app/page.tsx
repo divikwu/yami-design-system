@@ -1,5 +1,5 @@
-import { TopicGenerator } from "@yami/topic-generator/web";
+import { TopicGeneratorWorkbench } from "./topic-generator-workbench";
 
 export default function TopicGeneratorPage() {
-  return <TopicGenerator />;
+  return <TopicGeneratorWorkbench />;
 }

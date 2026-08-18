@@ -12,11 +12,12 @@ import {
   Search02Icon,
   Settings01Icon,
   Shield01Icon,
+  TextIcon,
   UserIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import type { FormEvent, ReactNode } from "react";
-import { useMemo, useRef, useState } from "react";
+import type { ComponentType, FormEvent, ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type {
   CategoryRoleRuntimeEvidence,
   ContentLanguage,
@@ -28,6 +29,13 @@ import type {
   TopicProduct,
 } from "../src/types";
 import type { ProductSelectionRun } from "../src/product-selection/contracts";
+import type { TopicPageAutomationRun } from "../src/page-automation/contracts";
+import type { LandingPageTypeRef } from "../src/page-orchestration/contracts";
+import type {
+  TopicPageGeneratedProduct,
+  TopicPageGenerationModule,
+  TopicPageGenerationSpec,
+} from "../src/page-generation/contracts";
 import {
   SegmentedControl,
   WorkbenchButton,
@@ -40,8 +48,25 @@ import { themeIntentDisplayCopy } from "./theme-intent-copy";
 import styles from "./topic-generator.module.css";
 
 type ResultView = "preview" | "pools" | "workflow" | "analysis" | "rules";
-type WorkflowMode = "diagram" | "details";
+type WorkflowMode = "diagram" | "details" | "agents";
+type PreviewMode = "distribution" | "page";
 type SelectionRuns = Partial<Record<ProductSelectionStrategy, ProductSelectionRun>>;
+type ReadyTopicPageAutomationRun = Extract<TopicPageAutomationRun, { status: "ready" }>;
+
+interface LocalizedAutomationCache {
+  requestKey: string;
+  sourceSignature: string;
+  runs: Partial<Record<ContentLanguage, ReadyTopicPageAutomationRun>>;
+}
+
+export interface TopicPagePreviewRendererProps {
+  pageTypeRef: LandingPageTypeRef;
+  generationSpec: TopicPageGenerationSpec;
+}
+
+export interface TopicGeneratorProps {
+  PagePreviewRenderer?: ComponentType<TopicPagePreviewRendererProps>;
+}
 
 interface GeneratorError {
   message: string;
@@ -75,6 +100,31 @@ const STRATEGY_OPTIONS = {
     { value: "category-role", label: "分类角色" },
   ],
 } as const;
+
+function automationRequestKey(keyword: string, strategy: ProductSelectionStrategy) {
+  return JSON.stringify([keyword, strategy]);
+}
+
+function automationSourceSignature(automation: ReadyTopicPageAutomationRun) {
+  const { executionPlan, generationSpec } = automation;
+  return JSON.stringify({
+    pageTypeRef: executionPlan.pageTypeRef,
+    strategyRef: generationSpec.strategyRef,
+    templateRef: generationSpec.templateRef,
+    keyword: generationSpec.keyword,
+    site: generationSpec.site,
+    moduleOrder: generationSpec.moduleOrder,
+    modules: generationSpec.modules.map((module) => ({
+      id: module.id,
+      component: module.component,
+      shoppingGoal: module.shoppingGoal,
+      reason: module.reason,
+      products: module.products,
+      scenes: module.scenes,
+    })),
+  });
+}
+
 function evidenceLevelLabel(plan: TopicPagePlan, uiLanguage: ContentLanguage) {
   const labels = uiLanguage === "zh"
     ? { high: "高证据", medium: "中证据", low: "低证据" }
@@ -125,8 +175,13 @@ const UI_COPY = {
       pools: "Product pools",
       rules: "Rules & QA",
     },
+    previewModesLabel: "Page preview mode",
+    previewModes: {
+      distribution: "Product distribution",
+      page: "Page preview",
+    },
     generatedPlan: "Generated English page plan",
-    selectedPlan: "Selected English product pools",
+    selectedPlan: "English selection and module assignment complete",
     sourceLink: "View Yami source ↗",
     visibleModules: "Visible modules",
     assetMode: "Asset mode",
@@ -154,8 +209,13 @@ const UI_COPY = {
       pools: "商品池",
       rules: "规则与 QA",
     },
+    previewModesLabel: "页面预览方式",
+    previewModes: {
+      distribution: "商品分布",
+      page: "页面预览",
+    },
     generatedPlan: "已生成中文页面方案",
-    selectedPlan: "已生成中文商品池",
+    selectedPlan: "已完成中文选品与模块分配",
     sourceLink: "查看 Yami 来源 ↗",
     visibleModules: "显示模块",
     assetMode: "图片模式",
@@ -225,7 +285,12 @@ const PREVIEW_COPY = {
   sourceLink: string;
 }>;
 
-function ProductCard({ product }: { product: TopicProduct }) {
+type ProductCardProduct = Pick<
+  TopicProduct,
+  "id" | "title" | "brand" | "price" | "imageUrl" | "productUrl" | "sourceRank"
+>;
+
+function ProductCard({ product }: { product: ProductCardProduct }) {
   return (
     <a
       className={styles.productCard}
@@ -251,14 +316,20 @@ function ProductCard({ product }: { product: TopicProduct }) {
   );
 }
 
-function ModuleHeading({ module }: { module: TopicModulePlan }) {
+function ModuleHeading({
+  module,
+  structureOnly = false,
+}: {
+  module: TopicModulePlan;
+  structureOnly?: boolean;
+}) {
   return (
     <header className={styles.moduleHeading}>
       <div>
-        <span>{module.label}</span>
-        <h3>{module.heading}</h3>
+        <span>{structureOnly ? module.id : module.label}</span>
+        <h3>{structureOnly ? module.label : module.heading}</h3>
       </div>
-      <p>{module.description}</p>
+      {!structureOnly && <p>{module.description}</p>}
     </header>
   );
 }
@@ -320,6 +391,9 @@ function LoadingState({
         "Allocate modules and deduplicate deterministically",
       ];
   const steps = strategy === "category-role" ? categoryRoleSteps : copy.loadingSteps;
+  const visibleSteps = mode === "selection"
+    ? strategy === "category-role" ? categoryRoleSteps : copy.loadingSteps.slice(0, 3)
+    : steps;
 
   return (
     <section className={styles.loadingState} aria-live="polite">
@@ -327,7 +401,7 @@ function LoadingState({
       <span className={styles.kicker}>{copy.running}</span>
       <h2>{mode === "selection" ? copy.selecting(keyword) : copy.building(keyword)}</h2>
       <ol>
-        {steps.slice(0, mode === "selection" ? 4 : undefined).map((step, index) => (
+        {visibleSteps.map((step, index) => (
           <li key={step}>
             <span>{String(index + 1).padStart(2, "0")}</span> {step}
           </li>
@@ -510,6 +584,7 @@ function selectionRunError(
 }
 
 function PreviewView({ plan }: { plan: TopicPagePlan }) {
+  const pageGenerated = plan.generationMode === "page";
   const productMap = useMemo(
     () => new Map(plan.products.map((product) => [product.id, product])),
     [plan.products],
@@ -539,15 +614,20 @@ function PreviewView({ plan }: { plan: TopicPagePlan }) {
   });
 
   return (
-    <div className={styles.pagePreview}>
+    <div className={styles.pagePreview} data-preview-mode={plan.generationMode}>
       <section className={styles.topicHero}>
         <div className={styles.heroCopy}>
-          <span>{plan.content.eyebrow}</span>
-          <h1>{plan.content.headline}</h1>
-          <p>{plan.content.description}</p>
-          <ul>
-            {plan.content.tags.map((tag) => <li key={tag}>{tag}</li>)}
-          </ul>
+          <span>HERO · {plan.language === "zh" ? "商品分布" : "Product distribution"}</span>
+          <h1>{plan.keyword}</h1>
+          <p>
+            {plan.language === "zh"
+              ? pageGenerated
+                ? `已分配 ${heroProducts.length} 件商品；此处仅展示模块与商品分配。`
+                : `已分配 ${heroProducts.length} 件商品；文案与场景图未生成。`
+              : pageGenerated
+                ? `${heroProducts.length} products assigned; this view only shows modules and product placement.`
+                : `${heroProducts.length} products assigned; copy and scene imagery are not generated.`}
+          </p>
         </div>
         <div className={styles.heroProducts}>
           {heroProducts.map((product, index) => (
@@ -572,7 +652,7 @@ function PreviewView({ plan }: { plan: TopicPagePlan }) {
 
       {shortcutModule?.visible && (
         <section className={styles.previewModule}>
-          <ModuleHeading module={shortcutModule} />
+          <ModuleHeading module={shortcutModule} structureOnly />
           <div className={styles.shortcutGrid}>
             {shortcutGroups.slice(0, 6).map((group) => {
               const product = productMap.get(group.productIds[0]);
@@ -590,7 +670,7 @@ function PreviewView({ plan }: { plan: TopicPagePlan }) {
 
       {startHereModule?.visible && (
         <section className={styles.previewModule}>
-          <ModuleHeading module={startHereModule} />
+          <ModuleHeading module={startHereModule} structureOnly />
           <div className={styles.productGridCompact}>
             {productsFor("start-here").map((product) => (
               <ProductCard key={product.id} product={product} />
@@ -601,7 +681,7 @@ function PreviewView({ plan }: { plan: TopicPagePlan }) {
 
       {popularModule?.visible && (
         <section className={styles.previewModule}>
-          <ModuleHeading module={popularModule} />
+          <ModuleHeading module={popularModule} structureOnly />
           <div className={styles.productGrid}>
             {productsFor("popular-picks").map((product) => (
               <ProductCard key={product.id} product={product} />
@@ -612,7 +692,7 @@ function PreviewView({ plan }: { plan: TopicPagePlan }) {
 
       {brandModule?.visible && (
         <section className={`${styles.previewModule} ${styles.brandModule}`}>
-          <ModuleHeading module={brandModule} />
+          <ModuleHeading module={brandModule} structureOnly />
           <div className={styles.brandProducts}>
             {productsFor("brand-spotlight").map((product) => (
               <ProductCard key={product.id} product={product} />
@@ -623,7 +703,7 @@ function PreviewView({ plan }: { plan: TopicPagePlan }) {
 
       {exploreModule?.visible && (
         <section className={styles.previewModule}>
-          <ModuleHeading module={exploreModule} />
+          <ModuleHeading module={exploreModule} structureOnly />
           <div className={styles.exploreGroups}>
             {exploreGroups.map((group) => (
               <section key={group.id} id={`group-${group.id}`} className={styles.exploreGroup}>
@@ -642,6 +722,171 @@ function PreviewView({ plan }: { plan: TopicPagePlan }) {
           </div>
         </section>
       )}
+    </div>
+  );
+}
+
+function generatedProductsForScene(
+  module: TopicPageGenerationModule,
+  productIds: readonly string[],
+) {
+  const ids = new Set(productIds);
+  return module.products.filter((product) => ids.has(product.id));
+}
+
+function GeneratedProductGrid({
+  products,
+  compact = false,
+}: {
+  products: TopicPageGeneratedProduct[];
+  compact?: boolean;
+}) {
+  return (
+    <div className={compact ? styles.productGridCompact : styles.productGrid}>
+      {products.map((product) => <ProductCard key={product.id} product={product} />)}
+    </div>
+  );
+}
+
+function PageGenerationPreview({ spec }: { spec: TopicPageGenerationSpec }) {
+  const hero = spec.modules.find(({ component }) => component === "ThemeHero");
+  const remainingModules = spec.modules.filter(({ id }) => id !== hero?.id);
+  const heroAsset = hero?.assets[0];
+
+  return (
+    <div className={styles.pagePreview} data-generation-spec={spec.digest}>
+      {hero && (
+        <section
+          className={`${styles.topicHero} ${styles.generatedHero}`}
+          style={{ backgroundColor: heroAsset?.backgroundColor }}
+        >
+          <div className={styles.heroCopy}>
+            <span>{spec.keyword}</span>
+            <h1>{hero.copy.title.text}</h1>
+            {hero.copy.description && <p>{hero.copy.description.text}</p>}
+            {hero.copy.tags && (
+              <ul>{hero.copy.tags.map((tag) => <li key={tag.text}>{tag.text}</li>)}</ul>
+            )}
+          </div>
+          <div className={styles.generatedHeroVisual}>
+            {heroAsset && (
+              <img
+                src={heroAsset.url}
+                alt={heroAsset.altText?.text ?? ""}
+                width={heroAsset.width}
+                height={heroAsset.height}
+              />
+            )}
+            <div className={styles.generatedHeroProducts}>
+              {hero.products.map((product) => (
+                <a key={product.id} href={product.productUrl} target="_blank" rel="noreferrer">
+                  <img src={product.imageUrl} alt={product.title} width={160} height={160} />
+                  <span>{product.brand}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {remainingModules.map((module) => {
+        if (module.component === "ShortcutRail") {
+          return (
+            <section key={module.id} className={styles.previewModule}>
+              <header className={styles.moduleHeading}>
+                <div><span>ShortcutRail</span><h3>{module.copy.title.text}</h3></div>
+              </header>
+              <div className={styles.shortcutGrid}>
+                {module.products.map((product, index) => {
+                  const asset = module.assets[index];
+                  const label = module.copy.items?.find(
+                    ({ slotId }) => slotId === `${module.id}-${index + 1}`,
+                  )?.label.text ?? product.title;
+                  return (
+                    <a key={`${module.id}-${index}`} href={product.productUrl} target="_blank" rel="noreferrer">
+                      <img
+                        src={asset?.url ?? product.imageUrl}
+                        alt={asset?.altText?.text ?? ""}
+                        width={asset?.width ?? 750}
+                        height={asset?.height ?? 750}
+                      />
+                      <span><strong>{label}</strong>{product.brand}</span>
+                    </a>
+                  );
+                })}
+              </div>
+            </section>
+          );
+        }
+        if (module.component === "ThemeProductList") {
+          return (
+            <section key={module.id} className={styles.previewModule}>
+              <header className={styles.moduleHeading}>
+                <div><span>ThemeProductList</span><h3>{module.copy.title.text}</h3></div>
+              </header>
+              <div className={styles.generatedScenes}>
+                {module.scenes.map((scene, index) => {
+                  const sceneCopy = module.copy.scenes?.find(({ sceneId }) => sceneId === scene.id);
+                  const asset = module.assets[index];
+                  return (
+                    <article key={scene.id} className={styles.generatedScene}>
+                      {asset && (
+                        <img
+                          src={asset.url}
+                          alt={asset.altText?.text ?? ""}
+                          width={asset.width}
+                          height={asset.height}
+                        />
+                      )}
+                      <div>
+                        <span>{sceneCopy?.label.text ?? scene.shoppingGoal}</span>
+                        <h4>{sceneCopy?.title.text ?? scene.shoppingGoal}</h4>
+                        {sceneCopy?.description && <p>{sceneCopy.description.text}</p>}
+                      </div>
+                      <GeneratedProductGrid
+                        products={generatedProductsForScene(module, scene.productIds)}
+                        compact
+                      />
+                    </article>
+                  );
+                })}
+              </div>
+            </section>
+          );
+        }
+        if (module.component === "BrandProductRail") {
+          return (
+            <section key={module.id} className={`${styles.previewModule} ${styles.brandModule}`}>
+              <header className={styles.moduleHeading}>
+                <div><span>BrandProductRail</span><h3>{module.copy.title.text}</h3></div>
+              </header>
+              {module.assets.length > 0 && (
+                <div className={styles.generatedBrandAssets}>
+                  {module.assets.map((asset) => (
+                    <img
+                      key={asset.taskId}
+                      src={asset.url}
+                      alt={asset.altText?.text ?? ""}
+                      width={asset.width}
+                      height={asset.height}
+                    />
+                  ))}
+                </div>
+              )}
+              <GeneratedProductGrid products={module.products} compact />
+            </section>
+          );
+        }
+        return (
+          <section key={module.id} className={styles.previewModule}>
+            <header className={styles.moduleHeading}>
+              <div><span>{module.component}</span><h3>{module.copy.title.text}</h3></div>
+              {module.copy.description && <p>{module.copy.description.text}</p>}
+            </header>
+            <GeneratedProductGrid products={module.products} />
+          </section>
+        );
+      })}
     </div>
   );
 }
@@ -711,14 +956,105 @@ function PoolsView({
   );
 }
 
+const AUTOMATION_STAGE_LABELS = {
+  en: {
+    "workflow-planning": "Workflow planning",
+    "product-selection": "Product selection",
+    "module-merchandising": "Module merchandising",
+    "content-writing": "Content writing",
+    "visual-generation": "Visual generation",
+    "asset-persistence": "Asset persistence",
+    "page-generation": "Page assembly",
+    "automatic-qa": "Automatic QA",
+    "experience-review": "Experience review",
+  },
+  zh: {
+    "workflow-planning": "流程编排",
+    "product-selection": "选品",
+    "module-merchandising": "模块策划与商品分配",
+    "content-writing": "页面文案",
+    "visual-generation": "场景图片生成",
+    "asset-persistence": "图片本体落盘",
+    "page-generation": "页面确定性装配",
+    "automatic-qa": "自动 QA",
+    "experience-review": "体验审核",
+  },
+} as const;
+
+const AUTOMATION_STAGE_NUMBERS = {
+  "workflow-planning": "02",
+  "product-selection": "03",
+  "module-merchandising": "04",
+  "content-writing": "05",
+  "visual-generation": "05",
+  "asset-persistence": "05",
+  "page-generation": "05",
+  "automatic-qa": "06",
+  "experience-review": "07",
+} as const;
+
+function AutomationRuntimePanel({
+  automation,
+  language,
+}: {
+  automation: TopicPageAutomationRun;
+  language: ContentLanguage;
+}) {
+  const zh = language === "zh";
+  const statusLabel = (status: TopicPageAutomationRun["stages"][number]["status"]) =>
+    status === "completed"
+      ? zh ? "已完成" : "Completed"
+      : status === "blocked"
+        ? zh ? "已阻止" : "Blocked"
+        : zh ? "等待中" : "Pending";
+  return (
+    <section className={styles.automationRuntime} aria-label={zh ? "页面自动化运行证据" : "Page automation runtime evidence"}>
+      <header>
+        <div>
+          <span>Page Automation Runtime</span>
+          <h4>{zh ? "本次落地页生成" : "Landing page run"}</h4>
+        </div>
+        <strong data-status={automation.status}>
+          {automation.status === "ready"
+            ? zh ? "等待用户 Review" : "Ready for review"
+            : zh ? `阻止于 ${AUTOMATION_STAGE_LABELS.zh[automation.stage]}` : `Blocked at ${AUTOMATION_STAGE_LABELS.en[automation.stage]}`}
+        </strong>
+      </header>
+      <ol>
+        {automation.stages.map((stage) => (
+          <li key={stage.id} data-status={stage.status}>
+            <span>{AUTOMATION_STAGE_NUMBERS[stage.id]}</span>
+            <strong>{AUTOMATION_STAGE_LABELS[language][stage.id]}</strong>
+            <small>{statusLabel(stage.status)}</small>
+          </li>
+        ))}
+      </ol>
+      {automation.status === "ready" && (
+        <dl>
+          <div><dt>ExecutionPlan</dt><dd>{automation.executionPlan.digest.slice(0, 18)}…</dd></div>
+          <div><dt>PageGenerationSpec</dt><dd>{automation.generationSpec.digest.slice(0, 18)}…</dd></div>
+          <div><dt>QAReport</dt><dd>{automation.qaReport.status}</dd></div>
+          <div><dt>ExperienceReview</dt><dd>{automation.experienceReview.status}</dd></div>
+          <div><dt>ReviewPackage</dt><dd>{automation.reviewPackage.status}</dd></div>
+        </dl>
+      )}
+      {automation.status === "blocked" && automation.issues.length > 0 && (
+        <ul>{automation.issues.map((issue) => <li key={issue}>{issue}</li>)}</ul>
+      )}
+    </section>
+  );
+}
+
 function WorkflowView({
   uiLanguage,
   plan,
   categoryRoleRuntime,
+  automation,
 }: {
   uiLanguage: ContentLanguage;
   plan: TopicPagePlan | null;
   categoryRoleRuntime: CategoryRoleRuntimeEvidence | null;
+  automation: TopicPageAutomationRun | null;
 }) {
   const isChinese = uiLanguage === "zh";
   const displayIntent = plan
@@ -878,6 +1214,124 @@ function WorkflowView({
       state: "manual",
     },
   ];
+  const agentArchitecture = [
+    {
+      index: "01",
+      id: "topic-page-orchestrator",
+      icon: WORKFLOW_ICONS.route,
+      name: isChinese ? "Topic Page 编排 Agent" : "Topic Page Orchestrator",
+      role: isChinese ? "薄编排" : "Thin orchestration",
+      stage: "02",
+      skills: ["page-orchestration"],
+      responsibility: isChinese
+        ? "从注册表选择页面类型、选品策略与模板路线，不执行具体业务阶段。"
+        : "Select a registered page type, selection strategy, and template route without executing business stages.",
+      input: "ThemeIntent + caller constraints + registries",
+      output: "LandingPageExecutionPlanProposal",
+      boundary: isChinese
+        ? "不重新理解主题，不选商品，不写文案，不生成图片，也不发布。"
+        : "Does not reinterpret the topic, select products, write copy, generate imagery, or publish.",
+    },
+    {
+      index: "02",
+      id: "topic-strategy",
+      icon: WORKFLOW_ICONS.pool,
+      name: isChinese ? "主题策略 Agent" : "Topic Strategy Agent",
+      role: isChinese ? "专业 Agent" : "Specialist Agent",
+      stage: "02–04",
+      skills: ["topic-intent", "product-selection", "page-merchandising"],
+      responsibility: isChinese
+        ? "理解主题与分类场景语义，在冻结商品池内提出模块主题、场景和商品分配。"
+        : "Interpret topic, category, and scene semantics, then propose modules, scenes, and assignments within frozen pools.",
+      input: "CatalogSnapshot + ThemeIntent + ProductSelectionRun",
+      output: "Semantic · CategoryRole · Scene · Merchandising Proposals",
+      boundary: isChinese
+        ? "不声明目录事实，不越过冻结商品池，不撰写最终文案或生成图片。"
+        : "Does not declare catalog facts, escape frozen pools, write final copy, or generate imagery.",
+    },
+    {
+      index: "03",
+      id: "topic-content",
+      icon: TextIcon,
+      name: isChinese ? "页面文案 Agent" : "Topic Content Agent",
+      role: isChinese ? "专业 Agent" : "Specialist Agent",
+      stage: "05",
+      skills: ["content-writing"],
+      responsibility: isChinese
+        ? "根据冻结 PagePlan、语言与可引用证据生成模块标题、说明、标签和 CTA。"
+        : "Generate module titles, descriptions, labels, and CTAs from the frozen PagePlan and scoped evidence.",
+      input: "PagePlan + language + scoped evidence",
+      output: "TopicPageContentProposal",
+      boundary: isChinese
+        ? "不换商品，不改变模块显隐或顺序，不创造商品事实。"
+        : "Does not swap products, change module visibility or order, or invent product facts.",
+    },
+    {
+      index: "04",
+      id: "topic-visual",
+      icon: WORKFLOW_ICONS.content,
+      name: isChinese ? "场景视觉 Agent" : "Topic Visual Agent",
+      role: isChinese ? "专业 Agent" : "Specialist Agent",
+      stage: "05",
+      skills: ["visual-generation"],
+      responsibility: isChinese
+        ? "根据视觉任务、ContentSpec 与商品引用生成场景媒体和受约束的资产元数据。"
+        : "Generate scene media and constrained asset metadata from visual tasks, ContentSpec, and product references.",
+      input: "PagePlan + ContentSpec + asset tasks",
+      output: "Image media + TopicPageVisualProposal",
+      boundary: isChinese
+        ? "不改商品分配或场景定义，不伪造图片字节、品牌标识和元数据。"
+        : "Does not change assignments or scenes, or fabricate image bytes, brand marks, or metadata.",
+    },
+    {
+      index: "05",
+      id: "topic-review",
+      icon: WORKFLOW_ICONS.qa,
+      name: isChinese ? "体验审核 Agent" : "Topic Review Agent",
+      role: isChinese ? "只读专业 Agent" : "Read-only specialist",
+      stage: isChinese ? "硬 QA 后" : "After hard QA",
+      skills: ["page-review"],
+      responsibility: isChinese
+        ? "独立检查选品、文案、视觉和跨阶段一致性，建议通过或返回允许的修改阶段。"
+        : "Independently inspect merchandising, copy, visual quality, and cross-stage coherence, then recommend approval or revision.",
+      input: "ExecutionPlan + GenerationSpec + passed QA + previews",
+      output: "TopicPageExperienceReviewProposal",
+      boundary: isChinese
+        ? "不直接修复结果，不重复硬 QA，不批准发布，也不代替用户 Review。"
+        : "Does not repair output, repeat hard QA, approve publishing, or replace user review.",
+    },
+  ];
+  const coreResponsibilities = isChinese
+    ? [
+        "页面类型、选品策略与模板注册表",
+        "状态机、执行顺序、尝试次数与回退边界",
+        "目录证据、任务成员和全部 SHA-256 摘要校验",
+        "资产落盘、确定性装配、硬 QA 与发布门禁",
+      ]
+    : [
+        "Page-type, selection-strategy, and template registries",
+        "Workflow state, execution order, attempts, and rollback boundaries",
+        "Catalog evidence, task membership, and every SHA-256 binding",
+        "Asset persistence, deterministic assembly, hard QA, and publish gate",
+      ];
+  const renderAgentFlowNode = (agent: (typeof agentArchitecture)[number]) => (
+    <article
+      className={`${styles.workflowDiagramNode} ${styles.agentArchitectureFlowNode}`}
+      data-agent-flow-node={agent.id}
+    >
+      <span className={styles.workflowDiagramIcon}>
+        <HugeiconsIcon
+          icon={agent.icon}
+          size={20}
+          strokeWidth={1.5}
+          aria-hidden="true"
+        />
+      </span>
+      <span className={styles.workflowDiagramIndex}>{agent.index}</span>
+      <strong>{agent.name}</strong>
+      <small>{isChinese ? "阶段" : "Stage"} {agent.stage}</small>
+    </article>
+  );
 
   return (
     <div className={styles.workflowView}>
@@ -887,11 +1341,16 @@ function WorkflowView({
           <h3>{isChinese ? "理想的 Topic 页面生成流程" : "Ideal Topic page generation workflow"}</h3>
         </div>
         <p>
-          {isChinese
-            ? "阶段门控、局部回退；这是目标流程契约，不代表当前 MVP 已接通全部执行器。"
-            : "Stage-gated with local rollback. This is the target contract, not proof that every MVP runner is connected."}
+          {automation
+            ? isChinese
+              ? "下方流程状态来自本次真实运行；07 用户 Review 与 08 发布仍是人工门控。"
+              : "The status below comes from this run; 07 user review and 08 publishing remain manual gates."
+            : isChinese
+              ? "阶段门控、局部回退；生成页面后将显示本次真实执行证据。"
+              : "Stage-gated with local rollback; generate a page to see runtime evidence."}
         </p>
       </div>
+      {automation && <AutomationRuntimePanel automation={automation} language={uiLanguage} />}
       {categoryRoleRuntime && (
         <CategoryRoleRuntimePanel
           evidence={categoryRoleRuntime}
@@ -901,7 +1360,7 @@ function WorkflowView({
       <div
         className={styles.workflowModeTabs}
         role="tablist"
-        aria-label={isChinese ? "流程展示方式" : "Workflow display mode"}
+        aria-label={isChinese ? "流程与架构" : "Workflow and architecture"}
       >
         <button
           id="workflow-diagram-tab"
@@ -922,6 +1381,16 @@ function WorkflowView({
           onClick={() => setWorkflowMode("details")}
         >
           {isChinese ? "详细版" : "Detailed view"}
+        </button>
+        <button
+          id="workflow-agents-tab"
+          type="button"
+          role="tab"
+          aria-controls="workflow-agents-panel"
+          aria-selected={workflowMode === "agents"}
+          onClick={() => setWorkflowMode("agents")}
+        >
+          {isChinese ? "Agent 与 Skills" : "Agents & Skills"}
         </button>
       </div>
       <div
@@ -1092,6 +1561,143 @@ function WorkflowView({
             </li>
           ))}
         </ol>
+      </div>
+      <div
+        id="workflow-agents-panel"
+        className={styles.agentArchitecturePanel}
+        role="tabpanel"
+        aria-labelledby="workflow-agents-tab"
+        hidden={workflowMode !== "agents"}
+      >
+        <section className={styles.agentArchitectureIntro}>
+          <div>
+            <span>AGENT SYSTEM MAP · 1 + 4</span>
+            <h4>
+              {isChinese
+                ? "1 个薄编排 Agent + 4 个专业 Agent"
+                : "1 thin orchestrator + 4 specialist Agents"}
+            </h4>
+            <p>
+              {isChinese
+                ? "按能力拆 Agent，按阶段拆 Skill。Agent 只提交 Proposal；确定性核心验证并编译所有可执行 Artifact。"
+                : "Split Agents by capability and Skills by stage. Agents submit proposals; the deterministic core validates and compiles every executable artifact."}
+            </p>
+          </div>
+          <dl className={styles.agentArchitectureMetrics}>
+            <div><dt>Agents</dt><dd>1 + 4</dd></div>
+            <div><dt>Skills</dt><dd>7</dd></div>
+            <div><dt>{isChinese ? "运行阶段" : "Runtime stages"}</dt><dd>9</dd></div>
+            <div><dt>{isChinese ? "规则权威" : "Rule authority"}</dt><dd>TypeScript</dd></div>
+          </dl>
+        </section>
+
+        <ol
+          className={styles.agentArchitectureFlow}
+          aria-label={isChinese ? "Agent 执行关系" : "Agent execution relationship"}
+        >
+          <li className={styles.agentArchitectureFlowStep}>
+            {renderAgentFlowNode(agentArchitecture[0])}
+            <span className={styles.agentArchitectureFlowConnector} aria-hidden="true">
+              <HugeiconsIcon icon={ArrowDown01Icon} size={20} strokeWidth={1.5} />
+            </span>
+          </li>
+          <li className={styles.agentArchitectureFlowStep}>
+            {renderAgentFlowNode(agentArchitecture[1])}
+            <span className={styles.agentArchitectureFlowConnector} aria-hidden="true">
+              <HugeiconsIcon icon={ArrowDown01Icon} size={20} strokeWidth={1.5} />
+            </span>
+          </li>
+          <li className={styles.agentArchitectureParallelStep}>
+            <span className={styles.agentArchitectureParallelLabel}>
+              {isChinese ? "阶段 05 · 并行执行" : "Stage 05 · Run in parallel"}
+            </span>
+            <ol
+              className={styles.agentArchitectureParallelNodes}
+              data-agent-flow="parallel"
+              aria-label={isChinese ? "文案与视觉 Agent 并行执行" : "Content and Visual Agents run in parallel"}
+            >
+              {[agentArchitecture[2], agentArchitecture[3]].map((agent) => (
+                <li key={agent.id}>{renderAgentFlowNode(agent)}</li>
+              ))}
+            </ol>
+            <div className={styles.agentArchitectureMerge}>
+              <strong>{isChinese ? "Proposal 汇合" : "Merge proposals"}</strong>
+              <span>
+                {isChinese
+                  ? "确定性核心验证 · 自动 QA"
+                  : "Deterministic core validation · automatic QA"}
+              </span>
+            </div>
+            <span className={styles.agentArchitectureFlowConnector} aria-hidden="true">
+              <HugeiconsIcon icon={ArrowDown01Icon} size={20} strokeWidth={1.5} />
+            </span>
+          </li>
+          <li className={styles.agentArchitectureFlowStep}>
+            {renderAgentFlowNode(agentArchitecture[4])}
+          </li>
+        </ol>
+
+        <section
+          className={styles.agentArchitectureCards}
+          aria-label={isChinese ? "Agent 职责与 Skill 映射" : "Agent responsibilities and Skill mapping"}
+        >
+          {agentArchitecture.map((agent) => (
+            <details key={agent.id} className={styles.agentArchitectureCard}>
+              <summary className={styles.agentArchitectureSummary}>
+                <span className={styles.agentArchitectureIcon}>
+                  <HugeiconsIcon
+                    icon={agent.icon}
+                    size={22}
+                    strokeWidth={1.5}
+                    aria-hidden="true"
+                  />
+                </span>
+                <div>
+                  <span>AGENT {agent.index} · {agent.role}</span>
+                  <h5>{agent.name}</h5>
+                  <code>{agent.id}</code>
+                </div>
+                <small>{isChinese ? "阶段" : "Stage"} {agent.stage}</small>
+                <HugeiconsIcon
+                  className={styles.agentArchitectureChevron}
+                  icon={WORKFLOW_ICONS.chevron}
+                  size={12}
+                  strokeWidth={1.5}
+                  aria-hidden="true"
+                />
+              </summary>
+              <div className={styles.agentArchitectureBody}>
+                <p>{agent.responsibility}</p>
+                <div className={styles.agentSkillList}>
+                  <span>Skills</span>
+                  <div>{agent.skills.map((skill) => <code key={skill}>{skill}</code>)}</div>
+                </div>
+                <dl className={styles.agentArchitectureDetails}>
+                  <div><dt>{isChinese ? "输入" : "Input"}</dt><dd>{agent.input}</dd></div>
+                  <div><dt>Proposal</dt><dd>{agent.output}</dd></div>
+                  <div><dt>{isChinese ? "不允许做什么" : "Must not"}</dt><dd>{agent.boundary}</dd></div>
+                </dl>
+              </div>
+            </details>
+          ))}
+        </section>
+
+        <aside className={styles.agentCoreAuthority}>
+          <header>
+            <span>DETERMINISTIC TYPESCRIPT CORE</span>
+            <h4>{isChinese ? "核心才是最终规则权威" : "The core is the final rule authority"}</h4>
+            <p>
+              {isChinese
+                ? "Agent 的 Proposal 不能直接成为页面结果；每一步都必须回到同一个核心状态机验证。"
+                : "An Agent proposal never becomes page output directly; every step returns to the same core state machine for validation."}
+            </p>
+          </header>
+          <ul>{coreResponsibilities.map((item) => <li key={item}>{item}</li>)}</ul>
+          <footer>
+            <span>{isChinese ? "编译产物" : "Compiled artifacts"}</span>
+            <code>ExecutionPlan → ProductSelectionResult → PagePlan → ContentSpec → AssetManifest → GenerationSpec → QAReport → ReviewPackage</code>
+          </footer>
+        </aside>
       </div>
       <dialog
         ref={intentHelpDialog}
@@ -1326,12 +1932,15 @@ function WorkflowView({
 function RulesView({
   plan,
   uiLanguage,
+  automation,
 }: {
   plan: TopicPagePlan;
   uiLanguage: ContentLanguage;
+  automation: TopicPageAutomationRun | null;
 }) {
   const zh = uiLanguage === "zh";
   const intentCopy = themeIntentDisplayCopy(plan.intent, plan.keyword, uiLanguage);
+  const moduleDecisions = automation?.plan?.modules ?? plan.modules;
 
   return (
     <div className={styles.rulesView}>
@@ -1400,15 +2009,18 @@ function RulesView({
       )}
       <section>
         <header className={styles.viewHeading}>
-          <div><span>04 · PagePlan</span><h3>{zh ? "模块决策" : "Module decisions"}</h3></div>
+          <div>
+            <span>04 · {automation?.plan ? "PagePlan v2" : "PagePlan"}</span>
+            <h3>{zh ? "模块决策" : "Module decisions"}</h3>
+          </div>
           <p>{zh ? "可选模块必须具备足够证据才会显示。" : "Optional modules must earn their place."}</p>
         </header>
         <div className={styles.decisionList}>
-          {plan.modules.map((module, index) => (
+          {moduleDecisions.map((module, index) => (
             <article key={module.id}>
               <span className={styles.decisionIndex}>{String(index + 1).padStart(2, "0")}</span>
               <div>
-                <strong>{module.label}</strong>
+                <strong>{"label" in module ? module.label : module.component}</strong>
                 <p>{module.reason}</p>
               </div>
               <span className={module.visible ? styles.isVisible : styles.isHidden}>
@@ -1418,19 +2030,54 @@ function RulesView({
           ))}
         </div>
       </section>
-      <section className={styles.qaPanel}>
-        <header>
-          <span>06 · {zh ? "自动 QA" : "Automatic QA"}</span>
-          <strong>{planStatusLabel(plan, uiLanguage)}</strong>
-        </header>
-        <p>{plan.statusReason}</p>
-        <ul>{plan.qualityNotes.map((note) => <li key={note}>{note}</li>)}</ul>
-      </section>
+      {automation ? (
+        <section className={styles.qaPanel}>
+          <header>
+            <span>06 · {zh ? "真实自动 QA" : "Actual automatic QA"}</span>
+            <strong>
+              {automation.status === "ready"
+                ? zh ? "通过" : "Passed"
+                : zh ? "已阻止" : "Blocked"}
+            </strong>
+          </header>
+          {automation.qaReport ? (
+            <>
+              <p>
+                {zh
+                  ? `QAReport 已绑定 PageGenerationSpec；共 ${automation.qaReport.issues.length} 项问题。`
+                  : `QAReport is bound to PageGenerationSpec with ${automation.qaReport.issues.length} issues.`}
+              </p>
+              <ul>
+                {automation.qaReport.checks.map((check) => (
+                  <li key={check.id}>
+                    {check.id} · {check.status} · {check.issueCount}
+                  </li>
+                ))}
+                {automation.qaReport.issues.map((issue) => <li key={issue}>{issue}</li>)}
+              </ul>
+            </>
+          ) : (
+            <>
+              <p>{zh ? "自动化在生成 QAReport 前被阻止。" : "Automation was blocked before QAReport."}</p>
+              <ul>{automation.issues.map((issue) => <li key={issue}>{issue}</li>)}</ul>
+            </>
+          )}
+        </section>
+      ) : (
+        <section className={styles.qaPanel}>
+          <header>
+            <span>06 · {zh ? "旧版方案检查" : "Legacy plan checks"}</span>
+            <strong>{planStatusLabel(plan, uiLanguage)}</strong>
+          </header>
+          <p>{plan.statusReason}</p>
+          <ul>{plan.qualityNotes.map((note) => <li key={note}>{note}</li>)}</ul>
+        </section>
+      )}
     </div>
   );
 }
 
-export function TopicGenerator() {
+export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}) {
   const [keyword, setKeyword] = useState("ANUA");
   const [examplesOpen, setExamplesOpen] = useState(false);
   const [uiLanguage, setUiLanguage] = useState<ContentLanguage>("zh");
@@ -1439,27 +2086,54 @@ export function TopicGenerator() {
   const [selectionRuns, setSelectionRuns] = useState<SelectionRuns | null>(null);
   const [categoryRoleRuntime, setCategoryRoleRuntime] =
     useState<CategoryRoleRuntimeEvidence | null>(null);
+  const [automation, setAutomation] = useState<TopicPageAutomationRun | null>(null);
+  const [localizedAutomationCache, setLocalizedAutomationCache] =
+    useState<LocalizedAutomationCache | null>(null);
   const [view, setView] = useState<ResultView>("preview");
+  const [previewMode, setPreviewMode] = useState<PreviewMode>("page");
   const [activeMode, setActiveMode] = useState<TopicGenerationMode>("page");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<GeneratorError | null>(null);
   const plan = plans?.[uiLanguage]?.[strategy] ?? null;
   const runError = selectionRunError(selectionRuns?.[strategy], uiLanguage);
+  const automationError: GeneratorError | null = automation?.status === "blocked"
+    ? { message: automation.issues.join(" ") }
+    : null;
   const copy = UI_COPY[uiLanguage];
   const targetLocale = resultLocaleLabel(uiLanguage);
   const strategyLabel = STRATEGY_OPTIONS[uiLanguage].find(
     (option) => option.value === strategy,
   )?.label ?? strategy;
 
-  async function generate(mode: TopicGenerationMode) {
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const requestedLanguage = params.get("content-language");
+    const requestedStrategy = params.get("selection-strategy");
+    if (requestedLanguage === "en" || requestedLanguage === "zh") {
+      setUiLanguage(requestedLanguage);
+    }
+    if (requestedStrategy === "relevance" || requestedStrategy === "category-role") {
+      setStrategy(requestedStrategy);
+    }
+  }, []);
+
+  async function generate(
+    mode: TopicGenerationMode,
+    requestedLanguage: ContentLanguage = uiLanguage,
+    options: { preserveLocalizedCache?: boolean } = {},
+  ) {
     const normalizedKeyword = keyword.trim();
     if (normalizedKeyword.length < 2) return;
+    const requestKey = automationRequestKey(normalizedKeyword, strategy);
 
     setActiveMode(mode);
     setLoading(true);
     setError(null);
     setCategoryRoleRuntime(null);
-    setView(mode === "selection" ? "pools" : "preview");
+    setAutomation(null);
+    if (!options.preserveLocalizedCache) setLocalizedAutomationCache(null);
+    setView("preview");
+    setPreviewMode(mode === "selection" ? "distribution" : "page");
 
     try {
       const response = await fetch("/api/topic-generator", {
@@ -1469,12 +2143,14 @@ export function TopicGenerator() {
           keyword: normalizedKeyword,
           mode,
           strategy,
+          language: requestedLanguage,
         }),
       });
       const payload = (await response.json()) as {
         plans?: TopicPlanMatrix;
         selectionRuns?: SelectionRuns;
         runtime?: { categoryRole?: CategoryRoleRuntimeEvidence };
+        automation?: TopicPageAutomationRun;
         error?: GeneratorError;
       };
 
@@ -1485,7 +2161,26 @@ export function TopicGenerator() {
       setPlans(payload.plans);
       setSelectionRuns(payload.selectionRuns ?? null);
       setCategoryRoleRuntime(payload.runtime?.categoryRole ?? null);
-      setView(mode === "selection" ? "pools" : "preview");
+      const nextAutomation = payload.automation ?? null;
+      setAutomation(nextAutomation);
+      if (mode === "page" && nextAutomation?.status === "ready") {
+        const sourceSignature = automationSourceSignature(nextAutomation);
+        setLocalizedAutomationCache((current) => {
+          const canMerge = options.preserveLocalizedCache &&
+            current?.requestKey === requestKey &&
+            current.sourceSignature === sourceSignature;
+          return {
+            requestKey,
+            sourceSignature,
+            runs: {
+              ...(canMerge ? current.runs : {}),
+              [requestedLanguage]: nextAutomation,
+            },
+          };
+        });
+      }
+      setView("preview");
+      setPreviewMode(mode === "selection" ? "distribution" : "page");
     } catch (caught) {
       const generatorError = caught as GeneratorError;
       setError({
@@ -1494,6 +2189,29 @@ export function TopicGenerator() {
       });
     } finally {
       setLoading(false);
+    }
+  }
+
+  function changeLanguage(value: string) {
+    const requestedLanguage = value as ContentLanguage;
+    if (requestedLanguage === uiLanguage) return;
+
+    const requestKey = automationRequestKey(keyword.trim(), strategy);
+    const activeCache = localizedAutomationCache?.requestKey === requestKey
+      ? localizedAutomationCache
+      : null;
+    const cachedAutomation = activeCache?.runs[requestedLanguage];
+    const shouldResolvePage = activeCache !== null &&
+      view === "preview" && previewMode === "page";
+    setUiLanguage(requestedLanguage);
+    setError(null);
+
+    if (cachedAutomation) {
+      setAutomation(cachedAutomation);
+    } else if (shouldResolvePage) {
+      void generate("page", requestedLanguage, { preserveLocalizedCache: true });
+    } else {
+      setAutomation(null);
     }
   }
 
@@ -1511,8 +2229,9 @@ export function TopicGenerator() {
             label={copy.interfaceLanguage}
             options={LANGUAGE_OPTIONS}
             value={uiLanguage}
-            onValueChange={(value) => setUiLanguage(value as ContentLanguage)}
+            onValueChange={changeLanguage}
             name="ui-language"
+            disabled={loading}
           />
         </div>
       </header>
@@ -1626,7 +2345,7 @@ export function TopicGenerator() {
                   disabled={
                     (tab !== "workflow" && tab !== "preview" && !plan) ||
                     (tab !== "workflow" && loading) ||
-                    (plan?.generationMode === "selection" && (tab === "preview" || tab === "rules"))
+                    (plan?.generationMode === "selection" && tab === "rules")
                   }
                   aria-current={view === tab ? "page" : undefined}
                   onClick={() => setView(tab)}
@@ -1653,7 +2372,8 @@ export function TopicGenerator() {
                     <WorkflowView
                       uiLanguage={uiLanguage}
                       plan={plan}
-                      categoryRoleRuntime={categoryRoleRuntime}
+                      categoryRoleRuntime={strategy === "category-role" ? categoryRoleRuntime : null}
+                      automation={automation}
                     />
                   </div>
                 ) : view === "analysis" && plan && !loading ? (
@@ -1665,8 +2385,12 @@ export function TopicGenerator() {
                     mode={activeMode}
                     strategy={strategy}
                   />
-                ) : error || runError ? (
-                  <ErrorState error={error ?? runError!} language={uiLanguage} />
+                ) : error || runError ||
+                    (automationError && (view === "preview" || view === "rules")) ? (
+                  <ErrorState
+                    error={error ?? runError ?? automationError!}
+                    language={uiLanguage}
+                  />
                 ) : !plan ? (
                   <EmptyState language={uiLanguage} />
                 ) : (
@@ -1699,20 +2423,82 @@ export function TopicGenerator() {
                       <div><span>{uiLanguage === "zh" ? "相关商品池" : "RelatedPool"}</span><strong>{plan.pools.relatedIds.length}</strong></div>
                       <div>
                         <span>{copy.visibleModules}</span>
-                        <strong>{plan.modules.filter((module) => module.visible).length}</strong>
+                        <strong>
+                          {automation?.status === "ready"
+                            ? automation.generationSpec.modules.length
+                            : plan.modules.filter((module) => module.visible).length}
+                        </strong>
                       </div>
                       <div>
                         <span>{copy.assetMode}</span>
-                        <strong>{copy.sourceImages}</strong>
+                        <strong>
+                          {automation?.status === "ready"
+                            ? uiLanguage === "zh" ? "生成图片" : "Generated assets"
+                            : copy.sourceImages}
+                        </strong>
                       </div>
                     </div>
 
-                    <div className={`${styles.resultBody} ${view === "pools" ? styles.poolResultBody : ""}`}>
-                      {view === "preview" && plan.generationMode === "page" && (
-                        <PreviewView plan={plan} />
+                    {view === "preview" && (
+                      <nav
+                        className={styles.previewModeTabs}
+                        role="tablist"
+                        aria-label={copy.previewModesLabel}
+                      >
+                        {(["distribution", "page"] as const).map((mode) => {
+                          const disabled = mode === "page" && automation?.status !== "ready";
+                          return (
+                            <button
+                              key={mode}
+                              id={`preview-${mode}-tab`}
+                              type="button"
+                              role="tab"
+                              aria-selected={previewMode === mode}
+                              aria-controls={`preview-${mode}-panel`}
+                              disabled={disabled}
+                              onClick={() => setPreviewMode(mode)}
+                            >
+                              {copy.previewModes[mode]}
+                            </button>
+                          );
+                        })}
+                      </nav>
+                    )}
+
+                    <div
+                      id={view === "preview" ? `preview-${previewMode}-panel` : undefined}
+                      role={view === "preview" ? "tabpanel" : undefined}
+                      aria-labelledby={view === "preview" ? `preview-${previewMode}-tab` : undefined}
+                      className={`${styles.resultBody} ${
+                        view === "pools" ? styles.poolResultBody : ""
+                      } ${
+                        view === "preview" && previewMode === "page"
+                          ? styles.pagePreviewResultBody
+                          : ""
+                      }`}
+                    >
+                      {view === "preview" && (
+                        previewMode === "distribution"
+                          ? <PreviewView plan={plan} />
+                          : automation?.status === "ready"
+                            ? PagePreviewRenderer
+                              ? (
+                                  <PagePreviewRenderer
+                                    pageTypeRef={automation.executionPlan.pageTypeRef}
+                                    generationSpec={automation.generationSpec}
+                                  />
+                                )
+                              : <PageGenerationPreview spec={automation.generationSpec} />
+                            : <PreviewView plan={plan} />
                       )}
                       {view === "pools" && <PoolsView plan={plan} uiLanguage={uiLanguage} />}
-                      {view === "rules" && <RulesView plan={plan} uiLanguage={uiLanguage} />}
+                      {view === "rules" && (
+                        <RulesView
+                          plan={plan}
+                          uiLanguage={uiLanguage}
+                          automation={automation}
+                        />
+                      )}
                     </div>
                   </>
                 )}

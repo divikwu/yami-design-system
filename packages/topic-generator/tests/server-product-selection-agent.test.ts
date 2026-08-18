@@ -136,6 +136,44 @@ function runtimeFixture() {
 }
 
 describe("Topic Generator automatic category-role Host integration", () => {
+  it("reports an explicit downstream automation blocker instead of a fake page preview", async () => {
+    const fixture = runtimeFixture();
+    const response = await handleTopicGeneratorPost(
+      new Request("http://localhost/api/topic-generator", {
+        method: "POST",
+        body: JSON.stringify({
+          keyword: "Matcha",
+          strategy: "relevance",
+          mode: "page",
+          language: "zh",
+        }),
+      }),
+      {
+        adapters: fixture.adapters,
+        requireAutomaticPage: true,
+        pageAutomationConfigurationIssues: [
+          "TOPIC_GENERATOR_PAGE_AGENT_ENDPOINT is not configured.",
+          "TOPIC_GENERATOR_ASSET_ROOT is not configured.",
+        ],
+      },
+    );
+
+    const payload = await response.json();
+    expect(response.status, JSON.stringify(payload)).toBe(200);
+    expect(payload).toMatchObject({
+      selectionRuns: { relevance: { status: "ready" } },
+      automation: {
+        schemaVersion: "topic-page-automation-run/v1",
+        status: "blocked",
+        stage: "workflow-planning",
+        issues: [
+          "TOPIC_GENERATOR_PAGE_AGENT_ENDPOINT is not configured.",
+          "TOPIC_GENERATOR_ASSET_ROOT is not configured.",
+        ],
+      },
+    });
+  });
+
   it("keeps explicit Codex/Kiro handoff resumable without invoking the HTTP Agent", async () => {
     const fixture = runtimeFixture();
     const proposeCategoryRoles = vi.spyOn(fixture.agent, "proposeCategoryRoles");

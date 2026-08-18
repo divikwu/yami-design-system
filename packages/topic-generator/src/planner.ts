@@ -539,11 +539,16 @@ export function buildTopicPagePlanFromProductSelection(
     reason: category.reason,
   }));
   const groups = buildGroups(primary);
+  const plannedModules = strategy === "category-role"
+    ? createCategoryRoleModules(primary, groups, selection, language)
+    : createModules(primary, groups, snapshot.keyword, language);
   const modules = generationMode === "page"
-    ? strategy === "category-role"
-      ? createCategoryRoleModules(primary, groups, selection, language)
-      : createModules(primary, groups, snapshot.keyword, language)
-    : [];
+    ? plannedModules
+    : plannedModules.map((module) => ({
+        ...module,
+        heading: "",
+        description: "",
+      }));
   const strategyMeta = STRATEGY_META[language][strategy];
   const siteName = language === "zh" ? "美国站" : "United States";
   const topic = displayKeyword(snapshot.keyword);
@@ -607,7 +612,7 @@ export function buildTopicPagePlanFromProductSelection(
         "价格不在当前页面展示，也不参与过滤、相关性或模块排序。",
         generationMode === "page"
           ? "所有可见页面模块仅使用主商品池商品。"
-          : "本次仅输出商品池；未生成标题、描述、页面模块或图片装配。",
+          : "已完成商品池和模块商品分配；未生成营销文案、场景图或页面资产。",
         ...(generationMode === "page"
           ? ["当前版本使用模板文案并保留来源商品图，确保商品身份不变。"]
           : []),
@@ -621,7 +626,7 @@ export function buildTopicPagePlanFromProductSelection(
         "Price is not displayed and is never used for filtering, relevance, or module order.",
         generationMode === "page"
           ? "All visible page modules use PrimaryPool products only."
-          : "This run stops at product pools; no title, description, page modules, or image assembly was generated.",
+          : "Product pools and module assignments are complete; no marketing copy, scene imagery, or page assets were generated.",
         ...(generationMode === "page"
           ? ["Copy is template-based and source images preserve product identity in this MVP."]
           : []),
@@ -690,8 +695,8 @@ export function buildTopicPagePlanFromProductSelection(
     } : {
       mode: "not-generated",
       note: language === "zh"
-        ? "本次仅执行选品，未装配页面图片。"
-        : "This run only selected products; no page imagery was assembled.",
+        ? "仅展示目录商品图作为选品证据；未生成或装配页面场景图。"
+        : "Catalog product images are shown only as selection evidence; no page scene imagery was generated or assembled.",
     },
     pools: {
       primaryIds: primary.map((product) => product.id),
@@ -709,13 +714,14 @@ export function buildTopicPagePlanFromProductSelection(
           ? `${strategyMeta.label} · ${primary.length} 件主商品 · ${related.length} 件关联商品`
           : `${strategyMeta.label} · ${primary.length} primary · ${related.length} related`,
       },
-      ...(generationMode === "page" ? [{
+      {
         stage: "04",
         label: language === "zh" ? "分配页面模块" : "Assign modules",
         output: language === "zh"
           ? `${modules.filter((module) => module.visible).length} 个显示 · ${modules.filter((module) => !module.visible).length} 个隐藏`
           : `${modules.filter((module) => module.visible).length} visible · ${modules.filter((module) => !module.visible).length} hidden`,
-      } as const,
+      },
+      ...(generationMode === "page" ? [
       {
         stage: "05",
         label: language === "zh" ? "生成内容" : "Compose content",

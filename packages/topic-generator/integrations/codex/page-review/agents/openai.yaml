@@ -1,0 +1,4 @@
+interface:
+  display_name: "Page Review"
+  short_description: "Review generated landing-page experience without editing"
+  default_prompt: "Use $page-review to create an evidence-bound, read-only experience review after hard QA passes."

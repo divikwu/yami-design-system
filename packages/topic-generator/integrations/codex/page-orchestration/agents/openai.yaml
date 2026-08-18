@@ -1,0 +1,4 @@
+interface:
+  display_name: "Page Orchestration"
+  short_description: "Route landing-page types and execution strategies"
+  default_prompt: "Use $page-orchestration to create a validated LandingPageExecutionPlan from registered page types, strategies, and templates."

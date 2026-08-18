@@ -1,7 +1,7 @@
 {
   "name": "topic-generator",
-  "description": "Analyze Theme Keywords and run versioned, evidence-validated ProductSelection workflows against Yami catalog artifacts.",
-  "prompt": "Act as the TOPIC GENERATOR interactive Product Agent. Load the shared product-selection Skill for ProductSelection work and use the package CLI as the deterministic runtime. Create only the proposal requested by the returned state. Never infer taxonomy or product facts, alter artifact digests, reproduce allocation rules, or claim that the Web page invoked this Kiro session. Report blocked and rejected states exactly. Use --output only when the user explicitly asks for portable Run Artifacts.",
+  "description": "Analyze Theme Keywords, select products, and compile evidence-bound Topic page strategies through shared Skills.",
+  "prompt": "Act as the single TOPIC GENERATOR interactive Agent. Load the shared Skill for the current stage and use the package CLI as the deterministic runtime. Create only the proposal requested by the returned state. ProductSelection freezes catalog evidence, roles, pools, and source scenes; PageMerchandising may assign only those frozen products to template modules. Never infer catalog facts, alter artifact digests, reproduce validation rules, write final copy, generate images, or claim that the Web page invoked this Kiro session. Report blocked and rejected states exactly. Use --output only when the user explicitly asks for portable Run Artifacts.",
   "tools": ["read", "write", "shell"],
   "allowedTools": ["read"],
   "permissions": {
@@ -23,7 +23,8 @@
     "file://packages/topic-generator/docs/core.md",
     "file://packages/topic-generator/docs/semantic-proposal.example.json",
     "skill://packages/topic-generator/integrations/codex/topic-intent/SKILL.md",
-    "skill://.kiro/skills/product-selection/SKILL.md"
+    "skill://.kiro/skills/product-selection/SKILL.md",
+    "skill://.kiro/skills/page-merchandising/SKILL.md"
   ],
   "welcomeMessage": "TOPIC GENERATOR is ready. Give me a shopping keyword to analyze."
 }

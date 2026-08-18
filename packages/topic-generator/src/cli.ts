@@ -22,7 +22,14 @@ import {
   writeTopicGeneratorRunArtifacts,
   type TopicGeneratorRunManifest,
 } from "./run-artifact.js";
+import {
+  advancePageMerchandisingRun,
+  type TopicPageTemplateRef,
+} from "./page-merchandising/index.js";
+import { advanceTopicPageContentRun } from "./page-content/index.js";
+import { advanceTopicPageVisualRun } from "./page-visual/index.js";
 import { parseSemanticProposal } from "./topic-intent.js";
+import type { ContentLanguage } from "./types.js";
 import { yamiCatalogCandidateAdapter } from "./yami-catalog.js";
 
 export interface TopicGeneratorCliOptions {
@@ -37,6 +44,12 @@ export interface TopicGeneratorCliOptions {
   categoryProposalPath: string;
   candidateSnapshotPath: string;
   sceneProposalPath: string;
+  pageTemplateRef: TopicPageTemplateRef | "";
+  moduleProposalPath: string;
+  contentLanguage: ContentLanguage | "";
+  contentProposalPath: string;
+  visual: boolean;
+  visualProposalPath: string;
 }
 
 export class TopicGeneratorCliError extends Error {
@@ -65,6 +78,12 @@ Options:
   --category-proposal   CategoryRoleProposal JSON from the product Agent
   --candidate-snapshot  CatalogCandidateSnapshot JSON from a previous run
   --scene-proposal      SceneProposal JSON from the product Agent
+  --page-template       Versioned PageMerchandising template ref
+  --module-proposal     ModuleMerchandisingProposal JSON from the Topic Generator Agent
+  --content-language    Content language: en or zh
+  --content-proposal    TopicPageContentProposal JSON from the Content Agent
+  --visual              Request bounded Visual Agent tasks after a ready ContentSpec
+  --visual-proposal     TopicPageVisualProposal JSON from the Visual Agent
   -o, --output    Explicit directory for versioned Run Artifacts
   --pretty        Pretty-print the JSON result
   -h, --help      Show this help`;
@@ -82,6 +101,12 @@ export function parseTopicGeneratorCliArgs(args: string[]): TopicGeneratorCliOpt
   let categoryProposalPath = "";
   let candidateSnapshotPath = "";
   let sceneProposalPath = "";
+  let pageTemplateRef: TopicPageTemplateRef | "" = "";
+  let moduleProposalPath = "";
+  let contentLanguage: ContentLanguage | "" = "";
+  let contentProposalPath = "";
+  let visual = false;
+  let visualProposalPath = "";
 
   for (let index = 0; index < args.length; index += 1) {
     const argument = args[index];
@@ -91,12 +116,21 @@ export function parseTopicGeneratorCliArgs(args: string[]): TopicGeneratorCliOpt
       continue;
     } else if (argument === "--pretty") {
       pretty = true;
+    } else if (argument === "--visual") {
+      visual = true;
     } else if (argument === "-k" || argument === "--keyword") {
       const value = args[index + 1];
       if (!value || value.startsWith("-")) {
         throw new TopicGeneratorCliError(`${argument} requires a keyword.`);
       }
       keyword = value;
+      index += 1;
+    } else if (argument === "--content-language") {
+      const value = args[index + 1];
+      if (value !== "en" && value !== "zh") {
+        throw new TopicGeneratorCliError("--content-language must be en or zh.");
+      }
+      contentLanguage = value;
       index += 1;
     } else if ([
       "--proposal",
@@ -108,6 +142,10 @@ export function parseTopicGeneratorCliArgs(args: string[]): TopicGeneratorCliOpt
       "--category-proposal",
       "--candidate-snapshot",
       "--scene-proposal",
+      "--page-template",
+      "--module-proposal",
+      "--content-proposal",
+      "--visual-proposal",
     ].includes(argument)) {
       const value = args[index + 1];
       if (!value || value.startsWith("-")) {
@@ -122,6 +160,14 @@ export function parseTopicGeneratorCliArgs(args: string[]): TopicGeneratorCliOpt
       else if (argument === "--category-proposal") categoryProposalPath = value;
       else if (argument === "--candidate-snapshot") candidateSnapshotPath = value;
       else if (argument === "--scene-proposal") sceneProposalPath = value;
+      else if (argument === "--page-template") {
+        pageTemplateRef = value as TopicPageTemplateRef;
+      } else if (argument === "--module-proposal") moduleProposalPath = value;
+      else if (argument === "--content-proposal") contentProposalPath = value;
+      else if (argument === "--visual-proposal") {
+        visualProposalPath = value;
+        visual = true;
+      }
       index += 1;
     } else if (argument.startsWith("-")) {
       throw new TopicGeneratorCliError(`Unknown option: ${argument}`);
@@ -146,6 +192,12 @@ export function parseTopicGeneratorCliArgs(args: string[]): TopicGeneratorCliOpt
     categoryProposalPath,
     candidateSnapshotPath,
     sceneProposalPath,
+    pageTemplateRef,
+    moduleProposalPath,
+    contentLanguage,
+    contentProposalPath,
+    visual,
+    visualProposalPath,
   };
 }
 
@@ -262,6 +314,44 @@ export async function runTopicGeneratorCli(args = process.argv.slice(2)) {
     const sceneProposal = options.sceneProposalPath
       ? await loadJsonFile(resolveInputPath(options.sceneProposalPath), "SceneProposal")
       : undefined;
+    const moduleProposal = options.moduleProposalPath
+      ? await loadJsonFile(
+          resolveInputPath(options.moduleProposalPath),
+          "ModuleMerchandisingProposal",
+        )
+      : undefined;
+    const contentProposal = options.contentProposalPath
+      ? await loadJsonFile(
+          resolveInputPath(options.contentProposalPath),
+          "TopicPageContentProposal",
+        )
+      : undefined;
+    const visualProposal = options.visualProposalPath
+      ? await loadJsonFile(
+          resolveInputPath(options.visualProposalPath),
+          "TopicPageVisualProposal",
+        )
+      : undefined;
+    if ((options.pageTemplateRef || moduleProposal) && !options.selectionStrategy) {
+      throw new TopicGeneratorCliError(
+        "PageMerchandising requires --selection-strategy and a ready ProductSelectionResult.",
+      );
+    }
+    if (contentProposal !== undefined && !options.contentLanguage) {
+      throw new TopicGeneratorCliError(
+        "--content-proposal requires --content-language en or zh.",
+      );
+    }
+    if ((options.contentLanguage || contentProposal) && !moduleProposal) {
+      throw new TopicGeneratorCliError(
+        "TopicPageContent requires --module-proposal and a ready TopicPagePlan v2.",
+      );
+    }
+    if (options.visual && (!options.contentLanguage || contentProposal === undefined)) {
+      throw new TopicGeneratorCliError(
+        "TopicPageVisual requires --content-language and --content-proposal for a ready TopicPageContentSpec.",
+      );
+    }
     const productSelection = options.selectionStrategy
       ? await runProductSelectionWorkflow({
           snapshot: analysis.snapshot,
@@ -271,6 +361,36 @@ export async function runTopicGeneratorCli(args = process.argv.slice(2)) {
           candidateSnapshot,
           sceneProposal,
           candidateAdapter: yamiCatalogCandidateAdapter,
+        })
+      : undefined;
+    const pageMerchandising = productSelection?.run.status === "ready" &&
+        (options.pageTemplateRef || moduleProposal)
+      ? advancePageMerchandisingRun({
+          intent: analysis.intent,
+          selection: productSelection.run.result,
+          ...(options.pageTemplateRef ? { templateRef: options.pageTemplateRef } : {}),
+          ...(moduleProposal === undefined ? {} : { proposal: moduleProposal }),
+        })
+      : undefined;
+    const pageContent = productSelection?.run.status === "ready" &&
+        pageMerchandising?.status === "ready" && options.contentLanguage
+      ? advanceTopicPageContentRun({
+          intent: analysis.intent,
+          selection: productSelection.run.result,
+          plan: pageMerchandising.plan,
+          language: options.contentLanguage,
+          ...(contentProposal === undefined ? {} : { proposal: contentProposal }),
+        })
+      : undefined;
+    const pageVisual = productSelection?.run.status === "ready" &&
+        pageMerchandising?.status === "ready" && pageContent?.status === "ready" &&
+        options.visual
+      ? advanceTopicPageVisualRun({
+          intent: analysis.intent,
+          selection: productSelection.run.result,
+          plan: pageMerchandising.plan,
+          contentSpec: pageContent.spec,
+          ...(visualProposal === undefined ? {} : { proposal: visualProposal }),
         })
       : undefined;
     const pagePlans = buildTopicPagePlanMatrix(analysis.snapshot);
@@ -309,6 +429,9 @@ export async function runTopicGeneratorCli(args = process.argv.slice(2)) {
           artifacts: productSelection.artifacts,
         },
         ...(productSelection.run.status === "ready" ? { pagePlans } : {}),
+        ...(pageMerchandising ? { pageMerchandising } : {}),
+        ...(pageContent ? { pageContent } : {}),
+        ...(pageVisual ? { pageVisual } : {}),
       } : {}),
     };
     process.stdout.write(`${JSON.stringify(report, null, options.pretty ? 2 : 0)}\n`);
