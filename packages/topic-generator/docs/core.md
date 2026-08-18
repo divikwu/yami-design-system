@@ -27,7 +27,7 @@ declare const readyCategoryRoleSelection: ProductSelectionResult;
 const pageTask = advancePageMerchandisingRun({
   intent: analysis.intent,
   selection: readyCategoryRoleSelection,
-  templateRef: "topic-landing/topic@1",
+  templateRef: "topic-landing/topic@2",
 });
 if (pageTask.status === "ready") {
   const contentTask = advanceTopicPageContentRun({
@@ -94,6 +94,9 @@ ready 的 ProductSelectionResult，不根据标题推断分类角色，也不重
 `advancePageMerchandisingRun` 是 PagePlan v2 Interface。第一次调用返回完整且受限的
 `needs-module-proposal` context；第二次传入 `ModuleMerchandisingProposal` 后，确定性校验器只
 允许冻结商品池内、符合模块 pool/role/scene 规则的分配，并生成 `topic-page-plan/v2`。
+分类角色的 Brand、Topic、Campaign `@2` 模板还会完整继承 ProductSelection 已确定的
+StartHere、Popular、Brand、Explore 商品、顺序与场景分组；Hero 和 Shortcuts 只能引用这些
+上游已拥有的商品。旧 `@1` 模板仅保留给历史任务回放。
 
 `runPageMerchandisingAgentWorkflow` 可注入 Topic Strategy Agent 的页面陈列能力，
 但 Agent 只生成 Proposal。模板规则、成员校验、商品复用策略、下游任务 ID 与 digest 都由
@@ -145,7 +148,7 @@ pnpm topic-generator:analyze -- --keyword "Matcha" \
   --category-proposal /path/to/categories.json \
   --candidate-snapshot /path/to/candidates.json \
   --scene-proposal /path/to/scenes.json \
-  --page-template topic-landing/topic@1 \
+  --page-template topic-landing/topic@2 \
   --module-proposal /path/to/modules.json \
   --content-language zh \
   --content-proposal /path/to/content.zh.json \

@@ -15,14 +15,14 @@ products. Never reproduce validation or PagePlan compilation in prose or ad hoc 
 2. Preserve the accepted ThemeIntent plus the complete taxonomy, category proposal, candidate
    snapshot, and scene proposal used by that ready run. The CLI reconstructs and validates both
    upstream artifacts on every call.
-   Brand, Topic, and Campaign `@1` templates require four to six validated source scenes; use the
+   Brand, Topic, and Campaign `@2` templates require four to six validated source scenes; use the
    category-role strategy for those templates. Use `topic-landing/relevance@1` for a ready
    `relevance/default@1` result: its rules hide scene-dependent modules and never permit invented
    source scenes.
 3. Use a caller-supplied versioned template. If none is supplied, map only a resolved ThemeIntent:
    `relevance/default@1` to `topic-landing/relevance@1`, `brand` to
-   `topic-landing/brand@1`, and `product` or `activity` to
-   `topic-landing/topic@1`. `topic-landing/campaign@1` requires an explicit caller choice or campaign
+   `topic-landing/brand@2`, and `product` or `activity` to
+   `topic-landing/topic@2`. `topic-landing/campaign@2` requires an explicit caller choice or campaign
    brief; never infer a Campaign page from the Topic alone. Stop for `uncertain` or unresolved intent.
 
 ## Request the bounded task
@@ -36,7 +36,7 @@ pnpm topic-generator:analyze -- --keyword "<keyword>" \
   --category-proposal "<categories.json>" \
   --candidate-snapshot "<candidates.json>" \
   --scene-proposal "<scenes.json>" \
-  --page-template topic-landing/topic@1 \
+  --page-template topic-landing/topic@2 \
   --pretty
 ```
 
@@ -54,10 +54,14 @@ strategy, template, `themeIntentDigest`, and `productSelectionDigest`.
   component in the proposal.
 - Use only product IDs in `context.products`; preserve their pool and role constraints.
 - Treat `shoppingGoal` as planning metadata, not final customer-facing copy.
-- Reshape a scene only through a returned `sourceSceneId`. Assign only products already contained
-  in that source scene.
-- Explain every cross-module product reuse with `reuseReason`. Never duplicate a product inside one
-  scene.
+- For a category-role `@2` task, copy the complete ordered assignments from each returned
+  `selectionModules` entry into StartHere, Popular Picks, Brand Spotlight, and Explore More. Do not
+  truncate, reorder, or move those products.
+- Preserve every returned source scene exactly once and in order. A reshaped page scene may change
+  its ID and planning text, but it must copy every ordered product from both source groups.
+- Hero and Shortcuts may reference only products already owned by a selection module. Explain the
+  later cross-module reference with `reuseReason`; it is audit metadata and never permits reuse
+  between ProductSelection-owned modules.
 - Hide an optional module when evidence is absent. In particular, do not invent reviews, ratings,
   claims, brands, products, or image concepts.
 
@@ -68,7 +72,7 @@ Write the proposal to a new caller-approved path. Do not overwrite ProductSelect
 Rerun the same command with:
 
 ```bash
---page-template topic-landing/topic@1 \
+--page-template topic-landing/topic@2 \
 --module-proposal "<module-merchandising-proposal.json>"
 ```
 

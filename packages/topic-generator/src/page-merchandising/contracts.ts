@@ -110,8 +110,9 @@ export interface TopicPagePlanV2 {
   moduleOrder: TopicModuleId[];
   modules: TopicPagePlanModuleV2[];
   productReusePolicy: {
-    crossModule: "requires-reason";
+    crossModule: "requires-reason" | "reference-modules-only";
     withinScene: "forbidden";
+    referenceModules?: ("hero" | "shortcuts")[];
   };
   digest: string;
 }
@@ -148,6 +149,7 @@ export interface PageMerchandisingTaskContext {
   templateRef: TopicPageTemplateRef;
   themeIntentDigest: string;
   productSelectionDigest: string;
+  assignmentAuthority: "proposal" | "product-selection";
   moduleOrder: TopicModuleId[];
   moduleRules: PageMerchandisingModuleRuleContext[];
   themeIntent: ThemeIntent;

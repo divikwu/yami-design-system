@@ -101,8 +101,13 @@ function compileAcceptedPlan(
     moduleOrder: [...proposal.moduleOrder],
     modules,
     productReusePolicy: {
-      crossModule: "requires-reason" as const,
+      crossModule: config.assignmentAuthority === "product-selection"
+        ? "reference-modules-only" as const
+        : "requires-reason" as const,
       withinScene: "forbidden" as const,
+      ...(config.assignmentAuthority === "product-selection"
+        ? { referenceModules: ["hero", "shortcuts"] as ("hero" | "shortcuts")[] }
+        : {}),
     },
   };
   return { ...plan, digest: sha256Digest(plan) };
@@ -133,6 +138,7 @@ function taskContext(
     templateRef,
     themeIntentDigest: themeIntentDigest(intent),
     productSelectionDigest: productSelectionDigest(selection),
+    assignmentAuthority: config.assignmentAuthority,
     moduleOrder: [...config.moduleOrder],
     moduleRules: config.modules.map((rule) => ({
       id: rule.id,
@@ -183,7 +189,38 @@ function selectionPreflightIssues(
   const primaryIds = new Set(selection.pools.primaryIds);
   const relatedIds = new Set(selection.pools.relatedIds);
   const issues: string[] = [];
+  if (config.assignmentAuthority === "product-selection") {
+    const firstOwnedModuleByProduct = new Map<string, string>();
+    selection.modules.forEach((module) => {
+      module.productIds.forEach((productId) => {
+        const firstModule = firstOwnedModuleByProduct.get(productId);
+        if (firstModule && firstModule !== module.id) {
+          issues.push(
+            `Product ${productId} cannot be reused across ProductSelection-owned modules ${firstModule} and ${module.id}.`,
+          );
+        } else if (!firstModule) {
+          firstOwnedModuleByProduct.set(productId, module.id);
+        }
+      });
+    });
+  }
   config.modules.filter(({ required }) => required).forEach((rule) => {
+    const selectionModule = config.assignmentAuthority === "product-selection"
+      ? selection.modules.find(({ id }) => id === rule.id)
+      : undefined;
+    if (selectionModule) {
+      if (selectionModule.productIds.length < rule.minimumProducts) {
+        issues.push(
+          `Template ${config.ref} requires at least ${rule.minimumProducts} products already assigned to module ${rule.id} by ProductSelectionResult.`,
+        );
+      }
+      if (rule.sceneRange && selection.scenes.length < rule.sceneRange[0]) {
+        issues.push(
+          `Template ${config.ref} requires at least ${rule.sceneRange[0]} validated source scenes for module ${rule.id}.`,
+        );
+      }
+      return;
+    }
     const eligibleProducts = selection.products.filter((product) => {
       const pool = primaryIds.has(product.id)
         ? "primary"

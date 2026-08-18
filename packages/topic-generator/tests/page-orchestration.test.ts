@@ -86,9 +86,9 @@ describe("Landing page orchestration", () => {
     });
     if (pending.status !== "needs-execution-plan-proposal") throw new Error("Expected task context.");
     expect(pending.context.pageTypes.map(({ ref }) => ref)).toEqual([
-      "landing-page/brand@1",
-      "landing-page/topic@1",
-      "landing-page/campaign@1",
+      "landing-page/brand@2",
+      "landing-page/topic@2",
+      "landing-page/campaign@2",
     ]);
 
     const ready = advanceLandingPageOrchestrationRun({
@@ -216,9 +216,9 @@ describe("Landing page orchestration", () => {
         themeIntentDigest: run.context.themeIntentDigest,
         requestedPageTypeRef: run.context.requestedPageTypeRef,
         requestedSelectionStrategyRef: run.context.requestedSelectionStrategyRef,
-        pageTypeRef: "landing-page/brand@1",
+        pageTypeRef: "landing-page/brand@2",
         selectionStrategyRef: "category-role/landing-page-agent@1",
-        templateRef: "topic-landing/brand@1",
+        templateRef: "topic-landing/brand@2",
         reason: "Use the registered category-role brand route.",
       }),
     );

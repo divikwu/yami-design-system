@@ -8,9 +8,9 @@ import type {
 const PAGE_TYPES: readonly LandingPageTypeConfig[] = [
   {
     schemaVersion: "landing-page-type/v1",
-    ref: "landing-page/brand@1",
+    ref: "landing-page/brand@2",
     id: "landing-page/brand",
-    version: 1,
+    version: 2,
     label: { en: "Brand landing page", zh: "品牌落地页" },
     supportedThemeTypes: ["brand"],
     requiresExplicitRequest: false,
@@ -21,15 +21,15 @@ const PAGE_TYPES: readonly LandingPageTypeConfig[] = [
       },
       {
         selectionStrategyRef: "category-role/landing-page-agent@1",
-        templateRef: "topic-landing/brand@1",
+        templateRef: "topic-landing/brand@2",
       },
     ],
   },
   {
     schemaVersion: "landing-page-type/v1",
-    ref: "landing-page/topic@1",
+    ref: "landing-page/topic@2",
     id: "landing-page/topic",
-    version: 1,
+    version: 2,
     label: { en: "Topic landing page", zh: "主题落地页" },
     supportedThemeTypes: ["product"],
     requiresExplicitRequest: false,
@@ -40,15 +40,15 @@ const PAGE_TYPES: readonly LandingPageTypeConfig[] = [
       },
       {
         selectionStrategyRef: "category-role/landing-page-agent@1",
-        templateRef: "topic-landing/topic@1",
+        templateRef: "topic-landing/topic@2",
       },
     ],
   },
   {
     schemaVersion: "landing-page-type/v1",
-    ref: "landing-page/campaign@1",
+    ref: "landing-page/campaign@2",
     id: "landing-page/campaign",
-    version: 1,
+    version: 2,
     label: { en: "Campaign landing page", zh: "活动落地页" },
     supportedThemeTypes: ["activity"],
     requiresExplicitRequest: false,
@@ -59,11 +59,27 @@ const PAGE_TYPES: readonly LandingPageTypeConfig[] = [
       },
       {
         selectionStrategyRef: "category-role/landing-page-agent@1",
-        templateRef: "topic-landing/campaign@1",
+        templateRef: "topic-landing/campaign@2",
       },
     ],
   },
 ];
+
+const LEGACY_PAGE_TYPES: readonly LandingPageTypeConfig[] = PAGE_TYPES.map((config) => ({
+  ...config,
+  ref: `${config.id}@1` as LandingPageTypeRef,
+  version: 1,
+  routes: config.routes.map((route) => ({
+    ...route,
+    templateRef: route.templateRef === "topic-landing/brand@2"
+      ? "topic-landing/brand@1"
+      : route.templateRef === "topic-landing/topic@2"
+        ? "topic-landing/topic@1"
+        : route.templateRef === "topic-landing/campaign@2"
+          ? "topic-landing/campaign@1"
+          : route.templateRef,
+  })),
+}));
 
 export const LANDING_PAGE_WORKFLOW_REF = "landing-page/default@1" as const;
 
@@ -89,7 +105,7 @@ export function listLandingPageTypeConfigs() {
 }
 
 export function getLandingPageTypeConfig(ref: LandingPageTypeRef) {
-  const config = PAGE_TYPES.find((candidate) => candidate.ref === ref);
+  const config = [...LEGACY_PAGE_TYPES, ...PAGE_TYPES].find((candidate) => candidate.ref === ref);
   if (!config) throw new Error(`Unknown landing page type: ${ref}`);
   return config;
 }

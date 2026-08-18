@@ -48,8 +48,8 @@ function productsFor(role: ProductRole, count: number): ProductSelectionProduct[
 function selectionFixture(): ProductSelectionResult {
   const products = [
     ...productsFor("core", 12),
-    ...productsFor("pairing", 8),
-    ...productsFor("accessory", 8),
+    ...productsFor("pairing", 12),
+    ...productsFor("accessory", 12),
   ];
   return {
     schemaVersion: "product-selection-result/v1",
@@ -74,17 +74,24 @@ function selectionFixture(): ProductSelectionResult {
         name: `Source scene ${number}`,
         title: `Legacy scene title ${number}`,
         description: `Legacy scene description ${number}`,
-        productGroups: [{
-          core: `core-${number}`,
-          pairing: `pairing-${number}`,
-          accessory: `accessory-${number}`,
-        }],
+        productGroups: [number, number + 4].map((productNumber) => ({
+          core: `core-${productNumber}`,
+          pairing: `pairing-${productNumber}`,
+          accessory: `accessory-${productNumber}`,
+        })),
       };
     }),
     modules: [
       {
         id: "start-here",
-        productIds: ["core-1", "pairing-1", "accessory-1"],
+        productIds: Array.from({ length: 4 }, (_, index) => {
+          const number = index + 1;
+          return [number, number + 4].flatMap((productNumber) => [
+            `core-${productNumber}`,
+            `pairing-${productNumber}`,
+            `accessory-${productNumber}`,
+          ]);
+        }).flat(),
         groups: [],
       },
       {
@@ -95,7 +102,7 @@ function selectionFixture(): ProductSelectionResult {
       { id: "brand-spotlight", productIds: [], groups: [] },
       {
         id: "explore-more",
-        productIds: ["accessory-5", "accessory-6"],
+        productIds: ["accessory-9", "accessory-10"],
         groups: [],
       },
     ],
@@ -160,13 +167,14 @@ function themeIntentFixture(): ThemeIntent {
 function validProposal(
   selection = selectionFixture(),
   intent = themeIntentFixture(),
+  templateRef: ModuleMerchandisingProposal["templateRef"] = "topic-landing/topic@1",
 ): ModuleMerchandisingProposal {
   return {
     schemaVersion: "module-merchandising-proposal/v1",
     keyword: selection.keyword,
     site: selection.site,
     strategyRef: selection.strategyRef,
-    templateRef: "topic-landing/topic@1",
+    templateRef,
     themeIntentDigest: themeIntentDigest(intent),
     productSelectionDigest: productSelectionDigest(selection),
     moduleOrder: [...MODULE_ORDER],
@@ -201,11 +209,21 @@ function validProposal(
         assignments: Array.from({ length: 4 }, (_, index) => {
           const number = index + 1;
           const sceneId = `page-scene-${number}`;
-          return [
-            { productId: `core-${number}`, sceneId },
-            { productId: `pairing-${number}`, sceneId },
-            { productId: `accessory-${number}`, sceneId },
-          ];
+          return [number, number + 4].flatMap((productNumber) => [
+            {
+              productId: `core-${productNumber}`,
+              sceneId,
+              ...(productNumber > 4
+                ? {
+                    reuseReason: productNumber < 7
+                      ? "Also anchors the hero."
+                      : "Also represents a shortcut.",
+                  }
+                : {}),
+            },
+            { productId: `pairing-${productNumber}`, sceneId },
+            { productId: `accessory-${productNumber}`, sceneId },
+          ]);
         }).flat(),
       },
       {
@@ -238,7 +256,7 @@ function validProposal(
         shoppingGoal: "Continue into complementary discovery",
         reason: "Unused accessory products extend the topic without changing the core modules.",
         scenes: [],
-        assignments: [{ productId: "accessory-5" }, { productId: "accessory-6" }],
+        assignments: [{ productId: "accessory-9" }, { productId: "accessory-10" }],
       },
     ],
   };
@@ -247,9 +265,9 @@ function validProposal(
 describe("PageMerchandising", () => {
   it("maps the maintained Brand, Topic, and Campaign page variants", () => {
     expect(listPageMerchandisingTemplateConfigs().map(({ ref }) => ref)).toEqual([
-      "topic-landing/brand@1",
-      "topic-landing/topic@1",
-      "topic-landing/campaign@1",
+      "topic-landing/brand@2",
+      "topic-landing/topic@2",
+      "topic-landing/campaign@2",
       "topic-landing/relevance@1",
     ]);
   });
@@ -283,7 +301,7 @@ describe("PageMerchandising", () => {
   it("compiles an accepted proposal into a stable, task-addressable PagePlan v2", () => {
     const intent = themeIntentFixture();
     const selection = selectionFixture();
-    const proposal = validProposal(selection, intent);
+    const proposal = validProposal(selection, intent, "topic-landing/topic@2");
 
     const first = compileTopicPagePlanV2(intent, selection, proposal);
     const second = compileTopicPagePlanV2(intent, selection, proposal);
@@ -293,13 +311,14 @@ describe("PageMerchandising", () => {
       schemaVersion: "topic-page-plan/v2",
       status: "plan-ready",
       keyword: "Matcha",
-      templateRef: "topic-landing/topic@1",
+      templateRef: "topic-landing/topic@2",
       themeIntentDigest: themeIntentDigest(intent),
       productSelectionDigest: productSelectionDigest(selection),
       moduleOrder: MODULE_ORDER,
       productReusePolicy: {
-        crossModule: "requires-reason",
+        crossModule: "reference-modules-only",
         withinScene: "forbidden",
+        referenceModules: ["hero", "shortcuts"],
       },
     });
     expect(first.digest).toMatch(/^sha256:[a-f0-9]{64}$/);
@@ -325,7 +344,14 @@ describe("PageMerchandising", () => {
         expect.objectContaining({
           id: "page-scene-1",
           sourceSceneId: "source-scene-1",
-          productIds: ["core-1", "pairing-1", "accessory-1"],
+          productIds: [
+            "core-1",
+            "pairing-1",
+            "accessory-1",
+            "core-5",
+            "pairing-5",
+            "accessory-5",
+          ],
         }),
       ]),
     });
@@ -334,7 +360,12 @@ describe("PageMerchandising", () => {
   it("declares one brand-banner task for each unique assigned brand", () => {
     const intent = themeIntentFixture();
     const selection = selectionFixture();
-    const proposal = validProposal(selection, intent);
+    selection.modules.find(({ id }) => id === "brand-spotlight")!.productIds = [
+      "core-5",
+      "core-6",
+      "pairing-11",
+    ];
+    const proposal = validProposal(selection, intent, "topic-landing/topic@2");
     const brand = proposal.modules.find(({ id }) => id === "brand-spotlight")!;
     brand.visible = true;
     brand.shoppingGoal = "Compare represented brands";
@@ -342,7 +373,7 @@ describe("PageMerchandising", () => {
     brand.assignments = [
       { productId: "core-5", reuseReason: "Also anchors the hero." },
       { productId: "core-6", reuseReason: "Also anchors the hero." },
-      { productId: "pairing-5" },
+      { productId: "pairing-11" },
     ];
 
     const plan = compileTopicPagePlanV2(intent, selection, proposal);
@@ -356,13 +387,13 @@ describe("PageMerchandising", () => {
   it("fails closed on unknown products, source-scene drift, and unexplained reuse", () => {
     const intent = themeIntentFixture();
     const selection = selectionFixture();
-    const proposal = validProposal(selection, intent);
+    const proposal = validProposal(selection, intent, "topic-landing/topic@2");
     proposal.themeIntentDigest = "sha256:stale-theme-intent";
     proposal.modules.find(({ id }) => id === "hero")!.assignments[0] = {
       productId: "missing-product",
     };
     proposal.modules.find(({ id }) => id === "start-here")!.assignments[2] = {
-      productId: "accessory-5",
+      productId: "accessory-9",
       sceneId: "page-scene-1",
     };
     proposal.modules.find(({ id }) => id === "popular-picks")!.assignments[0] = {
@@ -376,7 +407,7 @@ describe("PageMerchandising", () => {
       issues: expect.arrayContaining([
         "Proposal themeIntentDigest does not match ThemeIntent.",
         "Product missing-product is absent from ProductSelectionResult.",
-        "Product accessory-5 is not part of source scene source-scene-1.",
+        "Product accessory-9 is not part of source scene source-scene-1.",
         "Product core-6 is reused across modules without a reuseReason.",
       ]),
     });
@@ -389,7 +420,7 @@ describe("PageMerchandising", () => {
     pairing.pool = "related";
     selection.pools.primaryIds = selection.pools.primaryIds.filter((id) => id !== pairing.id);
     selection.pools.relatedIds = [pairing.id];
-    const proposal = validProposal(selection, intent);
+    const proposal = validProposal(selection, intent, "topic-landing/topic@2");
     proposal.modules.find(({ id }) => id === "hero")!.assignments[0] = {
       productId: pairing.id,
     };
@@ -405,13 +436,129 @@ describe("PageMerchandising", () => {
     });
   });
 
+  it("preserves deterministic category-role module assignments", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const proposal = validProposal(selection, intent, "topic-landing/topic@2");
+    proposal.modules.find(({ id }) => id === "popular-picks")!.assignments[0] = {
+      productId: "core-8",
+      reuseReason: "Also represents a shortcut.",
+    };
+    proposal.modules.find(({ id }) => id === "explore-more")!.assignments[0] = {
+      productId: "pairing-9",
+    };
+
+    const run = advancePageMerchandisingRun({ intent, selection, proposal });
+
+    expect(run).toMatchObject({
+      status: "blocked",
+      issues: expect.arrayContaining([
+        "Product core-8 is not assigned to module popular-picks by ProductSelectionResult.",
+        "Module popular-picks must preserve ProductSelectionResult product order.",
+        "Product pairing-9 is not assigned to module explore-more by ProductSelectionResult.",
+        "Module explore-more must preserve ProductSelectionResult product order.",
+      ]),
+    });
+  });
+
+  it("keeps category-role @1 proposal-owned assignments replayable", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const proposal = validProposal(selection, intent, "topic-landing/topic@1");
+    proposal.modules.find(({ id }) => id === "popular-picks")!.assignments[0] = {
+      productId: "core-8",
+      reuseReason: "Legacy proposal-owned module assignment.",
+    };
+    proposal.modules.find(({ id }) => id === "explore-more")!.assignments[0] = {
+      productId: "pairing-9",
+    };
+
+    expect(advancePageMerchandisingRun({ intent, selection, proposal })).toMatchObject({
+      status: "ready",
+      plan: {
+        templateRef: "topic-landing/topic@1",
+        productReusePolicy: { crossModule: "requires-reason" },
+      },
+    });
+  });
+
+  it("does not let reuseReason authorize reuse across ProductSelection-owned modules", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    selection.modules.find(({ id }) => id === "popular-picks")!.productIds[0] = "core-1";
+    const proposal = validProposal(selection, intent, "topic-landing/topic@2");
+    proposal.modules.find(({ id }) => id === "popular-picks")!.assignments[0] = {
+      productId: "core-1",
+      reuseReason: "Also performs well in the source scene.",
+    };
+
+    const run = advancePageMerchandisingRun({ intent, selection, proposal });
+
+    expect(run).toMatchObject({
+      status: "blocked",
+      issues: expect.arrayContaining([
+        "Product core-1 cannot be reused across ProductSelection-owned modules start-here and popular-picks.",
+      ]),
+    });
+  });
+
+  it("preserves every validated source scene and its complete product order", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const incomplete = validProposal(selection, intent, "topic-landing/topic@2");
+    const startHere = incomplete.modules.find(({ id }) => id === "start-here")!;
+    startHere.assignments = startHere.assignments.filter(({ productId }) =>
+      productId !== "pairing-1" && productId !== "accessory-1"
+    );
+
+    const incompleteRun = advancePageMerchandisingRun({
+      intent,
+      selection,
+      proposal: incomplete,
+    });
+
+    expect(incompleteRun).toMatchObject({
+      status: "blocked",
+      issues: expect.arrayContaining([
+        "Module start-here must preserve ProductSelectionResult product order.",
+        "Page scene page-scene-1 must preserve every product from source scene source-scene-1 in order.",
+      ]),
+    });
+
+    const duplicated = validProposal(selection, intent, "topic-landing/topic@2");
+    const duplicatedStartHere = duplicated.modules.find(({ id }) => id === "start-here")!;
+    duplicatedStartHere.scenes[3]!.sourceSceneId = "source-scene-1";
+    duplicatedStartHere.assignments.splice(18, 6,
+      { productId: "core-1", sceneId: "page-scene-4" },
+      { productId: "pairing-1", sceneId: "page-scene-4" },
+      { productId: "accessory-1", sceneId: "page-scene-4" },
+      { productId: "core-5", sceneId: "page-scene-4", reuseReason: "Also anchors the hero." },
+      { productId: "pairing-5", sceneId: "page-scene-4" },
+      { productId: "accessory-5", sceneId: "page-scene-4" },
+    );
+
+    const duplicatedRun = advancePageMerchandisingRun({
+      intent,
+      selection,
+      proposal: duplicated,
+    });
+
+    expect(duplicatedRun).toMatchObject({
+      status: "blocked",
+      issues: expect.arrayContaining([
+        "Module start-here must preserve each ProductSelectionResult source scene exactly once and in order.",
+        "Module start-here must preserve ProductSelectionResult product order.",
+      ]),
+    });
+  });
+
   it("returns a bounded Agent task before a proposal is available", () => {
     const intent = themeIntentFixture();
     const selection = selectionFixture();
     const run = advancePageMerchandisingRun({
       intent,
       selection,
-      templateRef: "topic-landing/topic@1",
+      templateRef: "topic-landing/topic@2",
     });
 
     expect(run).toMatchObject({
@@ -419,7 +566,8 @@ describe("PageMerchandising", () => {
       status: "needs-module-proposal",
       context: {
         keyword: "Matcha",
-        templateRef: "topic-landing/topic@1",
+        templateRef: "topic-landing/topic@2",
+        assignmentAuthority: "product-selection",
         themeIntentDigest: themeIntentDigest(intent),
         productSelectionDigest: productSelectionDigest(selection),
         themeIntent: { shoppingGoal: "Build a complete matcha ritual" },
@@ -430,7 +578,7 @@ describe("PageMerchandising", () => {
           expect.objectContaining({ id: "reviews", maximumProducts: 0 }),
         ]),
         sourceScenes: { length: 4 },
-        products: { length: 28 },
+        products: { length: 36 },
       },
     });
   });
@@ -443,13 +591,32 @@ describe("PageMerchandising", () => {
     const run = advancePageMerchandisingRun({
       intent,
       selection,
-      templateRef: "topic-landing/topic@1",
+      templateRef: "topic-landing/topic@2",
     });
 
     expect(run).toMatchObject({
       status: "blocked",
       issues: [
-        "Template topic-landing/topic@1 requires at least 4 validated source scenes for module start-here.",
+        "Template topic-landing/topic@2 requires at least 4 validated source scenes for module start-here.",
+      ],
+    });
+  });
+
+  it("uses deterministic module capacity for category-role preflight", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    selection.modules.find(({ id }) => id === "popular-picks")!.productIds = [];
+
+    const run = advancePageMerchandisingRun({
+      intent,
+      selection,
+      templateRef: "topic-landing/topic@2",
+    });
+
+    expect(run).toMatchObject({
+      status: "blocked",
+      issues: [
+        "Template topic-landing/topic@2 requires at least 4 products already assigned to module popular-picks by ProductSelectionResult.",
       ],
     });
   });
