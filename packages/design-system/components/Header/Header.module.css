@@ -231,6 +231,7 @@
   border: var(--stroke-thick) solid var(--border-focus);
   border-radius: var(--radius-button-primary);
   background: var(--surface-primary);
+  container-type: inline-size;
 }
 
 .searchField {
@@ -389,6 +390,20 @@
   gap: var(--space-150);
   padding: var(--space-200);
   background: var(--surface-primary);
+}
+
+/* The panel inherits the search field's width. Keep suggestion cards large
+ * enough to scan as the header yields space to the surrounding controls. */
+@container (max-width: 639.98px) {
+  .searchSuggestionGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@container (max-width: 439.98px) {
+  .searchSuggestionGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 .searchSuggestion {

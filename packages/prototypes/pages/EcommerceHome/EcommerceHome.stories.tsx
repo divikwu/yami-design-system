@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { userEvent } from "storybook/test";
+import { userEvent, waitFor } from "storybook/test";
 
 import {
   createProductListProducts,
@@ -690,6 +690,12 @@ export const SearchFocused: Story = {
 
     await userEvent.click(field);
 
+    await waitFor(() => {
+      if (canvasElement.ownerDocument.body.style.overflow !== "hidden") {
+        throw new Error("Focused search must lock document scrolling");
+      }
+    });
+
     const panel = canvasElement.querySelector<HTMLElement>(
       '[data-slot="header-search-panel"]',
     );
@@ -714,6 +720,13 @@ export const SearchFocused: Story = {
     ) {
       throw new Error("Focused search must match the Figma discovery state");
     }
+
+    await userEvent.click(scrim);
+    await waitFor(() => {
+      if (canvasElement.ownerDocument.body.style.overflow === "hidden") {
+        throw new Error("Closing search must restore document scrolling");
+      }
+    });
   },
 };
 

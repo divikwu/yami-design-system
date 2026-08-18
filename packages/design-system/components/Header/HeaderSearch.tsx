@@ -1,6 +1,6 @@
 'use client'
 
-import { useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { ResponsiveImage } from '../ResponsiveImage'
 
 import styles from './Header.module.css'
@@ -51,6 +51,26 @@ export function HeaderSearch({
   const panelId = useId()
   const query = value ?? draftValue
   const canOpenPanel = !isMobile && panel !== undefined
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    const body = document.body
+    const previousOverflow = body.style.overflow
+    const previousPaddingRight = body.style.paddingRight
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
+
+    body.style.overflow = 'hidden'
+    if (scrollbarWidth > 0) {
+      const currentPaddingRight = Number.parseFloat(getComputedStyle(body).paddingRight) || 0
+      body.style.paddingRight = `${currentPaddingRight + scrollbarWidth}px`
+    }
+
+    return () => {
+      body.style.overflow = previousOverflow
+      body.style.paddingRight = previousPaddingRight
+    }
+  }, [isOpen])
 
   function openMobileSearch() {
     if (isMobile && openHref) window.location.assign(openHref)
