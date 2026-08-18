@@ -3,6 +3,7 @@ import {
   advanceProductSelectionRun,
   getProductSelectionStrategyConfig,
   listProductSelectionStrategyConfigs,
+  runProductSelectionWorkflow,
   type CatalogTaxonomySnapshot,
   type CatalogCandidateSnapshot,
   type CategoryRoleProposal,
@@ -102,7 +103,7 @@ function candidateSnapshotFixture(
   };
 }
 
-function sceneProposalFixture(productGroups: Array<{
+function repeatedSceneProposalFixture(productGroups: Array<{
   core: string;
   pairing: string | null;
   accessory: string | null;
@@ -118,6 +119,39 @@ function sceneProposalFixture(productGroups: Array<{
       title: `Scene title ${index + 1}`,
       description: `Scene description ${index + 1}`,
       productGroups,
+    })),
+  };
+}
+
+function sceneProposalFixture() {
+  const categoryIds = {
+    core: ["1000", "1001", "1002", "1003", "1004"],
+    pairing: ["1005", "1006", "1007"],
+    accessory: ["1008", "1009"],
+  } as const;
+  const productId = (role: keyof typeof categoryIds, slot: number) => {
+    const ids = categoryIds[role];
+    return `product-${ids[slot % ids.length]}-${Math.floor(slot / ids.length)}`;
+  };
+
+  return {
+    schemaVersion: "scene-proposal/v1" as const,
+    keyword: "Matcha",
+    strategyRef: "category-role/landing-page-agent@1" as const,
+    candidateSnapshotDigest: "sha256:candidates",
+    scenes: Array.from({ length: 4 }, (_, sceneIndex) => ({
+      id: `scene-${sceneIndex + 1}`,
+      name: `Scene ${sceneIndex + 1}`,
+      title: `Scene title ${sceneIndex + 1}`,
+      description: `Scene description ${sceneIndex + 1}`,
+      productGroups: Array.from({ length: 2 }, (_, groupIndex) => {
+        const slot = sceneIndex * 2 + groupIndex;
+        return {
+          core: productId("core", slot),
+          pairing: productId("pairing", slot),
+          accessory: productId("accessory", slot),
+        };
+      }),
     })),
   };
 }
@@ -190,6 +224,49 @@ describe("ProductSelection Module", () => {
         },
       },
     });
+  });
+
+  it("deduplicates relevance pools by product ID while preserving first source order", () => {
+    const firstProduct = {
+      id: "1",
+      title: "ANUA First Result",
+      brand: "ANUA",
+      price: "$10.00",
+      imageUrl: "https://example.com/first.webp",
+      productUrl: "https://example.com/first",
+      sourceRank: 1,
+    };
+    const snapshot: YamiSearchSnapshot = {
+      keyword: "ANUA",
+      site: "us",
+      sourceUrl: "https://example.com/search?q=ANUA",
+      fetchedAt: "2026-08-17T00:00:00.000Z",
+      products: [
+        firstProduct,
+        { ...firstProduct, title: "ANUA Duplicate Result", sourceRank: 2 },
+        {
+          id: "2",
+          title: "ANUA Second Product",
+          brand: "ANUA",
+          price: "$12.00",
+          imageUrl: "https://example.com/second.webp",
+          productUrl: "https://example.com/second",
+          sourceRank: 3,
+        },
+      ],
+    };
+
+    const run = advanceProductSelectionRun({
+      snapshot,
+      strategyRef: "relevance/default@1",
+    });
+
+    expect(run.status).toBe("ready");
+    if (run.status === "ready") {
+      expect(run.result.pools.primaryIds).toEqual(["1", "2"]);
+      expect(run.result.products.map(({ id }) => id)).toEqual(["1", "2"]);
+      expect(run.result.products[0]?.title).toBe("ANUA First Result");
+    }
   });
 
   it("asks the Agent for category roles only after receiving a complete taxonomy snapshot", () => {
@@ -388,19 +465,7 @@ describe("ProductSelection Module", () => {
   it("accepts four reviewable scenes and returns role-correct pools", () => {
     const { categories, snapshot, taxonomySnapshot, categoryRoleProposal } =
       categoryRoleFixture();
-    const candidateSnapshot = candidateSnapshotFixture(categories);
-    const productGroups = [
-      {
-        core: "product-1000",
-        pairing: "product-1005",
-        accessory: "product-1008",
-      },
-      {
-        core: "product-1001",
-        pairing: "product-1006",
-        accessory: "product-1009",
-      },
-    ];
+    const candidateSnapshot = candidateSnapshotFixture(categories, 4);
 
     const run = advanceProductSelectionRun({
       snapshot,
@@ -408,19 +473,7 @@ describe("ProductSelection Module", () => {
       taxonomySnapshot,
       categoryRoleProposal,
       candidateSnapshot,
-      sceneProposal: {
-        schemaVersion: "scene-proposal/v1",
-        keyword: "Matcha",
-        strategyRef: "category-role/landing-page-agent@1",
-        candidateSnapshotDigest: "sha256:candidates",
-        scenes: Array.from({ length: 4 }, (_, index) => ({
-          id: `scene-${index + 1}`,
-          name: `Scene ${index + 1}`,
-          title: `Scene title ${index + 1}`,
-          description: `Scene description ${index + 1}`,
-          productGroups,
-        })),
-      },
+      sceneProposal: sceneProposalFixture(),
     });
 
     expect(run).toMatchObject({
@@ -430,72 +483,87 @@ describe("ProductSelection Module", () => {
       },
     });
     if (run.status === "ready") {
-      expect(run.result.pools.primaryIds).toEqual([
-        "product-1000",
-        "product-1005",
-        "product-1008",
-        "product-1001",
-        "product-1006",
-        "product-1009",
-        "product-1002",
-        "product-1003",
-        "product-1004",
-        "product-1007",
-      ]);
       expect(run.result.pools.relatedIds).toEqual([]);
-      expect(run.result.modules.find(({ id }) => id === "start-here")).toMatchObject({
-        id: "start-here",
-        productIds: [
-          "product-1000",
-          "product-1005",
-          "product-1008",
-          "product-1001",
-          "product-1006",
-          "product-1009",
-        ],
-      });
-      expect(
-        run.result.modules.find(({ id }) => id === "start-here")?.groups,
-      ).toHaveLength(4);
+      const startHere = run.result.modules.find(({ id }) => id === "start-here")!;
+      expect(startHere.productIds).toHaveLength(24);
+      expect(new Set(startHere.productIds).size).toBe(24);
+      expect(startHere.groups).toHaveLength(4);
     }
+  });
+
+  it("rejects a scene proposal that reuses a product across scenes", () => {
+    const { categories, snapshot, taxonomySnapshot, categoryRoleProposal } =
+      categoryRoleFixture();
+    const candidateSnapshot = candidateSnapshotFixture(categories, 4);
+    const sceneProposal = repeatedSceneProposalFixture([
+      {
+        core: "product-1000-0",
+        pairing: "product-1005-0",
+        accessory: "product-1008-0",
+      },
+      {
+        core: "product-1001-0",
+        pairing: "product-1006-0",
+        accessory: "product-1009-0",
+      },
+    ]);
+
+    const run = advanceProductSelectionRun({
+      snapshot,
+      strategyRef: "category-role/landing-page-agent@1",
+      taxonomySnapshot,
+      categoryRoleProposal,
+      candidateSnapshot,
+      sceneProposal,
+    });
+
+    expect(run).toMatchObject({
+      status: "blocked",
+      issues: expect.arrayContaining([
+        "Scene product product-1000-0 is used more than once.",
+      ]),
+    });
+  });
+
+  it("blocks automatic selection when candidate retrieval quality has an error", async () => {
+    const { categories, snapshot, taxonomySnapshot, categoryRoleProposal } =
+      categoryRoleFixture();
+    const candidateSnapshot = candidateSnapshotFixture(categories, 4);
+    candidateSnapshot.source.attempts = [
+      ...categories.map(({ id }) => ({
+        requestId: `category:${id}`,
+        status: "succeeded" as const,
+      })),
+      {
+        requestId: "discovery",
+        status: "failed" as const,
+        errorCode: "timeout",
+      },
+    ];
+
+    const result = await runProductSelectionWorkflow({
+      snapshot,
+      strategyRef: "category-role/landing-page-agent@1",
+      taxonomySnapshot,
+      categoryRoleProposal,
+      candidateSnapshot,
+      sceneProposal: sceneProposalFixture(),
+    });
+
+    expect(result.artifacts.candidateQualityReport?.status).toBe("error");
+    expect(result.run).toMatchObject({
+      status: "blocked",
+      issues: expect.arrayContaining([
+        "Candidate request discovery failed (timeout).",
+      ]),
+    });
   });
 
   it("fills Popular Picks from five core categories after excluding scene products", () => {
     const { categories, snapshot, taxonomySnapshot, categoryRoleProposal } =
       categoryRoleFixture();
     const candidateSnapshot = candidateSnapshotFixture(categories, 12);
-    const sceneProductIds = [
-      "product-1000-0",
-      "product-1005-0",
-      "product-1008-0",
-      "product-1001-0",
-      "product-1006-0",
-      "product-1009-0",
-    ];
-    const sceneProposal = {
-      schemaVersion: "scene-proposal/v1" as const,
-      keyword: "Matcha",
-      strategyRef: "category-role/landing-page-agent@1" as const,
-      candidateSnapshotDigest: "sha256:candidates",
-      scenes: Array.from({ length: 4 }, (_, index) => ({
-        id: `scene-${index + 1}`,
-        name: `Scene ${index + 1}`,
-        title: `Scene title ${index + 1}`,
-        description: `Scene description ${index + 1}`,
-        productGroups: [
-          {
-            core: sceneProductIds[0],
-            pairing: sceneProductIds[1],
-            accessory: sceneProductIds[2],
-          },
-          {
-            core: sceneProductIds[3],
-            pairing: sceneProductIds[4],
-            accessory: sceneProductIds[5],
-          },
-        ],
-      })),
-    };
+    const sceneProposal = sceneProposalFixture();
 
     const run = advanceProductSelectionRun({
       snapshot,
@@ -520,9 +588,9 @@ describe("ProductSelection Module", () => {
         ),
       ).toBe(true);
       expect(popular.productIds.slice(0, 3)).toEqual([
-        "product-1000-1",
         "product-1000-2",
         "product-1000-3",
+        "product-1000-4",
       ]);
     }
   });
@@ -531,18 +599,7 @@ describe("ProductSelection Module", () => {
     const { categories, snapshot, taxonomySnapshot, categoryRoleProposal } =
       categoryRoleFixture();
     const candidateSnapshot = candidateSnapshotFixture(categories, 15);
-    const sceneProposal = sceneProposalFixture([
-      {
-        core: "product-1000-0",
-        pairing: "product-1005-0",
-        accessory: "product-1008-0",
-      },
-      {
-        core: "product-1001-0",
-        pairing: "product-1006-0",
-        accessory: "product-1009-0",
-      },
-    ]);
+    const sceneProposal = sceneProposalFixture();
 
     const run = advanceProductSelectionRun({
       snapshot,
@@ -582,18 +639,7 @@ describe("ProductSelection Module", () => {
     candidateSnapshot.products = candidateSnapshot.products.map(({ brandId: _brandId, ...product }) =>
       product
     );
-    const sceneProposal = sceneProposalFixture([
-      {
-        core: "product-1000-0",
-        pairing: "product-1005-0",
-        accessory: "product-1008-0",
-      },
-      {
-        core: "product-1001-0",
-        pairing: "product-1006-0",
-        accessory: "product-1009-0",
-      },
-    ]);
+    const sceneProposal = sceneProposalFixture();
 
     const run = advanceProductSelectionRun({
       snapshot,
@@ -630,18 +676,7 @@ describe("ProductSelection Module", () => {
     }));
     candidateSnapshot.products.push(...discoveryProducts);
     candidateSnapshot.discoveryProductIds = discoveryProducts.map(({ id }) => id);
-    const sceneProposal = sceneProposalFixture([
-      {
-        core: "product-1000-0",
-        pairing: "product-1005-0",
-        accessory: "product-1008-0",
-      },
-      {
-        core: "product-1001-0",
-        pairing: "product-1006-0",
-        accessory: "product-1009-0",
-      },
-    ]);
+    const sceneProposal = sceneProposalFixture();
 
     const run = advanceProductSelectionRun({
       snapshot,
@@ -667,18 +702,7 @@ describe("ProductSelection Module", () => {
       .flatMap((categoryId) =>
         Array.from({ length: 5 }, (_, index) => `product-${categoryId}-${20 + index}`)
       );
-    const sceneProposal = sceneProposalFixture([
-      {
-        core: "product-1000-0",
-        pairing: "product-1005-0",
-        accessory: "product-1008-0",
-      },
-      {
-        core: "product-1001-0",
-        pairing: "product-1006-0",
-        accessory: "product-1009-0",
-      },
-    ]);
+    const sceneProposal = sceneProposalFixture();
 
     const run = advanceProductSelectionRun({
       snapshot,
@@ -708,7 +732,7 @@ describe("ProductSelection Module", () => {
         "product-1005-24",
       ]);
       expect(explore.productIds.slice(-18)).toEqual(
-        Array.from({ length: 18 }, (_, index) => `product-1009-${index + 1}`),
+        Array.from({ length: 18 }, (_, index) => `product-1009-${index + 4}`),
       );
     }
   });

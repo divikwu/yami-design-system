@@ -74,18 +74,18 @@ describe("ProductSelection Agent workflow", () => {
             soldCount: 999,
           }];
         }
-        return [{
-          id: `product-${categoryId}`,
-          title: `Matcha product ${categoryId}`,
+        return Array.from({ length: 4 }, (_, productIndex) => ({
+          id: `product-${categoryId}-${productIndex}`,
+          title: `Matcha product ${categoryId}-${productIndex}`,
           brand: `Brand ${categoryId}`,
           brandId: Number(categoryId),
           price: "$1.00",
-          imageUrl: `https://example.com/${categoryId}.webp`,
-          productUrl: `https://example.com/${categoryId}`,
-          sourceRank: Number(categoryId) - 999,
+          imageUrl: `https://example.com/${categoryId}-${productIndex}.webp`,
+          productUrl: `https://example.com/${categoryId}-${productIndex}`,
+          sourceRank: (Number(categoryId) - 1000) * 4 + productIndex + 1,
           categoryL3Id: Number(categoryId),
-          soldCount: 1000 - Number(categoryId),
-        }];
+          soldCount: 1000 - Number(categoryId) - productIndex,
+        }));
       }),
     };
     const proposeCategoryRoles = vi.fn<ProductSelectionAgent["proposeCategoryRoles"]>(
@@ -107,23 +107,19 @@ describe("ProductSelection Agent workflow", () => {
         keyword: run.context.keyword,
         strategyRef: run.strategyRef,
         candidateSnapshotDigest: run.candidateSnapshotDigest,
-        scenes: Array.from({ length: 4 }, (_, index) => ({
-          id: `matcha-scene-${index + 1}`,
-          name: `Matcha scene ${index + 1}`,
-          title: `Matcha scene title ${index + 1}`,
-          description: `Matcha scene description ${index + 1}`,
-          productGroups: [
-            {
-              core: "product-1000",
-              pairing: "product-1005",
-              accessory: "product-1008",
-            },
-            {
-              core: "product-1001",
-              pairing: "product-1006",
-              accessory: "product-1009",
-            },
-          ],
+        scenes: Array.from({ length: 4 }, (_, sceneIndex) => ({
+          id: `matcha-scene-${sceneIndex + 1}`,
+          name: `Matcha scene ${sceneIndex + 1}`,
+          title: `Matcha scene title ${sceneIndex + 1}`,
+          description: `Matcha scene description ${sceneIndex + 1}`,
+          productGroups: Array.from({ length: 2 }, (_, groupIndex) => {
+            const slot = sceneIndex * 2 + groupIndex;
+            return {
+              core: `product-${1000 + slot % 5}-${Math.floor(slot / 5)}`,
+              pairing: `product-${1005 + slot % 3}-${Math.floor(slot / 3)}`,
+              accessory: `product-${1008 + slot % 2}-${Math.floor(slot / 2)}`,
+            };
+          }),
         })),
       }),
     );
@@ -168,8 +164,8 @@ describe("ProductSelection Agent workflow", () => {
       },
       candidateQualityReport: {
         schemaVersion: "catalog-candidate-quality-report/v1",
-        status: "warning",
-        summary: { categories: { lowCoverage: 10 } },
+        status: "ok",
+        summary: { categories: { lowCoverage: 0 } },
       },
       sceneProposal: { schemaVersion: "scene-proposal/v1" },
     });

@@ -77,9 +77,11 @@ if (pageTask.status === "ready") {
 两次语义提案与一次候选召回；提案校验、配额、分组和去重仍由确定性 Module 拥有。
 Agent 提案被拒绝时立即返回 `blocked`，不会继续召回或静默修复。
 
-`analyzeCatalogCandidateQuality` 为每份候选快照生成独立、确定性的质量报告。高风险问题
-（请求失败、空分类、商品归属错误、跨分类重复）与低覆盖警告保持可见；报告不改写候选
-商品，也不替代 `reviewCatalogCandidateSnapshot` 的结构阻断规则。
+`analyzeCatalogCandidateQuality` 为每份候选快照生成独立、确定性的质量报告。请求失败、
+缺失请求或商品引用缺失等高风险问题会让工作流返回 `blocked`；低覆盖、空分类、归属异常
+与重复等中风险警告保持可见。报告不改写候选商品，也不替代
+`reviewCatalogCandidateSnapshot` 的结构阻断规则。`SceneProposal` 还会独立校验所有场景与
+商品组的商品 ID 全局唯一。
 
 `createHttpProductSelectionAgent` 是可复用的服务端 Adapter。它通过
 `product-selection-agent-request/v1` 发送当前 `ProductSelectionRun`，要求远端返回

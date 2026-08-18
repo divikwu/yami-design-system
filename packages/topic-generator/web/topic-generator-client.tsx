@@ -899,9 +899,10 @@ function PoolsView({
   uiLanguage: ContentLanguage;
 }) {
   const zh = uiLanguage === "zh";
+  const categoryRole = plan.selectionStrategy.id === "category-role";
   const primary = plan.products.filter((product) => product.pool === "primary");
   const related = plan.products.filter((product) => product.pool === "related");
-  const primaryDescription = plan.selectionStrategy.id === "category-role"
+  const primaryDescription = categoryRole
     ? zh ? "按分类角色选择，用于模块分配" : "selected by category role for module assignment"
     : zh ? "可用于核心模块" : "eligible for core modules";
   const relatedSelectionReason = zh
@@ -914,7 +915,11 @@ function PoolsView({
         <header className={styles.viewHeading}>
           <div>
             <span>03 · {zh ? "商品池" : "Product pool"}</span>
-            <h3>{zh ? "主商品池" : "PrimaryPool"}</h3>
+            <h3>
+              {categoryRole
+                ? zh ? "模块商品池" : "Module product pool"
+                : zh ? "主商品池" : "PrimaryPool"}
+            </h3>
             <p className={styles.poolSelectionReason}>
               <strong>{zh ? "选品依据" : "Selection rationale"}</strong>
               {plan.selectionStrategy.description}
@@ -928,7 +933,7 @@ function PoolsView({
           ))}
         </div>
       </section>
-      <section>
+      {!categoryRole && <section>
         <header className={styles.viewHeading}>
           <div>
             <span>{zh ? "仅作回退" : "Fallback only"}</span>
@@ -951,7 +956,7 @@ function PoolsView({
             {zh ? "本次运行不需要相关候选商品。" : "No related candidates were needed for this run."}
           </p>
         )}
-      </section>
+      </section>}
     </div>
   );
 }
@@ -1138,10 +1143,10 @@ function WorkflowView({
     {
       stage: "03",
       icon: WORKFLOW_ICONS.search,
-      label: isChinese ? "获取商品并构建双层商品池" : "Fetch products and build two-layer pools",
+      label: isChinese ? "获取商品并构建商品池" : "Fetch products and build product pools",
       output: isChinese
-        ? "搜索 Yami 美国站，验证商品并冻结 PrimaryPool 与 RelatedPool"
-        : "Search Yami US, validate products, and freeze PrimaryPool and RelatedPool",
+        ? "搜索 Yami 美国站，验证商品并按当前选品策略冻结商品池结构"
+        : "Search Yami US, validate products, and freeze the pool structure for the selected strategy",
       input: "GenerationBrief + ThemeIntent + TemplateRoute",
       action: isChinese ? "读取商品身份、图片与可售状态，校验相关性并按用途分层" : "Read identity, imagery, and availability, validate relevance, and assign pool roles",
       result: "CatalogSnapshot + ProductPools",
@@ -1155,7 +1160,7 @@ function WorkflowView({
       output: isChinese
         ? "决定模块显隐与顺序，并按槽位分配具体商品"
         : "Decide module visibility and order, then assign products to slots",
-      input: isChinese ? "模板规则与双层商品池" : "Template rules and product pools",
+      input: isChinese ? "模板规则与商品池" : "Template rules and product pools",
       action: isChinese ? "判断模块资格、排序并分配商品槽位" : "Resolve module eligibility, order, and product slots",
       result: "PagePlan",
       rollback: isChinese ? "商品槽位不足返回 03；模块配置问题留在 04 修复" : "Return slot shortages to 03; repair module configuration in 04",
@@ -2419,8 +2424,17 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
                     </header>
 
                     <div className={styles.statBar}>
-                      <div><span>{uiLanguage === "zh" ? "主商品池" : "PrimaryPool"}</span><strong>{plan.pools.primaryIds.length}</strong></div>
-                      <div><span>{uiLanguage === "zh" ? "相关商品池" : "RelatedPool"}</span><strong>{plan.pools.relatedIds.length}</strong></div>
+                      {plan.selectionStrategy.id === "category-role" ? (
+                        <>
+                          <div><span>{uiLanguage === "zh" ? "模块商品池" : "Module product pool"}</span><strong>{plan.pools.primaryIds.length}</strong></div>
+                          <div><span>{uiLanguage === "zh" ? "已选分类" : "Selected categories"}</span><strong>{plan.selectedCategories.length}</strong></div>
+                        </>
+                      ) : (
+                        <>
+                          <div><span>{uiLanguage === "zh" ? "主商品池" : "PrimaryPool"}</span><strong>{plan.pools.primaryIds.length}</strong></div>
+                          <div><span>{uiLanguage === "zh" ? "相关商品池" : "RelatedPool"}</span><strong>{plan.pools.relatedIds.length}</strong></div>
+                        </>
+                      )}
                       <div>
                         <span>{copy.visibleModules}</span>
                         <strong>

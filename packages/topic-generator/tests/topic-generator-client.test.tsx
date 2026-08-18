@@ -198,6 +198,57 @@ describe("TopicGenerator result navigation", () => {
     expect(container.textContent).not.toContain("关键词直接命中 · Yami 排名 #1");
   });
 
+  it("presents category-role output as a module product pool without an empty related pool", async () => {
+    const snapshot: YamiSearchSnapshot = {
+      keyword: "Matcha",
+      site: "us",
+      sourceUrl: buildYamiSearchUrl("Matcha"),
+      fetchedAt: "2026-08-18T00:00:00.000Z",
+      products: [1, 2, 3].map((rank) => ({
+        id: `matcha-${rank}`,
+        title: `Matcha Product ${rank}`,
+        brand: "Matcha Brand",
+        price: "$19.99",
+        imageUrl: `https://example.com/matcha-${rank}.webp`,
+        productUrl: `https://example.com/matcha-${rank}`,
+        sourceRank: rank,
+      })),
+    };
+    const plans = buildTopicPagePlanMatrix(snapshot);
+    plans.zh["category-role"] = {
+      ...plans.zh.relevance,
+      selectionStrategy: {
+        id: "category-role",
+        label: "分类角色",
+        description: "按分类角色验证并分配到页面模块。",
+      },
+      pools: { primaryIds: plans.zh.relevance.pools.primaryIds, relatedIds: [] },
+    };
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({
+      plans,
+      selectionRuns: { "category-role": { status: "ready" } },
+    }));
+
+    await act(async () => root.render(<TopicGenerator />));
+    const strategyTrigger = container.querySelector<HTMLButtonElement>(
+      '[data-slot="workbench-select-trigger"]',
+    )!;
+    await act(async () => strategyTrigger.click());
+    const categoryRoleOption = [...document.body.querySelectorAll<HTMLElement>('[role="option"]')]
+      .find((option) => option.textContent === "分类角色")!;
+    await act(async () => categoryRoleOption.click());
+    const button = (label: string) =>
+      [...container.querySelectorAll<HTMLButtonElement>("button")]
+        .find((candidate) => candidate.textContent === label)!;
+
+    await act(async () => button("生成页面").click());
+    await act(async () => button("商品池").click());
+
+    expect(container.textContent).toContain("模块商品池");
+    expect(container.textContent).not.toContain("相关商品池");
+    expect(container.textContent).not.toContain("仅作回退");
+  });
+
   it("opens the generated prototype tab and passes the orchestrated page type to its renderer", async () => {
     const snapshot: YamiSearchSnapshot = {
       keyword: "Matcha",

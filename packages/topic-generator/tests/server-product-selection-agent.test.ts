@@ -83,18 +83,18 @@ function runtimeFixture() {
         soldCount: 999,
       }];
     }
-    return [{
-      id: `product-${categoryId}`,
-      title: `Matcha category ${Number(categoryId) - 999} product`,
+    return Array.from({ length: 4 }, (_, productIndex) => ({
+      id: `product-${categoryId}-${productIndex}`,
+      title: `Matcha category ${Number(categoryId) - 999} product ${productIndex + 1}`,
       brand: `Brand ${categoryId}`,
       brandId: Number(categoryId),
       price: "$1.00",
-      imageUrl: `https://example.com/${categoryId}.webp`,
-      productUrl: `https://example.com/${categoryId}`,
-      sourceRank: Number(categoryId) - 999,
+      imageUrl: `https://example.com/${categoryId}-${productIndex}.webp`,
+      productUrl: `https://example.com/${categoryId}-${productIndex}`,
+      sourceRank: (Number(categoryId) - 1000) * 4 + productIndex + 1,
       categoryL3Id: Number(categoryId),
-      soldCount: 10,
-    }];
+      soldCount: 10 - productIndex,
+    }));
   });
   const agent: ProductSelectionAgent = {
     id: "fixture-agent",
@@ -114,15 +114,19 @@ function runtimeFixture() {
       keyword: run.context.keyword,
       strategyRef: run.strategyRef,
       candidateSnapshotDigest: run.candidateSnapshotDigest,
-      scenes: Array.from({ length: 4 }, (_, index) => ({
-        id: `scene-${index + 1}`,
-        name: `Scene ${index + 1}`,
-        title: `Scene title ${index + 1}`,
-        description: `Scene description ${index + 1}`,
-        productGroups: [
-          { core: "product-1000", pairing: "product-1005", accessory: "product-1008" },
-          { core: "product-1001", pairing: "product-1006", accessory: "product-1009" },
-        ],
+      scenes: Array.from({ length: 4 }, (_, sceneIndex) => ({
+        id: `scene-${sceneIndex + 1}`,
+        name: `Scene ${sceneIndex + 1}`,
+        title: `Scene title ${sceneIndex + 1}`,
+        description: `Scene description ${sceneIndex + 1}`,
+        productGroups: Array.from({ length: 2 }, (_, groupIndex) => {
+          const slot = sceneIndex * 2 + groupIndex;
+          return {
+            core: `product-${1000 + slot % 5}-${Math.floor(slot / 5)}`,
+            pairing: `product-${1005 + slot % 3}-${Math.floor(slot / 3)}`,
+            accessory: `product-${1008 + slot % 2}-${Math.floor(slot / 2)}`,
+          };
+        }),
       })),
     }),
   };
@@ -263,10 +267,10 @@ describe("Topic Generator automatic category-role Host integration", () => {
           ],
           candidateAttempts: { succeeded: 11, total: 11 },
           candidateQuality: {
-            status: "warning",
-            issueCount: 10,
+            status: "ok",
+            issueCount: 0,
             emptyCategories: 0,
-            lowCoverageCategories: 10,
+            lowCoverageCategories: 0,
           },
           categoryRoleDistribution: { core: 5, pairing: 3, accessory: 2 },
           sceneCount: 4,
@@ -275,7 +279,7 @@ describe("Topic Generator automatic category-role Host integration", () => {
       artifacts: {
         candidateQualityReport: {
           schemaVersion: "catalog-candidate-quality-report/v1",
-          status: "warning",
+          status: "ok",
         },
       },
     });
