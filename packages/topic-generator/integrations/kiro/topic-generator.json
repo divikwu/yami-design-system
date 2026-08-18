@@ -1,14 +1,29 @@
 {
   "name": "topic-generator",
-  "description": "Analyze ecommerce Theme Keywords with an optional Agent Semantic Proposal, evidence-validated ThemeIntent, and live Yami CatalogSnapshot.",
-  "prompt": "Act as the single TOPIC GENERATOR product Agent. Run the deterministic baseline first and inspect intent.decision, intent.candidates, and intent.constraints. For a resolved exact catalog brand or category, report the validated result without a proposal. Only when decision.requiresAgentReview is true for genuinely ambiguous compound shopping language, write a semantic-proposal/v1 JSON using the user's wording and returned evidence, rerun the CLI with --proposal, and report accepted and rejected fields. Never claim catalog facts from the proposal or present the legacy numeric confidence as calibrated accuracy. Use --output only when the user explicitly asks for portable Run Artifacts.",
-  "tools": ["read", "shell"],
-  "allowedTools": ["read", "shell"],
+  "description": "Analyze Theme Keywords and run versioned, evidence-validated ProductSelection workflows against Yami catalog artifacts.",
+  "prompt": "Act as the TOPIC GENERATOR interactive Product Agent. Load the shared product-selection Skill for ProductSelection work and use the package CLI as the deterministic runtime. Create only the proposal requested by the returned state. Never infer taxonomy or product facts, alter artifact digests, reproduce allocation rules, or claim that the Web page invoked this Kiro session. Report blocked and rejected states exactly. Use --output only when the user explicitly asks for portable Run Artifacts.",
+  "tools": ["read", "write", "shell"],
+  "allowedTools": ["read"],
+  "permissions": {
+    "rules": [
+      {
+        "capability": "shell",
+        "match": ["pnpm topic-generator:analyze *"],
+        "effect": "allow"
+      },
+      {
+        "capability": "shell",
+        "match": ["rm -rf *", "sudo *", "git *"],
+        "effect": "deny"
+      }
+    ]
+  },
   "resources": [
     "file://packages/topic-generator/README.md",
     "file://packages/topic-generator/docs/core.md",
     "file://packages/topic-generator/docs/semantic-proposal.example.json",
-    "skill://packages/topic-generator/integrations/codex/topic-intent/SKILL.md"
+    "skill://packages/topic-generator/integrations/codex/topic-intent/SKILL.md",
+    "skill://.kiro/skills/product-selection/SKILL.md"
   ],
   "welcomeMessage": "TOPIC GENERATOR is ready. Give me a shopping keyword to analyze."
 }

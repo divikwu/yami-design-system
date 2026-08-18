@@ -180,7 +180,7 @@ export interface TopicCategorySelection {
   id: string;
   label: string;
   role: ProductRole;
-  source: "catalog-category" | "inferred-product-type";
+  source: "catalog-category";
   productIds: string[];
   reason: string;
 }
@@ -212,6 +212,44 @@ export interface WorkflowStep {
 }
 
 export type TopicGenerationMode = "selection" | "page";
+
+export type CategoryRoleRuntimeStageId =
+  | "taxonomy"
+  | "category-proposal"
+  | "candidate-retrieval"
+  | "scene-proposal"
+  | "selection";
+
+export interface CategoryRoleRuntimeEvidence {
+  mode: "automatic" | "resumable";
+  taxonomy:
+    | {
+        status: "ready";
+        sourceRef: string;
+        digest: string;
+        fetchedAt: string;
+        categoryCount: number;
+      }
+    | { status: "missing" };
+  agent:
+    | { status: "ready"; id: string }
+    | { status: "missing" };
+  stages: Array<{
+    id: CategoryRoleRuntimeStageId;
+    status: "completed" | "pending" | "blocked";
+  }>;
+  issues: string[];
+  candidateAttempts?: { succeeded: number; total: number };
+  candidateQuality?: {
+    status: "ok" | "warning" | "error";
+    issueCount: number;
+    emptyCategories: number;
+    lowCoverageCategories: number;
+    warnings: string[];
+  };
+  categoryRoleDistribution?: Record<ProductRole, number>;
+  sceneCount?: number;
+}
 
 export interface TopicPagePlan {
   generationMode: TopicGenerationMode;
@@ -255,5 +293,8 @@ export interface TopicPagePlan {
   qualityNotes: string[];
 }
 
-export type TopicPlanVariants = Record<ProductSelectionStrategy, TopicPagePlan>;
+export interface TopicPlanVariants {
+  relevance: TopicPagePlan;
+  "category-role"?: TopicPagePlan;
+}
 export type TopicPlanMatrix = Record<ContentLanguage, TopicPlanVariants>;

@@ -3,7 +3,8 @@
 ## Status
 
 Accepted by the repository owner on 2026-08-17. The Canvas-host clause was
-superseded by ADR 005 on 2026-08-17.
+superseded by ADR 005 on 2026-08-17. The product-selection and PagePlan clauses
+were refined by ADR 006 on 2026-08-18.
 
 ## Context
 

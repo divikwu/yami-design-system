@@ -13,6 +13,10 @@ import type {
 } from "./types.js";
 import { YAMI_SITE } from "./types.js";
 import { buildYamiSearchUrl } from "./yami-search.js";
+import type {
+  CatalogCandidateAdapter,
+  CatalogCandidateQuery,
+} from "./product-selection/candidates.js";
 
 /** Structured Yami Adapter and catalog-evidence normalization. */
 
@@ -1029,7 +1033,16 @@ export function buildSearchFallbackIntent(
   return selectIntent([intent]);
 }
 
-async function requestCatalog(keyword: string, categoryIds?: string[]) {
+interface CatalogRequestOptions {
+  pageSize?: number;
+  sortBy?: number;
+}
+
+async function requestCatalog(
+  keyword: string,
+  categoryIds?: string[],
+  options: CatalogRequestOptions = {},
+) {
   let response: Response;
   try {
     response = await fetch(YAMI_CATALOG_URL, {
@@ -1039,8 +1052,8 @@ async function requestCatalog(keyword: string, categoryIds?: string[]) {
       body: JSON.stringify({
         keywords: keyword.trim(),
         page_index: 1,
-        page_size: 60,
-        sort_by: 3,
+        page_size: options.pageSize ?? 60,
+        sort_by: options.sortBy ?? 3,
         sort_order: 0,
         exclude_category_ids: "11",
         page_type: 3,
@@ -1075,6 +1088,25 @@ async function requestCatalog(keyword: string, categoryIds?: string[]) {
     );
   }
 }
+
+const YAMI_SORT_BY = {
+  featured: 3,
+  sold: 6,
+} as const;
+
+async function searchYamiCatalogCandidateProducts(query: CatalogCandidateQuery) {
+  const response = await requestCatalog(
+    query.keyword,
+    query.categoryId ? [query.categoryId] : undefined,
+    { pageSize: query.limit, sortBy: YAMI_SORT_BY[query.sort] },
+  );
+  return parseCatalogSnapshotOrThrow(query.keyword, response).products;
+}
+
+export const yamiCatalogCandidateAdapter: CatalogCandidateAdapter = {
+  id: "yami-catalog-search",
+  search: searchYamiCatalogCandidateProducts,
+};
 
 function parseCatalogSnapshotOrThrow(keyword: string, response: CatalogResponse) {
   try {
