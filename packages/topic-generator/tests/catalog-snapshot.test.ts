@@ -5,7 +5,10 @@ import {
   type CatalogSnapshotAdapter,
 } from "../src/catalog-snapshot.js";
 import type { YamiSearchSnapshot } from "../src/types.js";
-import { parseYamiCatalogSnapshot } from "../src/yami-catalog.js";
+import {
+  fetchYamiCatalogSnapshot,
+  parseYamiCatalogSnapshot,
+} from "../src/yami-catalog.js";
 
 function snapshot(provider: YamiSearchSnapshot["provider"]): YamiSearchSnapshot {
   return {
@@ -147,5 +150,131 @@ describe("CatalogSnapshot Seam", () => {
         aliases: ["Heartleaf", "鱼腥草"],
       }],
     });
+  });
+
+  it("deduplicates structured products before calculating category coverage", () => {
+    const item = {
+      item_number: "1001",
+      goods_ename: "ANUA Heartleaf Toner",
+      brand_ename: "ANUA",
+      category_l3_id: 500,
+      image_url: "/item/anua_0x0.webp",
+      slug: "anua-heartleaf-toner",
+      status: "A",
+      goods_number: 3,
+    };
+    const result = parseYamiCatalogSnapshot("ANUA", {
+      messageId: "10000",
+      body: {
+        categoryAgg: [{
+          category_id: 500,
+          category_ename: "Toners",
+          result_count: 12,
+        }],
+        items: [item, { ...item, sold_count: 99 }],
+      },
+    });
+
+    expect(result.products.map(({ id }) => id)).toEqual(["1001"]);
+    expect(result.evidence?.categories[0]).toMatchObject({
+      id: "500",
+      resultCount: 12,
+      productCount: 1,
+    });
+  });
+
+  it("reports structured product rejection and field-quality counts", () => {
+    const validItem = {
+      item_number: "1001",
+      goods_ename: "ANUA Heartleaf Toner",
+      brand_ename: "ANUA",
+      category_l3_id: 500,
+      image_url: "/item/anua_0x0.webp",
+      slug: "anua-heartleaf-toner",
+      shop_price: 19.99,
+      status: "A",
+      goods_number: 3,
+    };
+    const result = parseYamiCatalogSnapshot("ANUA", {
+      messageId: "10000",
+      body: {
+        items: [
+          validItem,
+          { ...validItem, item_number: "1002", brand_ename: undefined, shop_price: undefined },
+          { ...validItem, sold_count: 99 },
+          { ...validItem, item_number: undefined },
+          { ...validItem, item_number: "1003", goods_ename: undefined },
+          { ...validItem, item_number: "1004", image_url: undefined },
+          { ...validItem, item_number: "1005", status: "I" },
+          { ...validItem, item_number: "1006", goods_number: 0 },
+        ],
+      },
+    });
+
+    expect(result.quality).toEqual({
+      observedProductCount: 8,
+      acceptedProductCount: 2,
+      rejectedProductCount: 6,
+      truncatedProductCount: 0,
+      issueCounts: {
+        duplicateId: 1,
+        missingId: 1,
+        missingTitle: 1,
+        missingBrand: 1,
+        missingImage: 1,
+        missingPrice: 1,
+        missingProductUrl: 1,
+        unavailable: 1,
+        outOfStock: 1,
+        notPurchasable: 0,
+        keywordMismatch: 0,
+      },
+    });
+  });
+
+  it("recalculates category product counts after a narrowed catalog query", async () => {
+    const item = (id: string) => ({
+      item_number: id,
+      goods_ename: `ANUA Toner ${id}`,
+      brand_ename: "ANUA",
+      category_l3_id: 500,
+      image_url: `/item/${id}.webp`,
+      slug: `anua-toner-${id}`,
+      status: "A",
+      goods_number: 3,
+    });
+    const categoryAgg = [{
+      category_id: 500,
+      category_ename: "Toners",
+      result_count: 12,
+    }];
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          messageId: "10000",
+          body: { categoryAgg, items: [item("1001"), item("1002")] },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          messageId: "10000",
+          body: { categoryAgg, items: [item("1001")] },
+        }),
+      });
+    vi.stubGlobal("fetch", fetchMock);
+
+    try {
+      const result = await fetchYamiCatalogSnapshot("ANUA");
+      expect(result.products.map(({ id }) => id)).toEqual(["1001"]);
+      expect(result.evidence?.categories[0]).toMatchObject({
+        id: "500",
+        resultCount: 12,
+        productCount: 1,
+      });
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });

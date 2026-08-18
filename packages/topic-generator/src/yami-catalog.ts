@@ -2,6 +2,7 @@ import type {
   CatalogAttributeEvidence,
   CatalogBrandEvidence,
   CatalogCategoryEvidence,
+  CatalogSnapshotQualityReport,
   IntentEvidenceLevel,
   ThemeIntent,
   ThemeIntentCandidate,
@@ -12,7 +13,10 @@ import type {
   YamiSearchSnapshot,
 } from "./types.js";
 import { YAMI_SITE } from "./types.js";
-import { buildYamiSearchUrl } from "./yami-search.js";
+import {
+  buildYamiSearchUrl,
+  filterKeywordRelevantProducts,
+} from "./yami-search.js";
 import type {
   CatalogCandidateAdapter,
   CatalogCandidateQuery,
@@ -27,6 +31,7 @@ export interface CatalogCategoryNode {
   level?: number;
   result_count?: number;
   children?: CatalogCategoryNode[];
+  [key: string]: unknown;
 }
 
 export interface CatalogBrand {
@@ -34,15 +39,18 @@ export interface CatalogBrand {
   brand_name?: string;
   brand_ename?: string;
   result_count?: number;
+  [key: string]: unknown;
 }
 
 export interface CatalogTag {
   tag_id?: number;
   tag?: string;
   tag_eng?: string;
+  [key: string]: unknown;
 }
 
 export interface CatalogItem {
+  goods_id?: number;
   item_number?: string;
   goods_name?: string;
   goods_ename?: string;
@@ -55,20 +63,29 @@ export interface CatalogItem {
   image_url?: string;
   slug?: string;
   shop_price?: number;
+  promotion_price?: number;
+  seller_name?: string;
+  seller_ename?: string;
   status?: string;
   goods_number?: number;
   sold_count?: number;
   rated?: number;
+  marks?: Record<string, unknown>;
+  [key: string]: unknown;
 }
 
 export interface CatalogResponse {
   messageId?: string;
+  message?: string;
   body?: {
+    page?: Record<string, unknown>;
     brandAgg?: CatalogBrand[];
     categoryAgg?: CatalogCategoryNode[];
     tagAgg?: CatalogTag[];
     items?: CatalogItem[];
+    [key: string]: unknown;
   };
+  [key: string]: unknown;
 }
 
 interface FlatCategory {
@@ -90,6 +107,12 @@ const SCENARIO_TERMS = [
   "storage",
   "organization",
   "organizing",
+  "party",
+  "gathering",
+  "movie night",
+  "camping",
+  "picnic",
+  "travel essentials",
   "restock",
   "routine",
   "essentials",
@@ -99,6 +122,10 @@ const SCENARIO_TERMS = [
   "season",
   "收纳",
   "整理",
+  "聚会",
+  "露营",
+  "野餐",
+  "旅行必备",
   "补给",
   "日常",
   "场景",
@@ -106,6 +133,40 @@ const SCENARIO_TERMS = [
   "季节",
   "礼物",
   "组合",
+] as const;
+
+const GENERIC_SCENARIO_MODIFIERS = [
+  "summer",
+  "winter",
+  "spring",
+  "fall",
+  "autumn",
+  "small",
+  "daily",
+  "everyday",
+  "night",
+  "essentials",
+  "seasonal",
+  "小户型",
+  "日用",
+  "日常",
+  "夏季",
+  "冬季",
+  "春季",
+  "秋季",
+] as const;
+
+const SCENARIO_TERM_EQUIVALENTS = [
+  ["storage", "organization", "organizing", "收纳", "整理"],
+  ["party", "gathering", "聚会"],
+  ["camping", "露营"],
+  ["picnic", "野餐"],
+  ["travel essentials", "旅行必备"],
+  ["restock", "replenish", "补给"],
+  ["routine", "日常"],
+  ["gift", "礼物"],
+  ["holiday", "festival", "节日"],
+  ["season", "季节"],
 ] as const;
 
 const ATTRIBUTE_GENERIC_TERMS = new Set([
@@ -142,7 +203,78 @@ export class YamiCatalogError extends Error {
   }
 }
 
-const YAMI_CATALOG_URL = "https://ecapi.yami.com/ec-prebff/plp/getItemList";
+export const YAMI_CATALOG_URL = "https://ecapi.yami.com/ec-prebff/plp/getItemList";
+
+export const YAMI_CATALOG_SORT_BY = {
+  date: 0,
+  comment: 1,
+  view: 2,
+  featured: 3,
+  price: 4,
+  rating: 5,
+  sold: 6,
+  new: 7,
+  gmv: 9,
+} as const;
+
+export type YamiCatalogSort = keyof typeof YAMI_CATALOG_SORT_BY;
+export type YamiCatalogSortOrder = "ascending" | "descending";
+
+export interface YamiCatalogSearchRequest {
+  keywords: string;
+  categoryIds?: string[];
+  pageIndex?: number;
+  pageSize?: number;
+  sortBy?: YamiCatalogSort;
+  sortOrder?: YamiCatalogSortOrder;
+  isFby?: boolean;
+  includeBooks?: boolean;
+}
+
+export interface YamiCatalogProviderOptions {
+  fetch?: typeof fetch;
+}
+
+/** Lossless server-side access to the complete Yami catalog search surface. */
+export async function searchYamiCatalogProvider(
+  request: YamiCatalogSearchRequest,
+  options: YamiCatalogProviderOptions = {},
+): Promise<CatalogResponse> {
+  const categoryIds = request.categoryIds?.map((id) => id.trim()).filter(Boolean) ?? [];
+  const response = await (options.fetch ?? fetch)(YAMI_CATALOG_URL, {
+    method: "POST",
+    cache: "no-store",
+    headers: { "content-type": "application/json", token: "" },
+    body: JSON.stringify({
+      keywords: request.keywords.trim(),
+      page_index: request.pageIndex ?? 1,
+      page_size: request.pageSize ?? 60,
+      sort_by: YAMI_CATALOG_SORT_BY[request.sortBy ?? "featured"],
+      sort_order: request.sortOrder === "ascending" ? 1 : 0,
+      exclude_category_ids: request.includeBooks ? "" : "11",
+      page_type: 3,
+      oldCard: 1,
+      recordSearchHistory: 0,
+      ...(categoryIds.length > 0 ? { category_ids: categoryIds.join(",") } : {}),
+      ...(request.isFby ? { is_fby: "1" } : {}),
+    }),
+    signal: AbortSignal.timeout(15_000),
+  });
+  if (!response.ok) {
+    throw new YamiCatalogError(
+      "request_failed",
+      `Yami catalog search returned HTTP ${response.status}.`,
+    );
+  }
+  try {
+    return await response.json() as CatalogResponse;
+  } catch {
+    throw new YamiCatalogError(
+      "invalid_response",
+      "Yami catalog search returned invalid JSON.",
+    );
+  }
+}
 
 function normalized(value: string) {
   return value.toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
@@ -263,11 +395,18 @@ function selectIntent(candidates: ThemeIntent[]) {
   const selectedCandidateMargin = candidateRecords.length > 1
     ? Number((candidateRecords[0]!.score - candidateRecords[1]!.score).toFixed(2))
     : null;
+  const hasUnverifiedInterpretation = selected.entityType !== "scenario" &&
+    selected.constraints.some((item) =>
+      item.status === "unverified" &&
+      (item.kind === "core-entity" || item.kind === "modifier")
+    );
   const status = evidenceLevel(selected.confidence) === "low"
     ? "needs-review"
     : selectedCandidateMargin !== null && selectedCandidateMargin < AMBIGUOUS_CANDIDATE_MARGIN
       ? "ambiguous"
-      : "resolved";
+      : hasUnverifiedInterpretation
+        ? "needs-review"
+        : "resolved";
   const candidatesWithCompetition = candidateRecords.map((candidate) => ({
     ...candidate,
     competingCandidateIds: candidateRecords
@@ -323,10 +462,56 @@ function productUrl(item: CatalogItem) {
 }
 
 function availableCatalogItems(items: CatalogItem[]) {
-  return items.filter((item) =>
-    item.item_number && item.goods_ename && item.image_url && item.status === "A" &&
-    (item.goods_number ?? 1) > 0
-  );
+  const issueCounts: CatalogSnapshotQualityReport["issueCounts"] = {
+    duplicateId: 0,
+    missingId: 0,
+    missingTitle: 0,
+    missingBrand: 0,
+    missingImage: 0,
+    missingPrice: 0,
+    missingProductUrl: 0,
+    unavailable: 0,
+    outOfStock: 0,
+    notPurchasable: 0,
+    keywordMismatch: 0,
+  };
+  const seenIds = new Set<string>();
+  const available = items.filter((item) => {
+    const missingId = !item.item_number;
+    const missingTitle = !item.goods_ename && !item.goods_name;
+    const missingImage = !item.image_url;
+    const unavailable = item.status !== "A";
+    const outOfStock = (item.goods_number ?? 1) <= 0;
+    if (missingId) {
+      issueCounts.missingId += 1;
+      issueCounts.missingProductUrl += 1;
+    }
+    if (missingTitle) issueCounts.missingTitle += 1;
+    if (!item.brand_ename && !item.brand_name) issueCounts.missingBrand += 1;
+    if (missingImage) issueCounts.missingImage += 1;
+    if (typeof item.shop_price !== "number") issueCounts.missingPrice += 1;
+    if (unavailable) issueCounts.unavailable += 1;
+    if (outOfStock) issueCounts.outOfStock += 1;
+    if (missingId || missingTitle || missingImage || unavailable || outOfStock) {
+      return false;
+    }
+    if (seenIds.has(item.item_number!)) {
+      issueCounts.duplicateId += 1;
+      return false;
+    }
+    seenIds.add(item.item_number!);
+    return true;
+  });
+  return {
+    items: available,
+    quality: {
+      observedProductCount: items.length,
+      acceptedProductCount: available.length,
+      rejectedProductCount: items.length - available.length,
+      truncatedProductCount: 0,
+      issueCounts,
+    } satisfies CatalogSnapshotQualityReport,
+  };
 }
 
 function catalogProducts(
@@ -368,7 +553,8 @@ export function parseYamiCatalogSnapshot(
   }
 
   const categories = flattenCategories(response.body.categoryAgg ?? []);
-  const items = availableCatalogItems(response.body.items ?? []);
+  const inspected = availableCatalogItems(response.body.items ?? []);
+  const items = inspected.items;
   const productCounts = new Map<number, number>();
   items.forEach((item) => {
     if (typeof item.category_l3_id !== "number") return;
@@ -385,6 +571,7 @@ export function parseYamiCatalogSnapshot(
     fetchedAt: new Date().toISOString(),
     provider: "yami-catalog-search",
     products: catalogProducts(items, categories),
+    quality: inspected.quality,
     evidence: {
       brands: (response.body.brandAgg ?? []).flatMap<CatalogBrandEvidence>((brand) => {
         const aliases = uniqueStrings([brand.brand_ename, brand.brand_name]);
@@ -508,6 +695,8 @@ function containedCategory(keyword: string, categories: CatalogCategoryEvidence[
     .sort((left, right) =>
       Math.max(...right.aliases.map((alias) => phrasePosition(keyword, alias))) -
         Math.max(...left.aliases.map((alias) => phrasePosition(keyword, alias))) ||
+      right.productCount - left.productCount ||
+      right.resultCount - left.resultCount ||
       right.path.length - left.path.length ||
       Math.max(...right.aliases.map((alias) => normalized(alias).length)) -
         Math.max(...left.aliases.map((alias) => normalized(alias).length))
@@ -549,6 +738,36 @@ function residualCondition(
 function isScenarioKeyword(keyword: string) {
   const query = normalized(keyword);
   return SCENARIO_TERMS.some((term) => query.includes(normalized(term)));
+}
+
+function matchedScenarioTerm(keyword: string) {
+  const query = normalized(keyword);
+  return [...SCENARIO_TERMS]
+    .sort((left, right) => normalized(right).length - normalized(left).length)
+    .find((term) => query.includes(normalized(term)));
+}
+
+function scenarioContextTerms(keyword: string, scenarioTerm: string) {
+  let remainder = normalized(keyword).replace(normalized(scenarioTerm), " ");
+  GENERIC_SCENARIO_MODIFIERS.forEach((term) => {
+    remainder = remainder.replaceAll(normalized(term), " ");
+  });
+  return uniqueStrings(remainder.match(/[\p{L}\p{N}]+/gu) ?? [])
+    .filter((term) => term.length > 1);
+}
+
+function scenarioEvidenceTerms(scenarioTerm: string) {
+  const equivalents = SCENARIO_TERM_EQUIVALENTS.find((group) =>
+    group.some((term) => normalized(term) === normalized(scenarioTerm))
+  ) ?? [scenarioTerm];
+  return uniqueStrings(equivalents.flatMap((term) => [
+    normalized(term),
+    ...(normalized(term).match(/[\p{L}\p{N}]+/gu) ?? [])
+      .filter((token) =>
+        token.length > 1 &&
+        !GENERIC_SCENARIO_MODIFIERS.some((modifier) => normalized(modifier) === token)
+      ),
+  ]));
 }
 
 function scenarioShopperAction(keyword: string) {
@@ -635,6 +854,81 @@ function toIntentCategories(snapshot: YamiSearchSnapshot): ThemeIntentCategory[]
       path: category.path,
       evidenceCount: category.productCount || category.resultCount,
     }));
+}
+
+function toScenarioIntentCategories(
+  snapshot: YamiSearchSnapshot,
+  categories: ThemeIntentCategory[],
+) {
+  const scenarioTerm = matchedScenarioTerm(snapshot.keyword);
+  if (!scenarioTerm) return { categories: [], support: "none" as const };
+
+  const scenarioTerms = scenarioEvidenceTerms(scenarioTerm);
+  const contextTerms = scenarioContextTerms(snapshot.keyword, scenarioTerm);
+  const evidenceById = new Map(
+    (snapshot.evidence?.categories ?? []).map((category) => [category.id, category]),
+  );
+  const functionalProductCounts = new Map<string, number>();
+  const thematicProductCounts = new Map<string, number>();
+
+  categories.forEach((category) => {
+    const evidence = evidenceById.get(category.id);
+    const categoryText = normalized([
+      category.label,
+      ...category.path,
+      ...(evidence?.aliases ?? []),
+    ].join(" "));
+    const categoryProducts = snapshot.products.filter((product) =>
+      String(product.categoryL3Id ?? "") === category.id
+    );
+    const hasFunctionalSupport = categoryProducts.some((product) => {
+      const structuralText = normalized([
+        categoryText,
+        product.categoryL1Name ?? "",
+        product.categoryL2Name ?? "",
+        product.categoryL3Name ?? "",
+      ].join(" "));
+      return scenarioTerms.some((term) => structuralText.includes(term)) ||
+        contextTerms.some((term) => structuralText.includes(normalized(term)));
+    });
+    if (hasFunctionalSupport) {
+      functionalProductCounts.set(category.id, categoryProducts.length);
+      return;
+    }
+    const titleMatches = categoryProducts.filter((product) => {
+      if (String(product.categoryL3Id ?? "") !== category.id) return false;
+      const titleText = normalized([
+        product.title,
+        product.brand,
+      ].join(" "));
+      return scenarioTerms.some((term) => titleText.includes(term)) ||
+        contextTerms.some((term) => titleText.includes(normalized(term)));
+    });
+    if (titleMatches.length > 0) {
+      thematicProductCounts.set(category.id, titleMatches.length);
+    }
+  });
+
+  const functionalCategories = categories.flatMap((category) => {
+    const evidenceCount = functionalProductCounts.get(category.id);
+    return evidenceCount
+      ? [{ ...category, evidenceCount }]
+      : [];
+  });
+  if (functionalCategories.length >= 2) {
+    return { categories: functionalCategories, support: "functional" as const };
+  }
+
+  const reviewableCategories = categories.flatMap((category) => {
+    const evidenceCount = functionalProductCounts.get(category.id) ??
+      thematicProductCounts.get(category.id);
+    return evidenceCount
+      ? [{ ...category, evidenceCount }]
+      : [];
+  });
+  return reviewableCategories.length >= 2
+    ? { categories: reviewableCategories, support: "title-only" as const }
+    : { categories: [], support: "none" as const };
 }
 
 function toCoreIntentCategory(
@@ -785,8 +1079,11 @@ function buildInferredProductIntent(
 function buildScenarioIntent(
   keyword: string,
   categories: ThemeIntentCategory[],
+  support: "functional" | "title-only" = "functional",
 ): ThemeIntent {
-  const confidence = categories.length > 1 ? 0.84 : 0.82;
+  const confidence = support === "functional"
+    ? categories.length > 1 ? 0.84 : 0.82
+    : 0.66;
   const shopperAction = scenarioShopperAction(keyword);
   const scenarioTerm = SCENARIO_TERMS.find((term) =>
     normalized(keyword).includes(normalized(term))
@@ -831,7 +1128,9 @@ function buildScenarioIntent(
     ],
     evidenceRefs: [scenarioEvidence, ...categoryEvidence],
     ...pendingCandidateFields(confidence),
-    reason: "The keyword expresses a shopping scenario and the catalog results cover multiple product categories.",
+    reason: support === "functional"
+      ? "The keyword expresses a shopping scenario and multiple catalog categories provide functional support."
+      : "The keyword expresses a shopping scenario, but the available matches are supported by product titles or brands only and require semantic review.",
     confidence,
   };
 }
@@ -940,7 +1239,9 @@ export function resolveCatalogThemeIntent(snapshot: YamiSearchSnapshot): ThemeIn
   const brand = exactBrand(snapshot.keyword, evidence.brands);
   const category = exactCategory(snapshot.keyword, evidence.categories);
   const keywordCategory = category ?? containedCategory(snapshot.keyword, evidence.categories);
-  const scenario = isScenarioKeyword(snapshot.keyword) && categories.length > 0;
+  const scenarioMatch = isScenarioKeyword(snapshot.keyword)
+    ? toScenarioIntentCategories(snapshot, categories)
+    : { categories: [], support: "none" as const };
   const attributes = matchedAttributes(snapshot.keyword, evidence.attributes);
   const inferredCategory = categories[0];
   const coreCategory = keywordCategory
@@ -952,7 +1253,13 @@ export function resolveCatalogThemeIntent(snapshot: YamiSearchSnapshot): ThemeIn
   const candidates: ThemeIntent[] = [];
   if (brand) candidates.push(buildBrandIntent(snapshot.keyword, brand, categories));
   if (category) candidates.push(buildProductIntent(snapshot.keyword, category, categories));
-  if (scenario) candidates.push(buildScenarioIntent(snapshot.keyword, categories));
+  if (scenarioMatch.support !== "none") {
+    candidates.push(buildScenarioIntent(
+      snapshot.keyword,
+      scenarioMatch.categories,
+      scenarioMatch.support,
+    ));
+  }
   if (
     coreCategory &&
     coreCategoryEvidence &&
@@ -966,7 +1273,14 @@ export function resolveCatalogThemeIntent(snapshot: YamiSearchSnapshot): ThemeIn
       categories,
     ));
   }
-  if (inferredCategory && inferredCategory.id !== category?.id) {
+  const directAttributeSupportsCoreCategory = inferredCategory?.id === coreCategory?.id &&
+    attributes.some((attribute) => attribute.direct);
+  if (
+    inferredCategory &&
+    inferredCategory.id !== category?.id &&
+    !directAttributeSupportsCoreCategory &&
+    scenarioMatch.support !== "title-only"
+  ) {
     candidates.push(buildInferredProductIntent(snapshot.keyword, inferredCategory, categories));
   }
 
@@ -1035,7 +1349,7 @@ export function buildSearchFallbackIntent(
 
 interface CatalogRequestOptions {
   pageSize?: number;
-  sortBy?: number;
+  sortBy?: YamiCatalogSort;
 }
 
 async function requestCatalog(
@@ -1043,62 +1357,27 @@ async function requestCatalog(
   categoryIds?: string[],
   options: CatalogRequestOptions = {},
 ) {
-  let response: Response;
   try {
-    response = await fetch(YAMI_CATALOG_URL, {
-      method: "POST",
-      cache: "no-store",
-      headers: { "content-type": "application/json", token: "" },
-      body: JSON.stringify({
-        keywords: keyword.trim(),
-        page_index: 1,
-        page_size: options.pageSize ?? 60,
-        sort_by: options.sortBy ?? 3,
-        sort_order: 0,
-        exclude_category_ids: "11",
-        page_type: 3,
-        oldCard: 1,
-        recordSearchHistory: 0,
-        ...(categoryIds && categoryIds.length > 0
-          ? { category_ids: categoryIds.join(",") }
-          : {}),
-      }),
-      signal: AbortSignal.timeout(15_000),
+    return await searchYamiCatalogProvider({
+      keywords: keyword,
+      categoryIds,
+      pageSize: options.pageSize,
+      sortBy: options.sortBy,
     });
-  } catch {
+  } catch (error) {
+    if (error instanceof YamiCatalogError) throw error;
     throw new YamiCatalogError(
       "request_failed",
       "Yami catalog search is temporarily unreachable.",
     );
   }
-
-  if (!response.ok) {
-    throw new YamiCatalogError(
-      "request_failed",
-      `Yami catalog search returned HTTP ${response.status}.`,
-    );
-  }
-
-  try {
-    return await response.json() as CatalogResponse;
-  } catch {
-    throw new YamiCatalogError(
-      "invalid_response",
-      "Yami catalog search returned invalid JSON.",
-    );
-  }
 }
-
-const YAMI_SORT_BY = {
-  featured: 3,
-  sold: 6,
-} as const;
 
 async function searchYamiCatalogCandidateProducts(query: CatalogCandidateQuery) {
   const response = await requestCatalog(
     query.keyword,
     query.categoryId ? [query.categoryId] : undefined,
-    { pageSize: query.limit, sortBy: YAMI_SORT_BY[query.sort] },
+    { pageSize: query.limit, sortBy: query.sort },
   );
   return parseCatalogSnapshotOrThrow(query.keyword, response).products;
 }
@@ -1121,13 +1400,84 @@ function parseCatalogSnapshotOrThrow(keyword: string, response: CatalogResponse)
   }
 }
 
+function evidenceWithProductCounts(
+  evidence: YamiSearchSnapshot["evidence"],
+  products: YamiProduct[],
+) {
+  if (!evidence) return undefined;
+  const productCounts = new Map<number, number>();
+  products.forEach((product) => {
+    if (typeof product.categoryL3Id !== "number") return;
+    productCounts.set(
+      product.categoryL3Id,
+      (productCounts.get(product.categoryL3Id) ?? 0) + 1,
+    );
+  });
+  return {
+    ...evidence,
+    categories: evidence.categories.map((category) => ({
+      ...category,
+      productCount: productCounts.get(Number(category.id)) ?? 0,
+    })),
+  };
+}
+
+function filterStructuredCatalogSnapshot(
+  snapshot: YamiSearchSnapshot,
+  keyword: string,
+) {
+  if (containsNonAscii(keyword) || isScenarioKeyword(keyword)) return snapshot;
+
+  const searchableProducts = snapshot.products.map((product) => ({
+    ...product,
+    title: [
+      product.title,
+      product.categoryL1Name,
+      product.categoryL2Name,
+      product.categoryL3Name,
+    ].filter(Boolean).join(" "),
+  }));
+  const relevantIds = new Set(
+    filterKeywordRelevantProducts(keyword, searchableProducts).map(({ id }) => id),
+  );
+  const products = snapshot.products.filter(({ id }) => relevantIds.has(id));
+  const keywordMismatchCount = snapshot.products.length - products.length;
+  return {
+    ...snapshot,
+    products,
+    ...(snapshot.quality
+      ? {
+          quality: {
+            ...snapshot.quality,
+            acceptedProductCount: products.length,
+            rejectedProductCount:
+              snapshot.quality.rejectedProductCount + keywordMismatchCount,
+            issueCounts: {
+              ...snapshot.quality.issueCounts,
+              keywordMismatch:
+                snapshot.quality.issueCounts.keywordMismatch + keywordMismatchCount,
+            },
+          },
+        }
+      : {}),
+    ...(snapshot.evidence
+      ? {
+          evidence: evidenceWithProductCounts(snapshot.evidence, products),
+        }
+      : {}),
+  } satisfies YamiSearchSnapshot;
+}
+
 export async function fetchYamiCatalogSnapshot(
   keyword: string,
 ): Promise<YamiSearchSnapshot> {
   let broad: YamiSearchSnapshot | undefined;
   let retrievalKeyword = keyword;
   for (const candidate of catalogQueryCandidates(keyword)) {
-    const snapshot = parseCatalogSnapshotOrThrow(keyword, await requestCatalog(candidate));
+    const snapshot = filterStructuredCatalogSnapshot(
+      parseCatalogSnapshotOrThrow(keyword, await requestCatalog(candidate)),
+      candidate,
+    );
     if (snapshot.products.length === 0) continue;
     if (!broad || snapshot.products.length > broad.products.length) {
       broad = { ...snapshot, retrievalTerms: [candidate] };
@@ -1151,14 +1501,17 @@ export async function fetchYamiCatalogSnapshot(
   if (categoryIds.length === 0) return broad;
 
   try {
-    const narrowed = parseCatalogSnapshotOrThrow(
-      keyword,
-      await requestCatalog(retrievalKeyword, categoryIds),
+    const narrowed = filterStructuredCatalogSnapshot(
+      parseCatalogSnapshotOrThrow(
+        keyword,
+        await requestCatalog(retrievalKeyword, categoryIds),
+      ),
+      retrievalKeyword,
     );
     if (narrowed.products.length > 0) {
       return {
         ...narrowed,
-        evidence: broad.evidence,
+        evidence: evidenceWithProductCounts(broad.evidence, narrowed.products),
         retrievalTerms: broad.retrievalTerms,
       };
     }

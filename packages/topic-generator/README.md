@@ -7,7 +7,12 @@ TOPIC GENERATOR 是一个从购物主题词生成可审阅 `ThemeIntent`、Topic
 ## 当前产品边界
 
 ```text
-LandingPageBrief + ThemeIntent ─> Topic Page Orchestrator Agent proposal
+Theme keyword ─> CatalogSnapshot ─> TopicIntent analysis ─> ThemeIntent
+                                       │
+                                       └─ unresolved scenario only:
+                                          public context ─> optional SemanticProposal
+                                                                      │
+ThemeIntent + registered constraints ─> Topic Page Orchestrator Agent proposal
                                                │
                                                ▼
                         PageOrchestration ─> LandingPageExecutionPlan
@@ -65,16 +70,17 @@ Web 页面：`http://127.0.0.1:3300/`
 1. Topic Page Orchestrator Agent 只选择注册过的页面类型与策略—模板路由；Topic Strategy
    Agent 负责主题、选品与页面陈列语义；Content、Visual、Review Agent 各自独立。七个 Skill
    只负责阶段调用约定，不承载运行时业务逻辑。
-2. Agent 可提交 `semantic-proposal/v1`，但 TopicIntent Module 会按 CatalogSnapshot 接受、缩窄或拒绝字段。Agent 不能声明品牌、品类、属性、可售或库存事实。
-3. Yami 结构化 Adapter 提供品牌、品类、属性与商品证据；失败后才尝试公开搜索 Adapter，且每次尝试都会记录。
-4. `reason` 只给可审阅依据，不暴露或伪造模型隐藏思考过程；界面展示证据等级与歧义状态，不把未校准规则分数呈现为正确率。
-5. ProductSelection 配置以 `<id>@<version>` 共享；PageMerchandising 只消费 ready 的 ProductSelectionResult，在冻结商品池内分配页面模块，不重新选品或推断分类角色。
-6. 分类角色要求 SHA-256 绑定的完整 taxonomy artifact；不从搜索商品推断，也不复制目标仓库的数据库访问。
-7. 每次候选召回产生独立的质量报告；空分类、低覆盖、归属错误、分类标题语义异常和重复商品会显式提示，但不会由 Agent 静默修复。
-8. `--output` 才会写入带版本与 SHA-256 的 Run Artifacts，默认不持久化。
-9. Codex/Kiro 交互式运行与自动 HTTP Agent 共用相同提案契约；核心不绑定模型 SDK 或
+2. TopicIntent 使用两轴分类：`themeType` 表示品牌、商品导购或活动场景，`entityType` 表示品牌、品类、属性、场景或未知实体。它先生成 Yami 目录规则基线；场景主题或仍需复核的主题才按需读取公开背景资料。精确品牌或品类不调用 Agent。
+3. 未被目录证据覆盖的核心修饰词会让基线保持 `needs-review`。当多个真实分类有证据时，可请求 `semantic-proposal/v1`；提案会与目录候选统一排序，候选差距不足时仍为 `ambiguous`，不能直接覆盖更强目录证据。
+4. Yami 结构化 Adapter 提供品牌、品类、属性与商品证据；共享同一通用别名的分类按当前商品覆盖量优先。普通拉丁商品查询会先按标题、品牌和商品分类字段过滤接口可能返回的通用推荐。两个 Adapter 都按商品 ID 稳定去重，并在 `snapshot.quality` 记录观测、接收、拒绝、截断数量及字段缺失、不可售、重复和关键词不匹配原因；分类 `productCount` 始终按最终去重商品池重算。场景分类必须由分类路径、中英文别名或商品分类字段支撑场景核心词，至少两个功能性分类才能自动确认；仅商品标题命中时保留为低证据候选并进入复核。分类数量或季节等通用修饰词不能单独成为场景证据。失败后才尝试公开搜索 Adapter，且每次尝试都会记录；网页 fallback 只保留标题或品牌命中关键词的可售商品，零相关结果按 `no_products` 失败。公开背景资料只辅助场景理解和文案事实，不进入商品或库存证据。
+5. `reason` 只给可审阅依据，不暴露或伪造模型隐藏思考过程；界面分别展示主题解释状态和商品条件验证状态。`confidence` 仅为兼容规则分数，审阅应使用 `decision.status`、`evidenceLevel`、候选差值、约束状态和证据来源。
+6. ProductSelection 配置以 `<id>@<version>` 共享；PageMerchandising 只消费 ready 的 ProductSelectionResult，在冻结商品池内分配页面模块，不重新选品或推断分类角色。
+7. 分类角色要求 SHA-256 绑定的完整 taxonomy artifact；不从搜索商品推断，也不复制目标仓库的数据库访问。
+8. 每次候选召回产生独立的质量报告；空分类、低覆盖、归属错误、分类标题语义异常和重复商品会显式提示，但不会由 Agent 静默修复。
+9. CLI 只有显式 `--output` 才写入带版本与 SHA-256 的 Run Artifacts；Web 本地执行模式则按 ADR 007 保存私有 Execution Task、状态、日志和资产。
+10. Codex/Kiro 交互式运行与自动 HTTP Agent 共用相同提案契约；核心不绑定模型 SDK 或
    Provider Key，宿主只通过 server-only Endpoint/Token 接入执行器。
-10. ThemeIntent 同时保存核心实体、购物动作、修饰条件、逐项约束状态和候选解释；候选接近时进入 `ambiguous`，不隐藏冲突。
+11. ThemeIntent 同时保存核心实体、购物动作、修饰条件、逐项约束状态和候选解释；候选接近时进入 `ambiguous`，不隐藏冲突。`resolved` 只表示主题解释已确定，不代表其中所有 `unverified` 商品条件已经成为事实。
 
 ## Agent 与 Skill 接入
 
@@ -83,8 +89,8 @@ Topic Page Orchestrator 只加载 `page-orchestration`，并从运行时返回�
 `topic-intent`、`product-selection` 或 `page-merchandising` canonical Skill。选品 Skill 只生成
 `CategoryRoleProposal` 与 `SceneProposal`；页面 Skill 只生成 `ModuleMerchandisingProposal`。
 独立 Topic Content Agent 只加载 `content-writing`，生成 `TopicPageContentProposal`；独立
-Topic Visual Agent 只加载 `visual-generation`，调用宿主图片生成器并生成
-`TopicPageVisualProposal`；独立 Topic Review Agent 只加载 `page-review`，在硬 QA 通过后生成
+Topic Visual Agent 只加载 `visual-generation`，按冻结视觉模式使用宿主图片生成器或 Yami
+来源商品图的确定性合成，并生成 `TopicPageVisualProposal`；独立 Topic Review Agent 只加载 `page-review`，在硬 QA 通过后生成
 只读 `TopicPageExperienceReviewProposal`。所有提案都会回到同一 TypeScript 运行时校验。
 
 Kiro 可在仓库根目录运行 `kiro-cli --agent topic-page-orchestrator`、
@@ -92,8 +98,8 @@ Kiro 可在仓库根目录运行 `kiro-cli --agent topic-page-orchestrator`、
 `.agents/skills` 自动发现同一组 Skill。直接在 Codex App 或 Kiro IDE 中使用时，不要求电脑
 额外安装 `codex` 或 `kiro-cli`：宿主可原生加载 Skill，并通过 Host tool/API 提供待处理上下文
 和提案校验。项目 CLI 只是仓库内可选的确定性运行时适配器，不是 Agent 的必需入口。
-交互式 Agent 不会被 Web 页面同步调用；Web 自动生成通过配置的 HTTP Agent Endpoint 使用
-同一套提案契约。
+Web 默认把生成请求交给本地 Execution Task，由配置的 Codex 或 Kiro CLI Adapter 顺序执行
+同一套提案契约；HTTP Agent Endpoint 仍是显式可选模式。
 
 `runProductSelectionAgentWorkflow` 接收可注入的 `ProductSelectionAgent` 与
 `CatalogCandidateAdapter`。Agent 只在 `needs-category-proposal` 和
@@ -213,7 +219,9 @@ MIME、尺寸与比例、SHA-256、焦点、背景色和 alt text 模式，成�
 伪造图片或元数据。自动 Host 会继续读取图片本体、编译 `topic-page-generation-spec/v1`，并
 执行来源绑定、模块、文案、图片字节和可访问性结构硬 QA。硬 QA 通过后，Review Agent 只能
 建议进入用户 Review 或输出带回退阶段的问题；只有 `review-recommended` 才生成
-`topic-page-review-package/v1` `review-ready`。07 用户审批与 08 发布始终需要额外明确授权。
+`topic-page-review-package/v1` `review-ready`。07 用户审批会绑定当前任务与 ReviewPackage
+摘要；要求修改会创建新任务并重新执行下游 QA。08 只确认本地发布门禁，外部发布仍需要明确
+Adapter 与授权。
 
 ## Agent 提案
 

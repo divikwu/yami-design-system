@@ -1,4 +1,5 @@
 import type {
+  CatalogSnapshotQualityReport,
   YamiProduct,
   YamiSearchSnapshot,
 } from "./types.js";
@@ -8,6 +9,9 @@ import { YAMI_SITE } from "./types.js";
 
 const YAMI_ORIGIN = "https://www.yami.com";
 const MAX_PRODUCTS = 30;
+const FALLBACK_QUERY_STOP_WORDS = new Set([
+  "and", "for", "no", "or", "product", "products", "the", "with",
+]);
 
 export class YamiSearchError extends Error {
   readonly code: "request_failed" | "invalid_response" | "no_products";
@@ -68,14 +72,66 @@ function largerProductImage(value: string) {
   return value.replace(/_300x300(?=\.[a-z]+(?:\?|$))/i, "_750x750");
 }
 
+function normalizedSearchText(value: string) {
+  return value.toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+}
+
+function searchToken(value: string) {
+  return /^[a-z0-9]+$/u.test(value) && value.length > 3 && value.endsWith("s")
+    ? value.slice(0, -1)
+    : value;
+}
+
+function fallbackProductMatchesKeyword(product: YamiProduct, keyword: string) {
+  const phrase = normalizedSearchText(keyword);
+  const terms = phrase
+    .split(" ")
+    .map(searchToken)
+    .filter((term) => term.length > 1 && !FALLBACK_QUERY_STOP_WORDS.has(term));
+  const haystack = normalizedSearchText(`${product.brand} ${product.title}`);
+  const haystackTerms = new Set(haystack.split(" ").map(searchToken));
+  const matchingTerms = terms.filter((term) => haystackTerms.has(term));
+  const requiredTermCount = terms.length <= 1
+    ? 1
+    : Math.ceil(terms.length * 0.6);
+  return Boolean(
+    phrase &&
+    (haystack.includes(phrase) || matchingTerms.length >= requiredTermCount),
+  );
+}
+
+export function filterKeywordRelevantProducts(
+  keyword: string,
+  products: YamiProduct[],
+) {
+  return products.filter((product) => fallbackProductMatchesKeyword(product, keyword));
+}
+
 export function parseYamiSearchHtml(html: string): YamiProduct[] {
+  return parseYamiSearchHtmlWithQuality(html).products;
+}
+
+function parseYamiSearchHtmlWithQuality(html: string) {
   const starts = [...html.matchAll(/<div\b[^>]*\bdata-qa-itemcard=""[^>]*>/gi)];
   const products: YamiProduct[] = [];
   const seenIds = new Set<string>();
+  const issueCounts: CatalogSnapshotQualityReport["issueCounts"] = {
+    duplicateId: 0,
+    missingId: 0,
+    missingTitle: 0,
+    missingBrand: 0,
+    missingImage: 0,
+    missingPrice: 0,
+    missingProductUrl: 0,
+    unavailable: 0,
+    outOfStock: 0,
+    notPurchasable: 0,
+    keywordMismatch: 0,
+  };
+  let rejectedProductCount = 0;
+  let truncatedProductCount = 0;
 
   starts.forEach((match, index) => {
-    if (products.length >= MAX_PRODUCTS) return;
-
     const start = match.index ?? 0;
     const end = starts[index + 1]?.index ?? html.length;
     const card = html.slice(start, end);
@@ -105,18 +161,35 @@ export function parseYamiSearchHtml(html: string): YamiProduct[] {
     const price = attribute(priceTag, "aria-label").replace(/^Current price:\s*/i, "");
     const canAddToCart = card.includes('data-qa-itemcard-addcart-btn=""');
 
+    if (!id) issueCounts.missingId += 1;
+    if (!title) issueCounts.missingTitle += 1;
+    if (!brand) issueCounts.missingBrand += 1;
+    if (!imageUrl) issueCounts.missingImage += 1;
+    if (!price) issueCounts.missingPrice += 1;
+    if (!href) issueCounts.missingProductUrl += 1;
+    if (!canAddToCart) issueCounts.notPurchasable += 1;
+
     if (
       !id ||
-      seenIds.has(id) ||
       !title ||
       !href ||
       !imageUrl ||
       !canAddToCart
     ) {
+      rejectedProductCount += 1;
+      return;
+    }
+    if (seenIds.has(id)) {
+      issueCounts.duplicateId += 1;
+      rejectedProductCount += 1;
       return;
     }
 
     seenIds.add(id);
+    if (products.length >= MAX_PRODUCTS) {
+      truncatedProductCount += 1;
+      return;
+    }
     products.push({
       id,
       title,
@@ -128,7 +201,16 @@ export function parseYamiSearchHtml(html: string): YamiProduct[] {
     });
   });
 
-  return products;
+  return {
+    products,
+    quality: {
+      observedProductCount: starts.length,
+      acceptedProductCount: products.length,
+      rejectedProductCount,
+      truncatedProductCount,
+      issueCounts,
+    } satisfies CatalogSnapshotQualityReport,
+  };
 }
 
 export async function searchYamiProducts(
@@ -173,11 +255,13 @@ export async function searchYamiProducts(
     );
   }
 
-  const products = parseYamiSearchHtml(await response.text());
+  const parsed = parseYamiSearchHtmlWithQuality(await response.text());
+  const products = filterKeywordRelevantProducts(keyword, parsed.products);
+  const keywordMismatchCount = parsed.products.length - products.length;
   if (products.length === 0) {
     throw new YamiSearchError(
       "no_products",
-      "No currently purchasable products were found for this keyword.",
+      "No keyword-relevant purchasable products were found for this keyword.",
       sourceUrl,
     );
   }
@@ -189,5 +273,16 @@ export async function searchYamiProducts(
     fetchedAt: new Date().toISOString(),
     products,
     provider: "yami-web-search",
+    quality: {
+      ...parsed.quality,
+      acceptedProductCount: products.length,
+      rejectedProductCount:
+        parsed.quality.rejectedProductCount + keywordMismatchCount,
+      issueCounts: {
+        ...parsed.quality.issueCounts,
+        keywordMismatch:
+          parsed.quality.issueCounts.keywordMismatch + keywordMismatchCount,
+      },
+    },
   };
 }
