@@ -231,6 +231,7 @@ export function reviewSceneProposal(
   const products = sceneCandidateProducts(candidateSnapshot, categories);
   const roleByProductId = new Map(products.map(({ id, role }) => [id, role]));
   const seenSceneIds = new Set<string>();
+  const seenSceneProductIds = new Set<string>();
   const scenes: ProductSelectionScene[] = [];
 
   rawScenes.forEach((rawScene, sceneIndex) => {
@@ -275,6 +276,10 @@ export function reviewSceneProposal(
         ["accessory", accessory],
       ] as const).forEach(([expectedRole, productId]) => {
         if (!productId) return;
+        if (seenSceneProductIds.has(productId)) {
+          issues.push(`Scene product ${productId} is used more than once.`);
+        }
+        seenSceneProductIds.add(productId);
         const actualRole = roleByProductId.get(productId);
         if (!actualRole) issues.push(`Scene product ${productId} is absent from candidate evidence.`);
         else if (actualRole !== expectedRole) {

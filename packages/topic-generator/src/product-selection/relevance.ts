@@ -28,16 +28,22 @@ export function selectByRelevance(
   snapshot: YamiSearchSnapshot,
   config: RelevanceStrategyConfig,
 ): ProductSelectionResult {
-  const directProducts = snapshot.products.filter((product) =>
+  const seenProductIds = new Set<string>();
+  const products = snapshot.products.filter((product) => {
+    if (seenProductIds.has(product.id)) return false;
+    seenProductIds.add(product.id);
+    return true;
+  });
+  const directProducts = products.filter((product) =>
     matchesKeyword(product, snapshot.keyword)
   );
-  const minimumDirectCount = Math.min(6, snapshot.products.length);
+  const minimumDirectCount = Math.min(6, products.length);
   const primarySource = directProducts.length < minimumDirectCount
-    ? snapshot.products.slice(0, 12)
+    ? products.slice(0, 12)
     : directProducts;
   const primary = primarySource.slice(0, PRIMARY_LIMIT);
   const primaryIds = new Set(primary.map((product) => product.id));
-  const related = snapshot.products
+  const related = products
     .filter((product) => !primaryIds.has(product.id))
     .slice(0, RELATED_LIMIT);
 

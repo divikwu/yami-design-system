@@ -76,7 +76,7 @@ Web 页面：`http://127.0.0.1:3300/`
 5. `reason` 只给可审阅依据，不暴露或伪造模型隐藏思考过程；界面分别展示主题解释状态和商品条件验证状态。`confidence` 仅为兼容规则分数，审阅应使用 `decision.status`、`evidenceLevel`、候选差值、约束状态和证据来源。
 6. ProductSelection 配置以 `<id>@<version>` 共享；PageMerchandising 只消费 ready 的 ProductSelectionResult，在冻结商品池内分配页面模块，不重新选品或推断分类角色。
 7. 分类角色要求 SHA-256 绑定的完整 taxonomy artifact；不从搜索商品推断，也不复制目标仓库的数据库访问。
-8. 每次候选召回产生独立的质量报告；空分类、低覆盖、归属错误、分类标题语义异常和重复商品会显式提示，但不会由 Agent 静默修复。
+8. 每次候选召回产生独立的质量报告；请求失败、缺失请求或商品引用缺失等高风险错误会阻止自动选品，低覆盖、分类标题语义异常和重复商品等中风险问题保持可见但不会由 Agent 静默修复。场景提案中的商品 ID 必须全局唯一，不能跨场景或商品组重复使用。
 9. CLI 只有显式 `--output` 才写入带版本与 SHA-256 的 Run Artifacts；Web 本地执行模式则按 ADR 007 保存私有 Execution Task、状态、日志和资产。
 10. Codex/Kiro 交互式运行与自动 HTTP Agent 共用相同提案契约；核心不绑定模型 SDK 或
    Provider Key，宿主只通过 server-only Endpoint/Token 接入执行器。
@@ -107,7 +107,8 @@ Web 默认把生成请求交给本地 Execution Task，由配置的 Codex 或 Ki
 部署方可以接入任意模型或人工审批实现，核心包不绑定模型 SDK。
 
 候选快照同时生成 `catalog-candidate-quality-report/v1`。报告只读证据，统计请求失败、
-空/低覆盖分类、商品分类归属错误与分类内/跨分类重复；结构校验仍由状态机决定是否阻断。
+空/低覆盖分类、商品分类归属错误与分类内/跨分类重复；`error` 会阻止自动选品，
+`warning` 保持可见但不改写候选。结构与场景商品唯一性仍由状态机校验。
 `evals/product-selection-golden-cases.json` 保存 8 个品牌、品类和场景主题的稳定验收约束
 （5:3:2、11 次召回、场景、模块组数/每组商品配额、全局去重），不固定会随目录变化的商品 ID。
 

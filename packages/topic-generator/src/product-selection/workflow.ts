@@ -53,6 +53,31 @@ export interface ProductSelectionAgentWorkflowResult {
   };
 }
 
+function blockOnCandidateQuality(
+  run: ProductSelectionRun,
+  report: CatalogCandidateQualityReport | undefined,
+): ProductSelectionRun {
+  if (
+    report?.status !== "error" ||
+    (run.status !== "needs-scene-proposal" && run.status !== "ready")
+  ) {
+    return run;
+  }
+
+  return {
+    schemaVersion: "product-selection-run/v1",
+    status: "blocked",
+    strategyRef: run.status === "ready" ? run.result.strategyRef : run.strategyRef,
+    ...(run.categoryProposalReview
+      ? { categoryProposalReview: run.categoryProposalReview }
+      : {}),
+    ...(run.candidateSnapshotReview
+      ? { candidateSnapshotReview: run.candidateSnapshotReview }
+      : {}),
+    issues: report.issues.map(({ message }) => message),
+  };
+}
+
 export async function runProductSelectionWorkflow(
   request: ProductSelectionWorkflowRequest,
 ): Promise<ProductSelectionWorkflowResult> {
@@ -60,6 +85,7 @@ export async function runProductSelectionWorkflow(
   let candidateQualityReport = request.candidateSnapshot
     ? analyzeCatalogCandidateQuality(request.candidateSnapshot)
     : undefined;
+  run = blockOnCandidateQuality(run, candidateQualityReport);
   if (
     run.status !== "needs-candidate-snapshot" ||
     !request.taxonomySnapshot ||
@@ -84,6 +110,7 @@ export async function runProductSelectionWorkflow(
     candidateSnapshot,
   });
   candidateQualityReport = analyzeCatalogCandidateQuality(candidateSnapshot);
+  run = blockOnCandidateQuality(run, candidateQualityReport);
   return { run, artifacts: { candidateSnapshot, candidateQualityReport } };
 }
 
@@ -99,20 +126,23 @@ export async function runProductSelectionAgentWorkflow(
   let sceneProposal = request.sceneProposal;
 
   for (let step = 0; step < 4; step += 1) {
-    const run = advanceProductSelectionRun({
+    const candidateQualityReport = candidateSnapshot
+      ? analyzeCatalogCandidateQuality(candidateSnapshot)
+      : undefined;
+    const run = blockOnCandidateQuality(advanceProductSelectionRun({
       snapshot: request.snapshot,
       strategyRef: request.strategyRef,
       taxonomySnapshot: request.taxonomySnapshot,
       categoryRoleProposal,
       candidateSnapshot,
       sceneProposal,
-    });
+    }), candidateQualityReport);
     const artifacts = {
       agentId: request.agent.id,
       categoryRoleProposal,
       candidateSnapshot,
-      ...(candidateSnapshot
-        ? { candidateQualityReport: analyzeCatalogCandidateQuality(candidateSnapshot) }
+      ...(candidateQualityReport
+        ? { candidateQualityReport }
         : {}),
       sceneProposal,
     };

@@ -21,13 +21,14 @@ The reference workflow also separates semantic and deterministic work: category 
 - Reproduce the reference category-role rules in deterministic code:
   - 10 categories ordered core → pairing → accessory, with no selected parent-child overlap, a 5:3:2 target, and the documented elastic distributions;
   - 10 category queries at `limit=100`, `featured`, plus one discovery query at `limit=200`, `sold`;
-  - 4–6 scenes with two role-correct groups each;
+  - 4–6 scenes with two role-correct groups each, without reusing a product ID across scenes or groups;
   - Popular Picks from the first five core categories, up to 10 sold products each;
   - Brand Spotlight targeting 3 core, 2 pairing, and 1 accessory brands, three products per real brand ID, with role-priority shortage fill;
   - Explore More targeting 3 pairing and 2 accessory categories, preferring discovery results and falling back only when a discovery category is absent, up to 18 products each;
   - global deduplication priority Scene → Popular Picks → Brand Spotlight → Explore More.
 - Let `PagePlan` compile a ready `ProductSelectionResult` into language and presentation metadata. It must not reselect or reclassify products.
 - Return only ready strategies in the PagePlan matrix. A strategy waiting for evidence remains visible as its explicit ProductSelectionRun status instead of a fabricated plan.
+- Treat candidate-quality `error` as a deterministic workflow block while keeping `warning` visible and non-mutating.
 - Expose the same Module through package API, standalone HTTP Host, CLI, Codex Skill, and Kiro Agent so other projects reuse behavior without copying prompts or algorithms.
 
 ## Consequences
