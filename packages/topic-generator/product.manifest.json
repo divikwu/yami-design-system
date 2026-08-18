@@ -21,12 +21,24 @@
     "codexSkill": "integrations/codex/topic-intent/SKILL.md",
     "codexSkills": [
       "integrations/codex/topic-intent/SKILL.md",
-      "integrations/codex/product-selection/SKILL.md"
+      "integrations/codex/product-selection/SKILL.md",
+      "integrations/codex/page-merchandising/SKILL.md",
+      "integrations/codex/content-writing/SKILL.md",
+      "integrations/codex/visual-generation/SKILL.md",
+      "integrations/codex/page-orchestration/SKILL.md",
+      "integrations/codex/page-review/SKILL.md"
     ],
-    "kiroAgent": "integrations/kiro/topic-generator.json",
+    "kiroAgent": "integrations/kiro/topic-page-orchestrator.json",
+    "kiroAgents": [
+      "integrations/kiro/topic-page-orchestrator.json",
+      "integrations/kiro/topic-strategy.json",
+      "integrations/kiro/topic-content.json",
+      "integrations/kiro/topic-visual.json",
+      "integrations/kiro/topic-review.json"
+    ],
     "productAgentModes": {
-      "current": ["codex-skill", "kiro-skill"],
-      "future": ["http-adapter"]
+      "current": ["codex-skill", "kiro-skill", "http-adapter"],
+      "future": []
     }
   },
   "providers": [
@@ -55,6 +67,30 @@
     "productSelectionGoldenEvaluation": "product-selection-golden-evaluation/v1",
     "productSelectionHandoffTask": "product-selection-handoff-task/v1",
     "productSelectionHandoffResponse": "product-selection-handoff-response/v1",
+    "landingPageType": "landing-page-type/v1",
+    "landingPageExecutionPlanProposal": "landing-page-execution-plan-proposal/v1",
+    "landingPageOrchestrationRun": "landing-page-orchestration-run/v1",
+    "landingPageExecutionPlan": "landing-page-execution-plan/v1",
+    "pageMerchandisingTemplate": "page-merchandising-template/v1",
+    "moduleMerchandisingProposal": "module-merchandising-proposal/v1",
+    "pageMerchandisingRun": "page-merchandising-run/v1",
+    "topicPagePlanV2": "topic-page-plan/v2",
+    "topicPageContentProposal": "topic-page-content-proposal/v1",
+    "topicPageContentRun": "topic-page-content-run/v1",
+    "topicPageContentSpec": "topic-page-content-spec/v1",
+    "topicPageVisualProposal": "topic-page-visual-proposal/v1",
+    "topicPageVisualAgentOutput": "topic-page-visual-agent-output/v1",
+    "topicPageVisualRun": "topic-page-visual-run/v1",
+    "topicPageAssetManifest": "topic-page-asset-manifest/v1",
+    "topicPageAgentRequest": "topic-page-agent-request/v1",
+    "topicPageAgentResponse": "topic-page-agent-response/v1",
+    "topicPageAutomationRun": "topic-page-automation-run/v1",
+    "topicPageGenerationSpec": "topic-page-generation-spec/v1",
+    "topicPageQaReport": "topic-page-qa-report/v1",
+    "topicPageExperienceReviewProposal": "topic-page-experience-review-proposal/v1",
+    "topicPageExperienceReviewRun": "topic-page-experience-review-run/v1",
+    "topicPageExperienceReviewDecision": "topic-page-experience-review-decision/v1",
+    "topicPageReviewPackage": "topic-page-review-package/v1",
     "pagePlans": "page-plans/v1",
     "runArtifact": "topic-generator-run/v1"
   },
@@ -68,8 +104,14 @@
     "cli": "ready",
     "skill": "ready",
     "kiroAgent": "ready",
+    "orchestratorAgent": "ready",
+    "strategyAgent": "ready",
+    "contentAgent": "ready",
+    "visualAgent": "generator-adapter-required",
+    "reviewAgent": "preview-inspection-adapter-required",
     "webSource": "ready",
-    "webRuntime": "standalone-host",
+    "webRuntime": "standalone-automation-host",
+    "pageAutomation": "agent-and-asset-store-configuration-required",
     "archive": "not-built"
   }
 }

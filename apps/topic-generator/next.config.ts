@@ -7,7 +7,7 @@ const appDirectory = path.dirname(fileURLToPath(import.meta.url));
 const config: NextConfig = {
   allowedDevOrigins: ["127.0.0.1"],
   devIndicators: false,
-  transpilePackages: ["@yami/design-system", "@yami/topic-generator"],
+  transpilePackages: ["@yami/design-system", "@yami/prototypes", "@yami/topic-generator"],
   experimental: { externalDir: true },
   turbopack: { root: path.resolve(appDirectory, "../..") },
 };

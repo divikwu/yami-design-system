@@ -1,0 +1,4 @@
+interface:
+  display_name: "Page Merchandising"
+  short_description: "Plan modules, scenes, and frozen product assignments"
+  default_prompt: "Use $page-merchandising to turn a ready ProductSelectionResult into a validated TopicPagePlan v2."

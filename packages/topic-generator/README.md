@@ -1,28 +1,45 @@
 # TOPIC GENERATOR
 
-TOPIC GENERATOR 是一个从购物主题词生成可审阅 `ThemeIntent` 与 Topic 页面计划的独立产品。`packages/topic-generator` 是可复用核心，`apps/topic-generator` 是独立 Web 与 HTTP 宿主；Canvas 不参与它的运行时。
+TOPIC GENERATOR 是一个从购物主题词生成可审阅 `ThemeIntent`、Topic 页面计划、证据绑定
+文案规范与图片资产清单的独立产品。`packages/topic-generator` 是可复用核心，
+`apps/topic-generator` 是独立 Web 与 HTTP 宿主；Canvas 不参与它的运行时。
 
 ## 当前产品边界
 
 ```text
-Codex / Kiro Product Agent ── optional semantic proposals ──────────┐
-CLI / standalone Web Host ──────────────────────────────────────────┤
-                                                                   ▼
-CatalogSnapshot Adapters ─> TopicIntent ────────┐       ProductSelection
-                                                │              │
-Taxonomy artifact + Candidate Adapter ──────────┴──────────────┤
-                                                               ▼
-                                                ProductSelectionResult ─> PagePlan
+LandingPageBrief + ThemeIntent ─> Topic Page Orchestrator Agent proposal
+                                               │
+                                               ▼
+                        PageOrchestration ─> LandingPageExecutionPlan
+                                               │
+                                               ▼
+Catalog + taxonomy ─> Topic Strategy Agent ─> ProductSelection ─> PagePlan v2
+                                                                      │
+                                                                      ▼
+                       Topic Content Agent ─> PageContent ─> ContentSpec
+                                                                      │
+                                                                      ▼
+                    Topic Visual Agent ─> PageVisual ─> AssetManifest
+                                                                      │
+                                                                      ▼
+                            AssetStore ─> PageGenerationSpec ─> hard QA
+                                                                      │
+                                                                      ▼
+                 Topic Review Agent ─> ExperienceReviewDecision ─> ReviewPackage
 ```
 
-- Core：`src`，负责 CatalogSnapshot、ThemeIntent、版本化 ProductSelection、HTTP handler、页面规划与 Run Artifacts。
+- Core：`src`，负责 CatalogSnapshot、ThemeIntent、版本化 ProductSelection、PageMerchandising、
+  PageContent、PageVisual、PageAutomation、PageGenerationSpec、真实图片 QA、HTTP handler、页面规划与 Run Artifacts。
 - CLI：`topic-generator`，输出可被其他项目消费的 `theme-intent/v2` JSON；可接收 Agent 提案并显式保存运行产物。
 - Eval：`topic-intent-eval`，用稳定的语义期望对比实时 Yami 目录分析，不复制或冻结商品库存。
 - Web：`web`，提供可被 Next.js 宿主加载的产品界面。
 - Host：`apps/topic-generator`，独立暴露 `/` 与 `/api/topic-generator`，默认端口 3300。
-- Codex：`.agents/skills/product-selection` 暴露共享 ProductSelection Skill。
-- Kiro：`.kiro/skills/product-selection` 暴露同一个 Skill，`.kiro/agents/topic-generator.json`
-  注册受限的工作区 Agent；没有第二份选品提示词。
+- Codex：`.agents/skills/*` 暴露 `page-orchestration`、`topic-intent`、
+  `product-selection`、`page-merchandising`、`content-writing`、`visual-generation` 与
+  `page-review` 七个阶段 Skill。
+- Kiro：`.kiro/agents/topic-page-orchestrator.json`、`topic-strategy.json`、
+  `topic-content.json`、`topic-visual.json` 与 `topic-review.json` 暴露五个逻辑 Agent；
+  `.kiro/skills/*` 指向相同 canonical Skill。旧 `topic-generator` Agent 仅作为兼容入口。
 - Canvas：独立的设计系统与原型产品，不依赖 Topic Generator 包。
 
 ## 运行
@@ -45,26 +62,38 @@ Web 页面：`http://127.0.0.1:3300/`
 
 ## 实现原则
 
-1. 一个 Product Agent 负责歧义语言、分类语义与购物场景；Skill 只负责调用约定，不承载运行时业务逻辑。
+1. Topic Page Orchestrator Agent 只选择注册过的页面类型与策略—模板路由；Topic Strategy
+   Agent 负责主题、选品与页面陈列语义；Content、Visual、Review Agent 各自独立。七个 Skill
+   只负责阶段调用约定，不承载运行时业务逻辑。
 2. Agent 可提交 `semantic-proposal/v1`，但 TopicIntent Module 会按 CatalogSnapshot 接受、缩窄或拒绝字段。Agent 不能声明品牌、品类、属性、可售或库存事实。
 3. Yami 结构化 Adapter 提供品牌、品类、属性与商品证据；失败后才尝试公开搜索 Adapter，且每次尝试都会记录。
 4. `reason` 只给可审阅依据，不暴露或伪造模型隐藏思考过程；界面展示证据等级与歧义状态，不把未校准规则分数呈现为正确率。
-5. ProductSelection 配置以 `<id>@<version>` 共享；PagePlan 只消费 ready 的 ProductSelectionResult，不重新选品或推断分类角色。
+5. ProductSelection 配置以 `<id>@<version>` 共享；PageMerchandising 只消费 ready 的 ProductSelectionResult，在冻结商品池内分配页面模块，不重新选品或推断分类角色。
 6. 分类角色要求 SHA-256 绑定的完整 taxonomy artifact；不从搜索商品推断，也不复制目标仓库的数据库访问。
 7. 每次候选召回产生独立的质量报告；空分类、低覆盖、归属错误、分类标题语义异常和重复商品会显式提示，但不会由 Agent 静默修复。
 8. `--output` 才会写入带版本与 SHA-256 的 Run Artifacts，默认不持久化。
-9. 当前 Codex/Kiro 交互式运行不使用模型 SDK、Provider Key 或服务端草稿存储；未来 HTTP
-   Agent 继续复用相同提案契约。
+9. Codex/Kiro 交互式运行与自动 HTTP Agent 共用相同提案契约；核心不绑定模型 SDK 或
+   Provider Key，宿主只通过 server-only Endpoint/Token 接入执行器。
 10. ThemeIntent 同时保存核心实体、购物动作、修饰条件、逐项约束状态和候选解释；候选接近时进入 `ambiguous`，不隐藏冲突。
 
-## Product Agent 接入
+## Agent 与 Skill 接入
 
-当前 Product Agent 由 Codex 或 Kiro 交互式会话承担。两者加载同一份
-`product-selection` Skill，并按 `ProductSelectionRun` 的状态分三次调用 CLI；Skill 只生成
-`CategoryRoleProposal` 与 `SceneProposal`，不会复制确定性选品逻辑。
+Topic Page Orchestrator 只加载 `page-orchestration`，并从运行时返回的注册表选择一个
+`pageTypeRef + selectionStrategyRef + templateRef` 路由。Topic Strategy Agent 按阶段加载
+`topic-intent`、`product-selection` 或 `page-merchandising` canonical Skill。选品 Skill 只生成
+`CategoryRoleProposal` 与 `SceneProposal`；页面 Skill 只生成 `ModuleMerchandisingProposal`。
+独立 Topic Content Agent 只加载 `content-writing`，生成 `TopicPageContentProposal`；独立
+Topic Visual Agent 只加载 `visual-generation`，调用宿主图片生成器并生成
+`TopicPageVisualProposal`；独立 Topic Review Agent 只加载 `page-review`，在硬 QA 通过后生成
+只读 `TopicPageExperienceReviewProposal`。所有提案都会回到同一 TypeScript 运行时校验。
 
-Kiro 可在仓库根目录运行 `kiro-cli --agent topic-generator`；Codex 会从
-`.agents/skills/product-selection` 自动发现同一 Skill。交互式 Agent 不会被 Web 页面同步调用。
+Kiro 可在仓库根目录运行 `kiro-cli --agent topic-page-orchestrator`、
+`topic-strategy`、`topic-content`、`topic-visual` 或 `topic-review`；Codex 会从
+`.agents/skills` 自动发现同一组 Skill。直接在 Codex App 或 Kiro IDE 中使用时，不要求电脑
+额外安装 `codex` 或 `kiro-cli`：宿主可原生加载 Skill，并通过 Host tool/API 提供待处理上下文
+和提案校验。项目 CLI 只是仓库内可选的确定性运行时适配器，不是 Agent 的必需入口。
+交互式 Agent 不会被 Web 页面同步调用；Web 自动生成通过配置的 HTTP Agent Endpoint 使用
+同一套提案契约。
 
 `runProductSelectionAgentWorkflow` 接收可注入的 `ProductSelectionAgent` 与
 `CatalogCandidateAdapter`。Agent 只在 `needs-category-proposal` 和
@@ -84,7 +113,7 @@ Kiro 可在仓库根目录运行 `kiro-cli --agent topic-generator`；Codex 会�
 TSV 可通过 `--taxonomy-tsv` 导入；CLI 使用文件修改时间作为稳定的 `fetchedAt`，
 因此同一未修改工件跨多次提案运行保持相同 digest。
 
-### 未来 Web Host 自动运行
+### Web Host 自动运行
 
 需要 API 化时，独立 Host 可通过 server-only 环境变量注册 taxonomy 与 HTTP Product Agent：
 
@@ -95,6 +124,16 @@ TOPIC_GENERATOR_AGENT_ENDPOINT=https://agent.example.com/product-selection
 TOPIC_GENERATOR_AGENT_ID=topic-product-agent
 TOPIC_GENERATOR_AGENT_TOKEN=server-only-token
 TOPIC_GENERATOR_AGENT_TIMEOUT_MS=30000
+TOPIC_GENERATOR_PAGE_AGENT_ENDPOINT=https://agent.example.com/topic-page
+TOPIC_GENERATOR_PAGE_AGENT_ID=topic-page-agent
+TOPIC_GENERATOR_ORCHESTRATOR_AGENT_ID=topic-page-orchestrator
+TOPIC_GENERATOR_STRATEGY_AGENT_ID=topic-strategy
+TOPIC_GENERATOR_CONTENT_AGENT_ID=topic-content
+TOPIC_GENERATOR_VISUAL_AGENT_ID=topic-visual
+TOPIC_GENERATOR_REVIEW_AGENT_ID=topic-review
+TOPIC_GENERATOR_PAGE_AGENT_TOKEN=server-only-token
+TOPIC_GENERATOR_PAGE_AGENT_TIMEOUT_MS=120000
+TOPIC_GENERATOR_ASSET_ROOT=/absolute/path/topic-page-assets
 ```
 
 Host 在进程内缓存已校验的 taxonomy 与 Agent Adapter。未配置或工件无效时，
@@ -112,6 +151,69 @@ Agent Endpoint 接收 `product-selection-agent-request/v1`，并返回：
 
 请求中的 `stage` 仅为 `category-role-proposal` 或 `scene-proposal`，`run` 是对应的
 状态机上下文。Agent 不执行目录召回、配额、模块分配或去重。
+
+页面自动化 Endpoint 共用 `topic-page-agent-request/v1` / `topic-page-agent-response/v1`，按
+`workflow-planning`、`module-merchandising`、`content-writing`、`visual-generation` 与
+`experience-review` 五个 stage 路由到对应逻辑 Agent。
+Visual 响应除提案外必须返回每个任务的 `taskId/ref/mimeType/dataBase64`。Host 先校验全部
+图片的任务绑定、真实 MIME、像素尺寸与 SHA-256，再一次性写入 `TOPIC_GENERATOR_ASSET_ROOT`。
+配置缺失、Agent 拒绝、图片不匹配或 QA 失败都会返回显式 `topic-page-automation-run/v1`
+`blocked`，不会回退成看似完成的旧页面预览。
+
+## PageMerchandising 纵向切片
+
+选品结果 ready 后，增加版本化模板参数即可请求受约束的页面策略任务：
+
+Brand、Topic、Campaign 三个 `@1` 模板要求 4–6 个已验证来源场景，因此使用
+`category-role/landing-page-agent@1`。`topic-landing/relevance@1` 专门消费没有分类与场景的
+`relevance/default@1`：它隐藏 StartHere 和 Reviews，并只用冻结的相关性商品生成 Hero、
+快捷入口、热门与探索模块，不虚构购物场景。
+
+```bash
+pnpm topic-generator:analyze -- --keyword "Matcha" \
+  --selection-strategy category-role/landing-page-agent@1 \
+  --taxonomy ./taxonomy.json \
+  --category-proposal ./categories.json \
+  --candidate-snapshot ./candidates.json \
+  --scene-proposal ./scenes.json \
+  --page-template topic-landing/topic@1 \
+  --pretty
+```
+
+首次返回 `page-merchandising-run/v1` 的 `needs-module-proposal`；同一命令增加
+`--module-proposal ./modules.json` 后，由确定性校验器生成带 digest、内容任务 ID 与图片任务
+ID 的 `topic-page-plan/v2`。该阶段只决定模块目标、场景与冻结商品分配，不撰写最终文案，
+也不生成图片。
+
+独立 Content Agent 只消费 `contentTaskId` 和 PagePlan/上游 digests，不修改模块、场景或商品
+分配。独立 Visual Agent 只消费 `assetTaskIds`、ready ContentSpec 与任务内商品图片引用；
+PageVisual 会校验产物元数据和全部 digests。最终文件读取、组件渲染与视觉 QA 仍属于 Stage 06。
+
+## PageContent 纵向切片
+
+在生成 ready PagePlan 的同一命令上增加 `--content-language en|zh`，首次得到
+`topic-page-content-run/v1` 的 `needs-content-proposal`。再增加
+`--content-proposal ./content.zh.json` 后，确定性校验器逐项检查任务、组件文案槽位、语言、
+证据引用范围与全部 digests，成功时输出 `topic-page-content-spec/v1`。
+
+每个标题、描述、标签、快捷入口标签与场景文案都必须引用 ThemeIntent evidence、已选分类、
+当前模块商品或当前场景。没有已验证评论记录时，`ReviewList` 不能进入 Content 任务。该阶段
+不生成图片、图片提示词或 alt text。
+
+## PageVisual 纵向切片
+
+在生成 ready ContentSpec 的同一命令上增加 `--visual`，首次得到
+`topic-page-visual-run/v1` 的 `needs-visual-proposal`。独立 Visual Agent 使用宿主提供的图片
+生成能力逐项完成 Hero、快捷入口、场景与品牌横幅任务，再增加
+`--visual-proposal ./visual.zh.json`。确定性校验器会检查任务/组件、证据作用域、安全相对路径、
+MIME、尺寸与比例、SHA-256、焦点、背景色和 alt text 模式，成功时输出
+`topic-page-asset-manifest/v1`。
+
+核心包不内置模型或图片 Provider SDK。若宿主没有图片生成器，Visual Agent 必须停止，不能
+伪造图片或元数据。自动 Host 会继续读取图片本体、编译 `topic-page-generation-spec/v1`，并
+执行来源绑定、模块、文案、图片字节和可访问性结构硬 QA。硬 QA 通过后，Review Agent 只能
+建议进入用户 Review 或输出带回退阶段的问题；只有 `review-recommended` 才生成
+`topic-page-review-package/v1` `review-ready`。07 用户审批与 08 发布始终需要额外明确授权。
 
 ## Agent 提案
 

@@ -64,7 +64,7 @@ Create 4–6 scenes with exactly two product groups per scene:
 
 Each group requires `core`; `pairing` and `accessory` may be `null`. Use only returned candidate IDs, and place each product in its validated role. Scene names, titles, and descriptions must be non-empty and shopper-facing.
 
-## Deterministic output rules
+## Deterministic selection-stage output rules
 
 The runtime applies the target repository's rules after Scene acceptance:
 
@@ -73,4 +73,6 @@ The runtime applies the target repository's rules after Scene acceptance:
 - Explore More: target 3 pairing and 2 accessory categories; prefer discovery-pool products and fall back to the category pool only when a discovery category is absent; up to 18 products per category.
 - Global dedupe priority: Scene, Popular Picks, Brand Spotlight, Explore More.
 
-Do not implement these rules in the Agent proposal. Review the resulting module IDs and counts instead.
+Do not implement these rules in the ProductSelection proposal. Treat these groups as deterministic,
+deduplicated selection evidence. A later PageMerchandising proposal may arrange frozen products into
+the final PagePlan v2 modules, but it cannot retrieve replacements or change roles and pools.

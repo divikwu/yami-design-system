@@ -1,5 +1,9 @@
 export { TopicAnalysisView } from "./topic-analysis-view";
 export { TopicGenerator } from "./topic-generator-client";
+export type {
+  TopicGeneratorProps,
+  TopicPagePreviewRendererProps,
+} from "./topic-generator-client";
 
 export const topicGeneratorMetadata = {
   title: "TOPIC GENERATOR",

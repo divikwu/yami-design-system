@@ -9,3 +9,4 @@ export {
   type TopicLandingPageLocale,
 } from "./fixtures";
 export { createTopicKeywordLandingPageFixture } from "./topic.fixtures";
+export { createCampaignTopicLandingPageFixture } from "./campaign.fixtures";

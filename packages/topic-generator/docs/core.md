@@ -1,30 +1,49 @@
 # TOPIC GENERATOR core
 
-TOPIC GENERATOR 的可复用核心包，提供主题词购物意图分析、版本化选品、Yami 商品目录检索与 Topic 页面规划。它不依赖模型 SDK 或 API Key。
+TOPIC GENERATOR 的可复用核心包，提供主题词购物意图分析、版本化选品、Yami 商品目录检索、
+Topic 页面规划、证据绑定文案规范与图片资产清单。它不依赖模型或图片 Provider SDK。
 
 ## Public Interfaces
 
 ```ts
 import {
+  advancePageMerchandisingRun,
+  advanceLandingPageOrchestrationRun,
+  advanceTopicPageContentRun,
+  advanceTopicPageExperienceReviewRun,
+  advanceTopicPageVisualRun,
   analyzeTopicIntent,
-  buildTopicPagePlanFromProductSelection,
   evaluateTopicIntentCases,
   loadCatalogSnapshot,
   resolveTopicIntent,
   runProductSelectionAgentWorkflow,
   runProductSelectionWorkflow,
+  runTopicPageAutomationWorkflow,
+  type ProductSelectionResult,
 } from "@yami/topic-generator";
 
 const analysis = await analyzeTopicIntent("ANUA");
-const selection = await runProductSelectionWorkflow({
-  snapshot: analysis.snapshot,
-  strategyRef: "relevance/default@1",
+declare const readyCategoryRoleSelection: ProductSelectionResult;
+const pageTask = advancePageMerchandisingRun({
+  intent: analysis.intent,
+  selection: readyCategoryRoleSelection,
+  templateRef: "topic-landing/topic@1",
 });
-if (selection.run.status === "ready") {
-  const plan = buildTopicPagePlanFromProductSelection(
-    analysis.snapshot,
-    selection.run.result,
-  );
+if (pageTask.status === "ready") {
+  const contentTask = advanceTopicPageContentRun({
+    intent: analysis.intent,
+    selection: readyCategoryRoleSelection,
+    plan: pageTask.plan,
+    language: "zh",
+  });
+  if (contentTask.status === "ready") {
+    const visualTask = advanceTopicPageVisualRun({
+      intent: analysis.intent,
+      selection: readyCategoryRoleSelection,
+      plan: pageTask.plan,
+      contentSpec: contentTask.spec,
+    });
+  }
 }
 ```
 
@@ -35,6 +54,16 @@ if (selection.run.status === "ready") {
 确定性基线使用版本化中英目录等价词归一化用户表达（例如“爽肤水”与目录 `Toners`），并把未被目录证据覆盖的剩余词保留为 `unverified` 条件。场景词首次检索覆盖过低时，Adapter 会尝试可审阅的收窄检索词，最终实际使用的词记录在 `snapshot.retrievalTerms`。
 
 `analyzeTopicIntent` 组合这两个 Interface。返回值包含 `intent`、商品证据 `snapshot`、`fallbackUsed`、`attempts` 与 `proposalReview`。
+
+`advanceLandingPageOrchestrationRun` 是受约束的编排 Interface。它先返回版本化页面类型、选品
+策略与模板注册表，只接受一个 `landing-page-execution-plan-proposal/v1`。确定性核心会拒绝
+未知 ref、未注册策略—模板组合、主题类型不兼容、身份或 ThemeIntent digest
+漂移，并生成 `landing-page-execution-plan/v1`。Agent 不能自定义步骤、重试或回退策略。
+内置注册表将已解析的 `brand`、`product`、`activity` 分别约束到 Brand、Topic、Campaign；
+`ambiguous` 或 `needs-review` 仍会被阻止。
+
+`runLandingPageOrchestratorAgentWorkflow` 可注入独立 `LandingPageOrchestratorAgent`；Agent 只
+提议已注册路线，TypeScript 核心冻结执行顺序、actor、最大尝试次数与 Review 可回退阶段。
 
 `runProductSelectionWorkflow` 是选品 Interface。每次运行引用一个不可变的 `<id>@<version>` 配置。`relevance/default@1` 不需要 Agent；`category-role/landing-page-agent@1` 通过 `ProductSelectionRun` 明确请求 taxonomy、分类提案、候选快照或场景提案，并只在全部校验通过后返回 `ProductSelectionResult`。
 
@@ -52,7 +81,43 @@ Agent 提案被拒绝时立即返回 `blocked`，不会继续召回或静默修�
 `product-selection-agent-response/v1` 包装的单个 `proposal`。Adapter 支持 Bearer Token、
 超时与带 Agent/stage/HTTP status 的操作错误；Token 由 Host 注入，不属于核心配置或页面响应。
 
-`buildTopicPagePlanFromProductSelection` 只消费 ready 的 ProductSelectionResult。PagePlan 不再根据标题推断分类角色，也不重新分配商品。
+`buildTopicPagePlanFromProductSelection` 是兼容现有 Web 的 PagePlan v1 Interface；它只消费
+ready 的 ProductSelectionResult，不根据标题推断分类角色，也不重新分配商品。
+
+`advancePageMerchandisingRun` 是 PagePlan v2 Interface。第一次调用返回完整且受限的
+`needs-module-proposal` context；第二次传入 `ModuleMerchandisingProposal` 后，确定性校验器只
+允许冻结商品池内、符合模块 pool/role/scene 规则的分配，并生成 `topic-page-plan/v2`。
+
+`runPageMerchandisingAgentWorkflow` 可注入 Topic Strategy Agent 的页面陈列能力，
+但 Agent 只生成 Proposal。模板规则、成员校验、商品复用策略、下游任务 ID 与 digest 都由
+核心 Module 拥有。
+
+`advanceTopicPageContentRun` 是 PageContent Interface。第一次调用只返回 PagePlan 已声明的
+可见 `contentTaskId`、真实组件文案槽位和当前任务可引用的证据；第二次传入
+`TopicPageContentProposal` 后，校验语言、任务/组件一致性、逐段 evidenceRefs 与三层 digest，
+并生成 `topic-page-content-spec/v1`。它不接受商品重分配、图片提示词或无证据评论。
+
+`runTopicContentAgentWorkflow` 可注入独立 `TopicContentAgent`，但 Agent 只生成文案 Proposal；
+任务边界、字段完整性、证据范围和 ContentSpec digest 都由核心 Module 拥有。
+
+`advanceTopicPageVisualRun` 是 PageVisual Interface。第一次调用重新校验 ready PagePlan 与
+ContentSpec，只返回 `assetTaskIds` 声明的 Hero、快捷入口、场景和品牌横幅任务；第二次传入
+`TopicPageVisualProposal` 后，校验任务、证据作用域、安全路径、MIME、尺寸比例、SHA-256、
+焦点、背景色与 alt text 模式，并生成 `topic-page-asset-manifest/v1`。
+
+`runTopicVisualAgentWorkflow` 可注入独立 `TopicVisualAgent`。Agent 使用宿主提供的图片生成器
+生成真实媒体与 Proposal；任务派生、元数据校验、证据范围与 Asset Manifest digest 仍由核心
+Module 拥有。`asset-manifest-ready` 不等于资产文件和页面渲染硬 QA 已通过。
+
+`runTopicPageAutomationWorkflow` 必须消费已校验的 `LandingPageExecutionPlan`。它按注册顺序
+执行选品完成确认、模块陈列、文案、视觉、资产持久化、页面规范编译、硬 QA 与体验 Review；
+任何拒绝、图片字节不匹配、QA 失败或 Review 修订请求都会停在明确 stage，不会静默回退。
+
+`advanceTopicPageExperienceReviewRun` 只接受硬 QA 已通过的 GenerationSpec。它把 Review Agent
+提案绑定到 execution plan、generation spec 与 QA 三个 digest，只允许引用生成模块、商品、
+资产、QA 和 preview 证据；blocking issue 必须指向 `module-merchandising`、`content-writing`
+或 `visual-generation`。Review Agent 只读且不能修复或发布。只有
+`review-recommended` 决策才能编译 `topic-page-review-package/v1`。
 
 ## CLI
 
@@ -67,9 +132,29 @@ pnpm topic-generator:analyze -- --keyword "Matcha" \
   --taxonomy-tsv /path/to/categories.tsv \
   --category-proposal /path/to/categories.json \
   --pretty
+pnpm topic-generator:analyze -- --keyword "Matcha" \
+  --selection-strategy category-role/landing-page-agent@1 \
+  --taxonomy /path/to/taxonomy.json \
+  --category-proposal /path/to/categories.json \
+  --candidate-snapshot /path/to/candidates.json \
+  --scene-proposal /path/to/scenes.json \
+  --page-template topic-landing/topic@1 \
+  --module-proposal /path/to/modules.json \
+  --content-language zh \
+  --content-proposal /path/to/content.zh.json \
+  --visual \
+  --visual-proposal /path/to/visual.zh.json \
+  --pretty
 ```
 
-CLI 默认输出版本化的 `theme-intent/v2` 报告。显式传入 `--selection-strategy` 后，额外输出 `product-selection-run/v1`、本次新生成的候选 artifact，并在 ready 时输出 PagePlans。
+CLI 默认输出版本化的 `theme-intent/v2` 报告。显式传入 `--selection-strategy` 后，额外输出
+`product-selection-run/v1`、本次新生成的候选 artifact，并在 ready 时输出 PagePlans。增加
+`--page-template` 时输出 `page-merchandising-run/v1`；再增加 `--module-proposal` 才可能生成
+ready 的 PagePlan v2。
+增加 `--content-language en|zh` 后，ready PagePlan 会输出 `topic-page-content-run/v1`；再增加
+`--content-proposal` 才可能生成 ready 的 `topic-page-content-spec/v1`。
+增加 `--visual` 后，ready ContentSpec 会输出 `topic-page-visual-run/v1`；再增加
+`--visual-proposal` 才可能生成 ready 的 `topic-page-asset-manifest/v1`。
 
 `--taxonomy` 接收规范化 `catalog-taxonomy-snapshot/v1` JSON；`--taxonomy-tsv`
 直接接收目标仓库的分类 TSV 导出格式，并在本地转换成同一份摘要绑定契约。
@@ -101,12 +186,26 @@ Workbench 不显示该开发者入口，页面请求始终使用自动 HTTP Agen
 
 ## Runtime boundary
 
-部署应用不执行模型推理，也不读取模型 Provider Key。Codex/Kiro Agent 在外部生成可选提案，独立 Topic Generator Host 只调用目录 Adapter、TopicIntent、ProductSelection 与 PagePlan Modules。分类目录来自通过摘要校验的 approved HTTP 或 imported artifact，不复制目标仓库的生产数据库访问。详见 [`architecture.md`](architecture.md)；治理决策记录在 ADR 004、ADR 005 与 ADR 006。
+核心包不执行模型或图片推理，也不读取 Provider Key。Codex/Kiro 或 HTTP Agent 在外部生成
+提案和图片，独立 Topic Generator Host/CLI 调用目录 Adapter、TopicIntent、ProductSelection、
+PageMerchandising/PagePlan、PageContent、PageVisual、PageGeneration 与 QA Modules。分类目录来自通过摘要校验的
+approved HTTP 或 imported artifact，不复制目标仓库的生产数据库访问。详见
+[`architecture.md`](architecture.md)；治理决策记录在 ADR 004、ADR 005 与 ADR 006。
 
-当前 Codex/Kiro 通过共享 `product-selection` Skill 驱动 CLI 状态机；交互式 Agent 不由 Web
-页面同步调用。未来独立 Next.js Host 可使用 `TOPIC_GENERATOR_TAXONOMY_PATH` 与
-`TOPIC_GENERATOR_AGENT_ENDPOINT` 开启 API 自动 CategoryRole。配置只在 Node.js Route Handler
+当前 Codex/Kiro 通过共享 `page-orchestration`、`topic-intent`、`product-selection`、
+`page-merchandising`、`content-writing`、`visual-generation` 与 `page-review` 七个 Skill 驱动
+同一状态机。逻辑上拆为 Topic Page Orchestrator、Topic Strategy、Topic Content、Topic
+Visual 与 Topic Review 五个 Agent；交互式 Agent 不由 Web 页面同步调用。独立 Next.js Host
+使用 `TOPIC_GENERATOR_TAXONOMY_PATH`、
+`TOPIC_GENERATOR_AGENT_ENDPOINT`、`TOPIC_GENERATOR_PAGE_AGENT_ENDPOINT` 与
+`TOPIC_GENERATOR_ASSET_ROOT` 开启完整 API 自动链路。配置只在 Node.js Route Handler
 读取；浏览器提交的 taxonomy、candidate snapshot 或 Agent proposal 不会覆盖自动 Host 的证据。
+
+自动页面请求按统一 HTTP 契约完成编排、模块策划、文案、独立 Visual 与只读 Review stage。
+Visual 返回的图片本体
+会在落盘前校验任务绑定、MIME、真实尺寸和 SHA-256；落盘后再次由 QA 读取。只有通过
+`topic-page-qa-report/v1` 且 Review Agent 给出经核心验证的 `recommend-approval`，才会生成
+`topic-page-review-package/v1`。用户审批和发布不在自动请求授权范围内。
 
 ## Validate
 

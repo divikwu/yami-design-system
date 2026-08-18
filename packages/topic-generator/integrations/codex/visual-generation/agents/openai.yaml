@@ -1,0 +1,4 @@
+interface:
+  display_name: "Visual Generation"
+  short_description: "Generate evidence-bound Topic page image artifacts"
+  default_prompt: "Use $visual-generation to turn a ready TopicPagePlan and TopicPageContentSpec into a validated TopicPageAssetManifest."
