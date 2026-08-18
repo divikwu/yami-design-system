@@ -99,6 +99,7 @@ export interface ThemeIntent {
   candidates: ThemeIntentCandidate[];
   decision: ThemeIntentDecision;
   reason: string;
+  /** Compatibility rule score only. Use decision status and evidence level for review. */
   confidence: number;
 }
 
@@ -149,6 +150,28 @@ export interface CatalogEvidence {
   attributes: CatalogAttributeEvidence[];
 }
 
+export interface CatalogSnapshotQualityIssueCounts {
+  duplicateId: number;
+  missingId: number;
+  missingTitle: number;
+  missingBrand: number;
+  missingImage: number;
+  missingPrice: number;
+  missingProductUrl: number;
+  unavailable: number;
+  outOfStock: number;
+  notPurchasable: number;
+  keywordMismatch: number;
+}
+
+export interface CatalogSnapshotQualityReport {
+  observedProductCount: number;
+  acceptedProductCount: number;
+  rejectedProductCount: number;
+  truncatedProductCount: number;
+  issueCounts: CatalogSnapshotQualityIssueCounts;
+}
+
 export interface YamiSearchSnapshot {
   keyword: string;
   site: YamiSite;
@@ -158,6 +181,7 @@ export interface YamiSearchSnapshot {
   provider?: "yami-catalog-search" | "yami-web-search";
   retrievalTerms?: string[];
   evidence?: CatalogEvidence;
+  quality?: CatalogSnapshotQualityReport;
   intent?: ThemeIntent;
 }
 
@@ -275,7 +299,17 @@ export interface TopicPagePlan {
     headline: string;
     description: string;
     tags: string[];
-    copyMode: "deterministic-template" | "not-generated";
+    copyMode:
+      | "deterministic-template"
+      | "background-assisted-template"
+      | "not-generated";
+    backgroundSource?: {
+      provider: "wikipedia";
+      language: ContentLanguage;
+      title: string;
+      url: string;
+      retrievedAt: string;
+    };
   };
   assetStrategy: {
     mode: "source-product-images" | "not-generated";

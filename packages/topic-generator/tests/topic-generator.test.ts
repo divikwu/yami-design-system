@@ -10,6 +10,7 @@ import type {
 import {
   buildYamiSearchUrl,
   parseYamiSearchHtml,
+  searchYamiProducts,
 } from "../src/yami-search.js";
 import {
   parseYamiCatalogResponse,
@@ -44,6 +45,99 @@ function snapshot(products: YamiProduct[]): YamiSearchSnapshot {
 }
 
 describe("TOPIC GENERATOR Yami search provider", () => {
+  it("rejects structured catalog recommendations without keyword coverage", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        messageId: "10000",
+        body: {
+          categoryAgg: [{
+            category_id: 5,
+            category_name: "美妆个护",
+            category_ename: "Beauty",
+            children: [{
+              category_id: 500,
+              category_name: "身体护理",
+              category_ename: "Body Care",
+              result_count: 1,
+              children: [],
+            }],
+          }],
+          items: [{
+            item_number: "1001",
+            goods_ename: "Back Acne Care Spray",
+            brand_ename: "Generic Brand",
+            category_l1_id: 5,
+            category_l3_id: 500,
+            image_url: "/item/generic.webp",
+            slug: "back-acne-care-spray",
+            status: "A",
+            goods_number: 1,
+          }],
+        },
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    try {
+      await expect(
+        searchYamiCatalog("zzzz-no-yami-product-987654321"),
+      ).rejects.toMatchObject({ code: "no_products" });
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("reports generic structured recommendations as keyword mismatches", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        messageId: "10000",
+        body: {
+          brandAgg: [{
+            brand_id: 100,
+            brand_ename: "ANUA",
+            result_count: 1,
+          }],
+          items: [
+            {
+              item_number: "1001",
+              goods_ename: "ANUA Heartleaf Toner",
+              brand_ename: "ANUA",
+              image_url: "/item/anua.webp",
+              slug: "anua-heartleaf-toner",
+              status: "A",
+              goods_number: 1,
+            },
+            {
+              item_number: "1002",
+              goods_ename: "Creative Birthday Gift",
+              brand_ename: "Generic Brand",
+              image_url: "/item/gift.webp",
+              slug: "creative-birthday-gift",
+              status: "A",
+              goods_number: 1,
+            },
+          ],
+        },
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    try {
+      const result = await searchYamiCatalog("ANUA");
+      expect(result.snapshot.products.map(({ id }) => id)).toEqual(["1001"]);
+      expect(result.snapshot.quality).toMatchObject({
+        observedProductCount: 2,
+        acceptedProductCount: 1,
+        rejectedProductCount: 1,
+        issueCounts: { keywordMismatch: 1 },
+      });
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("requeries products with the catalog categories selected by ThemeIntent", async () => {
     const payload = {
       messageId: "10000",
@@ -825,6 +919,108 @@ describe("TOPIC GENERATOR Yami search provider", () => {
         sourceRank: 1,
       },
     ]);
+  });
+
+  it("rejects a public-search fallback page with no keyword-relevant products", async () => {
+    const html = `
+      <div data-qa-itemcard="" data-item_number="1001">
+        <a class="itemCard_productImageWrapper__abc" href="/us/en/p/generic-gift/1001">
+          <img data-qa-itemcard-image-md5="" src="https://cdn.yamibuy.net/item/gift_300x300.webp" />
+        </a>
+        <a data-qa-itemcard-brand-txt="" aria-label="Brands Generic Brand"></a>
+        <a data-qa-itemcard-name-txt="" title="Creative Birthday Gift"></a>
+        <div aria-label="Current price: $9.99"></div>
+        <button data-qa-itemcard-addcart-btn=""></button>
+      </div>
+    `;
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      headers: new Headers({ "content-type": "text/html; charset=utf-8" }),
+      text: async () => html,
+    }));
+
+    try {
+      await expect(searchYamiProducts("matcha")).rejects.toMatchObject({
+        code: "no_products",
+      });
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("rejects a weak single-term overlap from a multi-term fallback query", async () => {
+    const html = `
+      <div data-qa-itemcard="" data-item_number="1001">
+        <a class="itemCard_productImageWrapper__abc" href="/us/en/p/yami-sticker/1001">
+          <img data-qa-itemcard-image-md5="" src="https://cdn.yamibuy.net/item/sticker_300x300.webp" />
+        </a>
+        <a data-qa-itemcard-brand-txt="" aria-label="Brands Yami"></a>
+        <a data-qa-itemcard-name-txt="" title="Yami Sticker"></a>
+        <div aria-label="Current price: $1.99"></div>
+        <button data-qa-itemcard-addcart-btn=""></button>
+      </div>
+    `;
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      headers: new Headers({ "content-type": "text/html; charset=utf-8" }),
+      text: async () => html,
+    }));
+
+    try {
+      await expect(
+        searchYamiProducts("zzzz-no-yami-product-987654321"),
+      ).rejects.toMatchObject({ code: "no_products" });
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("keeps keyword-relevant fallback products and removes generic recommendations", async () => {
+    const card = (id: string, brand: string, title: string) => `
+      <div data-qa-itemcard="" data-item_number="${id}">
+        <a class="itemCard_productImageWrapper__abc" href="/us/en/p/product/${id}">
+          <img data-qa-itemcard-image-md5="" src="https://cdn.yamibuy.net/item/${id}_300x300.webp" />
+        </a>
+        <a data-qa-itemcard-brand-txt="" aria-label="Brands ${brand}"></a>
+        <a data-qa-itemcard-name-txt="" title="${title}"></a>
+        <div aria-label="Current price: $9.99"></div>
+        <button data-qa-itemcard-addcart-btn=""></button>
+      </div>
+    `;
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      headers: new Headers({ "content-type": "text/html; charset=utf-8" }),
+      text: async () => [
+        card("1001", "Generic Brand", "Creative Birthday Gift"),
+        card("1002", "ANUA", "Heartleaf Soothing Toner"),
+      ].join(""),
+    }));
+
+    try {
+      const result = await searchYamiProducts("ANUA");
+      expect(result.products.map(({ id }) => id)).toEqual(["1002"]);
+      expect(result.quality).toMatchObject({
+        observedProductCount: 2,
+        acceptedProductCount: 1,
+        rejectedProductCount: 1,
+        truncatedProductCount: 0,
+        issueCounts: {
+          duplicateId: 0,
+          missingId: 0,
+          missingTitle: 0,
+          missingBrand: 0,
+          missingImage: 0,
+          missingPrice: 0,
+          missingProductUrl: 0,
+          unavailable: 0,
+          outOfStock: 0,
+          notPurchasable: 0,
+          keywordMismatch: 1,
+        },
+      });
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });
 
