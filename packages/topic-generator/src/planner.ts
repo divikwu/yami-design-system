@@ -10,16 +10,15 @@ import type {
   TopicPlanMatrix,
   TopicPlanVariants,
   TopicProduct,
-  ThemeIntent,
   YamiProduct,
   YamiSearchSnapshot,
 } from "./types.js";
 import { buildSearchFallbackIntent } from "./yami-catalog.js";
+import { getProductSelectionStrategyConfig } from "./product-selection/config.js";
+import type { ProductSelectionResult } from "./product-selection/contracts.js";
+import { advanceProductSelectionRun } from "./product-selection/run.js";
 
 /** Compile verified intent evidence into reviewable page-plan variants. */
-
-const PRIMARY_LIMIT = 18;
-const RELATED_LIMIT = 6;
 
 const STRATEGY_META: Record<
   ContentLanguage,
@@ -99,26 +98,7 @@ const PRODUCT_TYPE_RULES = [
   { label: "Wellness", terms: ["vitamin", "supplement", "probiotic", "collagen", "health"] },
 ] as const;
 
-const ACCESSORY_PRODUCT_TYPES = new Set([
-  "Kitchen & Dining",
-  "Home Care",
-  "Personal Care",
-]);
-
-const PAIRING_PRODUCT_TYPES = new Set([
-  "Snacks",
-  "Sweets",
-  "Drinks",
-  "Pantry",
-]);
-
 const ROLE_ORDER: ProductRole[] = ["core", "pairing", "accessory"];
-const CATEGORY_LIMIT = 10;
-const CATEGORY_TARGETS: Record<ProductRole, number> = {
-  core: 5,
-  pairing: 3,
-  accessory: 2,
-};
 const PREFIX_PRODUCT_TERMS = new Set(["exfoliat", "moistur"]);
 
 function normalized(value: string) {
@@ -141,25 +121,6 @@ function productMatches(product: YamiProduct, keyword: string) {
     direct: Boolean(phrase && haystack.includes(phrase)),
     matchedTerms,
   };
-}
-
-function productTitleMatchesTopic(product: YamiProduct, keyword: string) {
-  const title = normalized(product.title);
-  const phrase = normalized(keyword);
-  const terms = keywordTerms(keyword);
-  return Boolean(
-    phrase &&
-    (title.includes(phrase) || (terms.length > 0 && terms.every((term) => title.includes(term)))),
-  );
-}
-
-function keywordNamesBrand(products: YamiProduct[], keyword: string) {
-  const query = normalized(keyword);
-  const brandMatchCount = products.filter((product) => {
-    const brand = normalized(product.brand);
-    return brand === query || brand.includes(query) || query.includes(brand);
-  }).length;
-  return brandMatchCount >= Math.min(3, products.length);
 }
 
 function deriveProductType(product: YamiProduct) {
@@ -199,10 +160,6 @@ function selectionReason(
   product: YamiProduct,
   keyword: string,
   contextualFallback: boolean,
-  strategy: ProductSelectionStrategy,
-  role: ProductRole,
-  productType: string,
-  pool: "primary" | "related",
   language: ContentLanguage,
 ) {
   const match = productMatches(product, keyword);
@@ -225,234 +182,7 @@ function selectionReason(
       : `Related Yami result · rank #${product.sourceRank}`;
   }
 
-  if (strategy !== "category-role" || pool !== "primary") return reason;
-  const roleLabel = language === "zh"
-    ? { core: "核心", pairing: "搭配", accessory: "周边" }[role]
-    : { core: "Core", pairing: "Pairing", accessory: "Accessory" }[role];
-  return `${roleLabel}${language === "zh" ? "分类" : " category"} · ${productType} · ${reason}`;
-}
-
-function buildCategoryRoleMap(
-  products: YamiProduct[],
-  keyword: string,
-  intent?: ThemeIntent,
-) {
-  const productsByType = new Map<string, YamiProduct[]>();
-
-  products.forEach((product) => {
-    const productType = deriveProductType(product);
-    const group = productsByType.get(productType) ?? [];
-    group.push(product);
-    productsByType.set(productType, group);
-  });
-
-  const roles = new Map<string, ProductRole>();
-  const topicProductType = deriveProductType({
-    id: "topic",
-    title: keyword,
-    brand: "",
-    price: "",
-    imageUrl: "",
-    productUrl: "",
-    sourceRank: 0,
-  });
-  const isBrandTopic = keywordNamesBrand(products, keyword);
-  const hasKnownTopicType = topicProductType !== "More to Explore";
-
-  productsByType.forEach((group, productType) => {
-    const hasTitleMatch = group.some((product) =>
-      productTitleMatchesTopic(product, keyword),
-    );
-    const isCanonicalCategory = intent?.entityType === "category" &&
-      intent.canonicalEntity !== null &&
-      group.some((product) => String(product.categoryL3Id) === intent.canonicalEntity?.id);
-    roles.set(
-      productType,
-      isCanonicalCategory
-        ? "core"
-        : hasKnownTopicType && productType === topicProductType
-        ? "core"
-        : ACCESSORY_PRODUCT_TYPES.has(productType)
-          ? "accessory"
-          : PAIRING_PRODUCT_TYPES.has(productType)
-            ? "pairing"
-            : hasKnownTopicType
-              ? "pairing"
-              : isBrandTopic
-                ? productType === "More to Explore"
-                  ? "pairing"
-                  : "core"
-                : hasTitleMatch
-                  ? "core"
-                  : "pairing",
-    );
-  });
-
-  return roles;
-}
-
-function categorySelectionReason(
-  productType: string,
-  role: ProductRole,
-  products: YamiProduct[],
-  keyword: string,
-  language: ContentLanguage,
-  intent?: ThemeIntent,
-) {
-  const isCanonicalCategory = intent?.entityType === "category" &&
-    intent.canonicalEntity !== null &&
-    products.some((product) =>
-      deriveProductType(product) === productType &&
-      String(product.categoryL3Id) === intent.canonicalEntity?.id
-    );
-  if (isCanonicalCategory) {
-    return language === "zh"
-      ? "主题实体已由商品目录精确验证为此分类。"
-      : "The topic entity is verified as this exact catalog category.";
-  }
-  const topicProductType = deriveProductType({
-    id: "topic",
-    title: keyword,
-    brand: "",
-    price: "",
-    imageUrl: "",
-    productUrl: "",
-    sourceRank: 0,
-  });
-  const isDirectTopicType = topicProductType !== "More to Explore" &&
-    productType === topicProductType;
-  const isBrandTopic = keywordNamesBrand(products, keyword);
-
-  if (isDirectTopicType) {
-    return language === "zh"
-      ? "主题词直接对应此商品类型。"
-      : "The topic directly maps to this product type.";
-  }
-  if (ACCESSORY_PRODUCT_TYPES.has(productType)) {
-    return language === "zh"
-      ? "规则识别为工具或辅助用品分类。"
-      : "Rules identify this as a tool or supporting-product category.";
-  }
-  if (PAIRING_PRODUCT_TYPES.has(productType)) {
-    return language === "zh"
-      ? "规则识别为可搭配购买的食品或饮品分类。"
-      : "Rules identify this as a complementary food or drink category.";
-  }
-  if (topicProductType !== "More to Explore" && productType !== topicProductType) {
-    return language === "zh"
-      ? "商品标题包含主题词，但分类不同于核心购物意图，暂归为搭配分类。"
-      : "Titles contain the topic, but the category differs from the core shopping intent and remains pairing.";
-  }
-  if (isBrandTopic && role === "core") {
-    return language === "zh"
-      ? "关键词命中品牌，且该分类属于品牌的主要商品范围。"
-      : "The keyword names the brand and this category is part of its main assortment.";
-  }
-  if (products.some((product) =>
-    deriveProductType(product) === productType && productTitleMatchesTopic(product, keyword)
-  )) {
-    return language === "zh"
-      ? "分类中的商品标题完整覆盖主题词。"
-      : "Product titles in this category cover the complete topic phrase.";
-  }
-  return language === "zh"
-    ? "来自 Yami 搜索上下文，暂归为搭配分类，等待人工 Review。"
-    : "Inferred from Yami search context as a pairing category pending review.";
-}
-
-function selectCategories(
-  products: YamiProduct[],
-  roles: Map<string, ProductRole>,
-) {
-  const categoryFirstRank = new Map<string, number>();
-  products.forEach((product) => {
-    const productType = deriveProductType(product);
-    if (!categoryFirstRank.has(productType)) {
-      categoryFirstRank.set(productType, product.sourceRank);
-    }
-  });
-
-  const categoriesByRole = new Map(
-    ROLE_ORDER.map((role) => [
-      role,
-      [...new Set(
-        products
-          .map((product) => deriveProductType(product))
-          .filter((productType) => roles.get(productType) === role),
-      )].sort(
-        (left, right) =>
-          (categoryFirstRank.get(left) ?? Number.MAX_SAFE_INTEGER) -
-          (categoryFirstRank.get(right) ?? Number.MAX_SAFE_INTEGER),
-      ),
-    ]),
-  );
-
-  const selectedByRole = new Map<ProductRole, string[]>(
-    ROLE_ORDER.map((role) => [
-      role,
-      (categoriesByRole.get(role) ?? []).slice(0, CATEGORY_TARGETS[role]),
-    ]),
-  );
-  const selectedCount = () =>
-    ROLE_ORDER.reduce(
-      (total, role) => total + (selectedByRole.get(role)?.length ?? 0),
-      0,
-    );
-  const nextUnselected = (role: ProductRole) =>
-    (categoriesByRole.get(role) ?? [])[selectedByRole.get(role)?.length ?? 0];
-  const shortages = ROLE_ORDER.filter(
-    (role) => (selectedByRole.get(role)?.length ?? 0) < CATEGORY_TARGETS[role],
-  );
-  const fillOrder = shortages.includes("core")
-    ? (["pairing", "accessory", "core"] as ProductRole[])
-    : shortages.includes("pairing")
-      ? (["accessory", "core", "pairing"] as ProductRole[])
-      : shortages.includes("accessory")
-        ? (["core", "pairing", "accessory"] as ProductRole[])
-        : ROLE_ORDER;
-
-  while (selectedCount() < CATEGORY_LIMIT) {
-    let added = false;
-    for (const role of fillOrder) {
-      const category = nextUnselected(role);
-      if (!category) continue;
-      selectedByRole.get(role)?.push(category);
-      added = true;
-      if (selectedCount() === CATEGORY_LIMIT) break;
-    }
-    if (!added) break;
-  }
-
-  return ROLE_ORDER.flatMap((role) => selectedByRole.get(role) ?? []);
-}
-
-function selectProductsByCategory(
-  products: YamiProduct[],
-  selectedCategories: string[],
-  limit: number,
-) {
-  const productsByCategory = new Map(
-    selectedCategories.map((category) => [
-      category,
-      products.filter((product) => deriveProductType(product) === category),
-    ]),
-  );
-  const selected: YamiProduct[] = [];
-  let categoryIndex = 0;
-
-  while (selected.length < limit) {
-    let added = false;
-    selectedCategories.forEach((category) => {
-      const product = productsByCategory.get(category)?.[categoryIndex];
-      if (!product || selected.length === limit) return;
-      selected.push(product);
-      added = true;
-    });
-    if (!added) break;
-    categoryIndex += 1;
-  }
-
-  return selected;
+  return reason;
 }
 
 function buildGroups(products: TopicProduct[]): TopicGroup[] {
@@ -505,29 +235,14 @@ function createModules(
   groups: TopicGroup[],
   keyword: string,
   language: ContentLanguage,
-  strategy: ProductSelectionStrategy,
 ): TopicModulePlan[] {
-  const usesRoles = strategy === "category-role";
-  const coreProducts = primary.filter((product) => product.role === "core");
-  const pairingProducts = primary.filter((product) => product.role === "pairing");
-  const accessoryProducts = primary.filter((product) => product.role === "accessory");
-  const coreGroups = groups.filter((group) => group.role === "core").slice(0, 5);
-  const shortcutGroups = usesRoles ? coreGroups : groups.slice(0, 6);
+  const shortcutGroups = groups.slice(0, 6);
   const groupRepresentatives = shortcutGroups.flatMap((group) =>
     group.productIds.slice(0, 1),
   );
-  const startHereProducts = usesRoles
-    ? coreProducts.slice(0, 2).flatMap((product, index) => [
-        product.id,
-        pairingProducts[index]?.id,
-        accessoryProducts[index]?.id,
-      ].filter((id): id is string => Boolean(id)))
-    : groups.slice(0, 3).flatMap((group) => group.productIds.slice(0, 2));
-  const heroProducts = usesRoles && coreProducts.length > 0 ? coreProducts : primary;
-  const popularProducts = usesRoles ? coreProducts : primary;
-  const exploreMoreProducts = usesRoles
-    ? [...pairingProducts, ...accessoryProducts]
-    : primary;
+  const startHereProducts = groups.slice(0, 3).flatMap((group) =>
+    group.productIds.slice(0, 2)
+  );
   const brand = dominantBrand(primary, keyword);
   const zh = language === "zh";
   const usesCatalogCategories = primary.some((product) => product.categoryL3Name);
@@ -542,14 +257,10 @@ function createModules(
         : "One topic proposition supported by three source product images.",
       required: true,
       visible: primary.length > 0,
-      productIds: heroProducts.slice(0, 3).map((product) => product.id),
+      productIds: primary.slice(0, 3).map((product) => product.id),
       reason: zh
-        ? usesRoles
-          ? "使用最多 3 件核心角色商品；不生成虚构包装。"
-          : "使用主商品池前 3 件商品；不生成虚构包装。"
-        : usesRoles
-          ? "Uses up to three core-role products; no synthetic packaging."
-          : "Uses the first three products from PrimaryPool; no synthetic packaging.",
+        ? "使用主商品池前 3 件商品；不生成虚构包装。"
+        : "Uses the first three products from PrimaryPool; no synthetic packaging.",
     },
     {
       id: "shortcuts",
@@ -568,12 +279,8 @@ function createModules(
       reason:
         shortcutGroups.length > 1
           ? zh
-            ? usesRoles
-              ? `展示 ${shortcutGroups.length} 个核心分类的代表商品。`
-              : `展示 ${Math.min(groups.length, 6)} 个商品类型的代表商品。`
-            : usesRoles
-              ? `Shows one representative from each of ${shortcutGroups.length} core categories.`
-              : `Shows one representative from each of ${Math.min(groups.length, 6)} product types.`
+            ? `展示 ${Math.min(groups.length, 6)} 个商品类型的代表商品。`
+            : `Shows one representative from each of ${Math.min(groups.length, 6)} product types.`
           : zh
             ? "当前商品池只有一个可识别类型，因此隐藏。"
             : "Hidden because the current pool only contains one identifiable product type.",
@@ -583,27 +290,13 @@ function createModules(
       label: zh ? "从这里开始" : "Start Here",
       heading: zh ? "从这里开始" : "Start here",
       description: zh
-        ? usesRoles
-          ? "按核心、搭配、周边顺序展开两组商品组合。"
-          : "覆盖三个主要商品类型的紧凑入口。"
-        : usesRoles
-          ? "Two product groups ordered as core, pairing, and accessory."
-          : "A compact entry point across the three strongest product types.",
+        ? "覆盖三个主要商品类型的紧凑入口。"
+        : "A compact entry point across the three strongest product types.",
       required: false,
-      visible: usesRoles
-        ? coreProducts.length >= 2
-        : groups.length >= 3 && primary.length >= 6,
+      visible: groups.length >= 3 && primary.length >= 6,
       productIds: startHereProducts,
       reason:
-        usesRoles
-          ? coreProducts.length >= 2
-            ? zh
-              ? "已有 2 件核心商品；搭配或周边不足时保留空位，不伪造商品。"
-              : "Two core products are available; missing pairing or accessory slots remain empty."
-            : zh
-              ? "至少需要 2 件核心商品才会显示。"
-              : "Hidden until at least two core products are available."
-          : groups.length >= 3 && primary.length >= 6
+        groups.length >= 3 && primary.length >= 6
           ? zh
             ? "至少有 3 个类型和 6 件主商品，因此显示。"
             : "Enabled because at least three types and six primary products are available."
@@ -619,15 +312,11 @@ function createModules(
         ? "保留 Yami 搜索顺序；不展示价格，也不按价格排序。"
         : "Keeps Yami search order; price is hidden and never affects rank.",
       required: true,
-      visible: popularProducts.length >= 4,
-      productIds: popularProducts.slice(0, 8).map((product) => product.id),
+      visible: primary.length >= 4,
+      productIds: primary.slice(0, 8).map((product) => product.id),
       reason: zh
-        ? usesRoles
-          ? "只使用核心角色商品，并保留各角色内的 Yami 原始顺序。"
-          : "按 Yami 原始结果顺序使用最多 8 件主商品池商品。"
-        : usesRoles
-          ? "Uses core-role products only and preserves Yami order within the role."
-          : "Uses up to eight PrimaryPool products in original Yami result order.",
+        ? "按 Yami 原始结果顺序使用最多 8 件主商品池商品。"
+        : "Uses up to eight PrimaryPool products in original Yami result order.",
     },
     {
       id: "brand-spotlight",
@@ -668,132 +357,192 @@ function createModules(
       label: zh ? "探索更多" : "Explore More",
       heading: zh ? "探索更多" : "Explore more",
       description: zh
-        ? usesRoles
-          ? "只展示搭配和周边角色商品。"
-          : usesCatalogCategories
-            ? "完整主商品池，按 Yami 目录分类分组。"
-            : "完整主商品池，按推断的商品类型分组。"
-        : usesRoles
-          ? "Pairing- and accessory-role products only."
-          : usesCatalogCategories
-            ? "The complete PrimaryPool, grouped by Yami catalog category."
-            : "The complete PrimaryPool, grouped by inferred product type.",
+        ? usesCatalogCategories
+          ? "完整主商品池，按 Yami 目录分类分组。"
+          : "完整主商品池，按推断的商品类型分组。"
+        : usesCatalogCategories
+          ? "The complete PrimaryPool, grouped by Yami catalog category."
+          : "The complete PrimaryPool, grouped by inferred product type.",
       required: true,
-      visible: exploreMoreProducts.length > 0,
-      productIds: exploreMoreProducts.map((product) => product.id),
+      visible: primary.length > 0,
+      productIds: primary.map((product) => product.id),
       reason: zh
-        ? usesRoles
-          ? "使用主商品池中的搭配和周边商品；关联商品池不参与补位。"
-          : "仅包含主商品池；关联商品池不会填充核心模块。"
-        : usesRoles
-          ? "Uses pairing and accessory products from PrimaryPool; RelatedPool never fills gaps."
-          : "Contains PrimaryPool only; RelatedPool never fills a core module.",
+        ? "仅包含主商品池；关联商品池不会填充核心模块。"
+        : "Contains PrimaryPool only; RelatedPool never fills a core module.",
     },
   ];
 }
 
-export function buildTopicPagePlan(
+function createCategoryRoleModules(
+  products: TopicProduct[],
+  groups: TopicGroup[],
+  result: ProductSelectionResult,
+  language: ContentLanguage,
+): TopicModulePlan[] {
+  const zh = language === "zh";
+  const selectedModule = new Map(result.modules.map((module) => [module.id, module]));
+  const modulePlan = (
+    id: Extract<TopicModulePlan["id"], "start-here" | "popular-picks" | "brand-spotlight" | "explore-more">,
+    label: string,
+    heading: string,
+    description: string,
+    required: boolean,
+  ): TopicModulePlan => {
+    const productIds = selectedModule.get(id)?.productIds ?? [];
+    return {
+      id,
+      label,
+      heading,
+      description,
+      required,
+      visible: productIds.length > 0,
+      productIds,
+      reason: productIds.length > 0
+        ? zh
+          ? `商品由 ${result.strategyRef} 按 Scene → Popular → Brand → Explore 优先级分配并全局去重。`
+          : `Products were assigned by ${result.strategyRef} with Scene → Popular → Brand → Explore priority and global deduplication.`
+        : zh
+          ? "当前候选证据不足，模块不做回填。"
+          : "Hidden because candidate evidence is insufficient; no fallback products were invented.",
+    };
+  };
+  const coreProducts = products.filter(({ role }) => role === "core");
+  const coreGroups = groups.filter(({ role }) => role === "core").slice(0, 5);
+
+  return [
+    {
+      id: "hero",
+      label: zh ? "主题主视觉" : "Theme Hero",
+      heading: `${zh ? "探索" : "Explore"} ${displayKeyword(result.keyword)}`,
+      description: zh
+        ? "使用分类角色策略已验证的核心商品图。"
+        : "Uses verified core-role product imagery from the category-role selection.",
+      required: true,
+      visible: coreProducts.length > 0,
+      productIds: coreProducts.slice(0, 3).map(({ id }) => id),
+      reason: zh
+        ? "只使用核心角色商品；不生成或替换商品包装。"
+        : "Uses core-role products only; product packaging is never generated or replaced.",
+    },
+    {
+      id: "shortcuts",
+      label: zh ? "精选分类" : "Featured Categories",
+      heading: zh ? "按类型选购" : "Shop by type",
+      description: zh
+        ? "来自 Agent 已选并经 taxonomy 校验的核心分类。"
+        : "Uses Agent-selected core categories validated against the taxonomy snapshot.",
+      required: true,
+      visible: coreGroups.length > 0,
+      productIds: coreGroups.flatMap(({ productIds }) => productIds.slice(0, 1)),
+      reason: zh
+        ? `展示 ${coreGroups.length} 个核心分类的代表商品。`
+        : `Shows one representative from each of ${coreGroups.length} core categories.`,
+    },
+    modulePlan(
+      "start-here",
+      zh ? "从这里开始" : "Start Here",
+      zh ? "从这里开始" : "Start here",
+      zh ? "4–6 个场景，每个场景两组核心、搭配与周边商品。" : "Four to six scenes with two core, pairing, and accessory groups each.",
+      false,
+    ),
+    modulePlan(
+      "popular-picks",
+      zh ? "热门精选" : "Popular Picks",
+      zh ? "热门精选" : "Popular picks",
+      zh ? "前 5 个核心分类各取销量前 10，排除场景商品。" : "Takes the top ten sold products from each of the first five core categories after Scene deduplication.",
+      true,
+    ),
+    modulePlan(
+      "brand-spotlight",
+      zh ? "品牌精选" : "Brand Spotlight",
+      zh ? "品牌精选" : "Brand spotlight",
+      zh ? "按核心 3、搭配 2、周边 1 选择品牌，每品牌 3 件商品。" : "Selects brands with a 3 core, 2 pairing, and 1 accessory target and three products per brand.",
+      false,
+    ),
+    {
+      id: "reviews",
+      label: zh ? "顾客怎么说" : "Customer Reviews",
+      heading: zh ? "顾客怎么说" : "What customers say",
+      description: zh ? "评论文案必须来自已验证的评论记录。" : "Review copy requires verified review records.",
+      required: false,
+      visible: false,
+      productIds: [],
+      reason: zh ? "当前选品证据不包含评论，因此隐藏。" : "Hidden because ProductSelection evidence does not contain reviews.",
+    },
+    modulePlan(
+      "explore-more",
+      zh ? "探索更多" : "Explore More",
+      zh ? "探索更多" : "Explore more",
+      zh ? "优先使用销量 Top 200 发现池中的 3 个搭配和 2 个周边分类。" : "Prefers three pairing and two accessory categories from the sold Top 200 discovery pool.",
+      true,
+    ),
+  ];
+}
+
+export function buildTopicPagePlanFromProductSelection(
   snapshot: YamiSearchSnapshot,
-  strategy: ProductSelectionStrategy,
+  selection: ProductSelectionResult,
   language: ContentLanguage = "en",
   generationMode: TopicGenerationMode = "page",
 ): TopicPagePlan {
+  const config = getProductSelectionStrategyConfig(selection.strategyRef);
+  const strategy = config.engine;
+  if (selection.keyword !== snapshot.keyword || selection.site !== snapshot.site) {
+    throw new Error("ProductSelectionResult does not belong to this CatalogSnapshot.");
+  }
   const directProducts = snapshot.products.filter((product) => {
     const match = productMatches(product, snapshot.keyword);
     return match.direct || match.matchedTerms.length > 0;
   });
   const minimumDirectCount = Math.min(6, snapshot.products.length);
   const usesContextualFallback = strategy === "relevance" && directProducts.length < minimumDirectCount;
-  const eligiblePrimarySource = usesContextualFallback
-    ? snapshot.products.slice(0, 12)
-    : directProducts;
-  const categoryRoles = buildCategoryRoleMap(
-    snapshot.products,
-    snapshot.keyword,
-    snapshot.intent,
+  const selectedCategoryById = new Map(
+    selection.selectedCategories.map((category) => [category.id, category]),
   );
-  const selectedCategories = selectCategories(snapshot.products, categoryRoles);
-  const primarySource = strategy === "category-role"
-    ? selectProductsByCategory(snapshot.products, selectedCategories, PRIMARY_LIMIT)
-    : eligiblePrimarySource;
-  const primaryIds = new Set(
-    primarySource.slice(0, PRIMARY_LIMIT).map((product) => product.id),
-  );
-  const relatedSource = snapshot.products
-    .filter((product) => !primaryIds.has(product.id))
-    .slice(0, RELATED_LIMIT);
-
-  const primary = primarySource.slice(0, PRIMARY_LIMIT).map<TopicProduct>((product) => {
-    const productType = deriveProductType(product);
+  const topicProductById = new Map(selection.products.map((product) => {
+    const selectedCategory = selectedCategoryById.get(String(product.categoryL3Id ?? ""));
+    const productType = selectedCategory?.label ?? deriveProductType(product);
     const localizedProductType = productTypeLabel(productType, language);
-    const role = categoryRoles.get(productType) ?? "pairing";
-    return {
+    const topicProduct: TopicProduct = {
       ...product,
-      pool: "primary",
-      role,
       productType,
       productTypeLabel: localizedProductType,
-      selectionReason: selectionReason(
-        product,
-        snapshot.keyword,
-        usesContextualFallback,
-        strategy,
-        role,
-        localizedProductType,
-        "primary",
-        language,
-      ),
-    };
-  });
-  const related = relatedSource.map<TopicProduct>((product) => {
-    const productType = deriveProductType(product);
-    const localizedProductType = productTypeLabel(productType, language);
-    const role = categoryRoles.get(productType) ?? "pairing";
-    return {
-      ...product,
-      pool: "related",
-      role,
-      productType,
-      productTypeLabel: localizedProductType,
-      selectionReason: selectionReason(
-        product,
-        snapshot.keyword,
-        false,
-        strategy,
-        role,
-        localizedProductType,
-        "related",
-        language,
-      ),
-    };
-  });
-  const categorySelections = strategy === "category-role"
-    ? selectedCategories.map<TopicCategorySelection>((productType) => {
-        const role = categoryRoles.get(productType) ?? "pairing";
-        return {
-          id: slug(productType),
-          label: productTypeLabel(productType, language),
-          role,
-          source: primary.some((product) =>
-            product.productType === productType && typeof product.categoryL3Id === "number"
-          ) ? "catalog-category" : "inferred-product-type",
-          productIds: primary
-            .filter((product) => product.productType === productType)
-            .map((product) => product.id),
-          reason: categorySelectionReason(
-            productType,
-            role,
-            snapshot.products,
+      selectionReason: selectedCategory
+        ? language === "zh"
+          ? `${{ core: "核心", pairing: "搭配", accessory: "周边" }[product.role]}分类 · ${localizedProductType} · ${selectedCategory.reason}`
+          : `${{ core: "Core", pairing: "Pairing", accessory: "Accessory" }[product.role]} category · ${localizedProductType} · ${selectedCategory.reason}`
+        : selectionReason(
+            product,
             snapshot.keyword,
+            usesContextualFallback,
             language,
-            snapshot.intent,
           ),
-        };
-      })
-    : [];
+    };
+    return [product.id, topicProduct] as const;
+  }));
+  const primary = selection.pools.primaryIds.flatMap((id) => {
+    const product = topicProductById.get(id);
+    return product ? [product] : [];
+  });
+  const related = selection.pools.relatedIds.flatMap((id) => {
+    const product = topicProductById.get(id);
+    return product ? [product] : [];
+  });
+  const categorySelections = selection.selectedCategories.map<TopicCategorySelection>((category) => ({
+    id: category.id,
+    label: productTypeLabel(category.label, language),
+    role: category.role,
+    source: "catalog-category",
+    productIds: selection.products
+      .filter((product) => String(product.categoryL3Id ?? "") === category.id)
+      .map(({ id }) => id),
+    reason: category.reason,
+  }));
   const groups = buildGroups(primary);
   const modules = generationMode === "page"
-    ? createModules(primary, groups, snapshot.keyword, language, strategy)
+    ? strategy === "category-role"
+      ? createCategoryRoleModules(primary, groups, selection, language)
+      : createModules(primary, groups, snapshot.keyword, language)
     : [];
   const strategyMeta = STRATEGY_META[language][strategy];
   const siteName = language === "zh" ? "美国站" : "United States";
@@ -817,10 +566,6 @@ export function buildTopicPagePlan(
       snapshot.intent.constraints.some((constraint) => constraint.status !== "verified")
     ),
   );
-  const usesCatalogCategories = categorySelections.some(
-    (category) => category.source === "catalog-category",
-  );
-
   let status: TopicPagePlan["status"] = "ready";
   let statusReason = strategy === "category-role"
     ? language === "zh"
@@ -868,9 +613,7 @@ export function buildTopicPagePlan(
           : []),
         strategy === "relevance"
           ? "精准匹配在关键词和品牌匹配后保留 Yami 原始顺序。"
-          : usesCatalogCategories
-            ? `分类来自 Yami 商品目录；实际为 ${categoryRoleCounts.core} 个核心 / ${categoryRoleCounts.pairing} 个搭配 / ${categoryRoleCounts.accessory} 个周边，目标配比为 5:3:2。`
-            : `分类由当前商品快照推断；实际为 ${categoryRoleCounts.core} core / ${categoryRoleCounts.pairing} pairing / ${categoryRoleCounts.accessory} accessory，目标配比为 5:3:2。`,
+          : `分类来自已验证的 Yami taxonomy artifact；实际为 ${categoryRoleCounts.core} 个核心 / ${categoryRoleCounts.pairing} 个搭配 / ${categoryRoleCounts.accessory} 个周边，目标配比为 5:3:2。`,
       ]
     : [
         "Catalog is fixed to Yami United States; site is never inferred by the planner.",
@@ -884,9 +627,7 @@ export function buildTopicPagePlan(
           : []),
         strategy === "relevance"
           ? "Precise relevance preserves Yami order after keyword and brand matching."
-          : usesCatalogCategories
-            ? `Categories come from the Yami product catalog; actual coverage is ${categoryRoleCounts.core} core / ${categoryRoleCounts.pairing} pairing / ${categoryRoleCounts.accessory} accessory against a 5:3:2 target.`
-            : `Categories are inferred from the current product snapshot; actual coverage is ${categoryRoleCounts.core} core / ${categoryRoleCounts.pairing} pairing / ${categoryRoleCounts.accessory} accessory against a 5:3:2 target.`,
+          : `Categories come from a validated Yami taxonomy artifact; actual coverage is ${categoryRoleCounts.core} core / ${categoryRoleCounts.pairing} pairing / ${categoryRoleCounts.accessory} accessory against a 5:3:2 target.`,
       ];
   if (usesContextualFallback) {
     qualityNotes.push(
@@ -994,6 +735,32 @@ export function buildTopicPagePlan(
   };
 }
 
+export function buildTopicPagePlan(
+  snapshot: YamiSearchSnapshot,
+  strategy: ProductSelectionStrategy,
+  language: ContentLanguage = "en",
+  generationMode: TopicGenerationMode = "page",
+): TopicPagePlan {
+  if (strategy === "category-role") {
+    throw new Error(
+      "Category-role PagePlan requires a validated ProductSelectionResult; legacy category inference is disabled.",
+    );
+  }
+  const run = advanceProductSelectionRun({
+    snapshot,
+    strategyRef: "relevance/default@1",
+  });
+  if (run.status !== "ready") {
+    throw new Error("Relevance ProductSelection did not produce a ready result.");
+  }
+  return buildTopicPagePlanFromProductSelection(
+    snapshot,
+    run.result,
+    language,
+    generationMode,
+  );
+}
+
 export function buildTopicPagePlans(
   snapshot: YamiSearchSnapshot,
   language: ContentLanguage = "en",
@@ -1001,7 +768,6 @@ export function buildTopicPagePlans(
 ): TopicPlanVariants {
   return {
     relevance: buildTopicPagePlan(snapshot, "relevance", language, generationMode),
-    "category-role": buildTopicPagePlan(snapshot, "category-role", language, generationMode),
   };
 }
 

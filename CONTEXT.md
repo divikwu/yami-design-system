@@ -22,8 +22,36 @@ _Avoid_: Live catalog, search response
 The validated contract that states the topic entity, shopping goal, constraints, reason, and confidence supported by a CatalogSnapshot. One ThemeIntent is the semantic input to page planning.
 _Avoid_: Semantic Proposal, route decision
 
+**SelectionStrategyConfig**:
+A versioned, immutable configuration that names one ProductSelection engine and its deterministic retrieval, quota, allocation, and deduplication rules. Callers reference it by `<id>@<version>` and do not copy its implementation.
+_Avoid_: Agent prompt, UI option label
+
+**CatalogTaxonomySnapshot**:
+A digest-bearing artifact containing the complete catalog hierarchy available to a category-role run, including each category's `parentId`, level, path, aliases, and enabled state. It is supplied through an approved Adapter or imported artifact and cannot be inferred from search products.
+_Avoid_: ThemeIntent categories, search aggregation
+
+**CategoryRoleProposal**:
+An untrusted Product Agent proposal assigning 10 taxonomy categories to `core`, `pairing`, or `accessory`. The ProductSelection Module validates IDs, taxonomy digest, reasons, uniqueness, core-to-accessory order, parent-child overlap, and allowed role distribution before product retrieval.
+_Avoid_: Selected products, final category facts
+
+**CatalogCandidateSnapshot**:
+An immutable, digest-bearing record of the per-category and discovery-pool product queries used by a category-role run. It contains normalized products and Adapter attempts but no Agent-selected scenes.
+_Avoid_: CatalogSnapshot, ProductSelectionResult
+
+**SceneProposal**:
+An untrusted Product Agent proposal of 4–6 shopping scenes bound to one CatalogCandidateSnapshot digest. Product IDs must exist in the candidate evidence and occupy their validated category roles.
+_Avoid_: Page module allocation, generated page copy
+
+**ProductSelectionRun**:
+The resumable state-machine response for one SelectionStrategyConfig. It is `blocked`, requests the next proposal or snapshot, or is `ready` with a ProductSelectionResult.
+_Avoid_: Background job, hidden Agent state
+
+**ProductSelectionResult**:
+The ready, deterministic selection output containing selected categories, products, pools, scenes, and module assignments. PagePlan consumes it without re-selecting or reclassifying products.
+_Avoid_: Candidate snapshot, PagePlan
+
 **PrimaryPool**:
-The products that directly satisfy the ThemeIntent and anchor the generated page.
+The products selected for use by PagePlan modules. Category roles do not map to pool names; core, pairing, and accessory products may all belong to PrimaryPool after deterministic allocation.
 _Avoid_: Main results, selected products
 
 **RelatedPool**:
@@ -31,7 +59,7 @@ The evidence-backed products that complement the PrimaryPool without replacing t
 _Avoid_: Recommendations, secondary results
 
 **PagePlan**:
-The deterministic selection of pools, product roles, content, and module visibility for one language and selection strategy. Many PagePlans may be derived from one ThemeIntent and CatalogSnapshot.
+The deterministic presentation plan compiled from one ready ProductSelectionResult for a language. It may add content and module visibility metadata, but it does not select, reclassify, or deduplicate products.
 _Avoid_: Page, template route
 
 **PageGenerationSpec**:

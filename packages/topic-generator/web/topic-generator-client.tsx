@@ -18,6 +18,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import type { FormEvent, ReactNode } from "react";
 import { useMemo, useRef, useState } from "react";
 import type {
+  CategoryRoleRuntimeEvidence,
   ContentLanguage,
   ProductSelectionStrategy,
   TopicGenerationMode,
@@ -26,6 +27,7 @@ import type {
   TopicPlanMatrix,
   TopicProduct,
 } from "../src/types";
+import type { ProductSelectionRun } from "../src/product-selection/contracts";
 import {
   SegmentedControl,
   WorkbenchButton,
@@ -39,6 +41,7 @@ import styles from "./topic-generator.module.css";
 
 type ResultView = "preview" | "pools" | "workflow" | "analysis" | "rules";
 type WorkflowMode = "diagram" | "details";
+type SelectionRuns = Partial<Record<ProductSelectionStrategy, ProductSelectionRun>>;
 
 interface GeneratorError {
   message: string;
@@ -72,7 +75,6 @@ const STRATEGY_OPTIONS = {
     { value: "category-role", label: "分类角色" },
   ],
 } as const;
-
 function evidenceLevelLabel(plan: TopicPagePlan, uiLanguage: ContentLanguage) {
   const labels = uiLanguage === "zh"
     ? { high: "高证据", medium: "中证据", low: "低证据" }
@@ -175,7 +177,7 @@ const PREVIEW_COPY = {
     selecting: (keyword: string) => `Selecting products for “${keyword}”`,
     loadingSteps: [
       "Searching the Yami United States catalog",
-      "Freezing one candidate snapshot for both strategies",
+      "Running the selected versioned product strategy",
       "Assigning products to eligible modules",
       "Composing copy and page preview",
     ],
@@ -197,7 +199,7 @@ const PREVIEW_COPY = {
     selecting: (keyword: string) => `正在为“${keyword}”选品`,
     loadingSteps: [
       "搜索 Yami 美国站商品目录",
-      "为两套策略冻结同一候选快照",
+      "执行所选的版本化选品策略",
       "将商品分配给符合条件的模块",
       "生成文案与页面预览",
     ],
@@ -223,13 +225,7 @@ const PREVIEW_COPY = {
   sourceLink: string;
 }>;
 
-function ProductCard({
-  product,
-  showReason = false,
-}: {
-  product: TopicProduct;
-  showReason?: boolean;
-}) {
+function ProductCard({ product }: { product: TopicProduct }) {
   return (
     <a
       className={styles.productCard}
@@ -250,9 +246,6 @@ function ProductCard({
       <span className={styles.productMeta}>
         <span className={styles.productBrand}>{product.brand}</span>
         <strong>{product.title}</strong>
-        {showReason && (
-          <span className={styles.selectionReason}>{product.selectionReason}</span>
-        )}
       </span>
     </a>
   );
@@ -303,12 +296,30 @@ function LoadingState({
   keyword,
   language,
   mode,
+  strategy,
 }: {
   keyword: string;
   language: ContentLanguage;
   mode: TopicGenerationMode;
+  strategy: ProductSelectionStrategy;
 }) {
   const copy = PREVIEW_COPY[language];
+  const categoryRoleSteps = language === "zh"
+    ? [
+        "加载并校验完整分类目录",
+        "请求 Product Agent 提交分类角色提案",
+        "执行 10 次分类检索和 1 次发现检索",
+        "请求 Product Agent 提交购物场景提案",
+        "确定性分配模块并执行全局去重",
+      ]
+    : [
+        "Load and validate the complete taxonomy",
+        "Request the category-role proposal from the Product Agent",
+        "Run ten category queries and one discovery query",
+        "Request the shopping-scene proposal from the Product Agent",
+        "Allocate modules and deduplicate deterministically",
+      ];
+  const steps = strategy === "category-role" ? categoryRoleSteps : copy.loadingSteps;
 
   return (
     <section className={styles.loadingState} aria-live="polite">
@@ -316,12 +327,133 @@ function LoadingState({
       <span className={styles.kicker}>{copy.running}</span>
       <h2>{mode === "selection" ? copy.selecting(keyword) : copy.building(keyword)}</h2>
       <ol>
-        {copy.loadingSteps.slice(0, mode === "selection" ? 3 : undefined).map((step, index) => (
+        {steps.slice(0, mode === "selection" ? 4 : undefined).map((step, index) => (
           <li key={step}>
             <span>{String(index + 1).padStart(2, "0")}</span> {step}
           </li>
         ))}
       </ol>
+    </section>
+  );
+}
+
+const CATEGORY_RUNTIME_STAGE_LABELS = {
+  en: {
+    taxonomy: "Taxonomy",
+    "category-proposal": "Category proposal",
+    "candidate-retrieval": "Candidate retrieval",
+    "scene-proposal": "Scene proposal",
+    selection: "Selection result",
+  },
+  zh: {
+    taxonomy: "分类目录",
+    "category-proposal": "分类角色提案",
+    "candidate-retrieval": "候选商品召回",
+    "scene-proposal": "购物场景提案",
+    selection: "选品结果",
+  },
+} as const;
+
+function CategoryRoleRuntimePanel({
+  evidence,
+  language,
+}: {
+  evidence: CategoryRoleRuntimeEvidence;
+  language: ContentLanguage;
+}) {
+  const zh = language === "zh";
+  const statusLabel = (status: CategoryRoleRuntimeEvidence["stages"][number]["status"]) =>
+    status === "completed"
+      ? zh ? "已完成" : "Completed"
+      : status === "blocked"
+        ? zh ? "已阻止" : "Blocked"
+        : zh ? "等待中" : "Pending";
+  return (
+    <section
+      className={styles.categoryRuntime}
+      aria-label={zh ? "分类角色运行证据" : "Category-role runtime evidence"}
+    >
+      <header>
+        <div>
+          <span>ProductSelection Runtime</span>
+          <h4>{zh ? "本次分类角色运行" : "Category-role run"}</h4>
+        </div>
+        <strong>
+          {evidence.mode === "automatic"
+            ? zh ? "自动 Agent" : "Automatic Agent"
+            : zh ? "可恢复运行" : "Resumable run"}
+        </strong>
+      </header>
+      <dl className={styles.categoryRuntimeFacts}>
+        <div>
+          <dt>Taxonomy</dt>
+          <dd>{evidence.taxonomy.status === "ready"
+            ? zh
+              ? `${evidence.taxonomy.categoryCount} 个分类`
+              : `${evidence.taxonomy.categoryCount} categories`
+            : zh ? "未配置" : "Not configured"}</dd>
+        </div>
+        <div>
+          <dt>Agent</dt>
+          <dd>{evidence.agent.status === "ready"
+            ? evidence.agent.id
+            : zh ? "未配置" : "Not configured"}</dd>
+        </div>
+        <div>
+          <dt>{zh ? "目录请求" : "Catalog requests"}</dt>
+          <dd>{evidence.candidateAttempts
+            ? `${evidence.candidateAttempts.succeeded} / ${evidence.candidateAttempts.total}`
+            : "—"}</dd>
+        </div>
+        <div>
+          <dt>{zh ? "角色配比" : "Role distribution"}</dt>
+          <dd>{evidence.categoryRoleDistribution
+            ? `${evidence.categoryRoleDistribution.core} : ${evidence.categoryRoleDistribution.pairing} : ${evidence.categoryRoleDistribution.accessory}`
+            : "—"}</dd>
+        </div>
+      </dl>
+      <ol className={styles.categoryRuntimeStages}>
+        {evidence.stages.map((stage, index) => (
+          <li key={stage.id} data-status={stage.status}>
+            <span>{String(index + 1).padStart(2, "0")}</span>
+            <strong>{CATEGORY_RUNTIME_STAGE_LABELS[language][stage.id]}</strong>
+            <small>{statusLabel(stage.status)}</small>
+          </li>
+        ))}
+      </ol>
+      {evidence.candidateQuality && (
+        <div
+          className={styles.categoryRuntimeQuality}
+          data-status={evidence.candidateQuality.status}
+        >
+          <strong>
+            {zh ? "候选质量" : "Candidate quality"}：{
+              evidence.candidateQuality.status === "ok"
+                ? zh ? "正常" : "OK"
+                : evidence.candidateQuality.status === "warning"
+                  ? zh ? "需复核" : "Needs review"
+                  : zh ? "异常" : "Error"
+            }
+          </strong>
+          <span>
+            {zh
+              ? `${evidence.candidateQuality.issueCount} 项问题 · ${evidence.candidateQuality.lowCoverageCategories} 个低覆盖分类`
+              : `${evidence.candidateQuality.issueCount} issues · ${evidence.candidateQuality.lowCoverageCategories} low-coverage categories`}
+          </span>
+        </div>
+      )}
+      {evidence.candidateQuality && evidence.candidateQuality.warnings.length > 0 && (
+        <ul className={styles.categoryRuntimeWarnings}>
+          {evidence.candidateQuality.warnings.map((warning) => (
+            <li key={warning}>{warning}</li>
+          ))}
+        </ul>
+      )}
+      {evidence.issues.length > 0 && (
+        <ul className={styles.categoryRuntimeIssues}>
+          {evidence.issues.map((issue) => <li key={issue}>{issue}</li>)}
+        </ul>
+      )}
     </section>
   );
 }
@@ -347,6 +479,34 @@ function ErrorState({
       )}
     </section>
   );
+}
+
+function selectionRunError(
+  run: ProductSelectionRun | undefined,
+  language: ContentLanguage,
+): GeneratorError | null {
+  if (!run || run.status === "ready") return null;
+  if (run.status === "blocked") return { message: run.issues.join(" ") };
+  const zh = language === "zh";
+  if (run.status === "needs-category-proposal") {
+    return {
+      message: zh
+        ? "taxonomy 已验证，等待 Product Agent 提交 CategoryRoleProposal。"
+        : "The taxonomy is verified; a CategoryRoleProposal from the Product Agent is required.",
+    };
+  }
+  if (run.status === "needs-candidate-snapshot") {
+    return {
+      message: zh
+        ? "分类提案已通过，等待目录适配器生成 CatalogCandidateSnapshot。"
+        : "The category proposal is accepted; a CatalogCandidateSnapshot is required.",
+    };
+  }
+  return {
+    message: zh
+      ? "候选商品已冻结，等待 Product Agent 提交 SceneProposal。"
+      : "Candidate products are frozen; a SceneProposal from the Product Agent is required.",
+  };
 }
 
 function PreviewView({ plan }: { plan: TopicPagePlan }) {
@@ -499,29 +659,46 @@ function PoolsView({
   const primaryDescription = plan.selectionStrategy.id === "category-role"
     ? zh ? "按分类角色选择，用于模块分配" : "selected by category role for module assignment"
     : zh ? "可用于核心模块" : "eligible for core modules";
+  const relatedSelectionReason = zh
+    ? "未进入主商品池的 Yami 相关候选，保留原始搜索顺序。"
+    : "Related Yami candidates outside the primary pool, preserving original search order.";
 
   return (
     <div className={styles.poolView}>
       <section>
         <header className={styles.viewHeading}>
-          <div><span>03 · {zh ? "商品池" : "Product pool"}</span><h3>{zh ? "主商品池" : "PrimaryPool"}</h3></div>
+          <div>
+            <span>03 · {zh ? "商品池" : "Product pool"}</span>
+            <h3>{zh ? "主商品池" : "PrimaryPool"}</h3>
+            <p className={styles.poolSelectionReason}>
+              <strong>{zh ? "选品依据" : "Selection rationale"}</strong>
+              {plan.selectionStrategy.description}
+            </p>
+          </div>
           <p>{productCountLabel(primary.length, uiLanguage)} · {primaryDescription}</p>
         </header>
         <div className={styles.poolGrid}>
           {primary.map((product) => (
-            <ProductCard key={product.id} product={product} showReason />
+            <ProductCard key={product.id} product={product} />
           ))}
         </div>
       </section>
       <section>
         <header className={styles.viewHeading}>
-          <div><span>{zh ? "仅作回退" : "Fallback only"}</span><h3>{zh ? "相关商品池" : "RelatedPool"}</h3></div>
+          <div>
+            <span>{zh ? "仅作回退" : "Fallback only"}</span>
+            <h3>{zh ? "相关商品池" : "RelatedPool"}</h3>
+            <p className={styles.poolSelectionReason}>
+              <strong>{zh ? "选品依据" : "Selection rationale"}</strong>
+              {relatedSelectionReason}
+            </p>
+          </div>
           <p>{productCountLabel(related.length, uiLanguage)} · {zh ? "不用于填充核心模块" : "never used to fill core modules"}</p>
         </header>
         {related.length > 0 ? (
           <div className={styles.poolGrid}>
             {related.map((product) => (
-              <ProductCard key={product.id} product={product} showReason />
+              <ProductCard key={product.id} product={product} />
             ))}
           </div>
         ) : (
@@ -537,9 +714,11 @@ function PoolsView({
 function WorkflowView({
   uiLanguage,
   plan,
+  categoryRoleRuntime,
 }: {
   uiLanguage: ContentLanguage;
   plan: TopicPagePlan | null;
+  categoryRoleRuntime: CategoryRoleRuntimeEvidence | null;
 }) {
   const isChinese = uiLanguage === "zh";
   const displayIntent = plan
@@ -713,6 +892,12 @@ function WorkflowView({
             : "Stage-gated with local rollback. This is the target contract, not proof that every MVP runner is connected."}
         </p>
       </div>
+      {categoryRoleRuntime && (
+        <CategoryRoleRuntimePanel
+          evidence={categoryRoleRuntime}
+          language={uiLanguage}
+        />
+      )}
       <div
         className={styles.workflowModeTabs}
         role="tablist"
@@ -937,8 +1122,8 @@ function WorkflowView({
           <div className={styles.intentHelpBody}>
             <p id="intent-help-description" className={styles.intentHelpIntro}>
               {isChinese
-                ? "当前实现把语义建议与商品事实分开：Codex 或 Kiro 产品 Agent 只为歧义主题词提交可选 SemanticProposal；CatalogSnapshot 记录 Yami 目录证据；TopicIntent Module 逐字段接受或拒绝提案。独立 Web Host 默认不运行模型，也不需要模型密钥。"
-                : "The implementation separates semantic suggestions from product facts: a Codex or Kiro product Agent may submit an optional SemanticProposal only for ambiguous topics; CatalogSnapshot records Yami evidence; the TopicIntent Module accepts or rejects proposal fields. The standalone Web Host runs no model and needs no model key by default."}
+                ? "当前实现把语义建议与商品事实分开：Product Agent 只提交受限语义提案；CatalogSnapshot 记录 Yami 目录证据；确定性 Module 逐字段接受或拒绝提案。Web Host 通过服务端配置调用外部 Agent，不向浏览器暴露令牌。"
+                : "The implementation separates semantic suggestions from product facts: a Product Agent submits only bounded semantic proposals; CatalogSnapshot records Yami evidence; deterministic Modules accept or reject proposal fields. The Web Host calls an external Agent through server-only configuration without exposing its token to the browser."}
             </p>
             <section className={styles.intentHelpSection}>
               <span>01</span>
@@ -947,7 +1132,7 @@ function WorkflowView({
                 <li>{isChinese ? "读取用户关键词；当前只去除首尾空格，并校验长度为 2–80 个字符。" : "Read the user's keyword; currently only trim surrounding whitespace and validate a length of 2–80 characters."}</li>
                 <li>{isChinese ? "销售站点固定为美国站 site=us；当前运行不推断 locale 或 currency。" : "Fix the sales site to site=us; the current run does not infer locale or currency."}</li>
                 <li>{isChinese ? "先调用结构化目录 Adapter 读取 brandAgg、categoryAgg、tagAgg 与可售商品；失败后才使用公开搜索 Adapter，并保存每次尝试。" : "Try the structured catalog Adapter for brandAgg, categoryAgg, tagAgg, and available products first; use the public-search Adapter only after failure and retain every attempt."}</li>
-                <li>{isChinese ? "Codex/Kiro CLI 可为歧义词附加 semantic-proposal/v1；Web 默认不附加 Agent 提案。" : "Codex/Kiro CLI may attach semantic-proposal/v1 for an ambiguous phrase; Web attaches no Agent proposal by default."}</li>
+                <li>{isChinese ? "Codex/Kiro CLI 可为歧义词附加 semantic-proposal/v1；分类角色策略可由 Web Host 的外部 Product Agent 自动提交两类受限提案。" : "Codex/Kiro CLI may attach semantic-proposal/v1 for an ambiguous phrase; the Web Host's external Product Agent may automatically submit the two bounded category-role proposals."}</li>
               </ul>
             </section>
             <section className={styles.intentHelpSection}>
@@ -1191,12 +1376,8 @@ function RulesView({
             </div>
             <p>
               {zh
-                ? plan.selectedCategories.some((category) => category.source === "catalog-category")
-                  ? "使用 Yami 真实商品目录分类；目标配比为 5 core / 3 pairing / 2 accessory。"
-                  : "由当前商品快照推断；目标配比为 5 core / 3 pairing / 2 accessory。"
-                : plan.selectedCategories.some((category) => category.source === "catalog-category")
-                  ? "Uses real Yami catalog categories against a 5:3:2 role target."
-                  : "Inferred from the current product snapshot against a 5:3:2 role target."}
+                ? "使用经 taxonomy artifact 验证的 Yami 目录分类；目标配比为 5 core / 3 pairing / 2 accessory。"
+                : "Uses Yami catalog categories validated against the taxonomy artifact and a 5:3:2 role target."}
             </p>
           </header>
           <div className={styles.decisionList}>
@@ -1255,11 +1436,15 @@ export function TopicGenerator() {
   const [uiLanguage, setUiLanguage] = useState<ContentLanguage>("zh");
   const [strategy, setStrategy] = useState<ProductSelectionStrategy>("relevance");
   const [plans, setPlans] = useState<TopicPlanMatrix | null>(null);
+  const [selectionRuns, setSelectionRuns] = useState<SelectionRuns | null>(null);
+  const [categoryRoleRuntime, setCategoryRoleRuntime] =
+    useState<CategoryRoleRuntimeEvidence | null>(null);
   const [view, setView] = useState<ResultView>("preview");
   const [activeMode, setActiveMode] = useState<TopicGenerationMode>("page");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<GeneratorError | null>(null);
   const plan = plans?.[uiLanguage]?.[strategy] ?? null;
+  const runError = selectionRunError(selectionRuns?.[strategy], uiLanguage);
   const copy = UI_COPY[uiLanguage];
   const targetLocale = resultLocaleLabel(uiLanguage);
   const strategyLabel = STRATEGY_OPTIONS[uiLanguage].find(
@@ -1273,16 +1458,23 @@ export function TopicGenerator() {
     setActiveMode(mode);
     setLoading(true);
     setError(null);
+    setCategoryRoleRuntime(null);
     setView(mode === "selection" ? "pools" : "preview");
 
     try {
       const response = await fetch("/api/topic-generator", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ keyword: normalizedKeyword, mode }),
+        body: JSON.stringify({
+          keyword: normalizedKeyword,
+          mode,
+          strategy,
+        }),
       });
       const payload = (await response.json()) as {
         plans?: TopicPlanMatrix;
+        selectionRuns?: SelectionRuns;
+        runtime?: { categoryRole?: CategoryRoleRuntimeEvidence };
         error?: GeneratorError;
       };
 
@@ -1291,6 +1483,8 @@ export function TopicGenerator() {
       }
 
       setPlans(payload.plans);
+      setSelectionRuns(payload.selectionRuns ?? null);
+      setCategoryRoleRuntime(payload.runtime?.categoryRole ?? null);
       setView(mode === "selection" ? "pools" : "preview");
     } catch (caught) {
       const generatorError = caught as GeneratorError;
@@ -1430,7 +1624,8 @@ export function TopicGenerator() {
                   key={tab}
                   type="button"
                   disabled={
-                    (tab !== "workflow" && (!plan || loading)) ||
+                    (tab !== "workflow" && tab !== "preview" && !plan) ||
+                    (tab !== "workflow" && loading) ||
                     (plan?.generationMode === "selection" && (tab === "preview" || tab === "rules"))
                   }
                   aria-current={view === tab ? "page" : undefined}
@@ -1455,7 +1650,11 @@ export function TopicGenerator() {
               <div className={styles.frameViewport}>
                 {view === "workflow" ? (
                   <div className={`${styles.resultBody} ${styles.workflowResultBody}`}>
-                    <WorkflowView uiLanguage={uiLanguage} plan={plan} />
+                    <WorkflowView
+                      uiLanguage={uiLanguage}
+                      plan={plan}
+                      categoryRoleRuntime={categoryRoleRuntime}
+                    />
                   </div>
                 ) : view === "analysis" && plan && !loading ? (
                   <TopicAnalysisView plan={plan} uiLanguage={uiLanguage} />
@@ -1464,9 +1663,10 @@ export function TopicGenerator() {
                     keyword={keyword.trim()}
                     language={uiLanguage}
                     mode={activeMode}
+                    strategy={strategy}
                   />
-                ) : error ? (
-                  <ErrorState error={error} language={uiLanguage} />
+                ) : error || runError ? (
+                  <ErrorState error={error ?? runError!} language={uiLanguage} />
                 ) : !plan ? (
                   <EmptyState language={uiLanguage} />
                 ) : (

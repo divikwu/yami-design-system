@@ -1,0 +1,4 @@
+interface:
+  display_name: "Product Selection"
+  short_description: "Run evidence-backed, versioned product selection"
+  default_prompt: "Use $product-selection to select Yami products with a versioned strategy and reviewable evidence."

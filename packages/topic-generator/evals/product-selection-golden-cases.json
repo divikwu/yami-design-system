@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "product-selection-golden-cases/v1",
+  "defaults": {
+    "strategyRef": "category-role/landing-page-agent@1",
+    "expected": {
+      "categoryRoleDistribution": { "core": 5, "pairing": 3, "accessory": 2 },
+      "candidateAttempts": { "total": 11, "succeeded": 11 },
+      "maximumQualityStatus": "warning",
+      "scenes": { "minimum": 4, "maximum": 6, "groupsPerScene": 2 },
+      "moduleGroups": {
+        "popular-picks": {
+          "minimum": 5,
+          "maximum": 5,
+          "productsPerGroup": { "minimum": 1, "maximum": 10 }
+        },
+        "brand-spotlight": {
+          "minimum": 6,
+          "maximum": 6,
+          "productsPerGroup": { "minimum": 3, "maximum": 3 }
+        },
+        "explore-more": {
+          "minimum": 5,
+          "maximum": 5,
+          "productsPerGroup": { "minimum": 1, "maximum": 18 }
+        }
+      },
+      "relatedPoolSize": 0,
+      "maximumCrossModuleDuplicates": 0
+    }
+  },
+  "cases": [
+    {
+      "id": "category-role-anua",
+      "keyword": "ANUA",
+      "themeKind": "brand",
+      "description": "Exact beauty brand boundary without pinning live catalog product IDs."
+    },
+    {
+      "id": "category-role-cosrx",
+      "keyword": "COSRX",
+      "themeKind": "brand",
+      "description": "Second beauty brand boundary across the shared category-role strategy."
+    },
+    {
+      "id": "category-role-matcha",
+      "keyword": "Matcha",
+      "themeKind": "category",
+      "description": "Matcha CategoryRole invariants aligned with LandingPageAgent without pinning live catalog product IDs."
+    },
+    {
+      "id": "category-role-ramen",
+      "keyword": "Ramen",
+      "themeKind": "category",
+      "description": "Food category boundary with core, pairing, and accessory roles."
+    },
+    {
+      "id": "category-role-sunscreen",
+      "keyword": "Sunscreen",
+      "themeKind": "category",
+      "description": "Beauty category boundary with stable allocation invariants."
+    },
+    {
+      "id": "category-role-hot-pot",
+      "keyword": "Hot Pot",
+      "themeKind": "scenario",
+      "description": "Meal scenario boundary spanning ingredients, pairings, and accessories."
+    },
+    {
+      "id": "category-role-home-storage",
+      "keyword": "Home Storage",
+      "themeKind": "scenario",
+      "description": "Home organization scenario boundary across multiple catalog branches."
+    },
+    {
+      "id": "category-role-laundry-day",
+      "keyword": "Laundry Day",
+      "themeKind": "scenario",
+      "description": "Household replenishment scenario boundary with role diversity."
+    }
+  ]
+}

@@ -19,7 +19,15 @@
   },
   "integrations": {
     "codexSkill": "integrations/codex/topic-intent/SKILL.md",
-    "kiroAgent": "integrations/kiro/topic-generator.json"
+    "codexSkills": [
+      "integrations/codex/topic-intent/SKILL.md",
+      "integrations/codex/product-selection/SKILL.md"
+    ],
+    "kiroAgent": "integrations/kiro/topic-generator.json",
+    "productAgentModes": {
+      "current": ["codex-skill", "kiro-skill"],
+      "future": ["http-adapter"]
+    }
   },
   "providers": [
     {
@@ -37,6 +45,16 @@
     "semanticProposal": "semantic-proposal/v1",
     "themeIntent": "theme-intent/v2",
     "catalogSnapshot": "catalog-snapshot/v1",
+    "catalogTaxonomySnapshot": "catalog-taxonomy-snapshot/v1",
+    "categoryRoleProposal": "category-role-proposal/v1",
+    "catalogCandidateSnapshot": "catalog-candidate-snapshot/v1",
+    "catalogCandidateQualityReport": "catalog-candidate-quality-report/v1",
+    "sceneProposal": "scene-proposal/v1",
+    "productSelectionRun": "product-selection-run/v1",
+    "productSelectionResult": "product-selection-result/v1",
+    "productSelectionGoldenEvaluation": "product-selection-golden-evaluation/v1",
+    "productSelectionHandoffTask": "product-selection-handoff-task/v1",
+    "productSelectionHandoffResponse": "product-selection-handoff-response/v1",
     "pagePlans": "page-plans/v1",
     "runArtifact": "topic-generator-run/v1"
   },

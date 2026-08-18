@@ -2,7 +2,7 @@
   "name": "@yami/topic-generator",
   "version": "0.3.0",
   "private": true,
-  "description": "Portable TOPIC GENERATOR product with intent analysis, Yami catalog retrieval, CLI, and Web UI",
+  "description": "Portable TOPIC GENERATOR with intent analysis, versioned product selection, Yami catalog adapters, CLI, and Web UI",
   "type": "module",
   "exports": {
     ".": {

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { readFile } from "node:fs/promises";
 import {
   buildTopicIntentReport,
   parseTopicGeneratorCliArgs,
@@ -9,6 +10,37 @@ import { handleTopicGeneratorPost } from "../src/server.js";
 import type { CatalogSnapshotAdapter } from "../src/catalog-snapshot.js";
 
 describe("TOPIC GENERATOR portable entry points", () => {
+  it("shares one ProductSelection Skill with the restricted Kiro Agent", async () => {
+    const integrationRoot = new URL("../integrations/", import.meta.url);
+    const skill = await readFile(
+      new URL("codex/product-selection/SKILL.md", integrationRoot),
+      "utf8",
+    );
+    const kiroAgent = JSON.parse(await readFile(
+      new URL("kiro/topic-generator.json", integrationRoot),
+      "utf8",
+    )) as {
+      tools: string[];
+      allowedTools: string[];
+      resources: string[];
+      permissions: { rules: Array<Record<string, unknown>> };
+    };
+
+    expect(skill).toContain(
+      "description: This skill should be used when the user asks to",
+    );
+    expect(kiroAgent.resources).toContain(
+      "skill://.kiro/skills/product-selection/SKILL.md",
+    );
+    expect(kiroAgent.tools).toEqual(["read", "write", "shell"]);
+    expect(kiroAgent.allowedTools).toEqual(["read"]);
+    expect(kiroAgent.permissions.rules).toContainEqual({
+      capability: "shell",
+      match: ["pnpm topic-generator:analyze *"],
+      effect: "allow",
+    });
+  });
+
   it("accepts either an explicit or positional keyword", () => {
     expect(parseTopicGeneratorCliArgs([
       "--keyword",
@@ -24,9 +56,41 @@ describe("TOPIC GENERATOR portable entry points", () => {
       pretty: true,
       proposalPath: "proposal.json",
       outputDir: "runs",
+      selectionStrategy: "",
+      taxonomyPath: "",
+      taxonomyTsvPath: "",
+      categoryProposalPath: "",
+      candidateSnapshotPath: "",
+      sceneProposalPath: "",
     });
     expect(parseTopicGeneratorCliArgs(["home", "storage"]).keyword).toBe("home storage");
     expect(parseTopicGeneratorCliArgs(["--", "--help"]).help).toBe(true);
+  });
+
+  it("accepts versioned ProductSelection inputs without changing the default CLI", () => {
+    expect(parseTopicGeneratorCliArgs([
+      "Matcha",
+      "--selection-strategy", "category-role/landing-page-agent@1",
+      "--taxonomy-tsv", "taxonomy.tsv",
+      "--category-proposal", "categories.json",
+      "--candidate-snapshot", "candidates.json",
+      "--scene-proposal", "scenes.json",
+    ])).toMatchObject({
+      keyword: "Matcha",
+      selectionStrategy: "category-role/landing-page-agent@1",
+      taxonomyTsvPath: "taxonomy.tsv",
+      categoryProposalPath: "categories.json",
+      candidateSnapshotPath: "candidates.json",
+      sceneProposalPath: "scenes.json",
+    });
+  });
+
+  it("does not accept both canonical JSON and source TSV taxonomy inputs", () => {
+    expect(() => parseTopicGeneratorCliArgs([
+      "Matcha",
+      "--taxonomy", "taxonomy.json",
+      "--taxonomy-tsv", "taxonomy.tsv",
+    ])).toThrow("Choose either --taxonomy or --taxonomy-tsv");
   });
 
   it("resolves proposal and output paths from the caller workspace", () => {
@@ -188,6 +252,54 @@ describe("TOPIC GENERATOR portable entry points", () => {
             assetStrategy: { mode: "not-generated" },
           },
         },
+      },
+    });
+  });
+
+  it("reports category-role as blocked instead of inferring categories from search results", async () => {
+    const adapters: CatalogSnapshotAdapter[] = [{
+      id: "fixture",
+      load: async () => ({
+        keyword: "Matcha",
+        site: "us",
+        sourceUrl: "https://example.com/search?q=Matcha",
+        fetchedAt: "2026-08-18T00:00:00.000Z",
+        provider: "yami-catalog-search",
+        products: ["1", "2", "3"].map((id, index) => ({
+          id,
+          title: `Matcha product ${id}`,
+          brand: "Matcha",
+          price: "$1.00",
+          imageUrl: `https://example.com/${id}.webp`,
+          productUrl: `https://example.com/${id}`,
+          sourceRank: index + 1,
+        })),
+        evidence: {
+          brands: [{ id: "matcha", label: "Matcha", aliases: ["Matcha"], resultCount: 3 }],
+          categories: [],
+          attributes: [],
+        },
+      }),
+    }];
+    const response = await handleTopicGeneratorPost(
+      new Request("http://localhost/api/topic-generator", {
+        method: "POST",
+        body: JSON.stringify({ keyword: "Matcha", strategy: "category-role" }),
+      }),
+      { adapters },
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      selectionRuns: {
+        "category-role": {
+          status: "blocked",
+          strategyRef: "category-role/landing-page-agent@1",
+          issues: ["CategoryRole selection requires a CatalogTaxonomySnapshot."],
+        },
+      },
+      plans: {
+        en: { relevance: { selectionStrategy: { id: "relevance" } } },
       },
     });
   });

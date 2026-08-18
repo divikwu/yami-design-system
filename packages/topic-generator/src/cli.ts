@@ -3,16 +3,27 @@
 /** Command-line adapter for the portable TOPIC GENERATOR package. */
 
 import { pathToFileURL } from "node:url";
-import { readFile } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import { resolve } from "node:path";
 import { analyzeTopicIntent, type TopicIntentAnalysis } from "./analyze.js";
-import { buildTopicPagePlanMatrix } from "./planner.js";
+import {
+  buildTopicPagePlanFromProductSelection,
+  buildTopicPagePlanMatrix,
+} from "./planner.js";
+import {
+  parseCatalogCandidateSnapshot,
+  parseCatalogTaxonomySnapshot,
+  createLandingPageAgentTaxonomySnapshot,
+  runProductSelectionWorkflow,
+  type ProductSelectionStrategyRef,
+} from "./product-selection/index.js";
 import {
   buildTopicGeneratorRunArtifacts,
   writeTopicGeneratorRunArtifacts,
   type TopicGeneratorRunManifest,
 } from "./run-artifact.js";
 import { parseSemanticProposal } from "./topic-intent.js";
+import { yamiCatalogCandidateAdapter } from "./yami-catalog.js";
 
 export interface TopicGeneratorCliOptions {
   help: boolean;
@@ -20,6 +31,12 @@ export interface TopicGeneratorCliOptions {
   pretty: boolean;
   proposalPath: string;
   outputDir: string;
+  selectionStrategy: ProductSelectionStrategyRef | "";
+  taxonomyPath: string;
+  taxonomyTsvPath: string;
+  categoryProposalPath: string;
+  candidateSnapshotPath: string;
+  sceneProposalPath: string;
 }
 
 export class TopicGeneratorCliError extends Error {
@@ -36,10 +53,18 @@ Analyze a keyword with live Yami catalog evidence.
 Usage:
   topic-generator --keyword "ANUA" [--pretty]
   topic-generator "home storage" [--proposal proposal.json] [--output runs]
+  topic-generator "Matcha" --selection-strategy category-role/landing-page-agent@1 \
+    --taxonomy taxonomy.json --category-proposal categories.json
 
 Options:
   -k, --keyword   Keyword to analyze
   --proposal      Optional semantic-proposal/v1 JSON from the product Agent
+  --selection-strategy  Versioned ProductSelection config ref
+  --taxonomy            CatalogTaxonomySnapshot JSON for category-role
+  --taxonomy-tsv        LandingPageAgent category TSV; imported and digest-bound
+  --category-proposal   CategoryRoleProposal JSON from the product Agent
+  --candidate-snapshot  CatalogCandidateSnapshot JSON from a previous run
+  --scene-proposal      SceneProposal JSON from the product Agent
   -o, --output    Explicit directory for versioned Run Artifacts
   --pretty        Pretty-print the JSON result
   -h, --help      Show this help`;
@@ -51,6 +76,12 @@ export function parseTopicGeneratorCliArgs(args: string[]): TopicGeneratorCliOpt
   let help = false;
   let proposalPath = "";
   let outputDir = "";
+  let selectionStrategy: ProductSelectionStrategyRef | "" = "";
+  let taxonomyPath = "";
+  let taxonomyTsvPath = "";
+  let categoryProposalPath = "";
+  let candidateSnapshotPath = "";
+  let sceneProposalPath = "";
 
   for (let index = 0; index < args.length; index += 1) {
     const argument = args[index];
@@ -67,13 +98,30 @@ export function parseTopicGeneratorCliArgs(args: string[]): TopicGeneratorCliOpt
       }
       keyword = value;
       index += 1;
-    } else if (argument === "--proposal" || argument === "-o" || argument === "--output") {
+    } else if ([
+      "--proposal",
+      "-o",
+      "--output",
+      "--selection-strategy",
+      "--taxonomy",
+      "--taxonomy-tsv",
+      "--category-proposal",
+      "--candidate-snapshot",
+      "--scene-proposal",
+    ].includes(argument)) {
       const value = args[index + 1];
       if (!value || value.startsWith("-")) {
         throw new TopicGeneratorCliError(`${argument} requires a path.`);
       }
       if (argument === "--proposal") proposalPath = value;
-      else outputDir = value;
+      else if (argument === "-o" || argument === "--output") outputDir = value;
+      else if (argument === "--selection-strategy") {
+        selectionStrategy = value as ProductSelectionStrategyRef;
+      } else if (argument === "--taxonomy") taxonomyPath = value;
+      else if (argument === "--taxonomy-tsv") taxonomyTsvPath = value;
+      else if (argument === "--category-proposal") categoryProposalPath = value;
+      else if (argument === "--candidate-snapshot") candidateSnapshotPath = value;
+      else if (argument === "--scene-proposal") sceneProposalPath = value;
       index += 1;
     } else if (argument.startsWith("-")) {
       throw new TopicGeneratorCliError(`Unknown option: ${argument}`);
@@ -83,27 +131,38 @@ export function parseTopicGeneratorCliArgs(args: string[]): TopicGeneratorCliOpt
   }
 
   if (!keyword) keyword = positional.join(" ");
+  if (taxonomyPath && taxonomyTsvPath) {
+    throw new TopicGeneratorCliError("Choose either --taxonomy or --taxonomy-tsv.");
+  }
   return {
     help,
     keyword: keyword.trim(),
     pretty,
     proposalPath,
     outputDir,
+    selectionStrategy,
+    taxonomyPath,
+    taxonomyTsvPath,
+    categoryProposalPath,
+    candidateSnapshotPath,
+    sceneProposalPath,
   };
 }
 
-export async function loadSemanticProposal(path: string) {
-  let value: unknown;
+async function loadJsonFile(path: string, label: string) {
   try {
-    value = JSON.parse(await readFile(path, "utf8"));
+    return JSON.parse(await readFile(path, "utf8")) as unknown;
   } catch (error) {
     throw new TopicGeneratorCliError(
       error instanceof SyntaxError
-        ? `Semantic Proposal is not valid JSON: ${path}`
-        : `Semantic Proposal could not be read: ${path}`,
+        ? `${label} is not valid JSON: ${path}`
+        : `${label} could not be read: ${path}`,
     );
   }
-  return parseSemanticProposal(value);
+}
+
+export async function loadSemanticProposal(path: string) {
+  return parseSemanticProposal(await loadJsonFile(path, "Semantic Proposal"));
 }
 
 export function resolveTopicGeneratorPath(path: string, baseDirectory: string) {
@@ -161,11 +220,78 @@ export async function runTopicGeneratorCli(args = process.argv.slice(2)) {
         )
       : undefined;
     const analysis = await analyzeTopicIntent(options.keyword, { semanticProposal });
+    const resolveInputPath = (path: string) =>
+      resolveTopicGeneratorPath(path, callerDirectory);
+    const taxonomySnapshot = options.taxonomyPath
+      ? parseCatalogTaxonomySnapshot(await loadJsonFile(
+          resolveInputPath(options.taxonomyPath),
+          "CatalogTaxonomySnapshot",
+        ))
+      : options.taxonomyTsvPath
+        ? await (async () => {
+            const taxonomyPath = resolveInputPath(options.taxonomyTsvPath);
+            try {
+              const [tsv, fileStat] = await Promise.all([
+                readFile(taxonomyPath, "utf8"),
+                stat(taxonomyPath),
+              ]);
+              return createLandingPageAgentTaxonomySnapshot({
+                site: "us",
+                sourceRef: options.taxonomyTsvPath,
+                fetchedAt: fileStat.mtime.toISOString(),
+                tsv,
+              });
+            } catch (error) {
+              throw new TopicGeneratorCliError(
+                error instanceof Error
+                  ? `LandingPageAgent taxonomy could not be imported: ${error.message}`
+                  : `LandingPageAgent taxonomy could not be imported: ${taxonomyPath}`,
+              );
+            }
+          })()
+      : undefined;
+    const categoryRoleProposal = options.categoryProposalPath
+      ? await loadJsonFile(resolveInputPath(options.categoryProposalPath), "CategoryRoleProposal")
+      : undefined;
+    const candidateSnapshot = options.candidateSnapshotPath
+      ? parseCatalogCandidateSnapshot(await loadJsonFile(
+          resolveInputPath(options.candidateSnapshotPath),
+          "CatalogCandidateSnapshot",
+        ))
+      : undefined;
+    const sceneProposal = options.sceneProposalPath
+      ? await loadJsonFile(resolveInputPath(options.sceneProposalPath), "SceneProposal")
+      : undefined;
+    const productSelection = options.selectionStrategy
+      ? await runProductSelectionWorkflow({
+          snapshot: analysis.snapshot,
+          strategyRef: options.selectionStrategy,
+          taxonomySnapshot,
+          categoryRoleProposal,
+          candidateSnapshot,
+          sceneProposal,
+          candidateAdapter: yamiCatalogCandidateAdapter,
+        })
+      : undefined;
+    const pagePlans = buildTopicPagePlanMatrix(analysis.snapshot);
+    if (productSelection?.run.status === "ready" &&
+        productSelection.run.result.strategyRef.startsWith("category-role/")) {
+      pagePlans.en["category-role"] = buildTopicPagePlanFromProductSelection(
+        analysis.snapshot,
+        productSelection.run.result,
+        "en",
+      );
+      pagePlans.zh["category-role"] = buildTopicPagePlanFromProductSelection(
+        analysis.snapshot,
+        productSelection.run.result,
+        "zh",
+      );
+    }
     let runArtifact: { directory: string; manifest: TopicGeneratorRunManifest } | undefined;
     if (options.outputDir) {
       const artifacts = buildTopicGeneratorRunArtifacts(
         analysis,
-        buildTopicPagePlanMatrix(analysis.snapshot),
+        pagePlans,
       );
       runArtifact = {
         directory: await writeTopicGeneratorRunArtifacts(
@@ -175,7 +301,16 @@ export async function runTopicGeneratorCli(args = process.argv.slice(2)) {
         manifest: artifacts.manifest,
       };
     }
-    const report = buildTopicIntentReport(analysis, runArtifact);
+    const report = {
+      ...buildTopicIntentReport(analysis, runArtifact),
+      ...(productSelection ? {
+        productSelection: {
+          run: productSelection.run,
+          artifacts: productSelection.artifacts,
+        },
+        ...(productSelection.run.status === "ready" ? { pagePlans } : {}),
+      } : {}),
+    };
     process.stdout.write(`${JSON.stringify(report, null, options.pretty ? 2 : 0)}\n`);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Keyword analysis failed.";

@@ -1199,6 +1199,25 @@
   text-align: right;
 }
 
+.poolSelectionReason {
+  display: flex;
+  max-width: 640px;
+  align-items: baseline;
+  gap: 8px;
+  margin: 10px 0 0;
+  color: var(--text-secondary);
+  font-size: var(--font-size-caption-sm);
+  line-height: var(--line-height-caption-sm);
+}
+
+.poolSelectionReason strong {
+  flex: none;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: inherit;
+  font-weight: var(--font-weight-semibold);
+}
+
 .shortcutGrid {
   display: grid;
   gap: 8px;
@@ -1324,18 +1343,6 @@
   -webkit-line-clamp: 2;
 }
 
-.selectionReason {
-  min-height: 34px;
-  margin-top: 4px;
-  padding: 6px;
-  border-left: 2px solid var(--button-emphasis);
-  background: var(--surface-secondary);
-  color: var(--text-secondary);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-caption-sm);
-  line-height: var(--line-height-caption-sm);
-}
-
 .brandModule { background: #191919; color: #fff; }
 .brandModule .moduleHeading p { color: #aaa; }
 .brandModule .productBrand { color: var(--color-neutral-400); }
@@ -1400,6 +1407,131 @@
 .workflowHeader {
   margin-bottom: 0;
   padding: 24px;
+}
+
+.categoryRuntime {
+  display: grid;
+  gap: 16px;
+  padding: 24px;
+  border-block: 1px solid var(--border-default);
+  background: var(--surface-secondary);
+}
+
+.categoryRuntime > header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.categoryRuntime > header span,
+.categoryRuntime dt,
+.categoryRuntimeStages span,
+.categoryRuntimeStages small {
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-caption-sm);
+  line-height: var(--line-height-caption-sm);
+}
+
+.categoryRuntime h4 {
+  margin: 4px 0 0;
+  font-size: var(--font-size-heading-sm);
+  line-height: var(--line-height-heading-sm);
+}
+
+.categoryRuntime > header > strong {
+  padding: 5px 8px;
+  border: 1px solid #267544;
+  color: #267544;
+  font-size: var(--font-size-caption-sm);
+  line-height: var(--line-height-caption-sm);
+}
+
+.categoryRuntimeFacts,
+.categoryRuntimeStages {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.categoryRuntimeFacts > div {
+  display: grid;
+  padding: 10px 12px;
+  border: 1px solid var(--border-default);
+  gap: 4px;
+}
+
+.categoryRuntimeFacts > div + div { border-left: 0; }
+
+.categoryRuntimeFacts dd {
+  margin: 0;
+  overflow: hidden;
+  font-size: var(--font-size-body-md);
+  line-height: var(--line-height-body-md);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.categoryRuntimeStages {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  list-style: none;
+}
+
+.categoryRuntimeStages li {
+  display: grid;
+  min-width: 0;
+  padding: 10px 12px;
+  border-top: 2px solid var(--border-default);
+  gap: 4px;
+}
+
+.categoryRuntimeStages li[data-status="completed"] { border-color: #267544; }
+.categoryRuntimeStages li[data-status="blocked"] { border-color: var(--color-red-600); }
+
+.categoryRuntimeStages strong {
+  overflow: hidden;
+  font-size: var(--font-size-caption-md);
+  line-height: var(--line-height-caption-md);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.categoryRuntimeIssues {
+  margin: 0;
+  padding: 10px 12px 10px 28px;
+  border-left: 3px solid var(--color-red-600);
+  background: var(--surface-primary);
+  color: var(--text-secondary);
+  font-size: var(--font-size-caption-sm);
+  line-height: var(--line-height-caption-sm);
+}
+
+.categoryRuntimeQuality {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-left: 3px solid #267544;
+  background: var(--surface-primary);
+  gap: 12px;
+  font-size: var(--font-size-caption-sm);
+  line-height: var(--line-height-caption-sm);
+}
+
+.categoryRuntimeQuality[data-status="warning"] { border-color: #a85f00; }
+.categoryRuntimeQuality[data-status="error"] { border-color: var(--color-red-600); }
+.categoryRuntimeQuality span { color: var(--text-secondary); }
+
+.categoryRuntimeWarnings {
+  margin: 0;
+  padding: 0 12px 10px 28px;
+  border-left: 3px solid #a85f00;
+  background: var(--surface-primary);
+  color: var(--text-secondary);
+  font-size: var(--font-size-caption-sm);
+  line-height: var(--line-height-caption-sm);
 }
 
 .workflowContent {
@@ -2282,6 +2414,11 @@
   .analysisCatalogMeter { grid-column: 2 / -1; }
   .workflowHeader,
   .workflowContent { padding: 18px; }
+  .categoryRuntime { padding: 18px; }
+  .categoryRuntime > header { align-items: flex-start; flex-direction: column; }
+  .categoryRuntimeFacts { grid-template-columns: 1fr 1fr; }
+  .categoryRuntimeFacts > div + div { border-left: 1px solid var(--border-default); }
+  .categoryRuntimeStages { grid-template-columns: 1fr; }
   .workflowModeTabs { padding: 0 18px; }
   .workflowDiagramPanel { padding: 24px 18px 32px; }
   .workflowDiagramNode {
