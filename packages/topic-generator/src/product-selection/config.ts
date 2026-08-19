@@ -16,6 +16,12 @@ export interface ProductSelectionStrategyConfigBase {
 
 export interface RelevanceStrategyConfig extends ProductSelectionStrategyConfigBase {
   engine: "relevance";
+  themeCollections?: {
+    minimumThemes: number;
+    maximumThemes: number;
+    minimumProducts: number;
+    maximumProducts: number;
+  };
 }
 
 export interface CategoryRoleStrategyConfig extends ProductSelectionStrategyConfigBase {
@@ -75,6 +81,25 @@ const RELEVANCE_DEFAULT = {
   },
 } as const satisfies RelevanceStrategyConfig;
 
+const RELEVANCE_INTENT_THEMES = {
+  schemaVersion: "product-selection-strategy/v1",
+  ref: "relevance/intent-themes@2",
+  id: "relevance/intent-themes",
+  version: 2,
+  engine: "relevance",
+  label: { en: "Intent-backed themes", zh: "意图主题匹配" },
+  description: {
+    en: "Builds two to six catalog-backed themes from ThemeIntent while preserving Yami order within each theme.",
+    zh: "使用 ThemeIntent 构建 2–6 个目录证据主题，并保留每个主题内的 Yami 顺序。",
+  },
+  themeCollections: {
+    minimumThemes: 2,
+    maximumThemes: 6,
+    minimumProducts: 4,
+    maximumProducts: 8,
+  },
+} as const satisfies RelevanceStrategyConfig;
+
 const CATEGORY_ROLE_LANDING_PAGE_AGENT = {
   schemaVersion: "product-selection-strategy/v1",
   ref: "category-role/landing-page-agent@1",
@@ -129,6 +154,7 @@ const CATEGORY_ROLE_LANDING_PAGE_AGENT = {
 
 const BUILT_IN_CONFIGS: readonly ProductSelectionStrategyConfig[] = [
   RELEVANCE_DEFAULT,
+  RELEVANCE_INTENT_THEMES,
   CATEGORY_ROLE_LANDING_PAGE_AGENT,
 ];
 

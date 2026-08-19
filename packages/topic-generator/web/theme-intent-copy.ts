@@ -31,7 +31,7 @@ export function themeIntentDisplayCopy(
     0,
   );
   const shoppingGoal = intent.shoppingIntent === "browse-brand"
-    ? `浏览并比较 Yami 上可售的 ${entity} 商品。`
+    ? `浏览 Yami 上可售的 ${entity} 商品。`
     : intent.shoppingIntent === "find-product"
       ? intent.entityType === "category"
         ? `在 Yami 上查找并比较与“${keyword}”匹配的商品。`
@@ -44,7 +44,10 @@ export function themeIntentDisplayCopy(
   if (intent.source === "search-fallback") {
     reason = "结构化目录接口不可用，本次结果使用公开搜索页证据，需要人工复核。";
   } else if (intent.entityType === "brand") {
-    reason = `关键词精确命中目录品牌；本次目录快照中有 ${evidenceCount} 件可售商品作为证据。`;
+    const categoryCoverage = intent.categories.length > 0
+      ? `，覆盖 ${intent.categories.length} 个候选品类`
+      : "";
+    reason = `关键词精确命中 Yami 品牌目录。当前目录快照包含 ${evidenceCount} 件可售商品${categoryCoverage}；商品数表示本次检索覆盖，不代表品牌全量商品数。`;
   } else if (intent.entityType === "category") {
     reason = intent.decision.evidenceLevel === "high"
       ? "关键词精确命中已启用的目录品类，并在商品结果中得到验证。"

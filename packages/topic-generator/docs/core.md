@@ -47,18 +47,21 @@ if (pageTask.status === "ready") {
 }
 ```
 
-`loadCatalogSnapshot` 是商品来源 Seam。默认依次尝试结构化 Yami Adapter 与公开搜索 Adapter，并返回完整 `attempts`。Yami 接口和公开网页都可能在空搜索时展示通用推荐：结构化普通拉丁商品查询会按标题、品牌与商品分类字段过滤，网页 fallback 会按标题和品牌过滤；没有任何相关商品时返回 `no_products`，不能用推荐商品填充页面。两个 Adapter 都按商品 ID 稳定去重，并通过 `snapshot.quality` 暴露观测、接收、拒绝、截断数量以及字段缺失、不可售、重复和关键词不匹配原因。聚合返回的 `resultCount` 保留为来源检索规模，`productCount` 则始终按最终去重和过滤后的 Snapshot 商品池计算。中文与场景查询继续由目录别名、属性和场景证据规则解释，避免用英文标题字面匹配误删跨语言证据。
+`loadCatalogSnapshot` 是商品来源 Seam。默认依次尝试结构化 Yami Adapter 与公开搜索 Adapter，并返回完整 `attempts`。首轮结构化搜索只负责取得聚合证据并解析 ThemeIntent；精确品牌通过公开品牌页读取全部分页，生成独立 `catalogCoverage`，保留销售方、库存状态和来源提供的周销量标签。覆盖层按自营/第三方与在售/缺货形成四组，并按周销量数值下限降序；同档位保持 Yami 原始顺序，没有周销量的商品排在有数据商品之后。只有在售商品进入 Snapshot 与 ProductSelection，缺货商品只用于审计。品牌页加载失败时才回退到按销量排序的结构化 `brand_ids` 分页。非品牌主题按已验证分类读取全部分页，再以实体、分类和排除条件过滤。4–8 件只约束后续页面主题展示，不截断 Snapshot 或主商品池。Yami 接口和公开网页都可能在空搜索时展示通用推荐：结构化普通拉丁商品查询会按标题、品牌与商品分类字段过滤，网页 fallback 会按标题和品牌过滤；没有任何相关商品时返回 `no_products`，不能用推荐商品填充页面。两个 Adapter 都按商品 ID 稳定去重，并通过 `snapshot.quality` 暴露观测、接收、拒绝、截断数量以及字段缺失、不可售、重复和关键词不匹配原因。聚合返回的 `resultCount` 保留为来源检索规模，`productCount` 则始终按最终去重和过滤后的 Snapshot 商品池计算。中文与场景查询继续由目录别名、属性和场景证据规则解释，避免用英文标题字面匹配误删跨语言证据。
 
 `resolveTopicIntent` 是深层语义 Module。它先生成目录规则基线，再对可选 `SemanticProposal` 做字段级证据校验；不受支持的 Agent 结论不会进入 ThemeIntent。
 
 确定性基线使用版本化中英目录等价词归一化用户表达（例如“爽肤水”与目录 `Toners`），并把未被目录证据覆盖的剩余词保留为 `unverified` 条件。多个分类共享 `Drinks` 等通用别名时，当前 CatalogSnapshot 的商品覆盖量优先于分类名称长度。未验证的核心实体或修饰词会使非场景基线进入 `needs-review`；已识别场景可以完成主题解释，但场景条件仍单独保持 `unverified`，供后续商品详情验证。场景证据分为两级：分类路径、中英文别名或商品分类字段命中核心词/有效上下文词时属于功能性支持，至少两个功能性分类才可自动确认；仅商品标题或品牌命中时属于主题性线索，只保留低证据场景候选并进入复核。`summer`、`winter`、`small` 等通用修饰词不能单独成为分类证据。场景词首次检索覆盖过低时，Adapter 会尝试可审阅的收窄检索词，最终实际使用的词记录在 `snapshot.retrievalTerms`。
 
-`analyzeTopicIntent` 组合这些 Interface。它先生成目录基线；精确品牌或品类直接结束，场景主题
-或仍需复核的主题才读取 `BackgroundEvidence`，并且只有基线仍需复核且多个真实分类有证据时才调用可选
-`TopicIntentAgent`。语义提案和目录候选使用同一排序与差值规则；提案未拉开候选差距时继续返回
-`ambiguous`，不能以 Agent 结论绕过更强目录证据。Agent 失败或返回无效提案时保留需复核的目录基线，不让非必需 AI 阻断
-整次分析。返回值包含 `intent`、商品证据 `snapshot`、`fallbackUsed`、`attempts`、
-`proposalReview` 与 `backgroundEvidence`；HTTP Host 将这份完整证据原样提供给 Workbench。
+精确分类只保留该分类节点及其后代所覆盖的商品分类；标题中碰巧出现关键词的其他目录分支
+不能进入 ThemeIntent 或后续主题召回。品牌和场景仍可按各自证据规则覆盖多个分类。
+
+`analyzeTopicIntent` 组合这些 Interface。它先生成目录基线，再按已确认的核心实体补充分类分页
+证据。第二阶段可以更新商品数量和分类证据，但精确品牌或分类的核心身份被冻结；若补充证据
+与核心身份冲突，结果进入 `needs-review`，不会静默改判。调用方可以显式提供
+`SemanticProposal`，但当前运行路径没有自动 `TopicIntentAgent` 或 `BackgroundEvidence`
+Adapter。返回值包含 `intent`、商品证据 `snapshot`、`fallbackUsed`、`attempts` 与
+`proposalReview`；HTTP Host 将这份完整证据原样提供给 Workbench。
 
 `advanceLandingPageOrchestrationRun` 是受约束的编排 Interface。它先返回版本化页面类型、选品
 策略与模板注册表，只接受一个 `landing-page-execution-plan-proposal/v1`。确定性核心会拒绝

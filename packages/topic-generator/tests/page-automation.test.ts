@@ -92,7 +92,7 @@ function workflowFixture(options: {
   };
   const selection: ProductSelectionResult = {
     schemaVersion: "product-selection-result/v1",
-    strategyRef: "relevance/default@1",
+    strategyRef: "relevance/intent-themes@2",
     keyword: "Matcha",
     site: "us",
     selectedAt: "2026-08-18T00:00:00.000Z",
@@ -136,10 +136,10 @@ function workflowFixture(options: {
       themeIntentDigest: orchestrationTask.context.themeIntentDigest,
       requestedPageTypeRef: null,
       requestedSelectionStrategyRef: selection.strategyRef,
-      pageTypeRef: "landing-page/topic@1",
+      pageTypeRef: "landing-page/topic@2",
       selectionStrategyRef: selection.strategyRef,
-      templateRef: "topic-landing/relevance@1",
-      reason: "Use the registered relevance route for a product topic.",
+      templateRef: "topic-landing/topic-relevance@1",
+      reason: "Use the active intent-theme relevance route for a product topic.",
     },
   });
   if (orchestration.status !== "ready") throw new Error("Expected ready execution plan.");
@@ -161,7 +161,7 @@ function workflowFixture(options: {
       modules: [
         { id: "hero", visible: true, shoppingGoal: "Introduce matcha", reason: "Strongest match.", scenes: [], assignments: [{ productId: "matcha-1" }] },
         { id: "shortcuts", visible: true, shoppingGoal: "Open matcha", reason: "Direct entry.", scenes: [], assignments: [repeat("matcha-1")] },
-        { id: "start-here", visible: false, shoppingGoal: "", reason: "Relevance has no verified scenes.", scenes: [], assignments: [] },
+        { id: "start-here", visible: true, shoppingGoal: "Help shoppers begin with matcha", reason: "The frozen result supports a compact entry point without invented scenes.", scenes: [], assignments: [repeat("matcha-1")] },
         { id: "popular-picks", visible: true, shoppingGoal: "Show the best match", reason: "Frozen rank one.", scenes: [], assignments: [repeat("matcha-1")] },
         { id: "brand-spotlight", visible: false, shoppingGoal: "", reason: "One item cannot support a brand rail.", scenes: [], assignments: [] },
         { id: "reviews", visible: false, shoppingGoal: "", reason: "No verified reviews.", scenes: [], assignments: [] },
@@ -195,6 +195,8 @@ function workflowFixture(options: {
                 title: copy("快速探索"),
                 items: task.assignments.map(({ slotId }) => ({ slotId, label: copy("抹茶") })),
               }
+            : task.moduleId === "start-here"
+              ? { title: copy("从这里开始"), scenes: [] }
             : task.moduleId === "explore-more"
               ? { title: copy("探索更多"), description: copy("继续发现相关商品。") }
               : { title: copy("热门精选") },
@@ -336,6 +338,9 @@ describe("Topic page automation workflow", () => {
     });
     expect(data.put).toHaveBeenCalledTimes(2);
     expect(data.persisted.size).toBe(2);
+    expect(result.generationSpec?.modules.find(({ id }) => id === "start-here")).toMatchObject({
+      scenes: [],
+    });
   });
 
   it("carries the requested visual production mode through the full automation workflow", async () => {

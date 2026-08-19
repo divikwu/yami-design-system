@@ -144,12 +144,12 @@ export function TopicAnalysisView({
     >
       <header className={styles.analysisHeader}>
         <div>
-          <span>{zh ? "关键词分析&购物预测" : "Keyword analysis & shopping prediction"}</span>
+          <span>{zh ? "主题词理解与购物意图" : "Topic understanding & shopping intent"}</span>
           <h2 id="topic-analysis-title">{plan.keyword}</h2>
           <p>
             {zh
-              ? `把“${plan.keyword}”拆解为目录实体、购物动作和检索条件，并展示可核验依据。`
-              : `Break “${plan.keyword}” into a catalog entity, shopper action, and retrieval conditions with reviewable evidence.`}
+              ? `将“${plan.keyword}”解析为可核验的目录实体、购物动作和检索条件。`
+              : `Interpret “${plan.keyword}” as a reviewable catalog entity, shopper action, and set of retrieval conditions.`}
           </p>
         </div>
         <div className={styles.analysisConfidence}>
@@ -292,7 +292,7 @@ export function TopicAnalysisView({
             <dd><AnalysisValueList values={intent.searchTerms} emptyLabel={emptyLabel} /></dd>
           </div>
           <div>
-            <dt>{zh ? "目录范围" : "Catalog scope"}</dt>
+            <dt>{zh ? "当前快照覆盖分类" : "Current snapshot categories"}</dt>
             <dd><AnalysisValueList values={intent.needs} emptyLabel={emptyLabel} /></dd>
           </div>
           <div>
@@ -309,8 +309,8 @@ export function TopicAnalysisView({
             <h3>{zh ? "目录证据" : "Catalog evidence"}</h3>
             <p>
               {zh
-                ? `${intent.categories.length} 个候选品类；条形长度表示首轮目录快照中的商品覆盖量。`
-                : `${intent.categories.length} candidate categories; bar length represents product coverage in the first catalog snapshot.`}
+                ? `${intent.categories.length} 个候选品类；条形长度仅表示首轮目录快照中的商品覆盖量，不代表分类总量或最终商品分配。`
+                : `${intent.categories.length} candidate categories; bar length shows product coverage only in the first catalog snapshot, not total category size or final product allocation.`}
             </p>
           </div>
         </header>

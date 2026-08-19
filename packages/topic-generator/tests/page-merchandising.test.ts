@@ -3,6 +3,8 @@ import { describe, expect, it, vi } from "vitest";
 import {
   advancePageMerchandisingRun,
   compileTopicPagePlanV2,
+  getLandingPageTypeConfig,
+  getPageMerchandisingTemplateConfig,
   listPageMerchandisingTemplateConfigs,
   productSelectionDigest,
   runPageMerchandisingAgentWorkflow,
@@ -263,16 +265,48 @@ function validProposal(
 }
 
 describe("PageMerchandising", () => {
-  it("maps the maintained Brand, Topic, and Campaign page variants", () => {
+  it("maps maintained category-role and page-specific relevance variants", () => {
     expect(listPageMerchandisingTemplateConfigs().map(({ ref }) => ref)).toEqual([
       "topic-landing/brand@2",
       "topic-landing/topic@2",
       "topic-landing/campaign@2",
-      "topic-landing/relevance@1",
+      "topic-landing/brand-relevance@1",
+      "topic-landing/topic-relevance@1",
+      "topic-landing/campaign-relevance@1",
     ]);
   });
 
-  it("offers a relevance template that does not invent missing shopping scenes", () => {
+  it("routes each maintained page type to an evidence-safe relevance template", () => {
+    const cases = [
+      ["landing-page/brand@2", "topic-landing/brand-relevance@1", 0],
+      ["landing-page/topic@2", "topic-landing/topic-relevance@1", 12],
+      ["landing-page/campaign@2", "topic-landing/campaign-relevance@1", 12],
+    ] as const;
+
+    cases.forEach(([pageTypeRef, templateRef, brandMaximumProducts]) => {
+      const route = getLandingPageTypeConfig(pageTypeRef).routes.find(
+        ({ selectionStrategyRef }) => selectionStrategyRef === "relevance/intent-themes@2",
+      );
+      expect(route?.templateRef).toBe(templateRef);
+
+      const template = getPageMerchandisingTemplateConfig(templateRef);
+      expect(template.modules.find(({ id }) => id === "start-here")).toMatchObject({
+        required: true,
+        minimumProducts: 1,
+        maximumProducts: 8,
+        assetTaskMode: "none",
+      });
+      expect(template.modules.find(({ id }) => id === "brand-spotlight")).toMatchObject({
+        maximumProducts: brandMaximumProducts,
+      });
+      expect(template.modules.find(({ id }) => id === "reviews")).toMatchObject({
+        required: false,
+        maximumProducts: 0,
+      });
+    });
+  });
+
+  it("offers relevance Start Here without inventing missing shopping scenes", () => {
     const selection = selectionFixture();
     selection.strategyRef = "relevance/default@1";
     selection.selectedCategories = [];
@@ -282,20 +316,53 @@ describe("PageMerchandising", () => {
     const run = advancePageMerchandisingRun({
       intent: themeIntentFixture(),
       selection,
-      templateRef: "topic-landing/relevance@1",
+      templateRef: "topic-landing/topic-relevance@1",
     });
 
     expect(run).toMatchObject({
       status: "needs-module-proposal",
       context: {
-        templateRef: "topic-landing/relevance@1",
+        templateRef: "topic-landing/topic-relevance@1",
         sourceScenes: [],
         moduleRules: expect.arrayContaining([
-          expect.objectContaining({ id: "start-here", required: false, maximumProducts: 0 }),
+          expect.objectContaining({
+            id: "start-here",
+            required: true,
+            minimumProducts: 1,
+            maximumProducts: 8,
+          }),
           expect.objectContaining({ id: "explore-more", allowedRoles: ["core", "pairing", "accessory"] }),
         ]),
       },
     });
+  });
+
+  it("compiles relevance Brand with Start Here and without unsupported Reviews", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    selection.strategyRef = "relevance/default@1";
+    selection.selectedCategories = [];
+    selection.scenes = [];
+    selection.modules = [];
+    const proposal = validProposal(selection, intent, "topic-landing/brand-relevance@1");
+    const startHere = proposal.modules.find(({ id }) => id === "start-here")!;
+    startHere.scenes = [];
+    startHere.assignments = [{ productId: "core-1" }];
+
+    const plan = compileTopicPagePlanV2(intent, selection, proposal);
+
+    expect(plan.modules.filter(({ visible }) => visible).map(({ id }) => id)).toEqual([
+      "hero",
+      "shortcuts",
+      "start-here",
+      "popular-picks",
+      "explore-more",
+    ]);
+    expect(plan.modules.find(({ id }) => id === "start-here")).toMatchObject({
+      scenes: [],
+      assignments: [expect.objectContaining({ productId: "core-1" })],
+    });
+    expect(plan.modules.find(({ id }) => id === "reviews")).toMatchObject({ visible: false });
   });
 
   it("compiles an accepted proposal into a stable, task-addressable PagePlan v2", () => {

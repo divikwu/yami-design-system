@@ -87,11 +87,11 @@ digests, workflow order, and downstream execution.
 
 ### CatalogSnapshot Seam
 
-`loadCatalogSnapshot(keyword, { adapters })` normalizes product and intent evidence. The default order is structured Yami catalog followed by public Yami search, and every attempt is retained.
+`loadCatalogSnapshot(keyword, { adapters })` normalizes product and intent evidence. The default order is structured Yami catalog followed by public Yami search, and every attempt is retained. For the active relevance strategy, the first structured response is discovery evidence: ThemeIntent reads its category, brand, tag, and paging metadata, then the server fetches the resolved categories independently and follows their real page metadata until each candidate theme has enough products or is exhausted. Exact category intents restrict this expansion to the canonical category branch; keyword matches from unrelated branches remain outside ThemeIntent and ProductSelection.
 
 ### ProductSelection Module
 
-`runProductSelectionWorkflow(request)` advances one versioned strategy and returns a resumable `ProductSelectionRun`. `relevance/default@1` is deterministic and immediately ready. `category-role/landing-page-agent@1` requires taxonomy, category proposal, candidate evidence, and scene proposal before returning a ready `ProductSelectionResult`.
+`runProductSelectionWorkflow(request)` advances one versioned strategy and returns a resumable `ProductSelectionRun`. `relevance/default@1` remains the fixed-rank legacy replay strategy. The active `relevance/intent-themes@2` strategy deterministically follows the resolved ThemeIntent category order, keeps 2–6 evidence-backed themes with 4–8 unique products each, and never pads a thin category with unrelated products. `category-role/landing-page-agent@1` requires taxonomy, category proposal, candidate evidence, and scene proposal before returning a ready `ProductSelectionResult`.
 
 `runProductSelectionAgentWorkflow(request)` is the optional automatic strategy adapter. It injects one
 `ProductSelectionAgent`, asks it only for the two proposal contracts requested by the state machine,
@@ -155,10 +155,12 @@ The active versioned refs `topic-landing/brand@2`, `topic-landing/topic@2`, and
 `topic-landing/campaign@2` map directly to the maintained Storybook variants under
 `YAMI/Pages/Topic Landing Page`. The corresponding page type is inferred only from a resolved
 ThemeIntent; Campaign therefore requires `activity` rather than a product or brand guess.
-`topic-landing/relevance@1` is the no-scene fallback for
-`relevance/default@1`; it hides scene-dependent modules rather than inventing source scenes.
-The category-role `@1` templates remain addressable only for old execution-plan replay and are not
-listed in new Agent task contexts.
+The active page-specific `brand-relevance@1`, `topic-relevance@1`, and `campaign-relevance@1`
+routes consume `relevance/intent-themes@2`. ProductSelection supplies the verified StartHere theme
+collections; Reviews remain hidden until verified review evidence exists. Brand hides Brand
+Spotlight, while Topic and Campaign may show it when the frozen catalog pool supports it.
+The generic `topic-landing/relevance@1` and category-role `@1` templates remain addressable only for
+old execution-plan replay and are not listed in new Agent task contexts.
 
 ### PageContent Module
 

@@ -230,6 +230,7 @@ const PREVIEW_COPY = {
     blueprintLabel: "Planned Topic Landing Page modules",
     hero: "Theme Hero",
     categories: "Featured categories",
+    startHere: "Start here",
     popular: "Popular picks",
     explore: "Explore more",
     running: "Run in progress",
@@ -252,6 +253,7 @@ const PREVIEW_COPY = {
     blueprintLabel: "规划中的 Topic Landing Page 模块",
     hero: "主题 Hero",
     categories: "精选分类",
+    startHere: "从这里开始",
     popular: "热门精选",
     explore: "探索更多",
     running: "正在生成",
@@ -274,6 +276,7 @@ const PREVIEW_COPY = {
   blueprintLabel: string;
   hero: string;
   categories: string;
+  startHere: string;
   popular: string;
   explore: string;
   running: string;
@@ -287,13 +290,36 @@ const PREVIEW_COPY = {
 
 type ProductCardProduct = Pick<
   TopicProduct,
-  "id" | "title" | "brand" | "price" | "imageUrl" | "productUrl" | "sourceRank"
+  | "id"
+  | "title"
+  | "brand"
+  | "price"
+  | "imageUrl"
+  | "productUrl"
+  | "sourceRank"
+  | "weeklySalesLabel"
+  | "availability"
 >;
 
-function ProductCard({ product }: { product: ProductCardProduct }) {
+function formatWeeklySalesLabel(label: string, language: ContentLanguage) {
+  const quantity = label.replace(/\s+Sold$/i, "");
+  return language === "zh" ? `周销量 ${quantity}` : `Weekly sales ${quantity}`;
+}
+
+function ProductCard({
+  product,
+  showCatalogMeta = false,
+  uiLanguage = "zh",
+}: {
+  product: ProductCardProduct;
+  showCatalogMeta?: boolean;
+  uiLanguage?: ContentLanguage;
+}) {
   return (
     <a
-      className={styles.productCard}
+      className={`${styles.productCard} ${
+        product.availability === "out-of-stock" ? styles.productCardOutOfStock : ""
+      }`}
       href={product.productUrl}
       target="_blank"
       rel="noreferrer"
@@ -306,10 +332,22 @@ function ProductCard({ product }: { product: ProductCardProduct }) {
           height={750}
           loading="lazy"
         />
-        <span className={styles.rank}>#{product.sourceRank}</span>
+        <span className={styles.productImageBadges}>
+          <span className={styles.rank}>#{product.sourceRank}</span>
+          {showCatalogMeta && product.availability === "out-of-stock" && (
+            <span className={styles.outOfStockBadge}>缺货</span>
+          )}
+        </span>
       </span>
       <span className={styles.productMeta}>
-        <span className={styles.productBrand}>{product.brand}</span>
+        <span className={styles.productMetaHeader}>
+          <span className={styles.productBrand}>{product.brand}</span>
+          {showCatalogMeta && product.weeklySalesLabel && (
+            <span className={styles.productSales}>
+              <small>{formatWeeklySalesLabel(product.weeklySalesLabel, uiLanguage)}</small>
+            </span>
+          )}
+        </span>
         <strong>{product.title}</strong>
       </span>
     </a>
@@ -351,6 +389,10 @@ function EmptyState({ language }: { language: ContentLanguage }) {
         </div>
         <div className={styles.blueprintRail}>
           <span>{copy.categories}</span>
+          <b /><b /><b /><b />
+        </div>
+        <div className={styles.blueprintRail}>
+          <span>{copy.startHere}</span>
           <b /><b /><b /><b />
         </div>
         <div className={styles.blueprintProducts}>
@@ -607,6 +649,11 @@ function PreviewView({ plan }: { plan: TopicPagePlan }) {
   const shortcutGroups = plan.groups.filter((group) =>
     group.productIds.some((id) => shortcutProductIds.has(id)),
   );
+  const startHereProductIds = new Set(startHereModule?.productIds ?? []);
+  const startHereGroups = plan.groups.flatMap((group) => {
+    const productIds = group.productIds.filter((id) => startHereProductIds.has(id));
+    return productIds.length > 0 ? [{ ...group, productIds }] : [];
+  });
   const exploreProductIds = new Set(exploreModule?.productIds ?? []);
   const exploreGroups = plan.groups.flatMap((group) => {
     const productIds = group.productIds.filter((id) => exploreProductIds.has(id));
@@ -671,9 +718,28 @@ function PreviewView({ plan }: { plan: TopicPagePlan }) {
       {startHereModule?.visible && (
         <section className={styles.previewModule}>
           <ModuleHeading module={startHereModule} structureOnly />
-          <div className={styles.productGridCompact}>
-            {productsFor("start-here").map((product) => (
-              <ProductCard key={product.id} product={product} />
+          <div className={styles.startHereThemes}>
+            {startHereGroups.map((group, index) => (
+              <section
+                key={group.id}
+                className={styles.startHereTheme}
+                data-start-here-theme={group.id}
+              >
+                <header>
+                  <span>
+                    {plan.language === "zh" ? "主题" : "Theme"}{" "}
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <h4>{group.label}</h4>
+                  <small>{productCountLabel(group.productIds.length, plan.language)}</small>
+                </header>
+                <div className={styles.startHereThemeProducts}>
+                  {group.productIds.map((id) => {
+                    const product = productMap.get(id);
+                    return product ? <ProductCard key={id} product={product} /> : null;
+                  })}
+                </div>
+              </section>
             ))}
           </div>
         </section>
@@ -902,12 +968,124 @@ function PoolsView({
   const categoryRole = plan.selectionStrategy.id === "category-role";
   const primary = plan.products.filter((product) => product.pool === "primary");
   const related = plan.products.filter((product) => product.pool === "related");
+  const coverage = plan.catalogCoverage;
+  const [collapsedCoverageGroups, setCollapsedCoverageGroups] = useState<Set<string>>(
+    () => new Set(),
+  );
   const primaryDescription = categoryRole
     ? zh ? "按分类角色选择，用于模块分配" : "selected by category role for module assignment"
     : zh ? "可用于核心模块" : "eligible for core modules";
   const relatedSelectionReason = zh
     ? "未进入主商品池的 Yami 相关候选，保留原始搜索顺序。"
     : "Related Yami candidates outside the primary pool, preserving original search order.";
+
+  function toggleCoverageGroup(groupId: string) {
+    setCollapsedCoverageGroups((current) => {
+      const next = new Set(current);
+      if (next.has(groupId)) next.delete(groupId);
+      else next.add(groupId);
+      return next;
+    });
+  }
+
+  if (coverage) {
+    const groupConfigs = [
+      {
+        id: "yami-in-stock",
+        sellerKind: "yami" as const,
+        availability: "in-stock" as const,
+        label: zh ? "YAMI 自营 · 在售" : "Sold by YAMI · In stock",
+        description: zh ? "可进入选品与页面模块。" : "Eligible for selection and page modules.",
+      },
+      {
+        id: "yami-out-of-stock",
+        sellerKind: "yami" as const,
+        availability: "out-of-stock" as const,
+        label: zh ? "YAMI 自营 · 缺货" : "Sold by YAMI · Out of stock",
+        description: zh ? "仅作目录审计，不进入页面模块。" : "Catalog audit only; excluded from page modules.",
+      },
+      {
+        id: "third-party-in-stock",
+        sellerKind: "third-party" as const,
+        availability: "in-stock" as const,
+        label: zh ? "第三方商家 · 在售" : "Marketplace · In stock",
+        description: zh ? "可进入选品与页面模块。" : "Eligible for selection and page modules.",
+      },
+      {
+        id: "third-party-out-of-stock",
+        sellerKind: "third-party" as const,
+        availability: "out-of-stock" as const,
+        label: zh ? "第三方商家 · 缺货" : "Marketplace · Out of stock",
+        description: zh ? "仅作目录审计，不进入页面模块。" : "Catalog audit only; excluded from page modules.",
+      },
+    ];
+
+    return (
+      <div className={`${styles.poolView} ${styles.catalogCoverageView}`}>
+        <header className={`${styles.viewHeading} ${styles.catalogCoverageHeading}`}>
+          <div>
+            <span>03 · {zh ? "商品池" : "Product pool"}</span>
+            <h3>{zh ? "目录商品总览" : "Catalog coverage"}</h3>
+            <p className={styles.poolSelectionReason}>
+              <strong>{zh ? "选品规则" : "Selection rule"}</strong>
+              {zh
+                ? "完整品牌目录按销售方与库存状态分组；只有在售商品进入选品。"
+                : "The complete brand catalog is grouped by seller and availability; only in-stock items enter selection."}
+            </p>
+          </div>
+        </header>
+        {groupConfigs.map((group) => {
+          const products = coverage.products.filter((product) =>
+            product.sellerKind === group.sellerKind &&
+            product.availability === group.availability
+          );
+          const collapsed = collapsedCoverageGroups.has(group.id);
+          const productsId = `catalog-coverage-${group.id}-products`;
+          return (
+            <section key={group.id} data-catalog-coverage-group={group.id} className={styles.catalogCoverageGroup}>
+              <header>
+                <div>
+                  <h4>{group.label}</h4>
+                  <p>{group.description}</p>
+                </div>
+                <div className={styles.catalogCoverageGroupActions}>
+                  <strong>{productCountLabel(products.length, uiLanguage)}</strong>
+                  {products.length > 0 && (
+                    <button
+                      type="button"
+                      className={styles.catalogCoverageToggle}
+                      aria-expanded={!collapsed}
+                      aria-controls={productsId}
+                      aria-label={`${collapsed ? zh ? "展开" : "Expand" : zh ? "收起" : "Collapse"} ${group.label}`}
+                      onClick={() => toggleCoverageGroup(group.id)}
+                    >
+                      {collapsed ? zh ? "展开" : "Expand" : zh ? "收起" : "Collapse"}
+                    </button>
+                  )}
+                </div>
+              </header>
+              <div id={productsId} hidden={collapsed}>
+                {products.length > 0 ? (
+                  <div className={styles.poolGrid}>
+                    {products.map((product) => (
+                      <ProductCard
+                        key={product.id}
+                        product={product}
+                        showCatalogMeta
+                        uiLanguage={uiLanguage}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <p className={styles.noRelated}>{zh ? "当前没有商品。" : "No products in this group."}</p>
+                )}
+              </div>
+            </section>
+          );
+        })}
+      </div>
+    );
+  }
 
   return (
     <div className={styles.poolView}>
@@ -1086,34 +1264,37 @@ function WorkflowView({
     {
       stage: "02",
       icon: WORKFLOW_ICONS.route,
-      label: isChinese ? "识别主题并匹配模板" : "Interpret the topic and match a template",
+      label: isChinese ? "理解主题并生成页面路由" : "Interpret the topic and create the page route",
       output: isChinese
-        ? "确定购物意图、模板、组件契约与商品槽位规则"
-        : "Resolve shopping intent, template, component contracts, and product slot rules",
-      input: "GenerationBrief",
+        ? "基于 Yami 目录证据生成 ThemeIntent，并选择已注册的页面类型、选品策略和模板"
+        : "Build ThemeIntent from Yami catalog evidence, then select registered page, selection, and template refs",
+      input: isChinese
+        ? "关键词 + 站点 / 页面语言 / 选品策略约束"
+        : "Keyword + site / page language / selection constraints",
       read: isChinese
-        ? "theme_keyword、raw_keyword、site=us、target_locale=zh-CN、selection_strategy、source_scope、site_config_version、run_id 与 brief_hash；确认主题路由输入、目标页面语言、生成配置和证据边界"
-        : "theme_keyword, raw_keyword, site=us, target_locale=en-US, selection_strategy, source_scope, site_config_version, run_id, and brief_hash; confirm the routing input, target page language, generation settings, and evidence boundary",
+        ? "keyword、site、language 与 requestedSelectionStrategy；结合 CatalogSnapshot 的品牌、分类、标签、商品和 Adapter attempts"
+        : "keyword, site, language, and requestedSelectionStrategy, together with CatalogSnapshot brands, categories, tags, products, and Adapter attempts",
       action: isChinese
-        ? "解析主题意图，匹配页面模板，并加载组件与商品槽位规则"
-        : "Interpret the topic intent, match a page template, and load component and product slot rules",
+        ? "解析并校验主题意图，再从注册表生成兼容的页面执行路由"
+        : "Resolve and validate the topic intent, then create a compatible page execution route from registered configs",
       actionGroups: isChinese
         ? [
             {
               title: "目录证据驱动的主题理解",
               items: [
-                "读取商品接口返回的品牌、分类、标签与可售商品",
-                "解析主题实体、修饰条件、购物目标和场景并生成 ThemeIntent",
+                "首次搜索读取品牌、分类、标签、可售商品与分页信息，形成 CatalogSnapshot",
+                "先生成目录基线 ThemeIntent，再按已确认分类补充分页商品证据",
+                "精确品牌或分类的核心实体保持冻结；歧义或证据冲突进入待确认",
                 "此阶段不直接选择商品",
               ],
             },
             {
               title: "系统校验并生成可执行路由",
               items: [
-                "校验 ThemeIntent 的字段、实体证据和主题类型",
-                "只读检查目录覆盖度，不冻结商品池或具体 SKU",
-                "匹配页面模板，加载组件契约与商品槽位规则",
-                "生成 TemplateRoute",
+                "只有已确认的 ThemeIntent 才能进入页面编排",
+                "从注册表选择兼容的页面类型、选品策略与模板引用",
+                "校验主题摘要、页面语言和策略—模板组合",
+                "不决定模块显隐、顺序或具体商品槽位",
               ],
             },
           ]
@@ -1121,23 +1302,26 @@ function WorkflowView({
             {
               title: "Catalog-evidenced topic interpretation",
               items: [
-                "Read brands, categories, tags, and available products from the catalog interface",
-                "Interpret the entity, modifiers, shopping goal, and scenarios as ThemeIntent",
+                "Read brands, categories, tags, available products, and paging metadata into CatalogSnapshot",
+                "Build the catalog baseline ThemeIntent, then refine product evidence for resolved categories",
+                "Freeze exact brand or category identity; send ambiguity or evidence conflicts to review",
                 "Do not select products at this stage",
               ],
             },
             {
               title: "The system validates and creates an executable route",
               items: [
-                "Validate ThemeIntent fields, entity evidence, and topic type",
-                "Check catalog coverage read-only without freezing product pools or specific SKUs",
-                "Match the page template and load component contracts and product slot rules",
-                "Create TemplateRoute",
+                "Allow only a resolved ThemeIntent into page orchestration",
+                "Select compatible page type, selection strategy, and template refs from registries",
+                "Validate the intent digest, page language, and strategy-template combination",
+                "Do not decide module visibility, order, or specific product slots",
               ],
             },
           ],
-      result: "ThemeIntent + TemplateRoute",
-      rollback: isChinese ? "主题或模板无法确定时返回 01 补充输入" : "Return to 01 when the topic or template cannot be resolved",
+      result: "CatalogSnapshot + ThemeIntent + LandingPageExecutionPlan",
+      rollback: isChinese
+        ? "主题证据不足或冲突时返回 01 补充输入；注册路由不兼容时阻止执行"
+        : "Return to 01 for insufficient or conflicting topic evidence; block incompatible registered routes",
       state: "automatic",
     },
     {
@@ -1147,9 +1331,9 @@ function WorkflowView({
       output: isChinese
         ? "搜索 Yami 美国站，验证商品并按当前选品策略冻结商品池结构"
         : "Search Yami US, validate products, and freeze the pool structure for the selected strategy",
-      input: "GenerationBrief + ThemeIntent + TemplateRoute",
+      input: "CatalogSnapshot + ThemeIntent + LandingPageExecutionPlan",
       action: isChinese ? "读取商品身份、图片与可售状态，校验相关性并按用途分层" : "Read identity, imagery, and availability, validate relevance, and assign pool roles",
-      result: "CatalogSnapshot + ProductPools",
+      result: "ProductSelectionResult",
       rollback: isChinese ? "商品不足或不相关时在 03 重搜；主题歧义返回 02" : "Retry search in 03 for weak results; return topic ambiguity to 02",
       state: "automatic",
     },
@@ -1718,7 +1902,7 @@ function WorkflowView({
             <div>
               <span>{isChinese ? "步骤 02 · 解析规则说明" : "Step 02 · Interpretation rules"}</span>
               <h3 id="intent-help-title">
-                {isChinese ? "AI 如何理解主题词与购物意图" : "How AI and the system interpret the topic and shopping intent"}
+                {isChinese ? "系统如何理解主题词与购物意图" : "How the system interprets the topic and shopping intent"}
               </h3>
             </div>
             <button
@@ -1733,8 +1917,8 @@ function WorkflowView({
           <div className={styles.intentHelpBody}>
             <p id="intent-help-description" className={styles.intentHelpIntro}>
               {isChinese
-                ? "当前实现把语义建议与商品事实分开：Product Agent 只提交受限语义提案；CatalogSnapshot 记录 Yami 目录证据；确定性 Module 逐字段接受或拒绝提案。Web Host 通过服务端配置调用外部 Agent，不向浏览器暴露令牌。"
-                : "The implementation separates semantic suggestions from product facts: a Product Agent submits only bounded semantic proposals; CatalogSnapshot records Yami evidence; deterministic Modules accept or reject proposal fields. The Web Host calls an external Agent through server-only configuration without exposing its token to the browser."}
+                ? "确定性规则负责主题理解，AI 仅辅助歧义解释。CatalogSnapshot 记录 Yami 目录事实，确定性 Module 生成并校验 ThemeIntent；只有已确认的 ThemeIntent 才能生成页面执行路由。默认 Workbench 不自动调用 TopicIntent Agent 或 Wikipedia。"
+                : "Deterministic rules own topic interpretation; AI only assists with ambiguous language. CatalogSnapshot records Yami catalog facts, and deterministic Modules build and validate ThemeIntent. Only a resolved ThemeIntent may create a page execution route. The default Workbench does not automatically call a TopicIntent Agent or Wikipedia."}
             </p>
             <section className={styles.intentHelpSection}>
               <span>01</span>
@@ -1743,7 +1927,7 @@ function WorkflowView({
                 <li>{isChinese ? "读取用户关键词；当前只去除首尾空格，并校验长度为 2–80 个字符。" : "Read the user's keyword; currently only trim surrounding whitespace and validate a length of 2–80 characters."}</li>
                 <li>{isChinese ? "销售站点固定为美国站 site=us；当前运行不推断 locale 或 currency。" : "Fix the sales site to site=us; the current run does not infer locale or currency."}</li>
                 <li>{isChinese ? "先调用结构化目录 Adapter 读取 brandAgg、categoryAgg、tagAgg 与可售商品；失败后才使用公开搜索 Adapter，并保存每次尝试。" : "Try the structured catalog Adapter for brandAgg, categoryAgg, tagAgg, and available products first; use the public-search Adapter only after failure and retain every attempt."}</li>
-                <li>{isChinese ? "Codex/Kiro CLI 可为歧义词附加 semantic-proposal/v1；分类角色策略可由 Web Host 的外部 Product Agent 自动提交两类受限提案。" : "Codex/Kiro CLI may attach semantic-proposal/v1 for an ambiguous phrase; the Web Host's external Product Agent may automatically submit the two bounded category-role proposals."}</li>
+                <li>{isChinese ? "调用方可为歧义场景显式附加 semantic-proposal/v1；提案不是目录事实，也不能覆盖精确品牌、分类、属性或商品证据。" : "A caller may explicitly attach semantic-proposal/v1 for an ambiguous scenario; a proposal is not catalog evidence and cannot override exact brand, category, attribute, or product facts."}</li>
               </ul>
             </section>
             <section className={styles.intentHelpSection}>
@@ -1758,7 +1942,7 @@ function WorkflowView({
                     <p><strong>{isChinese ? "识别核心实体与修饰条件" : "Identify the core entity and modifiers"}</strong></p>
                     <ul>
                       <li>{isChinese ? "品牌实体：关键词精确命中 brandAgg 的中英文品牌名。" : "Brand entity: the keyword exactly matches a Chinese or English brand name in brandAgg."}</li>
-                      <li>{isChinese ? "品类实体：关键词精确命中 categoryAgg 的真实目录节点；否则使用可售商品覆盖最多的三级分类作为候选。" : "Category entity: the keyword exactly matches a real categoryAgg node; otherwise use the level-three category covering the most available products."}</li>
+                      <li>{isChinese ? "品类实体：关键词精确命中 categoryAgg 的真实目录节点；未精确命中时只形成目录候选，并按商品覆盖、路径和证据强度参与竞争。" : "Category entity: the keyword exactly matches a real categoryAgg node; without an exact match, catalog categories remain candidates ranked by product coverage, path, and evidence strength."}</li>
                       <li>{isChinese ? "属性与场景：属性必须命中 tagAgg；收纳、补给、节日、季节等场景词按可审阅词表识别。当前 catalog-v1 尚不验证配料、营养、尺寸等商品详情字段。" : "Attributes and scenarios: attributes must match tagAgg; storage, restock, occasion, and season terms use a reviewable vocabulary. catalog-v1 does not yet verify ingredient, nutrition, or dimension details."}</li>
                     </ul>
                   </dd>
@@ -1770,12 +1954,17 @@ function WorkflowView({
                   <dd>
                     <p>
                       <strong>{isChinese ? "理解购物意图：" : "Interpret shopping intent: "}</strong>
-                      {isChinese ? "把关键词补全为可执行的购物目标，重点回答三个维度：" : "Complete the keyword as an actionable shopping goal across three dimensions:"}
+                      {isChinese ? "把关键词补全为可执行购物目标，并明确核心实体、购物动作、条件与限制。" : "Turn the keyword into an actionable shopping goal with a core entity, shopper action, conditions, and constraints."}
                     </p>
                     <ul>
-                      <li>{isChinese ? "系统先生成目录规则基线：brand 浏览品牌商品，product 寻找品类或属性商品，activity 围绕场景组合多个真实分类。" : "The system first builds a catalog-rule baseline: brand browses brand products, product finds category or attribute products, and activity assembles multiple real categories around a scenario."}</li>
-                      <li>{isChinese ? "只有基线仍有歧义时，Agent 才可建议场景解释；提案必须由多个目录分类支撑，且不能覆盖精确品牌或品类。" : "Only when the baseline remains ambiguous may the Agent suggest a scenario interpretation; multiple catalog categories must support it, and it cannot override an exact brand or category."}</li>
-                      <li>{isChinese ? "每个提案字段会记录为 accepted、partially-accepted 或 rejected；最终只保留一个主实体。" : "Each proposal field is recorded as accepted, partially accepted, or rejected; the final intent keeps one primary entity."}</li>
+                      <li>{isChinese ? "核心实体：entityType 与 canonicalEntity 说明主题围绕品牌、分类、属性还是场景。" : "Core entity: entityType and canonicalEntity identify whether the topic centers on a brand, category, attribute, or scenario."}</li>
+                      <li>{isChinese ? "购物动作：shoppingIntent 与 shopperAction 区分浏览、寻找、筛选、补给、组合或送礼。" : "Shopper action: shoppingIntent and shopperAction distinguish browsing, finding, filtering, replenishing, bundling, or gifting."}</li>
+                      <li>{isChinese ? "条件与限制：conditions 保存尚未成为商品事实的修饰词，constraints 逐项记录 verified、unverified 或 rejected。" : "Conditions and constraints: conditions retain modifiers not yet verified as product facts, while constraints record verified, unverified, or rejected status per item."}</li>
+                      <li>{isChinese ? "主题类型：brand 浏览品牌商品，product 寻找品类或属性商品，activity 围绕场景组合多个真实分类。" : "Topic type: brand browses brand products, product finds category or attribute products, and activity assembles multiple real categories around a scenario."}</li>
+                      <li>{isChinese ? "只有基线仍有歧义时，调用方才可提交场景语义提案；提案必须由多个目录分类支撑，且不能覆盖精确品牌或品类。" : "Only when the baseline remains ambiguous may a caller submit a scenario proposal; multiple catalog categories must support it, and it cannot override an exact brand or category."}</li>
+                      <li>{isChinese ? "精确品牌或分类一旦确认，第二阶段商品证据只能补充覆盖度；若核心身份冲突则保留原实体并进入待确认。" : "Once an exact brand or category is resolved, second-stage product evidence may update coverage only; an identity conflict preserves the original entity and requires review."}</li>
+                      <li>{isChinese ? "决策状态为 resolved、ambiguous、needs-review；只有 resolved 可以继续页面路由，其余状态必须复核或补充输入。" : "Decision status is resolved, ambiguous, or needs-review; only resolved may continue to page routing, while the others require review or more input."}</li>
+                      <li>{isChinese ? "语义提案字段记录为 accepted、partially-accepted 或 rejected；最终只保留一个主实体。" : "Semantic proposal fields are recorded as accepted, partially accepted, or rejected; the final intent keeps one primary entity."}</li>
                       <li>{isChinese ? "证据等级由命中类型决定：精确目录命中高于标签或场景命中，网页回退最低；未校准的规则分数不作为真实正确率展示。" : "Evidence level follows match quality: exact catalog matches rank above tag or scenario matches, while web fallback is lowest; uncalibrated rule scores are not presented as real accuracy."}</li>
                     </ul>
                   </dd>
@@ -1787,9 +1976,10 @@ function WorkflowView({
                   <dd>
                     <p><strong>{isChinese ? "形成商品检索约束" : "Build product retrieval constraints"}</strong></p>
                     <ul>
-                      <li>{isChinese ? "must_include：保留规范品牌、品类、原关键词或已命中的目录标签；当前版本不自动生成 must_exclude。" : "must_include retains the canonical brand, category, original keyword, or matched catalog tags; the current version does not generate must_exclude automatically."}</li>
-                      <li>{isChinese ? "search_terms：由原关键词、规范实体、标签和候选分类组成；当前版本不凭空生成别名。" : "search_terms combines the original keyword, canonical entity, tags, and candidate categories; the current version does not invent aliases."}</li>
-                      <li>{isChinese ? "两阶段检索：先宽搜形成 CatalogSnapshot 证据，再用候选分类 ID 重搜商品；第二次检索失败时保留首轮快照，之后才解析 ThemeIntent。" : "Two-stage retrieval: broad search first forms CatalogSnapshot evidence, then candidate category IDs narrow the product search; the first snapshot remains usable if narrowing fails, and ThemeIntent is resolved afterward."}</li>
+                      <li>{isChinese ? "mustInclude：按主题类型保留已验证的品牌、分类或属性；场景主题可以为空。mustExclude 当前不自动生成。" : "mustInclude retains verified brands, categories, or attributes according to topic type and may be empty for scenarios. mustExclude is not generated automatically."}</li>
+                      <li>{isChinese ? "searchTerms：由原关键词、规范实体与已支持的分类或属性组成；系统不凭空生成别名。" : "searchTerms combines the original keyword, canonical entity, and supported categories or attributes; the system does not invent aliases."}</li>
+                      <li>{isChinese ? "两阶段检索：先宽搜形成 CatalogSnapshot 并解析目录基线；精确品牌按品牌 ID 读取全部分页，非品牌主题按已确认分类读取全部分页并依据 ThemeIntent 二次过滤。每个主题展示 4–8 件是后续页面规则，不会截断商品池；精确检索失败时保留首轮快照。" : "Two-stage retrieval: broad search first forms CatalogSnapshot and a catalog baseline; exact brands then load every page by brand ID, while non-brand topics load every page for verified categories and apply a ThemeIntent filter. The four-to-eight items per theme rule affects later display only and does not truncate the product pool; the first snapshot remains available if exact retrieval fails."}</li>
+                      <li>{isChinese ? "精确分类只扩展该节点及其后代；标题碰巧包含关键词的其他目录分支不能进入 ThemeIntent 或主主题商品池。" : "An exact category expands only that node and its descendants; unrelated catalog branches whose titles happen to contain the keyword cannot enter ThemeIntent or the primary theme pool."}</li>
                       <li>{isChinese ? "Schema 版本固定为 catalog-v1；需要商品详情属性后再升级版本。" : "The schema version is catalog-v1; upgrade it when product-detail attributes are available."}</li>
                     </ul>
                   </dd>
@@ -1831,9 +2021,16 @@ function WorkflowView({
                     <tr>
                       <td><strong>ANUA</strong></td>
                       <td>{isChinese ? "品牌实体" : "Brand entity"}</td>
-                      <td>{isChinese ? "浏览并购买 ANUA 的代表商品" : "Browse and buy representative ANUA products"}</td>
+                      <td>{isChinese ? "浏览 ANUA 的代表商品" : "Browse representative ANUA products"}</td>
                       <td>{isChinese ? "必须属于 ANUA；召回核心系列与代表商品" : "Must belong to ANUA; recall core lines and representative products"}</td>
                       <td><code>brand</code></td>
+                    </tr>
+                    <tr>
+                      <td><strong>Coffee</strong></td>
+                      <td>{isChinese ? "精确父分类" : "Exact parent category"}</td>
+                      <td>{isChinese ? "浏览 Coffee 目录下有足够商品证据的子分类" : "Browse supported child categories under Coffee"}</td>
+                      <td>{isChinese ? "只扩展 Coffee 及其后代；其他目录分支中的 coffee 标题不进入主主题" : "Expand only Coffee and its descendants; coffee titles in other branches stay outside primary themes"}</td>
+                      <td><code>product</code></td>
                     </tr>
                     <tr>
                       <td><strong>{isChinese ? "鱼腥草爽肤水" : "Heartleaf toner"}</strong></td>
@@ -1845,15 +2042,15 @@ function WorkflowView({
                     <tr>
                       <td><strong>{isChinese ? "无糖抹茶零食" : "Sugar-free matcha snacks"}</strong></td>
                       <td>{isChinese ? "食品口味 + 营养限制" : "Food flavor + dietary constraint"}</td>
-                      <td>{isChinese ? "寻找同时命中 Sugar Free 与 Matcha 目录标签的零食" : "Find snacks matching both Sugar Free and Matcha catalog tags"}</td>
-                      <td>{isChinese ? "使用 tagAgg 与真实分类作为证据；配料、糖分和过敏原仍需商品详情接口" : "Use tagAgg and real categories as evidence; ingredients, sugar, and allergens still require product-detail data"}</td>
+                      <td>{isChinese ? "寻找抹茶零食，并单独验证无糖条件" : "Find matcha snacks and verify the sugar-free condition separately"}</td>
+                      <td>{isChinese ? "只有 tagAgg 支持时才验证标签；否则无糖保持 unverified，配料与过敏原仍需商品详情接口" : "Verify the tag only when tagAgg supports it; otherwise sugar-free remains unverified, while ingredients and allergens still require product-detail data"}</td>
                       <td><code>product</code></td>
                     </tr>
                     <tr>
                       <td><strong>{isChinese ? "小户型厨房收纳" : "Small-kitchen organization"}</strong></td>
                       <td>{isChinese ? "家居空间 + 使用场景" : "Home space + usage scenario"}</td>
-                      <td>{isChinese ? "组合宽搜结果覆盖的厨房收纳真实分类" : "Assemble real kitchen-storage categories covered by broad search"}</td>
-                      <td>{isChinese ? "按候选分类 ID 二次检索；尺寸、材质与承重尚未验证" : "Requery by candidate category IDs; dimensions, materials, and load capacity remain unverified"}</td>
+                      <td>{isChinese ? "组合宽搜结果覆盖的厨房收纳真实分类；证据不足时待确认" : "Assemble real kitchen-storage categories covered by broad search; require review when evidence is weak"}</td>
+                      <td>{isChinese ? "按候选分类 ID 二次检索；尺寸、材质与承重保持 unverified" : "Requery by candidate category IDs; dimensions, materials, and load capacity remain unverified"}</td>
                       <td><code>activity</code></td>
                     </tr>
                     <tr>
@@ -1871,17 +2068,26 @@ function WorkflowView({
               <span>04</span>
               <h4>{isChinese ? "输出 ThemeIntent" : "Output ThemeIntent"}</h4>
               <ul>
-                <li><strong>{isChinese ? "主题分类：" : "Topic classification: "}</strong>theme_type、catalog_domain、attribute_schema_version</li>
-                <li><strong>{isChinese ? "规范化实体：" : "Canonical entity: "}</strong>entity_type、canonical_entity</li>
-                <li><strong>{isChinese ? "购物意图：" : "Shopping intent: "}</strong>shopping_intent、shopping_goal、needs</li>
-                <li><strong>{isChinese ? "检索约束：" : "Search constraints: "}</strong>must_include、must_exclude、search_terms</li>
-                <li><strong>{isChinese ? "判断说明：" : "Decision explanation: "}</strong>reason、decision、evidenceLevel</li>
+                <li><strong>{isChinese ? "主题分类：" : "Topic classification: "}</strong>themeType、catalogDomain、attributeSchemaVersion</li>
+                <li><strong>{isChinese ? "规范化实体：" : "Canonical entity: "}</strong>entityType、canonicalEntity</li>
+                <li><strong>{isChinese ? "购物意图：" : "Shopping intent: "}</strong>shoppingIntent、shopperAction、shoppingGoal、needs、conditions</li>
+                <li><strong>{isChinese ? "检索约束：" : "Search constraints: "}</strong>mustInclude、mustExclude、searchTerms、constraints</li>
+                <li><strong>{isChinese ? "判断说明：" : "Decision explanation: "}</strong>candidates、decision.status、decision.evidenceLevel、decision.selectedCandidateMargin、reason</li>
                 <li>
                   <strong>{isChinese ? "运行审计：" : "Run review: "}</strong>
                   {isChinese
                     ? "Adapter attempts、proposalReview；CLI 可选输出带 SHA-256 的 Run Artifacts"
                     : "Adapter attempts, proposalReview; the CLI can optionally output SHA-256 Run Artifacts"}
                 </li>
+              </ul>
+            </section>
+            <section className={styles.intentHelpSection}>
+              <span>05</span>
+              <h4>{isChinese ? "页面路由边界" : "Page routing boundary"}</h4>
+              <ul>
+                <li>{isChinese ? "只有 decision.status=resolved 的 ThemeIntent 才能生成 LandingPageExecutionPlan。" : "Only ThemeIntent with decision.status=resolved may create LandingPageExecutionPlan."}</li>
+                <li>{isChinese ? "执行计划只确认 pageTypeRef、selectionStrategyRef 与 templateRef 等注册引用。" : "The execution plan confirms registered refs such as pageTypeRef, selectionStrategyRef, and templateRef."}</li>
+                <li>{isChinese ? "阶段 02 不决定模块显隐、顺序或具体商品槽位；商品池属于阶段 03，模块与槽位属于阶段 04。" : "Stage 02 does not decide module visibility, order, or specific product slots; product pools belong to stage 03, while modules and slots belong to stage 04."}</li>
               </ul>
             </section>
             <div className={styles.intentHelpOutput}>
@@ -2109,6 +2315,13 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
   const strategyLabel = STRATEGY_OPTIONS[uiLanguage].find(
     (option) => option.value === strategy,
   )?.label ?? strategy;
+  const poolCoverage = view === "pools" ? plan?.catalogCoverage : undefined;
+  const poolCoverageInStock = poolCoverage
+    ? poolCoverage.groups.yami.inStock + poolCoverage.groups.thirdParty.inStock
+    : 0;
+  const poolCoverageOutOfStock = poolCoverage
+    ? poolCoverage.groups.yami.outOfStock + poolCoverage.groups.thirdParty.outOfStock
+    : 0;
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -2423,34 +2636,50 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
                       </div>
                     </header>
 
-                    <div className={styles.statBar}>
-                      {plan.selectionStrategy.id === "category-role" ? (
+                    <div
+                      className={styles.statBar}
+                      aria-label={poolCoverage
+                        ? uiLanguage === "zh" ? "商品池统计" : "Product pool statistics"
+                        : uiLanguage === "zh" ? "运行统计" : "Run statistics"}
+                    >
+                      {poolCoverage ? (
                         <>
-                          <div><span>{uiLanguage === "zh" ? "模块商品池" : "Module product pool"}</span><strong>{plan.pools.primaryIds.length}</strong></div>
-                          <div><span>{uiLanguage === "zh" ? "已选分类" : "Selected categories"}</span><strong>{plan.selectedCategories.length}</strong></div>
+                          <div><span>{uiLanguage === "zh" ? "目录商品" : "Catalog products"}</span><strong>{poolCoverage.totalCount}</strong></div>
+                          <div><span>{uiLanguage === "zh" ? "在售商品" : "In-stock products"}</span><strong>{poolCoverageInStock}</strong></div>
+                          <div><span>{uiLanguage === "zh" ? "缺货商品" : "Out-of-stock products"}</span><strong>{poolCoverageOutOfStock}</strong></div>
+                          <div><span>{uiLanguage === "zh" ? "排序方式" : "Sort order"}</span><strong>{uiLanguage === "zh" ? "周销量降序" : "Weekly sales descending"}</strong></div>
                         </>
                       ) : (
                         <>
-                          <div><span>{uiLanguage === "zh" ? "主商品池" : "PrimaryPool"}</span><strong>{plan.pools.primaryIds.length}</strong></div>
-                          <div><span>{uiLanguage === "zh" ? "相关商品池" : "RelatedPool"}</span><strong>{plan.pools.relatedIds.length}</strong></div>
+                          {plan.selectionStrategy.id === "category-role" ? (
+                            <>
+                              <div><span>{uiLanguage === "zh" ? "模块商品池" : "Module product pool"}</span><strong>{plan.pools.primaryIds.length}</strong></div>
+                              <div><span>{uiLanguage === "zh" ? "已选分类" : "Selected categories"}</span><strong>{plan.selectedCategories.length}</strong></div>
+                            </>
+                          ) : (
+                            <>
+                              <div><span>{uiLanguage === "zh" ? "主商品池" : "PrimaryPool"}</span><strong>{plan.pools.primaryIds.length}</strong></div>
+                              <div><span>{uiLanguage === "zh" ? "相关商品池" : "RelatedPool"}</span><strong>{plan.pools.relatedIds.length}</strong></div>
+                            </>
+                          )}
+                          <div>
+                            <span>{copy.visibleModules}</span>
+                            <strong>
+                              {automation?.status === "ready"
+                                ? automation.generationSpec.modules.length
+                                : plan.modules.filter((module) => module.visible).length}
+                            </strong>
+                          </div>
+                          <div>
+                            <span>{copy.assetMode}</span>
+                            <strong>
+                              {automation?.status === "ready"
+                                ? uiLanguage === "zh" ? "生成图片" : "Generated assets"
+                                : copy.sourceImages}
+                            </strong>
+                          </div>
                         </>
                       )}
-                      <div>
-                        <span>{copy.visibleModules}</span>
-                        <strong>
-                          {automation?.status === "ready"
-                            ? automation.generationSpec.modules.length
-                            : plan.modules.filter((module) => module.visible).length}
-                        </strong>
-                      </div>
-                      <div>
-                        <span>{copy.assetMode}</span>
-                        <strong>
-                          {automation?.status === "ready"
-                            ? uiLanguage === "zh" ? "生成图片" : "Generated assets"
-                            : copy.sourceImages}
-                        </strong>
-                      </div>
                     </div>
 
                     {view === "preview" && (

@@ -10,6 +10,8 @@ export type ContentLanguage = (typeof CONTENT_LANGUAGES)[number];
 export type PlanStatus = "ready" | "degraded" | "blocked";
 export type ProductPool = "primary" | "related";
 export type ProductRole = "core" | "pairing" | "accessory";
+export type CatalogSellerKind = "yami" | "third-party";
+export type CatalogAvailability = "in-stock" | "out-of-stock";
 export type ThemeType = "brand" | "product" | "activity" | "uncertain";
 export type ThemeEntityType = "brand" | "category" | "attribute" | "scenario" | "unknown";
 export type ShoppingIntent = "browse-brand" | "find-product" | "assemble-scenario" | "clarify";
@@ -120,6 +122,28 @@ export interface YamiProduct {
   categoryL3Name?: string;
   soldCount?: number;
   rating?: number;
+  sellerKind?: CatalogSellerKind;
+  sellerName?: string;
+  availability?: CatalogAvailability;
+  weeklySalesLabel?: string;
+}
+
+export interface CatalogCoverageProduct extends YamiProduct {
+  sellerKind: CatalogSellerKind;
+  sellerName: string;
+  availability: CatalogAvailability;
+}
+
+export interface CatalogCoverage {
+  provider: "yami-brand-page";
+  sourceUrl: string;
+  sort: "weekly-sales-descending";
+  totalCount: number;
+  products: CatalogCoverageProduct[];
+  groups: {
+    yami: { inStock: number; outOfStock: number };
+    thirdParty: { inStock: number; outOfStock: number };
+  };
 }
 
 export interface CatalogBrandEvidence {
@@ -182,6 +206,7 @@ export interface YamiSearchSnapshot {
   retrievalTerms?: string[];
   evidence?: CatalogEvidence;
   quality?: CatalogSnapshotQualityReport;
+  catalogCoverage?: CatalogCoverage;
   intent?: ThemeIntent;
 }
 
@@ -319,6 +344,7 @@ export interface TopicPagePlan {
     primaryIds: string[];
     relatedIds: string[];
   };
+  catalogCoverage?: CatalogCoverage;
   products: TopicProduct[];
   selectedCategories: TopicCategorySelection[];
   groups: TopicGroup[];

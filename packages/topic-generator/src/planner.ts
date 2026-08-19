@@ -240,8 +240,14 @@ function createModules(
   const groupRepresentatives = shortcutGroups.flatMap((group) =>
     group.productIds.slice(0, 1),
   );
-  const startHereProducts = groups.slice(0, 3).flatMap((group) =>
-    group.productIds.slice(0, 2)
+  const eligibleStartHereGroups = groups
+    .filter((group) => group.productIds.length >= 4)
+    .slice(0, 6);
+  const startHereGroups = eligibleStartHereGroups.length >= 2
+    ? eligibleStartHereGroups
+    : [];
+  const startHereProducts = startHereGroups.flatMap((group) =>
+    group.productIds.slice(0, 8)
   );
   const brand = dominantBrand(primary, keyword);
   const zh = language === "zh";
@@ -290,19 +296,19 @@ function createModules(
       label: zh ? "从这里开始" : "Start Here",
       heading: zh ? "从这里开始" : "Start here",
       description: zh
-        ? "覆盖三个主要商品类型的紧凑入口。"
-        : "A compact entry point across the three strongest product types.",
+        ? "按 2–6 个主题纵向浏览，每个主题展示 4–8 件商品。"
+        : "Browse two to six themes vertically, with four to eight products per theme.",
       required: false,
-      visible: groups.length >= 3 && primary.length >= 6,
+      visible: startHereGroups.length > 0,
       productIds: startHereProducts,
       reason:
-        groups.length >= 3 && primary.length >= 6
+        startHereGroups.length > 0
           ? zh
-            ? "至少有 3 个类型和 6 件主商品，因此显示。"
-            : "Enabled because at least three types and six primary products are available."
+            ? "展示 2–6 个商品数达到 4 件的主题；每个主题按 Yami 顺序使用 4–8 件商品。"
+            : "Shows two to six themes with at least four products, using four to eight items in Yami order."
           : zh
-            ? "至少需要 3 个类型和 6 件主商品才会显示。"
-            : "Hidden until at least three types and six primary products are available.",
+            ? "少于 2 个主题达到每组 4 件商品，因此隐藏。"
+            : "Hidden because fewer than two themes contain at least four products.",
     },
     {
       id: "popular-picks",
@@ -617,7 +623,9 @@ export function buildTopicPagePlanFromProductSelection(
           ? ["当前版本使用模板文案并保留来源商品图，确保商品身份不变。"]
           : []),
         strategy === "relevance"
-          ? "精准匹配在关键词和品牌匹配后保留 Yami 原始顺序。"
+          ? snapshot.catalogCoverage
+            ? "精确品牌目录按周销量降序；缺货商品仅保留为目录审计证据，不进入主商品池。"
+            : "精准匹配在关键词和品牌匹配后保留 Yami 原始顺序。"
           : `分类来自已验证的 Yami taxonomy artifact；实际为 ${categoryRoleCounts.core} 个核心 / ${categoryRoleCounts.pairing} 个搭配 / ${categoryRoleCounts.accessory} 个周边，目标配比为 5:3:2。`,
       ]
     : [
@@ -631,7 +639,9 @@ export function buildTopicPagePlanFromProductSelection(
           ? ["Copy is template-based and source images preserve product identity in this MVP."]
           : []),
         strategy === "relevance"
-          ? "Precise relevance preserves Yami order after keyword and brand matching."
+          ? snapshot.catalogCoverage
+            ? "Exact-brand coverage is ordered by weekly sales; out-of-stock items remain audit evidence and never enter PrimaryPool."
+            : "Precise relevance preserves Yami order after keyword and brand matching."
           : `Categories come from a validated Yami taxonomy artifact; actual coverage is ${categoryRoleCounts.core} core / ${categoryRoleCounts.pairing} pairing / ${categoryRoleCounts.accessory} accessory against a 5:3:2 target.`,
       ];
   if (usesContextualFallback) {
@@ -660,8 +670,12 @@ export function buildTopicPagePlanFromProductSelection(
       searchUrl: snapshot.sourceUrl,
       note: snapshot.provider === "yami-catalog-search"
         ? language === "zh"
-          ? "数据来自 Yami 商品目录接口；品牌、分类与商品身份保留为本次生成证据。"
-          : "Data comes from the Yami catalog interface; brand, category, and product identities are retained as run evidence."
+          ? snapshot.catalogCoverage
+            ? "商品事实来自 Yami 目录接口与公开品牌页；全量目录覆盖、销售方、库存状态和商品身份保留为本次生成证据。"
+            : "数据来自 Yami 商品目录接口；品牌、分类与商品身份保留为本次生成证据。"
+          : snapshot.catalogCoverage
+            ? "Product facts come from the Yami catalog interface and public brand pages; complete coverage, seller, availability, and product identity remain run evidence."
+            : "Data comes from the Yami catalog interface; brand, category, and product identities are retained as run evidence."
         : language === "zh"
           ? "目录接口不可用，本次回退到 Yami 公开搜索结果第一页。"
           : "The catalog interface was unavailable; this run fell back to page 1 of public Yami search.",
@@ -702,6 +716,7 @@ export function buildTopicPagePlanFromProductSelection(
       primaryIds: primary.map((product) => product.id),
       relatedIds: related.map((product) => product.id),
     },
+    ...(snapshot.catalogCoverage ? { catalogCoverage: snapshot.catalogCoverage } : {}),
     products: [...primary, ...related],
     selectedCategories: categorySelections,
     groups,
@@ -754,7 +769,7 @@ export function buildTopicPagePlan(
   }
   const run = advanceProductSelectionRun({
     snapshot,
-    strategyRef: "relevance/default@1",
+    strategyRef: "relevance/intent-themes@2",
   });
   if (run.status !== "ready") {
     throw new Error("Relevance ProductSelection did not produce a ready result.");

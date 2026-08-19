@@ -1,8 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   advanceProductSelectionRun,
   getProductSelectionStrategyConfig,
   listProductSelectionStrategyConfigs,
+  loadYamiBrandCatalogCoverage,
+  refineYamiCatalogSnapshotForIntent,
   runProductSelectionWorkflow,
   type CatalogTaxonomySnapshot,
   type CatalogCandidateSnapshot,
@@ -10,6 +12,54 @@ import {
   type ProductRole,
   type YamiSearchSnapshot,
 } from "../src/index.js";
+
+function brandIntent(
+  categories: Array<{ id: string; label: string; evidenceCount: number }>,
+): NonNullable<YamiSearchSnapshot["intent"]> {
+  return {
+    schemaVersion: "theme-intent/v2",
+    source: "catalog-evidence",
+    themeType: "brand",
+    catalogDomain: "Beauty",
+    attributeSchemaVersion: "catalog-v1",
+    entityType: "brand",
+    canonicalEntity: { id: "11712", label: "ANUA" },
+    shoppingIntent: "browse-brand",
+    shopperAction: "browse",
+    shoppingGoal: "Browse ANUA products by category.",
+    needs: categories.map(({ label }) => label),
+    conditions: [],
+    mustInclude: ["ANUA"],
+    mustExclude: [],
+    searchTerms: ["ANUA"],
+    categories: categories.map((category) => ({
+      ...category,
+      path: ["Beauty", category.label],
+    })),
+    constraints: [{
+      id: "core-entity:anua",
+      kind: "core-entity",
+      value: "ANUA",
+      status: "verified",
+      evidenceIds: ["catalog-brand:11712"],
+    }],
+    evidenceRefs: [{
+      id: "catalog-brand:11712",
+      source: "catalog-brand",
+      label: "ANUA",
+    }],
+    candidates: [],
+    decision: {
+      status: "resolved",
+      selectedCandidateId: "brand:brand:11712:browse-brand:browse",
+      evidenceLevel: "high",
+      selectedCandidateMargin: 1,
+      requiresAgentReview: false,
+    },
+    reason: "The catalog brand exactly matches the keyword.",
+    confidence: 0.99,
+  };
+}
 
 function categoryRoleFixture() {
   const roles: ProductRole[] = [
@@ -162,6 +212,7 @@ describe("ProductSelection Module", () => {
       listProductSelectionStrategyConfigs().map(({ ref, engine }) => ({ ref, engine })),
     ).toEqual([
       { ref: "relevance/default@1", engine: "relevance" },
+      { ref: "relevance/intent-themes@2", engine: "relevance" },
       {
         ref: "category-role/landing-page-agent@1",
         engine: "category-role",
@@ -187,6 +238,449 @@ describe("ProductSelection Module", () => {
         "explore-more",
       ],
     });
+  });
+
+  it("keeps the complete eligible pool while limiting each intent-backed theme to four to eight products", () => {
+    const categories = [
+      { id: "102", label: "Sheet Masks", evidenceCount: 4 },
+      { id: "101", label: "Serums", evidenceCount: 10 },
+      { id: "103", label: "Toning Pads", evidenceCount: 3 },
+    ];
+    const products = [
+      ...Array.from({ length: 10 }, (_, index) => ({
+        id: `serum-${index + 1}`,
+        title: `ANUA Serum ${index + 1}`,
+        brand: "ANUA",
+        price: "$20.00",
+        imageUrl: `https://example.com/serum-${index + 1}.webp`,
+        productUrl: `https://example.com/serum-${index + 1}`,
+        sourceRank: index + 1,
+        categoryL3Id: 101,
+        categoryL3Name: "Serums",
+      })),
+      ...Array.from({ length: 4 }, (_, index) => ({
+        id: `mask-${index + 1}`,
+        title: `ANUA Sheet Mask ${index + 1}`,
+        brand: "ANUA",
+        price: "$6.00",
+        imageUrl: `https://example.com/mask-${index + 1}.webp`,
+        productUrl: `https://example.com/mask-${index + 1}`,
+        sourceRank: index + 11,
+        categoryL3Id: 102,
+        categoryL3Name: "Sheet Masks",
+      })),
+      ...Array.from({ length: 3 }, (_, index) => ({
+        id: `pad-${index + 1}`,
+        title: `ANUA Toning Pad ${index + 1}`,
+        brand: "ANUA",
+        price: "$18.00",
+        imageUrl: `https://example.com/pad-${index + 1}.webp`,
+        productUrl: `https://example.com/pad-${index + 1}`,
+        sourceRank: index + 15,
+        categoryL3Id: 103,
+        categoryL3Name: "Toning Pads",
+      })),
+    ];
+    const run = advanceProductSelectionRun({
+      snapshot: {
+        keyword: "ANUA",
+        site: "us",
+        sourceUrl: "https://example.com/search?q=ANUA",
+        fetchedAt: "2026-08-19T00:00:00.000Z",
+        provider: "yami-catalog-search",
+        products,
+        intent: brandIntent(categories),
+      },
+      strategyRef: "relevance/intent-themes@2",
+    });
+
+    expect(run.status).toBe("ready");
+    if (run.status !== "ready") return;
+    expect(run.result.selectedCategories.map(({ id }) => id)).toEqual(["102", "101"]);
+    expect(run.result.pools.primaryIds).toEqual([
+      "mask-1", "mask-2", "mask-3", "mask-4",
+      "serum-1", "serum-2", "serum-3", "serum-4",
+      "serum-5", "serum-6", "serum-7", "serum-8",
+      "serum-9", "serum-10",
+      "pad-1", "pad-2", "pad-3",
+    ]);
+    expect(run.result.modules.find(({ id }) => id === "start-here")?.groups)
+      .toEqual([
+        { id: "theme-102", label: "Sheet Masks", role: "core", productIds: ["mask-1", "mask-2", "mask-3", "mask-4"] },
+        { id: "theme-101", label: "Serums", role: "core", productIds: ["serum-1", "serum-2", "serum-3", "serum-4", "serum-5", "serum-6", "serum-7", "serum-8"] },
+      ]);
+  });
+
+  it("retrieves every page for an exact catalog brand before theme display limits are applied", async () => {
+    const intent = brandIntent([
+      { id: "101", label: "Serums", evidenceCount: 3 },
+      { id: "102", label: "Sheet Masks", evidenceCount: 2 },
+    ]);
+    const item = (id: string, categoryId: number) => ({
+      item_number: id,
+      goods_ename: `ANUA Product ${id}`,
+      brand_id: 11712,
+      brand_ename: "ANUA",
+      category_l1_id: 5,
+      category_l2_id: 50,
+      category_l3_id: categoryId,
+      image_url: `/item/${id}.webp`,
+      slug: `anua-${id}`,
+      status: "A",
+      goods_number: 10,
+    });
+    const pages = [
+      [item("a1", 101), item("a2", 101)],
+      [item("a3", 101), item("b1", 102)],
+      [item("b2", 102)],
+    ];
+    const fetchMock = vi.fn(async (_url: string | URL | Request, init?: RequestInit) => {
+      const request = JSON.parse(String(init?.body)) as {
+        brand_ids?: string;
+        page_index: number;
+        page_size: number;
+      };
+      expect(request.brand_ids).toBe("11712");
+      expect(request.page_size).toBe(2);
+      return Response.json({
+        messageId: "10000",
+        body: {
+          page: {
+            total: 5,
+            page_index: request.page_index,
+            page_size: request.page_size,
+            hasNext: request.page_index < pages.length,
+          },
+          items: pages[request.page_index - 1],
+        },
+      });
+    });
+    const snapshot: YamiSearchSnapshot = {
+      keyword: "ANUA",
+      site: "us",
+      sourceUrl: "https://example.com/search?q=ANUA",
+      fetchedAt: "2026-08-19T00:00:00.000Z",
+      provider: "yami-catalog-search",
+      products: [],
+      evidence: {
+        brands: [{ id: "11712", label: "ANUA", aliases: ["ANUA"], resultCount: 2 }],
+        categories: [],
+        attributes: [],
+      },
+      intent,
+    };
+
+    const refined = await refineYamiCatalogSnapshotForIntent(snapshot, intent, {
+      fetch: fetchMock as typeof fetch,
+      pageSize: 2,
+    });
+
+    expect(fetchMock.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(3);
+    expect(refined.products.map(({ id }) => id)).toEqual(["a1", "a2", "a3", "b1", "b2"]);
+    expect(refined.evidence?.brands[0]?.resultCount).toBe(5);
+    expect(refined.retrievalTerms).toContain("brand:11712");
+  });
+
+  it("loads complete brand coverage and sorts products by weekly sales", async () => {
+    const item = (
+      id: string,
+      sellerType: 0 | 1,
+      goodsNumber: number,
+      soldCount: number,
+      weeklyQuantity?: string,
+    ) => ({
+      item_number: id,
+      goods_ename: `Beauty Product ${id}`,
+      brand_id: 10757,
+      brand_ename: "Beauty of Joseon",
+      image_url: `/item/${id}.webp`,
+      slug: `beauty-product-${id}`,
+      shop_price: 19.99,
+      status: "A",
+      goods_number: goodsNumber,
+      sold_count: soldCount,
+      seller_type: sellerType,
+      seller_name: sellerType === 0 ? "亚米自营" : "第三方店铺",
+      seller_ename: sellerType === 0 ? "YAMI" : "Marketplace seller",
+      weekly_qty: weeklyQuantity ?? "",
+    });
+    const pages = [
+      [item("yami-low", 0, 1, 10, "300+"), item("third-oos", 1, 0, 80)],
+      [item("yami-high", 0, 1, 100, "100+"), item("third-high", 1, 1, 90, "100+")],
+      [item("yami-oos", 0, 0, 70, "20+"), item("third-low", 1, 1, 20)],
+    ];
+    const encode = (value: unknown) => JSON.stringify(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll('"', "&quot;");
+    const fetchMock = vi.fn(async (input: string | URL | Request) => {
+      const url = new URL(String(input));
+      const page = Number(url.searchParams.get("page") ?? "1");
+      return new Response(
+        `<input id="itemsData" type="hidden" value="${encode(pages[page - 1])}">` +
+        `<input id="pageData" type="hidden" value="${encode({
+          all_item_count: 6,
+          page_index: page,
+          page_size: 2,
+          page_count: 3,
+          hasNext: page < 3,
+        })}">`,
+      );
+    });
+
+    const coverage = await loadYamiBrandCatalogCoverage(
+      { id: "10757", label: "Beauty of Joseon" },
+      { fetch: fetchMock as typeof fetch },
+    );
+
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(coverage.totalCount).toBe(6);
+    expect(coverage.sort).toBe("weekly-sales-descending");
+    expect(coverage.products.map(({ id }) => id)).toEqual([
+      "yami-low", "yami-high", "third-high", "yami-oos", "third-oos", "third-low",
+    ]);
+    expect(coverage.groups).toEqual({
+      yami: { inStock: 2, outOfStock: 1 },
+      thirdParty: { inStock: 2, outOfStock: 1 },
+    });
+    expect(coverage.products.find(({ id }) => id === "yami-high")).toMatchObject({
+      sellerKind: "yami",
+      availability: "in-stock",
+      weeklySalesLabel: "100+ Sold",
+    });
+  });
+
+  it("uses all in-stock brand-page products for selection while preserving out-of-stock coverage", async () => {
+    const intent = brandIntent([]);
+    const item = (id: string, goodsNumber: number, soldCount: number, sellerType = 0) => ({
+      item_number: id,
+      goods_ename: `ANUA Product ${id}`,
+      brand_id: 11712,
+      brand_ename: "ANUA",
+      image_url: `/item/${id}.webp`,
+      slug: `anua-${id}`,
+      shop_price: 19.99,
+      status: "A",
+      goods_number: goodsNumber,
+      sold_count: soldCount,
+      weekly_qty: `${soldCount}+`,
+      seller_type: sellerType,
+      seller_ename: sellerType === 0 ? "YAMI" : "Marketplace seller",
+    });
+    const brandItems = [
+      item("yami-low", 1, 5),
+      item("third-high", 1, 80, 1),
+      item("yami-high", 1, 100),
+      item("third-oos", 0, 90, 1),
+    ];
+    const encode = (value: unknown) => JSON.stringify(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll('"', "&quot;");
+    const fetchMock = vi.fn(async (_input: string | URL | Request, init?: RequestInit) => {
+      if (init?.method === "POST") {
+        const request = JSON.parse(String(init.body)) as { sort_by: number };
+        expect(request.sort_by).toBe(6);
+        return Response.json({
+          messageId: "10000",
+          body: {
+            page: { total: 2, page_index: 1, page_size: 60, hasNext: false },
+            items: [brandItems[0], brandItems[1]],
+          },
+        });
+      }
+      return new Response(
+        `<input id="itemsData" value="${encode(brandItems)}">` +
+        `<input id="pageData" value="${encode({ page_count: 1, all_item_count: 4 })}">`,
+      );
+    });
+    const snapshot: YamiSearchSnapshot = {
+      keyword: "ANUA",
+      site: "us",
+      sourceUrl: "https://example.com/search?q=ANUA",
+      fetchedAt: "2026-08-19T00:00:00.000Z",
+      provider: "yami-catalog-search",
+      products: [],
+      intent,
+    };
+
+    const refined = await refineYamiCatalogSnapshotForIntent(snapshot, intent, {
+      fetch: fetchMock as typeof fetch,
+    });
+
+    expect(refined.products.map(({ id }) => id)).toEqual([
+      "yami-high", "third-high", "yami-low",
+    ]);
+    expect(refined.catalogCoverage?.products).toHaveLength(4);
+    expect(refined.catalogCoverage?.groups.thirdParty).toEqual({
+      inStock: 1,
+      outOfStock: 1,
+    });
+    expect(refined.quality).toMatchObject({
+      observedProductCount: 4,
+      acceptedProductCount: 3,
+      rejectedProductCount: 1,
+    });
+  });
+
+  it("paginates every ThemeIntent category while leaving four-to-eight limits to display themes", async () => {
+    const categories = [
+      { id: "101", label: "Serums", evidenceCount: 1 },
+      { id: "102", label: "Sheet Masks", evidenceCount: 1 },
+    ];
+    const intent: NonNullable<YamiSearchSnapshot["intent"]> = {
+      ...brandIntent(categories),
+      themeType: "product",
+      entityType: "unknown",
+      canonicalEntity: null,
+      shoppingIntent: "find-product",
+      shopperAction: "find",
+      shoppingGoal: "Find products across verified categories.",
+      decision: {
+        ...brandIntent(categories).decision,
+        selectedCandidateId: "product:unknown:verified-categories:find-product:find",
+      },
+    };
+    const item = (categoryId: number, id: string) => ({
+      item_number: id,
+      goods_ename: `ANUA Product ${id}`,
+      brand_ename: "ANUA",
+      category_l1_id: 5,
+      category_l2_id: 50,
+      category_l3_id: categoryId,
+      image_url: `/item/${id}.webp`,
+      slug: `anua-${id}`,
+      status: "A",
+      goods_number: 10,
+    });
+    const fetchMock = vi.fn(async (_url: string | URL | Request, init?: RequestInit) => {
+      const request = JSON.parse(String(init?.body)) as {
+        category_ids: string;
+        page_index: number;
+      };
+      const categoryId = Number(request.category_ids);
+      const ids = categoryId === 101
+        ? request.page_index === 1 ? ["a1", "a2", "a3"] : ["a4", "a5"]
+        : ["b1", "b2", "b3", "b4"];
+      return Response.json({
+        messageId: "10000",
+        body: {
+          page: {
+            total: categoryId === 101 ? 5 : 4,
+            page_index: request.page_index,
+            page_size: 3,
+            hasNext: categoryId === 101 && request.page_index === 1,
+          },
+          items: ids.map((id) => item(categoryId, id)),
+        },
+      });
+    });
+    const snapshot: YamiSearchSnapshot = {
+      keyword: "ANUA",
+      site: "us",
+      sourceUrl: "https://example.com/search?q=ANUA",
+      fetchedAt: "2026-08-19T00:00:00.000Z",
+      provider: "yami-catalog-search",
+      products: [],
+      intent,
+    };
+
+    const refined = await refineYamiCatalogSnapshotForIntent(snapshot, intent, {
+      fetch: fetchMock as typeof fetch,
+      pageSize: 3,
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(refined.products.filter(({ categoryL3Id }) => categoryL3Id === 101))
+      .toHaveLength(5);
+    expect(refined.products.filter(({ categoryL3Id }) => categoryL3Id === 102))
+      .toHaveLength(4);
+  });
+
+  it("does not expand an exact category through unrelated keyword matches", async () => {
+    const base = brandIntent([
+      { id: "1496", label: "Instant Coffee", evidenceCount: 8 },
+      { id: "1495", label: "Cold Brew & Bottled", evidenceCount: 8 },
+      { id: "1231", label: "Household Essentials", evidenceCount: 8 },
+    ]);
+    const intent: NonNullable<YamiSearchSnapshot["intent"]> = {
+      ...base,
+      themeType: "product",
+      catalogDomain: "Beverage",
+      entityType: "category",
+      canonicalEntity: { id: "312", label: "Coffee" },
+      shoppingIntent: "find-product",
+      shopperAction: "find",
+      shoppingGoal: "Find Coffee products.",
+      needs: ["Instant Coffee", "Cold Brew & Bottled"],
+      mustInclude: ["Coffee"],
+      mustExclude: ["decaf"],
+      searchTerms: ["coffee", "Coffee"],
+      categories: [
+        { id: "1496", label: "Instant Coffee", path: ["Beverage", "Coffee", "Instant Coffee"], evidenceCount: 8 },
+        { id: "1495", label: "Cold Brew & Bottled", path: ["Beverage", "Coffee", "Cold Brew & Bottled"], evidenceCount: 8 },
+        { id: "1231", label: "Household Essentials", path: ["Home", "Household", "Household Essentials"], evidenceCount: 8 },
+      ],
+      constraints: [{
+        id: "core-entity:coffee",
+        kind: "core-entity",
+        value: "Coffee",
+        status: "verified",
+        evidenceIds: ["catalog-category:312"],
+      }],
+      evidenceRefs: [{
+        id: "catalog-category:312",
+        source: "catalog-category",
+        label: "Coffee",
+      }],
+      decision: {
+        ...base.decision,
+        selectedCandidateId: "product:category:312:find-product:find",
+      },
+      reason: "The catalog category exactly matches the keyword.",
+      confidence: 0.92,
+    };
+    const fetchMock = vi.fn(async (_url: string | URL | Request, init?: RequestInit) => {
+      const request = JSON.parse(String(init?.body)) as { category_ids: string };
+      const categoryId = Number(request.category_ids);
+      return Response.json({
+        messageId: "10000",
+        body: {
+          page: { total: 4, page_index: 1, page_size: 60, hasNext: false },
+          items: Array.from({ length: 4 }, (_, index) => ({
+            item_number: `${categoryId}-${index + 1}`,
+            goods_ename: categoryId === 1496 && index === 0
+              ? "Decaf Coffee Product"
+              : `Coffee Product ${index + 1}`,
+            category_l1_id: categoryId === 1231 ? 8 : 3,
+            category_l2_id: categoryId === 1231 ? 80 : 312,
+            category_l3_id: categoryId,
+            image_url: `/item/${categoryId}-${index + 1}.webp`,
+            slug: `coffee-${categoryId}-${index + 1}`,
+            status: "A",
+            goods_number: 10,
+          })),
+        },
+      });
+    });
+    const snapshot: YamiSearchSnapshot = {
+      keyword: "coffee",
+      site: "us",
+      sourceUrl: "https://example.com/search?q=coffee",
+      fetchedAt: "2026-08-19T00:00:00.000Z",
+      provider: "yami-catalog-search",
+      products: [],
+      intent,
+    };
+
+    const refined = await refineYamiCatalogSnapshotForIntent(snapshot, intent, {
+      fetch: fetchMock as typeof fetch,
+    });
+
+    expect(fetchMock.mock.calls.map(([, init]) =>
+      JSON.parse(String(init?.body)).category_ids
+    )).toEqual(["1496", "1495"]);
+    expect(refined.products.every(({ categoryL2Id }) => categoryL2Id === 312)).toBe(true);
+    expect(refined.products).toHaveLength(7);
+    expect(refined.products.some(({ title }) => title.includes("Decaf"))).toBe(false);
   });
 
   it("selects relevance pools once without requiring PagePlan or language", () => {
@@ -224,6 +718,67 @@ describe("ProductSelection Module", () => {
         },
       },
     });
+  });
+
+  it("does not refill a resolved non-brand pool with unrelated search results after filtering", () => {
+    const base = brandIntent([]);
+    const intent: NonNullable<YamiSearchSnapshot["intent"]> = {
+      ...base,
+      themeType: "product",
+      entityType: "category",
+      canonicalEntity: { id: "312", label: "Coffee" },
+      shoppingIntent: "find-product",
+      shopperAction: "find",
+      shoppingGoal: "Find coffee products.",
+      mustInclude: ["Coffee"],
+      searchTerms: ["coffee"],
+      decision: {
+        ...base.decision,
+        selectedCandidateId: "product:category:312:find-product:find",
+      },
+    };
+    const products = [
+      ...Array.from({ length: 2 }, (_, index) => ({
+        id: `coffee-${index + 1}`,
+        title: `Coffee Product ${index + 1}`,
+        brand: "Coffee Brand",
+        price: "$10.00",
+        imageUrl: `https://example.com/coffee-${index + 1}.webp`,
+        productUrl: `https://example.com/coffee-${index + 1}`,
+        sourceRank: index + 1,
+        categoryL2Id: 312,
+        categoryL2Name: "Coffee",
+      })),
+      ...Array.from({ length: 8 }, (_, index) => ({
+        id: `unrelated-${index + 1}`,
+        title: `Household Product ${index + 1}`,
+        brand: "Home Brand",
+        price: "$10.00",
+        imageUrl: `https://example.com/unrelated-${index + 1}.webp`,
+        productUrl: `https://example.com/unrelated-${index + 1}`,
+        sourceRank: index + 3,
+        categoryL2Id: 999,
+        categoryL2Name: "Household",
+      })),
+    ];
+
+    const run = advanceProductSelectionRun({
+      snapshot: {
+        keyword: "coffee",
+        site: "us",
+        sourceUrl: "https://example.com/search?q=coffee",
+        fetchedAt: "2026-08-19T00:00:00.000Z",
+        provider: "yami-catalog-search",
+        products,
+        intent,
+      },
+      strategyRef: "relevance/intent-themes@2",
+    });
+
+    expect(run.status).toBe("ready");
+    if (run.status !== "ready") return;
+    expect(run.result.pools.primaryIds).toEqual(["coffee-1", "coffee-2"]);
+    expect(run.result.pools.relatedIds).toEqual([]);
   });
 
   it("deduplicates relevance pools by product ID while preserving first source order", () => {

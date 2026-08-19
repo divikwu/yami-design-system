@@ -17,6 +17,9 @@ export type TopicPageTemplateId =
   | "topic-landing/brand"
   | "topic-landing/topic"
   | "topic-landing/campaign"
+  | "topic-landing/brand-relevance"
+  | "topic-landing/topic-relevance"
+  | "topic-landing/campaign-relevance"
   | "topic-landing/relevance";
 
 export type TopicPageTemplateRef = `${TopicPageTemplateId}@${number}`;
