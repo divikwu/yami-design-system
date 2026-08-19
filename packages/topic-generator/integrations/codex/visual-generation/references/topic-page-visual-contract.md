@@ -5,7 +5,7 @@
 ```text
 ready TopicPagePlan v2 + ready TopicPageContentSpec
   -> TopicPageVisualContext
-  -> generated image bytes + TopicPageVisualProposal
+  -> mode-bound image bytes + TopicPageVisualProposal
   -> deterministic review
   -> TopicPageAssetManifest
 ```
@@ -14,6 +14,10 @@ The context contains only PagePlan-declared image tasks, their assigned products
 scene and accepted content task, verified ThemeIntent evidence, and selected categories. A proposal
 cannot add tasks, switch components, expose hidden modules, reallocate products, rewrite copy, or
 change any digest.
+
+`productionMode` is either `generated-images` or `source-product-images`. The proposal must preserve
+the requested mode. Scene tasks may include `compositionGuidance`; it is a preference for art
+direction, not a deterministic rejection rule.
 
 ## Maintained image slots
 
@@ -39,6 +43,7 @@ continue to use catalog image identities.
   "topicPageContentSpecDigest": "sha256:...",
   "themeIntentDigest": "sha256:...",
   "productSelectionDigest": "sha256:...",
+  "productionMode": "generated-images",
   "assets": [
     {
       "taskId": "asset-hero",
@@ -100,6 +105,8 @@ direction; it does not authorize facts absent from the referenced artifact.
 - Focal-point coordinates are finite values from 0 through 1.
 - Required background colors and all supplied colors use six-digit hex notation.
 - Every task uses a unique artifact path.
+- When a task returns `compositionGuidance`, prefer it during art direction but do not treat it as a
+  mandatory crop or a hard QA condition.
 
 The deterministic module validates metadata and scope. Stage 06 must still open the actual files,
 verify their bytes against the digest, render them in maintained components, inspect visual quality

@@ -6,6 +6,7 @@ export interface ThemeProductListContent {
   image: {
     src: string;
     alt: string;
+    objectPosition?: string;
   };
   /** Pre-sampled color from the image's lower copy region. Prevents a foreground-color flash before client-side sampling completes. */
   backgroundColor?: string;

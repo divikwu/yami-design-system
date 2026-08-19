@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import sharp from "sharp";
 
 import {
   advanceLandingPageOrchestrationRun,
@@ -17,19 +18,41 @@ import {
   type ThemeIntent,
   type TopicPageAssetManifest,
   type TopicPageAssetReader,
+  type TopicPageImageDecoder,
   type TopicPageContentSpec,
   type TopicPagePlanV2,
 } from "../src/index.js";
 
-function pngHeader(width: number, height: number) {
-  const bytes = new Uint8Array(24);
-  bytes.set([137, 80, 78, 71, 13, 10, 26, 10]);
-  bytes.set([0, 0, 0, 13, 73, 72, 68, 82], 8);
-  const view = new DataView(bytes.buffer);
-  view.setUint32(16, width);
-  view.setUint32(20, height);
-  return bytes;
+const REAL_PNG_FIXTURES = {
+  "1600x900": "iVBORw0KGgoAAAANSUhEUgAABkAAAAOEAQMAAADDg2/hAAAAA1BMVEXS3MiRRRwVAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAxklEQVR42u3BgQAAAADDoPlTX+EAVQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADwGsLCAAEUOY8tAAAAAElFTkSuQmCC",
+  "1200x1200": "iVBORw0KGgoAAAANSUhEUgAABLAAAASwAQMAAADR7yGMAAAAA1BMVEXS3MiRRRwVAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAxklEQVR42u3BMQEAAADCoPVPbQlPoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADgb8PuAAGXc2RaAAAAAElFTkSuQmCC",
+} as const;
+
+function pngFixture(size: keyof typeof REAL_PNG_FIXTURES) {
+  return new Uint8Array(Buffer.from(REAL_PNG_FIXTURES[size], "base64"));
 }
+
+const imageDecoder: TopicPageImageDecoder = {
+  inspect: async (bytes) => {
+    try {
+      const image = sharp(bytes, { failOn: "error" });
+      const metadata = await image.metadata();
+      await image.clone().raw().toBuffer();
+      const mimeType = metadata.format === "png"
+        ? "image/png" as const
+        : metadata.format === "jpeg"
+          ? "image/jpeg" as const
+          : metadata.format === "webp"
+            ? "image/webp" as const
+            : null;
+      return mimeType && metadata.width && metadata.height
+        ? { mimeType, width: metadata.width, height: metadata.height }
+        : null;
+    } catch {
+      return null;
+    }
+  },
+};
 
 function fixture() {
   const intent: ThemeIntent = {
@@ -149,7 +172,7 @@ function fixture() {
     ...contentBase,
     digest: topicPageContentSpecDigest(contentBase),
   };
-  const bytes = pngHeader(1600, 900);
+  const bytes = pngFixture("1600x900");
   const manifestBase = {
     schemaVersion: "topic-page-asset-manifest/v1" as const,
     status: "asset-manifest-ready" as const,
@@ -200,7 +223,7 @@ function fixture() {
       return value;
     },
   };
-  return { intent, selection, plan, contentSpec, manifest, bytes, bodies, reader };
+  return { intent, selection, plan, contentSpec, manifest, bytes, bodies, reader, imageDecoder };
 }
 
 function executionPlanFor(data: ReturnType<typeof fixture>) {
@@ -341,7 +364,7 @@ describe("PageGenerationSpec and final automatic QA", () => {
       ...data,
       assetUrl: (ref) => `/assets?ref=${encodeURIComponent(ref)}`,
     });
-    data.bodies.set("assets/hero.png", pngHeader(1200, 1200));
+    data.bodies.set("assets/hero.png", pngFixture("1200x1200"));
 
     const qaReport = await runTopicPageQa({ ...data, generationSpec });
 
@@ -359,6 +382,24 @@ describe("PageGenerationSpec and final automatic QA", () => {
       experienceReview: undefined as never,
       previewRefs: { desktop: "/", mobile: "/" },
     })).toThrow("ReviewPackage requires a passed QAReport.");
+  });
+
+  it("blocks review when a persisted image has a valid header but cannot be decoded", async () => {
+    const data = fixture();
+    const generationSpec = compileTopicPageGenerationSpec({
+      ...data,
+      assetUrl: (ref) => `/assets?ref=${encodeURIComponent(ref)}`,
+    });
+    data.bodies.set("assets/hero.png", data.bytes.slice(0, 24));
+
+    const qaReport = await runTopicPageQa({ ...data, generationSpec });
+
+    expect(qaReport).toMatchObject({
+      status: "qa-blocked",
+      issues: expect.arrayContaining([
+        "Asset asset-hero is not a decodable PNG, JPEG, or WebP image.",
+      ]),
+    });
   });
 
   it("rejects digest drift before a generation spec can be emitted", () => {

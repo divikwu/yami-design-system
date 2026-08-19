@@ -165,7 +165,8 @@ Agent Endpoint 接收 `product-selection-agent-request/v1`，并返回：
 `workflow-planning`、`module-merchandising`、`content-writing`、`visual-generation` 与
 `experience-review` 五个 stage 路由到对应逻辑 Agent。
 Visual 响应除提案外必须返回每个任务的 `taskId/ref/mimeType/dataBase64`。Host 先校验全部
-图片的任务绑定、真实 MIME、像素尺寸与 SHA-256，再一次性写入 `TOPIC_GENERATOR_ASSET_ROOT`。
+图片的任务绑定、完整像素解码、真实 MIME、像素尺寸与 SHA-256，再一次性写入
+`TOPIC_GENERATOR_ASSET_ROOT`；落盘后 hard QA 会重新读取并再次完整解码。
 配置缺失、Agent 拒绝、图片不匹配或 QA 失败都会返回显式 `topic-page-automation-run/v1`
 `blocked`，不会回退成看似完成的旧页面预览。
 
@@ -212,17 +213,30 @@ PageVisual 会校验产物元数据和全部 digests。最终文件读取、组�
 当前模块商品或当前场景。没有已验证评论记录时，`ReviewList` 不能进入 Content 任务。该阶段
 不生成图片、图片提示词或 alt text。
 
+新的分类角色 `@2` 模板使用 `topic-page-copy/evidence-bound@1`：Content context 会返回每个
+槽位的字符上限和可用 ThemeIntent evidence ID；确定性校验器拒绝混合语言、超长文案、竞争
+候选 evidence，以及不属于当前模块商品的分类 evidence。旧 `@1` proposal 仍按 legacy policy
+回放。Wikipedia 尚未进入 PageContent evidence namespace，不能作为商品事实引用。
+
+PageContent 的 blocked 结果会区分 `upstream-invalid` 与 `proposal-invalid`，并给出明确的
+`rollbackStage`。自动流程保留 `topic-page-content-attempt/v1`（Agent ID、语言、三组输入
+digest、被拒 proposal 与 review）；相同绑定下可显式提交修订 proposal，从
+`content-writing` 定点恢复，不会自动再次调用 Agent。任一 digest 或语言漂移都会退回
+`module-merchandising`。
+
 ## PageVisual 纵向切片
 
 在生成 ready ContentSpec 的同一命令上增加 `--visual`，首次得到
-`topic-page-visual-run/v1` 的 `needs-visual-proposal`。独立 Visual Agent 使用宿主提供的图片
-生成能力逐项完成 Hero、快捷入口、场景与品牌横幅任务，再增加
+`topic-page-visual-run/v1` 的 `needs-visual-proposal`。通过 `--visual-production-mode` 冻结
+`generated-images` 或 `source-product-images`；独立 Visual Agent 使用对应宿主能力逐项完成
+Hero、快捷入口、场景与品牌横幅任务，再增加
 `--visual-proposal ./visual.zh.json`。确定性校验器会检查任务/组件、证据作用域、安全相对路径、
 MIME、尺寸与比例、SHA-256、焦点、背景色和 alt text 模式，成功时输出
 `topic-page-asset-manifest/v1`。
 
-核心包不内置模型或图片 Provider SDK。若宿主没有图片生成器，Visual Agent 必须停止，不能
-伪造图片或元数据。自动 Host 会继续读取图片本体、编译 `topic-page-generation-spec/v1`，并
+核心包不内置模型、图片 Provider SDK 或来源图合成器。若宿主没有当前模式要求的媒体能力，
+Visual Agent 必须停止，不能伪造图片或元数据。场景任务会给出非阻断的构图建议，帮助避让
+底部叠加文案，但不会因偏离建议而单独阻断。自动 Host 会继续读取图片本体、编译 `topic-page-generation-spec/v1`，并
 执行来源绑定、模块、文案、图片字节和可访问性结构硬 QA。硬 QA 通过后，Review Agent 只能
 建议进入用户 Review 或输出带回退阶段的问题；只有 `review-recommended` 才生成
 `topic-page-review-package/v1` `review-ready`。07 用户审批会绑定当前任务与 ReviewPackage

@@ -6,13 +6,16 @@ import {
   createHttpTopicPageAgent,
   type HttpTopicPageAgent,
   type TopicPageAssetStore,
+  type TopicPageImageDecoder,
 } from "@yami/topic-generator";
+import { topicPageImageDecoder } from "./topic-page-image-decoder";
 
 type RuntimeEnvironment = Record<string, string | undefined>;
 
 export interface TopicGeneratorPageAutomationRuntime {
   topicPageAgent?: HttpTopicPageAgent;
   topicPageAssetStore?: TopicPageAssetStore;
+  topicPageImageDecoder: TopicPageImageDecoder;
   pageAutomationConfigurationIssues: string[];
 }
 
@@ -153,6 +156,7 @@ export async function loadTopicGeneratorPageAutomationRuntime(options: {
   return {
     topicPageAgent,
     topicPageAssetStore,
+    topicPageImageDecoder,
     pageAutomationConfigurationIssues: issues,
   };
 }

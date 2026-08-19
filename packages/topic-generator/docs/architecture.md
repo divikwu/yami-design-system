@@ -169,17 +169,36 @@ component copy slots and assigned evidence. It accepts one localized
 copy fields, and out-of-scope ThemeIntent/category/product/scene evidence before compiling a
 digest-bound `topic-page-content-spec/v1`.
 
+Active category-role `@2` templates select the deep
+`topic-page-copy/evidence-bound@1` policy Module. The same policy registry derives Agent-facing
+`copySlots`/`copyRules` and deterministic proposal review, so locale, character limits, and evidence
+eligibility have one Interface and one Implementation. ThemeIntent evidence is narrowed to the
+selected candidate plus verified constraints; category evidence is narrowed to products assigned
+to the current module. Legacy `@1` templates retain `topic-page-copy/legacy@1` replay behavior.
+Public background material has no PageContent Adapter yet and therefore cannot cross this Seam.
+
 `runTopicContentAgentWorkflow` injects the independent Content Agent. The Agent writes copy; the
 Module owns task membership, evidence scope, validation, and compilation. Review copy remains
 blocked until an upstream contract supplies verified review records. Image prompts and assets stay
 outside this Module.
 
+Blocked PageContent runs expose `faultKind` and `rollbackStage`: upstream drift returns to
+PageMerchandising, while rejected copy stays in PageContent. The Agent workflow records a
+digest-bound `topic-page-content-attempt/v1`; Automation preserves that attempt and the rejected
+run. An explicit resume must provide the preserved attempt and a revised proposal, revalidates all
+three upstream digests plus language, skips PageMerchandising and the Content Agent only when they
+still match, and never retries an Agent implicitly. Agent transport failure is classified at the
+Agent Adapter Seam rather than inside the deterministic PageContent Module.
+
 ### PageVisual Module
 
-`advanceTopicPageVisualRun({ intent, selection, plan, contentSpec, proposal? })` revalidates the
+`advanceTopicPageVisualRun({ intent, selection, plan, contentSpec, productionMode?, proposal? })` revalidates the
 PagePlan and ready ContentSpec, then derives only the image slots declared by each module's
 `assetTaskIds`. The context contains exact component ratios, minimum dimensions, alt-text mode,
 assigned products, relevant scene, accepted content task, and scoped evidence namespaces.
+The context freezes `generated-images` or `source-product-images`; accepted proposals and manifests
+preserve that mode. Scene tasks also expose non-blocking composition guidance for layouts whose copy
+overlays the lower image area.
 
 An accepted `topic-page-visual-proposal/v1` must preserve task order and all upstream digests. The
 Module rejects undeclared tasks, component/product drift, out-of-scope evidence, unsafe paths,
@@ -187,8 +206,9 @@ MIME/extension mismatches, undersized or incorrectly cropped images, invalid SHA
 invalid focal points, missing background colors, and alt-text mode drift before compiling a
 digest-bound `topic-page-asset-manifest/v1`.
 
-`runTopicVisualAgentWorkflow` injects the independent Visual Agent. The Agent needs a host-provided
-image generator and creates actual media plus metadata; the core package contains no provider SDK.
+`runTopicVisualAgentWorkflow` injects the independent Visual Agent. The host supplies either image
+generation or deterministic source-product composition according to the frozen production mode; the
+core package contains no provider SDK.
 Automatic HTTP output uses `topic-page-visual-agent-output/v1` to keep the proposal separate from
 base64 image bodies. The manifest status is `asset-manifest-ready`; it does not yet trust the bytes.
 
@@ -201,8 +221,9 @@ proposal, validates every returned image body before any store write, persists a
 compiles `topic-page-generation-spec/v1`, and runs the final hard QA gates.
 
 `PageGenerationSpec` freezes the visible module order, component, accepted copy, exact assigned
-products, scene records, asset URLs, and all upstream digests. `runTopicPageQa` reads persisted PNG,
-JPEG, or WebP bytes and independently checks SHA-256, MIME magic, dimensions, bindings, module/order,
+products, scene records, asset URLs, and all upstream digests. Before any store write, the Host image
+decoder must fully decode every PNG, JPEG, or WebP body. `runTopicPageQa` then rereads the persisted
+bytes and independently repeats full decoding plus SHA-256, MIME, dimensions, bindings, module/order,
 content presence, and alt-text structure.
 
 Only after hard QA passes may `runTopicPageReviewAgentWorkflow(...)` invoke the read-only Review
@@ -225,8 +246,8 @@ separate authority.
   only the semantic, category-role, scene, and module proposals requested by the current state.
 - Topic Content loads only `content-writing` and may create copy for the declared PagePlan tasks and
   language.
-- Topic Visual loads only `visual-generation`, requires a host image generator, and may create media
-  plus metadata for declared asset tasks.
+- Topic Visual loads only `visual-generation`, requires the host media capability named by the
+  frozen production mode, and may create media plus metadata for declared asset tasks.
 - Topic Review loads only `page-review`, reads only hard-QA-passed output, and may recommend approval
   or request a revision to one allowed upstream stage. It cannot repair output or publish.
 - TypeScript Modules validate every proposal and own catalog facts, workflow state, digests, retry and

@@ -51,7 +51,9 @@ pnpm topic-generator:analyze -- --keyword "<keyword>" \
 
 Expect `pageContent.status` to be `needs-content-proposal`. Read the complete returned `context`,
 then read [the content proposal contract](references/topic-page-content-contract.md). Process only
-the returned tasks and `copySlots`.
+the returned tasks and `copySlots`. For active `@2` templates, require
+`copyPolicyRef: topic-page-copy/evidence-bound@1`; obey every returned `copyRules` character limit
+and cite only IDs listed by `eligibleThemeIntentEvidenceIds`.
 
 ## Compose customer-facing copy
 
@@ -73,6 +75,10 @@ Before writing, build a compact copy brief from the returned context:
 6. Use multiple relevant evidence inputs when the slot warrants it: the Hero proposition should
    reflect ThemeIntent plus assigned product or category evidence; scene copy should reflect its
    declared scene and products.
+7. Treat `themeIntent.evidenceRefs` as the complete audit record, not an automatic content
+   allowlist. Only `eligibleThemeIntentEvidenceIds` may support generated claims. Wikipedia or
+   other public background text is unavailable unless the runtime later declares a separate,
+   digest-bound background evidence namespace.
 
 Planning goals guide tone and structure but never authorize ingredient, benefit, efficacy,
 popularity, inventory, discount, rating, or customer-outcome claims.
@@ -93,6 +99,9 @@ Create exactly one `topic-page-content-proposal/v1` bound to the returned keywor
   ingredients, benefits, popularity, ratings, inventory, discounts, or customer outcomes.
 - Keep module copy differentiated. Do not reuse the same generic "精选 / 探索更多" proposition for
   the Hero, shortcuts, product rail, and waterfall when their shopping goals differ.
+- Keep every segment in the requested language except immutable keyword, brand, product, and
+  category names, and keep its character count at or below the matching returned `copyRules`
+  limit.
 - Keep review copy absent when verified review records are unavailable. Do not paraphrase or invent
   reviews.
 - Exclude image prompts, art direction, alt text, and asset decisions. Hand the ready ContentSpec
@@ -112,7 +121,10 @@ Rerun the same command with:
 
 Accept the result only when `pageContent.status` is `ready`. Preserve the returned
 `topic-page-content-spec/v1` digest for the Visual and QA stages. On `blocked`, report every issue
-and revise only the content proposal.
+and follow `rollbackStage`: revise only the content proposal for `content-writing`, but return to
+PageMerchandising for `module-merchandising`. When a `topic-page-content-attempt/v1` is available,
+preserve it with the rejected proposal; a resume must reuse its PagePlan, ThemeIntent,
+ProductSelection, and language bindings and must not silently invoke a second Agent attempt.
 
 In automatic Host mode, accept only a `topic-page-agent-request/v1` whose stage is
 `content-writing`, and return the proposal inside `topic-page-agent-response/v1` with the same

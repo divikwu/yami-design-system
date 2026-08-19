@@ -6,6 +6,7 @@ import type { TopicPageContentSpec } from "../page-content/contracts.js";
 import type {
   TopicPageAssetManifest,
   TopicPageVisualContext,
+  TopicPageVisualProductionMode,
   TopicPageVisualRun,
 } from "./contracts.js";
 import {
@@ -19,6 +20,7 @@ export interface TopicPageVisualRequest {
   selection: ProductSelectionResult;
   plan: TopicPagePlanV2;
   contentSpec: TopicPageContentSpec;
+  productionMode?: TopicPageVisualProductionMode;
   proposal?: unknown;
 }
 
@@ -27,6 +29,7 @@ function taskContext(
   selection: ProductSelectionResult,
   plan: TopicPagePlanV2,
   contentSpec: TopicPageContentSpec,
+  productionMode: TopicPageVisualProductionMode,
 ): TopicPageVisualContext {
   return {
     keyword: plan.keyword,
@@ -38,6 +41,7 @@ function taskContext(
     topicPageContentSpecDigest: contentSpec.digest,
     themeIntentDigest: plan.themeIntentDigest,
     productSelectionDigest: plan.productSelectionDigest,
+    productionMode,
     themeIntent: structuredClone(intent),
     selectedCategories: selection.selectedCategories.map((category) => ({
       ...category,
@@ -70,6 +74,7 @@ function compileAcceptedManifest(
     topicPageContentSpecDigest: request.contentSpec.digest,
     themeIntentDigest: request.plan.themeIntentDigest,
     productSelectionDigest: request.plan.productSelectionDigest,
+    productionMode: request.productionMode ?? "generated-images",
     assets,
   };
   return { ...manifest, digest: sha256Digest(manifest) };
@@ -81,6 +86,7 @@ export function compileTopicPageAssetManifest(
   plan: TopicPagePlanV2,
   contentSpec: TopicPageContentSpec,
   proposal: unknown,
+  productionMode: TopicPageVisualProductionMode = "generated-images",
 ) {
   const preflightIssues = reviewTopicPageVisualPreflight(
     intent,
@@ -97,12 +103,13 @@ export function compileTopicPageAssetManifest(
     plan,
     contentSpec,
     proposal,
+    productionMode,
   );
   if (review.status !== "accepted" || !review.proposal) {
     throw new Error(`TopicPageVisualProposal rejected: ${review.issues.join(" ")}`);
   }
   return compileAcceptedManifest(
-    { intent, selection, plan, contentSpec },
+    { intent, selection, plan, contentSpec, productionMode },
     review.proposal.assets,
   );
 }
@@ -110,6 +117,7 @@ export function compileTopicPageAssetManifest(
 export function advanceTopicPageVisualRun(
   request: TopicPageVisualRequest,
 ): TopicPageVisualRun {
+  const productionMode = request.productionMode ?? "generated-images";
   const preflightIssues = reviewTopicPageVisualPreflight(
     request.intent,
     request.selection,
@@ -134,6 +142,7 @@ export function advanceTopicPageVisualRun(
         request.selection,
         request.plan,
         request.contentSpec,
+        productionMode,
       ),
     };
   }
@@ -143,6 +152,7 @@ export function advanceTopicPageVisualRun(
     request.plan,
     request.contentSpec,
     request.proposal,
+    productionMode,
   );
   if (proposalReview.status !== "accepted" || !proposalReview.proposal) {
     return {

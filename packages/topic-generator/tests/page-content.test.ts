@@ -140,7 +140,7 @@ function planFixture(
     keyword: selection.keyword,
     site: selection.site,
     strategyRef: selection.strategyRef,
-    templateRef: "topic-landing/topic@1" as const,
+    templateRef: "topic-landing/topic@2" as const,
     themeIntentDigest: themeIntentDigest(intent),
     productSelectionDigest: productSelectionDigest(selection),
     moduleOrder: [...MODULE_ORDER],
@@ -245,6 +245,15 @@ function copy(text: string, ...evidenceRefs: string[]) {
   return { text, evidenceRefs };
 }
 
+function evidencedSegments(value: unknown): Array<{ text: string; evidenceRefs: string[] }> {
+  if (typeof value !== "object" || value === null) return [];
+  if ("text" in value && typeof value.text === "string" &&
+      "evidenceRefs" in value && Array.isArray(value.evidenceRefs)) {
+    return [value as { text: string; evidenceRefs: string[] }];
+  }
+  return Object.values(value).flatMap(evidencedSegments);
+}
+
 function proposalFixture(
   intent = themeIntentFixture(),
   selection = selectionFixture(),
@@ -337,9 +346,20 @@ describe("TopicPageContent", () => {
       status: "needs-content-proposal",
       context: {
         language: "zh",
+        copyPolicyRef: "topic-page-copy/evidence-bound@1",
         topicPagePlanDigest: plan.digest,
+        eligibleThemeIntentEvidenceIds: ["scenario:matcha"],
         tasks: [
-          { taskId: "content-hero", moduleId: "hero", copySlots: ["title", "description", "tags"] },
+          {
+            taskId: "content-hero",
+            moduleId: "hero",
+            copySlots: ["title", "description", "tags"],
+            copyRules: [
+              { slot: "title", maxCharacters: 64 },
+              { slot: "description", maxCharacters: 180 },
+              { slot: "tags", maxCharacters: 32 },
+            ],
+          },
           { taskId: "content-shortcuts", moduleId: "shortcuts", copySlots: ["title", "items[].label"] },
           {
             taskId: "content-start-here",
@@ -390,6 +410,8 @@ describe("TopicPageContent", () => {
 
     expect(run).toMatchObject({
       status: "blocked",
+      faultKind: "upstream-invalid",
+      rollbackStage: "module-merchandising",
       issues: expect.arrayContaining([
         "TopicPagePlan digest is invalid.",
         "TopicPagePlan themeIntentDigest does not match ThemeIntent.",
@@ -465,6 +487,157 @@ describe("TopicPageContent", () => {
     });
   });
 
+  it("rejects mixed-language copy for active templates", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const proposal = proposalFixture(intent, selection, plan);
+    proposal.tasks[4]!.copy.title.text = "Explore more";
+
+    const run = advanceTopicPageContentRun({
+      intent,
+      selection,
+      plan,
+      language: "zh",
+      proposal,
+    });
+
+    expect(run).toMatchObject({
+      status: "blocked",
+      issues: expect.arrayContaining([
+        "Copy field explore-more.title must use zh copy except immutable proper nouns.",
+      ]),
+    });
+  });
+
+  it("rejects copy that exceeds the active template text limit", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const proposal = proposalFixture(intent, selection, plan);
+    proposal.tasks[0]!.copy.description!.text = "长".repeat(181);
+
+    const run = advanceTopicPageContentRun({
+      intent,
+      selection,
+      plan,
+      language: "zh",
+      proposal,
+    });
+
+    expect(run).toMatchObject({
+      status: "blocked",
+      issues: expect.arrayContaining([
+        "Copy field hero.description exceeds 180 characters.",
+      ]),
+    });
+  });
+
+  it("rejects ThemeIntent evidence that is present but not eligible for content claims", () => {
+    const intent = themeIntentFixture();
+    intent.evidenceRefs.push({
+      id: "brand:unrelated",
+      source: "catalog-brand",
+      label: "Unrelated Brand",
+    });
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const proposal = proposalFixture(intent, selection, plan);
+    proposal.tasks[0]!.copy.title.evidenceRefs = ["theme-intent:brand:unrelated"];
+
+    const run = advanceTopicPageContentRun({
+      intent,
+      selection,
+      plan,
+      language: "zh",
+      proposal,
+    });
+
+    expect(run).toMatchObject({
+      status: "blocked",
+      issues: expect.arrayContaining([
+        "ThemeIntent evidence reference theme-intent:brand:unrelated is not eligible for content claims.",
+      ]),
+    });
+  });
+
+  it("rejects selected-category evidence outside the active module assignments", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const proposal = proposalFixture(intent, selection, plan);
+    proposal.tasks[1]!.copy.title.evidenceRefs = ["selected-category:1002"];
+
+    const run = advanceTopicPageContentRun({
+      intent,
+      selection,
+      plan,
+      language: "zh",
+      proposal,
+    });
+
+    expect(run).toMatchObject({
+      status: "blocked",
+      issues: expect.arrayContaining([
+        "Evidence reference selected-category:1002 is outside module shortcuts.",
+      ]),
+    });
+  });
+
+  it("keeps legacy template proposals replayable without the active copy policy", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    plan.templateRef = "topic-landing/topic@1";
+    plan.digest = topicPagePlanDigest(plan);
+    const proposal = proposalFixture(intent, selection, plan);
+    proposal.tasks[4]!.copy.title.text = "Explore more";
+    proposal.tasks[0]!.copy.description!.text = "长".repeat(181);
+
+    const run = advanceTopicPageContentRun({
+      intent,
+      selection,
+      plan,
+      language: "zh",
+      proposal,
+    });
+
+    expect(run).toMatchObject({ status: "ready" });
+  });
+
+  it("accepts English copy with immutable proper nouns and rejects mixed Chinese text", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const proposal = proposalFixture(intent, selection, plan);
+    proposal.language = "en";
+    evidencedSegments(proposal.tasks).forEach((segment) => {
+      segment.text = `Shop ${plan.keyword}`;
+    });
+
+    expect(advanceTopicPageContentRun({
+      intent,
+      selection,
+      plan,
+      language: "en",
+      proposal,
+    })).toMatchObject({ status: "ready" });
+
+    proposal.tasks[0]!.copy.title.text = `探索 ${plan.keyword}`;
+    expect(advanceTopicPageContentRun({
+      intent,
+      selection,
+      plan,
+      language: "en",
+      proposal,
+    })).toMatchObject({
+      status: "blocked",
+      issues: expect.arrayContaining([
+        "Copy field hero.title must use en copy except immutable proper nouns.",
+      ]),
+    });
+  });
+
   it("keeps the independent Content Agent behind the same deterministic review", async () => {
     const intent = themeIntentFixture();
     const selection = selectionFixture();
@@ -486,6 +659,107 @@ describe("TopicPageContent", () => {
 
     expect(proposePageContent).toHaveBeenCalledOnce();
     expect(result.run).toMatchObject({ status: "ready", spec: { language: "zh" } });
-    expect(result.artifacts).toEqual({ agentId: "topic-content-agent", proposal });
+    expect(result.artifacts).toEqual({
+      schemaVersion: "topic-page-content-attempt/v1",
+      agentId: "topic-content-agent",
+      topicPagePlanDigest: plan.digest,
+      themeIntentDigest: themeIntentDigest(intent),
+      productSelectionDigest: productSelectionDigest(selection),
+      language: "zh",
+      proposal,
+      proposalReview: result.run.status === "ready" ? result.run.proposalReview : undefined,
+    });
+  });
+
+  it("rechecks a revised proposal against the same content task digests without another Agent call", async () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const rejectedProposal = { ...proposalFixture(intent, selection, plan), tasks: [] };
+    const proposePageContent = vi.fn(async () => rejectedProposal);
+    const agent: TopicContentAgent = {
+      id: "topic-content-agent",
+      proposePageContent,
+    };
+
+    const rejected = await runTopicContentAgentWorkflow({
+      intent,
+      selection,
+      plan,
+      language: "zh",
+      agent,
+    });
+    expect(rejected).toMatchObject({
+      run: {
+        status: "blocked",
+        faultKind: "proposal-invalid",
+        rollbackStage: "content-writing",
+      },
+      artifacts: {
+        schemaVersion: "topic-page-content-attempt/v1",
+        agentId: "topic-content-agent",
+        topicPagePlanDigest: plan.digest,
+        themeIntentDigest: themeIntentDigest(intent),
+        productSelectionDigest: productSelectionDigest(selection),
+        language: "zh",
+        proposal: rejectedProposal,
+        proposalReview: { status: "rejected" },
+      },
+    });
+
+    const revisedProposal = proposalFixture(intent, selection, plan);
+    const resumed = await runTopicContentAgentWorkflow({
+      intent,
+      selection,
+      plan,
+      language: "zh",
+      agent,
+      proposal: revisedProposal,
+    });
+
+    expect(resumed).toMatchObject({
+      run: {
+        status: "ready",
+        spec: {
+          topicPagePlanDigest: plan.digest,
+          themeIntentDigest: themeIntentDigest(intent),
+          productSelectionDigest: productSelectionDigest(selection),
+        },
+      },
+      artifacts: { agentId: "topic-content-agent", proposal: revisedProposal },
+    });
+    expect(proposePageContent).toHaveBeenCalledOnce();
+  });
+
+  it("classifies Content Agent failures without losing the bound attempt", async () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const agent: TopicContentAgent = {
+      id: "failing-content-agent",
+      proposePageContent: async () => {
+        throw new Error("Agent transport unavailable.");
+      },
+    };
+
+    await expect(runTopicContentAgentWorkflow({
+      intent,
+      selection,
+      plan,
+      language: "zh",
+      agent,
+    })).rejects.toMatchObject({
+      name: "TopicContentAgentWorkflowError",
+      faultKind: "agent-failed",
+      rollbackStage: "content-writing",
+      attempt: {
+        schemaVersion: "topic-page-content-attempt/v1",
+        agentId: "failing-content-agent",
+        topicPagePlanDigest: plan.digest,
+        themeIntentDigest: themeIntentDigest(intent),
+        productSelectionDigest: productSelectionDigest(selection),
+        language: "zh",
+      },
+    });
   });
 });

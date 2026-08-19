@@ -422,6 +422,97 @@ describe("TopicPageVisual", () => {
     });
   });
 
+  it("gives scene images soft composition guidance without constraining other visual tasks", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const contentSpec = contentSpecFixture(intent, selection, plan);
+
+    const run = advanceTopicPageVisualRun({ intent, selection, plan, contentSpec });
+
+    if (run.status !== "needs-visual-proposal") throw new Error("Expected visual tasks.");
+    expect(run.context.tasks.find(({ kind }) => kind === "scene-image")).toMatchObject({
+      compositionGuidance: {
+        preferredSubjectArea: "upper-three-quarters",
+        lowerAreaUsage: "low-contrast-decoration-preferred",
+      },
+    });
+    expect(
+      run.context.tasks
+        .filter(({ kind }) => kind !== "scene-image")
+        .every(({ compositionGuidance }) => compositionGuidance === undefined),
+    ).toBe(true);
+  });
+
+  it("exposes the requested visual production mode to the Visual Agent", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const contentSpec = contentSpecFixture(intent, selection, plan);
+
+    const run = advanceTopicPageVisualRun({
+      intent,
+      selection,
+      plan,
+      contentSpec,
+      productionMode: "source-product-images",
+    });
+
+    expect(run).toMatchObject({
+      status: "needs-visual-proposal",
+      context: { productionMode: "source-product-images" },
+    });
+  });
+
+  it("binds the accepted AssetManifest to the requested visual production mode", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const contentSpec = contentSpecFixture(intent, selection, plan);
+    const proposal = {
+      ...visualProposalFixture(intent, selection, plan, contentSpec),
+      productionMode: "source-product-images" as const,
+    };
+
+    const run = advanceTopicPageVisualRun({
+      intent,
+      selection,
+      plan,
+      contentSpec,
+      productionMode: "source-product-images",
+      proposal,
+    });
+
+    expect(run).toMatchObject({
+      status: "ready",
+      manifest: { productionMode: "source-product-images" },
+    });
+  });
+
+  it("rejects a visual proposal produced with a different production mode", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const contentSpec = contentSpecFixture(intent, selection, plan);
+    const proposal = visualProposalFixture(intent, selection, plan, contentSpec);
+
+    const run = advanceTopicPageVisualRun({
+      intent,
+      selection,
+      plan,
+      contentSpec,
+      productionMode: "source-product-images",
+      proposal,
+    });
+
+    expect(run).toMatchObject({
+      status: "blocked",
+      issues: expect.arrayContaining([
+        "Proposal productionMode does not match the requested visual production mode.",
+      ]),
+    });
+  });
+
   it("compiles generated asset metadata into a deterministic digest-bound manifest", () => {
     const intent = themeIntentFixture();
     const selection = selectionFixture();
@@ -558,6 +649,35 @@ describe("TopicPageVisual", () => {
       manifest: { status: "asset-manifest-ready" },
     });
     expect(result.artifacts).toEqual({ agentId: "topic-visual-agent", proposal });
+  });
+
+  it("carries the selected production mode through the Visual Agent workflow", async () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const contentSpec = contentSpecFixture(intent, selection, plan);
+    const proposal = {
+      ...visualProposalFixture(intent, selection, plan, contentSpec),
+      productionMode: "source-product-images" as const,
+    };
+    const generatePageVisuals = vi.fn(async () => proposal);
+
+    const result = await runTopicVisualAgentWorkflow({
+      intent,
+      selection,
+      plan,
+      contentSpec,
+      productionMode: "source-product-images",
+      agent: { id: "topic-visual-agent", generatePageVisuals },
+    });
+
+    expect(generatePageVisuals).toHaveBeenCalledWith(expect.objectContaining({
+      context: expect.objectContaining({ productionMode: "source-product-images" }),
+    }));
+    expect(result.run).toMatchObject({
+      status: "ready",
+      manifest: { productionMode: "source-product-images" },
+    });
   });
 
   it("separates generated image bytes from the proposal before deterministic review", async () => {

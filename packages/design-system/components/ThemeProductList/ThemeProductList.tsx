@@ -48,6 +48,7 @@ function ThemeProductListContentPanel({
         className={styles.image}
         src={image.src}
         alt={image.alt}
+        style={image.objectPosition ? { objectPosition: image.objectPosition } : undefined}
         loading="lazy"
         decoding="async"
         onLoad={handleProgressiveImageLoad}

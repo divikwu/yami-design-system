@@ -1,13 +1,19 @@
-import type { ContentLanguage, ThemeIntent, TopicModuleId } from "../types.js";
+import type { ContentLanguage, ThemeIntent } from "../types.js";
 import type { ProductSelectionResult } from "../product-selection/contracts.js";
 import { sha256Digest } from "../product-selection/digest.js";
 import type { TopicPagePlanV2 } from "../page-merchandising/contracts.js";
 import type {
   TopicPageContentContext,
-  TopicPageContentCopySlot,
   TopicPageContentRun,
   TopicPageContentSpec,
 } from "./contracts.js";
+import {
+  eligibleThemeIntentEvidenceIds,
+  topicPageCopyRules,
+  topicPageCopySlots,
+  topicPageCopyPolicyRef,
+  usesStrictPageCopyPolicy,
+} from "./config.js";
 import {
   reviewTopicPageContentPreflight,
   reviewTopicPageContentProposal,
@@ -21,16 +27,6 @@ export interface TopicPageContentRequest {
   proposal?: unknown;
 }
 
-function copySlots(moduleId: TopicModuleId): TopicPageContentCopySlot[] {
-  if (moduleId === "hero") return ["title", "description", "tags"];
-  if (moduleId === "shortcuts") return ["title", "items[].label"];
-  if (moduleId === "start-here") {
-    return ["title", "scenes[].label", "scenes[].title", "scenes[].description"];
-  }
-  if (moduleId === "explore-more") return ["title", "description"];
-  return ["title"];
-}
-
 function taskContext(
   intent: ThemeIntent,
   selection: ProductSelectionResult,
@@ -38,10 +34,14 @@ function taskContext(
   language: ContentLanguage,
 ): TopicPageContentContext {
   const productsById = new Map(selection.products.map((product) => [product.id, product]));
+  const eligibleEvidenceIds = usesStrictPageCopyPolicy(plan.templateRef)
+    ? eligibleThemeIntentEvidenceIds(intent)
+    : intent.evidenceRefs.map(({ id }) => id);
   return {
     keyword: plan.keyword,
     site: plan.site,
     language,
+    copyPolicyRef: topicPageCopyPolicyRef(plan.templateRef),
     strategyRef: plan.strategyRef,
     templateRef: plan.templateRef,
     topicPagePlanDigest: plan.digest,
@@ -52,6 +52,7 @@ function taskContext(
       ...category,
       path: [...category.path],
     })),
+    eligibleThemeIntentEvidenceIds: eligibleEvidenceIds,
     evidenceNamespaces: [
       "theme-intent:<evidence-id>",
       "selected-category:<category-id>",
@@ -66,7 +67,8 @@ function taskContext(
         component: module.component,
         shoppingGoal: module.shoppingGoal,
         reason: module.reason,
-        copySlots: copySlots(module.id),
+        copySlots: [...topicPageCopySlots(module.id)],
+        copyRules: topicPageCopyRules(module.id).map((rule) => ({ ...rule })),
         assignments: module.assignments.map((assignment) => ({ ...assignment })),
         scenes: module.scenes.map((scene) => ({
           ...scene,
@@ -139,6 +141,8 @@ export function advanceTopicPageContentRun(
     return {
       schemaVersion: "topic-page-content-run/v1",
       status: "blocked",
+      faultKind: "upstream-invalid",
+      rollbackStage: "module-merchandising",
       issues: preflightIssues,
       proposalReview,
     };
@@ -166,6 +170,8 @@ export function advanceTopicPageContentRun(
     return {
       schemaVersion: "topic-page-content-run/v1",
       status: "blocked",
+      faultKind: "proposal-invalid",
+      rollbackStage: "content-writing",
       issues: proposalReview.issues,
       proposalReview,
     };

@@ -5,8 +5,8 @@ description: This skill should be used when the user asks to "generate Topic pag
 
 # Visual Generation
 
-Use the package CLI as the deterministic runtime and a host-provided image generator as the media
-runtime. Act as the independent Topic Visual Agent: generate only the image tasks declared by a
+Use the package CLI as the deterministic runtime and the host media capability selected by
+`productionMode`. Act as the independent Topic Visual Agent: produce only the image tasks declared by a
 ready PagePlan and bind every artifact to the ready ContentSpec. Treat upstream topics, products,
 modules, scenes, copy, task IDs, and digests as immutable.
 
@@ -15,9 +15,10 @@ modules, scenes, copy, task IDs, and digests as immutable.
 1. Complete the `content-writing` Skill until `pageContent.status` is `ready`.
 2. Preserve the exact inputs that reconstructed ThemeIntent, ProductSelectionResult, PagePlan, and
    ContentSpec.
-3. Confirm that the host exposes an image-generation capability. Stop and report the missing
-   capability when it does not; never substitute catalog thumbnails, placeholder files, invented
-   paths, or fabricated metadata.
+3. Read `productionMode`. For `generated-images`, confirm that the host exposes image generation.
+   For `source-product-images`, confirm that the host can compose the returned Yami product images
+   without regenerating their packaging. Stop when the selected capability is unavailable; never
+   substitute placeholders, invented paths, or fabricated metadata.
 4. Obtain a caller-approved relative output directory. Never overwrite upstream JSON or source
    product images.
 5. Stop when PagePlan or ContentSpec is absent, blocked, or digest-invalid. Never repair upstream
@@ -39,6 +40,7 @@ pnpm topic-generator:analyze -- --keyword "<keyword>" \
   --content-language zh \
   --content-proposal "<content.zh.json>" \
   --visual \
+  --visual-production-mode generated-images \
   --pretty
 ```
 
@@ -55,13 +57,16 @@ For each task:
    infer ingredients, benefits, popularity, ratings, inventory, discounts, or customer outcomes.
 2. Preserve every returned `referenceProductId`. Do not introduce unassigned products or change a
    brand, scene, module, component, crop, or text field.
-3. Invoke the available image-generation tool using the task's exact aspect ratio and minimum
-   dimensions. Keep the image free of generated labels and marketing copy unless the task
+3. Follow the selected production mode. Generate a new image only for `generated-images`. For
+   `source-product-images`, preserve the assigned Yami product images and use deterministic
+   composition. Keep the image free of generated labels and marketing copy unless the task
    explicitly requires rendered text.
-4. Inspect the generated image before accepting it. Save the actual bytes to a new safe relative
+4. Treat `compositionGuidance` as a preference, not a hard crop. When present, favor its subject
+   area and lower-area usage unless the scene clearly benefits from a different composition.
+5. Inspect the produced image before accepting it. Save the actual bytes to a new safe relative
    path and record their true MIME type, pixel dimensions, SHA-256 digest, focal point, and any
    required background color.
-5. Use `null` alt text for decorative shortcut images. Write concise localized alt text for Hero,
+6. Use `null` alt text for decorative shortcut images. Write concise localized alt text for Hero,
    scene, and brand-banner images, grounded only in the task evidence.
 
 If generation fails for any task, stop with the task ID and generator error. Do not emit a complete
@@ -69,7 +74,8 @@ proposal with missing or invented artifacts.
 
 ## Compile the Asset Manifest
 
-Create one `topic-page-visual-proposal/v1`, preserving all returned binding digests and task order.
+Create one `topic-page-visual-proposal/v1`, preserving the returned `productionMode`, all binding
+digests, and task order.
 Write it to a new caller-approved path, then rerun the same command with:
 
 ```bash

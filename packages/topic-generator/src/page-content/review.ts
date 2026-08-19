@@ -1,4 +1,4 @@
-import type { ContentLanguage, ThemeIntent } from "../types.js";
+import type { ContentLanguage, ThemeIntent, TopicModuleId } from "../types.js";
 import type { ProductSelectionResult } from "../product-selection/contracts.js";
 import { sha256Digest } from "../product-selection/digest.js";
 import {
@@ -13,11 +13,19 @@ import type {
 import type {
   EvidencedPageCopy,
   TopicPageContentCopy,
+  TopicPageContentCopySlot,
   TopicPageContentItemCopy,
   TopicPageContentProposalReview,
   TopicPageContentSceneCopy,
   TopicPageContentTaskProposal,
 } from "./contracts.js";
+import {
+  eligibleThemeIntentEvidenceIds,
+  pageCopyProperNouns,
+  pageCopyUsesRequestedLanguage,
+  topicPageCopyMaxCharacters,
+  usesStrictPageCopyPolicy,
+} from "./config.js";
 
 function objectValue(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null && !Array.isArray(value)
@@ -118,14 +126,19 @@ export function reviewTopicPageContentPreflight(
 
 interface EvidenceScope {
   intentEvidenceIds: Set<string>;
+  eligibleIntentEvidenceIds: Set<string>;
   categoryIds: Set<string>;
+  eligibleCategoryIds: Set<string>;
   productIds: Set<string>;
   sceneIds: Set<string>;
+  language: ContentLanguage;
+  properNouns: readonly string[];
+  strictPolicy: boolean;
 }
 
 function reviewEvidenceRef(
   evidenceRef: string,
-  moduleId: string,
+  moduleId: TopicModuleId,
   scope: EvidenceScope,
   issues: string[],
 ) {
@@ -133,6 +146,10 @@ function reviewEvidenceRef(
     const id = evidenceRef.slice("theme-intent:".length);
     if (!scope.intentEvidenceIds.has(id)) {
       issues.push(`Unknown ThemeIntent evidence reference: ${evidenceRef}.`);
+    } else if (scope.strictPolicy && !scope.eligibleIntentEvidenceIds.has(id)) {
+      issues.push(
+        `ThemeIntent evidence reference ${evidenceRef} is not eligible for content claims.`,
+      );
     }
     return;
   }
@@ -140,6 +157,8 @@ function reviewEvidenceRef(
     const id = evidenceRef.slice("selected-category:".length);
     if (!scope.categoryIds.has(id)) {
       issues.push(`Unknown selected category evidence reference: ${evidenceRef}.`);
+    } else if (scope.strictPolicy && !scope.eligibleCategoryIds.has(id)) {
+      issues.push(`Evidence reference ${evidenceRef} is outside module ${moduleId}.`);
     }
     return;
   }
@@ -163,7 +182,8 @@ function reviewEvidenceRef(
 function reviewCopySegment(
   value: unknown,
   path: string,
-  moduleId: string,
+  slot: TopicPageContentCopySlot,
+  moduleId: TopicModuleId,
   scope: EvidenceScope,
   issues: string[],
 ): EvidencedPageCopy {
@@ -171,6 +191,20 @@ function reviewCopySegment(
   const text = stringValue(segment?.text);
   if (!segment) issues.push(`Copy field ${path} must be an object.`);
   if (!text) issues.push(`Copy field ${path} requires text.`);
+  if (text && scope.strictPolicy &&
+      !pageCopyUsesRequestedLanguage(text, scope.language, scope.properNouns)) {
+    issues.push(
+      `Copy field ${path} must use ${scope.language} copy except immutable proper nouns.`,
+    );
+  }
+  const maxCharacters = topicPageCopyMaxCharacters(
+    moduleId,
+    slot,
+  );
+  if (text && scope.strictPolicy && maxCharacters !== undefined &&
+      [...text].length > maxCharacters) {
+    issues.push(`Copy field ${path} exceeds ${maxCharacters} characters.`);
+  }
   const rawEvidenceRefs = Array.isArray(segment?.evidenceRefs)
     ? segment.evidenceRefs
     : [];
@@ -240,6 +274,7 @@ function reviewItems(
       label: reviewCopySegment(
         item.label,
         `${module.id}.items[${index}].label`,
+        "items[].label",
         module.id,
         scope,
         issues,
@@ -284,6 +319,7 @@ function reviewScenes(
       label: reviewCopySegment(
         sceneCopy.label,
         `${module.id}.scenes[${index}].label`,
+        "scenes[].label",
         module.id,
         scope,
         issues,
@@ -291,6 +327,7 @@ function reviewScenes(
       title: reviewCopySegment(
         sceneCopy.title,
         `${module.id}.scenes[${index}].title`,
+        "scenes[].title",
         module.id,
         scope,
         issues,
@@ -298,6 +335,7 @@ function reviewScenes(
       description: reviewCopySegment(
         sceneCopy.description,
         `${module.id}.scenes[${index}].description`,
+        "scenes[].description",
         module.id,
         scope,
         issues,
@@ -312,19 +350,30 @@ function reviewTaskCopy(
   module: TopicPagePlanModuleV2,
   intent: ThemeIntent,
   selection: ProductSelectionResult,
+  plan: TopicPagePlanV2,
+  language: ContentLanguage,
   issues: string[],
 ): TopicPageContentCopy {
   const rawCopy = objectValue(value) ?? {};
   if (!objectValue(value)) issues.push(`Task ${module.contentTaskId} copy must be an object.`);
+  const assignedProductIds = new Set(module.assignments.map(({ productId }) => productId));
   const scope: EvidenceScope = {
     intentEvidenceIds: new Set(intent.evidenceRefs.map(({ id }) => id)),
+    eligibleIntentEvidenceIds: new Set(eligibleThemeIntentEvidenceIds(intent)),
     categoryIds: new Set(selection.selectedCategories.map(({ id }) => id)),
+    eligibleCategoryIds: new Set(selection.products
+      .filter(({ id }) => assignedProductIds.has(id))
+      .flatMap(({ categoryL3Id }) => categoryL3Id === undefined ? [] : [String(categoryL3Id)])),
     productIds: new Set(module.assignments.map(({ productId }) => productId)),
     sceneIds: new Set(module.scenes.map(({ id }) => id)),
+    language,
+    properNouns: pageCopyProperNouns(intent, selection, plan.keyword),
+    strictPolicy: usesStrictPageCopyPolicy(plan.templateRef),
   };
   const title = reviewCopySegment(
     rawCopy.title,
     `${module.id}.title`,
+    "title",
     module.id,
     scope,
     issues,
@@ -342,12 +391,13 @@ function reviewTaskCopy(
       description: reviewCopySegment(
         rawCopy.description,
         "hero.description",
+        "description",
         module.id,
         scope,
         issues,
       ),
       tags: rawTags.map((tag, index) =>
-        reviewCopySegment(tag, `hero.tags[${index}]`, module.id, scope, issues)
+        reviewCopySegment(tag, `hero.tags[${index}]`, "tags", module.id, scope, issues)
       ),
     };
   }
@@ -369,6 +419,7 @@ function reviewTaskCopy(
       description: reviewCopySegment(
         rawCopy.description,
         "explore-more.description",
+        "description",
         module.id,
         scope,
         issues,
@@ -455,7 +506,7 @@ export function reviewTopicPageContentProposal(
       taskId,
       moduleId: module.id,
       component: module.component,
-      copy: reviewTaskCopy(task.copy, module, intent, selection, issues),
+      copy: reviewTaskCopy(task.copy, module, intent, selection, plan, language, issues),
     });
   });
   expectedModules.forEach((module) => {
