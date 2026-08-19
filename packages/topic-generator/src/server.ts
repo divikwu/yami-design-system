@@ -228,7 +228,7 @@ export async function handleTopicGeneratorPost(
         ? requestPayload.selectionStrategyRef.trim() as ProductSelectionStrategyRef
         : requestedStrategy === "category-role"
           ? "category-role/landing-page-agent@1"
-          : "relevance/default@1";
+          : "relevance/intent-themes@2";
     const requestedPageTypeRef =
       typeof requestPayload.pageTypeRef === "string" && requestPayload.pageTypeRef.trim()
         ? requestPayload.pageTypeRef.trim() as LandingPageTypeRef
@@ -316,9 +316,14 @@ export async function handleTopicGeneratorPost(
       candidateSnapshot: automaticCategoryRole ? undefined : candidateSnapshot,
       sceneProposal: automaticCategoryRole ? undefined : requestPayload.sceneProposal,
     };
+    const relevanceStrategyRef = getProductSelectionStrategyConfig(
+      requestedSelectionStrategyRef,
+    ).engine === "relevance"
+      ? requestedSelectionStrategyRef
+      : "relevance/intent-themes@2";
     const relevanceRun = advanceProductSelectionRun({
       snapshot,
-      strategyRef: "relevance/default@1",
+      strategyRef: relevanceStrategyRef,
     });
     const configurationIssues = options.categoryRoleConfigurationIssues ?? [];
     const automaticIssues = automaticCategoryRole

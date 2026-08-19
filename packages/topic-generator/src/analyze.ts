@@ -7,8 +7,10 @@ import {
   resolveTopicIntent,
   type SemanticProposal,
   type SemanticProposalReview,
+  type TopicIntentResolution,
 } from "./topic-intent.js";
 import type { ThemeIntent, YamiSearchSnapshot } from "./types.js";
+import { refineYamiCatalogSnapshotForIntent } from "./yami-catalog.js";
 
 /** Analyze one shopping keyword against current catalog evidence. */
 
@@ -31,6 +33,43 @@ export class TopicIntentInputError extends Error {
   }
 }
 
+function resolvedCoreIdentity(intent: ThemeIntent) {
+  if (
+    intent.decision.status !== "resolved" ||
+    !intent.canonicalEntity ||
+    (intent.entityType !== "brand" && intent.entityType !== "category")
+  ) {
+    return null;
+  }
+  return [
+    intent.themeType,
+    intent.entityType,
+    intent.canonicalEntity.id,
+    intent.shoppingIntent,
+    intent.shopperAction,
+  ].join(":");
+}
+
+function reconcileRefinedResolution(
+  initial: TopicIntentResolution,
+  refined: TopicIntentResolution,
+): TopicIntentResolution {
+  const initialCore = resolvedCoreIdentity(initial.intent);
+  if (!initialCore || initialCore === resolvedCoreIdentity(refined.intent)) return refined;
+  return {
+    ...initial,
+    intent: {
+      ...initial.intent,
+      decision: {
+        ...initial.intent.decision,
+        status: "needs-review",
+        requiresAgentReview: true,
+      },
+      reason: `${initial.intent.reason} Refined catalog evidence conflicted with the resolved core entity, so the original entity remains frozen for review.`,
+    },
+  };
+}
+
 export async function analyzeTopicIntent(
   keyword: string,
   options: AnalyzeTopicIntentOptions = {},
@@ -43,10 +82,18 @@ export async function analyzeTopicIntent(
   const result = await loadCatalogSnapshot(normalizedKeyword, {
     adapters: options.adapters,
   });
-  const resolution = resolveTopicIntent(result.snapshot, options.semanticProposal);
+  let snapshot = result.snapshot;
+  let resolution = resolveTopicIntent(snapshot, options.semanticProposal);
+  if (options.adapters === undefined && snapshot.provider === "yami-catalog-search") {
+    snapshot = await refineYamiCatalogSnapshotForIntent(snapshot, resolution.intent);
+    resolution = reconcileRefinedResolution(
+      resolution,
+      resolveTopicIntent(snapshot, options.semanticProposal),
+    );
+  }
   return {
     intent: resolution.intent,
-    snapshot: { ...result.snapshot, intent: resolution.intent },
+    snapshot: { ...snapshot, intent: resolution.intent },
     fallbackUsed: result.fallbackUsed,
     attempts: result.attempts,
     proposalReview: resolution.proposalReview,

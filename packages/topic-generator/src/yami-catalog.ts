@@ -1,5 +1,7 @@
 import type {
   CatalogAttributeEvidence,
+  CatalogCoverage,
+  CatalogCoverageProduct,
   CatalogBrandEvidence,
   CatalogCategoryEvidence,
   CatalogSnapshotQualityReport,
@@ -66,9 +68,12 @@ export interface CatalogItem {
   promotion_price?: number;
   seller_name?: string;
   seller_ename?: string;
+  seller_type?: number;
   status?: string;
   goods_number?: number;
   sold_count?: number;
+  weekly_qty?: string;
+  weekly_qty_sign?: string;
   rated?: number;
   marks?: Record<string, unknown>;
   [key: string]: unknown;
@@ -78,7 +83,14 @@ export interface CatalogResponse {
   messageId?: string;
   message?: string;
   body?: {
-    page?: Record<string, unknown>;
+    page?: {
+      total?: number;
+      page_index?: number;
+      page_size?: number;
+      hasNext?: boolean;
+      all_item_count?: number;
+      [key: string]: unknown;
+    };
     brandAgg?: CatalogBrand[];
     categoryAgg?: CatalogCategoryNode[];
     tagAgg?: CatalogTag[];
@@ -222,6 +234,7 @@ export type YamiCatalogSortOrder = "ascending" | "descending";
 
 export interface YamiCatalogSearchRequest {
   keywords: string;
+  brandIds?: string[];
   categoryIds?: string[];
   pageIndex?: number;
   pageSize?: number;
@@ -241,6 +254,7 @@ export async function searchYamiCatalogProvider(
   options: YamiCatalogProviderOptions = {},
 ): Promise<CatalogResponse> {
   const categoryIds = request.categoryIds?.map((id) => id.trim()).filter(Boolean) ?? [];
+  const brandIds = request.brandIds?.map((id) => id.trim()).filter(Boolean) ?? [];
   const response = await (options.fetch ?? fetch)(YAMI_CATALOG_URL, {
     method: "POST",
     cache: "no-store",
@@ -255,6 +269,7 @@ export async function searchYamiCatalogProvider(
       page_type: 3,
       oldCard: 1,
       recordSearchHistory: 0,
+      ...(brandIds.length > 0 ? { brand_ids: brandIds.join(",") } : {}),
       ...(categoryIds.length > 0 ? { category_ids: categoryIds.join(",") } : {}),
       ...(request.isFby ? { is_fby: "1" } : {}),
     }),
@@ -948,6 +963,24 @@ function toCoreIntentCategory(
   };
 }
 
+function categoryBelongsToCanonicalEntity(
+  category: Pick<ThemeIntentCategory, "id" | "path">,
+  canonicalEntity: NonNullable<ThemeIntent["canonicalEntity"]>,
+) {
+  const canonicalLabel = normalized(canonicalEntity.label);
+  return category.id === canonicalEntity.id ||
+    category.path.some((label) => normalized(label) === canonicalLabel);
+}
+
+function categoriesForCanonicalEntity(
+  categories: ThemeIntentCategory[],
+  canonicalEntity: NonNullable<ThemeIntent["canonicalEntity"]>,
+) {
+  return categories.filter((category) =>
+    categoryBelongsToCanonicalEntity(category, canonicalEntity)
+  );
+}
+
 function buildBrandIntent(
   keyword: string,
   brand: CatalogBrandEvidence,
@@ -1252,7 +1285,13 @@ export function resolveCatalogThemeIntent(snapshot: YamiSearchSnapshot): ThemeIn
   );
   const candidates: ThemeIntent[] = [];
   if (brand) candidates.push(buildBrandIntent(snapshot.keyword, brand, categories));
-  if (category) candidates.push(buildProductIntent(snapshot.keyword, category, categories));
+  if (category) {
+    candidates.push(buildProductIntent(
+      snapshot.keyword,
+      category,
+      categoriesForCanonicalEntity(categories, { id: category.id, label: category.label }),
+    ));
+  }
   if (scenarioMatch.support !== "none") {
     candidates.push(buildScenarioIntent(
       snapshot.keyword,
@@ -1270,7 +1309,10 @@ export function resolveCatalogThemeIntent(snapshot: YamiSearchSnapshot): ThemeIn
       attributes,
       coreCategory,
       coreCategoryEvidence.aliases,
-      categories,
+      categoriesForCanonicalEntity(categories, {
+        id: coreCategoryEvidence.id,
+        label: coreCategoryEvidence.label,
+      }),
     ));
   }
   const directAttributeSupportsCoreCategory = inferredCategory?.id === coreCategory?.id &&
@@ -1348,8 +1390,11 @@ export function buildSearchFallbackIntent(
 }
 
 interface CatalogRequestOptions {
+  brandIds?: string[];
+  pageIndex?: number;
   pageSize?: number;
   sortBy?: YamiCatalogSort;
+  fetch?: typeof fetch;
 }
 
 async function requestCatalog(
@@ -1360,10 +1405,12 @@ async function requestCatalog(
   try {
     return await searchYamiCatalogProvider({
       keywords: keyword,
+      brandIds: options.brandIds,
       categoryIds,
+      pageIndex: options.pageIndex,
       pageSize: options.pageSize,
       sortBy: options.sortBy,
-    });
+    }, { fetch: options.fetch });
   } catch (error) {
     if (error instanceof YamiCatalogError) throw error;
     throw new YamiCatalogError(
@@ -1371,6 +1418,421 @@ async function requestCatalog(
       "Yami catalog search is temporarily unreachable.",
     );
   }
+}
+
+export interface IntentCatalogRefinementOptions {
+  fetch?: typeof fetch;
+  pageSize?: number;
+}
+
+export interface YamiBrandCatalogCoverageOptions {
+  fetch?: typeof fetch;
+}
+
+function brandSlug(label: string) {
+  return normalized(label).replaceAll(" ", "-");
+}
+
+function brandCatalogUrl(brand: { id: string; label: string }) {
+  return `https://www.yami.com/us/en/b/${brandSlug(brand.label)}/${brand.id}`;
+}
+
+function decodeHtmlAttribute(value: string) {
+  return value.replace(
+    /&(?:quot|amp|lt|gt|#0*39|#x0*27);/giu,
+    (entity) => ({
+      "&quot;": '"',
+      "&amp;": "&",
+      "&lt;": "<",
+      "&gt;": ">",
+      "&#39;": "'",
+      "&#039;": "'",
+      "&#x27;": "'",
+    })[entity.toLowerCase()] ?? entity,
+  );
+}
+
+function hiddenJson<T>(html: string, id: string): T {
+  const match = html.match(new RegExp(
+    `<input[^>]*\\bid=["']${id}["'][^>]*\\bvalue=(["'])([\\s\\S]*?)\\1[^>]*>`,
+    "iu",
+  ));
+  if (!match?.[2]) {
+    throw new YamiCatalogError("invalid_response", `Yami brand page is missing ${id}.`);
+  }
+  try {
+    return JSON.parse(decodeHtmlAttribute(match[2])) as T;
+  } catch {
+    throw new YamiCatalogError("invalid_response", `Yami brand page returned invalid ${id}.`);
+  }
+}
+
+function coverageProduct(item: CatalogItem, sourceRank: number): CatalogCoverageProduct | null {
+  if (!item.item_number || (!item.goods_ename && !item.goods_name) || !item.image_url) {
+    return null;
+  }
+  const sellerKind = item.seller_type === 0 || normalized(item.seller_ename ?? "") === "yami"
+    ? "yami"
+    : "third-party";
+  const availability = item.status === "A" && (item.goods_number ?? 0) > 0
+    ? "in-stock"
+    : "out-of-stock";
+  const weeklyQuantity = item.weekly_qty?.trim();
+  return {
+    id: item.item_number,
+    title: item.goods_ename ?? item.goods_name ?? "Yami product",
+    brand: item.brand_ename?.trim() || item.brand_name?.trim() || "Yami selection",
+    price: typeof item.shop_price === "number" ? `$${item.shop_price.toFixed(2)}` : "",
+    imageUrl: absoluteImageUrl(item.image_url),
+    productUrl: productUrl(item),
+    sourceRank,
+    brandId: item.brand_id,
+    categoryL1Id: item.category_l1_id,
+    categoryL2Id: item.category_l2_id,
+    categoryL3Id: item.category_l3_id,
+    soldCount: item.sold_count,
+    rating: item.rated,
+    sellerKind,
+    sellerName: item.seller_ename?.trim() || item.seller_name?.trim() ||
+      (sellerKind === "yami" ? "YAMI" : "Marketplace seller"),
+    availability,
+    ...(weeklyQuantity
+      ? { weeklySalesLabel: `${weeklyQuantity} ${item.weekly_qty_sign?.trim() || "Sold"}` }
+      : {}),
+  };
+}
+
+function weeklySalesLowerBound(product: CatalogCoverageProduct) {
+  const quantity = product.weeklySalesLabel?.match(/[\d,]+/)?.[0];
+  if (!quantity) return -1;
+  const value = Number(quantity.replaceAll(",", ""));
+  return Number.isFinite(value) ? value : -1;
+}
+
+/** Complete public brand-page coverage, including unavailable and marketplace items. */
+export async function loadYamiBrandCatalogCoverage(
+  brand: { id: string; label: string },
+  options: YamiBrandCatalogCoverageOptions = {},
+): Promise<CatalogCoverage> {
+  const sourceUrl = brandCatalogUrl(brand);
+  const fetcher = options.fetch ?? fetch;
+  const items: CatalogItem[] = [];
+  let pageIndex = 1;
+  let pageCount = 1;
+
+  do {
+    const pageUrl = new URL(sourceUrl);
+    if (pageIndex > 1) pageUrl.searchParams.set("page", String(pageIndex));
+    const response = await fetcher(pageUrl, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!response.ok) {
+      throw new YamiCatalogError(
+        "request_failed",
+        `Yami brand page returned HTTP ${response.status}.`,
+      );
+    }
+    const html = await response.text();
+    const pageItems = hiddenJson<CatalogItem[]>(html, "itemsData");
+    const page = hiddenJson<{ page_count?: number; hasNext?: boolean }>(html, "pageData");
+    items.push(...pageItems);
+    pageCount = Math.max(pageCount, page.page_count ?? (page.hasNext ? pageIndex + 1 : pageIndex));
+    pageIndex += 1;
+  } while (pageIndex <= pageCount);
+
+  const seen = new Set<string>();
+  const products = items
+    .flatMap((item, index) => {
+      const product = coverageProduct(item, index + 1);
+      if (!product || seen.has(product.id)) return [];
+      seen.add(product.id);
+      return [product];
+    })
+    .sort((left, right) =>
+      weeklySalesLowerBound(right) - weeklySalesLowerBound(left) ||
+      left.sourceRank - right.sourceRank
+    )
+    .map((product, index) => ({ ...product, sourceRank: index + 1 }));
+  const count = (sellerKind: CatalogCoverageProduct["sellerKind"], availability: CatalogCoverageProduct["availability"]) =>
+    products.filter((product) =>
+      product.sellerKind === sellerKind && product.availability === availability
+    ).length;
+
+  return {
+    provider: "yami-brand-page",
+    sourceUrl,
+    sort: "weekly-sales-descending",
+    totalCount: products.length,
+    products,
+    groups: {
+      yami: {
+        inStock: count("yami", "in-stock"),
+        outOfStock: count("yami", "out-of-stock"),
+      },
+      thirdParty: {
+        inStock: count("third-party", "in-stock"),
+        outOfStock: count("third-party", "out-of-stock"),
+      },
+    },
+  };
+}
+
+function catalogPageHasNext(
+  page: NonNullable<NonNullable<CatalogResponse["body"]>["page"]> | undefined,
+  pageIndex: number,
+  pageSize: number,
+) {
+  if (typeof page?.hasNext === "boolean") return page.hasNext;
+  const total = page?.total ?? page?.all_item_count;
+  return typeof total === "number" && pageIndex * pageSize < total;
+}
+
+function productMatchesIntent(product: YamiProduct, intent: ThemeIntent) {
+  const text = normalized([
+    product.brand,
+    product.title,
+    product.categoryL1Name,
+    product.categoryL2Name,
+    product.categoryL3Name,
+  ].filter(Boolean).join(" "));
+  if (intent.mustExclude.some((term) => text.includes(normalized(term)))) return false;
+
+  const canonical = intent.canonicalEntity;
+  if (intent.entityType === "brand" && canonical) {
+    return String(product.brandId ?? "") === canonical.id ||
+      normalized(product.brand) === normalized(canonical.label);
+  }
+  if (intent.entityType === "category" && canonical) {
+    return [product.categoryL1Id, product.categoryL2Id, product.categoryL3Id]
+      .some((id) => String(id ?? "") === canonical.id) ||
+      [product.categoryL1Name, product.categoryL2Name, product.categoryL3Name]
+        .some((label) => normalized(label ?? "") === normalized(canonical.label));
+  }
+
+  const categoryIds = new Set(intent.categories.map(({ id }) => id));
+  if (categoryIds.has(String(product.categoryL3Id ?? ""))) return true;
+  return intent.searchTerms.some((term) => {
+    const candidate = normalized(term);
+    return candidate.length > 0 && text.includes(candidate);
+  });
+}
+
+async function loadAllCatalogPages(
+  snapshot: YamiSearchSnapshot,
+  intent: ThemeIntent,
+  options: IntentCatalogRefinementOptions,
+  request: (pageIndex: number, pageSize: number) => Promise<CatalogResponse>,
+) {
+  const pageSize = options.pageSize ?? 60;
+  const products: YamiProduct[] = [];
+  const seenIds = new Set<string>();
+  let pageIndex = 1;
+
+  while (true) {
+    const response = await request(pageIndex, pageSize);
+    const pageSnapshot = parseCatalogSnapshotOrThrow(snapshot.keyword, response);
+    for (const product of pageSnapshot.products) {
+      if (seenIds.has(product.id) || !productMatchesIntent(product, intent)) continue;
+      seenIds.add(product.id);
+      products.push({
+        ...product,
+        sourceRank: (pageIndex - 1) * pageSize + product.sourceRank,
+      });
+    }
+    if (!catalogPageHasNext(response.body?.page, pageIndex, pageSize)) break;
+    if ((response.body?.items?.length ?? 0) === 0) break;
+    pageIndex += 1;
+  }
+  return products;
+}
+
+/** Build the complete eligible catalog pool for a resolved ThemeIntent. */
+export async function refineYamiCatalogSnapshotForIntent(
+  snapshot: YamiSearchSnapshot,
+  intent: ThemeIntent,
+  options: IntentCatalogRefinementOptions = {},
+): Promise<YamiSearchSnapshot> {
+  if (
+    snapshot.provider !== "yami-catalog-search" ||
+    intent.decision.status !== "resolved"
+  ) {
+    return snapshot;
+  }
+
+  const canonical = intent.canonicalEntity;
+
+  if (intent.entityType === "brand" && canonical && /^\d+$/.test(canonical.id)) {
+    try {
+      const structuredProducts = await loadAllCatalogPages(
+        snapshot,
+        intent,
+        options,
+        (pageIndex, requestedPageSize) => requestCatalog("", undefined, {
+          brandIds: [canonical.id],
+          pageIndex,
+          pageSize: requestedPageSize,
+          sortBy: "sold",
+          fetch: options.fetch,
+        }),
+      );
+      let coverage: CatalogCoverage | undefined;
+      try {
+        coverage = await loadYamiBrandCatalogCoverage(canonical, { fetch: options.fetch });
+      } catch {
+        // Structured brand results remain valid when the public page cannot be parsed.
+      }
+      const products = coverage
+        ? coverage.products.filter((product) =>
+            product.availability === "in-stock" && productMatchesIntent(product, intent)
+          )
+        : structuredProducts;
+      if (products.length === 0) return snapshot;
+      const unavailableCount = coverage
+        ? coverage.products.filter(({ availability }) => availability === "out-of-stock").length
+        : 0;
+      return {
+        ...snapshot,
+        products,
+        ...(coverage ? { catalogCoverage: coverage } : {}),
+        evidence: evidenceWithIntentProductCounts(snapshot.evidence, products, intent),
+        retrievalTerms: [
+          ...(snapshot.retrievalTerms ?? [snapshot.keyword]),
+          `brand:${canonical.id}`,
+          ...(coverage ? [`brand-page:${canonical.id}`] : []),
+        ],
+        ...(coverage
+          ? {
+              quality: {
+                ...(snapshot.quality ?? {
+                  truncatedProductCount: 0,
+                  issueCounts: {
+                    duplicateId: 0,
+                    missingId: 0,
+                    missingTitle: 0,
+                    missingBrand: 0,
+                    missingImage: 0,
+                    missingPrice: 0,
+                    missingProductUrl: 0,
+                    unavailable: 0,
+                    outOfStock: 0,
+                    notPurchasable: 0,
+                    keywordMismatch: 0,
+                  },
+                }),
+                observedProductCount: coverage.totalCount,
+                acceptedProductCount: products.length,
+                rejectedProductCount: coverage.totalCount - products.length,
+                issueCounts: {
+                  ...(snapshot.quality?.issueCounts ?? {
+                    duplicateId: 0,
+                    missingId: 0,
+                    missingTitle: 0,
+                    missingBrand: 0,
+                    missingImage: 0,
+                    missingPrice: 0,
+                    missingProductUrl: 0,
+                    unavailable: 0,
+                    outOfStock: 0,
+                    notPurchasable: 0,
+                    keywordMismatch: 0,
+                  }),
+                  outOfStock: unavailableCount,
+                },
+              },
+            }
+          : snapshot.quality
+          ? {
+              quality: {
+                ...snapshot.quality,
+                observedProductCount: Math.max(
+                  snapshot.quality.observedProductCount,
+                  products.length,
+                ),
+                acceptedProductCount: products.length,
+              },
+            }
+          : {}),
+      };
+    } catch {
+      return snapshot;
+    }
+  }
+
+  const candidates = intent.categories.filter((category) =>
+    /^\d+$/.test(category.id) &&
+    (intent.entityType !== "category" ||
+      !intent.canonicalEntity ||
+      categoryBelongsToCanonicalEntity(category, intent.canonicalEntity))
+  );
+  if (candidates.length === 0) return snapshot;
+
+  const categoryProducts = new Map<string, YamiProduct[]>();
+  const loadCategoryProducts = async (category: ThemeIntent["categories"][number]) => {
+    try {
+      return await loadAllCatalogPages(
+        snapshot,
+        intent,
+        options,
+        (pageIndex, requestedPageSize) => requestCatalog(snapshot.keyword, [category.id], {
+          pageIndex,
+          pageSize: requestedPageSize,
+          fetch: options.fetch,
+        }),
+      ).then((products) => products.filter((product) =>
+        String(product.categoryL3Id ?? "") === category.id
+      ));
+    } catch {
+      return [];
+    }
+  };
+
+  for (let offset = 0; offset < candidates.length;) {
+    const batch = candidates.slice(offset, offset + 6);
+    const results = await Promise.all(batch.map(async (category) => ({
+      category,
+      products: await loadCategoryProducts(category),
+    })));
+    results.forEach(({ category, products }) => {
+      if (products.length > 0) {
+        categoryProducts.set(category.id, products);
+      }
+    });
+    offset += batch.length;
+  }
+  if (categoryProducts.size === 0) return snapshot;
+
+  const orderedCategoryProducts = intent.categories.flatMap(({ id }) =>
+    categoryProducts.get(id) ?? []
+  );
+  const seenProductIds = new Set<string>();
+  const products = orderedCategoryProducts.filter((product) => {
+    if (seenProductIds.has(product.id)) return false;
+    seenProductIds.add(product.id);
+    return true;
+  });
+
+  return {
+    ...snapshot,
+    products,
+    evidence: evidenceWithProductCounts(snapshot.evidence, products),
+    retrievalTerms: [
+      ...(snapshot.retrievalTerms ?? [snapshot.keyword]),
+      ...[...categoryProducts.keys()].map((id) => `category:${id}`),
+    ],
+    ...(snapshot.quality
+      ? {
+          quality: {
+            ...snapshot.quality,
+            observedProductCount: Math.max(
+              snapshot.quality.observedProductCount,
+              products.length,
+            ),
+            acceptedProductCount: products.length,
+          },
+        }
+      : {}),
+  };
 }
 
 async function searchYamiCatalogCandidateProducts(query: CatalogCandidateQuery) {
@@ -1419,6 +1881,25 @@ function evidenceWithProductCounts(
       ...category,
       productCount: productCounts.get(Number(category.id)) ?? 0,
     })),
+  };
+}
+
+function evidenceWithIntentProductCounts(
+  evidence: YamiSearchSnapshot["evidence"],
+  products: YamiProduct[],
+  intent: ThemeIntent,
+) {
+  const updated = evidenceWithProductCounts(evidence, products);
+  if (!updated || intent.entityType !== "brand" || !intent.canonicalEntity) {
+    return updated;
+  }
+  return {
+    ...updated,
+    brands: updated.brands.map((brand) =>
+      brand.id === intent.canonicalEntity?.id
+        ? { ...brand, resultCount: products.length }
+        : brand
+    ),
   };
 }
 

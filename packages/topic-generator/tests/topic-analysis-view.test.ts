@@ -48,7 +48,7 @@ describe("TopicAnalysisView", () => {
     }));
 
     expect(plan.language).toBe("en");
-    expect(html).toContain("关键词分析&amp;购物预测");
+    expect(html).toContain("主题词理解与购物意图");
     expect(html).toContain("分析拆解");
     expect(html).toContain("识别对象");
     expect(html).toContain("购物任务");
@@ -66,7 +66,7 @@ describe("TopicAnalysisView", () => {
     );
     const html = renderToStaticMarkup(createElement(TopicAnalysisView, { plan }));
 
-    expect(html).toContain("关键词分析&amp;购物预测");
+    expect(html).toContain("主题词理解与购物意图");
     expect(html).toContain('<h2 id="topic-analysis-title">ANUA</h2>');
     expect(html).toContain("一句话结论");
     expect(html).toContain("为什么这样判断");
@@ -77,7 +77,7 @@ describe("TopicAnalysisView", () => {
     expect(html).toContain("检索边界");
     expect(html).toContain("低证据");
     expect(html).toContain("需要复核");
-    expect(html).toContain("浏览并比较 Yami 上可售的 ANUA 商品");
+    expect(html).toContain("浏览 Yami 上可售的 ANUA 商品");
     expect(html).toContain("结构化目录接口不可用");
     expect(html).not.toContain("56%");
     expect(html).not.toContain(plan.intent.reason);
@@ -207,8 +207,11 @@ describe("TopicAnalysisView", () => {
     expect(html).toContain("其他目录解释");
     expect(html).toContain("当前结论已确认");
     expect(html).toContain("Serums &amp; Value Sets");
-    expect(html).toContain("目录范围");
+    expect(html).toContain("当前快照覆盖分类");
     expect(html).toContain("2 个候选品类");
+    expect(html).toContain("当前目录快照包含 48 件可售商品，覆盖 2 个候选品类");
+    expect(html).toContain("不代表品牌全量商品数");
+    expect(html).toContain("不代表分类总量或最终商品分配");
     expect(html).toContain("<small>Beauty / Skin Care</small>");
     expect(html).toContain('style="width:100%"');
     expect(html).toContain('style="width:14%"');

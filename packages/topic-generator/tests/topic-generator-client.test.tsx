@@ -48,11 +48,45 @@ describe("TopicGenerator result navigation", () => {
     await act(async () => button("页面预览").click());
 
     expect(container.textContent).toContain("从主题词到");
+    expect(container.textContent).toContain("从这里开始");
     expect(button("页面预览").getAttribute("aria-current")).toBe("page");
   });
 
+  it("keeps the topic-intent explanation entry while showing the current stage 02 contract", async () => {
+    await act(async () => root.render(<TopicGenerator />));
+    const button = (label: string) =>
+      [...container.querySelectorAll<HTMLButtonElement>("button")]
+        .find((candidate) => candidate.textContent === label)!;
+
+    await act(async () => button("自动化流程").click());
+    const details = [...container.querySelectorAll<HTMLDetailsElement>("details")]
+      .find((candidate) => candidate.textContent?.includes("02理解主题并生成页面路由"))!;
+    await act(async () => details.querySelector("summary")!.click());
+
+    expect(details.textContent).toContain("CatalogSnapshot + ThemeIntent + LandingPageExecutionPlan");
+    expect(details.textContent).toContain("不决定模块显隐、顺序或具体商品槽位");
+
+    await act(async () => button("目录证据驱动的主题理解").click());
+    const dialog = container.querySelector<HTMLDialogElement>(
+      "dialog[aria-labelledby='intent-help-title']",
+    )!;
+    expect(dialog.open).toBe(true);
+    expect(dialog.textContent).toContain("系统如何理解主题词与购物意图");
+    expect(dialog.textContent).toContain("AI 仅辅助歧义解释");
+    expect(dialog.textContent).toContain("默认 Workbench 不自动调用 TopicIntent Agent 或 Wikipedia");
+    expect(dialog.textContent).toContain("精确分类只扩展该节点及其后代");
+    expect(dialog.textContent).toContain("shopperAction");
+    expect(dialog.textContent).toContain("resolved、ambiguous、needs-review");
+    expect(dialog.textContent).toContain("Coffee");
+    expect(dialog.textContent).toContain("阶段 02 不决定模块显隐、顺序或具体商品槽位");
+  });
+
   it("keeps selection-only runs on the module preview without generated copy or scenes", async () => {
-    const productTypes = ["Cleanser", "Toner", "Serum", "Cream", "Sunscreen", "Mask"];
+    const productTypes = [
+      "Cleanser", "Cleanser", "Cleanser", "Cleanser",
+      "Toner", "Toner", "Toner", "Toner",
+      "Serum", "Serum", "Serum", "Serum",
+    ];
     const snapshot: YamiSearchSnapshot = {
       keyword: "ANUA",
       site: "us",
@@ -96,6 +130,14 @@ describe("TopicGenerator result navigation", () => {
     expect(preview).not.toBeNull();
     expect(preview?.textContent).toContain("文案与场景图未生成");
     expect(preview?.textContent).toContain("精选分类");
+    const startHereThemes = preview?.querySelectorAll("[data-start-here-theme]");
+    expect(startHereThemes).toHaveLength(3);
+    expect(startHereThemes?.[0]?.textContent).toContain("洁面");
+    expect(startHereThemes?.[1]?.textContent).toContain("爽肤水");
+    expect(startHereThemes?.[2]?.textContent).toContain("精华与精粹");
+    expect(
+      [...startHereThemes ?? []].map((theme) => theme.querySelectorAll("a").length),
+    ).toEqual([4, 4, 4]);
     expect(preview?.textContent).not.toContain("探索 ANUA");
     expect(preview?.querySelectorAll("img").length).toBeGreaterThan(0);
     expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toMatchObject({
@@ -196,6 +238,117 @@ describe("TopicGenerator result navigation", () => {
     expect(primaryHeading?.textContent).toContain("选品依据");
     expect(primaryHeading?.textContent).toContain("优先关键词和品牌匹配，并保留 Yami 搜索结果顺序。");
     expect(container.textContent).not.toContain("关键词直接命中 · Yami 排名 #1");
+  });
+
+  it("shows complete brand coverage in four seller and availability groups sorted by weekly sales", async () => {
+    const product = (
+      id: string,
+      soldCount: number,
+      sellerKind: "yami" | "third-party",
+      availability: "in-stock" | "out-of-stock",
+    ) => ({
+      id,
+      title: `Beauty Product ${id}`,
+      brand: "Beauty of Joseon",
+      price: "$19.99",
+      imageUrl: `https://cdn.yamibuy.net/item/${id}.webp`,
+      productUrl: `https://www.yami.com/us/en/p/${id}`,
+      sourceRank: soldCount,
+      brandId: 10757,
+      soldCount,
+      sellerKind,
+      sellerName: sellerKind === "yami" ? "YAMI" : "Marketplace seller",
+      availability,
+      weeklySalesLabel: soldCount >= 100 ? "100+ Sold" : undefined,
+    });
+    const yamiHigh = product("yami-high", 120, "yami", "in-stock");
+    const thirdHigh = product("third-high", 100, "third-party", "in-stock");
+    const yamiOut = product("yami-out", 90, "yami", "out-of-stock");
+    const yamiLow = product("yami-low", 10, "yami", "in-stock");
+    const snapshot: YamiSearchSnapshot = {
+      keyword: "Beauty of Joseon",
+      site: "us",
+      sourceUrl: buildYamiSearchUrl("Beauty of Joseon"),
+      fetchedAt: "2026-08-19T00:00:00.000Z",
+      provider: "yami-catalog-search",
+      products: [yamiHigh, thirdHigh, yamiLow],
+      catalogCoverage: {
+        provider: "yami-brand-page",
+        sourceUrl: "https://www.yami.com/us/en/b/beauty-of-joseon/10757",
+        sort: "weekly-sales-descending",
+        totalCount: 4,
+        products: [yamiHigh, thirdHigh, yamiOut, yamiLow],
+        groups: {
+          yami: { inStock: 2, outOfStock: 1 },
+          thirdParty: { inStock: 1, outOfStock: 0 },
+        },
+      },
+    };
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({
+      plans: buildTopicPagePlanMatrix(snapshot),
+    }));
+
+    await act(async () => root.render(<TopicGenerator />));
+    const button = (label: string) =>
+      [...container.querySelectorAll<HTMLButtonElement>("button")]
+        .find((candidate) => candidate.textContent === label)!;
+    await act(async () => button("生成页面").click());
+    await act(async () => button("商品池").click());
+
+    expect(container.textContent).toContain("目录商品总览");
+    const poolStats = container.querySelector('[aria-label="商品池统计"]')!;
+    expect([...poolStats.children].map((item) => item.textContent)).toEqual([
+      "目录商品4",
+      "在售商品3",
+      "缺货商品1",
+      "排序方式周销量降序",
+    ]);
+    expect(container.querySelector('[aria-label="目录商品统计"]')).toBeNull();
+    const groups = [...container.querySelectorAll<HTMLElement>("[data-catalog-coverage-group]")];
+    expect(groups).toHaveLength(4);
+    expect(groups[0]?.textContent).toContain("YAMI 自营 · 在售");
+    expect(groups[1]?.textContent).toContain("YAMI 自营 · 缺货");
+    expect(groups[2]?.textContent).toContain("第三方商家 · 在售");
+    expect(groups[3]?.textContent).toContain("第三方商家 · 缺货");
+    expect(
+      [...groups[0]!.querySelectorAll("img")].map((image) => image.getAttribute("alt")),
+    ).toEqual(["Beauty Product yami-high", "Beauty Product yami-low"]);
+    const firstCatalogMeta = groups[0]!.querySelector<HTMLElement>("a > span:last-child")!;
+    const firstCatalogMetaHeader = firstCatalogMeta.firstElementChild!;
+    expect([...firstCatalogMetaHeader.children].map((item) => item.textContent)).toEqual([
+      "Beauty of Joseon",
+      "周销量 100+",
+    ]);
+    expect(firstCatalogMeta.children[1]?.textContent).toBe("Beauty Product yami-high");
+    const yamiInStockProducts = groups[0]!.querySelector<HTMLElement>(
+      "#catalog-coverage-yami-in-stock-products",
+    )!;
+    const collapseYamiInStock = groups[0]!.querySelector<HTMLButtonElement>(
+      '[aria-label="收起 YAMI 自营 · 在售"]',
+    )!;
+    expect(collapseYamiInStock.getAttribute("aria-expanded")).toBe("true");
+    await act(async () => collapseYamiInStock.click());
+    expect(yamiInStockProducts.hidden).toBe(true);
+    expect(collapseYamiInStock.textContent).toBe("展开");
+    expect(groups[2]!.querySelector<HTMLElement>(
+      "#catalog-coverage-third-party-in-stock-products",
+    )!.hidden).toBe(false);
+    expect(groups[1]?.textContent).toContain("仅作目录审计，不进入页面模块");
+    const outOfStockCard = groups[1]!.querySelector("a")!;
+    const imageWrap = outOfStockCard.querySelector("img")!.parentElement!;
+    const imageBadges = imageWrap.lastElementChild!;
+    expect(imageBadges.children[0]?.textContent).toBe("#90");
+    expect(imageBadges.children[1]?.textContent).toBe("缺货");
+    expect(outOfStockCard.lastElementChild?.textContent).not.toContain("缺货");
+    expect(groups[0]?.textContent).not.toContain("累计销量");
+    expect(groups[0]?.textContent).toContain("周销量 100+");
+
+    await act(async () => button("页面预览").click());
+    expect(container.querySelector('[aria-label="商品池统计"]')).toBeNull();
+    expect(container.textContent).toContain("主商品池3");
+    expect(container.textContent).toContain("相关商品池0");
+    expect(container.textContent).toContain("显示模块");
+    expect(container.textContent).toContain("图片模式");
   });
 
   it("presents category-role output as a module product pool without an empty related pool", async () => {

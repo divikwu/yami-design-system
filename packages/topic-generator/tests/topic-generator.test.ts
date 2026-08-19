@@ -480,6 +480,83 @@ describe("TOPIC GENERATOR Yami search provider", () => {
     });
   });
 
+  it("keeps an exact parent category inside its own catalog branch", () => {
+    const result = parseYamiCatalogResponse("coffee", {
+      messageId: "10000",
+      body: {
+        categoryAgg: [
+          {
+            category_id: 3,
+            category_ename: "Beverage",
+            children: [{
+              category_id: 312,
+              category_ename: "Coffee",
+              children: [
+                { category_id: 1496, category_ename: "Instant Coffee", result_count: 8 },
+                { category_id: 1495, category_ename: "Cold Brew & Bottled", result_count: 8 },
+              ],
+            }],
+          },
+          {
+            category_id: 8,
+            category_ename: "Home",
+            children: [{
+              category_id: 80,
+              category_ename: "Household",
+              children: [{
+                category_id: 1231,
+                category_ename: "Household Essentials",
+                result_count: 8,
+              }],
+            }],
+          },
+        ],
+        items: [
+          {
+            item_number: "coffee-1",
+            goods_ename: "Instant Coffee",
+            category_l1_id: 3,
+            category_l2_id: 312,
+            category_l3_id: 1496,
+            image_url: "/item/coffee-1.webp",
+            slug: "instant-coffee",
+            status: "A",
+            goods_number: 5,
+          },
+          {
+            item_number: "coffee-2",
+            goods_ename: "Bottled Coffee",
+            category_l1_id: 3,
+            category_l2_id: 312,
+            category_l3_id: 1495,
+            image_url: "/item/coffee-2.webp",
+            slug: "bottled-coffee",
+            status: "A",
+            goods_number: 5,
+          },
+          {
+            item_number: "household-1",
+            goods_ename: "Coffee Filter Cleaning Brush",
+            category_l1_id: 8,
+            category_l2_id: 80,
+            category_l3_id: 1231,
+            image_url: "/item/household-1.webp",
+            slug: "coffee-filter-cleaning-brush",
+            status: "A",
+            goods_number: 5,
+          },
+        ],
+      },
+    });
+
+    expect(result.intent).toMatchObject({
+      entityType: "category",
+      canonicalEntity: { id: "312", label: "Coffee" },
+      decision: { status: "resolved" },
+    });
+    expect(result.intent.categories.map(({ id }) => id)).toEqual(["1496", "1495"]);
+  });
+
   it("matches the Chinese alias of a catalog category as exact evidence", () => {
     const result = parseYamiCatalogResponse("抹茶", {
       messageId: "10000",
@@ -1153,6 +1230,31 @@ describe("Topic page planner", () => {
     expect(chinese.products[0]?.brand).toBe(english.products[0]?.brand);
     expect(chinese.products[0]?.title).toBe(english.products[0]?.title);
     expect(chinese.products[0]?.selectionReason).toContain("关键词直接命中");
+  });
+
+  it("assigns Start Here only to themes with four to eight products in Yami order", () => {
+    const groupedProducts = [
+      ...Array.from({ length: 10 }, (_, index) =>
+        product(`serum-${index + 1}`, `ANUA Serum ${index + 1}`, index + 1)),
+      ...Array.from({ length: 4 }, (_, index) =>
+        product(`toner-${index + 1}`, `ANUA Toner ${index + 1}`, index + 11)),
+      ...Array.from({ length: 3 }, (_, index) =>
+        product(`mask-${index + 1}`, `ANUA Mask ${index + 1}`, index + 15)),
+    ];
+    const plan = buildTopicPagePlan(
+      snapshot(groupedProducts),
+      "relevance",
+      "en",
+      "selection",
+    );
+    const startHere = plan.modules.find((module) => module.id === "start-here");
+
+    expect(startHere?.visible).toBe(true);
+    expect(startHere?.productIds).toEqual([
+      ...Array.from({ length: 8 }, (_, index) => `serum-${index + 1}`),
+      ...Array.from({ length: 4 }, (_, index) => `toner-${index + 1}`),
+    ]);
+    expect(startHere?.productIds).not.toContain("mask-1");
   });
 
   it("stops after module assignment in selection mode", () => {

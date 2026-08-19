@@ -13,6 +13,7 @@ import {
   type TopicPageContentProposal,
   type TopicPagePlanV2,
 } from "../src/index.js";
+import { usesStrictPageCopyPolicy } from "../src/page-content/config.js";
 
 const MODULE_ORDER = [
   "hero",
@@ -329,6 +330,15 @@ function proposalFixture(
 }
 
 describe("TopicPageContent", () => {
+  it("applies strict copy policy to every active relevance template", () => {
+    expect([
+      "topic-landing/brand-relevance@1",
+      "topic-landing/topic-relevance@1",
+      "topic-landing/campaign-relevance@1",
+    ].every((templateRef) => usesStrictPageCopyPolicy(templateRef))).toBe(true);
+    expect(usesStrictPageCopyPolicy("topic-landing/relevance@1")).toBe(false);
+  });
+
   it("returns only the declared visible content tasks and their real component copy slots", () => {
     const intent = themeIntentFixture();
     const selection = selectionFixture();

@@ -1,8 +1,7 @@
-import type { YamiProduct, YamiSearchSnapshot } from "../types.js";
+import type { ThemeIntent, YamiProduct, YamiSearchSnapshot } from "../types.js";
 import type { ProductSelectionResult } from "./contracts.js";
 import type { RelevanceStrategyConfig } from "./config.js";
 
-const PRIMARY_LIMIT = 18;
 const RELATED_LIMIT = 6;
 
 function normalized(value: string) {
@@ -24,6 +23,94 @@ function matchesKeyword(product: YamiProduct, keyword: string) {
   );
 }
 
+function containsTerm(product: YamiProduct, term: string) {
+  const haystack = normalized([
+    product.brand,
+    product.title,
+    product.categoryL1Name,
+    product.categoryL2Name,
+    product.categoryL3Name,
+  ].filter(Boolean).join(" "));
+  const candidate = normalized(term);
+  return Boolean(candidate && haystack.includes(candidate));
+}
+
+function matchesIntent(product: YamiProduct, keyword: string, intent?: ThemeIntent) {
+  if (!intent) return matchesKeyword(product, keyword);
+  if (intent.mustExclude.some((term) => containsTerm(product, term))) return false;
+
+  const canonicalId = intent.canonicalEntity?.id;
+  const canonicalLabel = intent.canonicalEntity?.label;
+  if (intent.entityType === "brand" && intent.canonicalEntity) {
+    return (canonicalId && String(product.brandId ?? "") === canonicalId) ||
+      (canonicalLabel ? normalized(product.brand) === normalized(canonicalLabel) : false);
+  }
+  if (intent.entityType === "category" && intent.canonicalEntity) {
+    return [product.categoryL1Id, product.categoryL2Id, product.categoryL3Id]
+      .some((id) => canonicalId && String(id ?? "") === canonicalId) ||
+      [product.categoryL1Name, product.categoryL2Name, product.categoryL3Name]
+        .some((label) => canonicalLabel && normalized(label ?? "") === normalized(canonicalLabel));
+  }
+  const categoryIds = new Set(intent.categories.map(({ id }) => id));
+  if (categoryIds.has(String(product.categoryL3Id ?? ""))) return true;
+  return matchesKeyword(product, keyword);
+}
+
+function intentThemeSelection(
+  products: YamiProduct[],
+  snapshot: YamiSearchSnapshot,
+  config: RelevanceStrategyConfig,
+) {
+  const policy = config.themeCollections;
+  const intent = snapshot.intent;
+  if (!policy || !intent || intent.decision.status !== "resolved") return null;
+
+  const categories = intent.categories.flatMap((category) => {
+    const categoryProducts = products
+      .filter((product) => String(product.categoryL3Id ?? "") === category.id)
+      .sort((left, right) => left.sourceRank - right.sourceRank)
+      .slice(0, policy.maximumProducts);
+    return categoryProducts.length >= policy.minimumProducts
+      ? [{ category, products: categoryProducts }]
+      : [];
+  }).slice(0, policy.maximumThemes);
+  if (categories.length < policy.minimumThemes) return null;
+
+  const groups = categories.map(({ category, products: categoryProducts }) => ({
+    id: `theme-${category.id}`,
+    label: category.label,
+    role: "core" as const,
+    productIds: categoryProducts.map(({ id }) => id),
+  }));
+  const primary = categories.flatMap(({ products: categoryProducts }) => categoryProducts);
+  return {
+    primary,
+    selectedCategories: categories.map(({ category }) => ({
+      id: category.id,
+      label: category.label,
+      path: [...category.path],
+      role: "core" as const,
+      reason: `Verified ThemeIntent category with at least ${policy.minimumProducts} Yami products.`,
+    })),
+    scenes: groups.map((group) => ({
+      id: group.id,
+      name: group.label,
+      title: group.label,
+      description: `Catalog-backed ${group.label} theme for ${snapshot.keyword}.`,
+      productGroups: group.productIds.map((productId) => ({
+        core: productId,
+        pairing: null,
+        accessory: null,
+      })),
+    })),
+    module: {
+      id: "start-here" as const,
+      productIds: primary.map(({ id }) => id),
+      groups,
+    },
+  };
+}
+
 export function selectByRelevance(
   snapshot: YamiSearchSnapshot,
   config: RelevanceStrategyConfig,
@@ -35,15 +122,25 @@ export function selectByRelevance(
     return true;
   });
   const directProducts = products.filter((product) =>
-    matchesKeyword(product, snapshot.keyword)
+    matchesIntent(product, snapshot.keyword, snapshot.intent)
   );
+  const hasResolvedIntent = snapshot.intent?.decision.status === "resolved";
   const minimumDirectCount = Math.min(6, products.length);
-  const primarySource = directProducts.length < minimumDirectCount
+  const primarySource = hasResolvedIntent
+    ? directProducts
+    : directProducts.length < minimumDirectCount
     ? products.slice(0, 12)
     : directProducts;
-  const primary = primarySource.slice(0, PRIMARY_LIMIT);
+  const themedSelection = intentThemeSelection(primarySource, snapshot, config);
+  const themedIds = new Set(themedSelection?.primary.map(({ id }) => id) ?? []);
+  const primary = themedSelection
+    ? [
+        ...themedSelection.primary,
+        ...primarySource.filter(({ id }) => !themedIds.has(id)),
+      ]
+    : primarySource;
   const primaryIds = new Set(primary.map((product) => product.id));
-  const related = products
+  const related = (hasResolvedIntent ? directProducts : products)
     .filter((product) => !primaryIds.has(product.id))
     .slice(0, RELATED_LIMIT);
 
@@ -61,8 +158,8 @@ export function selectByRelevance(
       ...primary.map((product) => ({ ...product, pool: "primary" as const, role: "core" as const })),
       ...related.map((product) => ({ ...product, pool: "related" as const, role: "pairing" as const })),
     ],
-    selectedCategories: [],
-    scenes: [],
-    modules: [],
+    selectedCategories: themedSelection?.selectedCategories ?? [],
+    scenes: themedSelection?.scenes ?? [],
+    modules: themedSelection ? [themedSelection.module] : [],
   };
 }
