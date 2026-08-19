@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import sharp from "sharp";
 
 import {
   advanceLandingPageOrchestrationRun,
@@ -9,6 +10,7 @@ import {
   type ThemeIntent,
   type TopicContentAgent,
   type TopicPageAssetStore,
+  type TopicPageImageDecoder,
   type TopicPageReviewAgent,
   type TopicVisualAgent,
 } from "../src/index.js";
@@ -23,17 +25,41 @@ const MODULE_ORDER = [
   "explore-more",
 ] as const;
 
-function pngHeader(width: number, height: number) {
-  const bytes = new Uint8Array(24);
-  bytes.set([137, 80, 78, 71, 13, 10, 26, 10]);
-  bytes.set([0, 0, 0, 13, 73, 72, 68, 82], 8);
-  const view = new DataView(bytes.buffer);
-  view.setUint32(16, width);
-  view.setUint32(20, height);
-  return bytes;
+const REAL_PNG_FIXTURES = {
+  "1600x900": "iVBORw0KGgoAAAANSUhEUgAABkAAAAOEAQMAAADDg2/hAAAAA1BMVEXS3MiRRRwVAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAxklEQVR42u3BgQAAAADDoPlTX+EAVQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADwGsLCAAEUOY8tAAAAAElFTkSuQmCC",
+  "512x512": "iVBORw0KGgoAAAANSUhEUgAAAgAAAAIAAQMAAADOtka5AAAAA1BMVEXS3MiRRRwVAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAANklEQVR42u3BAQEAAACCIP+vbkhAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB8G4IAAAFjdVCkAAAAAElFTkSuQmCC",
+} as const;
+
+function pngFixture(size: keyof typeof REAL_PNG_FIXTURES) {
+  return new Uint8Array(Buffer.from(REAL_PNG_FIXTURES[size], "base64"));
 }
 
-function workflowFixture(options: { invalidHeroDigest?: boolean } = {}) {
+const imageDecoder: TopicPageImageDecoder = {
+  inspect: async (bytes) => {
+    try {
+      const image = sharp(bytes, { failOn: "error" });
+      const metadata = await image.metadata();
+      await image.clone().raw().toBuffer();
+      const mimeType = metadata.format === "png"
+        ? "image/png" as const
+        : metadata.format === "jpeg"
+          ? "image/jpeg" as const
+          : metadata.format === "webp"
+            ? "image/webp" as const
+            : null;
+      return mimeType && metadata.width && metadata.height
+        ? { mimeType, width: metadata.width, height: metadata.height }
+        : null;
+    } catch {
+      return null;
+    }
+  },
+};
+
+function workflowFixture(options: {
+  invalidHeroDigest?: boolean;
+  truncatedHero?: boolean;
+} = {}) {
   const intent: ThemeIntent = {
     schemaVersion: "theme-intent/v2",
     source: "catalog-evidence",
@@ -175,8 +201,9 @@ function workflowFixture(options: { invalidHeroDigest?: boolean } = {}) {
       })),
     }),
   };
-  const heroBytes = pngHeader(1600, 900);
-  const shortcutBytes = pngHeader(512, 512);
+  const completeHeroBytes = pngFixture("1600x900");
+  const heroBytes = options.truncatedHero ? completeHeroBytes.slice(0, 24) : completeHeroBytes;
+  const shortcutBytes = pngFixture("512x512");
   const visual: TopicVisualAgent = {
     id: "fixture-visual-agent",
     generatePageVisuals: async (run) => {
@@ -224,6 +251,7 @@ function workflowFixture(options: { invalidHeroDigest?: boolean } = {}) {
           topicPageContentSpecDigest: run.context.topicPageContentSpecDigest,
           themeIntentDigest: run.context.themeIntentDigest,
           productSelectionDigest: run.context.productSelectionDigest,
+          productionMode: run.context.productionMode,
           assets,
         },
         assets: assets.map((asset) => ({
@@ -268,6 +296,7 @@ function workflowFixture(options: { invalidHeroDigest?: boolean } = {}) {
     executionPlan: orchestration.plan,
     agents: { merchandising, content, visual, review },
     assetStore,
+    imageDecoder,
     persisted,
     put,
   };
@@ -309,6 +338,22 @@ describe("Topic page automation workflow", () => {
     expect(data.persisted.size).toBe(2);
   });
 
+  it("carries the requested visual production mode through the full automation workflow", async () => {
+    const data = workflowFixture();
+
+    const result = await runTopicPageAutomationWorkflow({
+      ...data,
+      language: "zh",
+      visualProductionMode: "source-product-images",
+      previewRefs: { desktop: "/?preview=desktop", mobile: "/?preview=mobile" },
+    });
+
+    expect(result).toMatchObject({
+      status: "ready",
+      assetManifest: { productionMode: "source-product-images" },
+    });
+  });
+
   it("validates every image body before writing anything to the asset store", async () => {
     const data = workflowFixture({ invalidHeroDigest: true });
 
@@ -325,5 +370,163 @@ describe("Topic page automation workflow", () => {
     });
     expect(data.put).not.toHaveBeenCalled();
     expect(data.persisted.size).toBe(0);
+  });
+
+  it("rejects a truncated image before writing anything to the asset store", async () => {
+    const data = workflowFixture({ truncatedHero: true });
+
+    const result = await runTopicPageAutomationWorkflow({
+      ...data,
+      language: "zh",
+      previewRefs: { desktop: "/", mobile: "/" },
+    });
+
+    expect(result).toMatchObject({
+      status: "blocked",
+      stage: "asset-persistence",
+      issues: ["Asset asset-hero is not a decodable PNG, JPEG, or WebP image."],
+    });
+    expect(data.put).not.toHaveBeenCalled();
+    expect(data.persisted.size).toBe(0);
+  });
+
+  it("preserves a rejected Content Agent attempt for a content-writing retry", async () => {
+    const data = workflowFixture();
+    const validContentAgent = data.agents.content;
+    const proposeModuleMerchandising = vi.fn(
+      data.agents.merchandising.proposeModuleMerchandising,
+    );
+    data.agents.merchandising = {
+      ...data.agents.merchandising,
+      proposeModuleMerchandising,
+    };
+    let rejectedProposal: unknown;
+    let revisedProposal: unknown;
+    data.agents.content = {
+      id: "invalid-content-agent",
+      proposePageContent: async (run) => {
+        revisedProposal = await validContentAgent.proposePageContent(run);
+        rejectedProposal = { ...(revisedProposal as object), tasks: [] };
+        return rejectedProposal;
+      },
+    };
+
+    const result = await runTopicPageAutomationWorkflow({
+      ...data,
+      language: "zh",
+      previewRefs: { desktop: "/", mobile: "/" },
+    });
+
+    expect(result).toMatchObject({
+      status: "blocked",
+      stage: "content-writing",
+      faultKind: "proposal-invalid",
+      rollbackStage: "content-writing",
+      plan: { digest: expect.stringMatching(/^sha256:/) },
+      contentRun: {
+        status: "blocked",
+        faultKind: "proposal-invalid",
+        rollbackStage: "content-writing",
+      },
+      contentAttempt: {
+        schemaVersion: "topic-page-content-attempt/v1",
+        agentId: "invalid-content-agent",
+        proposal: rejectedProposal,
+        proposalReview: { status: "rejected" },
+      },
+    });
+    if (result.status !== "blocked" || !result.plan || !result.contentAttempt) {
+      throw new Error("Expected a recoverable content-writing block.");
+    }
+
+    proposeModuleMerchandising.mockClear();
+    const proposePageContent = vi.fn(validContentAgent.proposePageContent);
+    data.agents.content = { ...validContentAgent, proposePageContent };
+    const resumed = await runTopicPageAutomationWorkflow({
+      ...data,
+      language: "zh",
+      contentResume: {
+        plan: result.plan,
+        attempt: result.contentAttempt,
+        proposal: revisedProposal,
+      },
+      previewRefs: { desktop: "/", mobile: "/" },
+    });
+
+    expect(resumed).toMatchObject({ status: "ready", stage: "review-ready" });
+    expect(proposeModuleMerchandising).not.toHaveBeenCalled();
+    expect(proposePageContent).not.toHaveBeenCalled();
+
+    const staleResume = await runTopicPageAutomationWorkflow({
+      ...data,
+      language: "zh",
+      contentResume: {
+        plan: result.plan,
+        attempt: { ...result.contentAttempt, language: "en" },
+        proposal: revisedProposal,
+      },
+      previewRefs: { desktop: "/", mobile: "/" },
+    });
+    expect(staleResume).toMatchObject({
+      status: "blocked",
+      stage: "content-writing",
+      faultKind: "upstream-invalid",
+      rollbackStage: "module-merchandising",
+      issues: ["Content resume language does not match the current request."],
+    });
+    expect(proposeModuleMerchandising).not.toHaveBeenCalled();
+    expect(proposePageContent).not.toHaveBeenCalled();
+
+    const missingRevision = await runTopicPageAutomationWorkflow({
+      ...data,
+      language: "zh",
+      contentResume: {
+        plan: result.plan,
+        attempt: result.contentAttempt,
+        proposal: undefined,
+      },
+      previewRefs: { desktop: "/", mobile: "/" },
+    });
+    expect(missingRevision).toMatchObject({
+      status: "blocked",
+      stage: "content-writing",
+      faultKind: "proposal-invalid",
+      rollbackStage: "content-writing",
+      issues: ["Content resume requires a revised proposal."],
+    });
+    expect(proposeModuleMerchandising).not.toHaveBeenCalled();
+    expect(proposePageContent).not.toHaveBeenCalled();
+  });
+
+  it("preserves the bound attempt when the Content Agent fails", async () => {
+    const data = workflowFixture();
+    data.agents.content = {
+      id: "unavailable-content-agent",
+      proposePageContent: async () => {
+        throw new Error("Agent transport unavailable.");
+      },
+    };
+
+    const result = await runTopicPageAutomationWorkflow({
+      ...data,
+      language: "zh",
+      previewRefs: { desktop: "/", mobile: "/" },
+    });
+
+    expect(result).toMatchObject({
+      status: "blocked",
+      stage: "content-writing",
+      faultKind: "agent-failed",
+      rollbackStage: "content-writing",
+      issues: ["Content Agent failed while preparing a proposal."],
+      contentAttempt: {
+        schemaVersion: "topic-page-content-attempt/v1",
+        agentId: "unavailable-content-agent",
+        topicPagePlanDigest: expect.stringMatching(/^sha256:/),
+        themeIntentDigest: expect.stringMatching(/^sha256:/),
+        productSelectionDigest: expect.stringMatching(/^sha256:/),
+        language: "zh",
+      },
+    });
   });
 });

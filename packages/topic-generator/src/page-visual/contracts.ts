@@ -26,6 +26,12 @@ export type TopicPageVisualAssetKind =
 export type TopicPageVisualAspectRatio = "16:9" | "1:1" | "111:40";
 export type TopicPageVisualAltTextMode = "required" | "decorative";
 export type TopicPageVisualMimeType = "image/webp" | "image/png" | "image/jpeg";
+export type TopicPageVisualProductionMode = "generated-images" | "source-product-images";
+
+export interface TopicPageVisualCompositionGuidance {
+  preferredSubjectArea: "upper-three-quarters";
+  lowerAreaUsage: "low-contrast-decoration-preferred";
+}
 
 export interface TopicPageVisualDirection {
   prompt: string;
@@ -69,6 +75,7 @@ export interface TopicPageVisualProposal {
   topicPageContentSpecDigest: string;
   themeIntentDigest: string;
   productSelectionDigest: string;
+  productionMode?: TopicPageVisualProductionMode;
   assets: TopicPageVisualAssetProposal[];
 }
 
@@ -103,6 +110,7 @@ export interface TopicPageAssetManifest {
   topicPageContentSpecDigest: string;
   themeIntentDigest: string;
   productSelectionDigest: string;
+  productionMode?: TopicPageVisualProductionMode;
   assets: TopicPageVisualAssetProposal[];
   digest: string;
 }
@@ -129,6 +137,7 @@ export interface TopicPageVisualTaskContext {
   minimumHeight: number;
   altTextMode: TopicPageVisualAltTextMode;
   requiresBackgroundColor: boolean;
+  compositionGuidance?: TopicPageVisualCompositionGuidance;
   slotId?: string;
   sceneId?: string;
   brand?: string;
@@ -148,6 +157,7 @@ export interface TopicPageVisualContext {
   topicPageContentSpecDigest: string;
   themeIntentDigest: string;
   productSelectionDigest: string;
+  productionMode: TopicPageVisualProductionMode;
   themeIntent: ThemeIntent;
   selectedCategories: SelectedCategoryRole[];
   evidenceNamespaces: readonly [

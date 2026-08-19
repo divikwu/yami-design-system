@@ -8,6 +8,7 @@ import type {
   TopicPageVisualAltTextMode,
   TopicPageVisualAspectRatio,
   TopicPageVisualAssetKind,
+  TopicPageVisualCompositionGuidance,
   TopicPageVisualTaskContext,
 } from "./contracts.js";
 
@@ -18,6 +19,7 @@ interface VisualRule {
   minimumHeight: number;
   altTextMode: TopicPageVisualAltTextMode;
   requiresBackgroundColor: boolean;
+  compositionGuidance?: TopicPageVisualCompositionGuidance;
 }
 
 const RULES = {
@@ -44,6 +46,10 @@ const RULES = {
     minimumHeight: 1024,
     altTextMode: "required",
     requiresBackgroundColor: true,
+    compositionGuidance: {
+      preferredSubjectArea: "upper-three-quarters",
+      lowerAreaUsage: "low-contrast-decoration-preferred",
+    },
   },
   brand: {
     kind: "brand-banner",

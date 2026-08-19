@@ -1,5 +1,8 @@
 import { runPageMerchandisingAgentWorkflow } from "../page-merchandising/workflow.js";
-import { runTopicContentAgentWorkflow } from "../page-content/workflow.js";
+import {
+  runTopicContentAgentWorkflow,
+  TopicContentAgentWorkflowError,
+} from "../page-content/workflow.js";
 import {
   LANDING_PAGE_EXECUTION_STAGES,
   landingPageExecutionPlanDigest,
@@ -11,7 +14,6 @@ import type { TopicPageVisualAssetBody } from "../page-visual/contracts.js";
 import {
   compileTopicPageGenerationSpec,
   compileTopicPageReviewPackage,
-  inspectImageBytes,
   runTopicPageQa,
   sha256Bytes,
 } from "../page-generation/index.js";
@@ -102,9 +104,10 @@ function decodeBase64(value: string) {
   }
 }
 
-function validateAssetBodies(
+async function validateAssetBodies(
   assetBodies: TopicPageVisualAssetBody[] | undefined,
   manifest: NonNullable<Extract<TopicPageAutomationRun, { status: "ready" }>["assetManifest"]>,
+  imageDecoder: TopicPageAutomationWorkflowOptions["imageDecoder"],
 ) {
   const bodies = assetBodies ?? [];
   const issues: string[] = [];
@@ -112,24 +115,24 @@ function validateAssetBodies(
     issues.push(`Visual Agent must return exactly ${manifest.assets.length} image bodies.`);
   }
   const decoded: Array<{ ref: string; bytes: Uint8Array }> = [];
-  manifest.assets.forEach((asset, index) => {
+  for (const [index, asset] of manifest.assets.entries()) {
     const body = bodies[index];
     if (!body || body.taskId !== asset.taskId || body.ref !== asset.artifact.ref ||
         body.mimeType !== asset.artifact.mimeType) {
       issues.push(`Image body ${index + 1} does not match visual task ${asset.taskId}.`);
-      return;
+      continue;
     }
     const bytes = decodeBase64(body.dataBase64);
     if (!bytes || bytes.byteLength === 0 || bytes.byteLength > 12 * 1024 * 1024) {
       issues.push(`Asset ${asset.taskId} must contain a valid image body no larger than 12 MiB.`);
-      return;
+      continue;
     }
     if (sha256Bytes(bytes) !== asset.artifact.digest) {
       issues.push(`Asset ${asset.taskId} byte digest does not match the accepted visual proposal.`);
     }
-    const image = inspectImageBytes(bytes);
+    const image = await imageDecoder.inspect(bytes);
     if (!image) {
-      issues.push(`Asset ${asset.taskId} is not a supported PNG, JPEG, or WebP image.`);
+      issues.push(`Asset ${asset.taskId} is not a decodable PNG, JPEG, or WebP image.`);
     } else {
       if (image.mimeType !== asset.artifact.mimeType) {
         issues.push(`Asset ${asset.taskId} byte MIME does not match the accepted visual proposal.`);
@@ -139,7 +142,7 @@ function validateAssetBodies(
       }
     }
     decoded.push({ ref: body.ref, bytes });
-  });
+  }
   return { issues, decoded };
 }
 
@@ -156,26 +159,42 @@ export async function runTopicPageAutomationWorkflow(
   if (planIssues.length > 0) return block("workflow-planning", planIssues);
   mark(stages, "workflow-planning", "completed");
   mark(stages, "product-selection", "completed");
-  let merchandising;
-  try {
-    merchandising = await runPageMerchandisingAgentWorkflow({
-      intent: options.intent,
-      selection: options.selection,
-      templateRef: options.executionPlan.templateRef,
-      agent: options.agents.merchandising,
-    });
-  } catch (error) {
-    return block("module-merchandising", [message(error)]);
+  let plan;
+  if (options.contentResume) {
+    plan = options.contentResume.plan;
+    if (plan.templateRef !== options.executionPlan.templateRef) {
+      return block(
+        "module-merchandising",
+        ["Resumed TopicPagePlan templateRef does not match LandingPageExecutionPlan."],
+        {
+          plan,
+          faultKind: "upstream-invalid",
+          rollbackStage: "module-merchandising",
+        },
+      );
+    }
+  } else {
+    let merchandising;
+    try {
+      merchandising = await runPageMerchandisingAgentWorkflow({
+        intent: options.intent,
+        selection: options.selection,
+        templateRef: options.executionPlan.templateRef,
+        agent: options.agents.merchandising,
+      });
+    } catch (error) {
+      return block("module-merchandising", [message(error)]);
+    }
+    if (merchandising.run.status !== "ready") {
+      return block(
+        "module-merchandising",
+        merchandising.run.status === "blocked"
+          ? merchandising.run.issues
+          : ["PageMerchandising Agent did not return a proposal."],
+      );
+    }
+    plan = merchandising.run.plan;
   }
-  if (merchandising.run.status !== "ready") {
-    return block(
-      "module-merchandising",
-      merchandising.run.status === "blocked"
-        ? merchandising.run.issues
-        : ["PageMerchandising Agent did not return a proposal."],
-    );
-  }
-  const plan = merchandising.run.plan;
   mark(stages, "module-merchandising", "completed");
 
   let content;
@@ -186,17 +205,40 @@ export async function runTopicPageAutomationWorkflow(
       plan,
       language: options.language,
       agent: options.agents.content,
+      ...(options.contentResume
+        ? {
+            resume: {
+              attempt: options.contentResume.attempt,
+              proposal: options.contentResume.proposal,
+            },
+          }
+        : {}),
     });
   } catch (error) {
-    return block("content-writing", [message(error)], { plan });
+    return error instanceof TopicContentAgentWorkflowError
+      ? block("content-writing", [message(error)], {
+          plan,
+          faultKind: error.faultKind,
+          rollbackStage: error.rollbackStage,
+          contentAttempt: error.attempt,
+        })
+      : block("content-writing", [message(error)], { plan });
   }
   if (content.run.status !== "ready") {
+    const recovery = content.run.status === "blocked"
+      ? {
+          faultKind: content.run.faultKind,
+          rollbackStage: content.run.rollbackStage,
+          contentRun: content.run,
+          ...(content.artifacts ? { contentAttempt: content.artifacts } : {}),
+        }
+      : {};
     return block(
       "content-writing",
       content.run.status === "blocked"
         ? content.run.issues
         : ["Content Agent did not return a proposal."],
-      { plan },
+      { plan, ...recovery },
     );
   }
   const contentSpec = content.run.spec;
@@ -209,6 +251,7 @@ export async function runTopicPageAutomationWorkflow(
       selection: options.selection,
       plan,
       contentSpec,
+      productionMode: options.visualProductionMode,
       agent: options.agents.visual,
     });
   } catch (error) {
@@ -226,7 +269,11 @@ export async function runTopicPageAutomationWorkflow(
   const assetManifest = visual.run.manifest;
   mark(stages, "visual-generation", "completed");
 
-  const validatedBodies = validateAssetBodies(visual.artifacts.assetBodies, assetManifest);
+  const validatedBodies = await validateAssetBodies(
+    visual.artifacts.assetBodies,
+    assetManifest,
+    options.imageDecoder,
+  );
   if (validatedBodies.issues.length > 0) {
     return block("asset-persistence", validatedBodies.issues, {
       plan,
@@ -274,6 +321,7 @@ export async function runTopicPageAutomationWorkflow(
     manifest: assetManifest,
     generationSpec,
     reader: options.assetStore,
+    imageDecoder: options.imageDecoder,
   });
   if (qaReport.status !== "passed") {
     return block("automatic-qa", qaReport.issues, {

@@ -113,10 +113,11 @@ StartHere、Popular、Brand、Explore 商品、顺序与场景分组；Hero 和 
 `advanceTopicPageVisualRun` 是 PageVisual Interface。第一次调用重新校验 ready PagePlan 与
 ContentSpec，只返回 `assetTaskIds` 声明的 Hero、快捷入口、场景和品牌横幅任务；第二次传入
 `TopicPageVisualProposal` 后，校验任务、证据作用域、安全路径、MIME、尺寸比例、SHA-256、
-焦点、背景色与 alt text 模式，并生成 `topic-page-asset-manifest/v1`。
+焦点、背景色、alt text 模式及冻结的视觉生产模式，并生成 `topic-page-asset-manifest/v1`。
+场景图任务可携带非阻断的构图建议，用于避让底部叠加文案。
 
-`runTopicVisualAgentWorkflow` 可注入独立 `TopicVisualAgent`。Agent 使用宿主提供的图片生成器
-生成真实媒体与 Proposal；任务派生、元数据校验、证据范围与 Asset Manifest digest 仍由核心
+`runTopicVisualAgentWorkflow` 可注入独立 `TopicVisualAgent`。Agent 按 `generated-images` 或
+`source-product-images` 使用宿主媒体能力生成真实媒体与 Proposal；任务派生、元数据校验、证据范围与 Asset Manifest digest 仍由核心
 Module 拥有。`asset-manifest-ready` 不等于资产文件和页面渲染硬 QA 已通过。
 
 `runTopicPageAutomationWorkflow` 必须消费已校验的 `LandingPageExecutionPlan`。它按注册顺序
@@ -212,8 +213,8 @@ Visual 与 Topic Review 五个 Agent；交互式 Agent 不由 Web 页面同步�
 读取；浏览器提交的 taxonomy、candidate snapshot 或 Agent proposal 不会覆盖自动 Host 的证据。
 
 自动页面请求按统一 HTTP 契约完成编排、模块策划、文案、独立 Visual 与只读 Review stage。
-Visual 返回的图片本体
-会在落盘前校验任务绑定、MIME、真实尺寸和 SHA-256；落盘后再次由 QA 读取。只有通过
+Visual 返回的图片本体会在落盘前由 Host 解码器完成完整像素解码，并校验任务绑定、MIME、
+真实尺寸和 SHA-256；落盘后 QA 会重新读取并再次解码。只有通过
 `topic-page-qa-report/v1` 且 Review Agent 给出经核心验证的 `recommend-approval`，才会生成
 `topic-page-review-package/v1`。用户审批和发布不在自动请求授权范围内。
 

@@ -70,6 +70,17 @@ export interface TopicPageContentProposalReview {
   proposal?: TopicPageContentProposal;
 }
 
+export interface TopicPageContentAttemptArtifact {
+  schemaVersion: "topic-page-content-attempt/v1";
+  agentId: string;
+  topicPagePlanDigest: string;
+  themeIntentDigest: string;
+  productSelectionDigest: string;
+  language: ContentLanguage;
+  proposal?: unknown;
+  proposalReview?: TopicPageContentProposalReview;
+}
+
 export interface TopicPageContentSpec {
   schemaVersion: "topic-page-content-spec/v1";
   status: "content-ready";
@@ -94,6 +105,11 @@ export type TopicPageContentCopySlot =
   | "scenes[].title"
   | "scenes[].description";
 
+export interface TopicPageContentCopyRule {
+  slot: TopicPageContentCopySlot;
+  maxCharacters: number;
+}
+
 export type TopicPageContentTaskProduct = Pick<
   ProductSelectionProduct,
   | "id"
@@ -112,6 +128,7 @@ export interface TopicPageContentTaskContext {
   shoppingGoal: string;
   reason: string;
   copySlots: TopicPageContentCopySlot[];
+  copyRules: TopicPageContentCopyRule[];
   assignments: TopicPagePlanAssignmentV2[];
   scenes: TopicPagePlanSceneV2[];
   products: TopicPageContentTaskProduct[];
@@ -121,6 +138,7 @@ export interface TopicPageContentContext {
   keyword: string;
   site: YamiSite;
   language: ContentLanguage;
+  copyPolicyRef: "topic-page-copy/legacy@1" | "topic-page-copy/evidence-bound@1";
   strategyRef: ProductSelectionStrategyRef;
   templateRef: string;
   topicPagePlanDigest: string;
@@ -128,6 +146,7 @@ export interface TopicPageContentContext {
   productSelectionDigest: string;
   themeIntent: ThemeIntent;
   selectedCategories: SelectedCategoryRole[];
+  eligibleThemeIntentEvidenceIds: string[];
   evidenceNamespaces: readonly [
     "theme-intent:<evidence-id>",
     "selected-category:<category-id>",
@@ -136,6 +155,10 @@ export interface TopicPageContentContext {
   ];
   tasks: TopicPageContentTaskContext[];
 }
+
+export type TopicPageContentFaultKind = "upstream-invalid" | "proposal-invalid";
+
+export type TopicPageContentRollbackStage = "module-merchandising" | "content-writing";
 
 export type TopicPageContentRun =
   | {
@@ -152,6 +175,8 @@ export type TopicPageContentRun =
   | {
       schemaVersion: "topic-page-content-run/v1";
       status: "blocked";
+      faultKind: TopicPageContentFaultKind;
+      rollbackStage: TopicPageContentRollbackStage;
       issues: string[];
       proposalReview: TopicPageContentProposalReview;
     };

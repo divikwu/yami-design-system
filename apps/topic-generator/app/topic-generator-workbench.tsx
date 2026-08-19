@@ -27,6 +27,10 @@ function moduleById(spec: GenerationSpec, id: GenerationModule["id"]) {
   return spec.modules.find((module) => module.id === id);
 }
 
+function focalPointObjectPosition(focalPoint: { x: number; y: number }) {
+  return `${focalPoint.x * 100}% ${focalPoint.y * 100}%`;
+}
+
 function productListItem(
   product: GenerationModule["products"][number],
 ): ProductListItem {
@@ -42,17 +46,17 @@ function productListItem(
   };
 }
 
-function baseFixture(
+export function baseFixture(
   pageTypeRef: TopicPagePreviewRendererProps["pageTypeRef"],
   locale: GenerationSpec["language"],
 ) {
-  if (pageTypeRef === "landing-page/brand@1") {
+  if (pageTypeRef === "landing-page/brand@1" || pageTypeRef === "landing-page/brand@2") {
     return createTopicLandingPageFixture(locale);
   }
-  if (pageTypeRef === "landing-page/topic@1") {
+  if (pageTypeRef === "landing-page/topic@1" || pageTypeRef === "landing-page/topic@2") {
     return createTopicKeywordLandingPageFixture(locale);
   }
-  if (pageTypeRef === "landing-page/campaign@1") {
+  if (pageTypeRef === "landing-page/campaign@1" || pageTypeRef === "landing-page/campaign@2") {
     return createCampaignTopicLandingPageFixture(locale);
   }
   throw new Error(`No Topic Landing Page prototype is registered for ${pageTypeRef}.`);
@@ -75,6 +79,7 @@ function sceneThemes(
         image: {
           src: asset?.url ?? fallback.content.image.src,
           alt: asset?.altText?.text ?? String(sceneCopy?.title.text ?? scene.shoppingGoal),
+          ...(asset ? { objectPosition: focalPointObjectPosition(asset.focalPoint) } : {}),
         },
         ...(asset?.backgroundColor ? { backgroundColor: asset.backgroundColor } : {}),
         title: sceneCopy?.title.text ?? scene.shoppingGoal,
@@ -109,7 +114,7 @@ function brandCampaigns(
   }));
 }
 
-function generatedPrototypeProps(
+export function generatedPrototypeProps(
   pageTypeRef: TopicPagePreviewRendererProps["pageTypeRef"],
   spec: GenerationSpec,
 ): TopicLandingPageProps {

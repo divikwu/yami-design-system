@@ -27,7 +27,10 @@ import {
   type TopicPageTemplateRef,
 } from "./page-merchandising/index.js";
 import { advanceTopicPageContentRun } from "./page-content/index.js";
-import { advanceTopicPageVisualRun } from "./page-visual/index.js";
+import {
+  advanceTopicPageVisualRun,
+  type TopicPageVisualProductionMode,
+} from "./page-visual/index.js";
 import { parseSemanticProposal } from "./topic-intent.js";
 import type { ContentLanguage } from "./types.js";
 import { yamiCatalogCandidateAdapter } from "./yami-catalog.js";
@@ -50,6 +53,7 @@ export interface TopicGeneratorCliOptions {
   contentProposalPath: string;
   visual: boolean;
   visualProposalPath: string;
+  visualProductionMode: TopicPageVisualProductionMode;
 }
 
 export class TopicGeneratorCliError extends Error {
@@ -84,6 +88,7 @@ Options:
   --content-proposal    TopicPageContentProposal JSON from the Content Agent
   --visual              Request bounded Visual Agent tasks after a ready ContentSpec
   --visual-proposal     TopicPageVisualProposal JSON from the Visual Agent
+  --visual-production-mode  generated-images or source-product-images
   -o, --output    Explicit directory for versioned Run Artifacts
   --pretty        Pretty-print the JSON result
   -h, --help      Show this help`;
@@ -107,6 +112,7 @@ export function parseTopicGeneratorCliArgs(args: string[]): TopicGeneratorCliOpt
   let contentProposalPath = "";
   let visual = false;
   let visualProposalPath = "";
+  let visualProductionMode: TopicPageVisualProductionMode = "generated-images";
 
   for (let index = 0; index < args.length; index += 1) {
     const argument = args[index];
@@ -131,6 +137,16 @@ export function parseTopicGeneratorCliArgs(args: string[]): TopicGeneratorCliOpt
         throw new TopicGeneratorCliError("--content-language must be en or zh.");
       }
       contentLanguage = value;
+      index += 1;
+    } else if (argument === "--visual-production-mode") {
+      const value = args[index + 1];
+      if (value !== "generated-images" && value !== "source-product-images") {
+        throw new TopicGeneratorCliError(
+          "--visual-production-mode must be generated-images or source-product-images.",
+        );
+      }
+      visualProductionMode = value;
+      visual = true;
       index += 1;
     } else if ([
       "--proposal",
@@ -198,6 +214,7 @@ export function parseTopicGeneratorCliArgs(args: string[]): TopicGeneratorCliOpt
     contentProposalPath,
     visual,
     visualProposalPath,
+    visualProductionMode,
   };
 }
 
@@ -390,6 +407,7 @@ export async function runTopicGeneratorCli(args = process.argv.slice(2)) {
           selection: productSelection.run.result,
           plan: pageMerchandising.plan,
           contentSpec: pageContent.spec,
+          productionMode: options.visualProductionMode,
           ...(visualProposal === undefined ? {} : { proposal: visualProposal }),
         })
       : undefined;

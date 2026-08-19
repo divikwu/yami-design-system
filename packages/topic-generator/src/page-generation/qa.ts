@@ -23,7 +23,7 @@ import {
   topicPageGenerationSpecDigest,
   topicPageQaReportDigest,
 } from "./digest.js";
-import { inspectImageBytes } from "./image.js";
+import type { TopicPageImageDecoder } from "./image.js";
 
 export interface RunTopicPageQaOptions {
   intent: ThemeIntent;
@@ -33,6 +33,7 @@ export interface RunTopicPageQaOptions {
   manifest: TopicPageAssetManifest;
   generationSpec: TopicPageGenerationSpec;
   reader: TopicPageAssetReader;
+  imageDecoder: TopicPageImageDecoder;
 }
 
 function exactOrder(left: readonly string[], right: readonly string[]) {
@@ -40,7 +41,7 @@ function exactOrder(left: readonly string[], right: readonly string[]) {
 }
 
 export async function runTopicPageQa(options: RunTopicPageQaOptions): Promise<TopicPageQaReport> {
-  const { intent, selection, plan, contentSpec, manifest, generationSpec, reader } = options;
+  const { intent, selection, plan, contentSpec, manifest, generationSpec, reader, imageDecoder } = options;
   const issuesByCheck = new Map<TopicPageQaCheckId, string[]>([
     ["sources", []],
     ["bindings", []],
@@ -113,9 +114,9 @@ export async function runTopicPageQa(options: RunTopicPageQaOptions): Promise<To
     if (sha256Bytes(bytes) !== asset.artifact.digest) {
       add("assets", `Asset ${asset.taskId} byte digest does not match TopicPageAssetManifest.`);
     }
-    const inspected = inspectImageBytes(bytes);
+    const inspected = await imageDecoder.inspect(bytes);
     if (!inspected) {
-      add("assets", `Asset ${asset.taskId} is not a supported PNG, JPEG, or WebP image.`);
+      add("assets", `Asset ${asset.taskId} is not a decodable PNG, JPEG, or WebP image.`);
       continue;
     }
     if (inspected.mimeType !== asset.artifact.mimeType) {

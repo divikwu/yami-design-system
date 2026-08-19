@@ -214,6 +214,7 @@ describe("TOPIC GENERATOR portable entry points", () => {
       contentProposalPath: "",
       visual: false,
       visualProposalPath: "",
+      visualProductionMode: "generated-images",
     });
     expect(parseTopicGeneratorCliArgs(["home", "storage"]).keyword).toBe("home storage");
     expect(parseTopicGeneratorCliArgs(["--", "--help"]).help).toBe(true);
@@ -283,6 +284,21 @@ describe("TOPIC GENERATOR portable entry points", () => {
       "Matcha",
       "--visual-proposal", "visual.zh.json",
     ]).visual).toBe(true);
+  });
+
+  it("accepts an explicit visual production mode", () => {
+    expect(parseTopicGeneratorCliArgs([
+      "Matcha",
+      "--visual",
+      "--visual-production-mode", "source-product-images",
+    ])).toMatchObject({
+      visual: true,
+      visualProductionMode: "source-product-images",
+    });
+    expect(() => parseTopicGeneratorCliArgs([
+      "Matcha",
+      "--visual-production-mode", "unknown",
+    ])).toThrow("--visual-production-mode must be generated-images or source-product-images");
   });
 
   it("does not accept both canonical JSON and source TSV taxonomy inputs", () => {

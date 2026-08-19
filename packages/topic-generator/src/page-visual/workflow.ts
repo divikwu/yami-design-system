@@ -6,6 +6,7 @@ import type {
   TopicPageVisualAgentOutput,
   TopicPageVisualAssetBody,
   TopicPageVisualProposal,
+  TopicPageVisualProductionMode,
   TopicPageVisualRun,
 } from "./contracts.js";
 import { advanceTopicPageVisualRun } from "./run.js";
@@ -25,6 +26,7 @@ export interface TopicVisualAgentWorkflowRequest {
   selection: ProductSelectionResult;
   plan: TopicPagePlanV2;
   contentSpec: TopicPageContentSpec;
+  productionMode?: TopicPageVisualProductionMode;
   agent: TopicVisualAgent;
   proposal?: unknown;
 }
@@ -58,6 +60,7 @@ export async function runTopicVisualAgentWorkflow(
     selection: request.selection,
     plan: request.plan,
     contentSpec: request.contentSpec,
+    productionMode: request.productionMode,
     proposal,
   });
   if (run.status === "needs-visual-proposal") {
@@ -69,6 +72,7 @@ export async function runTopicVisualAgentWorkflow(
       selection: request.selection,
       plan: request.plan,
       contentSpec: request.contentSpec,
+      productionMode: request.productionMode,
       proposal,
     });
   }

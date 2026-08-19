@@ -6,6 +6,10 @@ export interface InspectedImage {
   height: number;
 }
 
+export interface TopicPageImageDecoder {
+  inspect(bytes: Uint8Array): Promise<InspectedImage | null>;
+}
+
 function ascii(bytes: Uint8Array, offset: number, length: number) {
   return String.fromCharCode(...bytes.slice(offset, offset + length));
 }

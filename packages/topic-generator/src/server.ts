@@ -11,6 +11,7 @@ import {
   type TopicPageAutomationStageId,
 } from "./page-automation/index.js";
 import type { TopicPageAssetStore } from "./page-generation/contracts.js";
+import type { TopicPageImageDecoder } from "./page-generation/image.js";
 import {
   runLandingPageOrchestratorAgentWorkflow,
   type LandingPageExecutionPlan,
@@ -51,6 +52,7 @@ export interface HandleTopicGeneratorOptions extends AnalyzeTopicIntentOptions {
   categoryRoleConfigurationIssues?: string[];
   topicPageAgent?: HttpTopicPageAgent;
   topicPageAssetStore?: TopicPageAssetStore;
+  topicPageImageDecoder?: TopicPageImageDecoder;
   requireAutomaticPage?: boolean;
   pageAutomationConfigurationIssues?: string[];
 }
@@ -245,12 +247,16 @@ export async function handleTopicGeneratorPost(
           (options.pageAutomationConfigurationIssues?.length ?? 0) === 0
         ? ["Automatic page generation requires an asset store."]
         : []),
+      ...(!options.topicPageImageDecoder &&
+          (options.pageAutomationConfigurationIssues?.length ?? 0) === 0
+        ? ["Automatic page generation requires an image decoder."]
+        : []),
     ];
     let executionPlan: LandingPageExecutionPlan | undefined;
     let orchestrationIssues: string[] = [];
     if (generationMode === "page" && options.requireAutomaticPage &&
         pageConfigurationIssues.length === 0 && options.topicPageAgent &&
-        options.topicPageAssetStore) {
+        options.topicPageAssetStore && options.topicPageImageDecoder) {
       try {
         const orchestration = await runLandingPageOrchestratorAgentWorkflow({
           intent,
@@ -392,7 +398,7 @@ export async function handleTopicGeneratorPost(
       const selectedRun = selectedStrategy === "category-role" ? categoryRun : relevanceRun;
       if (options.requireAutomaticPage) {
         if (pageConfigurationIssues.length > 0 || !options.topicPageAgent ||
-            !options.topicPageAssetStore) {
+            !options.topicPageAssetStore || !options.topicPageImageDecoder) {
           automation = blockedPageAutomation(pageConfigurationIssues);
         } else if (orchestrationIssues.length > 0 || !executionPlan) {
           automation = blockedPageAutomation(
@@ -425,6 +431,7 @@ export async function handleTopicGeneratorPost(
               review: options.topicPageAgent,
             },
             assetStore: options.topicPageAssetStore,
+            imageDecoder: options.topicPageImageDecoder,
             previewRefs: {
               desktop: `/?${previewQuery}&preview=desktop`,
               mobile: `/?${previewQuery}&preview=mobile`,

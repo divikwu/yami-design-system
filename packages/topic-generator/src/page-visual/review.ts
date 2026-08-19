@@ -18,6 +18,7 @@ import type {
   TopicPageVisualDirection,
   TopicPageVisualMimeType,
   TopicPageVisualProposalReview,
+  TopicPageVisualProductionMode,
   TopicPageVisualTaskContext,
 } from "./contracts.js";
 import { deriveTopicPageVisualTasks } from "./tasks.js";
@@ -357,6 +358,7 @@ export function reviewTopicPageVisualProposal(
   plan: TopicPagePlanV2,
   contentSpec: TopicPageContentSpec,
   value: unknown,
+  productionMode: TopicPageVisualProductionMode = "generated-images",
 ): TopicPageVisualProposalReview {
   const proposal = objectValue(value);
   const issues: string[] = [];
@@ -385,6 +387,10 @@ export function reviewTopicPageVisualProposal(
   }
   if (proposal.productSelectionDigest !== productSelectionDigest(selection)) {
     issues.push("Proposal productSelectionDigest does not match ProductSelectionResult.");
+  }
+  const proposalProductionMode = proposal.productionMode ?? "generated-images";
+  if (proposalProductionMode !== productionMode) {
+    issues.push("Proposal productionMode does not match the requested visual production mode.");
   }
 
   const tasks = deriveTopicPageVisualTasks(plan, selection, contentSpec);
@@ -465,6 +471,7 @@ export function reviewTopicPageVisualProposal(
       topicPageContentSpecDigest: contentSpec.digest,
       themeIntentDigest: themeIntentDigest(intent),
       productSelectionDigest: productSelectionDigest(selection),
+      productionMode,
       assets,
     },
   };
