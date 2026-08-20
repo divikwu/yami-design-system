@@ -61,6 +61,149 @@ describe("TopicIntent Module", () => {
     })).toThrow(SemanticProposalInputError);
   });
 
+  it("requires every v2 scenario hypothesis to reference at least two categories", () => {
+    expect(() => parseSemanticProposal({
+      schemaVersion: "semantic-proposal/v2",
+      themeType: "activity",
+      entityType: "scenario",
+      canonicalEntity: { label: "movie night" },
+      shoppingIntent: "assemble-scenario",
+      needs: [],
+      mustInclude: [],
+      mustExclude: [],
+      searchTerms: [],
+      categoryHypotheses: [],
+      scenarioHypotheses: [{
+        name: "Share snacks",
+        shoppingGoal: "Build a snack assortment.",
+        categoryIds: ["101"],
+        reason: "One category is not enough to support a scenario.",
+      }],
+    })).toThrow("must contain at least two category IDs");
+  });
+
+  it("accepts v2 category organization and scenarios without changing an exact brand", () => {
+    const snapshot = catalogSnapshot("ANUA", [
+      { id: "101", label: "Serums & Value Sets" },
+      { id: "102", label: "Toners" },
+      { id: "103", label: "Sheet Masks" },
+    ]);
+    snapshot.evidence!.brands = [{
+      id: "100",
+      label: "ANUA",
+      aliases: ["ANUA"],
+      resultCount: 12,
+    }];
+    const proposal = {
+      schemaVersion: "semantic-proposal/v2",
+      themeType: "brand",
+      entityType: "brand",
+      canonicalEntity: { id: "100", label: "ANUA" },
+      shoppingIntent: "browse-brand",
+      needs: [],
+      mustInclude: ["ANUA"],
+      mustExclude: [],
+      searchTerms: ["ANUA"],
+      categoryHypotheses: [{
+        label: "Hydration essentials",
+        role: "core",
+        categoryIds: ["101", "102"],
+        reason: "The two catalog categories form a reviewable hydration collection.",
+      }],
+      scenarioHypotheses: [{
+        name: "Daily hydration routine",
+        shoppingGoal: "Assemble a toner, serum, and mask routine.",
+        categoryIds: ["101", "102", "103"],
+        reason: "Three verified catalog categories support the routine.",
+      }],
+    } satisfies SemanticProposal;
+
+    const result = resolveTopicIntent(snapshot, proposal);
+
+    expect(result.intent).toMatchObject({
+      themeType: "brand",
+      entityType: "brand",
+      canonicalEntity: { id: "100", label: "ANUA" },
+      categoryHypotheses: [{
+        label: "Hydration essentials",
+        role: "core",
+        categoryIds: ["101", "102"],
+        evidenceIds: ["catalog-category:101", "catalog-category:102"],
+      }],
+      scenarioHypotheses: [{
+        name: "Daily hydration routine",
+        categoryIds: ["101", "102", "103"],
+      }],
+    });
+    expect(result.intent.categories.slice(0, 3).map(({ id }) => id)).toEqual([
+      "101",
+      "102",
+      "103",
+    ]);
+    expect(result.intent.conditions).toContain("Daily hydration routine");
+    expect(result.proposalReview).toMatchObject({
+      status: "accepted",
+      rejectedFields: [],
+    });
+  });
+
+  it("rejects v2 hypotheses that reuse or invent catalog category IDs", () => {
+    const proposal = {
+      schemaVersion: "semantic-proposal/v2",
+      themeType: "activity",
+      entityType: "scenario",
+      canonicalEntity: { label: "movie night" },
+      shoppingIntent: "assemble-scenario",
+      needs: ["Popcorn", "Soft Drinks"],
+      mustInclude: ["movie night"],
+      mustExclude: [],
+      searchTerms: ["movie night", "Popcorn", "Soft Drinks"],
+      categoryHypotheses: [
+        {
+          label: "Snacks",
+          role: "core",
+          categoryIds: ["101"],
+          reason: "Backed by the Popcorn category.",
+        },
+        {
+          label: "Duplicate snacks",
+          role: "pairing",
+          categoryIds: ["101"],
+          reason: "Reuses a category already owned by another display group.",
+        },
+        {
+          label: "Invented",
+          role: "accessory",
+          categoryIds: ["999"],
+          reason: "The category does not exist in catalog evidence.",
+        },
+      ],
+      scenarioHypotheses: [{
+        name: "Unsupported scene",
+        shoppingGoal: "Use an invented catalog category.",
+        categoryIds: ["101", "999"],
+        reason: "One category is not catalog-backed.",
+      }],
+    } satisfies SemanticProposal;
+
+    const result = resolveTopicIntent(
+      catalogSnapshot("movie night", [
+        { id: "101", label: "Popcorn" },
+        { id: "102", label: "Soft Drinks" },
+      ]),
+      proposal,
+    );
+
+    expect(result.intent.categoryHypotheses).toHaveLength(1);
+    expect(result.intent.scenarioHypotheses).toEqual([]);
+    expect(result.proposalReview.status).toBe("partially-accepted");
+    expect(result.proposalReview.rejectedFields).toEqual(expect.arrayContaining([
+      "categoryHypotheses[1]",
+      "categoryHypotheses[2]",
+      "scenarioHypotheses[0]",
+    ]));
+  });
+
   it("accepts an Agent scenario proposal only when multiple catalog categories support it", () => {
     const proposal = {
       schemaVersion: "semantic-proposal/v1",

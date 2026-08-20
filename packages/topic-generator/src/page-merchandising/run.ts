@@ -176,6 +176,8 @@ function taskContext(
       categoryL3Id: product.categoryL3Id,
       categoryL3Name: product.categoryL3Name,
       soldCount: product.soldCount,
+      weeklySalesLabel: product.weeklySalesLabel,
+      availability: product.availability,
       pool: product.pool,
       role: product.role,
     })),

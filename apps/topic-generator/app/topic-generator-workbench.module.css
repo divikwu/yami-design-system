@@ -12,3 +12,12 @@
 .prototypePreview :global([data-slot="footer"]) {
   display: none;
 }
+
+@media (max-width: 1023.98px) {
+  .generatedHero :global([data-slot="theme-hero-media"] img) {
+    top: 0;
+    height: 100%;
+    object-fit: contain;
+    object-position: center top;
+  }
+}

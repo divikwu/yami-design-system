@@ -83,7 +83,7 @@ function sceneThemes(
         },
         ...(asset?.backgroundColor ? { backgroundColor: asset.backgroundColor } : {}),
         title: sceneCopy?.title.text ?? scene.shoppingGoal,
-        description: sceneCopy?.description.text ?? module.shoppingGoal,
+        description: sceneCopy?.description.text ?? fallback.content.description,
       },
       products: scene.productIds.flatMap((id) => {
         const product = productsById.get(id);
@@ -169,8 +169,9 @@ export function generatedPrototypeProps(
     hero: hero
       ? {
           ...base.hero,
+          className: [base.hero.className, styles.generatedHero].filter(Boolean).join(" "),
           title: hero.copy.title.text,
-          description: hero.copy.description?.text ?? hero.shoppingGoal,
+          description: hero.copy.description?.text ?? base.hero.description,
           tags: hero.copy.tags?.map(({ text }) => text),
           image: {
             src: heroAsset?.url ?? base.hero.image.src,
@@ -213,7 +214,7 @@ export function generatedPrototypeProps(
               alt: startHere.assets[0]?.altText?.text ?? startHere.copy.title.text,
             },
             title: startHere.copy.title.text,
-            description: startHere.copy.description?.text ?? startHere.shoppingGoal,
+            description: startHere.copy.description?.text ?? base.standardRail.content.description,
           },
           products: (startHereThemes[0]?.products.length
             ? startHereThemes[0].products
@@ -264,7 +265,7 @@ export function generatedPrototypeProps(
   };
 }
 
-function RealTopicPagePreview({
+export function RealTopicPagePreview({
   pageTypeRef,
   generationSpec,
 }: TopicPagePreviewRendererProps) {
@@ -275,6 +276,7 @@ function RealTopicPagePreview({
       data-theme="light"
       data-page-preview-prototype
       data-page-type-ref={pageTypeRef}
+      data-generation-spec={generationSpec.digest}
     >
       <TopicLandingPage key={generationSpec.digest} {...props} />
     </div>

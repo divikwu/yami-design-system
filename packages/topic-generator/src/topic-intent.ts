@@ -6,13 +6,15 @@ import type {
   ShoppingIntent,
   ThemeEntityType,
   ThemeIntent,
+  ThemeIntentCategoryHypothesis,
   ThemeIntentConstraint,
+  ThemeIntentScenarioHypothesis,
+  TopicIntentRuntimeEvidence,
   ThemeType,
   YamiSearchSnapshot,
 } from "./types.js";
 
-export interface SemanticProposal {
-  schemaVersion: "semantic-proposal/v1";
+interface SemanticProposalBase {
   themeType: ThemeType;
   entityType: ThemeEntityType;
   canonicalEntity: { id?: string; label: string } | null;
@@ -22,6 +24,32 @@ export interface SemanticProposal {
   mustExclude: string[];
   searchTerms: string[];
 }
+
+export interface SemanticProposalV1 extends SemanticProposalBase {
+  schemaVersion: "semantic-proposal/v1";
+}
+
+export interface SemanticCategoryHypothesis {
+  label: string;
+  role: "core" | "pairing" | "accessory";
+  categoryIds: string[];
+  reason: string;
+}
+
+export interface SemanticScenarioHypothesis {
+  name: string;
+  shoppingGoal: string;
+  categoryIds: string[];
+  reason: string;
+}
+
+export interface SemanticProposalV2 extends SemanticProposalBase {
+  schemaVersion: "semantic-proposal/v2";
+  categoryHypotheses: SemanticCategoryHypothesis[];
+  scenarioHypotheses: SemanticScenarioHypothesis[];
+}
+
+export type SemanticProposal = SemanticProposalV1 | SemanticProposalV2;
 
 export interface SemanticProposalReview {
   status: "not-provided" | "accepted" | "partially-accepted" | "rejected";
@@ -33,6 +61,48 @@ export interface SemanticProposalReview {
 export interface TopicIntentResolution {
   intent: ThemeIntent;
   proposalReview: SemanticProposalReview;
+}
+
+export interface TopicIntentAgentRun {
+  schemaVersion: "topic-intent-agent-run/v1";
+  status: "needs-semantic-proposal";
+  context: {
+    keyword: string;
+    site: YamiSearchSnapshot["site"];
+    intent: ThemeIntent;
+    categories: Array<{
+      id: string;
+      label: string;
+      path: string[];
+      productCount: number;
+    }>;
+    representativeProducts: Array<{
+      id: string;
+      title: string;
+      brand: string;
+      categoryId?: string;
+      categoryLabel?: string;
+    }>;
+  };
+}
+
+export interface TopicIntentAgent {
+  id: string;
+  proposeSemanticIntent(run: TopicIntentAgentRun): Promise<unknown>;
+}
+
+export interface TopicIntentAgentWorkflowRequest {
+  snapshot: YamiSearchSnapshot;
+  intent: ThemeIntent;
+  proposalReview: SemanticProposalReview;
+  agent?: TopicIntentAgent;
+}
+
+export interface TopicIntentAgentWorkflowResult {
+  snapshot: YamiSearchSnapshot;
+  intent: ThemeIntent;
+  proposalReview: SemanticProposalReview;
+  runtime: TopicIntentRuntimeEvidence;
 }
 
 export class SemanticProposalInputError extends Error {
@@ -47,6 +117,74 @@ function stringList(value: unknown, field: string) {
     throw new SemanticProposalInputError(`${field} must be an array of strings.`);
   }
   return uniqueStrings(value.map((item) => item.trim()));
+}
+
+function nonEmptyString(value: unknown, field: string) {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    throw new SemanticProposalInputError(`${field} must be a non-empty string.`);
+  }
+  return value.trim();
+}
+
+function parseCategoryHypotheses(value: unknown) {
+  if (!Array.isArray(value)) {
+    throw new SemanticProposalInputError("categoryHypotheses must be an array.");
+  }
+  const roles: SemanticCategoryHypothesis["role"][] = ["core", "pairing", "accessory"];
+  return value.map<SemanticCategoryHypothesis>((item, index) => {
+    if (typeof item !== "object" || item === null) {
+      throw new SemanticProposalInputError(`categoryHypotheses[${index}] must be an object.`);
+    }
+    const hypothesis = item as Record<string, unknown>;
+    if (!roles.includes(hypothesis.role as SemanticCategoryHypothesis["role"])) {
+      throw new SemanticProposalInputError(`categoryHypotheses[${index}].role is not supported.`);
+    }
+    const categoryIds = stringList(
+      hypothesis.categoryIds,
+      `categoryHypotheses[${index}].categoryIds`,
+    );
+    if (categoryIds.length === 0) {
+      throw new SemanticProposalInputError(
+        `categoryHypotheses[${index}].categoryIds must contain at least one category ID.`,
+      );
+    }
+    return {
+      label: nonEmptyString(hypothesis.label, `categoryHypotheses[${index}].label`),
+      role: hypothesis.role as SemanticCategoryHypothesis["role"],
+      categoryIds,
+      reason: nonEmptyString(hypothesis.reason, `categoryHypotheses[${index}].reason`),
+    };
+  });
+}
+
+function parseScenarioHypotheses(value: unknown) {
+  if (!Array.isArray(value)) {
+    throw new SemanticProposalInputError("scenarioHypotheses must be an array.");
+  }
+  return value.map<SemanticScenarioHypothesis>((item, index) => {
+    if (typeof item !== "object" || item === null) {
+      throw new SemanticProposalInputError(`scenarioHypotheses[${index}] must be an object.`);
+    }
+    const hypothesis = item as Record<string, unknown>;
+    const categoryIds = stringList(
+      hypothesis.categoryIds,
+      `scenarioHypotheses[${index}].categoryIds`,
+    );
+    if (categoryIds.length < 2) {
+      throw new SemanticProposalInputError(
+        `scenarioHypotheses[${index}].categoryIds must contain at least two category IDs.`,
+      );
+    }
+    return {
+      name: nonEmptyString(hypothesis.name, `scenarioHypotheses[${index}].name`),
+      shoppingGoal: nonEmptyString(
+        hypothesis.shoppingGoal,
+        `scenarioHypotheses[${index}].shoppingGoal`,
+      ),
+      categoryIds,
+      reason: nonEmptyString(hypothesis.reason, `scenarioHypotheses[${index}].reason`),
+    };
+  });
 }
 
 export function parseSemanticProposal(value: unknown): SemanticProposal {
@@ -68,9 +206,12 @@ export function parseSemanticProposal(value: unknown): SemanticProposal {
     "assemble-scenario",
     "clarify",
   ];
-  if (proposal.schemaVersion !== "semantic-proposal/v1") {
+  if (
+    proposal.schemaVersion !== "semantic-proposal/v1" &&
+    proposal.schemaVersion !== "semantic-proposal/v2"
+  ) {
     throw new SemanticProposalInputError(
-      'schemaVersion must be "semantic-proposal/v1".',
+      'schemaVersion must be "semantic-proposal/v1" or "semantic-proposal/v2".',
     );
   }
   if (!themeTypes.includes(proposal.themeType as ThemeType)) {
@@ -109,8 +250,7 @@ export function parseSemanticProposal(value: unknown): SemanticProposal {
     };
   }
 
-  return {
-    schemaVersion: "semantic-proposal/v1",
+  const base = {
     themeType: proposal.themeType as ThemeType,
     entityType: proposal.entityType as ThemeEntityType,
     canonicalEntity,
@@ -120,6 +260,14 @@ export function parseSemanticProposal(value: unknown): SemanticProposal {
     mustExclude: stringList(proposal.mustExclude, "mustExclude"),
     searchTerms: stringList(proposal.searchTerms, "searchTerms"),
   };
+  return proposal.schemaVersion === "semantic-proposal/v2"
+    ? {
+        schemaVersion: "semantic-proposal/v2",
+        ...base,
+        categoryHypotheses: parseCategoryHypotheses(proposal.categoryHypotheses),
+        scenarioHypotheses: parseScenarioHypotheses(proposal.scenarioHypotheses),
+      }
+    : { schemaVersion: "semantic-proposal/v1", ...base };
 }
 
 function normalized(value: string) {
@@ -157,6 +305,118 @@ function evidencePhrases(snapshot: YamiSearchSnapshot) {
     ]) ?? []),
     ...(snapshot.evidence?.attributes.flatMap((attribute) => attribute.aliases) ?? []),
   ]);
+}
+
+function reviewSemanticHypotheses(
+  snapshot: YamiSearchSnapshot,
+  proposal: SemanticProposal,
+  resolution: TopicIntentResolution,
+): TopicIntentResolution {
+  if (proposal.schemaVersion !== "semantic-proposal/v2") return resolution;
+
+  const acceptedFields = [...resolution.proposalReview.acceptedFields];
+  const rejectedFields = [...resolution.proposalReview.rejectedFields];
+  const evidenceCategories = new Map(
+    (snapshot.evidence?.categories ?? [])
+      .filter((category) => category.productCount > 0)
+      .map((category) => [category.id, category]),
+  );
+  const usedCategoryIds = new Set<string>();
+  const categoryHypotheses: ThemeIntentCategoryHypothesis[] = [];
+
+  proposal.categoryHypotheses.forEach((hypothesis, index) => {
+    const field = `categoryHypotheses[${index}]`;
+    const categories = hypothesis.categoryIds.map((id) => evidenceCategories.get(id));
+    const hasUnknownCategory = categories.some((category) => !category);
+    const reusesCategory = hypothesis.categoryIds.some((id) => usedCategoryIds.has(id));
+    if (index >= 6 || hasUnknownCategory || reusesCategory) {
+      rejectedFields.push(field);
+      return;
+    }
+    hypothesis.categoryIds.forEach((id) => usedCategoryIds.add(id));
+    categoryHypotheses.push({
+      ...hypothesis,
+      evidenceIds: hypothesis.categoryIds.map((id) => `catalog-category:${id}`),
+    });
+    acceptedFields.push(field);
+  });
+
+  const scenarioHypotheses: ThemeIntentScenarioHypothesis[] = [];
+  proposal.scenarioHypotheses.forEach((hypothesis, index) => {
+    const field = `scenarioHypotheses[${index}]`;
+    const categories = hypothesis.categoryIds.map((id) => evidenceCategories.get(id));
+    if (index >= 6 || categories.some((category) => !category)) {
+      rejectedFields.push(field);
+      return;
+    }
+    scenarioHypotheses.push({
+      ...hypothesis,
+      evidenceIds: hypothesis.categoryIds.map((id) => `catalog-category:${id}`),
+    });
+    acceptedFields.push(field);
+  });
+
+  const acceptedCategoryIds = uniqueStrings([
+    ...categoryHypotheses.flatMap(({ categoryIds }) => categoryIds),
+    ...scenarioHypotheses.flatMap(({ categoryIds }) => categoryIds),
+  ]);
+  const acceptedCategories = acceptedCategoryIds.flatMap((id) => {
+    const category = evidenceCategories.get(id);
+    return category
+      ? [{
+          id: category.id,
+          label: category.label,
+          path: [...category.path],
+          evidenceCount: category.productCount,
+        }]
+      : [];
+  });
+  const acceptedIdSet = new Set(acceptedCategoryIds);
+  const catalogEvidenceRefs = acceptedCategories.map((category) => ({
+    id: `catalog-category:${category.id}`,
+    source: "catalog-category" as const,
+    label: category.label,
+    count: category.evidenceCount,
+  }));
+  const warnings = uniqueStrings([
+    ...resolution.proposalReview.warnings,
+    ...(rejectedFields.some((field) => field.startsWith("categoryHypotheses"))
+      ? ["Category hypotheses with unknown, reused, or excess catalog category IDs were ignored."]
+      : []),
+    ...(rejectedFields.some((field) => field.startsWith("scenarioHypotheses"))
+      ? ["Scenario hypotheses with unknown or excess catalog category IDs were ignored."]
+      : []),
+  ]);
+
+  return {
+    intent: {
+      ...resolution.intent,
+      categories: [
+        ...acceptedCategories,
+        ...resolution.intent.categories.filter((category) => !acceptedIdSet.has(category.id)),
+      ],
+      categoryHypotheses,
+      scenarioHypotheses,
+      conditions: uniqueStrings([
+        ...resolution.intent.conditions,
+        ...scenarioHypotheses.map(({ name }) => name),
+      ]),
+      searchTerms: uniqueStrings([
+        ...resolution.intent.searchTerms,
+        ...acceptedCategories.map(({ label }) => label),
+      ]),
+      evidenceRefs: uniqueEvidenceRefs([
+        ...resolution.intent.evidenceRefs,
+        ...catalogEvidenceRefs,
+      ]),
+    },
+    proposalReview: {
+      status: reviewStatus(acceptedFields, rejectedFields),
+      acceptedFields,
+      rejectedFields,
+      warnings,
+    },
+  };
 }
 
 function supportedTerm(term: string, phrases: string[]) {
@@ -517,10 +777,107 @@ export function resolveTopicIntent(
   }
 
   const phrases = evidencePhrases(snapshot);
-  const resolution = scenarioResolution(snapshot, intent, proposal, phrases) ??
+  const baseResolution = scenarioResolution(snapshot, intent, proposal, phrases) ??
     reviewAgainstBase(intent, proposal, phrases);
+  const resolution = reviewSemanticHypotheses(snapshot, proposal, baseResolution);
   return {
     ...resolution,
     intent: completeConstraintCoverage(resolution.intent),
   };
+}
+
+function topicIntentAgentRun(
+  snapshot: YamiSearchSnapshot,
+  intent: ThemeIntent,
+): TopicIntentAgentRun {
+  return {
+    schemaVersion: "topic-intent-agent-run/v1",
+    status: "needs-semantic-proposal",
+    context: {
+      keyword: snapshot.keyword,
+      site: snapshot.site,
+      intent,
+      categories: (snapshot.evidence?.categories ?? [])
+        .filter(({ productCount }) => productCount > 0)
+        .map(({ id, label, path, productCount }) => ({
+          id,
+          label,
+          path: [...path],
+          productCount,
+        })),
+      representativeProducts: snapshot.products.slice(0, 24).map((product) => ({
+        id: product.id,
+        title: product.title,
+        brand: product.brand,
+        ...(product.categoryL3Id !== undefined
+          ? { categoryId: String(product.categoryL3Id) }
+          : {}),
+        ...(product.categoryL3Name ? { categoryLabel: product.categoryL3Name } : {}),
+      })),
+    },
+  };
+}
+
+export async function runTopicIntentAgentWorkflow(
+  request: TopicIntentAgentWorkflowRequest,
+): Promise<TopicIntentAgentWorkflowResult> {
+  const fallback = (
+    issues: string[],
+    agent: TopicIntentRuntimeEvidence["agent"],
+    proposalReview: SemanticProposalReview = request.proposalReview,
+  ): TopicIntentAgentWorkflowResult => ({
+    snapshot: request.snapshot,
+    intent: request.intent,
+    proposalReview,
+    runtime: {
+      mode: "catalog-fallback",
+      status: "fallback",
+      agent,
+      proposalReview,
+      categoryHypothesisCount: request.intent.categoryHypotheses?.length ?? 0,
+      scenarioHypothesisCount: request.intent.scenarioHypotheses?.length ?? 0,
+      issues,
+    },
+  });
+
+  if (!request.agent) {
+    return fallback([], { status: "missing" });
+  }
+
+  try {
+    const proposal = parseSemanticProposal(
+      await request.agent.proposeSemanticIntent(
+        topicIntentAgentRun(request.snapshot, request.intent),
+      ),
+    );
+    const resolution = resolveTopicIntent(request.snapshot, proposal);
+    const categoryHypothesisCount = resolution.intent.categoryHypotheses?.length ?? 0;
+    const scenarioHypothesisCount = resolution.intent.scenarioHypotheses?.length ?? 0;
+    if (categoryHypothesisCount === 0 && scenarioHypothesisCount === 0) {
+      return fallback(
+        ["TopicIntent Agent proposal produced no accepted category or scenario hypotheses."],
+        { status: "ready", id: request.agent.id },
+        resolution.proposalReview,
+      );
+    }
+    return {
+      intent: resolution.intent,
+      snapshot: { ...request.snapshot, intent: resolution.intent },
+      proposalReview: resolution.proposalReview,
+      runtime: {
+        mode: "automatic",
+        status: "ready",
+        agent: { status: "ready", id: request.agent.id },
+        proposalReview: resolution.proposalReview,
+        categoryHypothesisCount,
+        scenarioHypothesisCount,
+        issues: [],
+      },
+    };
+  } catch (error) {
+    return fallback(
+      [error instanceof Error ? error.message : "TopicIntent Agent failed."],
+      { status: "ready", id: request.agent.id },
+    );
+  }
 }

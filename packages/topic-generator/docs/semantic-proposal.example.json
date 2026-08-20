@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "semantic-proposal/v1",
+  "schemaVersion": "semantic-proposal/v2",
   "themeType": "activity",
   "entityType": "scenario",
   "canonicalEntity": {
@@ -18,5 +18,27 @@
     "movie night",
     "Popcorn",
     "Soft Drinks"
+  ],
+  "categoryHypotheses": [
+    {
+      "label": "Movie snacks",
+      "role": "core",
+      "categoryIds": ["101"],
+      "reason": "The Popcorn category is present in current catalog evidence."
+    },
+    {
+      "label": "Drinks",
+      "role": "pairing",
+      "categoryIds": ["102"],
+      "reason": "The Soft Drinks category is present in current catalog evidence."
+    }
+  ],
+  "scenarioHypotheses": [
+    {
+      "name": "Movie night sharing",
+      "shoppingGoal": "Assemble snacks and drinks for a shared movie night.",
+      "categoryIds": ["101", "102"],
+      "reason": "Two catalog categories support the shopping scene."
+    }
   ]
 }

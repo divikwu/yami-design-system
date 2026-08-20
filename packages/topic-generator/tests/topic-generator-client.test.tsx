@@ -72,8 +72,9 @@ describe("TopicGenerator result navigation", () => {
     )!;
     expect(dialog.open).toBe(true);
     expect(dialog.textContent).toContain("系统如何理解主题词与购物意图");
-    expect(dialog.textContent).toContain("AI 仅辅助歧义解释");
-    expect(dialog.textContent).toContain("默认 Workbench 不自动调用 TopicIntent Agent 或 Wikipedia");
+    expect(dialog.textContent).toContain("目录事实与 Agent 语义建议分开处理");
+    expect(dialog.textContent).toContain("Agent 缺失、失败或提案越权时回退到已验证目录分类");
+    expect(dialog.textContent).toContain("Wikipedia 不参与商品归属判断");
     expect(dialog.textContent).toContain("精确分类只扩展该节点及其后代");
     expect(dialog.textContent).toContain("shopperAction");
     expect(dialog.textContent).toContain("resolved、ambiguous、needs-review");
@@ -144,6 +145,83 @@ describe("TopicGenerator result navigation", () => {
       mode: "selection",
       strategy: "relevance",
     });
+  });
+
+  it("renders module-owned semantic groups instead of reconstructing raw catalog categories", async () => {
+    const products = Array.from({ length: 8 }, (_, index) => ({
+      id: `semantic-${index + 1}`,
+      title: `ANUA Product ${index + 1}`,
+      brand: "ANUA",
+      price: "$19.99",
+      imageUrl: `https://cdn.yamibuy.net/item/semantic-${index + 1}.webp`,
+      productUrl: `https://www.yami.com/us/en/p/semantic-${index + 1}`,
+      sourceRank: index + 1,
+    }));
+    const snapshot: YamiSearchSnapshot = {
+      keyword: "ANUA",
+      site: "us",
+      sourceUrl: buildYamiSearchUrl("ANUA"),
+      fetchedAt: "2026-08-20T00:00:00.000Z",
+      products,
+    };
+    const plans = buildTopicPagePlanMatrix(snapshot, "selection");
+    plans.zh.relevance.modules = plans.zh.relevance.modules.map((module) => {
+      if (module.id === "shortcuts") return {
+        ...module,
+        visible: true,
+        productIds: ["semantic-1", "semantic-5"],
+        groups: [
+          { id: "category-hypothesis-1", label: "日常基础", role: "core", productIds: ["semantic-1", "semantic-2", "semantic-3", "semantic-4"] },
+          { id: "category-hypothesis-2", label: "集中护理", role: "pairing", productIds: ["semantic-5", "semantic-6", "semantic-7", "semantic-8"] },
+        ],
+      };
+      if (module.id === "start-here") return {
+        ...module,
+        visible: true,
+        productIds: products.map(({ id }) => id),
+        groups: [
+          { id: "scenario-hypothesis-1", label: "晨间流程", role: "core", productIds: ["semantic-1", "semantic-2", "semantic-5", "semantic-6"] },
+          { id: "scenario-hypothesis-2", label: "晚间流程", role: "core", productIds: ["semantic-3", "semantic-4", "semantic-7", "semantic-8"] },
+        ],
+      };
+      return module;
+    });
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({
+      plans,
+      runtime: {
+        topicIntent: {
+          mode: "automatic",
+          status: "ready",
+          agent: { status: "ready", id: "topic-intent" },
+          proposalReview: {
+            status: "accepted",
+            acceptedFields: ["categoryHypotheses[0]", "scenarioHypotheses[0]"],
+            rejectedFields: [],
+            warnings: [],
+          },
+          categoryHypothesisCount: 2,
+          scenarioHypothesisCount: 2,
+          issues: [],
+        },
+      },
+    }));
+
+    await act(async () => root.render(<TopicGenerator />));
+    const select = [...container.querySelectorAll<HTMLButtonElement>("button")]
+      .find((candidate) => candidate.textContent === "选品")!;
+    await act(async () => select.click());
+
+    expect(container.querySelector('a[href="#group-category-hypothesis-1"]')?.textContent)
+      .toContain("日常基础");
+    expect(container.querySelector('a[href="#group-category-hypothesis-2"]')?.textContent)
+      .toContain("集中护理");
+    expect(
+      [...container.querySelectorAll("[data-start-here-theme]")].map((theme) =>
+        theme.querySelector("h4")?.textContent
+      ),
+    ).toEqual(["晨间流程", "晚间流程"]);
+    expect(container.querySelector('[data-preview-mode="selection"]')?.textContent)
+      .toContain("Agent 已复核分类与场景");
   });
 
   it("explains the five-Agent and seven-Skill architecture inside the workflow", async () => {
@@ -283,6 +361,14 @@ describe("TopicGenerator result navigation", () => {
           thirdParty: { inStock: 1, outOfStock: 0 },
         },
       },
+      catalogRefinement: {
+        status: "complete",
+        target: "brand",
+        requestedKeys: ["structured-brand:10757", "brand-page:10757"],
+        completedKeys: ["structured-brand:10757", "brand-page:10757"],
+        failedKeys: [],
+        issues: [],
+      },
     };
     vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({
       plans: buildTopicPagePlanMatrix(snapshot),
@@ -296,6 +382,7 @@ describe("TopicGenerator result navigation", () => {
     await act(async () => button("商品池").click());
 
     expect(container.textContent).toContain("目录商品总览");
+    expect(container.textContent).toContain("召回状态目录召回完成");
     const poolStats = container.querySelector('[aria-label="商品池统计"]')!;
     expect([...poolStats.children].map((item) => item.textContent)).toEqual([
       "目录商品4",
@@ -552,7 +639,7 @@ describe("TopicGenerator result navigation", () => {
     expect(distributionPreview).not.toBeNull();
     expect(distributionPreview?.textContent).toContain("HERO · 商品分布");
     expect(distributionPreview?.textContent).toContain(
-      "已分配 1 件商品；此处仅展示模块与商品分配。",
+      "已预选 1 件商品；正式生成时由 Agent 复核商品组合。",
     );
     expect(distributionPreview?.textContent).not.toContain("探索 Matcha");
     expect(distributionPreview?.textContent).not.toContain("真实生成的抹茶主题");
@@ -741,6 +828,50 @@ describe("TopicGenerator result navigation", () => {
       "CategoryRole selection requires a CatalogTaxonomySnapshot.",
     );
     expect(container.textContent).not.toContain("由当前商品快照推断");
+  });
+
+  it("keeps a valid catalog plan visible when page automation is not configured", async () => {
+    const snapshot: YamiSearchSnapshot = {
+      keyword: "ANUA",
+      site: "us",
+      sourceUrl: buildYamiSearchUrl("ANUA"),
+      fetchedAt: "2026-08-19T00:00:00.000Z",
+      products: [1, 2, 3].map((rank) => ({
+        id: `anua-${rank}`,
+        title: `ANUA Product ${rank}`,
+        brand: "ANUA",
+        price: "$19.99",
+        imageUrl: `https://cdn.yamibuy.net/item/anua-${rank}.webp`,
+        productUrl: `https://www.yami.com/us/en/p/anua-${rank}`,
+        sourceRank: rank,
+      })),
+    };
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({
+      plans: buildTopicPagePlanMatrix(snapshot),
+      selectionRuns: { relevance: { status: "ready" } },
+      automation: {
+        schemaVersion: "topic-page-automation-run/v1",
+        status: "blocked",
+        stage: "workflow-planning",
+        stages: [],
+        issues: ["TOPIC_GENERATOR_PAGE_AGENT_ENDPOINT is not configured."],
+      },
+    }));
+
+    await act(async () => root.render(<TopicGenerator />));
+    const generateButton = [...container.querySelectorAll<HTMLButtonElement>("button")]
+      .find((button) => button.textContent === "生成页面")!;
+    await act(async () => generateButton.click());
+
+    expect(container.textContent).toContain("ANUA");
+    expect(container.textContent).toContain("主商品池");
+    expect(container.textContent).not.toContain("Yami 搜索结果无法转换为页面方案");
+    expect(container.textContent).not.toContain("生成已阻止");
+
+    const workflowButton = [...container.querySelectorAll<HTMLButtonElement>("button")]
+      .find((button) => button.textContent === "自动化流程")!;
+    await act(async () => workflowButton.click());
+    expect(container.textContent).toContain("TOPIC_GENERATOR_PAGE_AGENT_ENDPOINT is not configured.");
   });
 
   it("shows automatic category-role runtime evidence in the workflow", async () => {

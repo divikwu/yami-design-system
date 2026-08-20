@@ -19,7 +19,11 @@ Use the package CLI as the deterministic runtime. Act as the Product Agent only 
 
 ## Choose a strategy
 
-- Use `relevance/default@1` for keyword and brand relevance with Yami order preserved.
+- Use `relevance/intent-themes@3` for current keyword and brand relevance. Accepted TopicIntent
+  category hypotheses organize Shortcuts and scenario hypotheses organize StartHere; deterministic
+  code retains product assignment, ordering, group limits, and deduplication.
+- Use `relevance/intent-themes@2` only to replay artifacts that grouped directly by verified catalog
+  categories, and `relevance/default@1` only for fixed-rank legacy replay.
 - Use `category-role/landing-page-agent@1` when the user requests the target repository's category-role workflow.
 - Treat the versioned config ref as part of every artifact. Do not silently substitute another strategy.
 
@@ -29,7 +33,7 @@ Run from the repository root:
 
 ```bash
 pnpm topic-generator:analyze -- --keyword "<keyword>" \
-  --selection-strategy relevance/default@1 \
+  --selection-strategy relevance/intent-themes@3 \
   --pretty
 ```
 

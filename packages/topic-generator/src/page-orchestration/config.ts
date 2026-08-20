@@ -16,6 +16,10 @@ const PAGE_TYPES: readonly LandingPageTypeConfig[] = [
     requiresExplicitRequest: false,
     routes: [
       {
+        selectionStrategyRef: "relevance/intent-themes@3",
+        templateRef: "topic-landing/brand-relevance@1",
+      },
+      {
         selectionStrategyRef: "relevance/intent-themes@2",
         templateRef: "topic-landing/brand-relevance@1",
       },
@@ -34,6 +38,10 @@ const PAGE_TYPES: readonly LandingPageTypeConfig[] = [
     supportedThemeTypes: ["product"],
     requiresExplicitRequest: false,
     routes: [
+      {
+        selectionStrategyRef: "relevance/intent-themes@3",
+        templateRef: "topic-landing/topic-relevance@1",
+      },
       {
         selectionStrategyRef: "relevance/intent-themes@2",
         templateRef: "topic-landing/topic-relevance@1",
@@ -54,6 +62,10 @@ const PAGE_TYPES: readonly LandingPageTypeConfig[] = [
     requiresExplicitRequest: false,
     routes: [
       {
+        selectionStrategyRef: "relevance/intent-themes@3",
+        templateRef: "topic-landing/campaign-relevance@1",
+      },
+      {
         selectionStrategyRef: "relevance/intent-themes@2",
         templateRef: "topic-landing/campaign-relevance@1",
       },
@@ -69,21 +81,24 @@ const LEGACY_PAGE_TYPES: readonly LandingPageTypeConfig[] = PAGE_TYPES.map((conf
   ...config,
   ref: `${config.id}@1` as LandingPageTypeRef,
   version: 1,
-  routes: config.routes.map((route) => route.selectionStrategyRef === "relevance/intent-themes@2"
-    ? {
-        selectionStrategyRef: "relevance/default@1",
-        templateRef: "topic-landing/relevance@1",
-      }
-    : ({
-      ...route,
-      templateRef: route.templateRef === "topic-landing/brand@2"
-      ? "topic-landing/brand@1"
-      : route.templateRef === "topic-landing/topic@2"
-        ? "topic-landing/topic@1"
-        : route.templateRef === "topic-landing/campaign@2"
-          ? "topic-landing/campaign@1"
-          : route.templateRef,
-    })),
+  routes: config.routes.flatMap((route) => {
+    if (route.selectionStrategyRef === "relevance/intent-themes@2") return [];
+    return [route.selectionStrategyRef === "relevance/intent-themes@3"
+      ? {
+          selectionStrategyRef: "relevance/default@1" as const,
+          templateRef: "topic-landing/relevance@1" as const,
+        }
+      : ({
+        ...route,
+        templateRef: route.templateRef === "topic-landing/brand@2"
+        ? "topic-landing/brand@1"
+        : route.templateRef === "topic-landing/topic@2"
+          ? "topic-landing/topic@1"
+          : route.templateRef === "topic-landing/campaign@2"
+            ? "topic-landing/campaign@1"
+            : route.templateRef,
+      })];
+  }),
 }));
 
 export const LANDING_PAGE_WORKFLOW_REF = "landing-page/default@1" as const;

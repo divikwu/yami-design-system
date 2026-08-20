@@ -6,6 +6,11 @@ import {
 } from "../src/index.js";
 
 const runs = {
+  intent: {
+    schemaVersion: "topic-intent-agent-run/v1",
+    status: "needs-semantic-proposal",
+    context: { keyword: "Matcha" },
+  },
   orchestration: {
     schemaVersion: "landing-page-orchestration-run/v1",
     status: "needs-execution-plan-proposal",
@@ -34,7 +39,7 @@ const runs = {
 } as const;
 
 describe("Topic Page Agent HTTP contract", () => {
-  it("routes five logical Agents through one versioned endpoint", async () => {
+  it("routes TopicIntent and five page Agents through one versioned endpoint", async () => {
     const fetchMock = vi.fn<typeof fetch>(async (_input, init) => {
       const request = JSON.parse(String(init?.body)) as { stage: string };
       return Response.json({
@@ -59,6 +64,7 @@ describe("Topic Page Agent HTTP contract", () => {
       token: "test-token",
       fetch: fetchMock,
       agentIds: {
+        "topic-intent": "topic-intent",
         "workflow-planning": "topic-page-orchestrator",
         "module-merchandising": "topic-strategy",
         "content-writing": "topic-content",
@@ -67,6 +73,8 @@ describe("Topic Page Agent HTTP contract", () => {
       },
     });
 
+    await expect(agent.proposeSemanticIntent(runs.intent as never))
+      .resolves.toEqual({ stage: "topic-intent" });
     await expect(agent.proposeExecutionPlan(runs.orchestration as never))
       .resolves.toEqual({ stage: "workflow-planning" });
     await expect(agent.proposeModuleMerchandising(runs.merchandising as never))
@@ -86,12 +94,13 @@ describe("Topic Page Agent HTTP contract", () => {
     await expect(agent.reviewPageExperience(runs.review as never))
       .resolves.toEqual({ stage: "experience-review" });
 
-    expect(fetchMock).toHaveBeenCalledTimes(5);
+    expect(fetchMock).toHaveBeenCalledTimes(6);
     const requests = fetchMock.mock.calls.map(([, init]) => ({
       headers: init?.headers,
       body: JSON.parse(String(init?.body)),
     }));
     expect(requests.map(({ body }) => body.stage)).toEqual([
+      "topic-intent",
       "workflow-planning",
       "module-merchandising",
       "content-writing",
@@ -99,6 +108,7 @@ describe("Topic Page Agent HTTP contract", () => {
       "experience-review",
     ]);
     expect(requests.map(({ body }) => body.agentId)).toEqual([
+      "topic-intent",
       "topic-page-orchestrator",
       "topic-strategy",
       "topic-content",
@@ -112,8 +122,8 @@ describe("Topic Page Agent HTTP contract", () => {
       },
       body: {
         schemaVersion: "topic-page-agent-request/v1",
-        agentId: "topic-page-orchestrator",
-        run: runs.orchestration,
+        agentId: "topic-intent",
+        run: runs.intent,
       },
     });
   });
@@ -152,5 +162,77 @@ describe("Topic Page Agent HTTP contract", () => {
       "Topic Page Agent visual response contains an invalid asset body.",
     );
     expect(HttpTopicPageAgentError).toBeTypeOf("function");
+  });
+
+  it("preserves a bounded Runner capability failure", async () => {
+    const errorBody = JSON.stringify({
+      schemaVersion: "topic-agent-runner-error/v1",
+      code: "capability_unavailable",
+      message: "The selected executor does not support image attachments.",
+    });
+    const agent = createHttpTopicPageAgent({
+      id: "topic-page-agent",
+      endpoint: "http://127.0.0.1:4400/topic-page",
+      fetch: vi.fn(async () => new Response(errorBody, {
+        status: 422,
+        headers: {
+          "content-length": String(Buffer.byteLength(errorBody)),
+          "content-type": "application/json",
+        },
+      })),
+    });
+
+    await expect(agent.reviewPageExperience(runs.review as never)).rejects.toMatchObject({
+      name: "HttpTopicPageAgentError",
+      status: 422,
+      code: "capability_unavailable",
+      message: "The selected executor does not support image attachments.",
+    });
+  });
+
+  it("accepts a small chunked Runner error without trusting Content-Length", async () => {
+    const errorBody = JSON.stringify({
+      schemaVersion: "topic-agent-runner-error/v1",
+      code: "capability_unavailable",
+      message: "Image input is unavailable.",
+    });
+    const agent = createHttpTopicPageAgent({
+      id: "topic-page-agent",
+      endpoint: "http://127.0.0.1:4400/topic-page",
+      fetch: vi.fn(async () => new Response(errorBody, {
+        status: 422,
+        headers: { "content-type": "application/json" },
+      })),
+    });
+
+    await expect(agent.reviewPageExperience(runs.review as never)).rejects.toMatchObject({
+      code: "capability_unavailable",
+      message: "Image input is unavailable.",
+    });
+  });
+
+  it("ignores a Runner error whose actual body exceeds the byte limit", async () => {
+    const errorBody = JSON.stringify({
+      schemaVersion: "topic-agent-runner-error/v1",
+      code: "capability_unavailable",
+      message: "Image input is unavailable.",
+      padding: "x".repeat(9_000),
+    });
+    const agent = createHttpTopicPageAgent({
+      id: "topic-page-agent",
+      endpoint: "http://127.0.0.1:4400/topic-page",
+      fetch: vi.fn(async () => new Response(errorBody, {
+        status: 422,
+        headers: {
+          "content-length": "1",
+          "content-type": "application/json",
+        },
+      })),
+    });
+
+    await expect(agent.reviewPageExperience(runs.review as never)).rejects.toMatchObject({
+      code: undefined,
+      message: "Topic Page Agent returned HTTP 422.",
+    });
   });
 });

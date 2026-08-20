@@ -4,8 +4,11 @@ import {
   handleTopicGeneratorPost,
   type CatalogCandidateAdapter,
   type CatalogSnapshotAdapter,
+  type HttpTopicPageAgent,
   type ProductRole,
   type ProductSelectionAgent,
+  type TopicPageAssetStore,
+  type TopicPageImageDecoder,
 } from "../src/index.js";
 
 const roles: ProductRole[] = [
@@ -140,6 +143,43 @@ function runtimeFixture() {
 }
 
 describe("Topic Generator automatic category-role Host integration", () => {
+  it("blocks automatic page generation when no real preview resolver is configured", async () => {
+    const fixture = runtimeFixture();
+    const response = await handleTopicGeneratorPost(
+      new Request("http://localhost/api/topic-generator", {
+        method: "POST",
+        body: JSON.stringify({
+          keyword: "Matcha",
+          strategy: "relevance",
+          mode: "page",
+          language: "zh",
+        }),
+      }),
+      {
+        adapters: fixture.adapters,
+        requireAutomaticPage: true,
+        topicPageAgent: { id: "unused-agent" } as HttpTopicPageAgent,
+        topicPageAssetStore: {
+          put: async () => undefined,
+          get: async () => new Uint8Array(),
+          publicUrl: (ref) => `/assets/${ref}`,
+        } satisfies TopicPageAssetStore,
+        topicPageImageDecoder: {
+          inspect: async () => null,
+        } satisfies TopicPageImageDecoder,
+      },
+    );
+
+    const payload = await response.json();
+    expect(payload).toMatchObject({
+      automation: {
+        status: "blocked",
+        stage: "workflow-planning",
+        issues: ["Automatic page generation requires a review preview resolver."],
+      },
+    });
+  });
+
   it("reports an explicit downstream automation blocker instead of a fake page preview", async () => {
     const fixture = runtimeFixture();
     const response = await handleTopicGeneratorPost(

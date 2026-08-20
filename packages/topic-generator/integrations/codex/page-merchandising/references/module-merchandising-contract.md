@@ -73,10 +73,12 @@ or override this field; the compiler copies it into PagePlan v2.
 }
 ```
 
-The example abbreviates both `modules` and the scene list. A real proposal must contain every module
-in the exact returned order and satisfy the returned scene range, including hidden optional
-modules. A hidden module uses empty `scenes` and `assignments`, an empty `shoppingGoal`, and a
-non-empty reviewable `reason`.
+The scene-bearing `start-here` example applies only when that exact returned module rule contains
+`sceneRange`. A real proposal must contain every module in the exact returned order and satisfy any
+returned scene range, including hidden optional modules. When `sceneRange` is absent, use
+`scenes: []` and omit `sceneId` from every assignment even if ProductSelection contains themes. A
+hidden module uses empty `scenes` and `assignments`, an empty `shoppingGoal`, and a non-empty
+reviewable `reason`.
 
 ## Validation rules
 
@@ -86,12 +88,22 @@ non-empty reviewable `reason`.
   scene count.
 - For category-role `@2`, visible StartHere, Popular Picks, Brand Spotlight, and Explore More must
   copy the corresponding `selectionModules[].productIds` exactly and in order.
-- Supply `sceneId` only in a scene-based module. Every assignment in that module must reference a
+- Treat the returned rule as the sole scene capability signal. Supply `sceneId` only when the rule
+  contains `sceneRange`; module names such as `start-here` never imply scene support. Every
+  assignment in a scene-based module must reference a
   proposed scene whose `sourceSceneId` contains the same product. Category-role `@2` must preserve
   every source scene exactly once and copy the complete ordered products from both source groups.
+- In a proposal-owned relevance task, prefer distinct products across modules. When reuse is
+  intentional, every assignment after that product's first module requires a concise
+  `reuseReason`.
 - Hero and Shortcuts may reference only products already owned by a ProductSelection module. Include
   a concise `reuseReason` on the later reference. ProductSelection-owned modules may never reuse a
   product; `reuseReason` does not grant permission.
+- Hero composition is an Agent judgment within those hard constraints. Use `weeklySalesLabel` as
+  ranking evidence and compare the returned title, category, brand, and image URL for representative
+  and visual diversity. Do not require different categories when the truthful pool is concentrated,
+  and do not infer an undocumented product-family relationship. Explain any lower-ranked choice in
+  the module reason.
 - Keep `shoppingGoal`, module `reason`, scene `reason`, and `reuseReason` concise and reviewable.
   They are planning rationale, not hidden reasoning or final marketing copy.
 

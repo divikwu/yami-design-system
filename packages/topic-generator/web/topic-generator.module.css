@@ -17,6 +17,10 @@
   --border-focus: var(--color-neutral-950);
 }
 
+.generatorShell :where(strong, b) {
+  font-weight: var(--font-weight-emphasize);
+}
+
 .generatorHeader {
   display: flex;
   height: var(--canvas-header-height);
@@ -406,6 +410,7 @@
 
 .loadingState li {
   display: grid;
+  align-items: center;
   padding: 10px 0;
   border-bottom: 1px solid var(--border-default);
   color: var(--text-secondary);
@@ -1329,7 +1334,7 @@
   color: var(--text-primary);
   font-family: var(--font-mono);
   font-size: inherit;
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-emphasize);
 }
 
 .shortcutGrid {
@@ -1596,7 +1601,7 @@
   overflow: hidden;
   color: var(--text-primary);
   font-size: var(--font-size-caption-sm);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-emphasize);
   line-height: var(--line-height-caption-sm);
   letter-spacing: .06em;
   text-overflow: ellipsis;
@@ -2115,7 +2120,7 @@
 .agentArchitectureMetrics dd {
   margin: 0;
   font-size: var(--font-size-heading-sm);
-  font-weight: 700;
+  font-weight: var(--font-weight-emphasize);
   line-height: var(--line-height-heading-sm);
 }
 
@@ -2520,7 +2525,7 @@
 .workflowDiagramNode > strong {
   color: var(--text-primary);
   font-size: var(--font-size-heading-xs);
-  font-weight: 700;
+  font-weight: var(--font-weight-emphasize);
   line-height: var(--line-height-heading-xs);
 }
 
@@ -2851,7 +2856,7 @@
   cursor: pointer;
   font: inherit;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: var(--font-weight-emphasize);
   line-height: 16px;
   text-decoration: underline;
   text-decoration-thickness: 1px;
@@ -3095,7 +3100,7 @@
 .intentHelpExamples th {
   background: var(--surface-secondary);
   color: var(--text-secondary);
-  font-weight: 600;
+  font-weight: var(--font-weight-emphasize);
 }
 
 .intentHelpOutput {

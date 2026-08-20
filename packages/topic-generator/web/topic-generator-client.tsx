@@ -23,6 +23,7 @@ import type {
   ContentLanguage,
   ProductSelectionStrategy,
   TopicGenerationMode,
+  TopicIntentRuntimeEvidence,
   TopicModulePlan,
   TopicPagePlan,
   TopicPlanMatrix,
@@ -625,7 +626,13 @@ function selectionRunError(
   };
 }
 
-function PreviewView({ plan }: { plan: TopicPagePlan }) {
+function PreviewView({
+  plan,
+  topicIntentRuntime,
+}: {
+  plan: TopicPagePlan;
+  topicIntentRuntime?: TopicIntentRuntimeEvidence | null;
+}) {
   const pageGenerated = plan.generationMode === "page";
   const productMap = useMemo(
     () => new Map(plan.products.map((product) => [product.id, product])),
@@ -646,11 +653,11 @@ function PreviewView({ plan }: { plan: TopicPagePlan }) {
   const brandModule = moduleMap.get("brand-spotlight");
   const exploreModule = moduleMap.get("explore-more");
   const shortcutProductIds = new Set(shortcutModule?.productIds ?? []);
-  const shortcutGroups = plan.groups.filter((group) =>
+  const shortcutGroups = shortcutModule?.groups ?? plan.groups.filter((group) =>
     group.productIds.some((id) => shortcutProductIds.has(id)),
   );
   const startHereProductIds = new Set(startHereModule?.productIds ?? []);
-  const startHereGroups = plan.groups.flatMap((group) => {
+  const startHereGroups = startHereModule?.groups ?? plan.groups.flatMap((group) => {
     const productIds = group.productIds.filter((id) => startHereProductIds.has(id));
     return productIds.length > 0 ? [{ ...group, productIds }] : [];
   });
@@ -669,11 +676,19 @@ function PreviewView({ plan }: { plan: TopicPagePlan }) {
           <p>
             {plan.language === "zh"
               ? pageGenerated
-                ? `已分配 ${heroProducts.length} 件商品；此处仅展示模块与商品分配。`
-                : `已分配 ${heroProducts.length} 件商品；文案与场景图未生成。`
+                ? `已预选 ${heroProducts.length} 件商品；正式生成时由 Agent 复核商品组合。`
+                : topicIntentRuntime?.status === "ready"
+                  ? `已预选 ${heroProducts.length} 件商品；Agent 已复核分类与场景，文案与场景图仍待页面生成。`
+                  : topicIntentRuntime?.status === "fallback"
+                    ? `已预选 ${heroProducts.length} 件商品；当前使用已验证目录分类，文案与场景图未生成。`
+                    : `已预选 ${heroProducts.length} 件商品；Agent 尚未执行，文案与场景图未生成。`
               : pageGenerated
-                ? `${heroProducts.length} products assigned; this view only shows modules and product placement.`
-                : `${heroProducts.length} products assigned; copy and scene imagery are not generated.`}
+                ? `${heroProducts.length} products preselected; the Agent reviews the composition during final generation.`
+                : topicIntentRuntime?.status === "ready"
+                  ? `${heroProducts.length} products preselected; the Agent reviewed categories and scenarios, while copy and scene imagery await page generation.`
+                  : topicIntentRuntime?.status === "fallback"
+                    ? `${heroProducts.length} products preselected; verified catalog categories are in use, while copy and scene imagery are not generated.`
+                    : `${heroProducts.length} products preselected; the Agent has not run, and copy and scene imagery are not generated.`}
           </p>
         </div>
         <div className={styles.heroProducts}>
@@ -969,6 +984,7 @@ function PoolsView({
   const primary = plan.products.filter((product) => product.pool === "primary");
   const related = plan.products.filter((product) => product.pool === "related");
   const coverage = plan.catalogCoverage;
+  const refinement = plan.catalogRefinement;
   const [collapsedCoverageGroups, setCollapsedCoverageGroups] = useState<Set<string>>(
     () => new Set(),
   );
@@ -978,6 +994,15 @@ function PoolsView({
   const relatedSelectionReason = zh
     ? "未进入主商品池的 Yami 相关候选，保留原始搜索顺序。"
     : "Related Yami candidates outside the primary pool, preserving original search order.";
+  const refinementLabel = refinement?.status === "complete"
+    ? zh ? "目录召回完成" : "Catalog retrieval complete"
+    : refinement?.status === "fallback"
+    ? zh ? "品牌页不可用，已使用结构化目录完整分页" : "Brand page unavailable; using complete structured-catalog pagination"
+    : refinement?.status === "partial"
+    ? zh
+      ? `目录召回部分完成（${refinement.completedKeys.length}/${refinement.requestedKeys.length}）`
+      : `Catalog retrieval partial (${refinement.completedKeys.length}/${refinement.requestedKeys.length})`
+    : null;
 
   function toggleCoverageGroup(groupId: string) {
     setCollapsedCoverageGroups((current) => {
@@ -1032,6 +1057,12 @@ function PoolsView({
                 ? "完整品牌目录按销售方与库存状态分组；只有在售商品进入选品。"
                 : "The complete brand catalog is grouped by seller and availability; only in-stock items enter selection."}
             </p>
+            {refinementLabel && (
+              <p className={styles.poolSelectionReason}>
+                <strong>{zh ? "召回状态" : "Retrieval status"}</strong>
+                {refinementLabel}
+              </p>
+            )}
           </div>
         </header>
         {groupConfigs.map((group) => {
@@ -1102,6 +1133,12 @@ function PoolsView({
               <strong>{zh ? "选品依据" : "Selection rationale"}</strong>
               {plan.selectionStrategy.description}
             </p>
+            {refinementLabel && (
+              <p className={styles.poolSelectionReason}>
+                <strong>{zh ? "召回状态" : "Retrieval status"}</strong>
+                {refinementLabel}
+              </p>
+            )}
           </div>
           <p>{productCountLabel(primary.length, uiLanguage)} · {primaryDescription}</p>
         </header>
@@ -1917,8 +1954,8 @@ function WorkflowView({
           <div className={styles.intentHelpBody}>
             <p id="intent-help-description" className={styles.intentHelpIntro}>
               {isChinese
-                ? "确定性规则负责主题理解，AI 仅辅助歧义解释。CatalogSnapshot 记录 Yami 目录事实，确定性 Module 生成并校验 ThemeIntent；只有已确认的 ThemeIntent 才能生成页面执行路由。默认 Workbench 不自动调用 TopicIntent Agent 或 Wikipedia。"
-                : "Deterministic rules own topic interpretation; AI only assists with ambiguous language. CatalogSnapshot records Yami catalog facts, and deterministic Modules build and validate ThemeIntent. Only a resolved ThemeIntent may create a page execution route. The default Workbench does not automatically call a TopicIntent Agent or Wikipedia."}
+                ? "目录事实与 Agent 语义建议分开处理。CatalogSnapshot 记录 Yami 品牌、分类与商品证据；配置了 Topic Strategy Agent 时，Workbench 会请求 semantic-proposal/v2 来组织分类和使用场景，再由确定性 Module 逐字段校验并生成 ThemeIntent。Agent 缺失、失败或提案越权时回退到已验证目录分类，不会阻止选品。Wikipedia 不参与商品归属判断。"
+                : "Catalog facts and Agent semantic suggestions are handled separately. CatalogSnapshot records verified Yami brand, category, and product evidence. When a Topic Strategy Agent is configured, Workbench requests a semantic-proposal/v2 for category and usage-scenario organization, then deterministic Modules validate every field before producing ThemeIntent. A missing, failed, or overreaching Agent falls back to verified catalog categories without blocking selection. Wikipedia never decides product membership."}
             </p>
             <section className={styles.intentHelpSection}>
               <span>01</span>
@@ -1927,7 +1964,7 @@ function WorkflowView({
                 <li>{isChinese ? "读取用户关键词；当前只去除首尾空格，并校验长度为 2–80 个字符。" : "Read the user's keyword; currently only trim surrounding whitespace and validate a length of 2–80 characters."}</li>
                 <li>{isChinese ? "销售站点固定为美国站 site=us；当前运行不推断 locale 或 currency。" : "Fix the sales site to site=us; the current run does not infer locale or currency."}</li>
                 <li>{isChinese ? "先调用结构化目录 Adapter 读取 brandAgg、categoryAgg、tagAgg 与可售商品；失败后才使用公开搜索 Adapter，并保存每次尝试。" : "Try the structured catalog Adapter for brandAgg, categoryAgg, tagAgg, and available products first; use the public-search Adapter only after failure and retain every attempt."}</li>
-                <li>{isChinese ? "调用方可为歧义场景显式附加 semantic-proposal/v1；提案不是目录事实，也不能覆盖精确品牌、分类、属性或商品证据。" : "A caller may explicitly attach semantic-proposal/v1 for an ambiguous scenario; a proposal is not catalog evidence and cannot override exact brand, category, attribute, or product facts."}</li>
+                <li>{isChinese ? "配置了 Topic Strategy Agent 时，Workbench 自动请求 semantic-proposal/v2；CLI 和其他调用方也可显式附加同一契约。提案只能引用当前目录分类 ID，不能覆盖精确品牌、分类、属性或商品证据，商品归属、数量、排序与去重仍由系统计算。" : "When a Topic Strategy Agent is configured, Workbench automatically requests semantic-proposal/v2; the CLI and other callers may attach the same contract explicitly. The proposal may only reference current catalog category IDs and cannot override exact brand, category, attribute, or product evidence; the system still computes product membership, counts, ordering, and deduplication."}</li>
               </ul>
             </section>
             <section className={styles.intentHelpSection}>
@@ -1961,7 +1998,7 @@ function WorkflowView({
                       <li>{isChinese ? "购物动作：shoppingIntent 与 shopperAction 区分浏览、寻找、筛选、补给、组合或送礼。" : "Shopper action: shoppingIntent and shopperAction distinguish browsing, finding, filtering, replenishing, bundling, or gifting."}</li>
                       <li>{isChinese ? "条件与限制：conditions 保存尚未成为商品事实的修饰词，constraints 逐项记录 verified、unverified 或 rejected。" : "Conditions and constraints: conditions retain modifiers not yet verified as product facts, while constraints record verified, unverified, or rejected status per item."}</li>
                       <li>{isChinese ? "主题类型：brand 浏览品牌商品，product 寻找品类或属性商品，activity 围绕场景组合多个真实分类。" : "Topic type: brand browses brand products, product finds category or attribute products, and activity assembles multiple real categories around a scenario."}</li>
-                      <li>{isChinese ? "只有基线仍有歧义时，调用方才可提交场景语义提案；提案必须由多个目录分类支撑，且不能覆盖精确品牌或品类。" : "Only when the baseline remains ambiguous may a caller submit a scenario proposal; multiple catalog categories must support it, and it cannot override an exact brand or category."}</li>
+                      <li>{isChinese ? "基线仍有歧义时可提交场景提案；精确品牌或品类也可提交分类组织提案，但不能改写核心实体。每个使用场景必须由至少两个真实目录分类支撑。" : "A caller may submit a scenario proposal when the baseline remains ambiguous, or a category-organization proposal for an exact brand or category, but it cannot rewrite the core entity. Every usage scenario requires at least two real catalog categories."}</li>
                       <li>{isChinese ? "精确品牌或分类一旦确认，第二阶段商品证据只能补充覆盖度；若核心身份冲突则保留原实体并进入待确认。" : "Once an exact brand or category is resolved, second-stage product evidence may update coverage only; an identity conflict preserves the original entity and requires review."}</li>
                       <li>{isChinese ? "决策状态为 resolved、ambiguous、needs-review；只有 resolved 可以继续页面路由，其余状态必须复核或补充输入。" : "Decision status is resolved, ambiguous, or needs-review; only resolved may continue to page routing, while the others require review or more input."}</li>
                       <li>{isChinese ? "语义提案字段记录为 accepted、partially-accepted 或 rejected；最终只保留一个主实体。" : "Semantic proposal fields are recorded as accepted, partially accepted, or rejected; the final intent keeps one primary entity."}</li>
@@ -2072,6 +2109,7 @@ function WorkflowView({
                 <li><strong>{isChinese ? "规范化实体：" : "Canonical entity: "}</strong>entityType、canonicalEntity</li>
                 <li><strong>{isChinese ? "购物意图：" : "Shopping intent: "}</strong>shoppingIntent、shopperAction、shoppingGoal、needs、conditions</li>
                 <li><strong>{isChinese ? "检索约束：" : "Search constraints: "}</strong>mustInclude、mustExclude、searchTerms、constraints</li>
+                <li><strong>{isChinese ? "语义组织：" : "Semantic organization: "}</strong>categoryHypotheses、scenarioHypotheses（semantic-proposal/v2 {isChinese ? "通过校验后生成" : "after validation"}）</li>
                 <li><strong>{isChinese ? "判断说明：" : "Decision explanation: "}</strong>candidates、decision.status、decision.evidenceLevel、decision.selectedCandidateMargin、reason</li>
                 <li>
                   <strong>{isChinese ? "运行审计：" : "Run review: "}</strong>
@@ -2118,6 +2156,14 @@ function WorkflowView({
                     <li>
                       {isChinese ? "候选分类：" : "Candidate categories: "}
                       {plan.intent.categories.map((category) => category.label).join("、") || "—"}
+                    </li>
+                    <li>
+                      {isChinese ? "分类组织：" : "Category organization: "}
+                      {plan.intent.categoryHypotheses?.map((hypothesis) => `${hypothesis.label} (${hypothesis.role})`).join("、") || "—"}
+                    </li>
+                    <li>
+                      {isChinese ? "使用场景：" : "Usage scenarios: "}
+                      {plan.intent.scenarioHypotheses?.map((hypothesis) => hypothesis.name).join("、") || "—"}
                     </li>
                     <li>
                       {isChinese ? "判断依据：" : "Reason: "}
@@ -2297,6 +2343,8 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
   const [selectionRuns, setSelectionRuns] = useState<SelectionRuns | null>(null);
   const [categoryRoleRuntime, setCategoryRoleRuntime] =
     useState<CategoryRoleRuntimeEvidence | null>(null);
+  const [topicIntentRuntime, setTopicIntentRuntime] =
+    useState<TopicIntentRuntimeEvidence | null>(null);
   const [automation, setAutomation] = useState<TopicPageAutomationRun | null>(null);
   const [localizedAutomationCache, setLocalizedAutomationCache] =
     useState<LocalizedAutomationCache | null>(null);
@@ -2307,9 +2355,6 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
   const [error, setError] = useState<GeneratorError | null>(null);
   const plan = plans?.[uiLanguage]?.[strategy] ?? null;
   const runError = selectionRunError(selectionRuns?.[strategy], uiLanguage);
-  const automationError: GeneratorError | null = automation?.status === "blocked"
-    ? { message: automation.issues.join(" ") }
-    : null;
   const copy = UI_COPY[uiLanguage];
   const targetLocale = resultLocaleLabel(uiLanguage);
   const strategyLabel = STRATEGY_OPTIONS[uiLanguage].find(
@@ -2348,6 +2393,7 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
     setLoading(true);
     setError(null);
     setCategoryRoleRuntime(null);
+    setTopicIntentRuntime(null);
     setAutomation(null);
     if (!options.preserveLocalizedCache) setLocalizedAutomationCache(null);
     setView("preview");
@@ -2367,7 +2413,10 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
       const payload = (await response.json()) as {
         plans?: TopicPlanMatrix;
         selectionRuns?: SelectionRuns;
-        runtime?: { categoryRole?: CategoryRoleRuntimeEvidence };
+        runtime?: {
+          topicIntent?: TopicIntentRuntimeEvidence;
+          categoryRole?: CategoryRoleRuntimeEvidence;
+        };
         automation?: TopicPageAutomationRun;
         error?: GeneratorError;
       };
@@ -2379,6 +2428,7 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
       setPlans(payload.plans);
       setSelectionRuns(payload.selectionRuns ?? null);
       setCategoryRoleRuntime(payload.runtime?.categoryRole ?? null);
+      setTopicIntentRuntime(payload.runtime?.topicIntent ?? null);
       const nextAutomation = payload.automation ?? null;
       setAutomation(nextAutomation);
       if (mode === "page" && nextAutomation?.status === "ready") {
@@ -2603,10 +2653,9 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
                     mode={activeMode}
                     strategy={strategy}
                   />
-                ) : error || runError ||
-                    (automationError && (view === "preview" || view === "rules")) ? (
+                ) : error || runError ? (
                   <ErrorState
-                    error={error ?? runError ?? automationError!}
+                    error={error ?? runError!}
                     language={uiLanguage}
                   />
                 ) : !plan ? (
@@ -2722,7 +2771,7 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
                     >
                       {view === "preview" && (
                         previewMode === "distribution"
-                          ? <PreviewView plan={plan} />
+                          ? <PreviewView plan={plan} topicIntentRuntime={topicIntentRuntime} />
                           : automation?.status === "ready"
                             ? PagePreviewRenderer
                               ? (
@@ -2732,7 +2781,7 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
                                   />
                                 )
                               : <PageGenerationPreview spec={automation.generationSpec} />
-                            : <PreviewView plan={plan} />
+                            : <PreviewView plan={plan} topicIntentRuntime={topicIntentRuntime} />
                       )}
                       {view === "pools" && <PoolsView plan={plan} uiLanguage={uiLanguage} />}
                       {view === "rules" && (

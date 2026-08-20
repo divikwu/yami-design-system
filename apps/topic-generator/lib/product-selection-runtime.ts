@@ -32,10 +32,10 @@ function validAgentEndpoint(value: string) {
 }
 
 function agentTimeout(value: string | undefined) {
-  if (!value) return 30_000;
+  if (!value) return 330_000;
   const timeout = Number(value);
-  if (!Number.isInteger(timeout) || timeout < 1_000 || timeout > 120_000) {
-    throw new Error("TOPIC_GENERATOR_AGENT_TIMEOUT_MS must be between 1000 and 120000.");
+  if (!Number.isInteger(timeout) || timeout < 1_000 || timeout > 330_000) {
+    throw new Error("TOPIC_GENERATOR_AGENT_TIMEOUT_MS must be between 1000 and 330000.");
   }
   return timeout;
 }

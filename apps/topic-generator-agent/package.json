@@ -1,0 +1,21 @@
+{
+  "name": "@yami/topic-generator-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env.local --watch src/server.ts",
+    "start": "node --env-file-if-exists=.env.local src/server.ts",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "playwright": "1.61.1",
+    "sharp": "0.35.3"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.3",
+    "typescript": "6.0.3",
+    "vitest": "4.1.10"
+  }
+}

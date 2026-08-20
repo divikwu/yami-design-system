@@ -85,13 +85,19 @@ digests, workflow order, and downstream execution.
 
 `resolveTopicIntent(snapshot, proposal?)` ranks catalog-backed interpretations, separates entity, shopper action, and constraints, and validates every proposed field. Exact catalog evidence cannot be overridden by a SemanticProposal.
 
+`runTopicIntentAgentWorkflow(request)` is the optional automatic semantic Adapter used by the Web
+Host. It sends only the baseline ThemeIntent, verified catalog categories, and bounded representative
+products to the Topic Strategy Agent's `topic-intent` stage. The returned `semantic-proposal/v2` is
+parsed and reviewed by the same deterministic TopicIntent Module. Missing, failed, invalid, or fully
+rejected proposals retain the verified catalog grouping and publish explicit fallback evidence.
+
 ### CatalogSnapshot Seam
 
 `loadCatalogSnapshot(keyword, { adapters })` normalizes product and intent evidence. The default order is structured Yami catalog followed by public Yami search, and every attempt is retained. For the active relevance strategy, the first structured response is discovery evidence: ThemeIntent reads its category, brand, tag, and paging metadata, then the server fetches the resolved categories independently and follows their real page metadata until each candidate theme has enough products or is exhausted. Exact category intents restrict this expansion to the canonical category branch; keyword matches from unrelated branches remain outside ThemeIntent and ProductSelection.
 
 ### ProductSelection Module
 
-`runProductSelectionWorkflow(request)` advances one versioned strategy and returns a resumable `ProductSelectionRun`. `relevance/default@1` remains the fixed-rank legacy replay strategy. The active `relevance/intent-themes@2` strategy deterministically follows the resolved ThemeIntent category order, keeps 2–6 evidence-backed themes with 4–8 unique products each, and never pads a thin category with unrelated products. `category-role/landing-page-agent@1` requires taxonomy, category proposal, candidate evidence, and scene proposal before returning a ready `ProductSelectionResult`.
+`runProductSelectionWorkflow(request)` advances one versioned strategy and returns a resumable `ProductSelectionRun`. `relevance/default@1` remains the fixed-rank legacy replay strategy and `relevance/intent-themes@2` retains direct catalog-category grouping for replay. The active `relevance/intent-themes@3` consumes accepted ThemeIntent category hypotheses for Shortcuts and scenario hypotheses for StartHere. The deterministic Module verifies catalog membership, keeps proposal order, removes cross-group duplicates, enforces 2–6 groups and 4–8 StartHere products, and falls back to verified catalog categories when the proposal cannot satisfy the contract. `category-role/landing-page-agent@1` requires taxonomy, category proposal, candidate evidence, and scene proposal before returning a ready `ProductSelectionResult`.
 
 `runProductSelectionAgentWorkflow(request)` is the optional automatic strategy adapter. It injects one
 `ProductSelectionAgent`, asks it only for the two proposal contracts requested by the state machine,
@@ -156,8 +162,8 @@ The active versioned refs `topic-landing/brand@2`, `topic-landing/topic@2`, and
 `YAMI/Pages/Topic Landing Page`. The corresponding page type is inferred only from a resolved
 ThemeIntent; Campaign therefore requires `activity` rather than a product or brand guess.
 The active page-specific `brand-relevance@1`, `topic-relevance@1`, and `campaign-relevance@1`
-routes consume `relevance/intent-themes@2`. ProductSelection supplies the verified StartHere theme
-collections; Reviews remain hidden until verified review evidence exists. Brand hides Brand
+routes consume `relevance/intent-themes@3`. ProductSelection supplies module-owned, verified
+Shortcuts category groups and StartHere scenario groups; Reviews remain hidden until verified review evidence exists. Brand hides Brand
 Spotlight, while Topic and Campaign may show it when the frozen catalog pool supports it.
 The generic `topic-landing/relevance@1` and category-role `@1` templates remain addressable only for
 old execution-plan replay and are not listed in new Agent task contexts.

@@ -16,6 +16,7 @@ export interface ProductSelectionStrategyConfigBase {
 
 export interface RelevanceStrategyConfig extends ProductSelectionStrategyConfigBase {
   engine: "relevance";
+  semanticOrganization?: boolean;
   themeCollections?: {
     minimumThemes: number;
     maximumThemes: number;
@@ -100,6 +101,26 @@ const RELEVANCE_INTENT_THEMES = {
   },
 } as const satisfies RelevanceStrategyConfig;
 
+const RELEVANCE_SEMANTIC_INTENT_THEMES = {
+  schemaVersion: "product-selection-strategy/v1",
+  ref: "relevance/intent-themes@3",
+  id: "relevance/intent-themes",
+  version: 3,
+  engine: "relevance",
+  label: { en: "Semantic intent themes", zh: "语义意图主题" },
+  description: {
+    en: "Uses accepted Agent category and scenario hypotheses, then deterministically verifies product membership, order, and deduplication.",
+    zh: "使用已接受的 Agent 分类与场景提案，再由系统确定性校验商品归属、顺序和去重。",
+  },
+  semanticOrganization: true,
+  themeCollections: {
+    minimumThemes: 2,
+    maximumThemes: 6,
+    minimumProducts: 4,
+    maximumProducts: 8,
+  },
+} as const satisfies RelevanceStrategyConfig;
+
 const CATEGORY_ROLE_LANDING_PAGE_AGENT = {
   schemaVersion: "product-selection-strategy/v1",
   ref: "category-role/landing-page-agent@1",
@@ -155,6 +176,7 @@ const CATEGORY_ROLE_LANDING_PAGE_AGENT = {
 const BUILT_IN_CONFIGS: readonly ProductSelectionStrategyConfig[] = [
   RELEVANCE_DEFAULT,
   RELEVANCE_INTENT_THEMES,
+  RELEVANCE_SEMANTIC_INTENT_THEMES,
   CATEGORY_ROLE_LANDING_PAGE_AGENT,
 ];
 

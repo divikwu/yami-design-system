@@ -1,8 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   buildTopicPagePlan,
+  buildTopicPagePlanFromProductSelection,
   buildTopicPagePlanMatrix,
 } from "../src/planner.js";
+import type { ProductSelectionResult } from "../src/product-selection/contracts.js";
 import type {
   YamiProduct,
   YamiSearchSnapshot,
@@ -726,6 +728,104 @@ describe("TOPIC GENERATOR Yami search provider", () => {
     expect(result.intent.categories.map(({ id }) => id)).toEqual(["810", "811"]);
   });
 
+  it("resolves a named Chinese occasion from bilingual product and category evidence", () => {
+    const result = parseYamiCatalogResponse("中秋节", {
+      messageId: "10000",
+      body: {
+        categoryAgg: [{
+          category_id: 1,
+          category_name: "零食",
+          category_ename: "Snack",
+          children: [{
+            category_id: 17,
+            category_name: "月饼粽子糕点",
+            category_ename: "Mooncake, Zongzi, Rice Cake",
+            children: [{
+              category_id: 178,
+              category_name: "月饼",
+              category_ename: "Mooncakes",
+              result_count: 8,
+              children: [],
+            }],
+          }],
+        }],
+        items: Array.from({ length: 8 }, (_, index) => ({
+          item_number: `mooncake-${index + 1}`,
+          goods_name: `中秋节月饼礼盒 ${index + 1}`,
+          goods_ename: `Mid-Autumn Festival Mooncake Gift Box ${index + 1}`,
+          brand_ename: "Festival Bakery",
+          category_l1_id: 1,
+          category_l2_id: 17,
+          category_l3_id: 178,
+          image_url: `/item/mooncake-${index + 1}.webp`,
+          slug: `mid-autumn-mooncake-${index + 1}`,
+          status: "A",
+          goods_number: 5,
+        })),
+      },
+    });
+
+    expect(result.intent).toMatchObject({
+      themeType: "activity",
+      entityType: "scenario",
+      canonicalEntity: { label: "中秋节" },
+      shoppingIntent: "assemble-scenario",
+      shopperAction: "gift",
+      decision: {
+        status: "resolved",
+        evidenceLevel: "high",
+        requiresAgentReview: false,
+      },
+    });
+    expect(result.intent.categories.map(({ id }) => id)).toEqual(["178"]);
+    expect(result.intent.constraints).toEqual(expect.arrayContaining([
+      expect.objectContaining({ kind: "scenario", value: "中秋节", status: "verified" }),
+      expect.objectContaining({ kind: "core-entity", value: "Mooncakes", status: "verified" }),
+    ]));
+    expect(result.intent.evidenceRefs).toEqual(expect.arrayContaining([
+      expect.objectContaining({ source: "catalog-products", label: "中秋节", count: 8 }),
+      expect.objectContaining({ source: "catalog-category", label: "Mooncakes", count: 8 }),
+    ]));
+
+    const plan = buildTopicPagePlan(result.snapshot, "relevance", "zh");
+    expect(plan.status).toBe("ready");
+    expect(plan.statusReason).toBe("已由 Mooncakes 分类和 8 件商品确认“中秋节”购物场景。");
+  });
+
+  it("keeps a weak named occasion candidate reviewable", () => {
+    const result = parseYamiCatalogResponse("春日节", {
+      messageId: "10000",
+      body: {
+        categoryAgg: [{
+          category_id: 900,
+          category_name: "礼品",
+          category_ename: "Gifts",
+          result_count: 2,
+          children: [],
+        }],
+        items: Array.from({ length: 2 }, (_, index) => ({
+          item_number: `spring-${index + 1}`,
+          goods_name: `春日节礼盒 ${index + 1}`,
+          goods_ename: `Spring Festival Gift Box ${index + 1}`,
+          category_l3_id: 900,
+          image_url: `/item/spring-${index + 1}.webp`,
+          slug: `spring-festival-${index + 1}`,
+          status: "A",
+          goods_number: 2,
+        })),
+      },
+    });
+
+    expect(result.intent).toMatchObject({
+      themeType: "product",
+      entityType: "category",
+      decision: {
+        status: "needs-review",
+        requiresAgentReview: true,
+      },
+    });
+  });
+
   it("uses catalog tags as evidence for an attribute-constrained product intent", () => {
     const result = parseYamiCatalogResponse("sugar free matcha snacks", {
       messageId: "10000",
@@ -1137,12 +1237,33 @@ describe("Topic page planner", () => {
     expect(plan.selectionStrategy.id).toBe("relevance");
   });
 
+  it("keeps the top-ranked Hero candidate and skips exact duplicate source images", () => {
+    const duplicateImage = "https://cdn.yamibuy.net/item/shared_750x750.webp";
+    const heroProducts = [
+      { ...product("hero-1", "ANUA Serum 30ml", 1), imageUrl: duplicateImage },
+      { ...product("hero-2", "ANUA Serum 60ml", 2), imageUrl: duplicateImage },
+      product("hero-3", "ANUA Toner", 3),
+      product("hero-4", "ANUA Cleanser", 4),
+    ];
+
+    const plan = buildTopicPagePlan(snapshot(heroProducts), "relevance", "zh", "selection");
+
+    expect(plan.modules.find(({ id }) => id === "hero")?.productIds).toEqual([
+      "hero-1",
+      "hero-3",
+      "hero-4",
+    ]);
+    expect(plan.pools.primaryIds).toEqual(["hero-1", "hero-2", "hero-3", "hero-4"]);
+  });
+
   it("degrades a plan when catalog evidence only partially verifies the intent", () => {
     const plan = buildTopicPagePlan(
       {
-        ...snapshot(Array.from({ length: 10 }, (_, index) =>
-          product(String(index + 1), `Sugar Free Matcha Snack ${index + 1}`, index + 1, "Snack Brand")
-        )),
+        ...snapshot(Array.from({ length: 10 }, (_, index) => ({
+          ...product(String(index + 1), `Sugar Free Matcha Snack ${index + 1}`, index + 1, "Snack Brand"),
+          categoryL1Id: 1,
+          categoryL1Name: "Snack",
+        }))),
         keyword: "sugar free matcha snacks",
         provider: "yami-catalog-search",
         intent: {
@@ -1255,6 +1376,84 @@ describe("Topic page planner", () => {
       ...Array.from({ length: 4 }, (_, index) => `toner-${index + 1}`),
     ]);
     expect(startHere?.productIds).not.toContain("mask-1");
+  });
+
+  it("keeps verified semantic groups on their owning Shortcuts and Start Here modules", () => {
+    const catalogProducts = [
+      ...Array.from({ length: 4 }, (_, index) => ({
+        ...product(`cleanser-${index + 1}`, `ANUA Cleanser ${index + 1}`, index + 1),
+        categoryL3Id: 101,
+        categoryL3Name: "Cleansers",
+      })),
+      ...Array.from({ length: 4 }, (_, index) => ({
+        ...product(`toner-${index + 1}`, `ANUA Toner ${index + 1}`, index + 5),
+        categoryL3Id: 102,
+        categoryL3Name: "Toners",
+      })),
+    ];
+    const catalogSnapshot = snapshot(catalogProducts);
+    const selection: ProductSelectionResult = {
+      schemaVersion: "product-selection-result/v1",
+      strategyRef: "relevance/intent-themes@3",
+      keyword: "ANUA",
+      site: "us",
+      selectedAt: catalogSnapshot.fetchedAt,
+      pools: {
+        primaryIds: catalogProducts.map(({ id }) => id),
+        relatedIds: [],
+      },
+      products: catalogProducts.map((item) => ({
+        ...item,
+        pool: "primary",
+        role: "core",
+      })),
+      selectedCategories: [
+        { id: "101", label: "Cleansers", path: ["Beauty", "Cleansers"], role: "core", reason: "Verified." },
+        { id: "102", label: "Toners", path: ["Beauty", "Toners"], role: "core", reason: "Verified." },
+      ],
+      scenes: [],
+      modules: [
+        {
+          id: "shortcuts",
+          productIds: catalogProducts.map(({ id }) => id),
+          groups: [
+            { id: "category-hypothesis-1", label: "Daily routine", role: "core", productIds: ["cleanser-1", "cleanser-2", "cleanser-3", "cleanser-4"] },
+            { id: "category-hypothesis-2", label: "Prep and hydrate", role: "pairing", productIds: ["toner-1", "toner-2", "toner-3", "toner-4"] },
+          ],
+        },
+        {
+          id: "start-here",
+          productIds: catalogProducts.map(({ id }) => id),
+          groups: [
+            { id: "scenario-hypothesis-1", label: "Simple morning routine", role: "core", productIds: ["cleanser-1", "cleanser-2", "toner-1", "toner-2"] },
+            { id: "scenario-hypothesis-2", label: "Simple evening routine", role: "core", productIds: ["cleanser-3", "cleanser-4", "toner-3", "toner-4"] },
+          ],
+        },
+      ],
+    };
+
+    const plan = buildTopicPagePlanFromProductSelection(
+      catalogSnapshot,
+      selection,
+      "en",
+      "selection",
+    );
+    const shortcuts = plan.modules.find(({ id }) => id === "shortcuts");
+    const startHere = plan.modules.find(({ id }) => id === "start-here");
+
+    expect(shortcuts?.groups?.map(({ label }) => label)).toEqual([
+      "Daily routine",
+      "Prep and hydrate",
+    ]);
+    expect(shortcuts?.productIds).toEqual(["cleanser-1", "toner-1"]);
+    expect(startHere?.groups?.map(({ label }) => label)).toEqual([
+      "Simple morning routine",
+      "Simple evening routine",
+    ]);
+    expect(startHere?.productIds).toEqual([
+      "cleanser-1", "cleanser-2", "toner-1", "toner-2",
+      "cleanser-3", "cleanser-4", "toner-3", "toner-4",
+    ]);
   });
 
   it("stops after module assignment in selection mode", () => {

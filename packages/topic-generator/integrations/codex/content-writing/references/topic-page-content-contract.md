@@ -86,6 +86,26 @@ independent Visual Agent contract rather than this proposal.
       }
     },
     {
+      "taskId": "content-shortcuts",
+      "moduleId": "shortcuts",
+      "component": "ShortcutRail",
+      "copy": {
+        "title": {
+          "text": "按品类快速浏览",
+          "evidenceRefs": ["selected-category:tea"]
+        },
+        "items": [
+          {
+            "slotId": "shortcuts-1",
+            "label": {
+              "text": "抹茶粉",
+              "evidenceRefs": ["product:matcha-1"]
+            }
+          }
+        ]
+      }
+    },
+    {
       "taskId": "content-start-here",
       "moduleId": "start-here",
       "component": "ThemeProductList",
@@ -117,8 +137,10 @@ independent Visual Agent contract rather than this proposal.
 }
 ```
 
-The example abbreviates the task and scene arrays. A real proposal must contain every returned
-task in exact PagePlan order and every required item or scene in exact assignment/scene order.
+The example abbreviates the task, item, and scene arrays. A real proposal must contain every
+returned task in exact PagePlan order and every required item or scene in exact assignment/scene
+order. Every shortcut item must copy the exact `slotId` from the matching PagePlan assignment;
+array position alone is not a slot binding.
 
 ## Evidence namespaces and scope
 

@@ -334,13 +334,35 @@ export async function runTopicPageAutomationWorkflow(
   }
   mark(stages, "automatic-qa", "completed");
 
+  let previewRefs = options.previewRefs;
+  try {
+    if (options.previewResolver) {
+      previewRefs = await options.previewResolver({
+        executionPlan: options.executionPlan,
+        generationSpec,
+        qaReport: qaReport as typeof qaReport & { status: "passed" },
+      });
+    }
+    if (!previewRefs) {
+      throw new Error("Page review preview refs are not configured.");
+    }
+  } catch (error) {
+    return block("experience-review", [message(error)], {
+      plan,
+      contentSpec,
+      assetManifest,
+      generationSpec,
+      qaReport,
+    });
+  }
+
   let experienceReviewRun;
   try {
     experienceReviewRun = await runTopicPageReviewAgentWorkflow({
       executionPlan: options.executionPlan,
       generationSpec,
       qaReport,
-      previewRefs: options.previewRefs,
+      previewRefs,
       agent: options.agents.review,
     });
   } catch (error) {
@@ -375,7 +397,7 @@ export async function runTopicPageAutomationWorkflow(
     generationSpec,
     qaReport,
     experienceReview,
-    previewRefs: options.previewRefs,
+    previewRefs,
   });
   return {
     schemaVersion: "topic-page-automation-run/v1",

@@ -54,7 +54,7 @@
     }
   ],
   "contracts": {
-    "semanticProposal": "semantic-proposal/v1",
+    "semanticProposal": "semantic-proposal/v2",
     "themeIntent": "theme-intent/v2",
     "catalogSnapshot": "catalog-snapshot/v1",
     "catalogTaxonomySnapshot": "catalog-taxonomy-snapshot/v1",

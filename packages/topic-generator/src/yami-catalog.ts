@@ -2,6 +2,7 @@ import type {
   CatalogAttributeEvidence,
   CatalogCoverage,
   CatalogCoverageProduct,
+  CatalogRefinementReport,
   CatalogBrandEvidence,
   CatalogCategoryEvidence,
   CatalogSnapshotQualityReport,
@@ -179,6 +180,13 @@ const SCENARIO_TERM_EQUIVALENTS = [
   ["gift", "礼物"],
   ["holiday", "festival", "节日"],
   ["season", "季节"],
+] as const;
+
+const NAMED_OCCASION_PRODUCT_TERMS = [
+  "festival",
+  "holiday",
+  "节日",
+  "节庆",
 ] as const;
 
 const ATTRIBUTE_GENERIC_TERMS = new Set([
@@ -553,6 +561,15 @@ function catalogProducts(
       categoryL1Name: categoryL1?.label,
       categoryL2Name: categoryL2?.label,
       categoryL3Name: categoryL3?.label,
+      searchAliases: uniqueStrings([
+        item.goods_name,
+        item.goods_ename,
+        item.brand_name,
+        item.brand_ename,
+        ...(categoryL1?.aliases ?? []),
+        ...(categoryL2?.aliases ?? []),
+        ...(categoryL3?.aliases ?? []),
+      ]),
       soldCount: item.sold_count,
       rating: item.rated,
     } satisfies YamiProduct;
@@ -946,6 +963,42 @@ function toScenarioIntentCategories(
     : { categories: [], support: "none" as const };
 }
 
+function catalogOccasionMatch(
+  snapshot: YamiSearchSnapshot,
+  categories: ThemeIntentCategory[],
+) {
+  const occasionProducts = snapshot.products.filter((product) => {
+    const text = normalized([product.title, ...(product.searchAliases ?? [])].join(" "));
+    return NAMED_OCCASION_PRODUCT_TERMS.some((term) => text.includes(normalized(term)));
+  });
+  if (occasionProducts.length < 3) return null;
+
+  const counts = new Map<string, number>();
+  snapshot.products.forEach((product) => {
+    const categoryId = String(product.categoryL3Id ?? "");
+    if (categoryId) counts.set(categoryId, (counts.get(categoryId) ?? 0) + 1);
+  });
+  const ranked = [...counts].sort((left, right) => right[1] - left[1]);
+  const [dominant, runnerUp] = ranked;
+  if (!dominant) return null;
+  const [categoryId, productCount] = dominant;
+  if (
+    productCount < 8 ||
+    productCount / snapshot.products.length < 0.25 ||
+    productCount - (runnerUp?.[1] ?? 0) < 2
+  ) {
+    return null;
+  }
+  const category = categories.find((candidate) => candidate.id === categoryId);
+  return category
+    ? {
+        category: { ...category, evidenceCount: productCount },
+        directProductCount: occasionProducts.length,
+        productCount,
+      }
+    : null;
+}
+
 function toCoreIntentCategory(
   category: CatalogCategoryEvidence,
   availableCategories: ThemeIntentCategory[],
@@ -1168,6 +1221,54 @@ function buildScenarioIntent(
   };
 }
 
+function buildCatalogOccasionIntent(
+  keyword: string,
+  match: NonNullable<ReturnType<typeof catalogOccasionMatch>>,
+): ThemeIntent {
+  const confidence = 0.92;
+  const categoryEvidence = evidenceRef(
+    "catalog-category",
+    match.category.id,
+    match.category.label,
+    match.productCount,
+  );
+  const productEvidence = evidenceRef(
+    "catalog-products",
+    `occasion-${normalized(keyword).replace(/\s+/g, "-")}`,
+    keyword,
+    match.directProductCount,
+  );
+  return {
+    schemaVersion: "theme-intent/v2",
+    source: "catalog-evidence",
+    themeType: "activity",
+    catalogDomain: match.category.path[0] ?? "catalog",
+    attributeSchemaVersion: "catalog-v1",
+    entityType: "scenario",
+    canonicalEntity: {
+      id: normalized(keyword).replace(/\s+/g, "-"),
+      label: keyword,
+    },
+    shoppingIntent: "assemble-scenario",
+    shopperAction: "gift",
+    shoppingGoal: `Shop ${match.category.label} and gift-ready products for ${keyword}.`,
+    needs: [match.category.label],
+    conditions: [keyword],
+    mustInclude: [match.category.label],
+    mustExclude: [],
+    searchTerms: [keyword, match.category.label],
+    categories: [match.category],
+    constraints: [
+      constraint("scenario", keyword, "verified", [productEvidence.id]),
+      constraint("core-entity", match.category.label, "verified", [categoryEvidence.id]),
+    ],
+    evidenceRefs: [productEvidence, categoryEvidence],
+    ...pendingCandidateFields(confidence),
+    reason: "Bilingual catalog product fields verify the named occasion, and one catalog category provides dominant product support.",
+    confidence,
+  };
+}
+
 function buildAttributeIntent(
   keyword: string,
   attributes: MatchedAttribute[],
@@ -1276,6 +1377,9 @@ export function resolveCatalogThemeIntent(snapshot: YamiSearchSnapshot): ThemeIn
     ? toScenarioIntentCategories(snapshot, categories)
     : { categories: [], support: "none" as const };
   const attributes = matchedAttributes(snapshot.keyword, evidence.attributes);
+  const occasionMatch = !brand && !category && attributes.length === 0
+    ? catalogOccasionMatch(snapshot, categories)
+    : null;
   const inferredCategory = categories[0];
   const coreCategory = keywordCategory
     ? toCoreIntentCategory(keywordCategory, categories)
@@ -1298,6 +1402,9 @@ export function resolveCatalogThemeIntent(snapshot: YamiSearchSnapshot): ThemeIn
       scenarioMatch.categories,
       scenarioMatch.support,
     ));
+  }
+  if (occasionMatch) {
+    candidates.push(buildCatalogOccasionIntent(snapshot.keyword, occasionMatch));
   }
   if (
     coreCategory &&
@@ -1595,6 +1702,7 @@ function productMatchesIntent(product: YamiProduct, intent: ThemeIntent) {
     product.categoryL1Name,
     product.categoryL2Name,
     product.categoryL3Name,
+    ...(product.searchAliases ?? []),
   ].filter(Boolean).join(" "));
   if (intent.mustExclude.some((term) => text.includes(normalized(term)))) return false;
 
@@ -1663,8 +1771,16 @@ export async function refineYamiCatalogSnapshotForIntent(
   const canonical = intent.canonicalEntity;
 
   if (intent.entityType === "brand" && canonical && /^\d+$/.test(canonical.id)) {
+    const structuredKey = `structured-brand:${canonical.id}`;
+    const coverageKey = `brand-page:${canonical.id}`;
+    const completedKeys: string[] = [];
+    const failedKeys: string[] = [];
+    const issues: string[] = [];
+    let structuredProducts: YamiProduct[] = [];
+    let coverage: CatalogCoverage | undefined;
+
     try {
-      const structuredProducts = await loadAllCatalogPages(
+      structuredProducts = await loadAllCatalogPages(
         snapshot,
         intent,
         options,
@@ -1676,87 +1792,112 @@ export async function refineYamiCatalogSnapshotForIntent(
           fetch: options.fetch,
         }),
       );
-      let coverage: CatalogCoverage | undefined;
-      try {
-        coverage = await loadYamiBrandCatalogCoverage(canonical, { fetch: options.fetch });
-      } catch {
-        // Structured brand results remain valid when the public page cannot be parsed.
-      }
-      const products = coverage
-        ? coverage.products.filter((product) =>
-            product.availability === "in-stock" && productMatchesIntent(product, intent)
-          )
-        : structuredProducts;
-      if (products.length === 0) return snapshot;
-      const unavailableCount = coverage
-        ? coverage.products.filter(({ availability }) => availability === "out-of-stock").length
-        : 0;
+      completedKeys.push(structuredKey);
+    } catch (error) {
+      failedKeys.push(structuredKey);
+      issues.push(`${structuredKey}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+
+    try {
+      coverage = await loadYamiBrandCatalogCoverage(canonical, { fetch: options.fetch });
+      completedKeys.push(coverageKey);
+    } catch (error) {
+      failedKeys.push(coverageKey);
+      issues.push(`${coverageKey}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+
+    const products = coverage
+      ? coverage.products.filter((product) =>
+          product.availability === "in-stock" && productMatchesIntent(product, intent)
+        )
+      : structuredProducts;
+    const status: CatalogRefinementReport["status"] = coverage
+      ? "complete"
+      : completedKeys.includes(structuredKey)
+      ? "fallback"
+      : "partial";
+    const catalogRefinement: CatalogRefinementReport = {
+      status,
+      target: "brand" as const,
+      requestedKeys: [structuredKey, coverageKey],
+      completedKeys,
+      failedKeys,
+      issues,
+    };
+    if (products.length === 0) {
       return {
         ...snapshot,
-        products,
+        catalogRefinement,
         ...(coverage ? { catalogCoverage: coverage } : {}),
-        evidence: evidenceWithIntentProductCounts(snapshot.evidence, products, intent),
-        retrievalTerms: [
-          ...(snapshot.retrievalTerms ?? [snapshot.keyword]),
-          `brand:${canonical.id}`,
-          ...(coverage ? [`brand-page:${canonical.id}`] : []),
-        ],
-        ...(coverage
-          ? {
-              quality: {
-                ...(snapshot.quality ?? {
-                  truncatedProductCount: 0,
-                  issueCounts: {
-                    duplicateId: 0,
-                    missingId: 0,
-                    missingTitle: 0,
-                    missingBrand: 0,
-                    missingImage: 0,
-                    missingPrice: 0,
-                    missingProductUrl: 0,
-                    unavailable: 0,
-                    outOfStock: 0,
-                    notPurchasable: 0,
-                    keywordMismatch: 0,
-                  },
-                }),
-                observedProductCount: coverage.totalCount,
-                acceptedProductCount: products.length,
-                rejectedProductCount: coverage.totalCount - products.length,
-                issueCounts: {
-                  ...(snapshot.quality?.issueCounts ?? {
-                    duplicateId: 0,
-                    missingId: 0,
-                    missingTitle: 0,
-                    missingBrand: 0,
-                    missingImage: 0,
-                    missingPrice: 0,
-                    missingProductUrl: 0,
-                    unavailable: 0,
-                    outOfStock: 0,
-                    notPurchasable: 0,
-                    keywordMismatch: 0,
-                  }),
-                  outOfStock: unavailableCount,
-                },
-              },
-            }
-          : snapshot.quality
-          ? {
-              quality: {
-                ...snapshot.quality,
-                observedProductCount: Math.max(
-                  snapshot.quality.observedProductCount,
-                  products.length,
-                ),
-                acceptedProductCount: products.length,
-              },
-            }
-          : {}),
       };
-    } catch {
-      return snapshot;
     }
+    const unavailableCount = coverage
+      ? coverage.products.filter(({ availability }) => availability === "out-of-stock").length
+      : 0;
+    return {
+      ...snapshot,
+      products,
+      catalogRefinement,
+      ...(coverage ? { catalogCoverage: coverage } : {}),
+      evidence: evidenceWithIntentProductCounts(snapshot.evidence, products, intent),
+      retrievalTerms: [
+        ...(snapshot.retrievalTerms ?? [snapshot.keyword]),
+        `brand:${canonical.id}`,
+        ...(coverage ? [coverageKey] : []),
+      ],
+      ...(coverage
+        ? {
+            quality: {
+              ...(snapshot.quality ?? {
+                truncatedProductCount: 0,
+                issueCounts: {
+                  duplicateId: 0,
+                  missingId: 0,
+                  missingTitle: 0,
+                  missingBrand: 0,
+                  missingImage: 0,
+                  missingPrice: 0,
+                  missingProductUrl: 0,
+                  unavailable: 0,
+                  outOfStock: 0,
+                  notPurchasable: 0,
+                  keywordMismatch: 0,
+                },
+              }),
+              observedProductCount: coverage.totalCount,
+              acceptedProductCount: products.length,
+              rejectedProductCount: coverage.totalCount - products.length,
+              issueCounts: {
+                ...(snapshot.quality?.issueCounts ?? {
+                  duplicateId: 0,
+                  missingId: 0,
+                  missingTitle: 0,
+                  missingBrand: 0,
+                  missingImage: 0,
+                  missingPrice: 0,
+                  missingProductUrl: 0,
+                  unavailable: 0,
+                  outOfStock: 0,
+                  notPurchasable: 0,
+                  keywordMismatch: 0,
+                }),
+                outOfStock: unavailableCount,
+              },
+            },
+          }
+        : snapshot.quality
+        ? {
+            quality: {
+              ...snapshot.quality,
+              observedProductCount: Math.max(
+                snapshot.quality.observedProductCount,
+                products.length,
+              ),
+              acceptedProductCount: products.length,
+            },
+          }
+        : {}),
+    };
   }
 
   const candidates = intent.categories.filter((category) =>
@@ -1768,9 +1909,12 @@ export async function refineYamiCatalogSnapshotForIntent(
   if (candidates.length === 0) return snapshot;
 
   const categoryProducts = new Map<string, YamiProduct[]>();
+  const completedKeys: string[] = [];
+  const failedKeys: string[] = [];
+  const issues: string[] = [];
   const loadCategoryProducts = async (category: ThemeIntent["categories"][number]) => {
     try {
-      return await loadAllCatalogPages(
+      const products = await loadAllCatalogPages(
         snapshot,
         intent,
         options,
@@ -1782,8 +1926,9 @@ export async function refineYamiCatalogSnapshotForIntent(
       ).then((products) => products.filter((product) =>
         String(product.categoryL3Id ?? "") === category.id
       ));
-    } catch {
-      return [];
+      return { products };
+    } catch (error) {
+      return { products: [] as YamiProduct[], error };
     }
   };
 
@@ -1791,16 +1936,32 @@ export async function refineYamiCatalogSnapshotForIntent(
     const batch = candidates.slice(offset, offset + 6);
     const results = await Promise.all(batch.map(async (category) => ({
       category,
-      products: await loadCategoryProducts(category),
+      result: await loadCategoryProducts(category),
     })));
-    results.forEach(({ category, products }) => {
+    results.forEach(({ category, result }) => {
+      const key = `category:${category.id}`;
+      if (result.error) {
+        failedKeys.push(key);
+        issues.push(`${key}: ${result.error instanceof Error ? result.error.message : String(result.error)}`);
+        return;
+      }
+      completedKeys.push(key);
+      const { products } = result;
       if (products.length > 0) {
         categoryProducts.set(category.id, products);
       }
     });
     offset += batch.length;
   }
-  if (categoryProducts.size === 0) return snapshot;
+  const catalogRefinement = {
+    status: failedKeys.length > 0 ? "partial" as const : "complete" as const,
+    target: "categories" as const,
+    requestedKeys: candidates.map(({ id }) => `category:${id}`),
+    completedKeys,
+    failedKeys,
+    issues,
+  };
+  if (categoryProducts.size === 0) return { ...snapshot, catalogRefinement };
 
   const orderedCategoryProducts = intent.categories.flatMap(({ id }) =>
     categoryProducts.get(id) ?? []
@@ -1815,6 +1976,7 @@ export async function refineYamiCatalogSnapshotForIntent(
   return {
     ...snapshot,
     products,
+    catalogRefinement,
     evidence: evidenceWithProductCounts(snapshot.evidence, products),
     retrievalTerms: [
       ...(snapshot.retrievalTerms ?? [snapshot.keyword]),

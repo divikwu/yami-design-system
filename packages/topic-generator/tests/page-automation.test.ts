@@ -58,6 +58,7 @@ const imageDecoder: TopicPageImageDecoder = {
 
 function workflowFixture(options: {
   invalidHeroDigest?: boolean;
+  qaReadFailure?: boolean;
   truncatedHero?: boolean;
 } = {}) {
   const intent: ThemeIntent = {
@@ -286,6 +287,7 @@ function workflowFixture(options: {
   const assetStore: TopicPageAssetStore = {
     put,
     get: async (ref) => {
+      if (options.qaReadFailure) throw new Error(`Unavailable ${ref}`);
       const bytes = persisted.get(ref);
       if (!bytes) throw new Error(`Missing ${ref}`);
       return bytes;
@@ -341,6 +343,88 @@ describe("Topic page automation workflow", () => {
     expect(result.generationSpec?.modules.find(({ id }) => id === "start-here")).toMatchObject({
       scenes: [],
     });
+  });
+
+  it("publishes the QA-passed generation spec before asking the Review Agent to inspect it", async () => {
+    const data = workflowFixture();
+    const reviewPageExperience = vi.fn(data.agents.review.reviewPageExperience);
+    data.agents.review = { ...data.agents.review, reviewPageExperience };
+    const previewResolver = vi.fn(async () => ({
+      desktop: "http://127.0.0.1:3300/internal/topic-generator/review-preview/desktop-token",
+      mobile: "http://127.0.0.1:3300/internal/topic-generator/review-preview/mobile-token",
+    }));
+
+    const result = await runTopicPageAutomationWorkflow({
+      ...data,
+      language: "zh",
+      previewResolver,
+    });
+
+    expect(result).toMatchObject({
+      status: "ready",
+      reviewPackage: {
+        previewRefs: {
+          desktop: "http://127.0.0.1:3300/internal/topic-generator/review-preview/desktop-token",
+          mobile: "http://127.0.0.1:3300/internal/topic-generator/review-preview/mobile-token",
+        },
+      },
+    });
+    expect(previewResolver).toHaveBeenCalledOnce();
+    expect(previewResolver).toHaveBeenCalledWith({
+      executionPlan: data.executionPlan,
+      generationSpec: result.generationSpec,
+      qaReport: result.qaReport,
+    });
+    if (result.status !== "ready") throw new Error("Expected a review-ready run.");
+    expect(reviewPageExperience).toHaveBeenCalledOnce();
+    expect(reviewPageExperience.mock.calls[0]?.[0].context.previewRefs).toEqual(
+      result.reviewPackage.previewRefs,
+    );
+  });
+
+  it("blocks experience review when a QA-passed preview cannot be published", async () => {
+    const data = workflowFixture();
+    const reviewPageExperience = vi.fn(data.agents.review.reviewPageExperience);
+    data.agents.review = { ...data.agents.review, reviewPageExperience };
+    const previewResolver = vi.fn(async () => {
+      throw new Error("Preview registry is unavailable.");
+    });
+
+    const result = await runTopicPageAutomationWorkflow({
+      ...data,
+      language: "zh",
+      previewResolver,
+    });
+
+    expect(result).toMatchObject({
+      status: "blocked",
+      stage: "experience-review",
+      issues: ["Preview registry is unavailable."],
+      qaReport: { status: "passed" },
+    });
+    expect(previewResolver).toHaveBeenCalledOnce();
+    expect(reviewPageExperience).not.toHaveBeenCalled();
+  });
+
+  it("does not publish a preview before hard QA passes", async () => {
+    const data = workflowFixture({ qaReadFailure: true });
+    const previewResolver = vi.fn(async () => ({
+      desktop: "http://127.0.0.1:3300/desktop",
+      mobile: "http://127.0.0.1:3300/mobile",
+    }));
+
+    const result = await runTopicPageAutomationWorkflow({
+      ...data,
+      language: "zh",
+      previewResolver,
+    });
+
+    expect(result).toMatchObject({
+      status: "blocked",
+      stage: "automatic-qa",
+      qaReport: { status: "qa-blocked" },
+    });
+    expect(previewResolver).not.toHaveBeenCalled();
   });
 
   it("carries the requested visual production mode through the full automation workflow", async () => {
