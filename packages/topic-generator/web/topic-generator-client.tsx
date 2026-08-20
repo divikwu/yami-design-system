@@ -16,6 +16,7 @@ import {
   UserIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Tabs } from "@base-ui/react/tabs";
 import type { ComponentType, FormEvent, ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type {
@@ -23,7 +24,6 @@ import type {
   ContentLanguage,
   ProductSelectionStrategy,
   TopicGenerationMode,
-  TopicIntentRuntimeEvidence,
   TopicModulePlan,
   TopicPagePlan,
   TopicPlanMatrix,
@@ -31,6 +31,10 @@ import type {
 } from "../src/types";
 import type { ProductSelectionRun } from "../src/product-selection/contracts";
 import type { TopicPageAutomationRun } from "../src/page-automation/contracts";
+import type {
+  HeroSelectionRun,
+  ShortcutSelectionRun,
+} from "../src/page-merchandising/contracts";
 import type { LandingPageTypeRef } from "../src/page-orchestration/contracts";
 import type {
   TopicPageGeneratedProduct,
@@ -124,6 +128,60 @@ function automationSourceSignature(automation: ReadyTopicPageAutomationRun) {
       scenes: module.scenes,
     })),
   });
+}
+
+function heroSelectionFromAutomation(
+  automation: ReadyTopicPageAutomationRun | null,
+  fallbackPlan?: TopicPagePlan | null,
+): HeroSelectionRun | null {
+  const hero = automation?.plan?.modules.find(({ id }) => id === "hero");
+  const fallbackHero = fallbackPlan?.modules.find(({ id }) => id === "hero");
+  if (!automation || (!hero && !fallbackHero)) return null;
+  const productIds = hero?.visible
+    ? hero.assignments.map(({ productId }) => productId)
+    : fallbackHero?.productIds ?? [];
+  if (productIds.length === 0) return null;
+  const moduleReason = hero?.reason ?? fallbackHero?.reason ?? "Agent-reviewed Hero composition.";
+  return {
+    schemaVersion: "hero-selection-run/v1",
+    status: "ready",
+    source: "page-merchandising-agent",
+    agentId: "topic-strategy",
+    templateRef: automation.plan?.templateRef ?? automation.executionPlan.templateRef,
+    planDigest: automation.plan?.digest ?? automation.generationSpec.digest,
+    productIds,
+    productReasons: hero
+      ? Object.fromEntries(hero.assignments.map((assignment) => [
+          assignment.productId,
+          assignment.selectionReason ?? assignment.reuseReason ?? hero.reason,
+        ]))
+      : { ...(fallbackHero?.productReasons ?? {}) },
+    moduleReason,
+  };
+}
+
+function shortcutSelectionFromAutomation(
+  automation: ReadyTopicPageAutomationRun | null,
+): ShortcutSelectionRun | null {
+  const shortcuts = automation?.plan?.modules.find(({ id }) => id === "shortcuts");
+  if (!automation || !shortcuts?.visible || shortcuts.assignments.length === 0 ||
+      shortcuts.assignments.some(({ groupId, selectionReason }) => !groupId || !selectionReason)) {
+    return null;
+  }
+  return {
+    schemaVersion: "shortcut-selection-run/v1",
+    status: "ready",
+    source: "page-merchandising-agent",
+    agentId: "topic-strategy",
+    templateRef: automation.plan.templateRef,
+    planDigest: automation.plan.digest,
+    assignments: shortcuts.assignments.map((assignment) => ({
+      groupId: assignment.groupId!,
+      productId: assignment.productId,
+      selectionReason: assignment.selectionReason!,
+    })),
+    moduleReason: shortcuts.reason,
+  };
 }
 
 function evidenceLevelLabel(plan: TopicPagePlan, uiLanguage: ContentLanguage) {
@@ -241,6 +299,7 @@ const PREVIEW_COPY = {
       "Searching the Yami United States catalog",
       "Running the selected versioned product strategy",
       "Assigning products to eligible modules",
+      "Reviewing the final Hero composition with the Agent",
       "Composing copy and page preview",
     ],
     blocked: "RUN BLOCKED",
@@ -264,6 +323,7 @@ const PREVIEW_COPY = {
       "搜索 Yami 美国站商品目录",
       "执行所选的版本化选品策略",
       "将商品分配给符合条件的模块",
+      "由 Agent 复核最终 Hero 组合",
       "生成文案与页面预览",
     ],
     blocked: "生成已阻止",
@@ -425,6 +485,7 @@ function LoadingState({
         "执行 10 次分类检索和 1 次发现检索",
         "请求 Product Agent 提交购物场景提案",
         "确定性分配模块并执行全局去重",
+        "由 Page Merchandising Agent 复核最终 Hero 组合",
       ]
     : [
         "Load and validate the complete taxonomy",
@@ -432,10 +493,11 @@ function LoadingState({
         "Run ten category queries and one discovery query",
         "Request the shopping-scene proposal from the Product Agent",
         "Allocate modules and deduplicate deterministically",
+        "Review the final Hero composition with the Page Merchandising Agent",
       ];
   const steps = strategy === "category-role" ? categoryRoleSteps : copy.loadingSteps;
   const visibleSteps = mode === "selection"
-    ? strategy === "category-role" ? categoryRoleSteps : copy.loadingSteps.slice(0, 3)
+    ? strategy === "category-role" ? categoryRoleSteps : copy.loadingSteps.slice(0, 4)
     : steps;
 
   return (
@@ -628,12 +690,14 @@ function selectionRunError(
 
 function PreviewView({
   plan,
-  topicIntentRuntime,
+  heroSelection,
+  shortcutSelection,
 }: {
   plan: TopicPagePlan;
-  topicIntentRuntime?: TopicIntentRuntimeEvidence | null;
+  heroSelection?: HeroSelectionRun | null;
+  shortcutSelection?: ShortcutSelectionRun | null;
 }) {
-  const pageGenerated = plan.generationMode === "page";
+  const [requestedExploreGroupId, setRequestedExploreGroupId] = useState<string | null>(null);
   const productMap = useMemo(
     () => new Map(plan.products.map((product) => [product.id, product])),
     [plan.products],
@@ -646,7 +710,13 @@ function PreviewView({
     (moduleMap.get(moduleId)?.productIds ?? [])
       .map((id) => productMap.get(id))
       .filter((product): product is TopicProduct => Boolean(product));
-  const heroProducts = productsFor("hero");
+  const heroModule = moduleMap.get("hero");
+  const heroProductIds = heroSelection?.productIds.length
+    ? heroSelection.productIds
+    : heroModule?.productIds ?? [];
+  const heroProducts = heroProductIds
+    .map((id) => productMap.get(id))
+    .filter((product): product is TopicProduct => Boolean(product));
   const shortcutModule = moduleMap.get("shortcuts");
   const startHereModule = moduleMap.get("start-here");
   const popularModule = moduleMap.get("popular-picks");
@@ -656,73 +726,141 @@ function PreviewView({
   const shortcutGroups = shortcutModule?.groups ?? plan.groups.filter((group) =>
     group.productIds.some((id) => shortcutProductIds.has(id)),
   );
+  const shortcutAssignmentsByGroupId = new Map(
+    (shortcutSelection?.assignments ?? []).map((assignment) => [assignment.groupId, assignment]),
+  );
   const startHereProductIds = new Set(startHereModule?.productIds ?? []);
   const startHereGroups = startHereModule?.groups ?? plan.groups.flatMap((group) => {
     const productIds = group.productIds.filter((id) => startHereProductIds.has(id));
     return productIds.length > 0 ? [{ ...group, productIds }] : [];
   });
   const exploreProductIds = new Set(exploreModule?.productIds ?? []);
-  const exploreGroups = plan.groups.flatMap((group) => {
+  const exploreGroups = exploreModule?.groups ?? plan.groups.flatMap((group) => {
     const productIds = group.productIds.filter((id) => exploreProductIds.has(id));
     return productIds.length > 0 ? [{ ...group, productIds }] : [];
   });
-
+  const activeExploreGroupId = exploreGroups.some(({ id }) => id === requestedExploreGroupId)
+    ? requestedExploreGroupId
+    : exploreGroups[0]?.id ?? null;
+  const dominantShortcutGroup = shortcutGroups.length > 1
+    ? shortcutGroups.reduce((largest, group) =>
+        group.productIds.length > largest.productIds.length ? group : largest
+      )
+    : undefined;
+  const shortcutPrimaryCount = plan.pools.primaryIds.length;
+  const shortcutNeedsBalanceReview = Boolean(
+    dominantShortcutGroup && shortcutPrimaryCount > 0 &&
+    dominantShortcutGroup.productIds.length / shortcutPrimaryCount >= 0.4,
+  );
   return (
     <div className={styles.pagePreview} data-preview-mode={plan.generationMode}>
       <section className={styles.topicHero}>
         <div className={styles.heroCopy}>
           <span>HERO · {plan.language === "zh" ? "商品分布" : "Product distribution"}</span>
           <h1>{plan.keyword}</h1>
-          <p>
+          <p aria-live="polite">
             {plan.language === "zh"
-              ? pageGenerated
-                ? `已预选 ${heroProducts.length} 件商品；正式生成时由 Agent 复核商品组合。`
-                : topicIntentRuntime?.status === "ready"
-                  ? `已预选 ${heroProducts.length} 件商品；Agent 已复核分类与场景，文案与场景图仍待页面生成。`
-                  : topicIntentRuntime?.status === "fallback"
-                    ? `已预选 ${heroProducts.length} 件商品；当前使用已验证目录分类，文案与场景图未生成。`
-                    : `已预选 ${heroProducts.length} 件商品；Agent 尚未执行，文案与场景图未生成。`
-              : pageGenerated
-                ? `${heroProducts.length} products preselected; the Agent reviews the composition during final generation.`
-                : topicIntentRuntime?.status === "ready"
-                  ? `${heroProducts.length} products preselected; the Agent reviewed categories and scenarios, while copy and scene imagery await page generation.`
-                  : topicIntentRuntime?.status === "fallback"
-                    ? `${heroProducts.length} products preselected; verified catalog categories are in use, while copy and scene imagery are not generated.`
-                    : `${heroProducts.length} products preselected; the Agent has not run, and copy and scene imagery are not generated.`}
+              ? heroSelection?.status === "ready"
+                ? `Hero 选品完成 · ${heroProducts.length} 件商品；Page Merchandising Agent 已复核组合，文案与场景图将在生成页面时完成。`
+                : heroSelection?.status === "fallback"
+                  ? `Hero 规则预选 · ${heroProducts.length} 件商品；Agent 复核暂不可用，当前结果仅作为明确降级。`
+                  : `Hero 预选 · ${heroProducts.length} 件商品；正式组合复核尚未完成，文案与场景图未生成。`
+              : heroSelection?.status === "ready"
+                ? `Hero selection complete · ${heroProducts.length} products; the Page Merchandising Agent reviewed the composition. Copy and scene imagery are created during page generation.`
+                : heroSelection?.status === "fallback"
+                  ? `Rule-based Hero selection · ${heroProducts.length} products; Agent review is unavailable, so this result is an explicit fallback.`
+                  : `Hero preselection · ${heroProducts.length} products; formal composition review is still required, and copy and scene imagery are not generated.`}
           </p>
         </div>
         <div className={styles.heroProducts}>
-          {heroProducts.map((product, index) => (
-            <a
-              key={product.id}
-              href={product.productUrl}
-              target="_blank"
-              rel="noreferrer"
-              className={index === 0 ? styles.heroProductLead : undefined}
-            >
-              <img
-                src={product.imageUrl}
-                alt={product.title}
-                width={750}
-                height={750}
-              />
-              <span>{String(index + 1).padStart(2, "0")} · {product.brand}</span>
-            </a>
-          ))}
+          {heroProducts.map((product, index) => {
+            const reason = heroSelection?.productReasons[product.id] ??
+              heroModule?.productReasons?.[product.id] ?? product.selectionReason;
+            return (
+              <a
+                key={product.id}
+                href={product.productUrl}
+                target="_blank"
+                rel="noreferrer"
+                title={`${product.title} — ${reason}`}
+              >
+                <img
+                  src={product.imageUrl}
+                  alt={product.title}
+                  width={750}
+                  height={750}
+                />
+                <div className={styles.heroProductMeta}>
+                  <span>{String(index + 1).padStart(2, "0")} · {product.brand}</span>
+                  <small>{reason}</small>
+                </div>
+              </a>
+            );
+          })}
         </div>
       </section>
 
       {shortcutModule?.visible && (
         <section className={styles.previewModule}>
           <ModuleHeading module={shortcutModule} structureOnly />
+          <div className={styles.shortcutSelectionStatus} aria-live="polite">
+            <span>
+              {plan.language === "zh"
+                ? shortcutSelection?.status === "ready"
+                  ? `${shortcutGroups.length} 个分类入口已按主题语义与商品归属生成；${shortcutSelection.assignments.length} 件代表商品已由 Page Merchandising Agent 复核。`
+                  : shortcutSelection?.status === "fallback"
+                    ? `已按目录规则生成 ${shortcutGroups.length} 个分类入口；代表商品暂未完成 Agent 复核。`
+                    : `${shortcutGroups.length} 个分类入口已按主题语义与商品归属生成；代表商品等待 Page Merchandising Agent 复核。`
+                : shortcutSelection?.status === "ready"
+                  ? `${shortcutGroups.length} category shortcuts were generated from theme semantics and product membership; the Page Merchandising Agent reviewed ${shortcutSelection.assignments.length} representatives.`
+                  : shortcutSelection?.status === "fallback"
+                    ? `${shortcutGroups.length} category shortcuts were generated from catalog rules; Agent review of representatives is unavailable.`
+                    : `${shortcutGroups.length} category shortcuts were generated from theme semantics and product membership; representative review by the Page Merchandising Agent is pending.`}
+            </span>
+            {shortcutNeedsBalanceReview && dominantShortcutGroup ? (
+              <span>
+                {plan.language === "zh"
+                  ? `“${dominantShortcutGroup.label}”覆盖 ${dominantShortcutGroup.productIds.length}/${shortcutPrimaryCount} 件商品，分类范围较宽，建议复核是否存在可验证子分类。`
+                  : `“${dominantShortcutGroup.label}” covers ${dominantShortcutGroup.productIds.length}/${shortcutPrimaryCount} products and is broad; review whether verified subcategories support a finer split.`}
+              </span>
+            ) : null}
+          </div>
           <div className={styles.shortcutGrid}>
-            {shortcutGroups.slice(0, 6).map((group) => {
-              const product = productMap.get(group.productIds[0]);
+            {shortcutGroups.map((group) => {
+              const assignment = shortcutAssignmentsByGroupId.get(group.id);
+              const product = productMap.get(assignment?.productId ?? group.productIds[0]);
+              const classificationReason = group.classificationReason ?? (
+                group.sourceCategoryIds?.length === 0
+                  ? plan.language === "zh"
+                    ? "收录暂无可验证目录叶子分类的商品。"
+                    : "Collects products without a verified catalog leaf category."
+                  : group.sourceCategoryIds?.length === 1
+                    ? plan.language === "zh"
+                      ? "对应一个已验证的 Yami 目录叶子分类。"
+                      : "Maps to one verified Yami catalog leaf category."
+                    : plan.language === "zh"
+                      ? "根据主题购物心智整合多个已验证的 Yami 目录分类。"
+                      : "Combines verified Yami catalog categories around one theme shopping intent."
+              );
               if (!product) return null;
               return (
-                <a key={group.id} href={`#group-${group.id}`}>
+                <a
+                  key={group.id}
+                  href="#explore-more"
+                  className={styles.shortcutCard}
+                  data-shortcut-group={group.id}
+                  onClick={() => setRequestedExploreGroupId(group.id)}
+                >
                   <img src={product.imageUrl} alt="" width={750} height={750} loading="lazy" />
-                  <span><strong>{group.label}</strong>{productCountLabel(group.productIds.length, plan.language)}</span>
+                  <span>
+                    <strong>{group.label}</strong>
+                    {productCountLabel(group.productIds.length, plan.language)}
+                    {classificationReason
+                      ? <small>{classificationReason}</small>
+                      : assignment?.selectionReason
+                        ? <small>{assignment.selectionReason}</small>
+                        : null}
+                  </span>
                 </a>
               );
             })}
@@ -783,24 +921,50 @@ function PreviewView({
       )}
 
       {exploreModule?.visible && (
-        <section className={styles.previewModule}>
+        <section
+          id="explore-more"
+          className={`${styles.previewModule} ${styles.recommendationModule}`}
+        >
           <ModuleHeading module={exploreModule} structureOnly />
-          <div className={styles.exploreGroups}>
-            {exploreGroups.map((group) => (
-              <section key={group.id} id={`group-${group.id}`} className={styles.exploreGroup}>
-                <header>
-                  <h4>{group.label}</h4>
-                  <span>{itemCountLabel(group.productIds.length, plan.language)}</span>
-                </header>
-                <div className={styles.exploreRow}>
-                  {group.productIds.map((id) => {
-                    const product = productMap.get(id);
-                    return product ? <ProductCard key={id} product={product} /> : null;
-                  })}
-                </div>
-              </section>
-            ))}
-          </div>
+          {activeExploreGroupId && (
+            <Tabs.Root
+              className={styles.recommendationTabs}
+              value={activeExploreGroupId}
+              onValueChange={(value) => {
+                if (typeof value === "string") setRequestedExploreGroupId(value);
+              }}
+            >
+              <Tabs.List
+                className={styles.recommendationTabList}
+                aria-label={plan.language === "zh" ? "综合推荐分类" : "Recommendation categories"}
+              >
+                {exploreGroups.map((group) => (
+                  <Tabs.Tab
+                    key={group.id}
+                    className={styles.recommendationTab}
+                    value={group.id}
+                  >
+                    <strong>{group.label}</strong>
+                    <span>{itemCountLabel(group.productIds.length, plan.language)}</span>
+                  </Tabs.Tab>
+                ))}
+              </Tabs.List>
+              {exploreGroups.map((group) => (
+                <Tabs.Panel
+                  key={group.id}
+                  className={styles.recommendationPanel}
+                  value={group.id}
+                >
+                  <div className={styles.exploreRow}>
+                    {group.productIds.map((id) => {
+                      const product = productMap.get(id);
+                      return product ? <ProductCard key={id} product={product} /> : null;
+                    })}
+                  </div>
+                </Tabs.Panel>
+              ))}
+            </Tabs.Root>
+          )}
         </section>
       )}
     </div>
@@ -1954,8 +2118,8 @@ function WorkflowView({
           <div className={styles.intentHelpBody}>
             <p id="intent-help-description" className={styles.intentHelpIntro}>
               {isChinese
-                ? "目录事实与 Agent 语义建议分开处理。CatalogSnapshot 记录 Yami 品牌、分类与商品证据；配置了 Topic Strategy Agent 时，Workbench 会请求 semantic-proposal/v2 来组织分类和使用场景，再由确定性 Module 逐字段校验并生成 ThemeIntent。Agent 缺失、失败或提案越权时回退到已验证目录分类，不会阻止选品。Wikipedia 不参与商品归属判断。"
-                : "Catalog facts and Agent semantic suggestions are handled separately. CatalogSnapshot records verified Yami brand, category, and product evidence. When a Topic Strategy Agent is configured, Workbench requests a semantic-proposal/v2 for category and usage-scenario organization, then deterministic Modules validate every field before producing ThemeIntent. A missing, failed, or overreaching Agent falls back to verified catalog categories without blocking selection. Wikipedia never decides product membership."}
+                ? "目录事实与 Agent 语义建议分开处理。CatalogSnapshot 记录 Yami 品牌、目录分类与完整商品证据；配置了 Topic Strategy Agent 时，Workbench 会请求 semantic-proposal/v2 根据当前主题重新组织用户可理解的分类与使用场景，再由确定性 Module 校验目录 ID、唯一归属和完整覆盖。Agent 缺失、失败或提案越权时回退到已验证目录分类，不会阻止选品。Wikipedia 不参与商品归属判断。"
+                : "Catalog facts and Agent semantic suggestions are handled separately. CatalogSnapshot records verified Yami brand, catalog-category, and complete product evidence. When a Topic Strategy Agent is configured, Workbench requests a semantic-proposal/v2 to reorganize shopper-facing categories and usage scenarios for the current topic, then deterministic Modules validate category IDs, unique ownership, and complete coverage. A missing, failed, or overreaching Agent falls back to verified catalog categories without blocking selection. Wikipedia never decides product membership."}
             </p>
             <section className={styles.intentHelpSection}>
               <span>01</span>
@@ -1964,7 +2128,7 @@ function WorkflowView({
                 <li>{isChinese ? "读取用户关键词；当前只去除首尾空格，并校验长度为 2–80 个字符。" : "Read the user's keyword; currently only trim surrounding whitespace and validate a length of 2–80 characters."}</li>
                 <li>{isChinese ? "销售站点固定为美国站 site=us；当前运行不推断 locale 或 currency。" : "Fix the sales site to site=us; the current run does not infer locale or currency."}</li>
                 <li>{isChinese ? "先调用结构化目录 Adapter 读取 brandAgg、categoryAgg、tagAgg 与可售商品；失败后才使用公开搜索 Adapter，并保存每次尝试。" : "Try the structured catalog Adapter for brandAgg, categoryAgg, tagAgg, and available products first; use the public-search Adapter only after failure and retain every attempt."}</li>
-                <li>{isChinese ? "配置了 Topic Strategy Agent 时，Workbench 自动请求 semantic-proposal/v2；CLI 和其他调用方也可显式附加同一契约。提案只能引用当前目录分类 ID，不能覆盖精确品牌、分类、属性或商品证据，商品归属、数量、排序与去重仍由系统计算。" : "When a Topic Strategy Agent is configured, Workbench automatically requests semantic-proposal/v2; the CLI and other callers may attach the same contract explicitly. The proposal may only reference current catalog category IDs and cannot override exact brand, category, attribute, or product evidence; the system still computes product membership, counts, ordering, and deduplication."}</li>
+                <li>{isChinese ? "配置了 Topic Strategy Agent 时，Workbench 自动请求 semantic-proposal/v2；CLI 和其他调用方也可显式附加同一契约。每个 Shortcuts 提案可引用一个或多个当前目录叶子分类 ID，并结合完整商品证据按购物心智合并相近分类；不能伪造目录 ID、跨组复用分类或覆盖精确品牌、属性与商品事实。商品归属、数量、排序与去重仍由系统校验。" : "When a Topic Strategy Agent is configured, Workbench automatically requests semantic-proposal/v2; the CLI and other callers may attach the same contract explicitly. Each Shortcuts proposal may reference one or more current catalog leaf category IDs and combine related categories using complete product evidence and shopper intent; it cannot invent IDs, reuse a category across groups, or override exact brand, attribute, or product facts. The system still validates product membership, counts, ordering, and deduplication."}</li>
               </ul>
             </section>
             <section className={styles.intentHelpSection}>
@@ -1998,7 +2162,7 @@ function WorkflowView({
                       <li>{isChinese ? "购物动作：shoppingIntent 与 shopperAction 区分浏览、寻找、筛选、补给、组合或送礼。" : "Shopper action: shoppingIntent and shopperAction distinguish browsing, finding, filtering, replenishing, bundling, or gifting."}</li>
                       <li>{isChinese ? "条件与限制：conditions 保存尚未成为商品事实的修饰词，constraints 逐项记录 verified、unverified 或 rejected。" : "Conditions and constraints: conditions retain modifiers not yet verified as product facts, while constraints record verified, unverified, or rejected status per item."}</li>
                       <li>{isChinese ? "主题类型：brand 浏览品牌商品，product 寻找品类或属性商品，activity 围绕场景组合多个真实分类。" : "Topic type: brand browses brand products, product finds category or attribute products, and activity assembles multiple real categories around a scenario."}</li>
-                      <li>{isChinese ? "基线仍有歧义时可提交场景提案；精确品牌或品类也可提交分类组织提案，但不能改写核心实体。每个使用场景必须由至少两个真实目录分类支撑。" : "A caller may submit a scenario proposal when the baseline remains ambiguous, or a category-organization proposal for an exact brand or category, but it cannot rewrite the core entity. Every usage scenario requires at least two real catalog categories."}</li>
+                      <li>{isChinese ? "基线仍有歧义时可提交场景提案；精确品牌或品类也可根据完整商品池，把一个或多个真实叶子分类组织成用户可理解的展示分类，但不能改写核心实体或目录事实。每个使用场景必须由至少两个真实目录分类支撑。" : "A caller may submit a scenario proposal when the baseline remains ambiguous, or organize one or more real leaf categories into shopper-facing display groups for an exact brand or category using the complete product pool, but it cannot rewrite the core entity or catalog facts. Every usage scenario requires at least two real catalog categories."}</li>
                       <li>{isChinese ? "精确品牌或分类一旦确认，第二阶段商品证据只能补充覆盖度；若核心身份冲突则保留原实体并进入待确认。" : "Once an exact brand or category is resolved, second-stage product evidence may update coverage only; an identity conflict preserves the original entity and requires review."}</li>
                       <li>{isChinese ? "决策状态为 resolved、ambiguous、needs-review；只有 resolved 可以继续页面路由，其余状态必须复核或补充输入。" : "Decision status is resolved, ambiguous, or needs-review; only resolved may continue to page routing, while the others require review or more input."}</li>
                       <li>{isChinese ? "语义提案字段记录为 accepted、partially-accepted 或 rejected；最终只保留一个主实体。" : "Semantic proposal fields are recorded as accepted, partially accepted, or rejected; the final intent keeps one primary entity."}</li>
@@ -2343,9 +2507,9 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
   const [selectionRuns, setSelectionRuns] = useState<SelectionRuns | null>(null);
   const [categoryRoleRuntime, setCategoryRoleRuntime] =
     useState<CategoryRoleRuntimeEvidence | null>(null);
-  const [topicIntentRuntime, setTopicIntentRuntime] =
-    useState<TopicIntentRuntimeEvidence | null>(null);
   const [automation, setAutomation] = useState<TopicPageAutomationRun | null>(null);
+  const [heroSelection, setHeroSelection] = useState<HeroSelectionRun | null>(null);
+  const [shortcutSelection, setShortcutSelection] = useState<ShortcutSelectionRun | null>(null);
   const [localizedAutomationCache, setLocalizedAutomationCache] =
     useState<LocalizedAutomationCache | null>(null);
   const [view, setView] = useState<ResultView>("preview");
@@ -2354,6 +2518,23 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<GeneratorError | null>(null);
   const plan = plans?.[uiLanguage]?.[strategy] ?? null;
+  const resolvedHeroSelection = heroSelection ?? heroSelectionFromAutomation(
+    automation?.status === "ready" ? automation : null,
+    plan,
+  );
+  const resolvedShortcutSelection = shortcutSelection ?? shortcutSelectionFromAutomation(
+    automation?.status === "ready" ? automation : null,
+  );
+  const shortcutsRequireReview = Boolean(
+    plan?.modules.find(({ id }) => id === "shortcuts")?.visible,
+  );
+  const moduleSelectionStatus = resolvedHeroSelection?.status === "fallback" ||
+      resolvedShortcutSelection?.status === "fallback"
+    ? "fallback"
+    : resolvedHeroSelection?.status === "ready" &&
+        (!shortcutsRequireReview || resolvedShortcutSelection?.status === "ready")
+      ? "ready"
+      : "pending";
   const runError = selectionRunError(selectionRuns?.[strategy], uiLanguage);
   const copy = UI_COPY[uiLanguage];
   const targetLocale = resultLocaleLabel(uiLanguage);
@@ -2393,8 +2574,9 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
     setLoading(true);
     setError(null);
     setCategoryRoleRuntime(null);
-    setTopicIntentRuntime(null);
     setAutomation(null);
+    setHeroSelection(null);
+    setShortcutSelection(null);
     if (!options.preserveLocalizedCache) setLocalizedAutomationCache(null);
     setView("preview");
     setPreviewMode(mode === "selection" ? "distribution" : "page");
@@ -2414,9 +2596,10 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
         plans?: TopicPlanMatrix;
         selectionRuns?: SelectionRuns;
         runtime?: {
-          topicIntent?: TopicIntentRuntimeEvidence;
           categoryRole?: CategoryRoleRuntimeEvidence;
         };
+        heroSelection?: HeroSelectionRun;
+        shortcutSelection?: ShortcutSelectionRun;
         automation?: TopicPageAutomationRun;
         error?: GeneratorError;
       };
@@ -2428,7 +2611,8 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
       setPlans(payload.plans);
       setSelectionRuns(payload.selectionRuns ?? null);
       setCategoryRoleRuntime(payload.runtime?.categoryRole ?? null);
-      setTopicIntentRuntime(payload.runtime?.topicIntent ?? null);
+      setHeroSelection(payload.heroSelection ?? null);
+      setShortcutSelection(payload.shortcutSelection ?? null);
       const nextAutomation = payload.automation ?? null;
       setAutomation(nextAutomation);
       if (mode === "page" && nextAutomation?.status === "ready") {
@@ -2471,13 +2655,19 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
     const cachedAutomation = activeCache?.runs[requestedLanguage];
     const shouldResolvePage = activeCache !== null &&
       view === "preview" && previewMode === "page";
+    const shouldResolveSelection = plans !== null &&
+      activeMode === "selection" && view === "preview";
     setUiLanguage(requestedLanguage);
     setError(null);
+    setHeroSelection(null);
+    setShortcutSelection(null);
 
     if (cachedAutomation) {
       setAutomation(cachedAutomation);
     } else if (shouldResolvePage) {
       void generate("page", requestedLanguage, { preserveLocalizedCache: true });
+    } else if (shouldResolveSelection) {
+      void generate("selection", requestedLanguage);
     } else {
       setAutomation(null);
     }
@@ -2666,7 +2856,15 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
                       <div>
                         <span>
                           {plan.generationMode === "selection"
-                            ? copy.selectedPlan
+                            ? moduleSelectionStatus === "ready"
+                              ? uiLanguage === "zh"
+                                ? "已完成中文选品与模块组合复核"
+                                : "English selection and module review complete"
+                              : moduleSelectionStatus === "fallback"
+                                ? uiLanguage === "zh"
+                                  ? "已完成中文选品；模块组合使用规则预选"
+                                  : "English selection complete; modules use rule fallback"
+                                : copy.selectedPlan
                             : copy.generatedPlan}
                           {` · ${plan.site.toUpperCase()} · ${strategyLabel}`}
                         </span>
@@ -2720,12 +2918,27 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
                             </strong>
                           </div>
                           <div>
-                            <span>{copy.assetMode}</span>
-                            <strong>
-                              {automation?.status === "ready"
-                                ? uiLanguage === "zh" ? "生成图片" : "Generated assets"
-                                : copy.sourceImages}
-                            </strong>
+                            {plan.generationMode === "selection" ? (
+                              <>
+                                <span>{uiLanguage === "zh" ? "模块选品" : "Module selection"}</span>
+                                <strong>
+                                  {moduleSelectionStatus === "ready"
+                                    ? uiLanguage === "zh" ? "Agent 已复核" : "Agent reviewed"
+                                    : moduleSelectionStatus === "fallback"
+                                      ? uiLanguage === "zh" ? "规则预选" : "Rule fallback"
+                                      : uiLanguage === "zh" ? "等待复核" : "Awaiting review"}
+                                </strong>
+                              </>
+                            ) : (
+                              <>
+                                <span>{copy.assetMode}</span>
+                                <strong>
+                                  {automation?.status === "ready"
+                                    ? uiLanguage === "zh" ? "生成图片" : "Generated assets"
+                                    : copy.sourceImages}
+                                </strong>
+                              </>
+                            )}
                           </div>
                         </>
                       )}
@@ -2771,7 +2984,11 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
                     >
                       {view === "preview" && (
                         previewMode === "distribution"
-                          ? <PreviewView plan={plan} topicIntentRuntime={topicIntentRuntime} />
+                          ? <PreviewView
+                              plan={plan}
+                              heroSelection={resolvedHeroSelection}
+                              shortcutSelection={resolvedShortcutSelection}
+                            />
                           : automation?.status === "ready"
                             ? PagePreviewRenderer
                               ? (
@@ -2781,7 +2998,11 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
                                   />
                                 )
                               : <PageGenerationPreview spec={automation.generationSpec} />
-                            : <PreviewView plan={plan} topicIntentRuntime={topicIntentRuntime} />
+                            : <PreviewView
+                                plan={plan}
+                                heroSelection={resolvedHeroSelection}
+                                shortcutSelection={resolvedShortcutSelection}
+                              />
                       )}
                       {view === "pools" && <PoolsView plan={plan} uiLanguage={uiLanguage} />}
                       {view === "rules" && (

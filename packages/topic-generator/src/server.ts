@@ -14,6 +14,12 @@ import {
 import type { TopicPageAssetStore } from "./page-generation/contracts.js";
 import type { TopicPageImageDecoder } from "./page-generation/image.js";
 import {
+  runPageMerchandisingAgentWorkflow,
+  type HeroSelectionRun,
+  type ShortcutSelectionRun,
+  type TopicPagePlanV2,
+} from "./page-merchandising/index.js";
+import {
   runLandingPageOrchestratorAgentWorkflow,
   type LandingPageExecutionPlan,
   type LandingPageTypeRef,
@@ -60,6 +66,8 @@ export interface HandleTopicGeneratorOptions extends AnalyzeTopicIntentOptions {
   topicPageAssetStore?: TopicPageAssetStore;
   topicPageImageDecoder?: TopicPageImageDecoder;
   topicPagePreviewResolver?: TopicPageReviewPreviewResolver;
+  requireAutomaticHeroReview?: boolean;
+  requireAutomaticModuleReview?: boolean;
   requireAutomaticPage?: boolean;
   pageAutomationConfigurationIssues?: string[];
 }
@@ -104,6 +112,149 @@ function blockedCategoryRoleRun(issues: string[]): ProductSelectionRun {
     strategyRef: "category-role/landing-page-agent@1",
     issues,
   };
+}
+
+function fallbackHeroSelection(
+  plan: TopicPlanMatrix[ContentLanguage][ProductSelectionStrategy] | undefined,
+  issues: string[],
+): HeroSelectionRun {
+  const hero = plan?.modules.find(({ id }) => id === "hero");
+  return {
+    schemaVersion: "hero-selection-run/v1",
+    status: "fallback",
+    source: "deterministic-rules",
+    productIds: [...(hero?.productIds ?? [])],
+    productReasons: { ...(hero?.productReasons ?? {}) },
+    issues,
+  };
+}
+
+function reviewedHeroSelection(
+  agentId: string,
+  plan: TopicPagePlanV2,
+): HeroSelectionRun {
+  const hero = plan.modules.find(({ id }) => id === "hero");
+  if (!hero?.visible || hero.assignments.length === 0) {
+    return {
+      schemaVersion: "hero-selection-run/v1",
+      status: "fallback",
+      source: "deterministic-rules",
+      productIds: [],
+      productReasons: {},
+      issues: ["Page Merchandising Agent returned no visible Hero assignments."],
+    };
+  }
+  return {
+    schemaVersion: "hero-selection-run/v1",
+    status: "ready",
+    source: "page-merchandising-agent",
+    agentId,
+    templateRef: plan.templateRef,
+    planDigest: plan.digest,
+    productIds: hero.assignments.map(({ productId }) => productId),
+    productReasons: Object.fromEntries(hero.assignments.map((assignment) => [
+      assignment.productId,
+      assignment.selectionReason ?? assignment.reuseReason ?? hero.reason,
+    ])),
+    moduleReason: hero.reason,
+  };
+}
+
+function applyHeroSelection(
+  plans: TopicPlanMatrix,
+  strategy: ProductSelectionStrategy,
+  selection: Extract<HeroSelectionRun, { status: "ready" }>,
+) {
+  (["en", "zh"] as const).forEach((language) => {
+    const plan = plans[language][strategy];
+    const hero = plan?.modules.find(({ id }) => id === "hero");
+    if (!hero) return;
+    hero.productIds = [...selection.productIds];
+    hero.productReasons = { ...selection.productReasons };
+    hero.reason = selection.moduleReason;
+  });
+}
+
+function fallbackShortcutSelection(
+  plan: TopicPlanMatrix[ContentLanguage][ProductSelectionStrategy] | undefined,
+  issues: string[],
+): ShortcutSelectionRun {
+  const shortcuts = plan?.modules.find(({ id }) => id === "shortcuts");
+  return {
+    schemaVersion: "shortcut-selection-run/v1",
+    status: "fallback",
+    source: "deterministic-rules",
+    assignments: (shortcuts?.groups ?? []).flatMap((group) => {
+      const productId = group.productIds[0];
+      return productId
+        ? [{
+            groupId: group.id,
+            productId,
+            selectionReason: shortcuts?.productReasons?.[productId] ?? shortcuts?.reason ??
+              "Primary Yami source-ranked representative for this verified group.",
+          }]
+        : [];
+    }),
+    issues,
+  };
+}
+
+function reviewedShortcutSelection(
+  agentId: string,
+  plan: TopicPagePlanV2,
+): ShortcutSelectionRun {
+  const shortcuts = plan.modules.find(({ id }) => id === "shortcuts");
+  if (!shortcuts?.visible || shortcuts.assignments.length === 0 ||
+      shortcuts.assignments.some(({ groupId, selectionReason }) => !groupId || !selectionReason)) {
+    return {
+      schemaVersion: "shortcut-selection-run/v1",
+      status: "fallback",
+      source: "deterministic-rules",
+      assignments: [],
+      issues: ["Page Merchandising Agent returned no complete Shortcuts group assignments."],
+    };
+  }
+  return {
+    schemaVersion: "shortcut-selection-run/v1",
+    status: "ready",
+    source: "page-merchandising-agent",
+    agentId,
+    templateRef: plan.templateRef,
+    planDigest: plan.digest,
+    assignments: shortcuts.assignments.map((assignment) => ({
+      groupId: assignment.groupId!,
+      productId: assignment.productId,
+      selectionReason: assignment.selectionReason!,
+    })),
+    moduleReason: shortcuts.reason,
+  };
+}
+
+function applyShortcutSelection(
+  plans: TopicPlanMatrix,
+  strategy: ProductSelectionStrategy,
+  selection: Extract<ShortcutSelectionRun, { status: "ready" }>,
+) {
+  (["en", "zh"] as const).forEach((language) => {
+    const plan = plans[language][strategy];
+    const shortcuts = plan?.modules.find(({ id }) => id === "shortcuts");
+    if (!shortcuts) return;
+    const assignmentsByGroupId = new Map(
+      selection.assignments.map((assignment) => [assignment.groupId, assignment]),
+    );
+    const groups = shortcuts.groups ?? [];
+    if (
+      assignmentsByGroupId.size !== groups.length ||
+      groups.some(({ id }) => !assignmentsByGroupId.has(id))
+    ) {
+      throw new Error("Page Merchandising must preserve every frozen Shortcuts group.");
+    }
+    shortcuts.productIds = groups.map(({ id }) => assignmentsByGroupId.get(id)!.productId);
+    shortcuts.productReasons = Object.fromEntries(
+      selection.assignments.map(({ productId, selectionReason }) => [productId, selectionReason]),
+    );
+    shortcuts.reason = selection.moduleReason;
+  });
 }
 
 function categoryRoleRuntimeEvidence(options: {
@@ -239,11 +390,13 @@ export async function handleTopicGeneratorPost(
       typeof requestPayload.pageTypeRef === "string" && requestPayload.pageTypeRef.trim()
         ? requestPayload.pageTypeRef.trim() as LandingPageTypeRef
         : undefined;
+    const contentLanguage: ContentLanguage = requestPayload.language === "en" ? "en" : "zh";
     const initialAnalysis = await analyzeTopicIntent(keyword, options);
     const topicIntentWorkflow = requestedSelectionStrategyRef === "relevance/intent-themes@3"
       ? await runTopicIntentAgentWorkflow({
           snapshot: initialAnalysis.snapshot,
           intent: initialAnalysis.intent,
+          language: contentLanguage,
           proposalReview: initialAnalysis.proposalReview,
           agent: options.topicIntentAgent,
         })
@@ -262,7 +415,6 @@ export async function handleTopicGeneratorPost(
           },
         };
     const { intent, snapshot } = topicIntentWorkflow;
-    const contentLanguage: ContentLanguage = requestPayload.language === "en" ? "en" : "zh";
     const interactiveHandoff = requestPayload.agentMode === "interactive";
     const automaticCategoryRole = options.requireAutomaticCategoryRole === true &&
       !interactiveHandoff;
@@ -432,9 +584,86 @@ export async function handleTopicGeneratorPost(
         generationMode,
       );
     }
+    const selectedRun = selectedStrategy === "category-role" ? categoryRun : relevanceRun;
+    let heroSelection: HeroSelectionRun | undefined;
+    let shortcutSelection: ShortcutSelectionRun | undefined;
+    const automaticModuleReview = options.requireAutomaticModuleReview === true ||
+      options.requireAutomaticHeroReview === true;
+    if (generationMode === "selection" && automaticModuleReview) {
+      const fallbackPlan = plans[contentLanguage][selectedStrategy] ??
+        plans[contentLanguage].relevance;
+      if (!options.topicPageAgent) {
+        const issues = ["Automatic module selection requires a Topic Page Agent."];
+        heroSelection = fallbackHeroSelection(fallbackPlan, issues);
+        shortcutSelection = fallbackShortcutSelection(fallbackPlan, issues);
+      } else if (selectedRun.status !== "ready") {
+        const issues = selectedRun.status === "blocked"
+          ? selectedRun.issues
+          : ["ProductSelection did not produce a ready result for module review."];
+        heroSelection = fallbackHeroSelection(fallbackPlan, issues);
+        shortcutSelection = fallbackShortcutSelection(fallbackPlan, issues);
+      } else {
+        try {
+          const heroOrchestration = await runLandingPageOrchestratorAgentWorkflow({
+            intent,
+            keyword: snapshot.keyword,
+            site: snapshot.site,
+            language: contentLanguage,
+            requestedPageTypeRef,
+            requestedSelectionStrategyRef,
+            agent: options.topicPageAgent,
+          });
+          if (heroOrchestration.run.status !== "ready") {
+            const issues = heroOrchestration.run.status === "blocked"
+              ? heroOrchestration.run.issues
+              : ["Orchestrator Agent did not return an execution plan proposal."];
+            heroSelection = fallbackHeroSelection(fallbackPlan, issues);
+            shortcutSelection = fallbackShortcutSelection(fallbackPlan, issues);
+          } else {
+            const merchandising = await runPageMerchandisingAgentWorkflow({
+              intent,
+              selection: selectedRun.result,
+              language: contentLanguage,
+              templateRef: heroOrchestration.run.plan.templateRef,
+              agent: options.topicPageAgent,
+            });
+            if (merchandising.run.status === "ready") {
+              heroSelection = reviewedHeroSelection(
+                merchandising.artifacts.agentId,
+                merchandising.run.plan,
+              );
+              shortcutSelection = reviewedShortcutSelection(
+                merchandising.artifacts.agentId,
+                merchandising.run.plan,
+              );
+              if (heroSelection.status === "ready" && shortcutSelection.status === "ready") {
+                applyHeroSelection(plans, selectedStrategy, heroSelection);
+                applyShortcutSelection(plans, selectedStrategy, shortcutSelection);
+              } else {
+                const issues = [
+                  ...(heroSelection.status === "fallback" ? heroSelection.issues : []),
+                  ...(shortcutSelection.status === "fallback" ? shortcutSelection.issues : []),
+                ];
+                heroSelection = fallbackHeroSelection(fallbackPlan, issues);
+                shortcutSelection = fallbackShortcutSelection(fallbackPlan, issues);
+              }
+            } else {
+              const issues = merchandising.run.status === "blocked"
+                ? merchandising.run.issues
+                : ["Page Merchandising Agent did not return a proposal."];
+              heroSelection = fallbackHeroSelection(fallbackPlan, issues);
+              shortcutSelection = fallbackShortcutSelection(fallbackPlan, issues);
+            }
+          }
+        } catch (error) {
+          const issues = [error instanceof Error ? error.message : "Module selection Agent failed."];
+          heroSelection = fallbackHeroSelection(fallbackPlan, issues);
+          shortcutSelection = fallbackShortcutSelection(fallbackPlan, issues);
+        }
+      }
+    }
     let automation: TopicPageAutomationRun | undefined;
     if (generationMode === "page") {
-      const selectedRun = selectedStrategy === "category-role" ? categoryRun : relevanceRun;
       if (options.requireAutomaticPage) {
         if (pageConfigurationIssues.length > 0 || !options.topicPageAgent ||
             !options.topicPageAssetStore || !options.topicPageImageDecoder ||
@@ -494,6 +723,8 @@ export async function handleTopicGeneratorPost(
           configurationIssues,
         }),
       },
+      ...(heroSelection ? { heroSelection } : {}),
+      ...(shortcutSelection ? { shortcutSelection } : {}),
       ...(automation ? { automation } : {}),
       ...(generatedCandidateSnapshot || candidateQualityReport
         ? {

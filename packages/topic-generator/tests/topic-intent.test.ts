@@ -104,12 +104,26 @@ describe("TopicIntent Module", () => {
       mustInclude: ["ANUA"],
       mustExclude: [],
       searchTerms: ["ANUA"],
-      categoryHypotheses: [{
-        label: "Hydration essentials",
-        role: "core",
-        categoryIds: ["101", "102"],
-        reason: "The two catalog categories form a reviewable hydration collection.",
-      }],
+      categoryHypotheses: [
+        {
+          label: "Serums",
+          role: "core",
+          categoryIds: ["101"],
+          reason: "A verified serum navigation category.",
+        },
+        {
+          label: "Toners",
+          role: "pairing",
+          categoryIds: ["102"],
+          reason: "A verified toner navigation category.",
+        },
+        {
+          label: "Sheet masks",
+          role: "accessory",
+          categoryIds: ["103"],
+          reason: "A verified sheet-mask navigation category.",
+        },
+      ],
       scenarioHypotheses: [{
         name: "Daily hydration routine",
         shoppingGoal: "Assemble a toner, serum, and mask routine.",
@@ -124,12 +138,26 @@ describe("TopicIntent Module", () => {
       themeType: "brand",
       entityType: "brand",
       canonicalEntity: { id: "100", label: "ANUA" },
-      categoryHypotheses: [{
-        label: "Hydration essentials",
-        role: "core",
-        categoryIds: ["101", "102"],
-        evidenceIds: ["catalog-category:101", "catalog-category:102"],
-      }],
+      categoryHypotheses: [
+        {
+          label: "Serums",
+          role: "core",
+          categoryIds: ["101"],
+          evidenceIds: ["catalog-category:101"],
+        },
+        {
+          label: "Toners",
+          role: "pairing",
+          categoryIds: ["102"],
+          evidenceIds: ["catalog-category:102"],
+        },
+        {
+          label: "Sheet masks",
+          role: "accessory",
+          categoryIds: ["103"],
+          evidenceIds: ["catalog-category:103"],
+        },
+      ],
       scenarioHypotheses: [{
         name: "Daily hydration routine",
         categoryIds: ["101", "102", "103"],
@@ -144,7 +172,89 @@ describe("TopicIntent Module", () => {
     expect(result.proposalReview).toMatchObject({
       status: "accepted",
       rejectedFields: [],
+      warnings: [],
     });
+  });
+
+  it("accepts a shopper-facing category that merges multiple verified catalog leaves", () => {
+    const snapshot = catalogSnapshot("ANUA", [
+      { id: "101", label: "Cleansers" },
+      { id: "102", label: "Acne Care" },
+    ]);
+    snapshot.evidence!.brands = [{
+      id: "100",
+      label: "ANUA",
+      aliases: ["ANUA"],
+      resultCount: 8,
+    }];
+    const result = resolveTopicIntent(snapshot, {
+      schemaVersion: "semantic-proposal/v2",
+      themeType: "brand",
+      entityType: "brand",
+      canonicalEntity: { id: "100", label: "ANUA" },
+      shoppingIntent: "browse-brand",
+      needs: [],
+      mustInclude: ["ANUA"],
+      mustExclude: [],
+      searchTerms: ["ANUA"],
+      categoryHypotheses: [{
+        label: "面膜",
+        role: "core",
+        categoryIds: ["101", "102"],
+        reason: "片状面膜与睡眠面膜属于同一购物心智，可以集中浏览。",
+      }],
+      scenarioHypotheses: [],
+    });
+
+    expect(result.intent.categoryHypotheses).toEqual([{
+      label: "面膜",
+      role: "core",
+      categoryIds: ["101", "102"],
+      evidenceIds: ["catalog-category:101", "catalog-category:102"],
+      reason: "片状面膜与睡眠面膜属于同一购物心智，可以集中浏览。",
+    }]);
+    expect(result.proposalReview).toMatchObject({
+      status: "accepted",
+      rejectedFields: [],
+      warnings: [],
+    });
+  });
+
+  it("accepts every catalog-backed category hypothesis without a fixed display cap", () => {
+    const categories = Array.from({ length: 7 }, (_, index) => ({
+      id: String(101 + index),
+      label: `Category ${index + 1}`,
+    }));
+    const snapshot = catalogSnapshot("ANUA", categories);
+    snapshot.evidence!.brands = [{
+      id: "100",
+      label: "ANUA",
+      aliases: ["ANUA"],
+      resultCount: 28,
+    }];
+    const proposal = {
+      schemaVersion: "semantic-proposal/v2",
+      themeType: "brand",
+      entityType: "brand",
+      canonicalEntity: { id: "100", label: "ANUA" },
+      shoppingIntent: "browse-brand",
+      needs: [],
+      mustInclude: ["ANUA"],
+      mustExclude: [],
+      searchTerms: ["ANUA"],
+      categoryHypotheses: categories.map((category, index) => ({
+        label: `分类 ${index + 1}`,
+        role: "core" as const,
+        categoryIds: [category.id],
+        reason: `目录分类 ${category.id} 的导航入口。`,
+      })),
+      scenarioHypotheses: [],
+    } satisfies SemanticProposal;
+
+    const result = resolveTopicIntent(snapshot, proposal);
+
+    expect(result.intent.categoryHypotheses).toHaveLength(7);
+    expect(result.proposalReview.rejectedFields).toEqual([]);
   });
 
   it("rejects v2 hypotheses that reuse or invent catalog category IDs", () => {

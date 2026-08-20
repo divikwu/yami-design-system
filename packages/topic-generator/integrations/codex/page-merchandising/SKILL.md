@@ -65,12 +65,27 @@ strategy, template, `themeIntentDigest`, and `productSelectionDigest`.
 - Hero and Shortcuts may reference only products already owned by a selection module. Explain the
   later cross-module reference with `reuseReason`; it is audit metadata and never permits reuse
   between ProductSelection-owned modules.
-- Compose Hero from one to three eligible core products. Treat `weeklySalesLabel` as ranking
-  evidence, not an absolute order: keep a strong high-selling anchor, then use the returned title,
-  category, brand, and source image to avoid obvious duplicate variants and create a representative
-  visual set. Products may share a brand or category when that is the truthful catalog shape. A
-  lower-ranked product needs a concise merchandising reason; never invent a product-family ID or
-  claim that the catalog marks two products as variants when it does not.
+- Compose Hero from three to five eligible core products when the returned evidence contains at
+  least three; use every selected product in the Hero. Smaller pools may use the returned minimum.
+  Treat `weeklySalesLabel` as ranking evidence, not an absolute order: keep a strong high-selling
+  anchor, then use the returned title, category, brand, and source image to avoid obvious duplicate
+  variants and create a representative visual set. Products may share a brand or category when that
+  is the truthful catalog shape. A lower-ranked product needs a concise merchandising reason; never
+  invent a product-family ID or claim that the catalog marks two products as variants when it does
+  not.
+- Add a concise `selectionReason` to every Hero assignment. Explain that product's role in the
+  composition using only returned ranking, category, brand, title, availability, and image
+  evidence. Write it in the returned task `language`. A module-level reason does not replace the
+  per-product rationale.
+- Use distinct source image URLs for every Hero assignment. The deterministic reviewer rejects an
+  accepted proposal when two assigned products resolve to the same source image.
+- When `context.selectionModules` contains a visible `shortcuts` module with groups, add exactly one
+  Shortcuts assignment for each group in the returned group order. Copy the exact group ID into
+  `groupId`, choose `productId` only from that group's `productIds`, and add a concise
+  `selectionReason` in the returned task `language`. Use distinct source image URLs across the
+  chosen representatives. Do not rename, merge, reorder, add, remove, or truncate ProductSelection
+  groups. Shortcuts is the directory for the same ordered category tabs in the comprehensive
+  recommendation module, so a fixed display-count cap is not authoritative.
 - Hide an optional module when evidence is absent. In particular, do not invent reviews, ratings,
   claims, brands, products, or image concepts.
 
@@ -100,3 +115,10 @@ membership checks, reuse policy, task IDs, and deterministic PagePlan compilatio
 hosts may inject the same capability with `runPageMerchandisingAgentWorkflow` or route a
 `topic-page-agent-request/v1` `module-merchandising` stage to it; this does not create a second
 business-rule engine.
+
+The standalone `selection` request runs this Agent stage after ProductSelection and returns the
+accepted Hero assignments plus group-bound Shortcuts representatives as the formal selection
+result. If the Agent or its proposal is unavailable, the response must label the distribution as an
+explicit deterministic fallback: code keeps the PrimaryPool lead, prefers additional verified
+product types, preserves one representative per frozen Shortcuts group, removes repeated source
+images, and exposes the blocking issues. Never present that fallback as Agent-reviewed output.

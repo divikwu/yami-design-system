@@ -11,7 +11,7 @@ ThemeIntent + ready ProductSelectionResult + PageTemplate
 ```
 
 The context is immutable input. It contains the complete ThemeIntent, selected categories, exact
-template ref, both upstream digests, module order, module rules, deterministic selection-stage
+template ref, requested output language, both upstream digests, module order, module rules, deterministic selection-stage
 module evidence, source scenes, and frozen candidate products. A proposal cannot add catalog facts
 or change a product's pool or role.
 
@@ -44,11 +44,27 @@ or override this field; the compiler copies it into PagePlan v2.
       "id": "hero",
       "visible": true,
       "shoppingGoal": "Introduce the strongest verified topic proposition",
-      "reason": "Two core products represent the frozen selection.",
+      "reason": "Three core products represent the frozen selection.",
       "scenes": [],
       "assignments": [
-        { "productId": "product-1" },
-        { "productId": "product-2" }
+        { "productId": "product-1", "selectionReason": "Strong sales anchor." },
+        { "productId": "product-2", "selectionReason": "Adds a distinct product type." },
+        { "productId": "product-3", "selectionReason": "Completes representative coverage." }
+      ]
+    },
+    {
+      "id": "shortcuts",
+      "visible": true,
+      "shoppingGoal": "Help shoppers enter the topic through verified categories",
+      "reason": "Each frozen semantic group has one distinct representative.",
+      "scenes": [],
+      "assignments": [
+        {
+          "groupId": "shortcut-cleansing",
+          "productId": "product-1",
+          "selectionReason": "销量领先的洁面代表商品。",
+          "reuseReason": "Shortcuts references the ProductSelection-owned assortment."
+        }
       ]
     },
     {
@@ -99,12 +115,26 @@ reviewable `reason`.
 - Hero and Shortcuts may reference only products already owned by a ProductSelection module. Include
   a concise `reuseReason` on the later reference. ProductSelection-owned modules may never reuse a
   product; `reuseReason` does not grant permission.
-- Hero composition is an Agent judgment within those hard constraints. Use `weeklySalesLabel` as
-  ranking evidence and compare the returned title, category, brand, and image URL for representative
-  and visual diversity. Do not require different categories when the truthful pool is concentrated,
-  and do not infer an undocumented product-family relationship. Explain any lower-ranked choice in
-  the module reason.
-- Keep `shoppingGoal`, module `reason`, scene `reason`, and `reuseReason` concise and reviewable.
+- Hero composition is an Agent judgment within those hard constraints. Select three to five
+  eligible products when the evidence contains at least three, and assign every selected product to
+  Hero. Use `weeklySalesLabel` as ranking evidence and compare the returned title, category, brand,
+  and image URL for representative and visual diversity. Do not require different categories when
+  the truthful pool is concentrated, and do not infer an undocumented product-family relationship.
+  Explain any lower-ranked choice in the module reason.
+- Hero assignments must resolve to distinct source image URLs after URL query and fragment removal.
+  Repeating the same source image blocks the proposal even when the product IDs differ.
+- Every Hero assignment requires a concise `selectionReason` grounded in the returned product
+  evidence and written in the task `language`. It explains why that individual product belongs in
+  the composition; the module reason explains why the complete set works together.
+- When the returned `selectionModules` contains Shortcuts groups, visible Shortcuts must contain
+  exactly one assignment for every group, in group order. Each assignment must copy that group's
+  exact `id` into `groupId`, choose `productId` from that group's `productIds`, and provide a concise
+  `selectionReason` in the task `language`. The deterministic reviewer rejects missing, unknown,
+  duplicate, or reordered group IDs, products outside their group, and repeated source image URLs.
+  These assignments choose representatives only; they cannot change group labels, membership, or
+  order. The complete accepted group sequence also defines the comprehensive-recommendation tabs;
+  do not truncate either surface to a fixed display count.
+- Keep `shoppingGoal`, module `reason`, scene `reason`, `selectionReason`, and `reuseReason` concise and reviewable.
   They are planning rationale, not hidden reasoning or final marketing copy.
 
 ## Ready output

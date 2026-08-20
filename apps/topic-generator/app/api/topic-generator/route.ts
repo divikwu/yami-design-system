@@ -14,6 +14,7 @@ export async function POST(request: Request) {
     ...runtime,
     ...pageRuntime,
     requireAutomaticCategoryRole: true,
+    requireAutomaticModuleReview: true,
     requireAutomaticPage: true,
   });
 }

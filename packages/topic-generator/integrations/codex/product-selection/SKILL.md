@@ -19,9 +19,18 @@ Use the package CLI as the deterministic runtime. Act as the Product Agent only 
 
 ## Choose a strategy
 
-- Use `relevance/intent-themes@3` for current keyword and brand relevance. Accepted TopicIntent
-  category hypotheses organize Shortcuts and scenario hypotheses organize StartHere; deterministic
-  code retains product assignment, ordering, group limits, and deduplication.
+- Use `relevance/intent-themes@3` for current keyword and brand relevance. Each accepted TopicIntent
+  category hypothesis binds one or more verified catalog leaf categories to one shopper-facing
+  Shortcut and the matching comprehensive-recommendation tab. The Agent may merge closely related
+  leaf categories according to the topic and complete product evidence; catalog leaves remain the
+  membership facts. Scenario hypotheses organize StartHere. Deterministic code expands every accepted
+  category group, retains product ordering, and enforces deduplication. Do not truncate valid category
+  navigation to a fixed display count or a four-product editorial minimum: one-product verified
+  categories remain valid when the Agent keeps them distinct. Agent-omitted catalog categories are
+  restored, otherwise unassigned primary products are placed in a deterministic
+  More to Explore group, and requires every primary product to appear in exactly one Shortcuts group.
+  Shortcuts and recommendation tabs preserve that same complete group ID sequence. StartHere keeps
+  its separate two-to-six-group, four-to-eight-product limits.
 - Use `relevance/intent-themes@2` only to replay artifacts that grouped directly by verified catalog
   categories, and `relevance/default@1` only for fixed-rank legacy replay.
 - Use `category-role/landing-page-agent@1` when the user requests the target repository's category-role workflow.
@@ -97,7 +106,7 @@ this developer-only flow.
 
 ## Architecture boundary
 
-The TOPIC GENERATOR Agent decides category semantics and source shopping scenes. The Skill provides
+The TOPIC GENERATOR Agent decides shopper-facing category semantics, catalog-category grouping, and source shopping scenes. The Skill provides
 the calling convention. `@yami/topic-generator` owns schema validation, Yami requests, sorting,
 role quotas, selection-stage candidate grouping, and global deduplication. The later
 `page-merchandising` Skill may propose final PagePlan v2 module visibility and assignments only

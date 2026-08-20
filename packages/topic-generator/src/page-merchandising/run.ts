@@ -1,5 +1,5 @@
 import type { ProductSelectionResult } from "../product-selection/contracts.js";
-import type { ThemeIntent } from "../types.js";
+import type { ContentLanguage, ThemeIntent } from "../types.js";
 import { sha256Digest } from "../product-selection/digest.js";
 import {
   getPageMerchandisingTemplateConfig,
@@ -22,6 +22,7 @@ import {
 export interface PageMerchandisingRequest {
   intent: ThemeIntent;
   selection: ProductSelectionResult;
+  language?: ContentLanguage;
   templateRef?: TopicPageTemplateRef;
   proposal?: unknown;
 }
@@ -68,8 +69,10 @@ function compileAcceptedPlan(
         productId: assignment.productId,
         pool: primaryIds.has(assignment.productId) ? "primary" as const : "related" as const,
         role: product.role,
+        ...(assignment.groupId ? { groupId: assignment.groupId } : {}),
         ...(assignment.sceneId ? { sceneId: assignment.sceneId } : {}),
         ...(assignment.reuseReason ? { reuseReason: assignment.reuseReason } : {}),
+        ...(assignment.selectionReason ? { selectionReason: assignment.selectionReason } : {}),
       };
     });
     return {
@@ -129,11 +132,15 @@ function taskContext(
   intent: ThemeIntent,
   selection: ProductSelectionResult,
   templateRef: TopicPageTemplateRef,
+  language: ContentLanguage,
 ): PageMerchandisingTaskContext {
   const config = getPageMerchandisingTemplateConfig(templateRef);
+  const shortcutGroupCount = selection.modules.find(({ id }) => id === "shortcuts")
+    ?.groups.length ?? 0;
   return {
     keyword: selection.keyword,
     site: selection.site,
+    language,
     strategyRef: selection.strategyRef,
     templateRef,
     themeIntentDigest: themeIntentDigest(intent),
@@ -144,8 +151,12 @@ function taskContext(
       id: rule.id,
       component: rule.component,
       required: rule.required,
-      minimumProducts: rule.minimumProducts,
-      maximumProducts: rule.maximumProducts,
+      minimumProducts: rule.id === "shortcuts" && shortcutGroupCount > 0
+        ? shortcutGroupCount
+        : rule.minimumProducts,
+      maximumProducts: rule.id === "shortcuts"
+        ? shortcutGroupCount > 0 ? shortcutGroupCount : selection.products.length
+        : rule.maximumProducts,
       allowedPools: [...rule.allowedPools],
       allowedRoles: [...rule.allowedRoles],
       ...(rule.sceneRange ? { sceneRange: rule.sceneRange } : {}),
@@ -294,7 +305,12 @@ export function advancePageMerchandisingRun(
     return {
       schemaVersion: "page-merchandising-run/v1",
       status: "needs-module-proposal",
-      context: taskContext(request.intent, request.selection, templateRef),
+      context: taskContext(
+        request.intent,
+        request.selection,
+        templateRef,
+        request.language ?? "en",
+      ),
     };
   }
 

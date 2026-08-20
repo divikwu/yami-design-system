@@ -1,4 +1,5 @@
 import type {
+  ContentLanguage,
   ProductPool,
   ProductRole,
   ThemeIntent,
@@ -41,8 +42,10 @@ export interface PageMerchandisingSceneProposal {
 
 export interface PageMerchandisingAssignmentProposal {
   productId: string;
+  groupId?: string;
   sceneId?: string;
   reuseReason?: string;
+  selectionReason?: string;
 }
 
 export interface PageMerchandisingModuleProposal {
@@ -77,8 +80,10 @@ export interface TopicPagePlanAssignmentV2 {
   productId: string;
   pool: ProductPool;
   role: ProductRole;
+  groupId?: string;
   sceneId?: string;
   reuseReason?: string;
+  selectionReason?: string;
 }
 
 export interface TopicPagePlanSceneV2 {
@@ -150,6 +155,7 @@ export type PageMerchandisingCandidateProduct = Pick<
 export interface PageMerchandisingTaskContext {
   keyword: string;
   site: YamiSite;
+  language: ContentLanguage;
   strategyRef: ProductSelectionStrategyRef;
   templateRef: TopicPageTemplateRef;
   themeIntentDigest: string;
@@ -181,4 +187,50 @@ export type PageMerchandisingRun =
       status: "blocked";
       issues: string[];
       proposalReview: ModuleMerchandisingProposalReview;
+    };
+
+export type HeroSelectionRun =
+  | {
+      schemaVersion: "hero-selection-run/v1";
+      status: "ready";
+      source: "page-merchandising-agent";
+      agentId: string;
+      templateRef: TopicPageTemplateRef;
+      planDigest: string;
+      productIds: string[];
+      productReasons: Record<string, string>;
+      moduleReason: string;
+    }
+  | {
+      schemaVersion: "hero-selection-run/v1";
+      status: "fallback";
+      source: "deterministic-rules";
+      productIds: string[];
+      productReasons: Record<string, string>;
+      issues: string[];
+    };
+
+export interface ShortcutSelectionAssignment {
+  groupId: string;
+  productId: string;
+  selectionReason: string;
+}
+
+export type ShortcutSelectionRun =
+  | {
+      schemaVersion: "shortcut-selection-run/v1";
+      status: "ready";
+      source: "page-merchandising-agent";
+      agentId: string;
+      templateRef: TopicPageTemplateRef;
+      planDigest: string;
+      assignments: ShortcutSelectionAssignment[];
+      moduleReason: string;
+    }
+  | {
+      schemaVersion: "shortcut-selection-run/v1";
+      status: "fallback";
+      source: "deterministic-rules";
+      assignments: ShortcutSelectionAssignment[];
+      issues: string[];
     };

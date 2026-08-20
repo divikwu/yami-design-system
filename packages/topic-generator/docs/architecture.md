@@ -86,8 +86,8 @@ digests, workflow order, and downstream execution.
 `resolveTopicIntent(snapshot, proposal?)` ranks catalog-backed interpretations, separates entity, shopper action, and constraints, and validates every proposed field. Exact catalog evidence cannot be overridden by a SemanticProposal.
 
 `runTopicIntentAgentWorkflow(request)` is the optional automatic semantic Adapter used by the Web
-Host. It sends only the baseline ThemeIntent, verified catalog categories, and bounded representative
-products to the Topic Strategy Agent's `topic-intent` stage. The returned `semantic-proposal/v2` is
+Host. It sends the baseline ThemeIntent, verified catalog categories, and the complete current product
+evidence to the Topic Strategy Agent's `topic-intent` stage. The returned `semantic-proposal/v2` is
 parsed and reviewed by the same deterministic TopicIntent Module. Missing, failed, invalid, or fully
 rejected proposals retain the verified catalog grouping and publish explicit fallback evidence.
 
@@ -97,7 +97,7 @@ rejected proposals retain the verified catalog grouping and publish explicit fal
 
 ### ProductSelection Module
 
-`runProductSelectionWorkflow(request)` advances one versioned strategy and returns a resumable `ProductSelectionRun`. `relevance/default@1` remains the fixed-rank legacy replay strategy and `relevance/intent-themes@2` retains direct catalog-category grouping for replay. The active `relevance/intent-themes@3` consumes accepted ThemeIntent category hypotheses for Shortcuts and scenario hypotheses for StartHere. The deterministic Module verifies catalog membership, keeps proposal order, removes cross-group duplicates, enforces 2–6 groups and 4–8 StartHere products, and falls back to verified catalog categories when the proposal cannot satisfy the contract. `category-role/landing-page-agent@1` requires taxonomy, category proposal, candidate evidence, and scene proposal before returning a ready `ProductSelectionResult`.
+`runProductSelectionWorkflow(request)` advances one versioned strategy and returns a resumable `ProductSelectionRun`. `relevance/default@1` remains the fixed-rank legacy replay strategy and `relevance/intent-themes@2` retains direct catalog-category grouping for replay. The active `relevance/intent-themes@3` accepts one or more verified catalog leaf categories per ThemeIntent Shortcuts hypothesis and reuses that complete shopper-facing group sequence for the matching comprehensive-recommendation tabs, while multi-category scenario hypotheses organize StartHere. The Agent decides which verified leaves form one theme category; the deterministic Module validates category ownership, expands product membership, keeps proposal order, removes cross-group duplicates, retains valid one-product groups, restores Agent-omitted catalog categories, and places otherwise unassigned primary products in a stable More to Explore group. Every primary product must belong to exactly one Shortcuts group; there is no fixed category display cap. StartHere independently keeps its two-to-six-group, four-to-eight-product limits. `category-role/landing-page-agent@1` requires taxonomy, category proposal, candidate evidence, and scene proposal before returning a ready `ProductSelectionResult`.
 
 `runProductSelectionAgentWorkflow(request)` is the optional automatic strategy adapter. It injects one
 `ProductSelectionAgent`, asks it only for the two proposal contracts requested by the state machine,

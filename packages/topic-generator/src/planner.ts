@@ -244,7 +244,7 @@ function createModules(
     startHere?: TopicGroup[];
   },
 ): TopicModulePlan[] {
-  const shortcutGroups = semanticGroups?.shortcuts ?? groups.slice(0, 6);
+  const shortcutGroups = semanticGroups?.shortcuts ?? groups;
   const groupRepresentatives = shortcutGroups.flatMap((group) =>
     group.productIds.slice(0, 1),
   );
@@ -262,7 +262,7 @@ function createModules(
   const usesCatalogCategories = primary.some((product) => product.categoryL3Name);
   const usesSemanticShortcutGroups = Boolean(semanticGroups?.shortcuts);
   const usesSemanticScenarioGroups = Boolean(semanticGroups?.startHere);
-  const heroProducts = selectFallbackHeroProducts(primary);
+  const heroSelection = selectFallbackHeroProducts(primary, language);
 
   return [
     {
@@ -270,14 +270,15 @@ function createModules(
       label: zh ? "主题主视觉" : "Theme Hero",
       heading: `${zh ? "探索" : "Explore"} ${displayKeyword(keyword)}`,
       description: zh
-        ? "一个主题命题，由 3 张真实商品图提供证据。"
-        : "One topic proposition supported by three source product images.",
+        ? "一个主题命题，由 3–5 张真实商品图提供证据。"
+        : "One topic proposition supported by three to five source product images.",
       required: true,
       visible: primary.length > 0,
-      productIds: heroProducts.map((product) => product.id),
+      productIds: heroSelection.products.map((product) => product.id),
+      productReasons: heroSelection.productReasons,
       reason: zh
-        ? "Agent 执行前的安全预选：保留主商品池首位并跳过重复商品图；正式组合由 Page Merchandising Agent 复核。"
-        : "Safe preselection before Agent execution: keeps the PrimaryPool leader and skips duplicate product images; the Page Merchandising Agent reviews the final composition.",
+        ? "Agent 执行前的临时预选：保留主商品池首位，优先补充不同商品类型并排除重复来源图；正式组合由 Page Merchandising Agent 复核。"
+        : "Temporary preselection before Agent execution: keeps the PrimaryPool leader, prefers additional product types, and removes duplicate source images; the Page Merchandising Agent reviews the final composition.",
     },
     {
       id: "shortcuts",
@@ -303,10 +304,10 @@ function createModules(
           ? zh
             ? usesSemanticShortcutGroups
               ? `按已接受的语义提案顺序展示 ${shortcutGroups.length} 个分类；代表商品由系统选择。`
-              : `展示 ${Math.min(groups.length, 6)} 个商品类型的代表商品。`
+              : `按全部可识别商品类型生成 ${shortcutGroups.length} 个分类入口；每个入口使用一件代表商品。`
             : usesSemanticShortcutGroups
               ? `Shows ${shortcutGroups.length} accepted semantic groups in proposal order; representatives are system-selected.`
-              : `Shows one representative from each of ${Math.min(groups.length, 6)} product types.`
+              : `Creates ${shortcutGroups.length} category shortcuts from every recognizable product type, with one representative per group.`
           : zh
             ? "当前商品池只有一个可识别类型，因此隐藏。"
             : "Hidden because the current pool only contains one identifiable product type.",
@@ -389,50 +390,76 @@ function createModules(
     },
     {
       id: "explore-more",
-      label: zh ? "探索更多" : "Explore More",
-      heading: zh ? "探索更多" : "Explore more",
+      label: zh ? "综合推荐" : "All Recommendations",
+      heading: zh ? "综合推荐" : "All recommendations",
       description: zh
-        ? usesCatalogCategories
-          ? "完整主商品池，按 Yami 目录分类分组。"
-          : "完整主商品池，按推断的商品类型分组。"
-        : usesCatalogCategories
-          ? "The complete PrimaryPool, grouped by Yami catalog category."
-          : "The complete PrimaryPool, grouped by inferred product type.",
+        ? "通过与精选分类一一对应的分类 Tab 浏览主题商品。"
+        : "Browse topic products through tabs that map one-to-one to Featured Categories.",
       required: true,
       visible: primary.length > 0,
       productIds: primary.map((product) => product.id),
+      groups: shortcutGroups,
       reason: zh
-        ? "仅包含主商品池；关联商品池不会填充核心模块。"
-        : "Contains PrimaryPool only; RelatedPool never fills a core module.",
+        ? "分类 Tab 与 Shortcuts 使用同一组已验证分类 ID 和商品归属。"
+        : "Category tabs reuse the same verified group IDs and product membership as Shortcuts.",
     },
   ];
 }
 
 function selectFallbackHeroProducts(
   products: TopicProduct[],
-  maximumProducts = 3,
-): TopicProduct[] {
+  language: ContentLanguage,
+  maximumProducts = 5,
+): { products: TopicProduct[]; productReasons: Record<string, string> } {
   const selected: TopicProduct[] = [];
   const selectedIds = new Set<string>();
   const imageKeys = new Set<string>();
-
-  for (const product of products) {
-    if (selected.length >= maximumProducts) break;
-    const imageKey = product.imageUrl.trim().split(/[?#]/, 1)[0] ?? "";
-    if (imageKey && imageKeys.has(imageKey)) continue;
+  const productTypes = new Set<string>();
+  const productReasons: Record<string, string> = {};
+  const imageKey = (product: TopicProduct) =>
+    product.imageUrl.trim().split(/[?#]/, 1)[0] ?? "";
+  const add = (
+    product: TopicProduct,
+    reason: { zh: string; en: string },
+  ) => {
     selected.push(product);
     selectedIds.add(product.id);
-    if (imageKey) imageKeys.add(imageKey);
+    const key = imageKey(product);
+    if (key) imageKeys.add(key);
+    productTypes.add(product.productType);
+    productReasons[product.id] = `${language === "zh" ? reason.zh : reason.en} · Yami #${product.sourceRank}`;
+  };
+
+  const anchor = products[0];
+  if (anchor) {
+    add(anchor, {
+      zh: "主商品池首位锚点",
+      en: "PrimaryPool lead anchor",
+    });
   }
 
   for (const product of products) {
     if (selected.length >= maximumProducts) break;
-    if (selectedIds.has(product.id)) continue;
-    selected.push(product);
-    selectedIds.add(product.id);
+    const key = imageKey(product);
+    if (selectedIds.has(product.id) || (key && imageKeys.has(key))) continue;
+    if (productTypes.has(product.productType)) continue;
+    add(product, {
+      zh: `补充${product.productTypeLabel}类型`,
+      en: `Adds ${product.productTypeLabel} coverage`,
+    });
   }
 
-  return selected;
+  for (const product of products) {
+    if (selected.length >= maximumProducts) break;
+    const key = imageKey(product);
+    if (selectedIds.has(product.id) || (key && imageKeys.has(key))) continue;
+    add(product, {
+      zh: "候选类型集中，按 Yami 顺序补足",
+      en: "Fills a concentrated catalog pool in Yami order",
+    });
+  }
+
+  return { products: selected, productReasons };
 }
 
 function createCategoryRoleModules(
@@ -470,6 +497,7 @@ function createCategoryRoleModules(
   };
   const coreProducts = products.filter(({ role }) => role === "core");
   const coreGroups = groups.filter(({ role }) => role === "core").slice(0, 5);
+  const heroSelection = selectFallbackHeroProducts(coreProducts, language);
 
   return [
     {
@@ -480,8 +508,9 @@ function createCategoryRoleModules(
         ? "使用分类角色策略已验证的核心商品图。"
         : "Uses verified core-role product imagery from the category-role selection.",
       required: true,
-      visible: coreProducts.length > 0,
-      productIds: coreProducts.slice(0, 3).map(({ id }) => id),
+      visible: heroSelection.products.length > 0,
+      productIds: heroSelection.products.map(({ id }) => id),
+      productReasons: heroSelection.productReasons,
       reason: zh
         ? "只使用核心角色商品；不生成或替换商品包装。"
         : "Uses core-role products only; product packaging is never generated or replaced.",
@@ -612,6 +641,12 @@ export function buildTopicPagePlanFromProductSelection(
             label: productTypeLabel(group.label, language),
             role: group.role ?? "core",
             productIds,
+            ...(group.sourceCategoryIds
+              ? { sourceCategoryIds: [...group.sourceCategoryIds] }
+              : {}),
+            ...(group.classificationReason
+              ? { classificationReason: group.classificationReason }
+              : {}),
           }]
         : [];
     });
@@ -626,6 +661,17 @@ export function buildTopicPagePlanFromProductSelection(
   const plannedModules = strategy === "category-role"
     ? createCategoryRoleModules(primary, groups, selection, language)
     : createModules(primary, groups, snapshot.keyword, language, semanticGroups);
+  const shortcutGroupsForQuality = strategy === "relevance"
+    ? plannedModules.find(({ id }) => id === "shortcuts")?.groups ?? groups
+    : [];
+  const dominantShortcutGroup = shortcutGroupsForQuality.length > 1
+    ? shortcutGroupsForQuality.reduce((largest, group) =>
+        group.productIds.length > largest.productIds.length ? group : largest
+      )
+    : undefined;
+  const dominantShortcutShare = dominantShortcutGroup && primary.length > 0
+    ? dominantShortcutGroup.productIds.length / primary.length
+    : 0;
   const modules = generationMode === "page"
     ? plannedModules
     : plannedModules.map((module) => ({
@@ -759,7 +805,13 @@ export function buildTopicPagePlanFromProductSelection(
         : `Catalog retrieval failed for: ${snapshot.catalogRefinement.failedKeys.join(", ")}.`,
     );
   }
-
+  if (dominantShortcutGroup && dominantShortcutShare >= 0.4) {
+    qualityNotes.push(
+      language === "zh"
+        ? `分类入口“${dominantShortcutGroup.label}”覆盖 ${dominantShortcutGroup.productIds.length}/${primary.length} 件商品，范围较宽；如目录存在可验证子分类，发布前应复核是否需要细分。`
+        : `The “${dominantShortcutGroup.label}” shortcut covers ${dominantShortcutGroup.productIds.length}/${primary.length} products and is broad; review whether verified catalog subcategories support a finer split before publishing.`,
+    );
+  }
   return {
     generationMode,
     keyword: snapshot.keyword,

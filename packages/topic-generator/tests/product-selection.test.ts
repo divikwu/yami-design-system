@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   advanceProductSelectionRun,
+  buildTopicPagePlanFromProductSelection,
   getProductSelectionStrategyConfig,
   listProductSelectionStrategyConfigs,
   loadYamiBrandCatalogCoverage,
@@ -312,7 +313,7 @@ describe("ProductSelection Module", () => {
       ]);
   });
 
-  it("compiles accepted semantic category and scenario hypotheses without letting the Agent assign products", () => {
+  it("compiles merged shopper-facing groups while preserving complete product coverage", () => {
     const baseIntent = brandIntent([
       { id: "101", label: "Serums", evidenceCount: 6 },
       { id: "102", label: "Sheet Masks", evidenceCount: 5 },
@@ -402,18 +403,27 @@ describe("ProductSelection Module", () => {
           label: "Daily cleansing",
           role: "core",
           productIds: ["103-1", "103-2", "103-3", "103-4", "103-5"],
+          sourceCategoryIds: ["103"],
+          classificationReason: "A verified daily-use category.",
         },
         {
           id: "category-hypothesis-2",
           label: "Targeted care",
           role: "pairing",
-          productIds: ["101-1", "101-2", "101-3", "101-4", "101-5", "101-6", "104-1", "104-2", "104-3", "104-4"],
+          productIds: [
+            "101-1", "101-2", "101-3", "101-4", "101-5", "101-6",
+            "104-1", "104-2", "104-3", "104-4",
+          ],
+          sourceCategoryIds: ["101", "104"],
+          classificationReason: "Verified treatment categories.",
         },
         {
           id: "category-hypothesis-3",
           label: "Mask moments",
           role: "accessory",
           productIds: ["102-1", "102-2", "102-3", "102-4", "102-5"],
+          sourceCategoryIds: ["102"],
+          classificationReason: "A verified mask category.",
         },
       ]);
     expect(run.result.modules.find(({ id }) => id === "start-here")?.groups)
@@ -433,7 +443,186 @@ describe("ProductSelection Module", () => {
       ]);
   });
 
-  it("falls back to verified catalog categories when semantic hypotheses cannot form two groups", () => {
+  it("keeps every verified category group in Shortcuts and the recommendation tabs", () => {
+    const categories = Array.from({ length: 7 }, (_, index) => ({
+      id: String(101 + index),
+      label: `Category ${index + 1}`,
+      evidenceCount: 4,
+    }));
+    const intent: NonNullable<YamiSearchSnapshot["intent"]> = {
+      ...brandIntent(categories),
+      categoryHypotheses: categories.map((category, index) => ({
+        label: `Navigation ${index + 1}`,
+        role: "core",
+        categoryIds: [category.id],
+        evidenceIds: [`catalog-category:${category.id}`],
+        reason: "Verified catalog navigation group.",
+      })),
+      scenarioHypotheses: [],
+    };
+    const products = categories.flatMap((category, categoryIndex) =>
+      Array.from({ length: 4 }, (_, productIndex) => ({
+        id: `${category.id}-${productIndex + 1}`,
+        title: `ANUA ${category.label} ${productIndex + 1}`,
+        brand: "ANUA",
+        price: "$20.00",
+        imageUrl: `https://example.com/${category.id}-${productIndex + 1}.webp`,
+        productUrl: `https://example.com/${category.id}-${productIndex + 1}`,
+        sourceRank: categoryIndex * 4 + productIndex + 1,
+        categoryL3Id: Number(category.id),
+        categoryL3Name: category.label,
+      }))
+    );
+    const snapshot: YamiSearchSnapshot = {
+      keyword: "ANUA",
+      site: "us",
+      sourceUrl: "https://example.com/search?q=ANUA",
+      fetchedAt: "2026-08-20T00:00:00.000Z",
+      provider: "yami-catalog-search",
+      products,
+      intent,
+    };
+
+    const run = advanceProductSelectionRun({
+      snapshot,
+      strategyRef: "relevance/intent-themes@3",
+    });
+
+    expect(run.status).toBe("ready");
+    if (run.status !== "ready") return;
+    const plan = buildTopicPagePlanFromProductSelection(snapshot, run.result, "zh", "selection");
+    const shortcutGroups = plan.modules.find(({ id }) => id === "shortcuts")?.groups ?? [];
+    const recommendationGroups = plan.modules.find(({ id }) => id === "explore-more")?.groups ?? [];
+    expect(shortcutGroups).toHaveLength(7);
+    expect(recommendationGroups.map(({ id }) => id)).toEqual(
+      shortcutGroups.map(({ id }) => id),
+    );
+  });
+
+  it("keeps small groups and restores omitted or uncategorized products in Shortcuts", () => {
+    const categories = [
+      { id: "101", label: "Serums", evidenceCount: 2 },
+      { id: "102", label: "Sheet Masks", evidenceCount: 1 },
+      { id: "103", label: "Toners", evidenceCount: 4 },
+    ];
+    const intent: NonNullable<YamiSearchSnapshot["intent"]> = {
+      ...brandIntent(categories),
+      categoryHypotheses: [
+        {
+          label: "Targeted care",
+          role: "core",
+          categoryIds: ["101"],
+          evidenceIds: ["catalog-category:101"],
+          reason: "Verified serum group.",
+        },
+        {
+          label: "Mask care",
+          role: "pairing",
+          categoryIds: ["102"],
+          evidenceIds: ["catalog-category:102"],
+          reason: "Verified mask group.",
+        },
+      ],
+      scenarioHypotheses: [],
+    };
+    const products = [
+      ...Array.from({ length: 2 }, (_, index) => ({
+        id: `101-${index + 1}`,
+        title: `ANUA Serum ${index + 1}`,
+        brand: "ANUA",
+        price: "$20.00",
+        imageUrl: `https://example.com/101-${index + 1}.webp`,
+        productUrl: `https://example.com/101-${index + 1}`,
+        sourceRank: index + 1,
+        categoryL3Id: 101,
+        categoryL3Name: "Serums",
+      })),
+      {
+        id: "102-1",
+        title: "ANUA Sheet Mask",
+        brand: "ANUA",
+        price: "$20.00",
+        imageUrl: "https://example.com/102-1.webp",
+        productUrl: "https://example.com/102-1",
+        sourceRank: 3,
+        categoryL3Id: 102,
+        categoryL3Name: "Sheet Masks",
+      },
+      ...Array.from({ length: 4 }, (_, index) => ({
+        id: `103-${index + 1}`,
+        title: `ANUA Toner ${index + 1}`,
+        brand: "ANUA",
+        price: "$20.00",
+        imageUrl: `https://example.com/103-${index + 1}.webp`,
+        productUrl: `https://example.com/103-${index + 1}`,
+        sourceRank: index + 4,
+        categoryL3Id: 103,
+        categoryL3Name: "Toners",
+      })),
+      {
+        id: "uncategorized-1",
+        title: "ANUA Limited Product",
+        brand: "ANUA",
+        price: "$20.00",
+        imageUrl: "https://example.com/uncategorized-1.webp",
+        productUrl: "https://example.com/uncategorized-1",
+        sourceRank: 8,
+      },
+    ];
+    const run = advanceProductSelectionRun({
+      snapshot: {
+        keyword: "ANUA",
+        site: "us",
+        sourceUrl: "https://example.com/search?q=ANUA",
+        fetchedAt: "2026-08-20T00:00:00.000Z",
+        provider: "yami-catalog-search",
+        products,
+        intent,
+      },
+      strategyRef: "relevance/intent-themes@3",
+    });
+
+    expect(run.status).toBe("ready");
+    if (run.status !== "ready") return;
+    const shortcutGroups = run.result.modules.find(({ id }) => id === "shortcuts")?.groups ?? [];
+    expect(shortcutGroups).toEqual([
+      {
+        id: "category-hypothesis-1",
+        label: "Targeted care",
+        role: "core",
+        productIds: ["101-1", "101-2"],
+        sourceCategoryIds: ["101"],
+        classificationReason: "Verified serum group.",
+      },
+      {
+        id: "category-hypothesis-2",
+        label: "Mask care",
+        role: "pairing",
+        productIds: ["102-1"],
+        sourceCategoryIds: ["102"],
+        classificationReason: "Verified mask group.",
+      },
+      {
+        id: "theme-103",
+        label: "Toners",
+        role: "core",
+        productIds: ["103-1", "103-2", "103-3", "103-4"],
+        sourceCategoryIds: ["103"],
+      },
+      {
+        id: "theme-more-to-explore",
+        label: "More to Explore",
+        role: "core",
+        productIds: ["uncategorized-1"],
+        sourceCategoryIds: [],
+      },
+    ]);
+    const groupedIds = shortcutGroups.flatMap(({ productIds }) => productIds);
+    expect(groupedIds).toHaveLength(run.result.pools.primaryIds.length);
+    expect(new Set(groupedIds)).toEqual(new Set(run.result.pools.primaryIds));
+  });
+
+  it("supplements an incomplete semantic proposal with verified catalog categories", () => {
     const intent: NonNullable<YamiSearchSnapshot["intent"]> = {
       ...brandIntent([
         { id: "101", label: "Serums", evidenceCount: 4 },
@@ -478,8 +667,21 @@ describe("ProductSelection Module", () => {
     if (run.status !== "ready") return;
     expect(run.result.modules.find(({ id }) => id === "shortcuts")?.groups)
       .toEqual([
-        { id: "theme-101", label: "Serums", role: "core", productIds: ["101-1", "101-2", "101-3", "101-4"] },
-        { id: "theme-102", label: "Sheet Masks", role: "core", productIds: ["102-1", "102-2", "102-3", "102-4"] },
+        {
+          id: "category-hypothesis-1",
+          label: "Too small",
+          role: "core",
+          productIds: ["101-1", "101-2", "101-3", "101-4"],
+          sourceCategoryIds: ["101"],
+          classificationReason: "Only one proposed group.",
+        },
+        {
+          id: "theme-102",
+          label: "Sheet Masks",
+          role: "core",
+          productIds: ["102-1", "102-2", "102-3", "102-4"],
+          sourceCategoryIds: ["102"],
+        },
       ]);
     expect(run.result.modules.find(({ id }) => id === "start-here")?.groups)
       .toEqual([

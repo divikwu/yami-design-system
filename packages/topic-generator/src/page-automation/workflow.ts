@@ -179,6 +179,7 @@ export async function runTopicPageAutomationWorkflow(
       merchandising = await runPageMerchandisingAgentWorkflow({
         intent: options.intent,
         selection: options.selection,
+        language: options.language,
         templateRef: options.executionPlan.templateRef,
         agent: options.agents.merchandising,
       });

@@ -1244,6 +1244,8 @@ describe("Topic page planner", () => {
       { ...product("hero-2", "ANUA Serum 60ml", 2), imageUrl: duplicateImage },
       product("hero-3", "ANUA Toner", 3),
       product("hero-4", "ANUA Cleanser", 4),
+      product("hero-5", "ANUA Moisturizer", 5),
+      product("hero-6", "ANUA Sunscreen", 6),
     ];
 
     const plan = buildTopicPagePlan(snapshot(heroProducts), "relevance", "zh", "selection");
@@ -1252,8 +1254,40 @@ describe("Topic page planner", () => {
       "hero-1",
       "hero-3",
       "hero-4",
+      "hero-5",
+      "hero-6",
     ]);
-    expect(plan.pools.primaryIds).toEqual(["hero-1", "hero-2", "hero-3", "hero-4"]);
+    expect(plan.modules.find(({ id }) => id === "hero")?.productReasons).toMatchObject({
+      "hero-1": expect.stringContaining("锚点"),
+      "hero-3": expect.stringContaining("补充"),
+    });
+    expect(plan.pools.primaryIds).toEqual([
+      "hero-1",
+      "hero-2",
+      "hero-3",
+      "hero-4",
+      "hero-5",
+      "hero-6",
+    ]);
+  });
+
+  it("keeps the strongest anchor and prefers distinct product types before rank-only fill", () => {
+    const plan = buildTopicPagePlan(snapshot([
+      product("hero-1", "ANUA Serum 30ml", 1),
+      product("hero-2", "ANUA Serum 60ml", 2),
+      product("hero-3", "ANUA Toner", 3),
+      product("hero-4", "ANUA Cleanser", 4),
+      product("hero-5", "ANUA Moisturizer", 5),
+      product("hero-6", "ANUA Sunscreen", 6),
+    ]), "relevance", "zh", "selection");
+
+    expect(plan.modules.find(({ id }) => id === "hero")?.productIds).toEqual([
+      "hero-1",
+      "hero-3",
+      "hero-4",
+      "hero-5",
+      "hero-6",
+    ]);
   });
 
   it("degrades a plan when catalog evidence only partially verifies the intent", () => {
@@ -1417,8 +1451,20 @@ describe("Topic page planner", () => {
           id: "shortcuts",
           productIds: catalogProducts.map(({ id }) => id),
           groups: [
-            { id: "category-hypothesis-1", label: "Daily routine", role: "core", productIds: ["cleanser-1", "cleanser-2", "cleanser-3", "cleanser-4"] },
-            { id: "category-hypothesis-2", label: "Prep and hydrate", role: "pairing", productIds: ["toner-1", "toner-2", "toner-3", "toner-4"] },
+            {
+              id: "category-hypothesis-1",
+              label: "Daily routine",
+              role: "core",
+              productIds: ["cleanser-1", "cleanser-2", "cleanser-3", "cleanser-4", "toner-1", "toner-2"],
+              sourceCategoryIds: ["101", "102"],
+            },
+            {
+              id: "category-hypothesis-2",
+              label: "Prep and hydrate",
+              role: "pairing",
+              productIds: ["toner-3", "toner-4"],
+              sourceCategoryIds: ["102"],
+            },
           ],
         },
         {
@@ -1445,7 +1491,7 @@ describe("Topic page planner", () => {
       "Daily routine",
       "Prep and hydrate",
     ]);
-    expect(shortcuts?.productIds).toEqual(["cleanser-1", "toner-1"]);
+    expect(shortcuts?.productIds).toEqual(["cleanser-1", "toner-3"]);
     expect(startHere?.groups?.map(({ label }) => label)).toEqual([
       "Simple morning routine",
       "Simple evening routine",
@@ -1454,6 +1500,12 @@ describe("Topic page planner", () => {
       "cleanser-1", "cleanser-2", "toner-1", "toner-2",
       "cleanser-3", "cleanser-4", "toner-3", "toner-4",
     ]);
+    expect(plan.qualityNotes).toContain(
+      "The “Daily routine” shortcut covers 6/8 products and is broad; review whether verified catalog subcategories support a finer split before publishing.",
+    );
+    expect(plan.qualityNotes).not.toContain(
+      "1 category shortcut combines multiple catalog leaf categories; restore one leaf category per shortcut before publishing.",
+    );
   });
 
   it("stops after module assignment in selection mode", () => {
