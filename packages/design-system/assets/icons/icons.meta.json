@@ -32,7 +32,7 @@
       "canvas": 24
     },
    "social-monochrome": {
-      "count": 7,
+      "count": 8,
       "canvas": 24
     },
     "system": {
@@ -736,6 +736,14 @@
       "width": 24,
       "height": 24,
       "sha1": "780ec6fcd2"
+    },
+    {
+      "name": "email",
+      "category": "social-monochrome",
+      "path": "assets/icons/social-monochrome/email.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "e01825b121"
     },
     {
       "name": "facebook",

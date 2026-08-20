@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "name": "product-media-gallery",
+  "title": "ProductMediaGallery",
+  "type": "component",
+  "status": "experimental",
+  "source": "components/ProductMediaGallery",
+  "files": [
+    "components/ProductMediaGallery/index.ts",
+    "components/ProductMediaGallery/ProductMediaGallery.module.css",
+    "components/ProductMediaGallery/ProductMediaGallery.tsx"
+  ]
+}

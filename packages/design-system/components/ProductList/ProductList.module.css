@@ -206,6 +206,11 @@
   box-sizing: border-box;
 }
 
+.introContent {
+  min-width: 0;
+  width: 100%;
+}
+
 /* Title layout and the xl -> 2xl type ramp come from SectionHeading; only the
  * themed/atmospheric recolours below are this component's. */
 /* .actions comes from SectionHeading; .railActions is the nested paging group. */

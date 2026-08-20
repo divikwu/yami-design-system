@@ -616,7 +616,6 @@
 
 .categoryMedia:has(.categoryImage[data-image-state]) {
   overflow: hidden;
-  border-radius: var(--radius-full);
   background: var(--fill-skeleton);
 }
 
@@ -633,6 +632,7 @@
   display: block;
   width: 24px;
   height: 24px;
+  border-radius: 0;
   object-fit: contain;
 }
 

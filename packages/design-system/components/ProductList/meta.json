@@ -31,6 +31,11 @@
       "required": false,
       "description": "Optional supporting copy rendered to the right of the section title and below it on narrow screens."
     },
+    "introContent": {
+      "type": "ReactNode",
+      "required": false,
+      "description": "Optional full-width editorial content rendered once between the heading controls and product collection."
+    },
     "products": {
       "type": "ProductListItem[]",
       "required": true,

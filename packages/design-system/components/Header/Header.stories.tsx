@@ -272,6 +272,14 @@ export const Showcase: Story = {
         `Category artwork must render at 24px, got ${artworkBox.width}×${artworkBox.height}`,
       )
     }
+    const artworkMedia = artwork.parentElement
+    if (
+      getComputedStyle(artwork).borderRadius !== '0px' ||
+      !artworkMedia ||
+      getComputedStyle(artworkMedia).borderRadius !== '0px'
+    ) {
+      throw new Error('Category artwork and its media container must remain square')
+    }
 
     // The hall switcher is EN-only; CN separates the lockup with a rule instead.
     const halls = canvasElement.querySelector('[data-slot="header-halls"]')

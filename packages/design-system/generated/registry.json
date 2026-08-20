@@ -116,6 +116,18 @@
       "path": "registry-items/product-list.json"
     },
     {
+      "name": "product-media-gallery",
+      "title": "ProductMediaGallery",
+      "type": "component",
+      "path": "registry-items/product-media-gallery.json"
+    },
+    {
+      "name": "product-review-section",
+      "title": "ProductReviewSection",
+      "type": "component",
+      "path": "registry-items/product-review-section.json"
+    },
+    {
       "name": "radio-group",
       "title": "RadioGroup",
       "type": "component",

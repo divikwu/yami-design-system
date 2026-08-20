@@ -1,6 +1,6 @@
 ---
 version: 0.5.0-alpha.1
-updated: 2026-07-22
+updated: 2026-08-20
 audience: ai-agent
 roles: [spec, rules-ssot]
 name: YAMI
@@ -338,7 +338,7 @@ The aliases below are the **only** identifiers a component should reference. If 
 
 > **Rules governing this section** — `emphasis-limit` (1 emphasis Button per screen), `card-no-border` (Cards default to no border), `tap-target` (iOS 44pt / Android 48dp minimum). Full bilingual prose: [Hard Rules summary](#hard-rules-validator-linked).
 
-YAMI ships 9 primitives and 5 composites. Full anatomy, props, and `tokenBindings` live in each component's `meta.json` and `usage.md` under `components/<name>/`. Below is the canonical at-a-glance map.
+YAMI's current inventory is generated in [`generated/catalog.json`](./generated/catalog.json). Full anatomy, props, and `tokenBindings` live in each component's `meta.json` and `usage.md` under `components/<name>/`. Below is the canonical at-a-glance map.
 
 ### Button — `components/Button/`
 
@@ -392,6 +392,10 @@ YAMI ships 9 primitives and 5 composites. Full anatomy, props, and `tokenBinding
 | **Typography** | `--font-family-ios` + weight 400; Mobile/Tablet `12/16`, PC `14/20`                              |
 | **Constraint** | ProductCard renders **max 2** badges; extras truncate silently.                                  |
 
+### Tag — `components/Tag/`
+
+Static full-pill label for short descriptive keywords. Dark, light, and outlined tones use YAMI semantic text, fill, and border tokens; Tag is display-only and never substitutes for an interactive FilterChip.
+
 ### Input — `components/Input/`
 
 |              |                                                                              |
@@ -401,6 +405,10 @@ YAMI ships 9 primitives and 5 composites. Full anatomy, props, and `tokenBinding
 | **Border**   | `--border-default` → `--border-focus` (focus) → `--border-attention` (error) |
 | **Focus**    | 2px black, 2px offset. **Never blue.**                                       |
 | **Disabled** | `--button-disabled` bg, `--text-disabled` fg                                 |
+
+### FilterChip — `components/FilterChip/`
+
+Interactive filter-pill family with filled and outlined treatments, selected state, optional icons, and single-, multiple-, or hierarchical selection. Groups retain native horizontal overflow on narrow surfaces and expose selection through accessible pressed-state controls.
 
 ### Checkbox — `components/Checkbox/`
 
@@ -440,6 +448,10 @@ YAMI ships 9 primitives and 5 composites. Full anatomy, props, and `tokenBinding
 | **Responsibility**    | Geometry only. Media semantics, cropping, loading states, backgrounds, radii, and overlays belong to the consumer.           |
 | **ProductCard usage** | The image area composes `AspectRatio ratio={1}` while retaining ProductCard-specific image, placeholder, and Badge behavior. |
 
+### HorizontalScrollList — `components/HorizontalScrollList/`
+
+Style-neutral finite horizontal list with native scrolling, hidden scrollbars, item snapping, keyboard focus, and a shared controller for YAMI rail navigation. Consumers own card anatomy and section presentation.
+
 ### ProductCard — `components/ProductCard/` _(composite: composes Card + AspectRatio + Badge + ProductCardAddButton)_
 
 Canonical YAMI product tile. Anatomy (top → bottom):
@@ -468,6 +480,22 @@ Data-driven product collection for homepage, campaign, and discovery surfaces.
 | **Appearance** | `standard` uses the primary surface; `themed` requires a semantic banner; `atmospheric` uses decorative CSS artwork while retaining primary product-card surfaces. |
 | **Loading** | Layout-specific skeleton geometry consumes `--fill-skeleton`. The section sets `aria-busy`; skeletons are `aria-hidden`; localized loading copy remains available to assistive technology. |
 | **Structure** | The visible heading labels the section. Product containers use `list` / `listitem`; product navigation and quick add remain independent controls. |
+
+### ThemeProductList — `components/ThemeProductList/`
+
+Theme storytelling composition built on the standard product rail. It places an image-led content panel and description before the shared ProductCard collection while preserving ProductList paging, tokens, and accessibility contracts.
+
+### ProductMediaGallery — `components/ProductMediaGallery/`
+
+Accessible PDP gallery with one square viewing window, thumbnail selection, shared previous/next rail controls, an active-image counter, and responsive thumbnail placement. Only one product image is presented as active at a time.
+
+### ProductReviewSection — `components/ProductReviewSection/`
+
+Full PDP review composition with aggregate score, five-star distribution, filters, native sorting, review metadata, responsive review cards, and progressive disclosure. It uses YAMI Button and FilterChip primitives and semantic typography tokens.
+
+### ReviewList — `components/ReviewList/`
+
+Responsive curated-review rail that composes ReviewCard children with the shared section heading and horizontal-list behavior. Use it for compact recommendations or editorial review highlights, not as a substitute for the full PDP review section.
 
 ### Billboard — `components/Billboard/` _(composite)_
 
@@ -529,6 +557,10 @@ PC global navigation band. **PC only** — the mobile header is a separate compo
 | **Search** | 40px pill (`--radius-button-primary`) with an embedded 52 × 32 submit, deliberately **not** composed from `Input` (8px labelled form field). Hot-search rotation through the placeholder is a data concern. |
 | **Rail paging** | 36px controls overlaid on the rail edges, ringed with `--border-default` rather than a shadow (rule `elevation-on-press`). They page one viewport minus a single anchor entry and **unmount** at the boundaries, matching production's `display: none`, so no dead control sits in the chrome. |
 | **Structure** | `banner` landmark containing a `search` landmark and a `nav` region wrapping a list of category links. The account control shows its label visibly; the cart is icon-only and folds its item count into `aria-label`, since the chrome renders no visible count. |
+
+### ActivityPageHeader — `components/ActivityPageHeader/`
+
+Compact mobile navigation for campaign and editorial landing pages. It combines the approved YAMI lockup, visible page title, and independent search and cart actions without reusing the PC-only global Header geometry.
 
 ### Footer — `components/Footer/`
 
@@ -635,36 +667,15 @@ Copy library: [`copy/`](./copy/) (UI strings indexed by feature).
 
 ---
 
-## Page Recipes
+## Page Prototypes
 
-Slot-based page compositions live in [`pages/recipes/`](./pages/recipes/) — each recipe declares its data schema, layout slots, and a reference template under `pages/templates/`. AI agents consume recipes via MCP `list_page_templates` and `get_page_recipe`.
-
-Current recipes:
-
-| Recipe               | File                                                                   | Reference template                            |
-| -------------------- | ---------------------------------------------------------------------- | --------------------------------------------- |
-| Product list (PLP)   | [`product-list.recipe.ts`](./pages/recipes/product-list.recipe.ts)     | `pages/templates/{web,app}/ProductList.tsx`   |
-| Product detail (PDP) | [`product-detail.recipe.ts`](./pages/recipes/product-detail.recipe.ts) | `pages/templates/{web,app}/ProductDetail.tsx` |
-| Cart                 | [`cart.recipe.ts`](./pages/recipes/cart.recipe.ts)                     | `pages/templates/{web,app}/Cart.tsx`          |
-
-When generating a new page, **first** consult the recipe — it codifies which slots exist, what data shape they expect, and which components fill each slot. Improvising layout without the recipe risks inconsistency with existing surfaces.
+Maintained page compositions and their interaction stories live in [`../prototypes/pages/`](../prototypes/pages/). Before creating a YAMI page, inspect the closest existing Ecommerce Home, Search Results, Product Detail, Topic Landing, or email composition and reuse its public components, fixture shapes, and page-width strategy. A page type without a maintained prototype is a system gap to flag rather than an invitation to invent a recipe path.
 
 ---
 
-## Visual Previews
+## Storybook and generated contracts
 
-Standalone HTML preview cards live in [`preview/`](./preview/), one per component (`<name>.html`), each paired with `.validate.json` (lint result) and `.changelog.json` (preview-level revision history). These render-in-the-browser specs catch visual drift that AST validators can't see.
-
-| Component   | Preview                                            | Validate                                                             | Changelog                                                              |
-| ----------- | -------------------------------------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| Button      | [`button.html`](./preview/button.html)             | [`button.validate.json`](./preview/button.validate.json)             | [`button.changelog.json`](./preview/button.changelog.json)             |
-| Card        | [`card.html`](./preview/card.html)                 | [`card.validate.json`](./preview/card.validate.json)                 | [`card.changelog.json`](./preview/card.changelog.json)                 |
-| Badge       | [`badge.html`](./preview/badge.html)               | [`badge.validate.json`](./preview/badge.validate.json)               | [`badge.changelog.json`](./preview/badge.changelog.json)               |
-| Input       | [`input.html`](./preview/input.html)               | [`input.validate.json`](./preview/input.validate.json)               | [`input.changelog.json`](./preview/input.changelog.json)               |
-| Divider     | [`divider.html`](./preview/divider.html)           | [`divider.validate.json`](./preview/divider.validate.json)           | [`divider.changelog.json`](./preview/divider.changelog.json)           |
-| ProductCard | [`product-card.html`](./preview/product-card.html) | [`product-card.validate.json`](./preview/product-card.validate.json) | [`product-card.changelog.json`](./preview/product-card.changelog.json) |
-
-Multi-component preview surfaces (`preview/components/`, `preview/hero/`, `preview/pages/`) live in their own subdirectories.
+Storybook stories are the maintained visual and interaction reference. [`generated/catalog.json`](./generated/catalog.json) records the active component inventory, while [`generated/registry.json`](./generated/registry.json) and [`generated/registry-items/`](./generated/registry-items/) define installable source contracts. Browser verification remains necessary for layout, responsive, and computed-style behavior that static validators cannot observe.
 
 ---
 

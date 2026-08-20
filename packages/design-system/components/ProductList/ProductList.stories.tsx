@@ -484,6 +484,41 @@ export const StandardRail: Story = {
   play: verifyDesktopListPadding,
 };
 
+export const RailWithIntroContent: Story = {
+  name: "Rail / Intro content",
+  render: (_args, { globals }) => (
+    <Collection
+      globals={globals}
+      overrides={{
+        introContent: (
+          <div>
+            <strong>About the brand</strong>
+            <p>Full-width editorial context before the product collection.</p>
+          </div>
+        ),
+      }}
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const intro = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-list-intro"]',
+    );
+    const items = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-list-items"]',
+    );
+    if (
+      !intro ||
+      !items ||
+      intro.getBoundingClientRect().top >= items.getBoundingClientRect().top ||
+      !intro.textContent?.includes("About the brand")
+    ) {
+      throw new Error(
+        "Product List intro content must render once above the product collection",
+      );
+    }
+  },
+};
+
 export const StaticRailHeader: Story = {
   tags: ["!dev", "!autodocs"],
   render: (_args, { globals }) => {

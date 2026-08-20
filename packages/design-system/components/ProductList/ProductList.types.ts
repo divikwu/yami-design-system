@@ -40,6 +40,8 @@ interface ProductListBaseProps
   title: ReactNode;
   /** Optional supporting copy rendered alongside the section title. */
   description?: ReactNode;
+  /** Optional full-width editorial content rendered before the product collection. */
+  introContent?: ReactNode;
   /** Optional serif treatment for editorial section headings. */
   titleFontFamily?: "sans" | "serif";
   products: ProductListItem[];

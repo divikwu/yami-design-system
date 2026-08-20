@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * check-tokens-in-docs.ts — verify every `var(--x)` / bare `--x` token
- * reference inside our DS documentation actually exists in tokens.css.
+ * reference inside our DS documentation actually exists in generated/tokens.css.
  *
  * Catches the systematic AI-author failure mode: fabricating plausible-but-
  * fake token names like `--font-size-heading-lg` when only `-md` / `-xl` exist.
@@ -51,7 +51,7 @@ interface Hit {
 }
 
 function parseTokensCss(): Set<string> {
-  const text = readFileSync(join(yamiRoot, 'tokens.css'), 'utf8')
+  const text = readFileSync(join(yamiRoot, 'generated', 'tokens.css'), 'utf8')
   const tokens = new Set<string>()
   for (const m of text.matchAll(/^\s*(--[a-z][a-z0-9-]+)\s*:/gm)) tokens.add(m[1])
   return tokens
@@ -167,7 +167,7 @@ for (const h of allHits) {
 }
 console.error('')
 console.error('  Fix options:')
-console.error('    1. Typo? Use the correct token name from tokens.css.')
+console.error('    1. Typo? Use the correct token name from generated/tokens.css.')
 console.error('    2. Genuinely new token? Add to tokens/*.tokens.json and rebuild.')
 console.error('    3. Anti-pattern example? Wrap the section in')
 console.error('       <!-- anti-pattern -->  ...  <!-- /anti-pattern -->')
