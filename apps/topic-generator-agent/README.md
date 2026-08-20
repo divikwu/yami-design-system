@@ -10,12 +10,13 @@ runtime.
 
 - `POST /topic-page`: `topic-intent`, `workflow-planning`, `module-merchandising`,
   `content-writing`, `visual-generation`, and `experience-review`.
-- `POST /product-selection`: `category-role-proposal` and `scene-proposal`.
+- `POST /product-selection`: `product-semantic-proposal`, `category-role-proposal`, and
+  `scene-proposal`.
 - `GET /health`: executor and stage registry without credentials.
 
 Each execution loads the selected `SKILL.md`, its directly linked local `references/*` contracts,
-and the matching `agents/openai.yaml`. These eight protocol stages load all seven canonical Skills.
-`topic-intent`, both ProductSelection
+and the matching `agents/openai.yaml`. These nine protocol stages load all seven canonical Skills.
+`topic-intent`, all three ProductSelection
 stages, and `module-merchandising` share the constrained Topic Strategy Agent; the other stages use
 the Orchestrator, Content, Visual, or Review Agent declared by the repository.
 
@@ -25,8 +26,11 @@ The shortest development path starts the Runner and Web Host together:
 
 ```bash
 pnpm --filter @yami/topic-generator-agent exec playwright install chromium
-pnpm dev:topic-generator-stack
+pnpm dev:topic-generator
 ```
+
+`pnpm dev:topic-generator-stack` 是同一完整启动流程的显式别名；仅运行 Web Host 时使用
+`pnpm dev:topic-generator-web`。
 
 This uses the authenticated `codex` executable on the machine and wires the Web Host to:
 
@@ -83,7 +87,7 @@ If `TOPIC_AGENT_RUNNER_TOKEN` is set, use the same value for
 
 ## Verified capability versus protocol support
 
-The registry and contract-loading tests cover all five logical Agents, seven Skills, and eight
+The registry and contract-loading tests cover all five logical Agents, seven Skills, and nine
 automatic stages. The Codex executor supports source-product-image composition and screenshot-based
 experience review. The Kiro CLI integration supports the text stages but currently has no image
 attachment interface, so visual generation and experience review return an explicit capability

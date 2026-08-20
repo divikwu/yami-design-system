@@ -13,6 +13,10 @@ type NeedsCategoryProposalRun = Extract<
   ProductSelectionRun,
   { status: "needs-category-proposal" }
 >;
+type NeedsProductSemanticProposalRun = Extract<
+  ProductSelectionRun,
+  { status: "needs-product-semantic-proposal" }
+>;
 type NeedsSceneProposalRun = Extract<
   ProductSelectionRun,
   { status: "needs-scene-proposal" }
@@ -20,6 +24,7 @@ type NeedsSceneProposalRun = Extract<
 
 export interface ProductSelectionAgent {
   id: string;
+  proposeProductSemantics?(run: NeedsProductSemanticProposalRun): Promise<unknown>;
   proposeCategoryRoles(run: NeedsCategoryProposalRun): Promise<unknown>;
   proposeScenes(run: NeedsSceneProposalRun): Promise<unknown>;
 }
@@ -46,6 +51,7 @@ export interface ProductSelectionAgentWorkflowResult {
   run: ProductSelectionRun;
   artifacts: {
     agentId: string;
+    productSemanticProposal?: unknown;
     categoryRoleProposal?: unknown;
     candidateSnapshot?: CatalogCandidateSnapshot;
     candidateQualityReport?: CatalogCandidateQualityReport;
@@ -124,14 +130,19 @@ export async function runProductSelectionAgentWorkflow(
   let categoryRoleProposal = request.categoryRoleProposal;
   let candidateSnapshot = request.candidateSnapshot;
   let sceneProposal = request.sceneProposal;
+  let productSemanticProposal = request.productSemanticProposal;
+  let productSemanticAttempts = productSemanticProposal === undefined ? 0 : 1;
+  let productSemanticNeed: NeedsProductSemanticProposalRun | undefined;
 
-  for (let step = 0; step < 4; step += 1) {
+  for (let step = 0; step < 5; step += 1) {
     const candidateQualityReport = candidateSnapshot
       ? analyzeCatalogCandidateQuality(candidateSnapshot)
       : undefined;
     const run = blockOnCandidateQuality(advanceProductSelectionRun({
       snapshot: request.snapshot,
       strategyRef: request.strategyRef,
+      language: request.language,
+      productSemanticProposal,
       taxonomySnapshot: request.taxonomySnapshot,
       categoryRoleProposal,
       candidateSnapshot,
@@ -139,6 +150,7 @@ export async function runProductSelectionAgentWorkflow(
     }), candidateQualityReport);
     const artifacts = {
       agentId: request.agent.id,
+      productSemanticProposal,
       categoryRoleProposal,
       candidateSnapshot,
       ...(candidateQualityReport
@@ -146,8 +158,38 @@ export async function runProductSelectionAgentWorkflow(
         : {}),
       sceneProposal,
     };
+    if (
+      run.status === "blocked" &&
+      run.productSemanticProposalReview?.status === "rejected" &&
+      productSemanticNeed &&
+      productSemanticAttempts < 2 &&
+      request.agent.proposeProductSemantics
+    ) {
+      productSemanticProposal = await request.agent.proposeProductSemantics({
+        ...productSemanticNeed,
+        context: {
+          ...productSemanticNeed.context,
+          repair: {
+            issues: run.productSemanticProposalReview.issues,
+            warnings: run.productSemanticProposalReview.warnings,
+            previousProposal: productSemanticProposal,
+          },
+        },
+      });
+      productSemanticAttempts += 1;
+      continue;
+    }
     if (run.status === "ready" || run.status === "blocked") {
       return { run, artifacts };
+    }
+    if (run.status === "needs-product-semantic-proposal") {
+      if (!request.agent.proposeProductSemantics) {
+        throw new Error("ProductSelection Agent does not support product-semantic proposals.");
+      }
+      productSemanticNeed = run;
+      productSemanticProposal = await request.agent.proposeProductSemantics(run);
+      productSemanticAttempts += 1;
+      continue;
     }
     if (run.status === "needs-category-proposal") {
       categoryRoleProposal = await request.agent.proposeCategoryRoles(run);

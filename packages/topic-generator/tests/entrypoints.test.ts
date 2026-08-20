@@ -205,9 +205,11 @@ describe("TOPIC GENERATOR portable entry points", () => {
       selectionStrategy: "",
       taxonomyPath: "",
       taxonomyTsvPath: "",
+      productSemanticProposalPath: "",
       categoryProposalPath: "",
       candidateSnapshotPath: "",
       sceneProposalPath: "",
+      selectionLanguage: "",
       pageTemplateRef: "",
       moduleProposalPath: "",
       contentLanguage: "",
@@ -225,16 +227,20 @@ describe("TOPIC GENERATOR portable entry points", () => {
       "Matcha",
       "--selection-strategy", "category-role/landing-page-agent@1",
       "--taxonomy-tsv", "taxonomy.tsv",
+      "--product-semantic-proposal", "product-semantics.json",
       "--category-proposal", "categories.json",
       "--candidate-snapshot", "candidates.json",
       "--scene-proposal", "scenes.json",
+      "--selection-language", "zh",
     ])).toMatchObject({
       keyword: "Matcha",
       selectionStrategy: "category-role/landing-page-agent@1",
       taxonomyTsvPath: "taxonomy.tsv",
+      productSemanticProposalPath: "product-semantics.json",
       categoryProposalPath: "categories.json",
       candidateSnapshotPath: "candidates.json",
       sceneProposalPath: "scenes.json",
+      selectionLanguage: "zh",
     });
   });
 

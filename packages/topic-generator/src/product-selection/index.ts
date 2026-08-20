@@ -7,6 +7,7 @@ export * from "./http-agent.js";
 export * from "./golden.js";
 export * from "./handoff.js";
 export * from "./quality.js";
+export * from "./product-semantic.js";
 export * from "./run.js";
 export * from "./taxonomy.js";
 export * from "./workflow.js";

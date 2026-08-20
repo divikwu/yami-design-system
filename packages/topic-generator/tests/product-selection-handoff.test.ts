@@ -17,6 +17,28 @@ const categoryRun: ProductSelectionRun = {
 };
 
 describe("ProductSelection Codex/Kiro handoff", () => {
+  it("exports a product-semantic proposal task", () => {
+    const run: ProductSelectionRun = {
+      schemaVersion: "product-selection-run/v1",
+      status: "needs-product-semantic-proposal",
+      strategyRef: "relevance/intent-themes@5",
+      context: {
+        keyword: "Matcha",
+        language: "zh",
+        minimumGroups: 2,
+        maximumScenes: 6,
+        minimumProductsPerScene: 4,
+        maximumProductsPerScene: 16,
+        products: [],
+      },
+    };
+    expect(createProductSelectionHandoffTask(run)).toEqual({
+      schemaVersion: "product-selection-handoff-task/v1",
+      stage: "product-semantic-proposal",
+      run,
+    });
+  });
+
   it("exports only the proposal task requested by the current run", () => {
     expect(createProductSelectionHandoffTask(categoryRun)).toEqual({
       schemaVersion: "product-selection-handoff-task/v1",

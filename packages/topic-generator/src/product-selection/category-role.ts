@@ -442,6 +442,11 @@ export function finalizeCategoryRoleSelection(
       .slice(0, Math.max(0, totalBrandTarget - selectedBrandKeys.size))
       .forEach(selectBrand);
   });
+  if (brandGroups.length < 2) {
+    brandIds.forEach((productId) => usedIds.delete(productId));
+    brandIds.length = 0;
+    brandGroups.length = 0;
+  }
 
   const pairingCategories = categories.filter(({ role }) => role === "pairing");
   const accessoryCategories = categories.filter(({ role }) => role === "accessory");

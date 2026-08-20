@@ -58,6 +58,7 @@
     "themeIntent": "theme-intent/v2",
     "catalogSnapshot": "catalog-snapshot/v1",
     "catalogTaxonomySnapshot": "catalog-taxonomy-snapshot/v1",
+    "productSemanticProposal": "product-semantic-proposal/v1",
     "categoryRoleProposal": "category-role-proposal/v1",
     "catalogCandidateSnapshot": "catalog-candidate-snapshot/v1",
     "catalogCandidateQualityReport": "catalog-candidate-quality-report/v1",

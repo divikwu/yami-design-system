@@ -1632,6 +1632,33 @@
 .brandModule .productBrand { color: var(--color-neutral-400); }
 .brandModule .productImageWrap { border-color: #3a3a3a; background: var(--surface-secondary); }
 
+.brandGroups,
+.brandGroup {
+  display: grid;
+}
+
+.brandGroups { gap: 32px; }
+.brandGroup { gap: 12px; }
+
+.brandGroupHeading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid #3a3a3a;
+  padding-bottom: 8px;
+}
+
+.brandGroupHeading h4,
+.brandGroupHeading span {
+  margin: 0;
+  font-size: var(--font-size-body-md);
+  line-height: var(--line-height-body-md);
+}
+
+.brandGroupHeading h4 { font-weight: var(--font-weight-emphasize); }
+.brandGroupHeading span { color: var(--color-neutral-400); }
+
 .recommendationModule {
   scroll-margin-top: 58px;
 }

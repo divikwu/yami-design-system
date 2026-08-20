@@ -1,11 +1,11 @@
 ---
 name: product-selection
-description: This skill should be used when the user asks to "select products", "configure a selection strategy", "run 精准匹配", "run 分类角色", "create a CategoryRoleProposal or SceneProposal", "inspect product pools", or "reproduce the LandingPageAgent category-role workflow" with reviewable Yami catalog evidence. Do not use for ThemeIntent-only analysis or visual page design.
+description: This skill should be used when the user asks to "select products", "configure a selection strategy", "run 精准匹配", "run 分类角色", "create a ProductSemanticProposal, CategoryRoleProposal, or SceneProposal", "inspect product pools", or "reproduce the LandingPageAgent category-role workflow" with reviewable Yami catalog evidence. Do not use for ThemeIntent-only analysis or visual page design.
 ---
 
 # Product Selection
 
-Use the package CLI as the deterministic runtime. Act as the Product Agent only for the two semantic proposals required by `category-role/landing-page-agent@1`; never reproduce retrieval, allocation, or deduplication in prose or ad hoc code.
+Use the package CLI as the deterministic runtime. Act as the Product Agent only when a returned state requests a bounded semantic proposal; never reproduce retrieval, ordering, validation, or deduplication in prose or ad hoc code.
 
 ## Choose a host mode
 
@@ -19,7 +19,7 @@ Use the package CLI as the deterministic runtime. Act as the Product Agent only 
 
 ## Choose a strategy
 
-- Use `relevance/intent-themes@4` for current keyword and brand relevance. Each accepted TopicIntent
+- Use `relevance/intent-themes@5` for current keyword and brand relevance. Each accepted TopicIntent
   category hypothesis binds one or more verified catalog leaf categories to one shopper-facing
   Shortcut and the matching comprehensive-recommendation tab. The Agent may merge closely related
   leaf categories according to the topic and complete product evidence; catalog leaves remain the
@@ -30,10 +30,19 @@ Use the package CLI as the deterministic runtime. Act as the Product Agent only 
   restored, otherwise unassigned primary products are placed in a deterministic
   More to Explore group, and requires every primary product to appear in exactly one Shortcuts group.
   Shortcuts and recommendation tabs preserve that same complete group ID sequence. StartHere keeps
-  its separate two-to-six-group, four-to-sixteen-product limits.
+  its separate two-to-six-group, four-to-sixteen-product limits. Brand Spotlight is derived from
+  frozen PrimaryPool brand evidence: keep two to six eligible brands and exactly three ordered
+  products per brand; return the module empty when fewer than two brands each have three products.
+- When those verified leaves produce fewer than two useful groups, `@5` returns
+  `needs-product-semantic-proposal`. Review the complete frozen PrimaryPool and regroup its products
+  by distinct shopper intent inside the leaf. This is a text-first classification step: use product
+  titles, catalog identity, category evidence, and ordering; do not fetch replacement products or
+  use image similarity as the primary classifier. Read
+  [product-semantic contract](references/product-semantic-contract.md) before writing the proposal.
 - Use `relevance/intent-themes@2` only to replay artifacts that grouped directly by verified catalog
   categories, `relevance/intent-themes@3` to replay the previous four-to-eight StartHere contract,
-  and `relevance/default@1` only for fixed-rank legacy replay.
+  `relevance/intent-themes@4` to replay the previous catalog-leaf-only contract, and
+  `relevance/default@1` only for fixed-rank legacy replay.
 - Use `category-role/landing-page-agent@1` when the user requests the target repository's category-role workflow.
 - Treat the versioned config ref as part of every artifact. Do not silently substitute another strategy.
 
@@ -43,11 +52,17 @@ Run from the repository root:
 
 ```bash
 pnpm topic-generator:analyze -- --keyword "<keyword>" \
-  --selection-strategy relevance/intent-themes@4 \
+  --selection-strategy relevance/intent-themes@5 \
+  --selection-language zh \
   --pretty
 ```
 
-Read `productSelection.run`. Report a result only when its status is `ready`.
+Read `productSelection.run`. If it requests `needs-product-semantic-proposal`, create exactly one
+proposal from the returned context and rerun with
+`--product-semantic-proposal "<proposal-path>"`. Report a result only when its status is `ready`.
+An automatic Host may return one repair request containing the rejected proposal and deterministic
+review issues. Correct only those issues and return a full replacement proposal; there is no third
+attempt.
 
 ## Category-role workflow
 
@@ -88,17 +103,28 @@ the proposal requested by its `stage`, then return:
 }
 ```
 
-Use the task's exact stage (`category-role-proposal` or `scene-proposal`) and place the constrained
+Use the task's exact stage (`product-semantic-proposal`, `category-role-proposal`, or
+`scene-proposal`) and place the constrained
 proposal in `proposal`. Do not edit the exported run. The caller must submit the response through the
 same deterministic validation used by the CLI and HTTP Agent modes. The Workbench does not expose
 this developer-only flow.
 
+Do not use the handoff envelope for an automatic `product-selection-agent-request/v1`. In that mode,
+return the requested proposal object directly or wrap it in
+`product-selection-agent-response/v1`, exactly as the Host execution contract requests.
+
 ## Review gates
 
 - Stop on `blocked`; report every issue without repairing evidence silently.
+- On `needs-product-semantic-proposal`, classify every returned PrimaryPool product exactly once,
+  keep the requested language, and do not invent, replace, or reorder product IDs.
+- Treat `context.repair` as validator feedback, not new catalog evidence. Recheck the full
+  replacement proposal for duplicate, missing, and unknown IDs before returning it.
 - On `needs-category-proposal`, do not fetch products yet.
 - On `needs-scene-proposal`, bind the proposal to the exact returned `candidateSnapshotDigest`.
 - Treat proposal reasons as review rationale, not hidden reasoning or catalog facts.
+- Do not ask the Agent to invent or merge Brand Spotlight groups. Brand identity, the two-to-six
+  brand range, three products per brand, ranking, and module hiding are deterministic runtime rules.
 - Do not edit IDs, roles, product identity, digests, or strategy refs after validation.
 - Report the selected config ref, status, category-role distribution, Adapter attempts, module counts, and any empty modules.
 - Report `candidateQualityReport.status`, issue codes, and category coverage. Never hide a quality
@@ -107,7 +133,7 @@ this developer-only flow.
 
 ## Architecture boundary
 
-The TOPIC GENERATOR Agent decides shopper-facing category semantics, catalog-category grouping, and source shopping scenes. The Skill provides
+The TOPIC GENERATOR Agent decides shopper-facing category semantics, in-leaf product grouping, catalog-category grouping, and source shopping scenes. The Skill provides
 the calling convention. `@yami/topic-generator` owns schema validation, Yami requests, sorting,
 role quotas, selection-stage candidate grouping, and global deduplication. The later
 `page-merchandising` Skill may propose final PagePlan v2 module visibility and assignments only

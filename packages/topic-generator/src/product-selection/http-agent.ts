@@ -2,6 +2,7 @@ import type { ProductSelectionRun } from "./contracts.js";
 import type { ProductSelectionAgent } from "./workflow.js";
 
 export type HttpProductSelectionAgentStage =
+  | "product-semantic-proposal"
   | "category-role-proposal"
   | "scene-proposal";
 
@@ -105,6 +106,7 @@ export function createHttpProductSelectionAgent(
 
   return {
     id: options.id,
+    proposeProductSemantics: (run) => requestProposal("product-semantic-proposal", run),
     proposeCategoryRoles: (run) => requestProposal("category-role-proposal", run),
     proposeScenes: (run) => requestProposal("scene-proposal", run),
   };

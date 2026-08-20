@@ -216,6 +216,7 @@ describe("ProductSelection Module", () => {
       { ref: "relevance/intent-themes@2", engine: "relevance" },
       { ref: "relevance/intent-themes@3", engine: "relevance" },
       { ref: "relevance/intent-themes@4", engine: "relevance" },
+      { ref: "relevance/intent-themes@5", engine: "relevance" },
       {
         ref: "category-role/landing-page-agent@1",
         engine: "category-role",
@@ -226,6 +227,8 @@ describe("ProductSelection Module", () => {
       .toMatchObject({ themeCollections: { minimumProducts: 4, maximumProducts: 8 } });
     expect(getProductSelectionStrategyConfig("relevance/intent-themes@4"))
       .toMatchObject({ themeCollections: { minimumProducts: 4, maximumProducts: 16 } });
+    expect(getProductSelectionStrategyConfig("relevance/intent-themes@5"))
+      .toMatchObject({ productSemanticGrouping: true });
 
     expect(
       getProductSelectionStrategyConfig("category-role/landing-page-agent@1"),
@@ -396,7 +399,7 @@ describe("ProductSelection Module", () => {
         products,
         intent,
       },
-      strategyRef: "relevance/intent-themes@4",
+      strategyRef: "relevance/intent-themes@5",
     });
 
     expect(run.status).toBe("ready");
@@ -478,6 +481,141 @@ describe("ProductSelection Module", () => {
         description: "Two verified treatment categories.",
       }),
     ]);
+  });
+
+  it("requests an Agent product-semantic proposal when one catalog leaf cannot form useful themes", () => {
+    const products = [
+      ...Array.from({ length: 4 }, (_, index) => ({
+        id: `powder-${index + 1}`,
+        title: `Ceremonial matcha powder ${index + 1}`,
+        brand: "Tea House",
+        price: "$20.00",
+        imageUrl: `https://example.com/powder-${index + 1}.webp`,
+        productUrl: `https://example.com/powder-${index + 1}`,
+        sourceRank: index + 1,
+        categoryL3Id: 1691,
+        categoryL3Name: "Matcha",
+      })),
+      ...Array.from({ length: 4 }, (_, index) => ({
+        id: `latte-${index + 1}`,
+        title: `Matcha latte mix ${index + 1}`,
+        brand: "Cafe Brand",
+        price: "$12.00",
+        imageUrl: `https://example.com/latte-${index + 1}.webp`,
+        productUrl: `https://example.com/latte-${index + 1}`,
+        sourceRank: index + 5,
+        categoryL3Id: 1691,
+        categoryL3Name: "Matcha",
+      })),
+      ...Array.from({ length: 4 }, (_, index) => ({
+        id: `snack-${index + 1}`,
+        title: `Matcha snack ${index + 1}`,
+        brand: "Snack Brand",
+        price: "$8.00",
+        imageUrl: `https://example.com/snack-${index + 1}.webp`,
+        productUrl: `https://example.com/snack-${index + 1}`,
+        sourceRank: index + 9,
+        categoryL3Id: 1691,
+        categoryL3Name: "Matcha",
+      })),
+    ];
+    const intent: NonNullable<YamiSearchSnapshot["intent"]> = {
+      ...brandIntent([{ id: "1691", label: "Matcha", evidenceCount: products.length }]),
+      themeType: "product",
+      catalogDomain: "Beverage",
+      entityType: "category",
+      canonicalEntity: { id: "1691", label: "Matcha" },
+      shoppingIntent: "find-product",
+      shopperAction: "browse",
+      shoppingGoal: "Browse matcha products.",
+      mustInclude: ["Matcha"],
+      reason: "The catalog category exactly matches the keyword.",
+    };
+    const snapshot: YamiSearchSnapshot = {
+      keyword: "Matcha",
+      site: "us",
+      sourceUrl: "https://example.com/search?q=Matcha",
+      fetchedAt: "2026-08-20T00:00:00.000Z",
+      provider: "yami-catalog-search",
+      products,
+      intent,
+    };
+
+    const pending = advanceProductSelectionRun({
+      snapshot,
+      strategyRef: "relevance/intent-themes@5",
+    });
+
+    expect(pending).toMatchObject({
+      status: "needs-product-semantic-proposal",
+      context: {
+        keyword: "Matcha",
+        minimumGroups: 2,
+        products: { length: 12 },
+      },
+    });
+
+    const ready = advanceProductSelectionRun({
+      snapshot,
+      strategyRef: "relevance/intent-themes@5",
+      productSemanticProposal: {
+        schemaVersion: "product-semantic-proposal/v1",
+        keyword: "Matcha",
+        strategyRef: "relevance/intent-themes@5",
+        groups: [
+          {
+            id: "pure-matcha",
+            label: "Pure matcha powder",
+            productIds: [
+              ...products.slice(0, 4).map(({ id }) => id),
+              products[0]!.id,
+            ],
+            reason: "Product titles identify ceremonial matcha powder.",
+          },
+          {
+            id: "matcha-latte",
+            label: "Matcha latte",
+            productIds: products.slice(4, 8).map(({ id }) => id),
+            reason: "Product titles identify latte mixes.",
+          },
+          {
+            id: "matcha-snacks",
+            label: "Matcha snacks",
+            productIds: products.slice(8, 11).map(({ id }) => id),
+            reason: "Product titles identify snack products.",
+          },
+        ],
+        scenes: [
+          {
+            id: "daily-matcha",
+            name: "Daily matcha",
+            shoppingGoal: "Choose matcha for a daily drink.",
+            groupIds: ["pure-matcha"],
+            reason: "Powder and latte products support daily preparation.",
+          },
+          {
+            id: "matcha-treats",
+            name: "Matcha treats",
+            shoppingGoal: "Choose matcha snacks and treats.",
+            groupIds: ["matcha-latte", "matcha-snacks"],
+            reason: "Snack products support a distinct treat occasion.",
+          },
+        ],
+      },
+    });
+
+    expect(ready.status).toBe("ready");
+    if (ready.status !== "ready") return;
+    expect(ready.productSemanticProposalReview?.status).toBe("accepted");
+    expect(ready.productSemanticProposalReview?.warnings).toHaveLength(2);
+    expect(ready.result.modules.find(({ id }) => id === "shortcuts")?.groups)
+      .toHaveLength(4);
+    expect(ready.result.modules.find(({ id }) => id === "start-here")?.groups)
+      .toHaveLength(2);
+    expect(
+      ready.result.modules.find(({ id }) => id === "shortcuts")?.groups
+        .flatMap(({ productIds }) => productIds),
+    ).toEqual(products.map(({ id }) => id));
   });
 
   it("keeps every verified category group in Shortcuts and the recommendation tabs", () => {
@@ -1454,6 +1592,89 @@ describe("ProductSelection Module", () => {
         },
       },
     });
+  });
+
+  it("freezes two to six Brand Spotlight groups with exactly three products each", () => {
+    const products = Array.from({ length: 8 }, (_, brandIndex) =>
+      Array.from({ length: 4 }, (_, productIndex) => ({
+        id: `brand-${brandIndex + 1}-product-${productIndex + 1}`,
+        title: `Matcha product ${brandIndex + 1}-${productIndex + 1}`,
+        brand: `Matcha Brand ${brandIndex + 1}`,
+        brandId: brandIndex + 1,
+        price: "$10.00",
+        imageUrl: `https://example.com/brand-${brandIndex + 1}-${productIndex + 1}.webp`,
+        productUrl: `https://example.com/brand-${brandIndex + 1}-${productIndex + 1}`,
+        sourceRank: brandIndex * 4 + productIndex + 1,
+        soldCount: 1_000 - brandIndex * 100 - productIndex,
+      }))
+    ).flat();
+    const run = advanceProductSelectionRun({
+      snapshot: {
+        keyword: "matcha",
+        site: "us",
+        sourceUrl: "https://example.com/search?q=matcha",
+        fetchedAt: "2026-08-20T00:00:00.000Z",
+        products,
+      },
+      strategyRef: "relevance/default@1",
+    });
+
+    expect(run.status).toBe("ready");
+    if (run.status !== "ready") return;
+    const brandModule = run.result.modules.find(({ id }) => id === "brand-spotlight")!;
+    expect(brandModule.groups).toHaveLength(6);
+    expect(brandModule.groups.map(({ label }) => label)).toEqual([
+      "Matcha Brand 1",
+      "Matcha Brand 2",
+      "Matcha Brand 3",
+      "Matcha Brand 4",
+      "Matcha Brand 5",
+      "Matcha Brand 6",
+    ]);
+    expect(brandModule.groups.every(({ productIds }) => productIds.length === 3)).toBe(true);
+    expect(brandModule.productIds).toEqual(
+      brandModule.groups.flatMap(({ productIds }) => productIds),
+    );
+  });
+
+  it("leaves Brand Spotlight empty when fewer than two brands have three products", () => {
+    const products = [
+      ...Array.from({ length: 3 }, (_, index) => ({
+        id: `eligible-${index + 1}`,
+        title: `Matcha eligible ${index + 1}`,
+        brand: "Eligible Brand",
+        brandId: 1,
+        price: "$10.00",
+        imageUrl: `https://example.com/eligible-${index + 1}.webp`,
+        productUrl: `https://example.com/eligible-${index + 1}`,
+        sourceRank: index + 1,
+      })),
+      ...Array.from({ length: 2 }, (_, index) => ({
+        id: `small-${index + 1}`,
+        title: `Matcha small ${index + 1}`,
+        brand: "Small Brand",
+        brandId: 2,
+        price: "$10.00",
+        imageUrl: `https://example.com/small-${index + 1}.webp`,
+        productUrl: `https://example.com/small-${index + 1}`,
+        sourceRank: index + 4,
+      })),
+    ];
+    const run = advanceProductSelectionRun({
+      snapshot: {
+        keyword: "matcha",
+        site: "us",
+        sourceUrl: "https://example.com/search?q=matcha",
+        fetchedAt: "2026-08-20T00:00:00.000Z",
+        products,
+      },
+      strategyRef: "relevance/default@1",
+    });
+
+    expect(run.status).toBe("ready");
+    if (run.status !== "ready") return;
+    expect(run.result.modules.find(({ id }) => id === "brand-spotlight"))
+      .toMatchObject({ productIds: [], groups: [] });
   });
 
   it("does not refill a resolved non-brand pool with unrelated search results after filtering", () => {

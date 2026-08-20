@@ -37,6 +37,7 @@ describe("TOPIC GENERATOR Agent Runner", () => {
       "topic-page:content-writing",
       "topic-page:visual-generation",
       "topic-page:experience-review",
+      "product-selection:product-semantic-proposal",
       "product-selection:category-role-proposal",
       "product-selection:scene-proposal",
     ]);
@@ -424,8 +425,12 @@ describe("TOPIC GENERATOR Agent Runner", () => {
     expect(executor.execute).not.toHaveBeenCalled();
   });
 
-  it("supports both ProductSelection proposal stages", async () => {
-    const executor = fakeExecutor({ schemaVersion: "category-role-proposal/v1" });
+  it("supports the registered ProductSelection proposal stages", async () => {
+    const executor = fakeExecutor({
+      schemaVersion: "product-selection-handoff-response/v1",
+      stage: "category-role-proposal",
+      proposal: { schemaVersion: "category-role-proposal/v1" },
+    });
     const handler = createAgentRunnerHandler({ executor });
     const response = await handler(post("/product-selection", {
       schemaVersion: "product-selection-agent-request/v1",
@@ -470,7 +475,7 @@ describe("TOPIC GENERATOR Agent Runner", () => {
     const response = await handler(new Request("http://127.0.0.1:4400/health"));
     expect(response.status).toBe(200);
     const payload = await response.json();
-    expect(payload.routes).toHaveLength(8);
+    expect(payload.routes).toHaveLength(9);
     expect(JSON.stringify(payload)).not.toContain("secret");
   });
 

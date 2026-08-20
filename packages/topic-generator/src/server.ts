@@ -26,7 +26,6 @@ import {
   type LandingPageTypeRef,
 } from "./page-orchestration/index.js";
 import {
-  advanceProductSelectionRun,
   CatalogCandidateLoadError,
   HttpProductSelectionAgentError,
   parseCatalogCandidateSnapshot,
@@ -525,7 +524,7 @@ export async function handleTopicGeneratorPost(
         ? requestPayload.selectionStrategyRef.trim() as ProductSelectionStrategyRef
         : requestedStrategy === "category-role"
           ? "category-role/landing-page-agent@1"
-          : "relevance/intent-themes@4";
+          : "relevance/intent-themes@5";
     const requestedPageTypeRef =
       typeof requestPayload.pageTypeRef === "string" && requestPayload.pageTypeRef.trim()
         ? requestPayload.pageTypeRef.trim() as LandingPageTypeRef
@@ -534,7 +533,8 @@ export async function handleTopicGeneratorPost(
     const initialAnalysis = await analyzeTopicIntent(keyword, options);
     const topicIntentWorkflow = (
       requestedSelectionStrategyRef === "relevance/intent-themes@3" ||
-      requestedSelectionStrategyRef === "relevance/intent-themes@4"
+      requestedSelectionStrategyRef === "relevance/intent-themes@4" ||
+      requestedSelectionStrategyRef === "relevance/intent-themes@5"
     )
       ? await runTopicIntentAgentWorkflow({
           snapshot: initialAnalysis.snapshot,
@@ -649,11 +649,34 @@ export async function handleTopicGeneratorPost(
       requestedSelectionStrategyRef,
     ).engine === "relevance"
       ? requestedSelectionStrategyRef
-      : "relevance/intent-themes@4";
-    const relevanceRun = advanceProductSelectionRun({
-      snapshot,
-      strategyRef: relevanceStrategyRef,
-    });
+      : "relevance/intent-themes@5";
+    let relevanceWorkflow;
+    if (options.productSelectionAgent) {
+      try {
+        relevanceWorkflow = await runProductSelectionAgentWorkflow({
+          snapshot,
+          strategyRef: relevanceStrategyRef,
+          language: contentLanguage,
+          candidateAdapter: options.candidateAdapter ?? yamiCatalogCandidateAdapter,
+          agent: options.productSelectionAgent,
+        });
+      } catch {
+        relevanceWorkflow = await runProductSelectionWorkflow({
+          snapshot,
+          strategyRef: relevanceStrategyRef,
+          language: contentLanguage,
+          productSemanticProposal: null,
+        });
+      }
+    } else {
+      relevanceWorkflow = await runProductSelectionWorkflow({
+        snapshot,
+        strategyRef: relevanceStrategyRef,
+        language: contentLanguage,
+        productSemanticProposal: null,
+      });
+    }
+    const relevanceRun = relevanceWorkflow.run;
     const configurationIssues = options.categoryRoleConfigurationIssues ?? [];
     const automaticIssues = automaticCategoryRole
       ? [

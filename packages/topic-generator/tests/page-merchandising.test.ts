@@ -300,8 +300,8 @@ describe("PageMerchandising", () => {
   it("routes each maintained page type to an evidence-safe relevance template", () => {
     const cases = [
       ["landing-page/brand@2", "topic-landing/brand-relevance@2", 0],
-      ["landing-page/topic@2", "topic-landing/topic-relevance@2", 12],
-      ["landing-page/campaign@2", "topic-landing/campaign-relevance@2", 12],
+      ["landing-page/topic@2", "topic-landing/topic-relevance@2", 18],
+      ["landing-page/campaign@2", "topic-landing/campaign-relevance@2", 18],
     ] as const;
 
     cases.forEach(([pageTypeRef, templateRef, brandMaximumProducts]) => {
@@ -676,6 +676,92 @@ describe("PageMerchandising", () => {
       "asset-brand-spotlight-1",
       "asset-brand-spotlight-2",
     ]);
+  });
+
+  it("requires relevance proposals to preserve every frozen Brand Spotlight group", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    selection.strategyRef = "relevance/intent-themes@5";
+    ["core-1", "core-2", "core-3"].forEach((id) => {
+      const product = selection.products.find((candidate) => candidate.id === id)!;
+      product.brand = "Brand Alpha";
+      product.brandId = 101;
+    });
+    ["core-9", "core-10", "core-11"].forEach((id) => {
+      const product = selection.products.find((candidate) => candidate.id === id)!;
+      product.brand = "Brand Beta";
+      product.brandId = 102;
+    });
+    const brandSelection = selection.modules.find(({ id }) => id === "brand-spotlight")!;
+    brandSelection.productIds = [
+      "core-1", "core-2", "core-3",
+      "core-9", "core-10", "core-11",
+    ];
+    brandSelection.groups = [
+      {
+        id: "brand-101",
+        label: "Brand Alpha",
+        role: "core",
+        productIds: ["core-1", "core-2", "core-3"],
+      },
+      {
+        id: "brand-102",
+        label: "Brand Beta",
+        role: "core",
+        productIds: ["core-9", "core-10", "core-11"],
+      },
+    ];
+    const proposal = validProposal(selection, intent, "topic-landing/topic-relevance@2");
+    const brand = proposal.modules.find(({ id }) => id === "brand-spotlight")!;
+    brand.visible = true;
+    brand.shoppingGoal = "Compare representative matcha brands";
+    brand.reason = "Two frozen brands each contribute three products.";
+    brand.assignments = brandSelection.groups.flatMap((group) =>
+      group.productIds.map((productId) => ({
+        productId,
+        groupId: group.id,
+        reuseReason: "Also appears in an evidence-backed Start Here scene.",
+      }))
+    );
+
+    const ready = advancePageMerchandisingRun({ intent, selection, proposal });
+    expect(ready.status).toBe("ready");
+
+    const truncated = structuredClone(proposal);
+    truncated.modules.find(({ id }) => id === "brand-spotlight")!.assignments.pop();
+    const blocked = advancePageMerchandisingRun({ intent, selection, proposal: truncated });
+    expect(blocked).toMatchObject({
+      status: "blocked",
+      issues: expect.arrayContaining([
+        "Module brand-spotlight must assign 6-6 products when visible.",
+        "Module brand-spotlight must preserve ProductSelectionResult product order.",
+      ]),
+    });
+  });
+
+  it("rejects malformed frozen Brand Spotlight groups before asking the Agent", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const brand = selection.modules.find(({ id }) => id === "brand-spotlight")!;
+    brand.productIds = ["core-1", "core-2", "core-3"];
+    brand.groups = [{
+      id: "brand-only",
+      label: "Only Brand",
+      role: "core",
+      productIds: ["core-1", "core-2", "core-3"],
+    }];
+
+    const run = advancePageMerchandisingRun({
+      intent,
+      selection,
+      templateRef: "topic-landing/topic@2",
+    });
+    expect(run).toMatchObject({
+      status: "blocked",
+      issues: expect.arrayContaining([
+        "ProductSelection Brand Spotlight must contain 2-6 brand groups.",
+      ]),
+    });
   });
 
   it("fails closed on unknown products, source-scene drift, and unexplained reuse", () => {

@@ -111,7 +111,7 @@ describe("Topic Generator automatic TopicIntent Agent integration", () => {
         requestedPageTypeRef: run.context.requestedPageTypeRef,
         requestedSelectionStrategyRef: run.context.requestedSelectionStrategyRef,
         pageTypeRef: "landing-page/brand@2",
-        selectionStrategyRef: "relevance/intent-themes@4",
+        selectionStrategyRef: "relevance/intent-themes@5",
         templateRef: "topic-landing/brand-relevance@2",
         reason: "Use the registered relevance route for the resolved brand intent.",
       }),

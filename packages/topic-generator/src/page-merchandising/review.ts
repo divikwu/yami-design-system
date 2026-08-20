@@ -27,6 +27,66 @@ function exactOrder(left: readonly string[], right: readonly string[]) {
   return left.length === right.length && left.every((value, index) => value === right[index]);
 }
 
+function normalizedBrand(value: string) {
+  return value.toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+}
+
+export function brandSpotlightSelectionIssues(selection: ProductSelectionResult) {
+  const module = selection.modules.find(({ id }) => id === "brand-spotlight");
+  if (!module) return [];
+  if (module.groups.length === 0 && module.productIds.length === 0) return [];
+
+  const issues: string[] = [];
+  if (module.groups.length < 2 || module.groups.length > 6) {
+    issues.push("ProductSelection Brand Spotlight must contain 2-6 brand groups.");
+  }
+  const productsById = new Map(selection.products.map((product) => [product.id, product]));
+  const primaryIds = new Set(selection.pools.primaryIds);
+  const seenGroupIds = new Set<string>();
+  const seenBrandKeys = new Set<string>();
+  const seenProductIds = new Set<string>();
+  module.groups.forEach((group) => {
+    if (seenGroupIds.has(group.id)) {
+      issues.push(`ProductSelection Brand Spotlight group ${group.id} is duplicated.`);
+    }
+    seenGroupIds.add(group.id);
+    if (group.productIds.length !== 3) {
+      issues.push(`ProductSelection Brand Spotlight group ${group.id} must contain exactly 3 products.`);
+    }
+    const brandKeys = new Set<string>();
+    group.productIds.forEach((productId) => {
+      if (seenProductIds.has(productId)) {
+        issues.push(`ProductSelection Brand Spotlight product ${productId} is duplicated.`);
+      }
+      seenProductIds.add(productId);
+      const product = productsById.get(productId);
+      if (!product) {
+        issues.push(`ProductSelection Brand Spotlight product ${productId} is missing.`);
+        return;
+      }
+      if (!primaryIds.has(productId)) {
+        issues.push(`ProductSelection Brand Spotlight product ${productId} is outside PrimaryPool.`);
+      }
+      brandKeys.add(product.brandId
+        ? `id:${product.brandId}`
+        : `label:${normalizedBrand(product.brand)}`);
+    });
+    if (brandKeys.size !== 1) {
+      issues.push(`ProductSelection Brand Spotlight group ${group.id} mixes multiple brands.`);
+    }
+    const brandKey = [...brandKeys][0];
+    if (brandKey && seenBrandKeys.has(brandKey)) {
+      issues.push(`ProductSelection Brand Spotlight repeats brand ${group.label}.`);
+    }
+    if (brandKey) seenBrandKeys.add(brandKey);
+  });
+  const groupedProductIds = module.groups.flatMap(({ productIds }) => productIds);
+  if (!exactOrder(module.productIds, groupedProductIds)) {
+    issues.push("ProductSelection Brand Spotlight productIds must match grouped brand order.");
+  }
+  return issues;
+}
+
 const DETERMINISTIC_SELECTION_MODULE_IDS = new Set<TopicModuleId>([
   "start-here",
   "popular-picks",
@@ -177,19 +237,40 @@ export function reviewModuleMerchandisingProposal(
     }
     const selectionModule = preserveModuleAssignments && DETERMINISTIC_SELECTION_MODULE_IDS.has(id)
       ? selectionModulesById.get(id)
-      : undefined;
+      : id === "brand-spotlight"
+        ? selectionModulesById.get(id)
+        : undefined;
     const shortcutSelectionModule = id === "shortcuts"
       ? selectionModulesById.get("shortcuts")
       : undefined;
     const shortcutGroupsById = new Map(
       (shortcutSelectionModule?.groups ?? []).map((group) => [group.id, group]),
     );
-    const minimumProducts = id === "shortcuts" && shortcutGroupsById.size > 0
-      ? shortcutGroupsById.size
-      : rule.minimumProducts;
-    const maximumProducts = id === "shortcuts"
-      ? shortcutGroupsById.size > 0 ? shortcutGroupsById.size : selection.products.length
-      : rule.maximumProducts;
+    const brandGroups = id === "brand-spotlight" ? selectionModule?.groups ?? [] : [];
+    const brandGroupIdByProductId = new Map(
+      brandGroups.flatMap((group) => group.productIds.map((productId) => [productId, group.id] as const)),
+    );
+    const brandSelectionProductCount = id === "brand-spotlight" && selectionModule
+      ? selectionModule.productIds.length
+      : null;
+    const minimumProducts = brandSelectionProductCount !== null
+      ? brandSelectionProductCount
+      : id === "shortcuts" && shortcutGroupsById.size > 0
+        ? shortcutGroupsById.size
+        : rule.minimumProducts;
+    const maximumProducts = brandSelectionProductCount !== null
+      ? brandSelectionProductCount
+      : id === "shortcuts"
+        ? shortcutGroupsById.size > 0 ? shortcutGroupsById.size : selection.products.length
+        : rule.maximumProducts;
+    if (brandSelectionProductCount !== null) {
+      if (brandSelectionProductCount > 0 && !visible) {
+        issues.push("Module brand-spotlight must be visible when ProductSelection provides 2-6 eligible brand groups.");
+      }
+      if (brandSelectionProductCount === 0 && visible) {
+        issues.push("Module brand-spotlight must be hidden when ProductSelection provides fewer than two eligible brands.");
+      }
+    }
 
     const rawScenes = Array.isArray(module.scenes) ? module.scenes : [];
     if (!Array.isArray(module.scenes)) issues.push(`Module ${id} scenes must be an array.`);
@@ -324,6 +405,16 @@ export function reviewModuleMerchandisingProposal(
           issues.push(`Shortcut assignment ${productId || assignmentIndex} requires selectionReason.`);
         }
       }
+      if (id === "brand-spotlight" && brandGroups.length > 0) {
+        const expectedGroupId = brandGroupIdByProductId.get(productId);
+        if (!groupId) {
+          issues.push(`Brand Spotlight assignment ${productId || assignmentIndex} requires groupId.`);
+        } else if (!expectedGroupId) {
+          issues.push(`Product ${productId} is not part of a ProductSelection Brand Spotlight group.`);
+        } else if (groupId !== expectedGroupId) {
+          issues.push(`Product ${productId} must remain in Brand Spotlight group ${expectedGroupId}.`);
+        }
+      }
       const product = productsById.get(productId);
       if (!product) {
         issues.push(`Product ${productId || assignmentIndex} is absent from ProductSelectionResult.`);
@@ -426,6 +517,12 @@ export function reviewModuleMerchandisingProposal(
       )) {
         issues.push("Module shortcuts must preserve ProductSelection group order.");
       }
+    }
+    if (visible && brandGroups.length > 0 && !exactOrder(
+      assignments.flatMap(({ groupId }) => groupId ? [groupId] : []),
+      selectionModule!.productIds.map((productId) => brandGroupIdByProductId.get(productId) ?? ""),
+    )) {
+      issues.push("Module brand-spotlight must preserve ProductSelection brand group order.");
     }
     scenes.forEach((scene) => {
       const assignedProductIds = assignments

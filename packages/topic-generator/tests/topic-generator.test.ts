@@ -1587,16 +1587,34 @@ describe("Topic page planner", () => {
     expect(reviewModule?.reason).toContain("do not provide review evidence");
   });
 
-  it("keeps Brand Spotlight available for a non-brand topic with a dominant brand", () => {
+  it("groups Brand Spotlight by two to six brands with three products each", () => {
+    const brandProducts = [
+      ...Array.from({ length: 4 }, (_, index) =>
+        product(`alpha-${index + 1}`, `Daily skincare Alpha ${index + 1}`, index + 1, "Alpha")
+      ),
+      ...Array.from({ length: 3 }, (_, index) =>
+        product(`beta-${index + 1}`, `Daily skincare Beta ${index + 1}`, index + 5, "Beta")
+      ),
+      ...Array.from({ length: 2 }, (_, index) =>
+        product(`small-${index + 1}`, `Daily skincare Small ${index + 1}`, index + 8, "Small")
+      ),
+    ];
     const plan = buildTopicPagePlan(
-      { ...snapshot(products), keyword: "daily skincare" },
+      { ...snapshot(brandProducts), keyword: "daily skincare" },
       "relevance",
     );
     const brandModule = plan.modules.find((module) => module.id === "brand-spotlight");
 
     expect(brandModule?.visible).toBe(true);
-    expect(brandModule?.heading).toBe("Meet ANUA");
+    expect(brandModule?.heading).toBe("Brand spotlight");
     expect(brandModule?.productIds).toHaveLength(6);
+    expect(brandModule?.groups?.map(({ label, productIds }) => ({
+      label,
+      count: productIds.length,
+    }))).toEqual([
+      { label: "Alpha", count: 3 },
+      { label: "Beta", count: 3 },
+    ]);
   });
 
   it("marks a plan degraded when only contextual Yami results are available", () => {

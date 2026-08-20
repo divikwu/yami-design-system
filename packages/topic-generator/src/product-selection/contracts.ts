@@ -1,4 +1,5 @@
 import type {
+  ContentLanguage,
   ProductPool,
   ProductRole,
   YamiProduct,
@@ -144,6 +145,37 @@ export interface SceneProposalReview {
   scenes: ProductSelectionScene[];
 }
 
+export interface ProductSemanticProposalGroup {
+  id: string;
+  label: string;
+  productIds: string[];
+  reason: string;
+}
+
+export interface ProductSemanticProposalScene {
+  id: string;
+  name: string;
+  shoppingGoal: string;
+  groupIds: string[];
+  reason: string;
+}
+
+export interface ProductSemanticProposal {
+  schemaVersion: "product-semantic-proposal/v1";
+  keyword: string;
+  strategyRef: ProductSelectionStrategyRef;
+  groups: ProductSemanticProposalGroup[];
+  scenes: ProductSemanticProposalScene[];
+}
+
+export interface ProductSemanticProposalReview {
+  status: "accepted" | "rejected";
+  issues: string[];
+  warnings: string[];
+  groups: ProductSemanticProposalGroup[];
+  scenes: ProductSemanticProposalScene[];
+}
+
 export interface ProductSelectionModuleResult {
   id: Extract<
     TopicModuleId,
@@ -173,6 +205,9 @@ export interface ProductSelectionModuleGroup {
 export interface ProductSelectionRequest {
   snapshot: YamiSearchSnapshot;
   strategyRef: ProductSelectionStrategyRef;
+  language?: ContentLanguage;
+  /** `null` keeps the deterministic catalog fallback without requesting Agent input. */
+  productSemanticProposal?: unknown | null;
   taxonomySnapshot?: CatalogTaxonomySnapshot;
   categoryRoleProposal?: unknown;
   candidateSnapshot?: CatalogCandidateSnapshot;
@@ -184,9 +219,29 @@ export type ProductSelectionRun =
       schemaVersion: "product-selection-run/v1";
       status: "ready";
       result: ProductSelectionResult;
+      productSemanticProposalReview?: ProductSemanticProposalReview;
       categoryProposalReview?: CategoryRoleProposalReview;
       candidateSnapshotReview?: CatalogCandidateSnapshotReview;
       sceneProposalReview?: SceneProposalReview;
+    }
+  | {
+      schemaVersion: "product-selection-run/v1";
+      status: "needs-product-semantic-proposal";
+      strategyRef: ProductSelectionStrategyRef;
+      context: {
+        keyword: string;
+        language: ContentLanguage;
+        minimumGroups: number;
+        maximumScenes: number;
+        minimumProductsPerScene: number;
+        maximumProductsPerScene: number;
+        products: YamiProduct[];
+        repair?: {
+          issues: string[];
+          warnings: string[];
+          previousProposal: unknown;
+        };
+      };
     }
   | {
       schemaVersion: "product-selection-run/v1";
@@ -230,6 +285,7 @@ export type ProductSelectionRun =
       schemaVersion: "product-selection-run/v1";
       status: "blocked";
       strategyRef: ProductSelectionStrategyRef;
+      productSemanticProposalReview?: ProductSemanticProposalReview;
       categoryProposalReview?: CategoryRoleProposalReview;
       candidateSnapshotReview?: CatalogCandidateSnapshotReview;
       issues: string[];

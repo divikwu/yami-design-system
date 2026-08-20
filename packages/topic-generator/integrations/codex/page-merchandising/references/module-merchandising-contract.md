@@ -152,6 +152,10 @@ unique and remain in ProductSelection order.
   scene and per-scene product counts.
 - For category-role `@2`, visible StartHere, Popular Picks, Brand Spotlight, and Explore More must
   copy the corresponding `selectionModules[].productIds` exactly and in order.
+- When ProductSelection supplies Brand Spotlight, an empty group list requires the module to stay
+  hidden. Otherwise it contains two to six brand groups with exactly three products each; the
+  proposal must make the module visible, copy every product in group order, and set each
+  assignment's `groupId` to the exact ProductSelection brand-group ID.
 - Treat the returned rule as the sole scene capability signal. Supply `sceneId` only when the rule
   contains `sceneRange`; module names such as `start-here` never imply scene support. Every
   assignment in a scene-based module must reference a

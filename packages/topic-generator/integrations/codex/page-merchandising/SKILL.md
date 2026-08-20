@@ -81,6 +81,10 @@ strategy, template, `themeIntentDigest`, and `productSelectionDigest`.
 - For a category-role `@2` task, copy the complete ordered assignments from each returned
   `selectionModules` entry into StartHere, Popular Picks, Brand Spotlight, and Explore More. Do not
   truncate, reorder, or move those products.
+- Whenever `context.selectionModules` contains Brand Spotlight, keep it hidden when its groups are
+  empty. When it contains two to six brand groups, make the module visible and copy every group in
+  order with exactly three products. Add the exact group ID to each assignment; do not drop a
+  brand, mix brands, substitute products, or collapse the result to one dominant brand.
 - For a scene-bearing category-role task, preserve every returned source scene exactly once and in
   order. A reshaped page scene may change its ID and planning text, but it must copy every ordered
   product from both source groups.

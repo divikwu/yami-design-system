@@ -251,24 +251,6 @@ function popularPickGroups(
   ];
 }
 
-function dominantBrand(products: TopicProduct[]) {
-  const counts = new Map<string, { label: string; productIds: string[] }>();
-  products.forEach((product) => {
-    const key = normalized(product.brand);
-    const entry = counts.get(key) ?? { label: product.brand, productIds: [] };
-    entry.productIds.push(product.id);
-    counts.set(key, entry);
-  });
-
-  const winner = [...counts.entries()].sort(
-    (left, right) => right[1].productIds.length - left[1].productIds.length,
-  )[0];
-  if (!winner) return null;
-
-  const [, value] = winner;
-  return value.productIds.length >= 4 ? value : null;
-}
-
 function isBrandTopic(snapshot: YamiSearchSnapshot, products: TopicProduct[]) {
   if (snapshot.intent) {
     return snapshot.intent.themeType === "brand" || snapshot.intent.entityType === "brand";
@@ -285,6 +267,7 @@ function createModules(
   semanticGroups?: {
     shortcuts?: TopicGroup[];
     startHere?: TopicGroup[];
+    brandSpotlight?: TopicGroup[];
   },
 ): TopicModulePlan[] {
   const shortcutGroups = semanticGroups?.shortcuts ?? groups;
@@ -307,7 +290,8 @@ function createModules(
   );
   const popularGroups = popularPickGroups(primary, shortcutGroups, language);
   const popularProductIds = [...new Set(popularGroups.flatMap(({ productIds }) => productIds))];
-  const brand = dominantBrand(primary);
+  const brandGroups = semanticGroups?.brandSpotlight ?? [];
+  const brandProductIds = brandGroups.flatMap(({ productIds }) => productIds);
   const zh = language === "zh";
   const usesCatalogCategories = primary.some((product) => product.categoryL3Name);
   const usesSemanticShortcutGroups = Boolean(semanticGroups?.shortcuts);
@@ -412,22 +396,21 @@ function createModules(
     {
       id: "brand-spotlight",
       label: zh ? "品牌精选" : "Brand Spotlight",
-      heading: brand
-        ? `${zh ? "认识" : "Meet"} ${brand.label}`
-        : zh ? "品牌精选" : "Brand spotlight",
+      heading: zh ? "品牌精选" : "Brand spotlight",
       description: zh
-        ? "仅用于非品牌主题中突出主商品池的主导品牌。"
-        : "Highlights the dominant PrimaryPool brand only for non-brand topics.",
+        ? "按品牌浏览主商品池中的代表商品，每个品牌固定展示 3 件。"
+        : "Browse representative PrimaryPool products by brand, with exactly three products per brand.",
       required: false,
-      visible: Boolean(brand),
-      productIds: brand?.productIds.slice(0, 6) ?? [],
-      reason: brand
+      visible: brandGroups.length >= 2,
+      productIds: brandProductIds,
+      groups: brandGroups,
+      reason: brandGroups.length >= 2
         ? zh
-          ? `${brand.label} 是主商品池的主导品牌，且至少有 4 件主商品。`
-          : `${brand.label} is the dominant PrimaryPool brand with at least four products.`
+          ? `展示 ${brandGroups.length} 个合格品牌；每个品牌按商品排序固定取 3 件。`
+          : `Shows ${brandGroups.length} eligible brands with exactly three ordered products per brand.`
         : zh
-          ? "没有拥有至少 4 件主商品的主导品牌，因此隐藏。"
-          : "Hidden because no dominant brand has at least four primary products.",
+          ? "少于 2 个品牌各自拥有至少 3 件主商品，因此隐藏。"
+          : "Hidden because fewer than two brands each contain at least three primary products.",
     },
     {
       id: "reviews",
@@ -532,7 +515,8 @@ function createCategoryRoleModules(
     description: string,
     required: boolean,
   ): TopicModulePlan => {
-    const productIds = selectedModule.get(id)?.productIds ?? [];
+    const sourceModule = selectedModule.get(id);
+    const productIds = sourceModule?.productIds ?? [];
     return {
       id,
       label,
@@ -541,6 +525,15 @@ function createCategoryRoleModules(
       required,
       visible: productIds.length > 0,
       productIds,
+      ...(sourceModule?.groups.length
+        ? {
+            groups: sourceModule.groups.map((group) => ({
+              ...group,
+              role: group.role ?? "core",
+              productIds: [...group.productIds],
+            })),
+          }
+        : {}),
       reason: productIds.length > 0
         ? zh
           ? `商品由 ${result.strategyRef} 按 Scene → Popular → Brand → Explore 优先级分配并全局去重。`
@@ -685,7 +678,9 @@ export function buildTopicPagePlanFromProductSelection(
     reason: category.reason,
   }));
   const groups = buildGroups(primary);
-  const semanticModuleGroups = (moduleId: "shortcuts" | "start-here") => {
+  const semanticModuleGroups = (
+    moduleId: "shortcuts" | "start-here" | "brand-spotlight",
+  ) => {
     const module = selection.modules.find(({ id }) => id === moduleId);
     if (!module || module.groups.length < 2) return undefined;
     const moduleGroups = module.groups.flatMap((group) => {
@@ -693,7 +688,9 @@ export function buildTopicPagePlanFromProductSelection(
       return productIds.length > 0
         ? [{
             id: group.id,
-            label: productTypeLabel(group.label, language),
+            label: moduleId === "brand-spotlight"
+              ? group.label
+              : productTypeLabel(group.label, language),
             role: group.role ?? "core",
             productIds,
             ...(group.sourceCategoryIds
@@ -714,6 +711,7 @@ export function buildTopicPagePlanFromProductSelection(
     ? {
         shortcuts: semanticModuleGroups("shortcuts"),
         startHere: semanticModuleGroups("start-here"),
+        brandSpotlight: semanticModuleGroups("brand-spotlight"),
       }
     : undefined;
   const brandTopic = isBrandTopic(snapshot, primary);

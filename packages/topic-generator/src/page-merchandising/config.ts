@@ -229,7 +229,7 @@ const LEGACY_CONFIGS: readonly PageMerchandisingTemplateConfig[] = [
     ref: "topic-landing/relevance@1",
     assignmentAuthority: "proposal",
     moduleOrder: MODULE_ORDER,
-    modules: relevanceModules(12).map((rule) => rule.id === "start-here"
+    modules: relevanceModules(18).map((rule) => rule.id === "start-here"
       ? { ...rule, required: false, minimumProducts: 0, maximumProducts: 0 }
       : rule),
   },
@@ -269,14 +269,14 @@ const CONFIGS: readonly PageMerchandisingTemplateConfig[] = [
     ref: "topic-landing/topic-relevance@1",
     assignmentAuthority: "proposal",
     moduleOrder: MODULE_ORDER,
-    modules: relevanceModules(12),
+    modules: relevanceModules(18),
   },
   {
     schemaVersion: "page-merchandising-template/v1",
     ref: "topic-landing/campaign-relevance@1",
     assignmentAuthority: "proposal",
     moduleOrder: MODULE_ORDER,
-    modules: relevanceModules(12),
+    modules: relevanceModules(18),
   },
   {
     schemaVersion: "page-merchandising-template/v1",
@@ -290,14 +290,14 @@ const CONFIGS: readonly PageMerchandisingTemplateConfig[] = [
     ref: "topic-landing/topic-relevance@2",
     assignmentAuthority: "proposal",
     moduleOrder: MODULE_ORDER,
-    modules: relevanceModules(12, 16, true),
+    modules: relevanceModules(18, 16, true),
   },
   {
     schemaVersion: "page-merchandising-template/v1",
     ref: "topic-landing/campaign-relevance@2",
     assignmentAuthority: "proposal",
     moduleOrder: MODULE_ORDER,
-    modules: relevanceModules(12, 16, true),
+    modules: relevanceModules(18, 16, true),
   },
 ];
 

@@ -11,7 +11,10 @@ export type TopicPageStage =
   | "visual-generation"
   | "experience-review";
 
-export type ProductSelectionStage = "category-role-proposal" | "scene-proposal";
+export type ProductSelectionStage =
+  | "product-semantic-proposal"
+  | "category-role-proposal"
+  | "scene-proposal";
 export type AgentStage = TopicPageStage | ProductSelectionStage;
 
 export interface AgentRoute {
@@ -102,6 +105,14 @@ export const AGENT_ROUTES: readonly AgentRoute[] = [
     kiroAgent: "topic-review",
     skill: "page-review",
     responseSchemaVersion: "topic-page-agent-response/v1",
+  }),
+  route({
+    protocol: "product-selection",
+    stage: "product-semantic-proposal",
+    agentId: "topic-strategy",
+    kiroAgent: "topic-strategy",
+    skill: "product-selection",
+    responseSchemaVersion: "product-selection-agent-response/v1",
   }),
   route({
     protocol: "product-selection",
