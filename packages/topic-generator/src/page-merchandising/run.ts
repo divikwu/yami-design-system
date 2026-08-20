@@ -2,6 +2,7 @@ import type { ProductSelectionResult } from "../product-selection/contracts.js";
 import type { ContentLanguage, ThemeIntent } from "../types.js";
 import { sha256Digest } from "../product-selection/digest.js";
 import {
+  evidenceSizedSceneProductRange,
   getPageMerchandisingTemplateConfig,
   type PageMerchandisingTemplateConfig,
 } from "./config.js";
@@ -135,6 +136,11 @@ function taskContext(
   language: ContentLanguage,
 ): PageMerchandisingTaskContext {
   const config = getPageMerchandisingTemplateConfig(templateRef);
+  const startHereRule = config.modules.find(({ id }) => id === "start-here");
+  const startHereGroupsById = new Map(
+    (selection.modules.find(({ id }) => id === "start-here")?.groups ?? [])
+      .map((group) => [group.id, group]),
+  );
   const shortcutGroupCount = selection.modules.find(({ id }) => id === "shortcuts")
     ?.groups.length ?? 0;
   return {
@@ -160,6 +166,12 @@ function taskContext(
       allowedPools: [...rule.allowedPools],
       allowedRoles: [...rule.allowedRoles],
       ...(rule.sceneRange ? { sceneRange: rule.sceneRange } : {}),
+      ...(rule.productsPerSceneRange
+        ? { productsPerSceneRange: rule.productsPerSceneRange }
+        : {}),
+      ...(rule.requireSceneTargetProductCount
+        ? { requireSceneTargetProductCount: true }
+        : {}),
     })),
     themeIntent: structuredClone(intent),
     selectedCategories: selection.selectedCategories.map((category) => ({
@@ -174,10 +186,28 @@ function taskContext(
         productIds: [...group.productIds],
       })),
     })),
-    sourceScenes: selection.scenes.map((scene) => ({
-      ...scene,
-      productGroups: scene.productGroups.map((group) => ({ ...group })),
-    })),
+    sourceScenes: selection.scenes.map((scene) => {
+      const productGroups = scene.productGroups.map((group) => ({ ...group }));
+      const sourceCategoryIds = [
+        ...(startHereGroupsById.get(scene.id)?.sourceCategoryIds ?? []),
+      ];
+      const sourceProductCount = productGroups.flatMap(({ core, pairing, accessory }) =>
+        [core, pairing, accessory].filter(Boolean)
+      ).length;
+      const [minimumRecommendedProducts, maximumProducts] =
+        evidenceSizedSceneProductRange(
+          startHereRule?.productsPerSceneRange ?? [sourceProductCount, sourceProductCount],
+          sourceProductCount,
+          sourceCategoryIds.length,
+        );
+      return {
+        ...scene,
+        productGroups,
+        sourceCategoryIds,
+        minimumRecommendedProducts,
+        maximumProducts,
+      };
+    }),
     products: selection.products.map((product) => ({
       id: product.id,
       title: product.title,

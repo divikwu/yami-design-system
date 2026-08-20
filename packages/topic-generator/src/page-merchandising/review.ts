@@ -1,7 +1,10 @@
 import type { ProductPool, ProductRole, ThemeIntent, TopicModuleId } from "../types.js";
 import type { ProductSelectionResult } from "../product-selection/contracts.js";
 import { sha256Digest } from "../product-selection/digest.js";
-import { getPageMerchandisingTemplateConfig } from "./config.js";
+import {
+  evidenceSizedSceneProductRange,
+  getPageMerchandisingTemplateConfig,
+} from "./config.js";
 import type {
   ModuleMerchandisingProposalReview,
   PageMerchandisingAssignmentProposal,
@@ -132,6 +135,9 @@ export function reviewModuleMerchandisingProposal(
     TopicModuleId,
     ProductSelectionResult["modules"][number]
   >(selection.modules.map((module) => [module.id, module]));
+  const sourceGroupsById = new Map(
+    (selectionModulesById.get("start-here")?.groups ?? []).map((group) => [group.id, group]),
+  );
   const preserveModuleAssignments = config.assignmentAuthority === "product-selection";
   const selectionOwnedProductIds = new Set(
     selection.modules.flatMap(({ productIds }) => productIds),
@@ -189,6 +195,7 @@ export function reviewModuleMerchandisingProposal(
     if (!Array.isArray(module.scenes)) issues.push(`Module ${id} scenes must be an array.`);
     const scenes: PageMerchandisingSceneProposal[] = [];
     const seenSceneIds = new Set<string>();
+    const seenSourceSceneIds = new Set<string>();
     rawScenes.forEach((rawScene, sceneIndex) => {
       const scene = objectValue(rawScene);
       if (!scene) {
@@ -197,6 +204,10 @@ export function reviewModuleMerchandisingProposal(
       }
       const sceneId = stringValue(scene.id);
       const sourceSceneId = stringValue(scene.sourceSceneId);
+      const targetProductCount = typeof scene.targetProductCount === "number" &&
+          Number.isInteger(scene.targetProductCount)
+        ? scene.targetProductCount
+        : undefined;
       const sceneGoal = stringValue(scene.shoppingGoal);
       const sceneReason = stringValue(scene.reason);
       if (!sceneId) issues.push(`Module ${id} scene ${sceneIndex} requires id.`);
@@ -204,12 +215,41 @@ export function reviewModuleMerchandisingProposal(
       seenSceneIds.add(sceneId);
       if (!sourceScenesById.has(sourceSceneId)) {
         issues.push(`Source scene ${sourceSceneId || sceneIndex} is absent from ProductSelectionResult.`);
+      } else if (seenSourceSceneIds.has(sourceSceneId)) {
+        issues.push(`Source scene ${sourceSceneId} is used more than once in module ${id}.`);
+      } else {
+        seenSourceSceneIds.add(sourceSceneId);
       }
       if (!sceneGoal || !sceneReason) {
         issues.push(`Module ${id} scene ${sceneId || sceneIndex} requires shoppingGoal and reason.`);
       }
+      if (rule.requireSceneTargetProductCount && targetProductCount === undefined) {
+        issues.push(
+          `Module ${id} scene ${sceneId || sceneIndex} requires an integer targetProductCount.`,
+        );
+      }
+      if (targetProductCount !== undefined && rule.productsPerSceneRange && sourceSceneId) {
+        const sourceProductCount = sourceProductOrderByScene.get(sourceSceneId)?.length ?? 0;
+        const sourceCategoryCount = sourceGroupsById.get(sourceSceneId)?.sourceCategoryIds?.length ?? 0;
+        const [minimumTarget, maximumTarget] = evidenceSizedSceneProductRange(
+          rule.productsPerSceneRange,
+          sourceProductCount,
+          sourceCategoryCount,
+        );
+        if (targetProductCount < minimumTarget || targetProductCount > maximumTarget) {
+          issues.push(
+            `Module ${id} scene ${sceneId || sceneIndex} targetProductCount must be ${minimumTarget}-${maximumTarget} based on its source categories and available products.`,
+          );
+        }
+      }
       if (sceneId && sourceSceneId && sceneGoal && sceneReason) {
-        scenes.push({ id: sceneId, sourceSceneId, shoppingGoal: sceneGoal, reason: sceneReason });
+        scenes.push({
+          id: sceneId,
+          sourceSceneId,
+          ...(targetProductCount !== undefined ? { targetProductCount } : {}),
+          shoppingGoal: sceneGoal,
+          reason: sceneReason,
+        });
       }
     });
     if (!rule.sceneRange && scenes.length > 0) issues.push(`Module ${id} does not accept scenes.`);
@@ -217,6 +257,15 @@ export function reviewModuleMerchandisingProposal(
       const [minimumScenes, maximumScenes] = rule.sceneRange;
       if (scenes.length < minimumScenes || scenes.length > maximumScenes) {
         issues.push(`Module ${id} must contain ${minimumScenes}-${maximumScenes} scenes.`);
+      }
+      const sourceSceneOrder = new Map(
+        selection.scenes.map((scene, index) => [scene.id, index]),
+      );
+      const proposedOrder = scenes.map((scene) => sourceSceneOrder.get(scene.sourceSceneId) ?? -1);
+      if (proposedOrder.some((position, index) =>
+        position < 0 || (index > 0 && position <= proposedOrder[index - 1]!)
+      )) {
+        issues.push(`Module ${id} scenes must preserve ProductSelectionResult source-scene order.`);
       }
     }
 
@@ -384,6 +433,26 @@ export function reviewModuleMerchandisingProposal(
         .map(({ productId }) => productId);
       if (assignedProductIds.length === 0) {
         issues.push(`Module ${id} scene ${scene.id} has no product assignments.`);
+      }
+      if (visible && rule.productsPerSceneRange) {
+        const [minimumSceneProducts, maximumSceneProducts] = rule.productsPerSceneRange;
+        if (
+          assignedProductIds.length < minimumSceneProducts ||
+          assignedProductIds.length > maximumSceneProducts
+        ) {
+          issues.push(
+            `Module ${id} scene ${scene.id} must assign ${minimumSceneProducts}-${maximumSceneProducts} products.`,
+          );
+        }
+      }
+      if (
+        visible &&
+        scene.targetProductCount !== undefined &&
+        assignedProductIds.length !== scene.targetProductCount
+      ) {
+        issues.push(
+          `Module ${id} scene ${scene.id} must assign exactly its targetProductCount of ${scene.targetProductCount} products.`,
+        );
       }
       if (preserveModuleAssignments && id === "start-here") {
         const expectedProductIds = sourceProductOrderByScene.get(scene.sourceSceneId) ?? [];

@@ -95,16 +95,16 @@
 
 .generatorControls button,
 .generatorControls input {
-  font-size: var(--font-size-caption-md);
-  line-height: var(--line-height-caption-md);
+  font-size: 14px;
+  line-height: 20px;
 }
 
 .pathReadout span,
 .pathReadout code,
 .generatorControls [data-slot="workbench-field-label"],
 .generatorControls label span {
-  font-size: var(--font-size-caption-sm);
-  line-height: var(--line-height-caption-sm);
+  font-size: 12px;
+  line-height: 14px;
 }
 
 .pathReadout {
@@ -178,7 +178,7 @@
 .previewStage {
   display: grid;
   min-width: 0;
-  grid-template-rows: 36px minmax(0, 1fr);
+  grid-template-rows: 40px minmax(0, 1fr);
   background: var(--color-neutral-200);
 }
 
@@ -189,14 +189,22 @@
   justify-content: space-between;
   border-bottom: 1px solid var(--color-neutral-300);
   color: var(--color-neutral-700);
+}
+
+.stageTabs {
+  width: auto;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-self: stretch;
+}
+
+.stageMeta {
+  flex: none;
+  margin-left: auto;
   font-family: var(--font-mono);
   font-size: var(--font-size-link-sm);
   line-height: var(--line-height-link-sm);
   letter-spacing: .07em;
-}
-
-.stageMeta {
-  margin-left: auto;
 }
 
 .deviceMat {
@@ -212,46 +220,6 @@
   border: 1px solid var(--color-neutral-400);
   background: #fff;
   box-shadow: 0 14px 40px rgb(0 0 0 / 12%);
-}
-
-.stageViews {
-  display: flex;
-  align-self: stretch;
-  gap: 16px;
-}
-
-.stageViews button {
-  position: relative;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-  font: inherit;
-  letter-spacing: inherit;
-}
-
-.stageViews button::after {
-  position: absolute;
-  right: 0;
-  bottom: -1px;
-  left: 0;
-  height: 2px;
-  background: transparent;
-  content: "";
-}
-
-.stageViews button[aria-current="page"] {
-  color: var(--text-primary);
-}
-
-.stageViews button[aria-current="page"]::after {
-  background: var(--button-emphasis);
-}
-
-.stageViews button:disabled:not([aria-current="page"]) {
-  color: var(--text-disabled);
-  cursor: not-allowed;
 }
 
 .generatorMat {
@@ -531,50 +499,6 @@
   font-weight: var(--font-weight-emphasize);
   font-variant-numeric: tabular-nums;
   line-height: var(--line-height-heading-xs);
-}
-
-.previewModeTabs {
-  display: flex;
-  min-height: 48px;
-  align-items: stretch;
-  gap: 24px;
-  padding: 0 24px;
-  border-bottom: 1px solid var(--border-default);
-  background: var(--surface-primary);
-}
-
-.previewModeTabs button {
-  position: relative;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--text-secondary);
-  cursor: pointer;
-  font-size: var(--font-size-body-md);
-  line-height: var(--line-height-body-md);
-}
-
-.previewModeTabs button::after {
-  position: absolute;
-  right: 0;
-  bottom: -1px;
-  left: 0;
-  height: 2px;
-  background: transparent;
-  content: "";
-}
-
-.previewModeTabs button[aria-selected="true"] {
-  color: var(--text-primary);
-}
-
-.previewModeTabs button[aria-selected="true"]::after {
-  background: var(--text-primary);
-}
-
-.previewModeTabs button:disabled {
-  color: var(--text-disabled);
-  cursor: not-allowed;
 }
 
 .resultBody {
@@ -1361,10 +1285,11 @@
 .shortcutGrid {
   display: grid;
   gap: 8px;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.shortcutSelectionStatus {
+.shortcutSelectionStatus,
+.startHereSelectionStatus {
   display: grid;
   max-width: 720px;
   margin: -12px 0 20px;
@@ -1373,6 +1298,24 @@
   gap: 4px;
   line-height: var(--line-height-body-md);
 }
+
+.startHereThemeContext {
+  display: grid;
+  max-width: 720px;
+  margin: -4px 0 0;
+  color: var(--text-secondary);
+  gap: 4px;
+}
+
+.startHereThemeContext p,
+.startHereThemeContext small {
+  margin: 0;
+  font-size: var(--font-size-body-md);
+  line-height: var(--line-height-body-md);
+  text-wrap: pretty;
+}
+
+.startHereThemeContext small { color: #6f6c65; }
 
 .shortcutCard {
   display: grid;
@@ -1440,16 +1383,19 @@
 
 .startHereTheme {
   min-width: 0;
+  height: auto;
+  align-self: start;
   padding: 12px;
   border: 1px solid #e1ded8;
 }
 
 .startHereTheme > header {
   display: grid;
-  align-items: baseline;
-  margin-bottom: 12px;
+  align-items: center;
+  margin-bottom: 0;
+  padding-bottom: 16px;
   gap: 4px 12px;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
 }
 
 .startHereTheme > header span,
@@ -1461,7 +1407,11 @@
   text-transform: uppercase;
 }
 
-.startHereTheme > header span { grid-column: 1 / -1; }
+.startHereThemeHeading {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
 
 .startHereTheme > header h4 {
   min-width: 0;
@@ -1473,11 +1423,21 @@
   white-space: nowrap;
 }
 
+.startHereThemeToggle {
+  align-self: center;
+  font-size: var(--font-size-caption-sm);
+  line-height: var(--line-height-caption-sm);
+}
+
 .startHereThemeProducts {
   display: grid;
   gap: 10px;
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
+
+.startHereThemeContext + .startHereThemeProducts { margin-top: 12px; }
+
+.startHereThemeProducts[hidden] { display: none; }
 
 .generatedScenes {
   display: grid;
@@ -1674,57 +1634,6 @@
 
 .recommendationModule {
   scroll-margin-top: 58px;
-}
-
-.recommendationTabs {
-  min-width: 0;
-}
-
-.recommendationTabList {
-  display: flex;
-  max-width: 100%;
-  overflow-x: auto;
-  border-bottom: 1px solid #d8d5cf;
-  scrollbar-width: thin;
-}
-
-.recommendationTab {
-  display: grid;
-  flex: none;
-  min-width: 148px;
-  padding: 12px 16px;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  background: transparent;
-  color: var(--text-secondary);
-  cursor: pointer;
-  gap: 2px;
-  text-align: left;
-}
-
-.recommendationTab strong {
-  color: inherit;
-  font-size: var(--font-size-body-md);
-  font-weight: var(--font-weight-emphasize);
-  line-height: var(--line-height-body-md);
-}
-
-.recommendationTab span {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-caption-sm);
-  line-height: var(--line-height-caption-sm);
-}
-
-.recommendationTab[aria-selected="true"] {
-  border-bottom-color: var(--text-primary);
-  color: var(--text-primary);
-}
-
-.recommendationTab:hover { color: var(--text-primary); }
-
-.recommendationTab:focus-visible {
-  outline: 2px solid var(--text-primary);
-  outline-offset: -2px;
 }
 
 .recommendationPanel {
@@ -3362,7 +3271,6 @@
 
 @media (max-width: 600px) {
   .generatorMat { padding: 12px; }
-  .stageViews { gap: 10px; }
   .runHeader,
   .moduleHeading,
   .viewHeading { align-items: flex-start; flex-direction: column; }

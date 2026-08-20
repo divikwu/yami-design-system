@@ -1387,14 +1387,14 @@ describe("Topic page planner", () => {
     expect(chinese.products[0]?.selectionReason).toContain("关键词直接命中");
   });
 
-  it("assigns Start Here only to themes with four to eight products in Yami order", () => {
+  it("assigns Start Here only to themes with four to sixteen products in Yami order", () => {
     const groupedProducts = [
-      ...Array.from({ length: 10 }, (_, index) =>
+      ...Array.from({ length: 20 }, (_, index) =>
         product(`serum-${index + 1}`, `ANUA Serum ${index + 1}`, index + 1)),
       ...Array.from({ length: 4 }, (_, index) =>
-        product(`toner-${index + 1}`, `ANUA Toner ${index + 1}`, index + 11)),
+        product(`toner-${index + 1}`, `ANUA Toner ${index + 1}`, index + 21)),
       ...Array.from({ length: 3 }, (_, index) =>
-        product(`mask-${index + 1}`, `ANUA Mask ${index + 1}`, index + 15)),
+        product(`mask-${index + 1}`, `ANUA Mask ${index + 1}`, index + 25)),
     ];
     const plan = buildTopicPagePlan(
       snapshot(groupedProducts),
@@ -1406,7 +1406,7 @@ describe("Topic page planner", () => {
 
     expect(startHere?.visible).toBe(true);
     expect(startHere?.productIds).toEqual([
-      ...Array.from({ length: 8 }, (_, index) => `serum-${index + 1}`),
+      ...Array.from({ length: 16 }, (_, index) => `serum-${index + 1}`),
       ...Array.from({ length: 4 }, (_, index) => `toner-${index + 1}`),
     ]);
     expect(startHere?.productIds).not.toContain("mask-1");
@@ -1428,7 +1428,7 @@ describe("Topic page planner", () => {
     const catalogSnapshot = snapshot(catalogProducts);
     const selection: ProductSelectionResult = {
       schemaVersion: "product-selection-result/v1",
-      strategyRef: "relevance/intent-themes@3",
+      strategyRef: "relevance/intent-themes@4",
       keyword: "ANUA",
       site: "us",
       selectedAt: catalogSnapshot.fetchedAt,
@@ -1516,8 +1516,9 @@ describe("Topic page planner", () => {
     expect(plan.modules.length).toBeGreaterThan(0);
     expect(plan.modules.every((module) => module.heading === "" && module.description === ""))
       .toBe(true);
-    expect(plan.modules.find(({ id }) => id === "popular-picks")?.productIds)
-      .toEqual(plan.pools.primaryIds.slice(0, 8));
+    const popular = plan.modules.find(({ id }) => id === "popular-picks");
+    expect(popular?.groups?.map(({ label }) => label)).toEqual(["All"]);
+    expect(popular?.productIds).toEqual(plan.pools.primaryIds.slice(0, 12));
     expect(plan.content).toMatchObject({
       headline: "",
       description: "",
@@ -1527,15 +1528,75 @@ describe("Topic page planner", () => {
     expect(plan.workflow.map((step) => step.stage)).toEqual(["03", "04"]);
   });
 
-  it("enables a brand spotlight only for a query-matched dominant brand", () => {
+  it("builds Popular Picks tabs from eligible Shortcut groups ordered by weekly sales", () => {
+    const weeklyProduct = (
+      id: string,
+      sourceRank: number,
+      categoryL3Name: string,
+      weeklySales: number,
+    ): YamiProduct => ({
+      ...product(id, `ANUA ${id}`, sourceRank),
+      categoryL3Name,
+      weeklySalesLabel: `${weeklySales}+ Sold`,
+    });
+    const weeklyProducts = [
+      ...Array.from({ length: 9 }, (_, index) =>
+        weeklyProduct(`serum-${index + 1}`, index + 1, "Serums & Essences", 100 - index * 10)
+      ),
+      ...Array.from({ length: 7 }, (_, index) =>
+        weeklyProduct(`mask-${index + 1}`, index + 10, "Sheet Masks", 700 - index * 100)
+      ),
+      ...Array.from({ length: 5 }, (_, index) =>
+        weeklyProduct(`sun-${index + 1}`, index + 17, "Sun Care", 1000 - index * 100)
+      ),
+    ];
+
+    const plan = buildTopicPagePlan(snapshot(weeklyProducts), "relevance", "zh", "selection");
+    const popular = plan.modules.find(({ id }) => id === "popular-picks")!;
+
+    expect(popular.visible).toBe(true);
+    expect(popular.groups?.map(({ label }) => label)).toEqual([
+      "全部",
+      "精华与精粹",
+      "片状面膜",
+    ]);
+    expect(popular.groups?.map(({ productIds }) => productIds.length)).toEqual([12, 9, 7]);
+    expect(popular.groups?.[0]?.productIds[0]).toBe("sun-1");
+    expect(popular.groups?.[1]?.productIds.slice(0, 3)).toEqual([
+      "serum-1",
+      "serum-2",
+      "serum-3",
+    ]);
+    expect(popular.groups?.[2]?.productIds.slice(0, 3)).toEqual([
+      "mask-1",
+      "mask-2",
+      "mask-3",
+    ]);
+    expect(popular.groups?.some(({ label }) => label === "防晒护理")).toBe(false);
+  });
+
+  it("hides Brand Spotlight when the keyword is the brand", () => {
     const plan = buildTopicPagePlan(snapshot(products), "relevance");
     const brandModule = plan.modules.find((module) => module.id === "brand-spotlight");
     const reviewModule = plan.modules.find((module) => module.id === "reviews");
 
-    expect(brandModule?.visible).toBe(true);
-    expect(brandModule?.heading).toBe("Meet ANUA");
+    expect(brandModule?.visible).toBe(false);
+    expect(brandModule?.productIds).toEqual([]);
+    expect(brandModule?.reason).toContain("keyword is a brand topic");
     expect(reviewModule?.visible).toBe(false);
     expect(reviewModule?.reason).toContain("do not provide review evidence");
+  });
+
+  it("keeps Brand Spotlight available for a non-brand topic with a dominant brand", () => {
+    const plan = buildTopicPagePlan(
+      { ...snapshot(products), keyword: "daily skincare" },
+      "relevance",
+    );
+    const brandModule = plan.modules.find((module) => module.id === "brand-spotlight");
+
+    expect(brandModule?.visible).toBe(true);
+    expect(brandModule?.heading).toBe("Meet ANUA");
+    expect(brandModule?.productIds).toHaveLength(6);
   });
 
   it("marks a plan degraded when only contextual Yami results are available", () => {

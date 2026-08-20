@@ -186,7 +186,7 @@ function workflowFixture(options: {
       modules: [
         { id: "hero", visible: true, shoppingGoal: "Introduce matcha", reason: "Three frozen core products create a representative Hero.", scenes: [], assignments: [{ productId: "matcha-1", selectionReason: "Strong sales anchor." }, { productId: "matcha-2", selectionReason: "Adds daily-use coverage." }, { productId: "matcha-3", selectionReason: "Adds organic variety." }] },
         { id: "shortcuts", visible: true, shoppingGoal: "Open matcha", reason: "Direct entry.", scenes: [], assignments: [repeat("matcha-1")] },
-        { id: "start-here", visible: true, shoppingGoal: "Help shoppers begin with matcha", reason: "The frozen result supports a compact entry point without invented scenes.", scenes: [], assignments: [repeat("matcha-1")] },
+        { id: "start-here", visible: false, shoppingGoal: "", reason: "The frozen result contains no catalog-backed source scenes.", scenes: [], assignments: [] },
         { id: "popular-picks", visible: true, shoppingGoal: "Show the best match", reason: "Frozen rank one.", scenes: [], assignments: [repeat("matcha-1")] },
         { id: "brand-spotlight", visible: false, shoppingGoal: "", reason: "One item cannot support a brand rail.", scenes: [], assignments: [] },
         { id: "reviews", visible: false, shoppingGoal: "", reason: "No verified reviews.", scenes: [], assignments: [] },
@@ -364,9 +364,7 @@ describe("Topic page automation workflow", () => {
     });
     expect(data.put).toHaveBeenCalledTimes(2);
     expect(data.persisted.size).toBe(2);
-    expect(result.generationSpec?.modules.find(({ id }) => id === "start-here")).toMatchObject({
-      scenes: [],
-    });
+    expect(result.generationSpec?.modules.find(({ id }) => id === "start-here")).toBeUndefined();
   });
 
   it("publishes the QA-passed generation spec before asking the Review Agent to inspect it", async () => {

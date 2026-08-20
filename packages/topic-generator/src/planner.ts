@@ -13,7 +13,7 @@ import type {
   YamiProduct,
   YamiSearchSnapshot,
 } from "./types.js";
-import { buildSearchFallbackIntent } from "./yami-catalog.js";
+import { buildSearchFallbackIntent, weeklySalesLowerBound } from "./yami-catalog.js";
 import { getProductSelectionStrategyConfig } from "./product-selection/config.js";
 import type { ProductSelectionResult } from "./product-selection/contracts.js";
 import { advanceProductSelectionRun } from "./product-selection/run.js";
@@ -100,6 +100,8 @@ const PRODUCT_TYPE_RULES = [
 
 const ROLE_ORDER: ProductRole[] = ["core", "pairing", "accessory"];
 const PREFIX_PRODUCT_TERMS = new Set(["exfoliat", "moistur"]);
+const POPULAR_PICKS_MINIMUM_PRODUCTS = 6;
+const POPULAR_PICKS_MAXIMUM_PRODUCTS = 12;
 
 function normalized(value: string) {
   return value.toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
@@ -214,7 +216,42 @@ function buildGroups(products: TopicProduct[]): TopicGroup[] {
   });
 }
 
-function dominantBrand(products: TopicProduct[], keyword: string) {
+function popularPickGroups(
+  products: TopicProduct[],
+  shortcutGroups: TopicGroup[],
+  language: ContentLanguage,
+) {
+  const productsById = new Map(products.map((product) => [product.id, product]));
+  const rankedProducts = (productIds: string[]) => productIds
+    .flatMap((id) => {
+      const product = productsById.get(id);
+      return product ? [product] : [];
+    })
+    .sort((left, right) =>
+      weeklySalesLowerBound(right) - weeklySalesLowerBound(left) ||
+      left.sourceRank - right.sourceRank
+    )
+    .slice(0, POPULAR_PICKS_MAXIMUM_PRODUCTS);
+  const allProducts = rankedProducts(products.map(({ id }) => id));
+  if (allProducts.length < POPULAR_PICKS_MINIMUM_PRODUCTS) return [];
+
+  return [
+    {
+      id: "popular-picks-all",
+      label: language === "zh" ? "全部" : "All",
+      role: "core" as const,
+      productIds: allProducts.map(({ id }) => id),
+    },
+    ...shortcutGroups.flatMap((group) => {
+      const groupProducts = rankedProducts(group.productIds);
+      return groupProducts.length >= POPULAR_PICKS_MINIMUM_PRODUCTS
+        ? [{ ...group, productIds: groupProducts.map(({ id }) => id) }]
+        : [];
+    }),
+  ];
+}
+
+function dominantBrand(products: TopicProduct[]) {
   const counts = new Map<string, { label: string; productIds: string[] }>();
   products.forEach((product) => {
     const key = normalized(product.brand);
@@ -228,10 +265,16 @@ function dominantBrand(products: TopicProduct[], keyword: string) {
   )[0];
   if (!winner) return null;
 
-  const [key, value] = winner;
-  const query = normalized(keyword);
-  const queryNamesBrand = query === key || query.includes(key) || key.includes(query);
-  return value.productIds.length >= 4 && queryNamesBrand ? value : null;
+  const [, value] = winner;
+  return value.productIds.length >= 4 ? value : null;
+}
+
+function isBrandTopic(snapshot: YamiSearchSnapshot, products: TopicProduct[]) {
+  if (snapshot.intent) {
+    return snapshot.intent.themeType === "brand" || snapshot.intent.entityType === "brand";
+  }
+  const query = normalized(snapshot.keyword);
+  return products.some((product) => normalized(product.brand) === query);
 }
 
 function createModules(
@@ -252,16 +295,27 @@ function createModules(
     .filter((group) => group.productIds.length >= 4)
     .slice(0, 6);
   const startHereGroups = semanticGroups?.startHere ?? (
-    eligibleStartHereGroups.length >= 2 ? eligibleStartHereGroups : []
+    eligibleStartHereGroups.length >= 2
+      ? eligibleStartHereGroups.map((group) => ({
+          ...group,
+          productIds: group.productIds.slice(0, 16),
+        }))
+      : []
   );
   const startHereProducts = startHereGroups.flatMap((group) =>
-    group.productIds.slice(0, 8)
+    group.productIds
   );
-  const brand = dominantBrand(primary, keyword);
+  const popularGroups = popularPickGroups(primary, shortcutGroups, language);
+  const popularProductIds = [...new Set(popularGroups.flatMap(({ productIds }) => productIds))];
+  const brand = dominantBrand(primary);
   const zh = language === "zh";
   const usesCatalogCategories = primary.some((product) => product.categoryL3Name);
   const usesSemanticShortcutGroups = Boolean(semanticGroups?.shortcuts);
-  const usesSemanticScenarioGroups = Boolean(semanticGroups?.startHere);
+  const usesSemanticScenarioGroups = Boolean(
+    semanticGroups?.startHere?.some(({ semanticSource }) =>
+      semanticSource === "agent-proposal" || semanticSource === "agent-reviewed"
+    ),
+  );
   const heroSelection = selectFallbackHeroProducts(primary, language);
 
   return [
@@ -318,11 +372,11 @@ function createModules(
       heading: zh ? "从这里开始" : "Start here",
       description: zh
         ? usesSemanticScenarioGroups
-          ? "按 Agent 提议、目录证据确认的 2–6 个购物场景纵向浏览，每组展示 4–8 件商品。"
-          : "按 2–6 个主题纵向浏览，每个主题展示 4–8 件商品。"
+          ? "按 Agent 提议、目录证据确认的 2–6 个购物场景纵向浏览，每组展示 4–16 件商品。"
+          : "按 2–6 个主题纵向浏览，每个主题展示 4–16 件商品。"
         : usesSemanticScenarioGroups
-          ? "Browse two to six Agent-proposed shopping scenarios verified by catalog evidence, with four to eight products each."
-          : "Browse two to six themes vertically, with four to eight products per theme.",
+          ? "Browse two to six Agent-proposed shopping scenarios verified by catalog evidence, with four to sixteen products each."
+          : "Browse two to six themes vertically, with four to sixteen products per theme.",
       required: false,
       visible: startHereGroups.length > 0,
       productIds: startHereProducts,
@@ -331,11 +385,11 @@ function createModules(
         startHereGroups.length > 0
           ? zh
             ? usesSemanticScenarioGroups
-              ? "保留已接受场景提案的顺序；商品归属、4–8 件限制与跨组去重由系统校验。"
-              : "展示 2–6 个商品数达到 4 件的主题；每个主题按 Yami 顺序使用 4–8 件商品。"
+              ? "保留已接受场景提案的顺序；商品归属、4–16 件限制与跨组去重由系统校验。"
+              : "展示 2–6 个商品数达到 4 件的主题；每个主题按 Yami 顺序使用 4–16 件商品。"
             : usesSemanticScenarioGroups
-              ? "Keeps accepted scenario order; the system verifies membership, the four-to-eight limit, and cross-group deduplication."
-              : "Shows two to six themes with at least four products, using four to eight items in Yami order."
+              ? "Keeps accepted scenario order; the system verifies membership, the four-to-sixteen limit, and cross-group deduplication."
+              : "Shows two to six themes with at least four products, using four to sixteen items in Yami order."
           : zh
             ? "少于 2 个主题达到每组 4 件商品，因此隐藏。"
             : "Hidden because fewer than two themes contain at least four products.",
@@ -345,14 +399,15 @@ function createModules(
       label: zh ? "热门精选" : "Popular Picks",
       heading: zh ? "热门精选" : "Popular picks",
       description: zh
-        ? "保留 Yami 搜索顺序；不展示价格，也不按价格排序。"
-        : "Keeps Yami search order; price is hidden and never affects rank.",
+        ? "通过全部与精选分类 Tab 浏览，每个 Tab 按周销量展示 6–12 件商品。"
+        : "Browse All and Featured Category tabs, each showing six to twelve products ordered by weekly sales.",
       required: true,
-      visible: primary.length >= 4,
-      productIds: primary.slice(0, 8).map((product) => product.id),
+      visible: popularGroups.length > 0,
+      productIds: popularProductIds,
+      groups: popularGroups,
       reason: zh
-        ? "按 Yami 原始结果顺序使用最多 8 件主商品池商品。"
-        : "Uses up to eight PrimaryPool products in original Yami result order.",
+        ? `展示全部与 ${Math.max(0, popularGroups.length - 1)} 个商品数达到 6 件的精选分类；每个 Tab 按周销量取最多 12 件商品。`
+        : `Shows All plus ${Math.max(0, popularGroups.length - 1)} Featured Categories with at least six products, capped at twelve per tab and ordered by weekly sales.`,
     },
     {
       id: "brand-spotlight",
@@ -361,18 +416,18 @@ function createModules(
         ? `${zh ? "认识" : "Meet"} ${brand.label}`
         : zh ? "品牌精选" : "Brand spotlight",
       description: zh
-        ? "仅当关键词明确指向主导品牌时显示。"
-        : "Only appears when the keyword clearly names the dominant brand.",
+        ? "仅用于非品牌主题中突出主商品池的主导品牌。"
+        : "Highlights the dominant PrimaryPool brand only for non-brand topics.",
       required: false,
       visible: Boolean(brand),
       productIds: brand?.productIds.slice(0, 6) ?? [],
       reason: brand
         ? zh
-          ? `${brand.label} 匹配查询，且至少有 4 件主商品。`
-          : `${brand.label} matches the query and has at least four primary products.`
+          ? `${brand.label} 是主商品池的主导品牌，且至少有 4 件主商品。`
+          : `${brand.label} is the dominant PrimaryPool brand with at least four products.`
         : zh
-          ? "没有匹配查询且拥有至少 4 件主商品的品牌，因此隐藏。"
-          : "Hidden because no query-matched brand has at least four primary products.",
+          ? "没有拥有至少 4 件主商品的主导品牌，因此隐藏。"
+          : "Hidden because no dominant brand has at least four primary products.",
     },
     {
       id: "reviews",
@@ -647,6 +702,9 @@ export function buildTopicPagePlanFromProductSelection(
             ...(group.classificationReason
               ? { classificationReason: group.classificationReason }
               : {}),
+            ...(group.shoppingGoal ? { shoppingGoal: group.shoppingGoal } : {}),
+            ...(group.scenarioReason ? { scenarioReason: group.scenarioReason } : {}),
+            ...(group.semanticSource ? { semanticSource: group.semanticSource } : {}),
           }]
         : [];
     });
@@ -658,9 +716,21 @@ export function buildTopicPagePlanFromProductSelection(
         startHere: semanticModuleGroups("start-here"),
       }
     : undefined;
-  const plannedModules = strategy === "category-role"
+  const brandTopic = isBrandTopic(snapshot, primary);
+  const plannedModules = (strategy === "category-role"
     ? createCategoryRoleModules(primary, groups, selection, language)
-    : createModules(primary, groups, snapshot.keyword, language, semanticGroups);
+    : createModules(primary, groups, snapshot.keyword, language, semanticGroups))
+    .map((module) => module.id === "brand-spotlight" && brandTopic
+      ? {
+          ...module,
+          visible: false,
+          productIds: [],
+          groups: [],
+          reason: language === "zh"
+            ? "当前关键词已识别为品牌主题；页面本身已经承担品牌介绍，因此不重复展示品牌精选。"
+            : "Hidden because the keyword is a brand topic and the page already represents that brand.",
+        }
+      : module);
   const shortcutGroupsForQuality = strategy === "relevance"
     ? plannedModules.find(({ id }) => id === "shortcuts")?.groups ?? groups
     : [];
@@ -930,7 +1000,7 @@ export function buildTopicPagePlan(
   }
   const run = advanceProductSelectionRun({
     snapshot,
-    strategyRef: "relevance/intent-themes@3",
+    strategyRef: "relevance/intent-themes@4",
   });
   if (run.status !== "ready") {
     throw new Error("Relevance ProductSelection did not produce a ready result.");

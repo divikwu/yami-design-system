@@ -16,7 +16,6 @@ import {
   UserIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Tabs } from "@base-ui/react/tabs";
 import type { ComponentType, FormEvent, ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type {
@@ -34,6 +33,7 @@ import type { TopicPageAutomationRun } from "../src/page-automation/contracts";
 import type {
   HeroSelectionRun,
   ShortcutSelectionRun,
+  StartHereSelectionRun,
 } from "../src/page-merchandising/contracts";
 import type { LandingPageTypeRef } from "../src/page-orchestration/contracts";
 import type {
@@ -46,6 +46,8 @@ import {
   WorkbenchButton,
   WorkbenchLink,
   WorkbenchSelect,
+  WorkbenchTabPanel,
+  WorkbenchTabs,
   WorkbenchTextField,
 } from "./workbench-controls";
 import { TopicAnalysisView } from "./topic-analysis-view";
@@ -181,6 +183,42 @@ function shortcutSelectionFromAutomation(
       selectionReason: assignment.selectionReason!,
     })),
     moduleReason: shortcuts.reason,
+  };
+}
+
+function startHereSelectionFromAutomation(
+  automation: ReadyTopicPageAutomationRun | null,
+  fallbackPlan?: TopicPagePlan | null,
+): StartHereSelectionRun | null {
+  const startHere = automation?.plan?.modules.find(({ id }) => id === "start-here");
+  if (!automation || !startHere) return null;
+  const fallbackGroups = new Map(
+    (fallbackPlan?.modules.find(({ id }) => id === "start-here")?.groups ?? [])
+      .map((group) => [group.id, group]),
+  );
+  return {
+    schemaVersion: "start-here-selection-run/v1",
+    status: "ready",
+    source: "page-merchandising-agent",
+    agentId: "topic-strategy",
+    templateRef: automation.plan.templateRef,
+    planDigest: automation.plan.digest,
+    visible: startHere.visible,
+    scenes: startHere.scenes.map((scene) => {
+      const sourceGroup = fallbackGroups.get(scene.sourceSceneId);
+      return {
+        id: scene.id,
+        sourceSceneId: scene.sourceSceneId,
+        label: sourceGroup?.label ?? scene.shoppingGoal,
+        shoppingGoal: scene.shoppingGoal,
+        reason: scene.reason,
+        productIds: [...scene.productIds],
+        ...(sourceGroup?.sourceCategoryIds
+          ? { sourceCategoryIds: [...sourceGroup.sourceCategoryIds] }
+          : {}),
+      };
+    }),
+    moduleReason: startHere.reason,
   };
 }
 
@@ -692,12 +730,18 @@ function PreviewView({
   plan,
   heroSelection,
   shortcutSelection,
+  startHereSelection,
 }: {
   plan: TopicPagePlan;
   heroSelection?: HeroSelectionRun | null;
   shortcutSelection?: ShortcutSelectionRun | null;
+  startHereSelection?: StartHereSelectionRun | null;
 }) {
+  const [requestedPopularGroupId, setRequestedPopularGroupId] = useState<string | null>(null);
   const [requestedExploreGroupId, setRequestedExploreGroupId] = useState<string | null>(null);
+  const [collapsedStartHereGroupIds, setCollapsedStartHereGroupIds] = useState<Set<string>>(
+    () => new Set(),
+  );
   const productMap = useMemo(
     () => new Map(plan.products.map((product) => [product.id, product])),
     [plan.products],
@@ -730,11 +774,40 @@ function PreviewView({
     (shortcutSelection?.assignments ?? []).map((assignment) => [assignment.groupId, assignment]),
   );
   const startHereProductIds = new Set(startHereModule?.productIds ?? []);
-  const startHereGroups = startHereModule?.groups ?? plan.groups.flatMap((group) => {
-    const productIds = group.productIds.filter((id) => startHereProductIds.has(id));
-    return productIds.length > 0 ? [{ ...group, productIds }] : [];
-  });
+  const reviewedStartHereGroups = startHereSelection?.status === "ready"
+    ? startHereSelection.scenes.map((scene) => ({
+        id: scene.id,
+        label: scene.label,
+        role: "core" as const,
+        productIds: [...scene.productIds],
+        shoppingGoal: scene.shoppingGoal,
+        scenarioReason: scene.reason,
+        semanticSource: "agent-reviewed" as const,
+        ...(scene.sourceCategoryIds
+          ? { sourceCategoryIds: [...scene.sourceCategoryIds] }
+          : {}),
+      }))
+    : null;
+  const startHereGroups = reviewedStartHereGroups ?? startHereModule?.groups ??
+    plan.groups.flatMap((group) => {
+      const productIds = group.productIds.filter((id) => startHereProductIds.has(id));
+      return productIds.length > 0 ? [{ ...group, productIds }] : [];
+    });
   const exploreProductIds = new Set(exploreModule?.productIds ?? []);
+  const fallbackPopularProductIds = (popularModule?.productIds ?? []).slice(0, 12);
+  const popularGroups = popularModule?.groups ?? (
+    fallbackPopularProductIds.length >= 6
+      ? [{
+          id: "popular-picks-all",
+          label: plan.language === "zh" ? "全部" : "All",
+          role: "core" as const,
+          productIds: fallbackPopularProductIds,
+        }]
+      : []
+  );
+  const activePopularGroupId = popularGroups.some(({ id }) => id === requestedPopularGroupId)
+    ? requestedPopularGroupId
+    : popularGroups[0]?.id ?? null;
   const exploreGroups = exploreModule?.groups ?? plan.groups.flatMap((group) => {
     const productIds = group.productIds.filter((id) => exploreProductIds.has(id));
     return productIds.length > 0 ? [{ ...group, productIds }] : [];
@@ -871,41 +944,104 @@ function PreviewView({
       {startHereModule?.visible && (
         <section className={styles.previewModule}>
           <ModuleHeading module={startHereModule} structureOnly />
+          <div className={styles.startHereSelectionStatus} aria-live="polite">
+            {plan.language === "zh"
+              ? startHereSelection?.status === "ready"
+                ? `${startHereGroups.length} 个场景及商品组合已由 Page Merchandising Agent 正式复核。`
+                : `${startHereGroups.length} 个场景按目录规则生成；正式场景复核尚未完成。`
+              : startHereSelection?.status === "ready"
+                ? `${startHereGroups.length} scenes and product compositions were formally reviewed by the Page Merchandising Agent.`
+                : `${startHereGroups.length} scenes were generated from catalog rules; formal scene review is pending.`}
+          </div>
           <div className={styles.startHereThemes}>
-            {startHereGroups.map((group, index) => (
-              <section
+            {startHereGroups.map((group, index) => {
+              const collapsed = collapsedStartHereGroupIds.has(group.id);
+              const productsId = `start-here-products-${index + 1}`;
+              return (
+                <section
+                  key={group.id}
+                  className={styles.startHereTheme}
+                  data-start-here-theme={group.id}
+                >
+                  <header>
+                    <div className={styles.startHereThemeHeading}>
+                      <span>
+                        {plan.language === "zh" ? "主题" : "Theme"}{" "}
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <h4>{group.label}</h4>
+                    </div>
+                    <small>{productCountLabel(group.productIds.length, plan.language)}</small>
+                    <WorkbenchButton
+                      className={styles.startHereThemeToggle}
+                      aria-controls={productsId}
+                      aria-expanded={!collapsed}
+                      onClick={() => setCollapsedStartHereGroupIds((current) => {
+                        const next = new Set(current);
+                        if (next.has(group.id)) next.delete(group.id);
+                        else next.add(group.id);
+                        return next;
+                      })}
+                    >
+                      {plan.language === "zh"
+                        ? collapsed ? "展开商品" : "收起商品"
+                        : collapsed ? "Show products" : "Hide products"}
+                    </WorkbenchButton>
+                  </header>
+                  {group.shoppingGoal || group.scenarioReason ? (
+                    <div className={styles.startHereThemeContext}>
+                      {group.shoppingGoal && group.shoppingGoal !== group.label
+                        ? <p>{group.shoppingGoal}</p>
+                        : null}
+                      {group.scenarioReason ? <small>{group.scenarioReason}</small> : null}
+                    </div>
+                  ) : null}
+                  <div
+                    id={productsId}
+                    className={styles.startHereThemeProducts}
+                    data-start-here-products={group.id}
+                    hidden={collapsed}
+                  >
+                    {group.productIds.map((id) => {
+                      const product = productMap.get(id);
+                      return product ? <ProductCard key={id} product={product} /> : null;
+                    })}
+                  </div>
+                </section>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {popularModule?.visible && activePopularGroupId && (
+        <section id="popular-picks" className={styles.previewModule}>
+          <ModuleHeading module={popularModule} structureOnly />
+          <WorkbenchTabs
+            label={plan.language === "zh" ? "热门精选分类" : "Popular Picks categories"}
+            options={popularGroups.map((group) => ({
+              value: group.id,
+              label: group.label,
+              meta: itemCountLabel(group.productIds.length, plan.language),
+            }))}
+            value={activePopularGroupId}
+            onValueChange={setRequestedPopularGroupId}
+          >
+            {popularGroups.map((group) => (
+              <WorkbenchTabPanel
                 key={group.id}
-                className={styles.startHereTheme}
-                data-start-here-theme={group.id}
+                className={styles.recommendationPanel}
+                value={group.id}
               >
-                <header>
-                  <span>
-                    {plan.language === "zh" ? "主题" : "Theme"}{" "}
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                  <h4>{group.label}</h4>
-                  <small>{productCountLabel(group.productIds.length, plan.language)}</small>
-                </header>
-                <div className={styles.startHereThemeProducts}>
+                <div className={styles.productGrid}>
                   {group.productIds.map((id) => {
                     const product = productMap.get(id);
                     return product ? <ProductCard key={id} product={product} /> : null;
                   })}
                 </div>
-              </section>
+              </WorkbenchTabPanel>
             ))}
-          </div>
-        </section>
-      )}
-
-      {popularModule?.visible && (
-        <section className={styles.previewModule}>
-          <ModuleHeading module={popularModule} structureOnly />
-          <div className={styles.productGrid}>
-            {productsFor("popular-picks").map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          </WorkbenchTabs>
         </section>
       )}
 
@@ -927,30 +1063,18 @@ function PreviewView({
         >
           <ModuleHeading module={exploreModule} structureOnly />
           {activeExploreGroupId && (
-            <Tabs.Root
-              className={styles.recommendationTabs}
+            <WorkbenchTabs
+              label={plan.language === "zh" ? "综合推荐分类" : "Recommendation categories"}
+              options={exploreGroups.map((group) => ({
+                value: group.id,
+                label: group.label,
+                meta: itemCountLabel(group.productIds.length, plan.language),
+              }))}
               value={activeExploreGroupId}
-              onValueChange={(value) => {
-                if (typeof value === "string") setRequestedExploreGroupId(value);
-              }}
+              onValueChange={setRequestedExploreGroupId}
             >
-              <Tabs.List
-                className={styles.recommendationTabList}
-                aria-label={plan.language === "zh" ? "综合推荐分类" : "Recommendation categories"}
-              >
-                {exploreGroups.map((group) => (
-                  <Tabs.Tab
-                    key={group.id}
-                    className={styles.recommendationTab}
-                    value={group.id}
-                  >
-                    <strong>{group.label}</strong>
-                    <span>{itemCountLabel(group.productIds.length, plan.language)}</span>
-                  </Tabs.Tab>
-                ))}
-              </Tabs.List>
               {exploreGroups.map((group) => (
-                <Tabs.Panel
+                <WorkbenchTabPanel
                   key={group.id}
                   className={styles.recommendationPanel}
                   value={group.id}
@@ -961,9 +1085,9 @@ function PreviewView({
                       return product ? <ProductCard key={id} product={product} /> : null;
                     })}
                   </div>
-                </Tabs.Panel>
+                </WorkbenchTabPanel>
               ))}
-            </Tabs.Root>
+            </WorkbenchTabs>
           )}
         </section>
       )}
@@ -2179,7 +2303,7 @@ function WorkflowView({
                     <ul>
                       <li>{isChinese ? "mustInclude：按主题类型保留已验证的品牌、分类或属性；场景主题可以为空。mustExclude 当前不自动生成。" : "mustInclude retains verified brands, categories, or attributes according to topic type and may be empty for scenarios. mustExclude is not generated automatically."}</li>
                       <li>{isChinese ? "searchTerms：由原关键词、规范实体与已支持的分类或属性组成；系统不凭空生成别名。" : "searchTerms combines the original keyword, canonical entity, and supported categories or attributes; the system does not invent aliases."}</li>
-                      <li>{isChinese ? "两阶段检索：先宽搜形成 CatalogSnapshot 并解析目录基线；精确品牌按品牌 ID 读取全部分页，非品牌主题按已确认分类读取全部分页并依据 ThemeIntent 二次过滤。每个主题展示 4–8 件是后续页面规则，不会截断商品池；精确检索失败时保留首轮快照。" : "Two-stage retrieval: broad search first forms CatalogSnapshot and a catalog baseline; exact brands then load every page by brand ID, while non-brand topics load every page for verified categories and apply a ThemeIntent filter. The four-to-eight items per theme rule affects later display only and does not truncate the product pool; the first snapshot remains available if exact retrieval fails."}</li>
+                      <li>{isChinese ? "两阶段检索：先宽搜形成 CatalogSnapshot 并解析目录基线；精确品牌按品牌 ID 读取全部分页，非品牌主题按已确认分类读取全部分页并依据 ThemeIntent 二次过滤。每个主题展示 4–16 件是后续页面规则，不会截断商品池；精确检索失败时保留首轮快照。" : "Two-stage retrieval: broad search first forms CatalogSnapshot and a catalog baseline; exact brands then load every page by brand ID, while non-brand topics load every page for verified categories and apply a ThemeIntent filter. The four-to-sixteen items per theme rule affects later display only and does not truncate the product pool; the first snapshot remains available if exact retrieval fails."}</li>
                       <li>{isChinese ? "精确分类只扩展该节点及其后代；标题碰巧包含关键词的其他目录分支不能进入 ThemeIntent 或主主题商品池。" : "An exact category expands only that node and its descendants; unrelated catalog branches whose titles happen to contain the keyword cannot enter ThemeIntent or the primary theme pool."}</li>
                       <li>{isChinese ? "Schema 版本固定为 catalog-v1；需要商品详情属性后再升级版本。" : "The schema version is catalog-v1; upgrade it when product-detail attributes are available."}</li>
                     </ul>
@@ -2510,6 +2634,7 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
   const [automation, setAutomation] = useState<TopicPageAutomationRun | null>(null);
   const [heroSelection, setHeroSelection] = useState<HeroSelectionRun | null>(null);
   const [shortcutSelection, setShortcutSelection] = useState<ShortcutSelectionRun | null>(null);
+  const [startHereSelection, setStartHereSelection] = useState<StartHereSelectionRun | null>(null);
   const [localizedAutomationCache, setLocalizedAutomationCache] =
     useState<LocalizedAutomationCache | null>(null);
   const [view, setView] = useState<ResultView>("preview");
@@ -2525,14 +2650,23 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
   const resolvedShortcutSelection = shortcutSelection ?? shortcutSelectionFromAutomation(
     automation?.status === "ready" ? automation : null,
   );
+  const resolvedStartHereSelection = startHereSelection ?? startHereSelectionFromAutomation(
+    automation?.status === "ready" ? automation : null,
+    plan,
+  );
   const shortcutsRequireReview = Boolean(
     plan?.modules.find(({ id }) => id === "shortcuts")?.visible,
   );
+  const startHereRequiresReview = Boolean(
+    plan?.modules.find(({ id }) => id === "start-here")?.visible,
+  );
   const moduleSelectionStatus = resolvedHeroSelection?.status === "fallback" ||
-      resolvedShortcutSelection?.status === "fallback"
+      resolvedShortcutSelection?.status === "fallback" ||
+      resolvedStartHereSelection?.status === "fallback"
     ? "fallback"
     : resolvedHeroSelection?.status === "ready" &&
-        (!shortcutsRequireReview || resolvedShortcutSelection?.status === "ready")
+        (!shortcutsRequireReview || resolvedShortcutSelection?.status === "ready") &&
+        (!startHereRequiresReview || resolvedStartHereSelection?.status === "ready")
       ? "ready"
       : "pending";
   const runError = selectionRunError(selectionRuns?.[strategy], uiLanguage);
@@ -2577,6 +2711,7 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
     setAutomation(null);
     setHeroSelection(null);
     setShortcutSelection(null);
+    setStartHereSelection(null);
     if (!options.preserveLocalizedCache) setLocalizedAutomationCache(null);
     setView("preview");
     setPreviewMode(mode === "selection" ? "distribution" : "page");
@@ -2600,6 +2735,7 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
         };
         heroSelection?: HeroSelectionRun;
         shortcutSelection?: ShortcutSelectionRun;
+        startHereSelection?: StartHereSelectionRun;
         automation?: TopicPageAutomationRun;
         error?: GeneratorError;
       };
@@ -2613,6 +2749,7 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
       setCategoryRoleRuntime(payload.runtime?.categoryRole ?? null);
       setHeroSelection(payload.heroSelection ?? null);
       setShortcutSelection(payload.shortcutSelection ?? null);
+      setStartHereSelection(payload.startHereSelection ?? null);
       const nextAutomation = payload.automation ?? null;
       setAutomation(nextAutomation);
       if (mode === "page" && nextAutomation?.status === "ready") {
@@ -2661,6 +2798,7 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
     setError(null);
     setHeroSelection(null);
     setShortcutSelection(null);
+    setStartHereSelection(null);
 
     if (cachedAutomation) {
       setAutomation(cachedAutomation);
@@ -2795,23 +2933,22 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
 
         <section className={styles.previewStage} aria-label={copy.previewLabel}>
           <div className={styles.stageBar}>
-            <nav className={styles.stageViews} aria-label={copy.resultViewsLabel}>
-              {(["preview", "workflow", "analysis", "pools", "rules"] as const).map((tab) => (
-                <button
-                  key={tab}
-                  type="button"
-                  disabled={
+            <WorkbenchTabs<ResultView>
+              className={styles.stageTabs}
+              label={copy.resultViewsLabel}
+              options={(["preview", "workflow", "analysis", "pools", "rules"] as const)
+                .map((tab) => ({
+                  value: tab,
+                  label: copy.tabs[tab],
+                  disabled:
                     (tab !== "workflow" && tab !== "preview" && !plan) ||
                     (tab !== "workflow" && loading) ||
-                    (plan?.generationMode === "selection" && tab === "rules")
-                  }
-                  aria-current={view === tab ? "page" : undefined}
-                  onClick={() => setView(tab)}
-                >
-                  {copy.tabs[tab]}
-                </button>
-              ))}
-            </nav>
+                    (plan?.generationMode === "selection" && tab === "rules"),
+                }))}
+              value={view}
+              onValueChange={setView}
+              variant="stage"
+            />
             <span className={styles.stageMeta}>
               {plan
                 ? `${targetLocale} · ${strategyLabel.toUpperCase()} · ${planStatusLabel(plan, uiLanguage).toUpperCase()}`
@@ -2945,29 +3082,19 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
                     </div>
 
                     {view === "preview" && (
-                      <nav
-                        className={styles.previewModeTabs}
-                        role="tablist"
-                        aria-label={copy.previewModesLabel}
-                      >
-                        {(["distribution", "page"] as const).map((mode) => {
-                          const disabled = mode === "page" && automation?.status !== "ready";
-                          return (
-                            <button
-                              key={mode}
-                              id={`preview-${mode}-tab`}
-                              type="button"
-                              role="tab"
-                              aria-selected={previewMode === mode}
-                              aria-controls={`preview-${mode}-panel`}
-                              disabled={disabled}
-                              onClick={() => setPreviewMode(mode)}
-                            >
-                              {copy.previewModes[mode]}
-                            </button>
-                          );
-                        })}
-                      </nav>
+                      <WorkbenchTabs<PreviewMode>
+                        label={copy.previewModesLabel}
+                        options={(["distribution", "page"] as const).map((mode) => ({
+                          value: mode,
+                          label: copy.previewModes[mode],
+                          id: `preview-${mode}-tab`,
+                          controls: `preview-${mode}-panel`,
+                          disabled: mode === "page" && automation?.status !== "ready",
+                        }))}
+                        value={previewMode}
+                        onValueChange={setPreviewMode}
+                        variant="inset"
+                      />
                     )}
 
                     <div
@@ -2988,6 +3115,7 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
                               plan={plan}
                               heroSelection={resolvedHeroSelection}
                               shortcutSelection={resolvedShortcutSelection}
+                              startHereSelection={resolvedStartHereSelection}
                             />
                           : automation?.status === "ready"
                             ? PagePreviewRenderer
@@ -3002,6 +3130,7 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
                                 plan={plan}
                                 heroSelection={resolvedHeroSelection}
                                 shortcutSelection={resolvedShortcutSelection}
+                                startHereSelection={resolvedStartHereSelection}
                               />
                       )}
                       {view === "pools" && <PoolsView plan={plan} uiLanguage={uiLanguage} />}

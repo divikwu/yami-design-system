@@ -82,6 +82,27 @@ describe("TopicIntent Module", () => {
     })).toThrow("must contain at least two category IDs");
   });
 
+  it("limits each v2 scenario hypothesis to eight catalog categories", () => {
+    expect(() => parseSemanticProposal({
+      schemaVersion: "semantic-proposal/v2",
+      themeType: "activity",
+      entityType: "scenario",
+      canonicalEntity: { label: "full routine" },
+      shoppingIntent: "assemble-scenario",
+      needs: [],
+      mustInclude: [],
+      mustExclude: [],
+      searchTerms: [],
+      categoryHypotheses: [],
+      scenarioHypotheses: [{
+        name: "Oversized routine",
+        shoppingGoal: "Combine too many shopping steps.",
+        categoryIds: Array.from({ length: 9 }, (_, index) => String(index + 101)),
+        reason: "A single scenario should remain understandable and reviewable.",
+      }],
+    })).toThrow("may contain at most eight category IDs");
+  });
+
   it("accepts v2 category organization and scenarios without changing an exact brand", () => {
     const snapshot = catalogSnapshot("ANUA", [
       { id: "101", label: "Serums & Value Sets" },
@@ -174,6 +195,61 @@ describe("TopicIntent Module", () => {
       rejectedFields: [],
       warnings: [],
     });
+  });
+
+  it("rejects duplicate scene goals and scenes without distinct category evidence", () => {
+    const snapshot = catalogSnapshot("ANUA", [
+      { id: "101", label: "Cleansers" },
+      { id: "102", label: "Toners" },
+      { id: "103", label: "Serums" },
+    ]);
+    snapshot.evidence!.brands = [{
+      id: "100",
+      label: "ANUA",
+      aliases: ["ANUA"],
+      resultCount: 12,
+    }];
+    const result = resolveTopicIntent(snapshot, {
+      schemaVersion: "semantic-proposal/v2",
+      themeType: "brand",
+      entityType: "brand",
+      canonicalEntity: { id: "100", label: "ANUA" },
+      shoppingIntent: "browse-brand",
+      needs: [],
+      mustInclude: ["ANUA"],
+      mustExclude: [],
+      searchTerms: ["ANUA"],
+      categoryHypotheses: [],
+      scenarioHypotheses: [
+        {
+          name: "Daily routine",
+          shoppingGoal: "Complete a cleanser and toner routine.",
+          categoryIds: ["101", "102"],
+          reason: "Two verified steps.",
+        },
+        {
+          name: "Repeated routine",
+          shoppingGoal: "Complete a cleanser and toner routine.",
+          categoryIds: ["101", "103"],
+          reason: "The goal duplicates an accepted scene.",
+        },
+        {
+          name: "Same evidence",
+          shoppingGoal: "Compare another routine.",
+          categoryIds: ["101", "102"],
+          reason: "No category is distinct from the accepted scene.",
+        },
+      ],
+    });
+
+    expect(result.intent.scenarioHypotheses).toHaveLength(1);
+    expect(result.proposalReview.rejectedFields).toEqual(expect.arrayContaining([
+      "scenarioHypotheses[1]",
+      "scenarioHypotheses[2]",
+    ]));
+    expect(result.proposalReview.warnings).toContain(
+      "Scenario hypotheses with unknown categories, duplicate goals, no distinct category evidence, or excess entries were ignored.",
+    );
   });
 
   it("accepts a shopper-facing category that merges multiple verified catalog leaves", () => {

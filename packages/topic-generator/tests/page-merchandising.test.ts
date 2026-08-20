@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   advancePageMerchandisingRun,
   compileTopicPagePlanV2,
+  evidenceSizedSceneProductRange,
   getLandingPageTypeConfig,
   getPageMerchandisingTemplateConfig,
   listPageMerchandisingTemplateConfigs,
@@ -221,6 +222,7 @@ function validProposal(
         scenes: Array.from({ length: 4 }, (_, index) => ({
           id: `page-scene-${index + 1}`,
           sourceSceneId: `source-scene-${index + 1}`,
+          targetProductCount: 6,
           shoppingGoal: `Complete matcha task ${index + 1}`,
           reason: `Source scene ${index + 1} is supported by selected products.`,
         })),
@@ -289,19 +291,22 @@ describe("PageMerchandising", () => {
       "topic-landing/brand-relevance@1",
       "topic-landing/topic-relevance@1",
       "topic-landing/campaign-relevance@1",
+      "topic-landing/brand-relevance@2",
+      "topic-landing/topic-relevance@2",
+      "topic-landing/campaign-relevance@2",
     ]);
   });
 
   it("routes each maintained page type to an evidence-safe relevance template", () => {
     const cases = [
-      ["landing-page/brand@2", "topic-landing/brand-relevance@1", 0],
-      ["landing-page/topic@2", "topic-landing/topic-relevance@1", 12],
-      ["landing-page/campaign@2", "topic-landing/campaign-relevance@1", 12],
+      ["landing-page/brand@2", "topic-landing/brand-relevance@2", 0],
+      ["landing-page/topic@2", "topic-landing/topic-relevance@2", 12],
+      ["landing-page/campaign@2", "topic-landing/campaign-relevance@2", 12],
     ] as const;
 
     cases.forEach(([pageTypeRef, templateRef, brandMaximumProducts]) => {
       const route = getLandingPageTypeConfig(pageTypeRef).routes.find(
-        ({ selectionStrategyRef }) => selectionStrategyRef === "relevance/intent-themes@3",
+        ({ selectionStrategyRef }) => selectionStrategyRef === "relevance/intent-themes@4",
       );
       expect(route?.templateRef).toBe(templateRef);
 
@@ -311,10 +316,13 @@ describe("PageMerchandising", () => {
         maximumProducts: 5,
       });
       expect(template.modules.find(({ id }) => id === "start-here")).toMatchObject({
-        required: true,
-        minimumProducts: 1,
-        maximumProducts: 8,
-        assetTaskMode: "none",
+        required: false,
+        minimumProducts: 8,
+        maximumProducts: 96,
+        sceneRange: [2, 6],
+        productsPerSceneRange: [4, 16],
+        requireSceneTargetProductCount: true,
+        assetTaskMode: "scene",
       });
       expect(template.modules.find(({ id }) => id === "brand-spotlight")).toMatchObject({
         maximumProducts: brandMaximumProducts,
@@ -326,7 +334,14 @@ describe("PageMerchandising", () => {
     });
   });
 
-  it("offers relevance Start Here without inventing missing shopping scenes", () => {
+  it("sizes current relevance scenes from four to sixteen by category evidence", () => {
+    expect(evidenceSizedSceneProductRange([4, 16], 20, 2)).toEqual([4, 16]);
+    expect(evidenceSizedSceneProductRange([4, 16], 20, 3)).toEqual([6, 16]);
+    expect(evidenceSizedSceneProductRange([4, 16], 20, 8)).toEqual([16, 16]);
+    expect(evidenceSizedSceneProductRange([4, 16], 6, 8)).toEqual([6, 6]);
+  });
+
+  it("makes relevance Start Here optional when no shopping scenes are available", () => {
     const selection = selectionFixture();
     selection.strategyRef = "relevance/default@1";
     selection.selectedCategories = [];
@@ -336,20 +351,23 @@ describe("PageMerchandising", () => {
     const run = advancePageMerchandisingRun({
       intent: themeIntentFixture(),
       selection,
-      templateRef: "topic-landing/topic-relevance@1",
+      templateRef: "topic-landing/topic-relevance@2",
     });
 
     expect(run).toMatchObject({
       status: "needs-module-proposal",
       context: {
-        templateRef: "topic-landing/topic-relevance@1",
+        templateRef: "topic-landing/topic-relevance@2",
         sourceScenes: [],
         moduleRules: expect.arrayContaining([
           expect.objectContaining({
             id: "start-here",
-            required: true,
-            minimumProducts: 1,
-            maximumProducts: 8,
+            required: false,
+            minimumProducts: 8,
+            maximumProducts: 96,
+            sceneRange: [2, 6],
+            productsPerSceneRange: [4, 16],
+            requireSceneTargetProductCount: true,
           }),
           expect.objectContaining({ id: "explore-more", allowedRoles: ["core", "pairing", "accessory"] }),
         ]),
@@ -388,17 +406,12 @@ describe("PageMerchandising", () => {
     });
   });
 
-  it("compiles relevance Brand with Start Here and without unsupported Reviews", () => {
+  it("compiles relevance Brand with reviewed Start Here scenes and without unsupported Reviews", () => {
     const intent = themeIntentFixture();
     const selection = selectionFixture();
     selection.strategyRef = "relevance/default@1";
     selection.selectedCategories = [];
-    selection.scenes = [];
-    selection.modules = [];
     const proposal = validProposal(selection, intent, "topic-landing/brand-relevance@1");
-    const startHere = proposal.modules.find(({ id }) => id === "start-here")!;
-    startHere.scenes = [];
-    startHere.assignments = [{ productId: "core-1" }];
 
     const plan = compileTopicPagePlanV2(intent, selection, proposal);
 
@@ -410,9 +423,16 @@ describe("PageMerchandising", () => {
       "explore-more",
     ]);
     expect(plan.modules.find(({ id }) => id === "start-here")).toMatchObject({
-      scenes: [],
-      assignments: [expect.objectContaining({ productId: "core-1" })],
+      scenes: [
+        expect.objectContaining({ sourceSceneId: "source-scene-1" }),
+        expect.objectContaining({ sourceSceneId: "source-scene-2" }),
+        expect.objectContaining({ sourceSceneId: "source-scene-3" }),
+        expect.objectContaining({ sourceSceneId: "source-scene-4" }),
+      ],
     });
+    expect(plan.modules.find(({ id }) => id === "start-here")?.scenes.map(
+      ({ productIds }) => productIds.length,
+    )).toEqual([6, 6, 6, 6]);
     expect(plan.modules.find(({ id }) => id === "reviews")).toMatchObject({ visible: false });
   });
 
@@ -687,6 +707,56 @@ describe("PageMerchandising", () => {
     });
   });
 
+  it("enforces ordered, distinct relevance scenes with four to sixteen products each", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    selection.strategyRef = "relevance/intent-themes@4";
+    const proposal = validProposal(selection, intent, "topic-landing/topic-relevance@2");
+    const startHere = proposal.modules.find(({ id }) => id === "start-here")!;
+    [startHere.scenes[0], startHere.scenes[1]] = [startHere.scenes[1]!, startHere.scenes[0]!];
+    startHere.assignments = startHere.assignments.filter((assignment) =>
+      assignment.sceneId !== "page-scene-1" ||
+      ["core-1", "pairing-1", "accessory-1"].includes(assignment.productId)
+    );
+
+    const run = advancePageMerchandisingRun({ intent, selection, proposal });
+
+    expect(run).toMatchObject({
+      status: "blocked",
+      issues: expect.arrayContaining([
+        "Module start-here scenes must preserve ProductSelectionResult source-scene order.",
+        "Module start-here scene page-scene-1 must assign 4-16 products.",
+      ]),
+    });
+  });
+
+  it("requires current relevance scenes to declare an evidence-sized product target", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    selection.strategyRef = "relevance/intent-themes@4";
+    selection.modules.find(({ id }) => id === "start-here")!.groups = [{
+      id: "source-scene-1",
+      label: "Complex routine",
+      role: "core",
+      productIds: [
+        "core-1", "pairing-1", "accessory-1",
+        "core-5", "pairing-5", "accessory-5",
+      ],
+      sourceCategoryIds: ["1000", "1001", "1002"],
+    }];
+    const proposal = validProposal(selection, intent, "topic-landing/topic-relevance@2");
+    proposal.modules.find(({ id }) => id === "start-here")!.scenes[0]!.targetProductCount = 4;
+
+    const run = advancePageMerchandisingRun({ intent, selection, proposal });
+
+    expect(run).toMatchObject({
+      status: "blocked",
+      issues: expect.arrayContaining([
+        "Module start-here scene page-scene-1 targetProductCount must be 6-6 based on its source categories and available products.",
+      ]),
+    });
+  });
+
   it("enforces frozen pool and role constraints", () => {
     const intent = themeIntentFixture();
     const selection = selectionFixture();
@@ -914,6 +984,41 @@ describe("PageMerchandising", () => {
       run: { status: "ready", plan: { schemaVersion: "topic-page-plan/v2" } },
       artifacts: {
         agentId: "fixture-strategy-agent",
+        proposal: { schemaVersion: "module-merchandising-proposal/v1" },
+      },
+    });
+  });
+
+  it("gives the Agent one bounded revision with deterministic proposal issues", async () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const proposeModuleMerchandising = vi.fn<
+      PageMerchandisingAgent["proposeModuleMerchandising"]
+    >(async (run) => {
+      if (run.context.previousProposalIssues) return validProposal(selection, intent);
+      run.context.themeIntent.shoppingGoal = "tampered first attempt";
+      return {};
+    });
+
+    const result = await runPageMerchandisingAgentWorkflow({
+      intent,
+      selection,
+      templateRef: "topic-landing/topic@1",
+      agent: { id: "revising-strategy-agent", proposeModuleMerchandising },
+    });
+
+    expect(proposeModuleMerchandising).toHaveBeenCalledTimes(2);
+    expect(proposeModuleMerchandising.mock.calls[1]![0].context.previousProposalIssues)
+      .toEqual(expect.arrayContaining([
+        "Unknown PageMerchandising template: missing",
+      ]));
+    expect(proposeModuleMerchandising.mock.calls[1]![0].context.themeIntent.shoppingGoal)
+      .toBe(intent.shoppingGoal);
+    expect(result).toMatchObject({
+      run: { status: "ready" },
+      artifacts: {
+        agentId: "revising-strategy-agent",
+        attemptCount: 2,
         proposal: { schemaVersion: "module-merchandising-proposal/v1" },
       },
     });

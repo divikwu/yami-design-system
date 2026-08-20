@@ -15,8 +15,9 @@ products. Never reproduce validation or PagePlan compilation in prose or ad hoc 
 2. Preserve the accepted ThemeIntent plus the complete taxonomy, category proposal, candidate
    snapshot, and scene proposal used by that ready run. The CLI reconstructs and validates both
    upstream artifacts on every call.
-   Category-role templates require four to six validated source scenes. Relevance templates may
-   expose theme groups without accepting page scenes; the returned module rules are authoritative.
+   Category-role templates require four to six validated source scenes. Current relevance templates
+   expose two to six catalog-backed source scenes when evidence supports Start Here; the returned
+   module rules remain authoritative.
 3. Use the exact caller-supplied versioned template. The PageOrchestration Module owns routing from
    ThemeIntent and SelectionStrategyConfig; this stage must not substitute a different template.
    Stop for `uncertain` or unresolved intent.
@@ -40,6 +41,10 @@ Expect `pageMerchandising.status` to be `needs-module-proposal`. Read the comple
 `context`, then read [the proposal contract](references/module-merchandising-contract.md) before
 creating JSON.
 
+On a second bounded attempt, `context.previousProposalIssues` contains the exact deterministic
+validation failures from the first proposal. Correct every listed issue while preserving all frozen
+inputs and digests. Do not repeat the rejected proposal or change upstream evidence.
+
 ## Create one proposal
 
 Create exactly one `module-merchandising-proposal/v1` bound to the returned keyword, site,
@@ -51,6 +56,26 @@ strategy, template, `themeIntentDigest`, and `productSelectionDigest`.
 - Add `scenes` and assignment `sceneId` only when that exact returned module rule includes
   `sceneRange`. When `sceneRange` is absent, return `scenes: []` and omit every assignment
   `sceneId`, even when ProductSelection contains themes or the module ID is `start-here`.
+- For a scene-bearing relevance Start Here, normally keep three to five distinct source scenes while
+  respecting the returned two-to-six hard range. Preserve source-scene order, use each selected
+  source scene at most once, and assign four to sixteen products from that exact source scene. Do
+  not default every scene to the four-product minimum: use four for a focused one- or two-step task,
+  six to ten for a standard multi-step routine, and twelve to sixteen only for a broad,
+  evidence-rich scenario where the additional products add distinct roles or meaningful choice.
+  Every returned source scene provides `minimumRecommendedProducts` and `maximumProducts`; declare
+  an integer `targetProductCount` inside each current relevance page scene, keep it inside that
+  evidence-sized range, and assign exactly that many products. Never pad with near-duplicates to
+  reach a larger count. The Runner executes this as two bounded passes. First create the complete
+  proposal from text evidence without images. When `context.visualReviewTask` is present, treat its
+  `textProposal` as that first-pass shortlist, inspect every attached `product:<id>` image, and
+  return a corrected complete proposal rather than restarting the assortment from the full pool.
+  Do not place two visually identical listings of the same brand, product, size, and pack count in
+  one scene; confirm the image judgment with the returned title and keep distinct sizes, formulas,
+  and multipacks separate. For confirmed duplicate listings, retain the product with the higher
+  `soldCount`; when sales are missing or tied, retain the lower `sourceRank`. The visual pass must
+  also include the required `visualReview` receipt defined in the proposal contract. Keep the
+  source scene's shopper goal and evidence reason unless a clearer planning-only phrasing is needed
+  in the requested language.
 - Use only product IDs in `context.products`; preserve their pool and role constraints.
 - Treat `shoppingGoal` as planning metadata, not final customer-facing copy.
 - For a category-role `@2` task, copy the complete ordered assignments from each returned
@@ -88,6 +113,9 @@ strategy, template, `themeIntentDigest`, and `productSelectionDigest`.
   recommendation module, so a fixed display-count cap is not authoritative.
 - Hide an optional module when evidence is absent. In particular, do not invent reviews, ratings,
   claims, brands, products, or image concepts.
+- Before returning, verify that every visible scene-bearing module satisfies both `sceneRange` and
+  `productsPerSceneRange`, every assignment has the required scene/group metadata, and every reused
+  product after its first module has `reuseReason`.
 
 Write the proposal to a new caller-approved path. Do not overwrite ProductSelection artifacts.
 
@@ -117,8 +145,9 @@ hosts may inject the same capability with `runPageMerchandisingAgentWorkflow` or
 business-rule engine.
 
 The standalone `selection` request runs this Agent stage after ProductSelection and returns the
-accepted Hero assignments plus group-bound Shortcuts representatives as the formal selection
-result. If the Agent or its proposal is unavailable, the response must label the distribution as an
-explicit deterministic fallback: code keeps the PrimaryPool lead, prefers additional verified
-product types, preserves one representative per frozen Shortcuts group, removes repeated source
-images, and exposes the blocking issues. Never present that fallback as Agent-reviewed output.
+accepted Hero assignments, group-bound Shortcuts representatives, and reviewed Start Here scenes as
+the formal selection result. If the Agent or its proposal is unavailable, the response must label
+each affected module as an explicit deterministic fallback: code keeps the PrimaryPool lead,
+prefers additional verified product types, preserves one representative per frozen Shortcuts group,
+retains catalog-backed Start Here candidates, removes repeated source images, and exposes the
+blocking issues. Never present that fallback as Agent-reviewed output.

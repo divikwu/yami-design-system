@@ -179,6 +179,11 @@ function parseScenarioHypotheses(value: unknown) {
         `scenarioHypotheses[${index}].categoryIds must contain at least two category IDs.`,
       );
     }
+    if (categoryIds.length > 8) {
+      throw new SemanticProposalInputError(
+        `scenarioHypotheses[${index}].categoryIds may contain at most eight category IDs.`,
+      );
+    }
     return {
       name: nonEmptyString(hypothesis.name, `scenarioHypotheses[${index}].name`),
       shoppingGoal: nonEmptyString(
@@ -346,13 +351,30 @@ function reviewSemanticHypotheses(
   });
 
   const scenarioHypotheses: ThemeIntentScenarioHypothesis[] = [];
+  const usedScenarioNames = new Set<string>();
+  const usedScenarioGoals = new Set<string>();
+  const usedScenarioCategoryIds = new Set<string>();
   proposal.scenarioHypotheses.forEach((hypothesis, index) => {
     const field = `scenarioHypotheses[${index}]`;
     const categories = hypothesis.categoryIds.map((id) => evidenceCategories.get(id));
-    if (index >= 6 || categories.some((category) => !category)) {
+    const normalizedName = normalized(hypothesis.name);
+    const normalizedGoal = normalized(hypothesis.shoppingGoal);
+    const addsDistinctCategory = hypothesis.categoryIds.some(
+      (id) => !usedScenarioCategoryIds.has(id),
+    );
+    if (
+      index >= 6 ||
+      categories.some((category) => !category) ||
+      usedScenarioNames.has(normalizedName) ||
+      usedScenarioGoals.has(normalizedGoal) ||
+      !addsDistinctCategory
+    ) {
       rejectedFields.push(field);
       return;
     }
+    usedScenarioNames.add(normalizedName);
+    usedScenarioGoals.add(normalizedGoal);
+    hypothesis.categoryIds.forEach((id) => usedScenarioCategoryIds.add(id));
     scenarioHypotheses.push({
       ...hypothesis,
       evidenceIds: hypothesis.categoryIds.map((id) => `catalog-category:${id}`),
@@ -391,7 +413,7 @@ function reviewSemanticHypotheses(
       ? ["Category hypotheses must reference one or more known, unused catalog leaf category IDs; invalid hypotheses were ignored."]
       : []),
     ...(rejectedFields.some((field) => field.startsWith("scenarioHypotheses"))
-      ? ["Scenario hypotheses with unknown or excess catalog category IDs were ignored."]
+      ? ["Scenario hypotheses with unknown categories, duplicate goals, no distinct category evidence, or excess entries were ignored."]
       : []),
     ...(omittedCategoryCount > 0
       ? [`Category hypotheses omitted ${omittedCategoryCount} catalog ${omittedCategoryCount === 1 ? "category" : "categories"}; deterministic ProductSelection will restore ${omittedCategoryCount === 1 ? "it" : "them"} as ${omittedCategoryCount === 1 ? "a verified category group" : "verified category groups"}.`]

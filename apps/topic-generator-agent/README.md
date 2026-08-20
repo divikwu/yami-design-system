@@ -71,6 +71,11 @@ If `TOPIC_AGENT_RUNNER_TOKEN` is set, use the same value for
 - In source-product-image mode, `visual-generation` first creates real deterministic WebP assets
   from approved Yami CDN images, then supplies those images to an image-capable CLI for semantic
   direction and alt text.
+- For `module-merchandising`, an image-capable executor first creates the complete text proposal.
+  The Runner then prepares 512px thumbnails only for its Start Here assignments plus a small number
+  of title-similar source-scene alternatives. A second bounded Agent pass confirms visual duplicate
+  groups; the Runner retains the higher-selling listing, falling back to source rank, while
+  preserving distinct sizes, formulas, and multipacks.
 - `experience-review` opens the generation-bound desktop and mobile previews, verifies their
   digest marker, captures both viewports, and supplies the screenshots to an image-capable CLI.
 - The existing Host validates the returned proposal and all visual bytes. A successful Runner

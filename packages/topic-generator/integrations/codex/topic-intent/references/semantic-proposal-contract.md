@@ -41,6 +41,11 @@ classification rather than representative-product selection. Omitted categories
 remain a review warning and are restored as verified catalog groups by deterministic ProductSelection
 rather than disappearing from navigation.
 It accepts at most six scenario hypotheses because StartHere remains a bounded editorial module.
+Normally propose three to five distinct shopper goals when catalog evidence supports them; two is
+the minimum usable set. Scenario names and shopping goals must be unique, and each later scenario
+must add at least one verified catalog category not already exhausted by earlier scenarios. Shared
+categories are allowed only when the scenario still contributes distinct evidence and enough
+products remain for deterministic allocation.
 The runtime recomputes category paths, evidence counts, search terms, and evidence references from
 CatalogSnapshot. Agent labels, roles, goals, and reasons remain semantic suggestions; they do not
 prove product efficacy or change product-to-category membership.

@@ -19,7 +19,7 @@ Use the package CLI as the deterministic runtime. Act as the Product Agent only 
 
 ## Choose a strategy
 
-- Use `relevance/intent-themes@3` for current keyword and brand relevance. Each accepted TopicIntent
+- Use `relevance/intent-themes@4` for current keyword and brand relevance. Each accepted TopicIntent
   category hypothesis binds one or more verified catalog leaf categories to one shopper-facing
   Shortcut and the matching comprehensive-recommendation tab. The Agent may merge closely related
   leaf categories according to the topic and complete product evidence; catalog leaves remain the
@@ -30,9 +30,10 @@ Use the package CLI as the deterministic runtime. Act as the Product Agent only 
   restored, otherwise unassigned primary products are placed in a deterministic
   More to Explore group, and requires every primary product to appear in exactly one Shortcuts group.
   Shortcuts and recommendation tabs preserve that same complete group ID sequence. StartHere keeps
-  its separate two-to-six-group, four-to-eight-product limits.
+  its separate two-to-six-group, four-to-sixteen-product limits.
 - Use `relevance/intent-themes@2` only to replay artifacts that grouped directly by verified catalog
-  categories, and `relevance/default@1` only for fixed-rank legacy replay.
+  categories, `relevance/intent-themes@3` to replay the previous four-to-eight StartHere contract,
+  and `relevance/default@1` only for fixed-rank legacy replay.
 - Use `category-role/landing-page-agent@1` when the user requests the target repository's category-role workflow.
 - Treat the versioned config ref as part of every artifact. Do not silently substitute another strategy.
 
@@ -42,7 +43,7 @@ Run from the repository root:
 
 ```bash
 pnpm topic-generator:analyze -- --keyword "<keyword>" \
-  --selection-strategy relevance/intent-themes@3 \
+  --selection-strategy relevance/intent-themes@4 \
   --pretty
 ```
 
