@@ -83,6 +83,7 @@ export function ProductList(props: ProductListProps) {
   const {
     title,
     description,
+    introContent,
     titleFontFamily = "sans",
     products,
     leadingContent,
@@ -289,6 +290,12 @@ export function ProductList(props: ProductListProps) {
             </TabsList>
           </Tabs>
         )}
+
+        {introContent ? (
+          <div className={styles.introContent} data-slot="product-list-intro">
+            {introContent}
+          </div>
+        ) : null}
 
         {leadingContent && (
           <div

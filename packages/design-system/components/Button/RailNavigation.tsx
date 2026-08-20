@@ -51,6 +51,8 @@ export function RailNavigationButton({
       aria-label={label}
       disabled={disabled}
       onClick={onClick}
+      data-rail-navigation-button="true"
+      data-direction={direction}
     >
       <ArrowIcon direction={direction} />
     </Button>

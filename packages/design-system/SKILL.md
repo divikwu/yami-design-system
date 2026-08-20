@@ -1,7 +1,7 @@
 ---
 name: yami-design-system
 version: 0.5.0-alpha.1
-updated: 2026-07-22
+updated: 2026-08-20
 audience: ai-agent
 purpose: Entry point for AI agents producing UI under the YAMI brand.
 ---
@@ -33,7 +33,7 @@ It tells you in one screen:
 - The two reds (`#FF0000` brand vs `#E00000` operational), what each is allowed on.
 - The 5 radius slots, the 8px spacing grid.
 - The font story (GT Walsheim for numerals, PingFang SC for CN body).
-- The 10 components and what they do.
+- The maintained component families and what they do.
 - The 16 hard rules as one-liners.
 
 Stop after this if the user just wants a description or onboarding answer.
@@ -44,11 +44,10 @@ Stop after this if the user just wants a description or onboarding answer.
 
 Open [`DESIGN.md`](./DESIGN.md) (~860 lines). It is the **comprehensive spec + rules SSOT** in a single file (v0.2.0-alpha.2 consolidated the prior `DESIGN.extended.md` and rules-only `DESIGN.md` into one). It contains:
 
-- **Full token tables** — colors, typography, spacing, radii, breakpoints, semantic aliases — every value tied to a real CSS variable from `tokens.css`.
-- **Component anatomy** for all 10 components with `tokenBindings` summaries.
+- **Full token tables** — colors, typography, spacing, radii, breakpoints, semantic aliases — every value tied to a real CSS variable from `generated/tokens.css`.
+- **Component anatomy** for the maintained components with `tokenBindings` summaries.
 - **Rules inline by topic** — each `<!-- rule-id: X -->` marker sits in the section it governs (Colors / Typography / Spacing / Components / Imagery). Plus a **bilingual Hard Rules summary table** at the end for navigation.
-- **Page Recipes** — 3 recipes (PLP / PDP / cart) under [`pages/recipes/`](./pages/recipes/) — **consult these first when generating a page**.
-- **Visual Previews** — `preview/*.html` reference cards.
+- **Page prototypes** — maintained page compositions under [`../prototypes/pages/`](../prototypes/pages/) — **consult the closest existing page before generating a new one**.
 - **Agent Prompt Guide** — quick color reference + 5 ready-to-paste component prompts (Hero / ProductCard / Promo banner / Form field / Modal).
 - **Known AI Failure Gallery** — 5 documented cases of AI generators repeatedly producing bad output, with the canonical fix.
 - **Anti-patterns table** — bilingual list of refuse-on-sight code patterns (e.g. `opacity` for disabled, `box-shadow` on hover, 🛒 emoji on Add-to-Cart, fabricated tokens).
@@ -71,7 +70,7 @@ Rule markers live inline in `DESIGN.md` topic sections; full bilingual prose is 
 
 ## Components catalog
 
-Twelve components ship as source-owned bundles under [`components/`](./components/): `.tsx` + `.module.css` + `meta.json` + `usage.md` + `examples.tsx` + `index.ts`; Figma-backed components also include `.figma.tsx` Code Connect mappings.
+The generated [`catalog.json`](./generated/catalog.json) is the current component inventory. Components ship as source-owned bundles under [`components/`](./components/); use each bundle's `meta.json`, `usage.md`, Story, and public export as its contract.
 
 | Name | Category | When to use |
 |---|---|---|
@@ -98,8 +97,8 @@ and the local registry is the shadcn-compatible distribution contract.
 - First consume the injected `Storybook Catalog Source of Truth` section. Its
   titles and canonical exports tell you which YAMI assets/components are
   actively maintained for generation.
-- Then consume [`registry.json`](./registry.json) and
-  [`registry-items/`](./registry-items/) for installable item names, file
+- Then consume [`generated/registry.json`](./generated/registry.json) and
+  [`generated/registry-items/`](./generated/registry-items/) for installable item names, file
   targets, dependencies, and the design-system base package.
 - Only claim catalog-backed output for components that have both a catalog
   contract and a maintained Storybook story. Components documented in
@@ -118,11 +117,11 @@ and the local registry is the shadcn-compatible distribution contract.
 After generating, run from the Yami Design System repository root:
 
 ```bash
-pnpm check:generated && pnpm check:boundaries && pnpm test
+pnpm validate
 ```
 
-These commands verify generated tokens and catalog data, package boundaries, and
-the migrated component test suite. Principle validators remain available from
+This command verifies lint, types, design principles, documentation/token/catalog
+consistency, generated artifacts, package boundaries, and tests. Principle validators remain available from
 [`principles/index.ts`](./principles/index.ts) without a Design Labs runtime.
 
 ---
@@ -145,12 +144,12 @@ own page composition and serializable direction resolution.
 
 When the user asks for a YAMI page or component:
 
-1. **Match request to a recipe.** If the request is "PLP / PDP / cart" → use [`pages/recipes/<slug>.recipe.ts`](./pages/recipes/) as the slot manifest, [`pages/templates/web/<Title>.tsx`](./pages/templates/web/) as the structural reference.
+1. **Match the request to an existing page.** For PLP, PDP, search, home, or campaign work, inspect [`../prototypes/pages/`](../prototypes/pages/) and reuse the closest maintained page composition before adding a new one.
 2. **Match component-level requests to the catalog.** "Add a button / badge / card" → wrap [`components/<Name>/meta.json`](./components/) `props`. Never re-declare `tokenBindings`; the component already encodes them.
-3. **Reach for semantic aliases, not raw tokens.** Use `--text-emphasis` (not `--color-red-500`), `--button-primary` (not `--color-black-900`). Component-side aliasing is in `tokens.css` under `/* Semantic Aliases */`.
+3. **Reach for semantic aliases, not raw tokens.** Use `--text-emphasis` (not `--color-red-500`), `--button-primary` (not `--color-black-900`). Component-side aliasing is in `generated/tokens.css` under `/* Semantic Aliases */`.
 4. **Copy the Quick Start CSS / Tailwind v4 block** from [`DESIGN.md → Quick Start`](./DESIGN.md) into a fresh project if you need a standalone consumption surface.
 5. **Refuse the Anti-patterns** in [`DESIGN.md → Anti-patterns AI agents repeatedly produce`](./DESIGN.md). When in doubt: refuse and explain.
-6. **Final step:** run `pnpm validate`. Output must be four green ✓ lines before declaring done.
+6. **Final step:** run `pnpm validate` before declaring done.
 
 ---
 
@@ -165,9 +164,8 @@ When the user asks for a YAMI page or component:
 | [`CHANGELOG.md`](./CHANGELOG.md) | Version history (tokens / components / documentation) |
 | [`content/`](./content/) | Voice, bilingual rules, copy patterns |
 | [`motion/`](./motion/) | Motion patterns / durations / easings |
-| [`tokens.css`](./tokens.css) | Auto-generated CSS Custom Properties (source: `tokens/*.tokens.json` DTCG JSON) |
+| [`generated/tokens.css`](./generated/tokens.css) | Auto-generated CSS Custom Properties (source: `tokens/*.tokens.json` DTCG JSON) |
 | [`principles/`](./principles/) | AST validators + sync checks |
-| [`pages/recipes/`](./pages/recipes/) | Slot-based page compositions |
-| [`pages/templates/`](./pages/templates/) | Reference page implementations |
-| [`preview/`](./preview/) | HTML spec cards per component |
-| [`ui_kits/`](./ui_kits/) | JSX prototypes (web + app) |
+| [`generated/catalog.json`](./generated/catalog.json) | Maintained Storybook component inventory |
+| [`generated/registry.json`](./generated/registry.json) | Installable component registry |
+| [`../prototypes/pages/`](../prototypes/pages/) | Maintained page compositions and Storybook stories |

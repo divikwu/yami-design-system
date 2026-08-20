@@ -1,0 +1,126 @@
+{
+  "$schema": "../../../schema/component.json",
+  "name": "ProductReviewSection",
+  "category": "composite",
+  "status": "experimental",
+  "version": "0.1.0",
+  "description": "Full PDP review section with aggregate rating, star distribution, filters, sorting, review cards, and progressive disclosure.",
+  "figma": { "nodeId": null, "componentKey": null },
+  "exports": [
+    "ProductReviewSection",
+    "ProductReviewSectionProps",
+    "ProductReviewAvatar",
+    "ProductReviewItem",
+    "ProductReviewPhoto",
+    "ProductReviewRatingDistribution",
+    "ProductReviewFilter",
+    "ProductReviewSortOption",
+    "ProductReviewSectionCopy"
+  ],
+  "composes": ["Button", "FilterChip", "FilterChipGroup"],
+  "props": {
+    "title": {
+      "type": "ReactNode",
+      "required": true,
+      "description": "Visible section heading and accessible label."
+    },
+    "reviewCount": {
+      "type": "number",
+      "required": true,
+      "description": "Authoritative total review count displayed in the heading and summary."
+    },
+    "averageRating": {
+      "type": "number",
+      "required": true,
+      "description": "Aggregate five-point rating, clamped to the supported range."
+    },
+    "ratingDistribution": {
+      "type": "ProductReviewRatingDistribution[]",
+      "required": true,
+      "description": "Percentage and optional count for each rating row. Missing rows resolve to zero."
+    },
+    "reviews": {
+      "type": "ProductReviewItem[]",
+      "required": true,
+      "description": "Review records available to local filtering, sorting, and progressive disclosure."
+    },
+    "copy": {
+      "type": "ProductReviewSectionCopy",
+      "required": true,
+      "description": "Localized labels for every control, state, and review metadata field."
+    },
+    "sortOptions": {
+      "type": "ProductReviewSortOption[]",
+      "required": true,
+      "description": "Native select options with optional local comparators."
+    },
+    "initialVisibleCount": {
+      "type": "number",
+      "required": false,
+      "default": 6,
+      "description": "Initial number of filtered reviews displayed."
+    },
+    "viewMoreIncrement": {
+      "type": "number",
+      "required": false,
+      "default": 3,
+      "description": "Number of additional reviews revealed per View more action."
+    },
+    "onWriteReview": {
+      "type": "() => void",
+      "required": false,
+      "description": "Reports activation of the Write a review action."
+    }
+  },
+  "rules": {
+    "focus": {
+      "ruleId": "focus-style",
+      "note": "Shared buttons and chips retain token-backed focus states; the native select adds the same focus ring."
+    },
+    "radius": {
+      "ruleId": "no-custom-radii",
+      "note": "Summary, review cards, tags, avatars, and meters use semantic radius tokens."
+    }
+  },
+  "tokens": [
+    "--background-secondary",
+    "--surface-primary",
+    "--surface-secondary",
+    "--text-primary",
+    "--text-secondary",
+    "--text-emphasis",
+    "--fill-disabled",
+    "--fill-tertiary",
+    "--border-default",
+    "--border-focus",
+    "--stroke-default",
+    "--stroke-thick",
+    "--radius-full",
+    "--radius-component-default",
+    "--radius-surface-default",
+    "--font-family-ios",
+    "--space-025",
+    "--space-050",
+    "--space-100",
+    "--space-150",
+    "--space-200",
+    "--space-300",
+    "--space-400",
+    "--space-600"
+  ],
+  "accessibility": {
+    "wcagLevel": "AA",
+    "tapTargetMin": 44,
+    "keyboardNav": ["tab", "enter", "space", "arrow keys"],
+    "ariaPattern": "Labelled review region with accessible rating image, five meter rows, native filters and sort control.",
+    "structure": "The heading labels the section; every review is an article within a responsive grid.",
+    "interaction": "Filters and progressive disclosure update visible reviews without removing native focus behavior."
+  },
+  "dependencies": {
+    "runtime": ["react", "./Button", "./FilterChip"],
+    "peer": [],
+    "devOnly": []
+  },
+  "usageRef": "./usage.md",
+  "examples": ["./examples.tsx#ProductReviewSectionExample"]
+}

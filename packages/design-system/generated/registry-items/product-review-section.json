@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "name": "product-review-section",
+  "title": "ProductReviewSection",
+  "type": "component",
+  "status": "experimental",
+  "source": "components/ProductReviewSection",
+  "files": [
+    "components/ProductReviewSection/index.ts",
+    "components/ProductReviewSection/ProductReviewSection.module.css",
+    "components/ProductReviewSection/ProductReviewSection.tsx",
+    "components/ProductReviewSection/ProductReviewSection.types.ts"
+  ]
+}

@@ -1,0 +1,128 @@
+.root {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-200);
+  color: var(--text-primary);
+  font-family: var(--font-family-ios);
+}
+
+.thumbnails {
+  display: flex;
+  min-width: 0;
+  grid-row: 2;
+  flex-direction: row;
+  gap: var(--space-100);
+  padding: var(--space-025);
+  overflow-x: auto;
+  scroll-padding-inline: var(--space-025);
+  scroll-snap-type: inline mandatory;
+  scrollbar-width: none;
+}
+
+.thumbnails::-webkit-scrollbar {
+  display: none;
+}
+
+.thumbnailButton {
+  box-sizing: border-box;
+  display: grid;
+  width: var(--space-1000);
+  height: var(--space-1000);
+  flex: 0 0 auto;
+  padding: var(--space-050);
+  overflow: hidden;
+  place-items: center;
+  border: var(--stroke-default) solid var(--border-default);
+  border-radius: var(--radius-component-default);
+  outline: 0;
+  background: var(--fill-tertiary);
+  cursor: pointer;
+  scroll-snap-align: start;
+}
+
+.thumbnailButton:hover {
+  background: var(--surface-secondary);
+}
+
+.thumbnailButton[data-selected="true"] {
+  border-color: var(--border-focus);
+}
+
+.thumbnailButton:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+.thumbnailImage,
+.mainImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.stage {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  width: 100%;
+  grid-row: 1;
+  aspect-ratio: 1;
+  overflow: hidden;
+  place-items: center;
+  border-radius: var(--radius-surface-default);
+  background: var(--fill-tertiary);
+}
+
+.navigationButton {
+  position: absolute;
+  top: 50%;
+  z-index: 1;
+  transform: translateY(-50%);
+}
+
+.previousButton {
+  left: var(--space-200);
+}
+
+.nextButton {
+  right: var(--space-200);
+}
+
+.counter {
+  position: absolute;
+  right: var(--space-200);
+  bottom: var(--space-200);
+  display: inline-flex;
+  min-width: var(--space-600);
+  height: var(--space-400);
+  align-items: center;
+  justify-content: center;
+  padding-inline: var(--space-100);
+  border-radius: var(--radius-full);
+  background: var(--surface-inverse);
+  color: var(--text-primary-inverse);
+  font-size: var(--font-size-caption-md);
+  line-height: var(--line-height-caption-md);
+}
+
+@media (max-width: 1023.98px) {
+  .thumbnailButton {
+    width: var(--space-800);
+    height: var(--space-800);
+  }
+
+  .previousButton {
+    left: var(--space-100);
+  }
+
+  .nextButton {
+    right: var(--space-100);
+  }
+
+  .counter {
+    right: var(--space-100);
+    bottom: var(--space-100);
+  }
+}

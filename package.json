@@ -34,6 +34,9 @@
     "check:images": "node tooling/images/ecommerce-home.mjs --check",
     "check:generated": "node tooling/tokens/build.mjs --check && node tooling/catalog/build.mjs --check && node tooling/registry/build.mjs --check && node tooling/migration/build-migration-map.mjs --check",
     "check:boundaries": "node tooling/migration/check-boundaries.mjs",
+    "check:principles-sync": "node packages/design-system/principles/check-sync.ts",
+    "check:tokens-in-docs": "node packages/design-system/principles/check-tokens-in-docs.ts",
+    "check:components-in-doc": "node packages/design-system/principles/check-components-in-doc.ts",
     "check:source": "node tooling/migration/verify-source.mjs && node tooling/migration/build-migration-map.mjs --check",
     "check:yami-freeze": "node tooling/migration/verify-source.mjs && node tooling/migration/build-migration-map.mjs --check",
     "check:docgen": "node tooling/storybook/check.mjs",
@@ -42,6 +45,7 @@
     "test:a11y": "playwright test --project=a11y",
     "test:e2e": "playwright test --project=e2e",
     "test:visual": "PLAYWRIGHT_USE_PRODUCTION=1 playwright test --project=visual",
+    "validate": "pnpm lint && pnpm typecheck && pnpm check:principles-sync && pnpm check:tokens-in-docs && pnpm check:components-in-doc && pnpm check:generated && pnpm check:boundaries && pnpm test",
     "changeset": "changeset",
     "changeset:status": "changeset status"
   },

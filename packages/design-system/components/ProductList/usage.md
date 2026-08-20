@@ -34,6 +34,12 @@ Each product must have a stable `id`; all remaining fields are standard
 `ProductCard` data. The list passes the clicked product ID to
 `onAddToCart` while preserving ProductCard's independent navigation links.
 
+Use `introContent` for full-width editorial context that belongs between the
+heading controls and the product collection, such as a single-brand overview.
+It renders once and does not occupy a product slot. `leadingContent` remains
+the separate pattern for an editorial panel that intentionally participates in
+the rail geometry.
+
 ## Section divider
 
 The list keeps its existing top gray divider by default. `dividerPosition`

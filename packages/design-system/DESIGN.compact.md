@@ -1,6 +1,6 @@
 ---
 version: 0.5.0-alpha.1
-updated: 2026-07-22
+updated: 2026-08-20
 audience: human-designer
 projection: compact
 ---
@@ -40,7 +40,7 @@ Beyond these five anchors: a 50→950 neutral ramp (`#FAFAFA → #0A0A0A`) for c
 
 ## Typography — 4 levels, GT Walsheim numerals
 
-- **GT Walsheim** — every digit, every price, every Latin character. Weights 400 / 500 / 700.
+- **GT Walsheim** — every digit, every price, every Latin character. Authored UI uses 400 / 500; the loaded 700 face is legacy-only and is not a semantic emphasis weight.
 - **PingFang SC** (iOS / web) / **Noto Sans SC** (Android) — CJK body. Mixed strings keep digits and Latin in GT Walsheim.
 - **Max 4 levels per page**: display / heading / body / caption (or equivalent). If you need a 5th, the page has a hierarchy problem.
 

@@ -50,7 +50,7 @@ Mechanical rules for the surface layer of copy.
 - ✅ `有 3 件商品` (3 in GT Walsheim, rest in PingFang)
 - ❌ `有3件商品` (3 in PingFang — wrong unless you want arabic numerals to match CJK weight)
 
-Implementation note: CSS uses `font-family` fallback where numerals resolve first to GT Walsheim, then PingFang for remaining CJK glyphs. Token `--font-brand` already handles this via `font-family: 'GT Walsheim', 'PingFang SC', sans-serif`.
+Implementation note: CSS uses the `--font-family-ios` stack so numerals resolve first to GT Walsheim, then the registered CJK fallback resolves remaining glyphs.
 
 ## Prices
 

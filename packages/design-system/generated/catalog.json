@@ -3468,6 +3468,11 @@
             "required": false,
             "description": "Optional supporting copy rendered to the right of the section title and below it on narrow screens."
           },
+          "introContent": {
+            "type": "ReactNode",
+            "required": false,
+            "description": "Optional full-width editorial content rendered once between the heading controls and product collection."
+          },
           "products": {
             "type": "ProductListItem[]",
             "required": true,
@@ -3706,6 +3711,308 @@
           "./examples.tsx#ProductRailExample",
           "./examples.tsx#ProductWaterfallExample",
           "./examples.tsx#LoadingProductListExample"
+        ]
+      }
+    },
+    {
+      "id": "ProductMediaGallery",
+      "source": "components/ProductMediaGallery",
+      "meta": {
+        "$schema": "../../../schema/component.json",
+        "name": "ProductMediaGallery",
+        "category": "composite",
+        "status": "experimental",
+        "version": "0.1.0",
+        "description": "Accessible PDP media gallery with one square viewing window, thumbnail selection, previous and next controls, and responsive rail placement.",
+        "figma": {
+          "nodeId": null,
+          "componentKey": null
+        },
+        "exports": [
+          "ProductMediaGallery",
+          "ProductMediaGalleryItem",
+          "ProductMediaGalleryProps"
+        ],
+        "composes": [
+          "Button",
+          "ResponsiveImage"
+        ],
+        "props": {
+          "images": {
+            "type": "ProductMediaGalleryItem[]",
+            "required": true,
+            "description": "Ordered product images with stable IDs, responsive-capable sources, and meaningful alt text."
+          },
+          "defaultIndex": {
+            "type": "number",
+            "required": false,
+            "default": 0,
+            "description": "Initial active image index, clamped to the available image range."
+          },
+          "galleryLabel": {
+            "type": "string",
+            "required": false,
+            "default": "Product images",
+            "description": "Localized accessible label for the gallery region."
+          },
+          "thumbnailsLabel": {
+            "type": "string",
+            "required": false,
+            "default": "Choose product image",
+            "description": "Localized accessible label for the thumbnail control group."
+          },
+          "previousLabel": {
+            "type": "string",
+            "required": false,
+            "default": "Previous image",
+            "description": "Accessible name for the previous control."
+          },
+          "nextLabel": {
+            "type": "string",
+            "required": false,
+            "default": "Next image",
+            "description": "Accessible name for the next control."
+          },
+          "onIndexChange": {
+            "type": "(index: number) => void",
+            "required": false,
+            "description": "Reports thumbnail, arrow button, and keyboard image changes."
+          }
+        },
+        "rules": {
+          "focus": {
+            "ruleId": "focus-style",
+            "note": "Thumbnail and navigation controls use the YAMI focus ring."
+          },
+          "tapTarget": {
+            "ruleId": "tap-target",
+            "note": "Thumbnail controls are at least 64px and navigation composes Button."
+          },
+          "radius": {
+            "ruleId": "no-custom-radii",
+            "note": "The image stage, thumbnails, and counter consume semantic radius slots only."
+          },
+          "motion": {
+            "ruleId": "elevation-on-press",
+            "note": "Hover changes surface color without shadows or geometry changes."
+          }
+        },
+        "tokens": [
+          "--text-primary",
+          "--text-primary-inverse",
+          "--surface-secondary",
+          "--surface-inverse",
+          "--fill-tertiary",
+          "--border-default",
+          "--border-focus",
+          "--stroke-default",
+          "--radius-component-default",
+          "--radius-surface-default",
+          "--radius-full",
+          "--font-family-ios",
+          "--font-size-caption-md",
+          "--line-height-caption-md",
+          "--space-025",
+          "--space-050",
+          "--space-100",
+          "--space-200",
+          "--space-400",
+          "--space-600",
+          "--space-800",
+          "--space-1000"
+        ],
+        "tokenBindings": {
+          "--fill-tertiary": {
+            "property": "background-color",
+            "selector": ".stage, .thumbnailButton"
+          },
+          "--border-focus": {
+            "property": "border-color and outline-color",
+            "selector": ".thumbnailButton[data-selected='true'], .thumbnailButton:focus-visible"
+          },
+          "--radius-surface-default": {
+            "property": "border-radius",
+            "selector": ".stage"
+          },
+          "--space-200": {
+            "property": "gap and desktop control inset",
+            "selector": ".root, .previousButton, .nextButton, .counter"
+          }
+        },
+        "accessibility": {
+          "wcagLevel": "AA",
+          "tapTargetMin": 44,
+          "keyboardNav": [
+            "tab",
+            "enter",
+            "space",
+            "arrow left",
+            "arrow right"
+          ],
+          "ariaPattern": "labelled region containing a labelled thumbnail group, pressed-state buttons, and previous or next controls",
+          "structure": "The active product image retains meaningful alt text. Thumbnail images are decorative because each button announces position and image meaning.",
+          "interaction": "Thumbnail, previous, next, and ArrowLeft or ArrowRight selection all update the active image and polite counter."
+        },
+        "dependencies": {
+          "runtime": [
+            "react",
+            "./Button",
+            "./ResponsiveImage"
+          ],
+          "peer": [],
+          "devOnly": []
+        },
+        "usageRef": "./usage.md",
+        "examples": [
+          "./examples.tsx#BasicProductMediaGallery"
+        ]
+      }
+    },
+    {
+      "id": "ProductReviewSection",
+      "source": "components/ProductReviewSection",
+      "meta": {
+        "$schema": "../../../schema/component.json",
+        "name": "ProductReviewSection",
+        "category": "composite",
+        "status": "experimental",
+        "version": "0.1.0",
+        "description": "Full PDP review section with aggregate rating, star distribution, filters, sorting, review cards, and progressive disclosure.",
+        "figma": {
+          "nodeId": null,
+          "componentKey": null
+        },
+        "exports": [
+          "ProductReviewSection",
+          "ProductReviewSectionProps",
+          "ProductReviewAvatar",
+          "ProductReviewItem",
+          "ProductReviewPhoto",
+          "ProductReviewRatingDistribution",
+          "ProductReviewFilter",
+          "ProductReviewSortOption",
+          "ProductReviewSectionCopy"
+        ],
+        "composes": [
+          "Button",
+          "FilterChip",
+          "FilterChipGroup"
+        ],
+        "props": {
+          "title": {
+            "type": "ReactNode",
+            "required": true,
+            "description": "Visible section heading and accessible label."
+          },
+          "reviewCount": {
+            "type": "number",
+            "required": true,
+            "description": "Authoritative total review count displayed in the heading and summary."
+          },
+          "averageRating": {
+            "type": "number",
+            "required": true,
+            "description": "Aggregate five-point rating, clamped to the supported range."
+          },
+          "ratingDistribution": {
+            "type": "ProductReviewRatingDistribution[]",
+            "required": true,
+            "description": "Percentage and optional count for each rating row. Missing rows resolve to zero."
+          },
+          "reviews": {
+            "type": "ProductReviewItem[]",
+            "required": true,
+            "description": "Review records available to local filtering, sorting, and progressive disclosure."
+          },
+          "copy": {
+            "type": "ProductReviewSectionCopy",
+            "required": true,
+            "description": "Localized labels for every control, state, and review metadata field."
+          },
+          "sortOptions": {
+            "type": "ProductReviewSortOption[]",
+            "required": true,
+            "description": "Native select options with optional local comparators."
+          },
+          "initialVisibleCount": {
+            "type": "number",
+            "required": false,
+            "default": 6,
+            "description": "Initial number of filtered reviews displayed."
+          },
+          "viewMoreIncrement": {
+            "type": "number",
+            "required": false,
+            "default": 3,
+            "description": "Number of additional reviews revealed per View more action."
+          },
+          "onWriteReview": {
+            "type": "() => void",
+            "required": false,
+            "description": "Reports activation of the Write a review action."
+          }
+        },
+        "rules": {
+          "focus": {
+            "ruleId": "focus-style",
+            "note": "Shared buttons and chips retain token-backed focus states; the native select adds the same focus ring."
+          },
+          "radius": {
+            "ruleId": "no-custom-radii",
+            "note": "Summary, review cards, tags, avatars, and meters use semantic radius tokens."
+          }
+        },
+        "tokens": [
+          "--background-secondary",
+          "--surface-primary",
+          "--surface-secondary",
+          "--text-primary",
+          "--text-secondary",
+          "--text-emphasis",
+          "--fill-disabled",
+          "--fill-tertiary",
+          "--border-default",
+          "--border-focus",
+          "--stroke-default",
+          "--stroke-thick",
+          "--radius-full",
+          "--radius-component-default",
+          "--radius-surface-default",
+          "--font-family-ios",
+          "--space-025",
+          "--space-050",
+          "--space-100",
+          "--space-150",
+          "--space-200",
+          "--space-300",
+          "--space-400",
+          "--space-600"
+        ],
+        "accessibility": {
+          "wcagLevel": "AA",
+          "tapTargetMin": 44,
+          "keyboardNav": [
+            "tab",
+            "enter",
+            "space",
+            "arrow keys"
+          ],
+          "ariaPattern": "Labelled review region with accessible rating image, five meter rows, native filters and sort control.",
+          "structure": "The heading labels the section; every review is an article within a responsive grid.",
+          "interaction": "Filters and progressive disclosure update visible reviews without removing native focus behavior."
+        },
+        "dependencies": {
+          "runtime": [
+            "react",
+            "./Button",
+            "./FilterChip"
+          ],
+          "peer": [],
+          "devOnly": []
+        },
+        "usageRef": "./usage.md",
+        "examples": [
+          "./examples.tsx#ProductReviewSectionExample"
         ]
       }
     },
