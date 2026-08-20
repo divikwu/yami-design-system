@@ -123,6 +123,93 @@ describe("TOPIC GENERATOR Agent Runner", () => {
     }));
   });
 
+  it("runs text selection before shortlisted visual merchandising review", async () => {
+    const cleanup = vi.fn(async () => undefined);
+    const textProposal = {
+      schemaVersion: "module-merchandising-proposal/v1",
+      modules: [],
+    };
+    const visualProposal = {
+      ...textProposal,
+      visualReview: {
+        schemaVersion: "module-merchandising-visual-review/v1",
+        inspectedProductIds: ["product-1", "product-2"],
+        duplicateGroups: [],
+      },
+    };
+    const inspectMerchandisingProducts = vi.fn(async () => ({
+      attachments: [
+        { path: "/tmp/product-1.webp", label: "product:product-1" },
+        { path: "/tmp/product-2.webp", label: "product:product-2" },
+      ],
+      productIds: ["product-1", "product-2"],
+      cleanup,
+    }));
+    const executor = {
+      id: "test",
+      supportsImageInput: true,
+      execute: vi.fn()
+        .mockResolvedValueOnce(textProposal)
+        .mockResolvedValueOnce(visualProposal),
+    } satisfies AgentExecutor;
+    const handler = createAgentRunnerHandler({ executor, inspectMerchandisingProducts });
+    const run = {
+      schemaVersion: "page-merchandising-run/v1",
+      status: "needs-module-proposal",
+      context: { sourceScenes: [], products: [] },
+    };
+    const response = await handler(post("/topic-page", {
+      schemaVersion: "topic-page-agent-request/v1",
+      stage: "module-merchandising",
+      agentId: "topic-strategy",
+      run,
+    }));
+
+    expect(response.status).toBe(200);
+    expect(inspectMerchandisingProducts).toHaveBeenCalledWith(run, textProposal);
+    expect(executor.execute).toHaveBeenCalledTimes(2);
+    expect(executor.execute.mock.calls[0]?.[0]).not.toHaveProperty("attachments");
+    expect(executor.execute.mock.calls[1]?.[0]).toEqual(expect.objectContaining({
+      attachments: [
+        { path: "/tmp/product-1.webp", label: "product:product-1" },
+        { path: "/tmp/product-2.webp", label: "product:product-2" },
+      ],
+      skillInstructions: expect.stringMatching(/retain\s+the product with the higher\s+`soldCount`/),
+    }));
+    expect(executor.execute.mock.calls[1]?.[0].run).toMatchObject({
+      context: {
+        visualReviewTask: {
+          schemaVersion: "module-merchandising-visual-review-task/v1",
+          inspectedProductIds: ["product-1", "product-2"],
+          textProposal,
+        },
+      },
+    });
+    expect(cleanup).toHaveBeenCalledOnce();
+  });
+
+  it("keeps text-only module merchandising available for a non-visual executor", async () => {
+    const inspectMerchandisingProducts = vi.fn();
+    const executor = fakeExecutor({ schemaVersion: "module-merchandising-proposal/v1" }, false);
+    const handler = createAgentRunnerHandler({ executor, inspectMerchandisingProducts });
+    const response = await handler(post("/topic-page", {
+      schemaVersion: "topic-page-agent-request/v1",
+      stage: "module-merchandising",
+      agentId: "topic-strategy",
+      run: {
+        schemaVersion: "page-merchandising-run/v1",
+        status: "needs-module-proposal",
+        context: { sourceScenes: [], products: [] },
+      },
+    }));
+
+    expect(response.status).toBe(200);
+    expect(inspectMerchandisingProducts).not.toHaveBeenCalled();
+    expect(executor.execute).toHaveBeenCalledWith(
+      expect.not.objectContaining({ attachments: expect.anything() }),
+    );
+  });
+
   it("preserves visual asset bodies from a complete Agent envelope", async () => {
     const assets = [{
       taskId: "hero",

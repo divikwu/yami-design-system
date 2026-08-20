@@ -335,6 +335,9 @@ describe("TopicPageContent", () => {
       "topic-landing/brand-relevance@1",
       "topic-landing/topic-relevance@1",
       "topic-landing/campaign-relevance@1",
+      "topic-landing/brand-relevance@2",
+      "topic-landing/topic-relevance@2",
+      "topic-landing/campaign-relevance@2",
     ].every((templateRef) => usesStrictPageCopyPolicy(templateRef))).toBe(true);
     expect(usesStrictPageCopyPolicy("topic-landing/relevance@1")).toBe(false);
   });

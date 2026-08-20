@@ -12,6 +12,9 @@ const STRICT_TEMPLATE_REFS = new Set([
   "topic-landing/brand-relevance@1",
   "topic-landing/topic-relevance@1",
   "topic-landing/campaign-relevance@1",
+  "topic-landing/brand-relevance@2",
+  "topic-landing/topic-relevance@2",
+  "topic-landing/campaign-relevance@2",
 ]);
 
 const COPY_RULES: Readonly<Record<TopicModuleId, readonly TopicPageContentCopyRule[]>> = {

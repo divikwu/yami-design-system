@@ -23,8 +23,8 @@
   background: var(--surface-primary);
   color: var(--text-primary);
   font-family: inherit;
-  font-size: var(--font-size-caption-md);
-  line-height: var(--line-height-caption-md);
+  font-size: 14px;
+  line-height: 20px;
   transition: background-color 120ms ease, border-color 120ms ease;
 }
 
@@ -68,8 +68,8 @@
   color: var(--text-primary);
   cursor: pointer;
   font-family: inherit;
-  font-size: var(--font-size-caption-md);
-  line-height: var(--line-height-caption-md);
+  font-size: 14px;
+  line-height: 20px;
   text-align: left;
   transition: background-color 120ms ease, border-color 120ms ease;
   user-select: none;
@@ -166,8 +166,8 @@
   outline: 0;
   color: var(--text-primary);
   cursor: default;
-  font-size: var(--font-size-caption-md);
-  line-height: var(--line-height-caption-md);
+  font-size: 14px;
+  line-height: 20px;
   user-select: none;
 }
 
@@ -197,9 +197,9 @@
   border: 1px solid transparent;
   border-radius: 0;
   cursor: pointer;
-  font-size: var(--font-size-caption-md);
+  font-size: 14px;
   font-weight: 500;
-  line-height: var(--line-height-caption-md);
+  line-height: 20px;
   transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
 }
 
@@ -247,6 +247,90 @@
   color: var(--text-disabled);
   cursor: not-allowed;
   opacity: 1;
+}
+
+.tabsRoot {
+  width: 100%;
+  min-width: 0;
+  background: var(--surface-primary);
+}
+
+.tabsRootStage {
+  background: transparent;
+}
+
+.tabList {
+  box-sizing: border-box;
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  min-height: 40px;
+  align-items: stretch;
+  gap: 16px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--border-default);
+  scrollbar-width: thin;
+}
+
+.tabListInset {
+  padding-right: 24px;
+  padding-left: 24px;
+}
+
+.tab {
+  position: relative;
+  display: inline-flex;
+  width: max-content;
+  min-width: max-content;
+  height: 40px;
+  flex: none;
+  padding: 0;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--font-size-body-md);
+  line-height: var(--line-height-body-md);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.tabLabel {
+  color: inherit;
+  font: inherit;
+}
+
+.tabMeta {
+  color: inherit;
+  font-family: var(--font-mono);
+  font-size: inherit;
+  font-variant-numeric: tabular-nums;
+  line-height: inherit;
+}
+
+.tab[aria-selected="true"] {
+  border-bottom-color: var(--text-primary);
+  color: var(--text-primary);
+}
+
+.tab:hover:not([data-disabled]) {
+  color: var(--text-primary);
+}
+
+.tab:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: 2px solid var(--border-focus);
+  outline-offset: -2px;
+}
+
+.tab[data-disabled] {
+  color: var(--text-disabled);
+  cursor: not-allowed;
 }
 
 .segmentedFieldset {
@@ -297,8 +381,8 @@
   border-radius: 0;
   background: transparent;
   color: var(--text-secondary);
-  font-size: var(--font-size-caption-md);
-  line-height: var(--line-height-caption-md);
+  font-size: 14px;
+  line-height: 20px;
   box-shadow: none;
   transition: background-color 120ms ease, color 120ms ease;
 }

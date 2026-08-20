@@ -129,6 +129,28 @@ const RELEVANCE_SEMANTIC_INTENT_THEMES = {
   },
 } as const satisfies RelevanceStrategyConfig;
 
+const RELEVANCE_EXPANDED_INTENT_THEMES = {
+  schemaVersion: "product-selection-strategy/v1",
+  ref: "relevance/intent-themes@4",
+  id: "relevance/intent-themes",
+  version: 4,
+  engine: "relevance",
+  label: { en: "Expanded semantic intent themes", zh: "扩展语义意图主题" },
+  description: {
+    en: "Uses accepted Agent category and scenario hypotheses, then freezes four to sixteen catalog-backed products per Start Here scene.",
+    zh: "使用已接受的 Agent 分类与场景提案，并为每个从这里开始场景冻结 4–16 件目录证据商品。",
+  },
+  semanticOrganization: true,
+  themeCollections: {
+    minimumThemes: 2,
+    maximumThemes: 6,
+    maximumShortcutThemes: null,
+    minimumShortcutProducts: 1,
+    minimumProducts: 4,
+    maximumProducts: 16,
+  },
+} as const satisfies RelevanceStrategyConfig;
+
 const CATEGORY_ROLE_LANDING_PAGE_AGENT = {
   schemaVersion: "product-selection-strategy/v1",
   ref: "category-role/landing-page-agent@1",
@@ -185,6 +207,7 @@ const BUILT_IN_CONFIGS: readonly ProductSelectionStrategyConfig[] = [
   RELEVANCE_DEFAULT,
   RELEVANCE_INTENT_THEMES,
   RELEVANCE_SEMANTIC_INTENT_THEMES,
+  RELEVANCE_EXPANDED_INTENT_THEMES,
   CATEGORY_ROLE_LANDING_PAGE_AGENT,
 ];
 

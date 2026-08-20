@@ -111,8 +111,8 @@ describe("Topic Generator automatic TopicIntent Agent integration", () => {
         requestedPageTypeRef: run.context.requestedPageTypeRef,
         requestedSelectionStrategyRef: run.context.requestedSelectionStrategyRef,
         pageTypeRef: "landing-page/brand@2",
-        selectionStrategyRef: "relevance/intent-themes@3",
-        templateRef: "topic-landing/brand-relevance@1",
+        selectionStrategyRef: "relevance/intent-themes@4",
+        templateRef: "topic-landing/brand-relevance@2",
         reason: "Use the registered relevance route for the resolved brand intent.",
       }),
     );
@@ -166,10 +166,28 @@ describe("Topic Generator automatic TopicIntent Agent integration", () => {
           {
             id: "start-here",
             visible: true,
-            shoppingGoal: "Give shoppers a clear starting product",
-            reason: "A distinct toner supports the first step.",
-            scenes: [],
-            assignments: [{ productId: "102-2" }],
+            shoppingGoal: "Help shoppers complete reviewed ANUA routines",
+            reason: "Two catalog-backed source scenes support distinct shopping goals.",
+            scenes: run.context.sourceScenes.map((scene, index) => ({
+              id: `reviewed-scene-${index + 1}`,
+              sourceSceneId: scene.id,
+              targetProductCount: scene.productGroups.flatMap(
+                ({ core, pairing, accessory }) => [core, pairing, accessory].filter(Boolean),
+              ).length,
+              shoppingGoal: scene.title,
+              reason: scene.description,
+            })),
+            assignments: run.context.sourceScenes.flatMap((scene, index) =>
+              scene.productGroups.flatMap(({ core, pairing, accessory }) =>
+                [core, pairing, accessory]
+                  .filter((productId): productId is string => Boolean(productId))
+                  .map((productId) => ({
+                    productId,
+                    sceneId: `reviewed-scene-${index + 1}`,
+                    reuseReason: "Start Here uses this frozen product in a reviewed scene.",
+                  }))
+              )
+            ),
           },
           {
             id: "popular-picks",
@@ -177,7 +195,10 @@ describe("Topic Generator automatic TopicIntent Agent integration", () => {
             shoppingGoal: "Show a strong catalog pick",
             reason: "A distinct serum provides a popular-pick slot.",
             scenes: [],
-            assignments: [{ productId: "103-2" }],
+            assignments: [{
+              productId: "103-2",
+              reuseReason: "Popular Picks references a product already used in Start Here.",
+            }],
           },
           {
             id: "brand-spotlight",
@@ -201,7 +222,10 @@ describe("Topic Generator automatic TopicIntent Agent integration", () => {
             shoppingGoal: "Continue ANUA discovery",
             reason: "A distinct catalog product extends discovery.",
             scenes: [],
-            assignments: [{ productId: "101-3" }],
+            assignments: [{
+              productId: "101-3",
+              reuseReason: "Explore More references a product already used in Start Here.",
+            }],
           },
         ],
       }),
@@ -244,7 +268,7 @@ describe("Topic Generator automatic TopicIntent Agent integration", () => {
       status: "ready",
       source: "page-merchandising-agent",
       agentId: "topic-page-agent",
-      templateRef: "topic-landing/brand-relevance@1",
+      templateRef: "topic-landing/brand-relevance@2",
       productIds: ["101-1", "102-1", "103-1"],
       moduleReason: "Three distinct catalog types create a representative ANUA Hero.",
       productReasons: {
@@ -277,6 +301,31 @@ describe("Topic Generator automatic TopicIntent Agent integration", () => {
       ],
       moduleReason: "Each accepted semantic group has one representative product.",
     });
+    expect(payload.startHereSelection).toMatchObject({
+      schemaVersion: "start-here-selection-run/v1",
+      status: "ready",
+      source: "page-merchandising-agent",
+      agentId: "topic-page-agent",
+      visible: true,
+      scenes: [
+        expect.objectContaining({
+          id: "reviewed-scene-1",
+          sourceSceneId: "scenario-hypothesis-1",
+          label: "日常基础护理",
+          shoppingGoal: "Complete a cleanser and toner routine.",
+        }),
+        expect.objectContaining({
+          id: "reviewed-scene-2",
+          sourceSceneId: "scenario-hypothesis-2",
+          label: "集中补水护理",
+          shoppingGoal: "Combine toner and serum products.",
+        }),
+      ],
+      moduleReason: "Two catalog-backed source scenes support distinct shopping goals.",
+    });
+    expect(payload.startHereSelection.scenes.map(
+      (scene: { productIds: string[] }) => scene.productIds.length,
+    )).toEqual([8, 4]);
     expect(payload.plans.zh.relevance.modules.find(
       (module: { id: string }) => module.id === "hero",
     )).toMatchObject({
@@ -289,6 +338,28 @@ describe("Topic Generator automatic TopicIntent Agent integration", () => {
       productIds: ["101-2", "102-3", "103-3"],
       reason: "Each accepted semantic group has one representative product.",
     });
+    expect(payload.plans.zh.relevance.modules.find(
+      (module: { id: string }) => module.id === "start-here",
+    )).toMatchObject({
+      reason: "Two catalog-backed source scenes support distinct shopping goals.",
+      groups: [
+        expect.objectContaining({
+          id: "reviewed-scene-1",
+          label: "日常基础护理",
+          shoppingGoal: "Complete a cleanser and toner routine.",
+          semanticSource: "agent-reviewed",
+        }),
+        expect.objectContaining({
+          id: "reviewed-scene-2",
+          label: "集中补水护理",
+          shoppingGoal: "Combine toner and serum products.",
+          semanticSource: "agent-reviewed",
+        }),
+      ],
+    });
+    expect(payload.plans.zh.relevance.modules.find(
+      (module: { id: string }) => module.id === "start-here",
+    ).productIds).toHaveLength(12);
   });
 
   it("labels the deterministic Hero as fallback when its Agent is unavailable", async () => {
@@ -316,6 +387,13 @@ describe("Topic Generator automatic TopicIntent Agent integration", () => {
       schemaVersion: "shortcut-selection-run/v1",
       status: "fallback",
       source: "deterministic-rules",
+      issues: ["Automatic module selection requires a Topic Page Agent."],
+    });
+    expect(payload.startHereSelection).toMatchObject({
+      schemaVersion: "start-here-selection-run/v1",
+      status: "fallback",
+      source: "deterministic-rules",
+      visible: true,
       issues: ["Automatic module selection requires a Topic Page Agent."],
     });
   });

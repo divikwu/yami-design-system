@@ -17,6 +17,7 @@ import {
   runPageMerchandisingAgentWorkflow,
   type HeroSelectionRun,
   type ShortcutSelectionRun,
+  type StartHereSelectionRun,
   type TopicPagePlanV2,
 } from "./page-merchandising/index.js";
 import {
@@ -38,6 +39,7 @@ import {
   type CatalogTaxonomySnapshot,
   type ProductSelectionAgent,
   type ProductSelectionRun,
+  type ProductSelectionResult,
   getProductSelectionStrategyConfig,
   type ProductSelectionStrategyRef,
 } from "./product-selection/index.js";
@@ -257,6 +259,144 @@ function applyShortcutSelection(
   });
 }
 
+function fallbackStartHereSelection(
+  plan: TopicPlanMatrix[ContentLanguage][ProductSelectionStrategy] | undefined,
+  issues: string[],
+): StartHereSelectionRun {
+  const startHere = plan?.modules.find(({ id }) => id === "start-here");
+  return {
+    schemaVersion: "start-here-selection-run/v1",
+    status: "fallback",
+    source: "deterministic-rules",
+    visible: Boolean(startHere?.visible),
+    scenes: (startHere?.groups ?? []).map((group) => ({
+      id: group.id,
+      sourceSceneId: group.id,
+      label: group.label,
+      shoppingGoal: group.shoppingGoal ?? group.label,
+      reason: group.scenarioReason ?? startHere?.reason ?? "Catalog-backed scene fallback.",
+      productIds: [...group.productIds],
+      ...(group.sourceCategoryIds
+        ? { sourceCategoryIds: [...group.sourceCategoryIds] }
+        : {}),
+    })),
+    issues,
+  };
+}
+
+function reviewedStartHereSelection(
+  agentId: string,
+  plan: TopicPagePlanV2,
+  selection: ProductSelectionResult,
+): StartHereSelectionRun {
+  const startHere = plan.modules.find(({ id }) => id === "start-here");
+  if (!startHere) {
+    return {
+      schemaVersion: "start-here-selection-run/v1",
+      status: "fallback",
+      source: "deterministic-rules",
+      visible: false,
+      scenes: [],
+      issues: ["Page Merchandising Agent returned no Start Here module."],
+    };
+  }
+  if (!startHere.visible) {
+    return {
+      schemaVersion: "start-here-selection-run/v1",
+      status: "ready",
+      source: "page-merchandising-agent",
+      agentId,
+      templateRef: plan.templateRef,
+      planDigest: plan.digest,
+      visible: false,
+      scenes: [],
+      moduleReason: startHere.reason,
+    };
+  }
+  const sourceScenesById = new Map(selection.scenes.map((scene) => [scene.id, scene]));
+  const sourceGroupsById = new Map(
+    (selection.modules.find(({ id }) => id === "start-here")?.groups ?? [])
+      .map((group) => [group.id, group]),
+  );
+  if (startHere.scenes.length === 0) {
+    return {
+      schemaVersion: "start-here-selection-run/v1",
+      status: "fallback",
+      source: "deterministic-rules",
+      visible: true,
+      scenes: [],
+      issues: ["Page Merchandising Agent returned no reviewed Start Here scenes."],
+    };
+  }
+  const scenes = startHere.scenes.flatMap((scene) => {
+    const sourceScene = sourceScenesById.get(scene.sourceSceneId);
+    if (!sourceScene) return [];
+    const sourceGroup = sourceGroupsById.get(scene.sourceSceneId);
+    return [{
+      id: scene.id,
+      sourceSceneId: scene.sourceSceneId,
+      ...(scene.targetProductCount !== undefined
+        ? { targetProductCount: scene.targetProductCount }
+        : {}),
+      label: sourceScene.name,
+      shoppingGoal: scene.shoppingGoal || sourceScene.title,
+      reason: scene.reason || sourceScene.description,
+      productIds: [...scene.productIds],
+      ...(sourceGroup?.sourceCategoryIds
+        ? { sourceCategoryIds: [...sourceGroup.sourceCategoryIds] }
+        : {}),
+    }];
+  });
+  if (scenes.length !== startHere.scenes.length) {
+    return {
+      schemaVersion: "start-here-selection-run/v1",
+      status: "fallback",
+      source: "deterministic-rules",
+      visible: true,
+      scenes: [],
+      issues: ["Page Merchandising Agent referenced an unknown Start Here source scene."],
+    };
+  }
+  return {
+    schemaVersion: "start-here-selection-run/v1",
+    status: "ready",
+    source: "page-merchandising-agent",
+    agentId,
+    templateRef: plan.templateRef,
+    planDigest: plan.digest,
+    visible: true,
+    scenes,
+    moduleReason: startHere.reason,
+  };
+}
+
+function applyStartHereSelection(
+  plans: TopicPlanMatrix,
+  strategy: ProductSelectionStrategy,
+  selection: Extract<StartHereSelectionRun, { status: "ready" }>,
+) {
+  (["en", "zh"] as const).forEach((language) => {
+    const plan = plans[language][strategy];
+    const startHere = plan?.modules.find(({ id }) => id === "start-here");
+    if (!startHere) return;
+    startHere.visible = selection.visible;
+    startHere.productIds = selection.scenes.flatMap(({ productIds }) => productIds);
+    startHere.groups = selection.scenes.map((scene) => ({
+      id: scene.id,
+      label: scene.label,
+      role: "core",
+      productIds: [...scene.productIds],
+      shoppingGoal: scene.shoppingGoal,
+      scenarioReason: scene.reason,
+      semanticSource: "agent-reviewed",
+      ...(scene.sourceCategoryIds
+        ? { sourceCategoryIds: [...scene.sourceCategoryIds] }
+        : {}),
+    }));
+    startHere.reason = selection.moduleReason;
+  });
+}
+
 function categoryRoleRuntimeEvidence(options: {
   automatic: boolean;
   taxonomySnapshot?: CatalogTaxonomySnapshot;
@@ -385,14 +525,17 @@ export async function handleTopicGeneratorPost(
         ? requestPayload.selectionStrategyRef.trim() as ProductSelectionStrategyRef
         : requestedStrategy === "category-role"
           ? "category-role/landing-page-agent@1"
-          : "relevance/intent-themes@3";
+          : "relevance/intent-themes@4";
     const requestedPageTypeRef =
       typeof requestPayload.pageTypeRef === "string" && requestPayload.pageTypeRef.trim()
         ? requestPayload.pageTypeRef.trim() as LandingPageTypeRef
         : undefined;
     const contentLanguage: ContentLanguage = requestPayload.language === "en" ? "en" : "zh";
     const initialAnalysis = await analyzeTopicIntent(keyword, options);
-    const topicIntentWorkflow = requestedSelectionStrategyRef === "relevance/intent-themes@3"
+    const topicIntentWorkflow = (
+      requestedSelectionStrategyRef === "relevance/intent-themes@3" ||
+      requestedSelectionStrategyRef === "relevance/intent-themes@4"
+    )
       ? await runTopicIntentAgentWorkflow({
           snapshot: initialAnalysis.snapshot,
           intent: initialAnalysis.intent,
@@ -506,7 +649,7 @@ export async function handleTopicGeneratorPost(
       requestedSelectionStrategyRef,
     ).engine === "relevance"
       ? requestedSelectionStrategyRef
-      : "relevance/intent-themes@3";
+      : "relevance/intent-themes@4";
     const relevanceRun = advanceProductSelectionRun({
       snapshot,
       strategyRef: relevanceStrategyRef,
@@ -587,6 +730,7 @@ export async function handleTopicGeneratorPost(
     const selectedRun = selectedStrategy === "category-role" ? categoryRun : relevanceRun;
     let heroSelection: HeroSelectionRun | undefined;
     let shortcutSelection: ShortcutSelectionRun | undefined;
+    let startHereSelection: StartHereSelectionRun | undefined;
     const automaticModuleReview = options.requireAutomaticModuleReview === true ||
       options.requireAutomaticHeroReview === true;
     if (generationMode === "selection" && automaticModuleReview) {
@@ -596,12 +740,14 @@ export async function handleTopicGeneratorPost(
         const issues = ["Automatic module selection requires a Topic Page Agent."];
         heroSelection = fallbackHeroSelection(fallbackPlan, issues);
         shortcutSelection = fallbackShortcutSelection(fallbackPlan, issues);
+        startHereSelection = fallbackStartHereSelection(fallbackPlan, issues);
       } else if (selectedRun.status !== "ready") {
         const issues = selectedRun.status === "blocked"
           ? selectedRun.issues
           : ["ProductSelection did not produce a ready result for module review."];
         heroSelection = fallbackHeroSelection(fallbackPlan, issues);
         shortcutSelection = fallbackShortcutSelection(fallbackPlan, issues);
+        startHereSelection = fallbackStartHereSelection(fallbackPlan, issues);
       } else {
         try {
           const heroOrchestration = await runLandingPageOrchestratorAgentWorkflow({
@@ -619,6 +765,7 @@ export async function handleTopicGeneratorPost(
               : ["Orchestrator Agent did not return an execution plan proposal."];
             heroSelection = fallbackHeroSelection(fallbackPlan, issues);
             shortcutSelection = fallbackShortcutSelection(fallbackPlan, issues);
+            startHereSelection = fallbackStartHereSelection(fallbackPlan, issues);
           } else {
             const merchandising = await runPageMerchandisingAgentWorkflow({
               intent,
@@ -636,16 +783,19 @@ export async function handleTopicGeneratorPost(
                 merchandising.artifacts.agentId,
                 merchandising.run.plan,
               );
-              if (heroSelection.status === "ready" && shortcutSelection.status === "ready") {
+              startHereSelection = reviewedStartHereSelection(
+                merchandising.artifacts.agentId,
+                merchandising.run.plan,
+                selectedRun.result,
+              );
+              if (heroSelection.status === "ready") {
                 applyHeroSelection(plans, selectedStrategy, heroSelection);
+              }
+              if (shortcutSelection.status === "ready") {
                 applyShortcutSelection(plans, selectedStrategy, shortcutSelection);
-              } else {
-                const issues = [
-                  ...(heroSelection.status === "fallback" ? heroSelection.issues : []),
-                  ...(shortcutSelection.status === "fallback" ? shortcutSelection.issues : []),
-                ];
-                heroSelection = fallbackHeroSelection(fallbackPlan, issues);
-                shortcutSelection = fallbackShortcutSelection(fallbackPlan, issues);
+              }
+              if (startHereSelection.status === "ready") {
+                applyStartHereSelection(plans, selectedStrategy, startHereSelection);
               }
             } else {
               const issues = merchandising.run.status === "blocked"
@@ -653,12 +803,14 @@ export async function handleTopicGeneratorPost(
                 : ["Page Merchandising Agent did not return a proposal."];
               heroSelection = fallbackHeroSelection(fallbackPlan, issues);
               shortcutSelection = fallbackShortcutSelection(fallbackPlan, issues);
+              startHereSelection = fallbackStartHereSelection(fallbackPlan, issues);
             }
           }
         } catch (error) {
           const issues = [error instanceof Error ? error.message : "Module selection Agent failed."];
           heroSelection = fallbackHeroSelection(fallbackPlan, issues);
           shortcutSelection = fallbackShortcutSelection(fallbackPlan, issues);
+          startHereSelection = fallbackStartHereSelection(fallbackPlan, issues);
         }
       }
     }
@@ -725,6 +877,7 @@ export async function handleTopicGeneratorPost(
       },
       ...(heroSelection ? { heroSelection } : {}),
       ...(shortcutSelection ? { shortcutSelection } : {}),
+      ...(startHereSelection ? { startHereSelection } : {}),
       ...(automation ? { automation } : {}),
       ...(generatedCandidateSnapshot || candidateQualityReport
         ? {

@@ -36,6 +36,7 @@ export type TopicPageComponent =
 export interface PageMerchandisingSceneProposal {
   id: string;
   sourceSceneId: string;
+  targetProductCount?: number;
   shoppingGoal: string;
   reason: string;
 }
@@ -89,6 +90,7 @@ export interface TopicPagePlanAssignmentV2 {
 export interface TopicPagePlanSceneV2 {
   id: string;
   sourceSceneId: string;
+  targetProductCount?: number;
   shoppingGoal: string;
   reason: string;
   productIds: string[];
@@ -134,6 +136,14 @@ export interface PageMerchandisingModuleRuleContext {
   allowedPools: ProductPool[];
   allowedRoles: ProductRole[];
   sceneRange?: readonly [number, number];
+  productsPerSceneRange?: readonly [number, number];
+  requireSceneTargetProductCount?: boolean;
+}
+
+export interface PageMerchandisingSourceScene extends ProductSelectionScene {
+  sourceCategoryIds: string[];
+  minimumRecommendedProducts: number;
+  maximumProducts: number;
 }
 
 export type PageMerchandisingCandidateProduct = Pick<
@@ -166,8 +176,9 @@ export interface PageMerchandisingTaskContext {
   themeIntent: ThemeIntent;
   selectedCategories: SelectedCategoryRole[];
   selectionModules: ProductSelectionModuleResult[];
-  sourceScenes: ProductSelectionScene[];
+  sourceScenes: PageMerchandisingSourceScene[];
   products: PageMerchandisingCandidateProduct[];
+  previousProposalIssues?: string[];
 }
 
 export type PageMerchandisingRun =
@@ -232,5 +243,37 @@ export type ShortcutSelectionRun =
       status: "fallback";
       source: "deterministic-rules";
       assignments: ShortcutSelectionAssignment[];
+      issues: string[];
+    };
+
+export interface StartHereSelectionScene {
+  id: string;
+  sourceSceneId: string;
+  targetProductCount?: number;
+  label: string;
+  shoppingGoal: string;
+  reason: string;
+  productIds: string[];
+  sourceCategoryIds?: string[];
+}
+
+export type StartHereSelectionRun =
+  | {
+      schemaVersion: "start-here-selection-run/v1";
+      status: "ready";
+      source: "page-merchandising-agent";
+      agentId: string;
+      templateRef: TopicPageTemplateRef;
+      planDigest: string;
+      visible: boolean;
+      scenes: StartHereSelectionScene[];
+      moduleReason: string;
+    }
+  | {
+      schemaVersion: "start-here-selection-run/v1";
+      status: "fallback";
+      source: "deterministic-rules";
+      visible: boolean;
+      scenes: StartHereSelectionScene[];
       issues: string[];
     };

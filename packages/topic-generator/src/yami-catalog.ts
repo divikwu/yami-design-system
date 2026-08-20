@@ -1609,7 +1609,7 @@ function coverageProduct(item: CatalogItem, sourceRank: number): CatalogCoverage
   };
 }
 
-function weeklySalesLowerBound(product: CatalogCoverageProduct) {
+export function weeklySalesLowerBound(product: Pick<YamiProduct, "weeklySalesLabel">) {
   const quantity = product.weeklySalesLabel?.match(/[\d,]+/)?.[0];
   if (!quantity) return -1;
   const value = Number(quantity.replaceAll(",", ""));

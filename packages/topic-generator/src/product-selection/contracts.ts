@@ -158,10 +158,16 @@ export interface ProductSelectionModuleGroup {
   label: string;
   role?: ProductRole;
   productIds: string[];
-  /** Frozen catalog leaf categories that define this navigation group. */
+  /** Frozen catalog leaf categories that define this category or scene group. */
   sourceCategoryIds?: string[];
   /** Reviewable category rationale supplied by TopicIntent, not product-selection rationale. */
   classificationReason?: string;
+  /** Shopper task proposed for a Start Here scene. */
+  shoppingGoal?: string;
+  /** Reviewable reason why the categories form this scene. */
+  scenarioReason?: string;
+  /** Distinguishes accepted Agent semantics from deterministic catalog fallback. */
+  semanticSource?: "agent-proposal" | "catalog-fallback" | "agent-reviewed";
 }
 
 export interface ProductSelectionRequest {

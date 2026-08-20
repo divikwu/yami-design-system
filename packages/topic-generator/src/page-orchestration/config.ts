@@ -16,6 +16,10 @@ const PAGE_TYPES: readonly LandingPageTypeConfig[] = [
     requiresExplicitRequest: false,
     routes: [
       {
+        selectionStrategyRef: "relevance/intent-themes@4",
+        templateRef: "topic-landing/brand-relevance@2",
+      },
+      {
         selectionStrategyRef: "relevance/intent-themes@3",
         templateRef: "topic-landing/brand-relevance@1",
       },
@@ -38,6 +42,10 @@ const PAGE_TYPES: readonly LandingPageTypeConfig[] = [
     supportedThemeTypes: ["product"],
     requiresExplicitRequest: false,
     routes: [
+      {
+        selectionStrategyRef: "relevance/intent-themes@4",
+        templateRef: "topic-landing/topic-relevance@2",
+      },
       {
         selectionStrategyRef: "relevance/intent-themes@3",
         templateRef: "topic-landing/topic-relevance@1",
@@ -62,6 +70,10 @@ const PAGE_TYPES: readonly LandingPageTypeConfig[] = [
     requiresExplicitRequest: false,
     routes: [
       {
+        selectionStrategyRef: "relevance/intent-themes@4",
+        templateRef: "topic-landing/campaign-relevance@2",
+      },
+      {
         selectionStrategyRef: "relevance/intent-themes@3",
         templateRef: "topic-landing/campaign-relevance@1",
       },
@@ -82,8 +94,11 @@ const LEGACY_PAGE_TYPES: readonly LandingPageTypeConfig[] = PAGE_TYPES.map((conf
   ref: `${config.id}@1` as LandingPageTypeRef,
   version: 1,
   routes: config.routes.flatMap((route) => {
-    if (route.selectionStrategyRef === "relevance/intent-themes@2") return [];
-    return [route.selectionStrategyRef === "relevance/intent-themes@3"
+    if (
+      route.selectionStrategyRef === "relevance/intent-themes@2" ||
+      route.selectionStrategyRef === "relevance/intent-themes@3"
+    ) return [];
+    return [route.selectionStrategyRef === "relevance/intent-themes@4"
       ? {
           selectionStrategyRef: "relevance/default@1" as const,
           templateRef: "topic-landing/relevance@1" as const,
@@ -105,7 +120,7 @@ export const LANDING_PAGE_WORKFLOW_REF = "landing-page/default@1" as const;
 
 export const LANDING_PAGE_EXECUTION_STAGES: readonly LandingPageExecutionStage[] = [
   { id: "product-selection", actor: "strategy-agent", maxAttempts: 1 },
-  { id: "module-merchandising", actor: "strategy-agent", maxAttempts: 1 },
+  { id: "module-merchandising", actor: "strategy-agent", maxAttempts: 2 },
   { id: "content-writing", actor: "content-agent", maxAttempts: 1 },
   { id: "visual-generation", actor: "visual-agent", maxAttempts: 1 },
   { id: "asset-persistence", actor: "system", maxAttempts: 1 },

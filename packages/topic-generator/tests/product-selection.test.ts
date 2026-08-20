@@ -215,11 +215,17 @@ describe("ProductSelection Module", () => {
       { ref: "relevance/default@1", engine: "relevance" },
       { ref: "relevance/intent-themes@2", engine: "relevance" },
       { ref: "relevance/intent-themes@3", engine: "relevance" },
+      { ref: "relevance/intent-themes@4", engine: "relevance" },
       {
         ref: "category-role/landing-page-agent@1",
         engine: "category-role",
       },
     ]);
+
+    expect(getProductSelectionStrategyConfig("relevance/intent-themes@3"))
+      .toMatchObject({ themeCollections: { minimumProducts: 4, maximumProducts: 8 } });
+    expect(getProductSelectionStrategyConfig("relevance/intent-themes@4"))
+      .toMatchObject({ themeCollections: { minimumProducts: 4, maximumProducts: 16 } });
 
     expect(
       getProductSelectionStrategyConfig("category-role/landing-page-agent@1"),
@@ -242,7 +248,7 @@ describe("ProductSelection Module", () => {
     });
   });
 
-  it("keeps the complete eligible pool while limiting each intent-backed theme to four to eight products", () => {
+  it("keeps the complete eligible pool while preserving the legacy four-to-eight replay limit", () => {
     const categories = [
       { id: "102", label: "Sheet Masks", evidenceCount: 4 },
       { id: "101", label: "Serums", evidenceCount: 10 },
@@ -390,7 +396,7 @@ describe("ProductSelection Module", () => {
         products,
         intent,
       },
-      strategyRef: "relevance/intent-themes@3",
+      strategyRef: "relevance/intent-themes@4",
     });
 
     expect(run.status).toBe("ready");
@@ -405,6 +411,7 @@ describe("ProductSelection Module", () => {
           productIds: ["103-1", "103-2", "103-3", "103-4", "103-5"],
           sourceCategoryIds: ["103"],
           classificationReason: "A verified daily-use category.",
+          semanticSource: "agent-proposal",
         },
         {
           id: "category-hypothesis-2",
@@ -416,6 +423,7 @@ describe("ProductSelection Module", () => {
           ],
           sourceCategoryIds: ["101", "104"],
           classificationReason: "Verified treatment categories.",
+          semanticSource: "agent-proposal",
         },
         {
           id: "category-hypothesis-3",
@@ -424,6 +432,7 @@ describe("ProductSelection Module", () => {
           productIds: ["102-1", "102-2", "102-3", "102-4", "102-5"],
           sourceCategoryIds: ["102"],
           classificationReason: "A verified mask category.",
+          semanticSource: "agent-proposal",
         },
       ]);
     expect(run.result.modules.find(({ id }) => id === "start-here")?.groups)
@@ -432,15 +441,43 @@ describe("ProductSelection Module", () => {
           id: "scenario-hypothesis-1",
           label: "Simple daily routine",
           role: "core",
-          productIds: ["103-1", "103-2", "103-3", "103-4", "103-5", "104-1", "104-2", "104-3"],
+          productIds: [
+            "103-1", "103-2", "103-3", "103-4", "103-5",
+            "104-1", "104-2", "104-3", "104-4",
+          ],
+          sourceCategoryIds: ["103", "104"],
+          shoppingGoal: "Build a cleanser and toner routine.",
+          scenarioReason: "Two verified routine steps.",
+          semanticSource: "agent-proposal",
         },
         {
           id: "scenario-hypothesis-2",
           label: "Focused treatment",
           role: "core",
-          productIds: ["101-1", "101-2", "101-3", "101-4", "101-5", "101-6", "102-1", "102-2"],
+          productIds: [
+            "101-1", "101-2", "101-3", "101-4", "101-5", "101-6",
+            "102-1", "102-2", "102-3", "102-4", "102-5",
+          ],
+          sourceCategoryIds: ["101", "102"],
+          shoppingGoal: "Pair a serum with a mask.",
+          scenarioReason: "Two verified treatment categories.",
+          semanticSource: "agent-proposal",
         },
       ]);
+    expect(run.result.scenes).toEqual([
+      expect.objectContaining({
+        id: "scenario-hypothesis-1",
+        name: "Simple daily routine",
+        title: "Build a cleanser and toner routine.",
+        description: "Two verified routine steps.",
+      }),
+      expect.objectContaining({
+        id: "scenario-hypothesis-2",
+        name: "Focused treatment",
+        title: "Pair a serum with a mask.",
+        description: "Two verified treatment categories.",
+      }),
+    ]);
   });
 
   it("keeps every verified category group in Shortcuts and the recommendation tabs", () => {
@@ -485,7 +522,7 @@ describe("ProductSelection Module", () => {
 
     const run = advanceProductSelectionRun({
       snapshot,
-      strategyRef: "relevance/intent-themes@3",
+      strategyRef: "relevance/intent-themes@4",
     });
 
     expect(run.status).toBe("ready");
@@ -579,7 +616,7 @@ describe("ProductSelection Module", () => {
         products,
         intent,
       },
-      strategyRef: "relevance/intent-themes@3",
+      strategyRef: "relevance/intent-themes@4",
     });
 
     expect(run.status).toBe("ready");
@@ -593,6 +630,7 @@ describe("ProductSelection Module", () => {
         productIds: ["101-1", "101-2"],
         sourceCategoryIds: ["101"],
         classificationReason: "Verified serum group.",
+        semanticSource: "agent-proposal",
       },
       {
         id: "category-hypothesis-2",
@@ -601,6 +639,7 @@ describe("ProductSelection Module", () => {
         productIds: ["102-1"],
         sourceCategoryIds: ["102"],
         classificationReason: "Verified mask group.",
+        semanticSource: "agent-proposal",
       },
       {
         id: "theme-103",
@@ -608,6 +647,7 @@ describe("ProductSelection Module", () => {
         role: "core",
         productIds: ["103-1", "103-2", "103-3", "103-4"],
         sourceCategoryIds: ["103"],
+        semanticSource: "catalog-fallback",
       },
       {
         id: "theme-more-to-explore",
@@ -660,7 +700,7 @@ describe("ProductSelection Module", () => {
         products,
         intent,
       },
-      strategyRef: "relevance/intent-themes@3",
+      strategyRef: "relevance/intent-themes@4",
     });
 
     expect(run.status).toBe("ready");
@@ -674,6 +714,7 @@ describe("ProductSelection Module", () => {
           productIds: ["101-1", "101-2", "101-3", "101-4"],
           sourceCategoryIds: ["101"],
           classificationReason: "Only one proposed group.",
+          semanticSource: "agent-proposal",
         },
         {
           id: "theme-102",
@@ -681,12 +722,27 @@ describe("ProductSelection Module", () => {
           role: "core",
           productIds: ["102-1", "102-2", "102-3", "102-4"],
           sourceCategoryIds: ["102"],
+          semanticSource: "catalog-fallback",
         },
       ]);
     expect(run.result.modules.find(({ id }) => id === "start-here")?.groups)
       .toEqual([
-        { id: "theme-101", label: "Serums", role: "core", productIds: ["101-1", "101-2", "101-3", "101-4"] },
-        { id: "theme-102", label: "Sheet Masks", role: "core", productIds: ["102-1", "102-2", "102-3", "102-4"] },
+        {
+          id: "theme-101",
+          label: "Serums",
+          role: "core",
+          productIds: ["101-1", "101-2", "101-3", "101-4"],
+          sourceCategoryIds: ["101"],
+          semanticSource: "catalog-fallback",
+        },
+        {
+          id: "theme-102",
+          label: "Sheet Masks",
+          role: "core",
+          productIds: ["102-1", "102-2", "102-3", "102-4"],
+          sourceCategoryIds: ["102"],
+          semanticSource: "catalog-fallback",
+        },
       ]);
   });
 
@@ -912,7 +968,7 @@ describe("ProductSelection Module", () => {
     });
   });
 
-  it("paginates every ThemeIntent category while leaving four-to-eight limits to display themes", async () => {
+  it("paginates every ThemeIntent category while leaving four-to-sixteen limits to display themes", async () => {
     const categories = [
       { id: "101", label: "Serums", evidenceCount: 1 },
       { id: "102", label: "Sheet Masks", evidenceCount: 1 },

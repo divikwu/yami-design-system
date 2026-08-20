@@ -437,6 +437,24 @@ async function fetchSourceImage(
   }
 }
 
+export async function fetchApprovedSourceImage(
+  sourceUrl: string,
+  compositorOptions: SourceImageCompositorOptions = {},
+) {
+  const fetchImpl = compositorOptions.fetch ?? globalThis.fetch;
+  if (!fetchImpl) {
+    throw new SourceImageCompositorError(
+      "source_image_fetch_unavailable",
+      "No product image fetch implementation is available.",
+    );
+  }
+  return fetchSourceImage(sourceUrl, fetchImpl, {
+    maxRedirects: nonNegativeOption(compositorOptions.maxRedirects, DEFAULT_MAX_REDIRECTS),
+    maxSourceBytes: positiveOption(compositorOptions.maxSourceBytes, DEFAULT_MAX_SOURCE_BYTES),
+    timeoutMs: positiveOption(compositorOptions.timeoutMs, DEFAULT_TIMEOUT_MS),
+  });
+}
+
 const RATIO_UNITS: Record<VisualAspectRatio, readonly [number, number]> = {
   "16:9": [16, 9],
   "1:1": [1, 1],
@@ -585,18 +603,6 @@ export async function composeSourceProductImages(
   compositorOptions: SourceImageCompositorOptions = {},
 ) {
   const context = parseInput(input);
-  const fetchImpl = compositorOptions.fetch ?? globalThis.fetch;
-  if (!fetchImpl) {
-    throw new SourceImageCompositorError(
-      "source_image_fetch_unavailable",
-      "No product image fetch implementation is available.",
-    );
-  }
-  const options = {
-    maxRedirects: nonNegativeOption(compositorOptions.maxRedirects, DEFAULT_MAX_REDIRECTS),
-    maxSourceBytes: positiveOption(compositorOptions.maxSourceBytes, DEFAULT_MAX_SOURCE_BYTES),
-    timeoutMs: positiveOption(compositorOptions.timeoutMs, DEFAULT_TIMEOUT_MS),
-  };
   const maxOutputBytes = positiveOption(compositorOptions.maxOutputBytes, DEFAULT_MAX_OUTPUT_BYTES);
   const sourceCache = new Map<string, Promise<Buffer>>();
   const proposalAssets = [];
@@ -606,7 +612,7 @@ export async function composeSourceProductImages(
     const sourceBytes = await Promise.all(task.products.map(({ imageUrl }) => {
       const cached = sourceCache.get(imageUrl);
       if (cached) return cached;
-      const request = fetchSourceImage(imageUrl, fetchImpl, options);
+      const request = fetchApprovedSourceImage(imageUrl, compositorOptions);
       sourceCache.set(imageUrl, request);
       return request;
     }));

@@ -17,12 +17,21 @@ import {
   PreviewInspectionError,
 } from "./preview-inspector.ts";
 import {
+  inspectMerchandisingProductImages,
+  type MerchandisingProductInspection,
+} from "./merchandising-product-inspector.ts";
+import { applyMerchandisingVisualReview } from "./merchandising-visual-review.ts";
+import {
   composeSourceProductImages,
   SourceImageCompositorError,
   type SourceImageCompositorInput,
 } from "./source-image-compositor.ts";
 
 type SourceImageComposer = (input: SourceImageCompositorInput) => Promise<unknown>;
+type MerchandisingProductInspector = (
+  run: Record<string, unknown>,
+  textProposal: unknown,
+) => Promise<MerchandisingProductInspection>;
 
 interface AgentRunnerHandlerOptions {
   executor: AgentExecutor;
@@ -30,6 +39,7 @@ interface AgentRunnerHandlerOptions {
   maxRequestBytes?: number;
   environment?: NodeJS.ProcessEnv;
   composeSourceImages?: SourceImageComposer;
+  inspectMerchandisingProducts?: MerchandisingProductInspector;
   inspectPreviews?: typeof inspectExperienceReviewPreviews;
 }
 
@@ -115,6 +125,12 @@ function isSourceImageVisualRun(route: AgentRoute, run: Record<string, unknown>)
     run.schemaVersion === "topic-page-visual-run/v1" &&
     run.status === "needs-visual-proposal" &&
     context?.productionMode === "source-product-images";
+}
+
+function isImageAwareMerchandisingRun(route: AgentRoute, run: Record<string, unknown>) {
+  return route.protocol === "topic-page" && route.stage === "module-merchandising" &&
+    run.schemaVersion === "page-merchandising-run/v1" &&
+    run.status === "needs-module-proposal";
 }
 
 function decodePreparedAsset(value: unknown, index: number) {
@@ -355,26 +371,79 @@ export function createAgentRunnerHandler(options: AgentRunnerHandlerOptions) {
         });
         return Response.json(response);
       }
-      const result = route.protocol === "topic-page" && route.stage === "experience-review"
-        ? await executeExperienceReview({
-            route,
-            requestAgentId: body.agentId,
-            run: body.run as Record<string, unknown>,
-            repositoryRoot: root,
-            skillInstructions,
-            agentInstructions,
-            executor: options.executor,
-            inspect: options.inspectPreviews ?? inspectExperienceReviewPreviews,
-            allowedOrigin: environment.TOPIC_AGENT_RUNNER_PREVIEW_ORIGIN?.trim() || undefined,
-          })
-        : await options.executor.execute({
-            route,
-            requestAgentId: body.agentId,
-            run: body.run as Record<string, unknown>,
-            repositoryRoot: root,
-            skillInstructions,
-            agentInstructions,
-          });
+      let result: unknown;
+      if (route.protocol === "topic-page" && route.stage === "experience-review") {
+        result = await executeExperienceReview({
+          route,
+          requestAgentId: body.agentId,
+          run: body.run as Record<string, unknown>,
+          repositoryRoot: root,
+          skillInstructions,
+          agentInstructions,
+          executor: options.executor,
+          inspect: options.inspectPreviews ?? inspectExperienceReviewPreviews,
+          allowedOrigin: environment.TOPIC_AGENT_RUNNER_PREVIEW_ORIGIN?.trim() || undefined,
+        });
+      } else if (options.executor.supportsImageInput === true &&
+          isImageAwareMerchandisingRun(route, body.run as Record<string, unknown>)) {
+        const textResult = await options.executor.execute({
+          route,
+          requestAgentId: body.agentId,
+          run: body.run as Record<string, unknown>,
+          repositoryRoot: root,
+          skillInstructions,
+          agentInstructions,
+        });
+        const textProposal = normalizeResult(route, textResult).proposal;
+        const inspection = await (options.inspectMerchandisingProducts ??
+          inspectMerchandisingProductImages)(
+            body.run as Record<string, unknown>,
+            textProposal,
+          );
+        try {
+          if (inspection.attachments.length === 0) {
+            result = textProposal;
+          } else {
+            const run = body.run as Record<string, unknown>;
+            const context = asObject(run.context) ?? {};
+            const visualResult = await options.executor.execute({
+              route,
+              requestAgentId: body.agentId,
+              run: {
+                ...run,
+                context: {
+                  ...context,
+                  visualReviewTask: {
+                    schemaVersion: "module-merchandising-visual-review-task/v1",
+                    inspectedProductIds: inspection.productIds,
+                    textProposal,
+                  },
+                },
+              },
+              repositoryRoot: root,
+              skillInstructions,
+              agentInstructions,
+              attachments: inspection.attachments,
+            });
+            result = applyMerchandisingVisualReview(
+              run,
+              inspection.productIds,
+              visualResult,
+            );
+          }
+        } finally {
+          await inspection.cleanup();
+        }
+      } else {
+        result = await options.executor.execute({
+          route,
+          requestAgentId: body.agentId,
+          run: body.run as Record<string, unknown>,
+          repositoryRoot: root,
+          skillInstructions,
+          agentInstructions,
+        });
+      }
       return Response.json(normalizeResult(route, result));
     } catch (error) {
       return errorResponse(error);

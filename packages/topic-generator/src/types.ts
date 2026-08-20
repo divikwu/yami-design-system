@@ -257,6 +257,9 @@ export interface TopicGroup {
   productIds: string[];
   sourceCategoryIds?: string[];
   classificationReason?: string;
+  shoppingGoal?: string;
+  scenarioReason?: string;
+  semanticSource?: "agent-proposal" | "catalog-fallback" | "agent-reviewed";
 }
 
 export interface TopicCategorySelection {

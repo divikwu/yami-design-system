@@ -15,4 +15,24 @@ describe("Topic Generator typography", () => {
       /font-weight:\s*(?:600|700|var\(--font-weight-semibold\))\s*;/,
     );
   });
+
+  it("keeps the workbench control typography at its desktop-lg size", () => {
+    expect(generatorCss).toMatch(
+      /\.generatorControls button,\s*\.generatorControls input\s*\{[^}]*font-size:\s*14px;[^}]*line-height:\s*20px;/s,
+    );
+    expect(generatorCss).toMatch(
+      /\.pathReadout span,[^{]*\.generatorControls label span\s*\{[^}]*font-size:\s*12px;[^}]*line-height:\s*14px;/s,
+    );
+    for (const selector of [
+      "textInput",
+      "selectTrigger",
+      "selectItem",
+      "button",
+      "segmentedLabel",
+    ]) {
+      expect(generatorCss).toMatch(
+        new RegExp(`\\.${selector}\\s*\\{[^}]*font-size:\\s*14px;[^}]*line-height:\\s*20px;`, "s"),
+      );
+    }
+  });
 });

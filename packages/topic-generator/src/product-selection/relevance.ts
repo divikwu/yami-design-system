@@ -136,6 +136,9 @@ interface SemanticGroupSource {
   role: ProductRole;
   categoryIds: string[];
   classificationReason?: string;
+  shoppingGoal?: string;
+  scenarioReason?: string;
+  semanticSource?: "agent-proposal" | "catalog-fallback";
 }
 
 function compileSemanticGroups(
@@ -144,6 +147,7 @@ function compileSemanticGroups(
   minimumProducts: number,
   maximumThemes: number | undefined,
   maximumProducts?: number,
+  balanceCategoryCoverage = false,
 ) {
   const assigned = new Set<string>();
   const groups: ProductSelectionModuleGroup[] = [];
@@ -160,7 +164,25 @@ function compileSemanticGroups(
       .sort((left, right) => left.sourceRank - right.sourceRank);
     const selected = maximumProducts === undefined
       ? candidates
-      : candidates.slice(0, maximumProducts);
+      : balanceCategoryCoverage
+        ? (() => {
+            const queues = source.categoryIds.map((categoryId) =>
+              candidates.filter((product) => String(product.categoryL3Id ?? "") === categoryId)
+            );
+            const balanced: YamiProduct[] = [];
+            while (
+              balanced.length < maximumProducts &&
+              queues.some((queue) => queue.length > 0)
+            ) {
+              for (const queue of queues) {
+                const next = queue.shift();
+                if (next) balanced.push(next);
+                if (balanced.length >= maximumProducts) break;
+              }
+            }
+            return balanced.sort((left, right) => left.sourceRank - right.sourceRank);
+          })()
+        : candidates.slice(0, maximumProducts);
     if (selected.length < minimumProducts) continue;
 
     selected.forEach(({ id }) => assigned.add(id));
@@ -170,6 +192,13 @@ function compileSemanticGroups(
       label: source.label,
       role: source.role,
       productIds: selected.map(({ id }) => id),
+      sourceCategoryIds: [...source.categoryIds],
+      ...(source.classificationReason
+        ? { classificationReason: source.classificationReason }
+        : {}),
+      ...(source.shoppingGoal ? { shoppingGoal: source.shoppingGoal } : {}),
+      ...(source.scenarioReason ? { scenarioReason: source.scenarioReason } : {}),
+      ...(source.semanticSource ? { semanticSource: source.semanticSource } : {}),
     });
   }
 
@@ -251,6 +280,7 @@ function semanticIntentThemeSelection(
     label: category.label,
     role: "core",
     categoryIds: [category.id],
+    semanticSource: "catalog-fallback",
   }));
   const categorySources: SemanticGroupSource[] = (intent.categoryHypotheses ?? []).flatMap(
     (hypothesis, index) => hypothesis.categoryIds.length > 0
@@ -260,6 +290,7 @@ function semanticIntentThemeSelection(
           role: hypothesis.role,
           categoryIds: hypothesis.categoryIds,
           classificationReason: hypothesis.reason,
+          semanticSource: "agent-proposal",
         }]
       : [],
   );
@@ -278,6 +309,9 @@ function semanticIntentThemeSelection(
       label: hypothesis.name,
       role: "core",
       categoryIds: hypothesis.categoryIds,
+      shoppingGoal: hypothesis.shoppingGoal,
+      scenarioReason: hypothesis.reason,
+      semanticSource: "agent-proposal",
     }),
   );
   const shortcutMinimumProducts = policy.minimumShortcutProducts ?? policy.minimumProducts;
@@ -302,6 +336,7 @@ function semanticIntentThemeSelection(
     policy.minimumProducts,
     policy.maximumThemes,
     policy.maximumProducts,
+    true,
   );
   const fallbackShortcuts = completeShortcutCoverage(
     products,
@@ -321,6 +356,7 @@ function semanticIntentThemeSelection(
     policy.minimumProducts,
     policy.maximumThemes,
     policy.maximumProducts,
+    true,
   );
   const shortcuts = proposedShortcuts.groups.length >= policy.minimumThemes
     ? proposedShortcuts
@@ -356,8 +392,9 @@ function semanticIntentThemeSelection(
     scenes: startHere.groups.map((group) => ({
       id: group.id,
       name: group.label,
-      title: group.label,
-      description: `Catalog-verified ${group.label} theme for ${snapshot.keyword}.`,
+      title: group.shoppingGoal ?? group.label,
+      description: group.scenarioReason ??
+        `Catalog-verified ${group.label} theme for ${snapshot.keyword}.`,
       productGroups: group.productIds.map((productId) => ({
         core: productId,
         pairing: null,

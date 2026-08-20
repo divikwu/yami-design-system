@@ -1,11 +1,13 @@
 "use client";
 
 import { Select } from "@base-ui/react/select";
+import { Tabs } from "@base-ui/react/tabs";
 import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   type AnchorHTMLAttributes,
   type ButtonHTMLAttributes,
+  type ComponentProps,
   type InputHTMLAttributes,
   type ReactNode,
   useId,
@@ -162,6 +164,86 @@ export function WorkbenchLink({
     .join(" ");
 
   return <a {...props} className={linkClassName} />;
+}
+
+export interface WorkbenchTabOption<Value extends string> {
+  value: Value;
+  label: ReactNode;
+  meta?: ReactNode;
+  disabled?: boolean;
+  id?: string;
+  controls?: string;
+}
+
+export interface WorkbenchTabsProps<Value extends string> {
+  label: string;
+  options: readonly WorkbenchTabOption<Value>[];
+  value: Value;
+  onValueChange(value: Value): void;
+  variant?: "default" | "inset" | "stage";
+  className?: string;
+  children?: ReactNode;
+}
+
+export function WorkbenchTabs<Value extends string>({
+  label,
+  options,
+  value,
+  onValueChange,
+  variant = "default",
+  className,
+  children,
+}: WorkbenchTabsProps<Value>) {
+  const rootClassName = [
+    styles.tabsRoot,
+    variant === "stage" ? styles.tabsRootStage : null,
+    className,
+  ].filter(Boolean).join(" ");
+  const listClassName = [
+    styles.tabList,
+    variant === "inset" ? styles.tabListInset : null,
+  ].filter(Boolean).join(" ");
+
+  return (
+    <Tabs.Root
+      className={rootClassName}
+      data-slot="workbench-tabs"
+      value={value}
+      onValueChange={(nextValue) => {
+        if (typeof nextValue === "string") onValueChange(nextValue as Value);
+      }}
+    >
+      <Tabs.List
+        className={listClassName}
+        data-slot="workbench-tab-list"
+        aria-label={label}
+      >
+        {options.map((option) => (
+          <Tabs.Tab
+            key={option.value}
+            id={option.id}
+            className={styles.tab}
+            data-slot="workbench-tab"
+            value={option.value}
+            disabled={option.disabled}
+            aria-controls={option.controls}
+          >
+            <span className={styles.tabLabel}>{option.label}</span>
+            {option.meta === undefined ? null : (
+              <span className={styles.tabMeta}>{option.meta}</span>
+            )}
+          </Tabs.Tab>
+        ))}
+      </Tabs.List>
+      {children}
+    </Tabs.Root>
+  );
+}
+
+export function WorkbenchTabPanel({
+  ...props
+}: ComponentProps<typeof Tabs.Panel>) {
+  return <Tabs.Panel {...props} data-slot="workbench-tab-panel" />;
 }
 
 export interface SegmentedOption {

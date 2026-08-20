@@ -17,6 +17,8 @@ export interface PageMerchandisingModuleRule {
   allowedPools: readonly ProductPool[];
   allowedRoles: readonly ProductRole[];
   sceneRange?: readonly [number, number];
+  productsPerSceneRange?: readonly [number, number];
+  requireSceneTargetProductCount?: boolean;
   assetTaskMode: PageMerchandisingAssetTaskMode;
 }
 
@@ -118,7 +120,11 @@ function modules(brandMaximumProducts: number): PageMerchandisingModuleRule[] {
   ];
 }
 
-function relevanceModules(brandMaximumProducts: number): PageMerchandisingModuleRule[] {
+function relevanceModules(
+  brandMaximumProducts: number,
+  maximumProductsPerScene = 8,
+  requireSceneTargetProductCount = false,
+): PageMerchandisingModuleRule[] {
   return [
     {
       id: "hero",
@@ -143,12 +149,15 @@ function relevanceModules(brandMaximumProducts: number): PageMerchandisingModule
     {
       id: "start-here",
       component: "ThemeProductList",
-      required: true,
-      minimumProducts: 1,
-      maximumProducts: 8,
+      required: false,
+      minimumProducts: 8,
+      maximumProducts: 6 * maximumProductsPerScene,
       allowedPools: PRIMARY,
       allowedRoles: ALL_ROLES,
-      assetTaskMode: "none",
+      sceneRange: [2, 6],
+      productsPerSceneRange: [4, maximumProductsPerScene],
+      ...(requireSceneTargetProductCount ? { requireSceneTargetProductCount: true } : {}),
+      assetTaskMode: "scene",
     },
     {
       id: "popular-picks",
@@ -269,6 +278,27 @@ const CONFIGS: readonly PageMerchandisingTemplateConfig[] = [
     moduleOrder: MODULE_ORDER,
     modules: relevanceModules(12),
   },
+  {
+    schemaVersion: "page-merchandising-template/v1",
+    ref: "topic-landing/brand-relevance@2",
+    assignmentAuthority: "proposal",
+    moduleOrder: MODULE_ORDER,
+    modules: relevanceModules(0, 16, true),
+  },
+  {
+    schemaVersion: "page-merchandising-template/v1",
+    ref: "topic-landing/topic-relevance@2",
+    assignmentAuthority: "proposal",
+    moduleOrder: MODULE_ORDER,
+    modules: relevanceModules(12, 16, true),
+  },
+  {
+    schemaVersion: "page-merchandising-template/v1",
+    ref: "topic-landing/campaign-relevance@2",
+    assignmentAuthority: "proposal",
+    moduleOrder: MODULE_ORDER,
+    modules: relevanceModules(12, 16, true),
+  },
 ];
 
 export function listPageMerchandisingTemplateConfigs() {
@@ -281,4 +311,15 @@ export function getPageMerchandisingTemplateConfig(
   const config = [...LEGACY_CONFIGS, ...CONFIGS].find((candidate) => candidate.ref === ref);
   if (!config) throw new Error(`Unknown PageMerchandising template: ${ref}`);
   return config;
+}
+
+export function evidenceSizedSceneProductRange(
+  productsPerSceneRange: readonly [number, number],
+  sourceProductCount: number,
+  sourceCategoryCount: number,
+): readonly [number, number] {
+  const [hardMinimum, hardMaximum] = productsPerSceneRange;
+  const maximum = Math.min(hardMaximum, sourceProductCount);
+  const categorySizedMinimum = hardMinimum + (Math.max(0, sourceCategoryCount - 2) * 2);
+  return [Math.min(maximum, categorySizedMinimum), maximum];
 }

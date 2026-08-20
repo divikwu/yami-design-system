@@ -15,6 +15,10 @@ template ref, requested output language, both upstream digests, module order, mo
 module evidence, source scenes, and frozen candidate products. A proposal cannot add catalog facts
 or change a product's pool or role.
 
+When `previousProposalIssues` is present, this is the second and final bounded attempt. It lists the
+deterministic review failures from the first proposal; the replacement must correct every issue
+without changing immutable inputs.
+
 Each module rule also names its maintained YAMI component: `ThemeHero`, `ShortcutRail`,
 `ThemeProductList`, `ProductList`, `BrandProductRail`, or `ReviewList`. The proposal does not repeat
 or override this field; the compiler copies it into PagePlan v2.
@@ -30,6 +34,16 @@ or override this field; the compiler copies it into PagePlan v2.
   "templateRef": "topic-landing/topic@2",
   "themeIntentDigest": "sha256:...",
   "productSelectionDigest": "sha256:...",
+  "visualReview": {
+    "schemaVersion": "module-merchandising-visual-review/v1",
+    "inspectedProductIds": ["product-1", "product-2"],
+    "duplicateGroups": [
+      {
+        "productIds": ["product-1", "product-2"],
+        "reason": "The images and returned identity fields show the same product, size, and pack."
+      }
+    ]
+  },
   "moduleOrder": [
     "hero",
     "shortcuts",
@@ -76,18 +90,42 @@ or override this field; the compiler copies it into PagePlan v2.
         {
           "id": "morning-ritual",
           "sourceSceneId": "source-scene-1",
+          "targetProductCount": 4,
           "shoppingGoal": "Build a morning ritual",
           "reason": "The source scene contains the required core and pairing products."
+        },
+        {
+          "id": "evening-ritual",
+          "sourceSceneId": "source-scene-2",
+          "targetProductCount": 4,
+          "shoppingGoal": "Build an evening ritual",
+          "reason": "The second source scene supports a distinct evening shopping task."
         }
       ],
       "assignments": [
         { "productId": "product-3", "sceneId": "morning-ritual" },
-        { "productId": "product-4", "sceneId": "morning-ritual" }
+        { "productId": "product-4", "sceneId": "morning-ritual" },
+        { "productId": "product-5", "sceneId": "morning-ritual" },
+        { "productId": "product-6", "sceneId": "morning-ritual" },
+        { "productId": "product-7", "sceneId": "evening-ritual" },
+        { "productId": "product-8", "sceneId": "evening-ritual" },
+        { "productId": "product-9", "sceneId": "evening-ritual" },
+        { "productId": "product-10", "sceneId": "evening-ritual" }
       ]
     }
   ]
 }
 ```
+
+Omit `visualReview` during the initial text-only pass. When
+`context.visualReviewTask.schemaVersion` is
+`module-merchandising-visual-review-task/v1`, return the complete corrected proposal and add
+`visualReview`. Copy every `context.visualReviewTask.inspectedProductIds` entry exactly once and in
+the same order. `duplicateGroups` contains only visually confirmed duplicate listings from those
+images; use an empty array when none are confirmed. Each group requires two or more unique product
+IDs from one verified brand and a concise evidence reason. Do not group distinct sizes, formulas,
+or multipacks. The Runner deterministically retains the highest `soldCount` member of a confirmed
+group, falling back to the lowest `sourceRank`, and rejects groups outside the shortlist.
 
 The scene-bearing `start-here` example applies only when that exact returned module rule contains
 `sceneRange`. A real proposal must contain every module in the exact returned order and satisfy any
@@ -96,12 +134,22 @@ returned scene range, including hidden optional modules. When `sceneRange` is ab
 hidden module uses empty `scenes` and `assignments`, an empty `shoppingGoal`, and a non-empty
 reviewable `reason`.
 
+When a returned rule also contains `productsPerSceneRange`, every visible scene must satisfy that
+per-scene product count. Current relevance templates accept two to six scenes with four to sixteen
+products each; normally choose three to five when that many distinct, evidence-backed shopper goals
+are available. Use four products for focused tasks, six to ten for standard multi-step routines, and
+twelve to sixteen only when the source evidence supports broader roles or meaningful choice. Do not
+pad a scene with near-duplicates. Current relevance source scenes expose
+`minimumRecommendedProducts` and `maximumProducts`; every page scene must declare an integer
+`targetProductCount` in that range and assign exactly that many products. Source scenes must be
+unique and remain in ProductSelection order.
+
 ## Validation rules
 
 - Match `keyword`, `site`, `strategyRef`, `templateRef`, `themeIntentDigest`, and
   `productSelectionDigest` exactly.
 - Satisfy each rule's required visibility, product count, allowed pools, allowed roles, and optional
-  scene count.
+  scene and per-scene product counts.
 - For category-role `@2`, visible StartHere, Popular Picks, Brand Spotlight, and Explore More must
   copy the corresponding `selectionModules[].productIds` exactly and in order.
 - Treat the returned rule as the sole scene capability signal. Supply `sceneId` only when the rule

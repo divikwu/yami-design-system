@@ -47,7 +47,7 @@ if (pageTask.status === "ready") {
 }
 ```
 
-`loadCatalogSnapshot` 是商品来源 Seam。默认依次尝试结构化 Yami Adapter 与公开搜索 Adapter，并返回完整 `attempts`。首轮结构化搜索只负责取得聚合证据并解析 ThemeIntent；精确品牌通过公开品牌页读取全部分页，生成独立 `catalogCoverage`，保留销售方、库存状态和来源提供的周销量标签。覆盖层按自营/第三方与在售/缺货形成四组，并按周销量数值下限降序；同档位保持 Yami 原始顺序，没有周销量的商品排在有数据商品之后。只有在售商品进入 Snapshot 与 ProductSelection，缺货商品只用于审计。品牌页加载失败时才回退到按销量排序的结构化 `brand_ids` 分页。非品牌主题按已验证分类读取全部分页，再以实体、分类和排除条件过滤。4–8 件只约束后续页面主题展示，不截断 Snapshot 或主商品池。Yami 接口和公开网页都可能在空搜索时展示通用推荐：结构化普通拉丁商品查询会按标题、品牌与商品分类字段过滤，网页 fallback 会按标题和品牌过滤；没有任何相关商品时返回 `no_products`，不能用推荐商品填充页面。两个 Adapter 都按商品 ID 稳定去重，并通过 `snapshot.quality` 暴露观测、接收、拒绝、截断数量以及字段缺失、不可售、重复和关键词不匹配原因。聚合返回的 `resultCount` 保留为来源检索规模，`productCount` 则始终按最终去重和过滤后的 Snapshot 商品池计算。中文与场景查询继续由目录别名、属性和场景证据规则解释，避免用英文标题字面匹配误删跨语言证据。
+`loadCatalogSnapshot` 是商品来源 Seam。默认依次尝试结构化 Yami Adapter 与公开搜索 Adapter，并返回完整 `attempts`。首轮结构化搜索只负责取得聚合证据并解析 ThemeIntent；精确品牌通过公开品牌页读取全部分页，生成独立 `catalogCoverage`，保留销售方、库存状态和来源提供的周销量标签。覆盖层按自营/第三方与在售/缺货形成四组，并按周销量数值下限降序；同档位保持 Yami 原始顺序，没有周销量的商品排在有数据商品之后。只有在售商品进入 Snapshot 与 ProductSelection，缺货商品只用于审计。品牌页加载失败时才回退到按销量排序的结构化 `brand_ids` 分页。非品牌主题按已验证分类读取全部分页，再以实体、分类和排除条件过滤。4–16 件只约束后续页面主题展示，不截断 Snapshot 或主商品池。Yami 接口和公开网页都可能在空搜索时展示通用推荐：结构化普通拉丁商品查询会按标题、品牌与商品分类字段过滤，网页 fallback 会按标题和品牌过滤；没有任何相关商品时返回 `no_products`，不能用推荐商品填充页面。两个 Adapter 都按商品 ID 稳定去重，并通过 `snapshot.quality` 暴露观测、接收、拒绝、截断数量以及字段缺失、不可售、重复和关键词不匹配原因。聚合返回的 `resultCount` 保留为来源检索规模，`productCount` 则始终按最终去重和过滤后的 Snapshot 商品池计算。中文与场景查询继续由目录别名、属性和场景证据规则解释，避免用英文标题字面匹配误删跨语言证据。
 
 `resolveTopicIntent` 是深层语义 Module。它先生成目录规则基线，再对可选 `SemanticProposal` 做字段级证据校验；不受支持的 Agent 结论不会进入 ThemeIntent。
 
@@ -100,7 +100,12 @@ ready 的 ProductSelectionResult，不根据标题推断分类角色，也不重
 
 `advancePageMerchandisingRun` 是 PagePlan v2 Interface。第一次调用返回完整且受限的
 `needs-module-proposal` context；第二次传入 `ModuleMerchandisingProposal` 后，确定性校验器只
-允许冻结商品池内、符合模块 pool/role/scene 规则的分配，并生成 `topic-page-plan/v2`。
+允许冻结商品池内、符合模块 pool/role/scene 规则的分配，并生成 `topic-page-plan/v2`。当前
+相关性模板允许 Agent 在 ProductSelection 冻结候选中正式选择 2–6 个 StartHere 场景（通常
+3–5 个），每场景 4–16 件；场景来源不能重复，顺序必须与上游一致，商品必须属于对应来源场景。
+聚焦任务使用 4 件，标准多步骤流程使用 6–10 件，12–16 件只用于证据充分且新增商品能提供
+不同角色或有效选择的场景；不能用近似重复款填充数量。
+正式结果会同步回写结构预览与 PagePlan；Agent 不可用或提案被拒绝时只显示明确的目录规则降级。
 分类角色的 Brand、Topic、Campaign `@2` 模板还会完整继承 ProductSelection 已确定的
 StartHere、Popular、Brand、Explore 商品、顺序与场景分组；Hero 和 Shortcuts 只能引用这些
 上游已拥有的商品。旧 `@1` 模板仅保留给历史任务回放。

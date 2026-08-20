@@ -97,7 +97,7 @@ rejected proposals retain the verified catalog grouping and publish explicit fal
 
 ### ProductSelection Module
 
-`runProductSelectionWorkflow(request)` advances one versioned strategy and returns a resumable `ProductSelectionRun`. `relevance/default@1` remains the fixed-rank legacy replay strategy and `relevance/intent-themes@2` retains direct catalog-category grouping for replay. The active `relevance/intent-themes@3` accepts one or more verified catalog leaf categories per ThemeIntent Shortcuts hypothesis and reuses that complete shopper-facing group sequence for the matching comprehensive-recommendation tabs, while multi-category scenario hypotheses organize StartHere. The Agent decides which verified leaves form one theme category; the deterministic Module validates category ownership, expands product membership, keeps proposal order, removes cross-group duplicates, retains valid one-product groups, restores Agent-omitted catalog categories, and places otherwise unassigned primary products in a stable More to Explore group. Every primary product must belong to exactly one Shortcuts group; there is no fixed category display cap. StartHere independently keeps its two-to-six-group, four-to-eight-product limits. `category-role/landing-page-agent@1` requires taxonomy, category proposal, candidate evidence, and scene proposal before returning a ready `ProductSelectionResult`.
+`runProductSelectionWorkflow(request)` advances one versioned strategy and returns a resumable `ProductSelectionRun`. `relevance/default@1` remains the fixed-rank legacy replay strategy, `relevance/intent-themes@2` retains direct catalog-category grouping for replay, and `relevance/intent-themes@3` preserves the previous four-to-eight StartHere contract. The active `relevance/intent-themes@4` accepts one or more verified catalog leaf categories per ThemeIntent Shortcuts hypothesis and reuses that complete shopper-facing group sequence for the matching comprehensive-recommendation tabs, while multi-category scenario hypotheses organize StartHere. The Agent decides which verified leaves form one theme category; the deterministic Module validates category ownership, expands product membership, keeps proposal order, removes cross-group duplicates, retains valid one-product groups, restores Agent-omitted catalog categories, and places otherwise unassigned primary products in a stable More to Explore group. Every primary product must belong to exactly one Shortcuts group; there is no fixed category display cap. StartHere preserves the accepted scene name, shopping goal, reason, and source category IDs, balances membership across those categories, and freezes two to six candidate scenes with four to sixteen products each. `category-role/landing-page-agent@1` requires taxonomy, category proposal, candidate evidence, and scene proposal before returning a ready `ProductSelectionResult`.
 
 `runProductSelectionAgentWorkflow(request)` is the optional automatic strategy adapter. It injects one
 `ProductSelectionAgent`, asks it only for the two proposal contracts requested by the state machine,
@@ -157,12 +157,21 @@ The Agent proposes module shopping goals, scene reshaping, and assignments; the
 Module owns validation, task IDs, and compilation. Legacy PagePlan v1 remains available for current
 Web compatibility and is not silently upgraded.
 
+For the active relevance templates, PageMerchandising formally reviews StartHere inside the frozen
+ProductSelection scenes and pools. The hard contract allows two to six visible scenes and four to
+eight products per scene; the Skill asks for three to five when evidence supports that range. Source
+scene order, source membership, distinct scene references, and counts are deterministic checks. The
+accepted result is the only result labeled Agent-reviewed and is applied to both the structural preview
+and the downstream PagePlan. A deterministically rejected first proposal may be revised once with the
+exact validation issues attached to the bounded task; a failed second attempt or unavailable Agent
+remains an explicit catalog-rule fallback.
+
 The active versioned refs `topic-landing/brand@2`, `topic-landing/topic@2`, and
 `topic-landing/campaign@2` map directly to the maintained Storybook variants under
 `YAMI/Pages/Topic Landing Page`. The corresponding page type is inferred only from a resolved
 ThemeIntent; Campaign therefore requires `activity` rather than a product or brand guess.
-The active page-specific `brand-relevance@1`, `topic-relevance@1`, and `campaign-relevance@1`
-routes consume `relevance/intent-themes@3`. ProductSelection supplies module-owned, verified
+The active page-specific `brand-relevance@2`, `topic-relevance@2`, and `campaign-relevance@2`
+routes consume `relevance/intent-themes@4`. ProductSelection supplies module-owned, verified
 Shortcuts category groups and StartHere scenario groups; Reviews remain hidden until verified review evidence exists. Brand hides Brand
 Spotlight, while Topic and Campaign may show it when the frozen catalog pool supports it.
 The generic `topic-landing/relevance@1` and category-role `@1` templates remain addressable only for
