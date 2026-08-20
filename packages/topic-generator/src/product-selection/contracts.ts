@@ -147,7 +147,7 @@ export interface SceneProposalReview {
 export interface ProductSelectionModuleResult {
   id: Extract<
     TopicModuleId,
-    "start-here" | "popular-picks" | "brand-spotlight" | "explore-more"
+    "shortcuts" | "start-here" | "popular-picks" | "brand-spotlight" | "explore-more"
   >;
   productIds: string[];
   groups: ProductSelectionModuleGroup[];

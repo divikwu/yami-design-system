@@ -9,6 +9,7 @@ import {
   type HttpTopicPageAgent,
   type TopicPageAutomationRun,
   type TopicPageAutomationStageId,
+  type TopicPageReviewPreviewResolver,
 } from "./page-automation/index.js";
 import type { TopicPageAssetStore } from "./page-generation/contracts.js";
 import type { TopicPageImageDecoder } from "./page-generation/image.js";
@@ -43,8 +44,13 @@ import type {
   TopicGenerationMode,
   TopicPlanMatrix,
 } from "./types.js";
+import {
+  runTopicIntentAgentWorkflow,
+  type TopicIntentAgent,
+} from "./topic-intent.js";
 
 export interface HandleTopicGeneratorOptions extends AnalyzeTopicIntentOptions {
+  topicIntentAgent?: TopicIntentAgent;
   candidateAdapter?: CatalogCandidateAdapter;
   taxonomySnapshot?: CatalogTaxonomySnapshot;
   productSelectionAgent?: ProductSelectionAgent;
@@ -53,6 +59,7 @@ export interface HandleTopicGeneratorOptions extends AnalyzeTopicIntentOptions {
   topicPageAgent?: HttpTopicPageAgent;
   topicPageAssetStore?: TopicPageAssetStore;
   topicPageImageDecoder?: TopicPageImageDecoder;
+  topicPagePreviewResolver?: TopicPageReviewPreviewResolver;
   requireAutomaticPage?: boolean;
   pageAutomationConfigurationIssues?: string[];
 }
@@ -218,7 +225,6 @@ export async function handleTopicGeneratorPost(
   }
 
   try {
-    const { intent, snapshot } = await analyzeTopicIntent(keyword, options);
     const requestPayload = payload as Record<string, unknown>;
     const requestedStrategy: ProductSelectionStrategy =
       requestPayload.strategy === "category-role" ? "category-role" : "relevance";
@@ -228,11 +234,34 @@ export async function handleTopicGeneratorPost(
         ? requestPayload.selectionStrategyRef.trim() as ProductSelectionStrategyRef
         : requestedStrategy === "category-role"
           ? "category-role/landing-page-agent@1"
-          : "relevance/intent-themes@2";
+          : "relevance/intent-themes@3";
     const requestedPageTypeRef =
       typeof requestPayload.pageTypeRef === "string" && requestPayload.pageTypeRef.trim()
         ? requestPayload.pageTypeRef.trim() as LandingPageTypeRef
         : undefined;
+    const initialAnalysis = await analyzeTopicIntent(keyword, options);
+    const topicIntentWorkflow = requestedSelectionStrategyRef === "relevance/intent-themes@3"
+      ? await runTopicIntentAgentWorkflow({
+          snapshot: initialAnalysis.snapshot,
+          intent: initialAnalysis.intent,
+          proposalReview: initialAnalysis.proposalReview,
+          agent: options.topicIntentAgent,
+        })
+      : {
+          snapshot: initialAnalysis.snapshot,
+          intent: initialAnalysis.intent,
+          proposalReview: initialAnalysis.proposalReview,
+          runtime: {
+            mode: "catalog-fallback" as const,
+            status: "fallback" as const,
+            agent: { status: "missing" as const },
+            proposalReview: initialAnalysis.proposalReview,
+            categoryHypothesisCount: initialAnalysis.intent.categoryHypotheses?.length ?? 0,
+            scenarioHypothesisCount: initialAnalysis.intent.scenarioHypotheses?.length ?? 0,
+            issues: [],
+          },
+        };
+    const { intent, snapshot } = topicIntentWorkflow;
     const contentLanguage: ContentLanguage = requestPayload.language === "en" ? "en" : "zh";
     const interactiveHandoff = requestPayload.agentMode === "interactive";
     const automaticCategoryRole = options.requireAutomaticCategoryRole === true &&
@@ -251,12 +280,17 @@ export async function handleTopicGeneratorPost(
           (options.pageAutomationConfigurationIssues?.length ?? 0) === 0
         ? ["Automatic page generation requires an image decoder."]
         : []),
+      ...(!options.topicPagePreviewResolver &&
+          (options.pageAutomationConfigurationIssues?.length ?? 0) === 0
+        ? ["Automatic page generation requires a review preview resolver."]
+        : []),
     ];
     let executionPlan: LandingPageExecutionPlan | undefined;
     let orchestrationIssues: string[] = [];
     if (generationMode === "page" && options.requireAutomaticPage &&
         pageConfigurationIssues.length === 0 && options.topicPageAgent &&
-        options.topicPageAssetStore && options.topicPageImageDecoder) {
+        options.topicPageAssetStore && options.topicPageImageDecoder &&
+        options.topicPagePreviewResolver) {
       try {
         const orchestration = await runLandingPageOrchestratorAgentWorkflow({
           intent,
@@ -320,7 +354,7 @@ export async function handleTopicGeneratorPost(
       requestedSelectionStrategyRef,
     ).engine === "relevance"
       ? requestedSelectionStrategyRef
-      : "relevance/intent-themes@2";
+      : "relevance/intent-themes@3";
     const relevanceRun = advanceProductSelectionRun({
       snapshot,
       strategyRef: relevanceStrategyRef,
@@ -403,7 +437,8 @@ export async function handleTopicGeneratorPost(
       const selectedRun = selectedStrategy === "category-role" ? categoryRun : relevanceRun;
       if (options.requireAutomaticPage) {
         if (pageConfigurationIssues.length > 0 || !options.topicPageAgent ||
-            !options.topicPageAssetStore || !options.topicPageImageDecoder) {
+            !options.topicPageAssetStore || !options.topicPageImageDecoder ||
+            !options.topicPagePreviewResolver) {
           automation = blockedPageAutomation(pageConfigurationIssues);
         } else if (orchestrationIssues.length > 0 || !executionPlan) {
           automation = blockedPageAutomation(
@@ -420,10 +455,6 @@ export async function handleTopicGeneratorPost(
             executionPlan,
           );
         } else {
-          const previewQuery = new URLSearchParams({
-            "content-language": contentLanguage,
-            "selection-strategy": selectedStrategy,
-          }).toString();
           automation = await runTopicPageAutomationWorkflow({
             intent,
             selection: selectedRun.result,
@@ -435,12 +466,10 @@ export async function handleTopicGeneratorPost(
               visual: options.topicPageAgent,
               review: options.topicPageAgent,
             },
+            visualProductionMode: "source-product-images",
             assetStore: options.topicPageAssetStore,
             imageDecoder: options.topicPageImageDecoder,
-            previewRefs: {
-              desktop: `/?${previewQuery}&preview=desktop`,
-              mobile: `/?${previewQuery}&preview=mobile`,
-            },
+            previewResolver: options.topicPagePreviewResolver,
           });
         }
       }
@@ -452,6 +481,7 @@ export async function handleTopicGeneratorPost(
         "category-role": categoryRun,
       },
       runtime: {
+        topicIntent: topicIntentWorkflow.runtime,
         categoryRole: categoryRoleRuntimeEvidence({
           automatic: automaticCategoryRole,
           taxonomySnapshot,

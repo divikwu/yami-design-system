@@ -114,8 +114,10 @@ describe("CatalogSnapshot Seam", () => {
         tagAgg: [{ tag_id: 437, tag: "鱼腥草", tag_eng: "Heartleaf" }],
         items: [{
           item_number: "1001",
+          goods_name: "ANUA 鱼腥草爽肤水",
           goods_ename: "ANUA Heartleaf Toner",
           brand_id: 100,
+          brand_name: "艾诺碧",
           brand_ename: "ANUA",
           category_l1_id: 5,
           category_l2_id: 50,
@@ -129,6 +131,17 @@ describe("CatalogSnapshot Seam", () => {
     });
 
     expect(result.intent).toBeUndefined();
+    expect(result.products[0]).toMatchObject({
+      title: "ANUA Heartleaf Toner",
+      brand: "ANUA",
+      searchAliases: expect.arrayContaining([
+        "ANUA 鱼腥草爽肤水",
+        "艾诺碧",
+        "美妆个护",
+        "面部护理",
+        "爽肤水",
+      ]),
+    });
     expect(result.evidence).toEqual({
       brands: [{
         id: "100",

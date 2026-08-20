@@ -141,6 +141,8 @@ export type PageMerchandisingCandidateProduct = Pick<
   | "categoryL3Id"
   | "categoryL3Name"
   | "soldCount"
+  | "weeklySalesLabel"
+  | "availability"
   | "pool"
   | "role"
 >;

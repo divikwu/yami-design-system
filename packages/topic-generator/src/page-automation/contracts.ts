@@ -42,6 +42,16 @@ export interface TopicPageAutomationStage {
   status: "pending" | "completed" | "blocked";
 }
 
+export interface TopicPageReviewPreviewRequest {
+  executionPlan: LandingPageExecutionPlan;
+  generationSpec: TopicPageGenerationSpec;
+  qaReport: TopicPageQaReport & { status: "passed" };
+}
+
+export type TopicPageReviewPreviewResolver = (
+  request: TopicPageReviewPreviewRequest,
+) => Promise<TopicPageReviewPackage["previewRefs"]>;
+
 export interface TopicPageAutomationWorkflowOptions {
   intent: ThemeIntent;
   selection: ProductSelectionResult;
@@ -56,7 +66,8 @@ export interface TopicPageAutomationWorkflowOptions {
   };
   assetStore: TopicPageAssetStore;
   imageDecoder: TopicPageImageDecoder;
-  previewRefs: TopicPageReviewPackage["previewRefs"];
+  previewRefs?: TopicPageReviewPackage["previewRefs"];
+  previewResolver?: TopicPageReviewPreviewResolver;
   contentResume?: {
     plan: TopicPagePlanV2;
     attempt: TopicPageContentAttemptArtifact;

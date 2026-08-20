@@ -285,7 +285,7 @@ describe("PageMerchandising", () => {
 
     cases.forEach(([pageTypeRef, templateRef, brandMaximumProducts]) => {
       const route = getLandingPageTypeConfig(pageTypeRef).routes.find(
-        ({ selectionStrategyRef }) => selectionStrategyRef === "relevance/intent-themes@2",
+        ({ selectionStrategyRef }) => selectionStrategyRef === "relevance/intent-themes@3",
       );
       expect(route?.templateRef).toBe(templateRef);
 
@@ -334,6 +334,37 @@ describe("PageMerchandising", () => {
           expect.objectContaining({ id: "explore-more", allowedRoles: ["core", "pairing", "accessory"] }),
         ]),
       },
+    });
+  });
+
+  it("gives the merchandising Agent the catalog evidence needed to compose Hero products", () => {
+    const selection = selectionFixture();
+    selection.strategyRef = "relevance/default@1";
+    selection.selectedCategories = [];
+    selection.scenes = [];
+    selection.modules = [];
+    selection.products[0] = {
+      ...selection.products[0]!,
+      weeklySalesLabel: "900+ Sold",
+      availability: "in-stock",
+    };
+
+    const run = advancePageMerchandisingRun({
+      intent: themeIntentFixture(),
+      selection,
+      templateRef: "topic-landing/brand-relevance@1",
+    });
+
+    expect(run.status).toBe("needs-module-proposal");
+    if (run.status !== "needs-module-proposal") throw new Error("Expected Agent context.");
+    expect(run.context.products[0]).toMatchObject({
+      id: "core-1",
+      imageUrl: "https://example.com/core-1.webp",
+      categoryL3Id: 1000,
+      categoryL3Name: "core category",
+      soldCount: 99,
+      weeklySalesLabel: "900+ Sold",
+      availability: "in-stock",
     });
   });
 

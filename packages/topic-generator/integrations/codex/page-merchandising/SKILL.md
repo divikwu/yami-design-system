@@ -15,15 +15,11 @@ products. Never reproduce validation or PagePlan compilation in prose or ad hoc 
 2. Preserve the accepted ThemeIntent plus the complete taxonomy, category proposal, candidate
    snapshot, and scene proposal used by that ready run. The CLI reconstructs and validates both
    upstream artifacts on every call.
-   Brand, Topic, and Campaign `@2` templates require four to six validated source scenes; use the
-   category-role strategy for those templates. Use `topic-landing/relevance@1` for a ready
-   `relevance/default@1` result: its rules hide scene-dependent modules and never permit invented
-   source scenes.
-3. Use a caller-supplied versioned template. If none is supplied, map only a resolved ThemeIntent:
-   `relevance/default@1` to `topic-landing/relevance@1`, `brand` to
-   `topic-landing/brand@2`, and `product` or `activity` to
-   `topic-landing/topic@2`. `topic-landing/campaign@2` requires an explicit caller choice or campaign
-   brief; never infer a Campaign page from the Topic alone. Stop for `uncertain` or unresolved intent.
+   Category-role templates require four to six validated source scenes. Relevance templates may
+   expose theme groups without accepting page scenes; the returned module rules are authoritative.
+3. Use the exact caller-supplied versioned template. The PageOrchestration Module owns routing from
+   ThemeIntent and SelectionStrategyConfig; this stage must not substitute a different template.
+   Stop for `uncertain` or unresolved intent.
 
 ## Request the bounded task
 
@@ -52,16 +48,29 @@ strategy, template, `themeIntentDigest`, and `productSelectionDigest`.
 - Preserve `moduleOrder` and define exactly one module for each returned rule.
 - Treat each returned `component` as immutable template ownership; never substitute another UI
   component in the proposal.
+- Add `scenes` and assignment `sceneId` only when that exact returned module rule includes
+  `sceneRange`. When `sceneRange` is absent, return `scenes: []` and omit every assignment
+  `sceneId`, even when ProductSelection contains themes or the module ID is `start-here`.
 - Use only product IDs in `context.products`; preserve their pool and role constraints.
 - Treat `shoppingGoal` as planning metadata, not final customer-facing copy.
 - For a category-role `@2` task, copy the complete ordered assignments from each returned
   `selectionModules` entry into StartHere, Popular Picks, Brand Spotlight, and Explore More. Do not
   truncate, reorder, or move those products.
-- Preserve every returned source scene exactly once and in order. A reshaped page scene may change
-  its ID and planning text, but it must copy every ordered product from both source groups.
+- For a scene-bearing category-role task, preserve every returned source scene exactly once and in
+  order. A reshaped page scene may change its ID and planning text, but it must copy every ordered
+  product from both source groups.
+- For a proposal-owned relevance task, prefer distinct products across modules. If a product is
+  intentionally used again, add a concise `reuseReason` to every assignment after its first module;
+  a reason is required even when the repeated product is eligible for both modules.
 - Hero and Shortcuts may reference only products already owned by a selection module. Explain the
   later cross-module reference with `reuseReason`; it is audit metadata and never permits reuse
   between ProductSelection-owned modules.
+- Compose Hero from one to three eligible core products. Treat `weeklySalesLabel` as ranking
+  evidence, not an absolute order: keep a strong high-selling anchor, then use the returned title,
+  category, brand, and source image to avoid obvious duplicate variants and create a representative
+  visual set. Products may share a brand or category when that is the truthful catalog shape. A
+  lower-ranked product needs a concise merchandising reason; never invent a product-family ID or
+  claim that the catalog marks two products as variants when it does not.
 - Hide an optional module when evidence is absent. In particular, do not invent reviews, ratings,
   claims, brands, products, or image concepts.
 

@@ -213,6 +213,7 @@ describe("ProductSelection Module", () => {
     ).toEqual([
       { ref: "relevance/default@1", engine: "relevance" },
       { ref: "relevance/intent-themes@2", engine: "relevance" },
+      { ref: "relevance/intent-themes@3", engine: "relevance" },
       {
         ref: "category-role/landing-page-agent@1",
         engine: "category-role",
@@ -311,6 +312,182 @@ describe("ProductSelection Module", () => {
       ]);
   });
 
+  it("compiles accepted semantic category and scenario hypotheses without letting the Agent assign products", () => {
+    const baseIntent = brandIntent([
+      { id: "101", label: "Serums", evidenceCount: 6 },
+      { id: "102", label: "Sheet Masks", evidenceCount: 5 },
+      { id: "103", label: "Cleansers", evidenceCount: 5 },
+      { id: "104", label: "Toners", evidenceCount: 4 },
+    ]);
+    const intent: NonNullable<YamiSearchSnapshot["intent"]> = {
+      ...baseIntent,
+      categoryHypotheses: [
+        {
+          label: "Daily cleansing",
+          role: "core",
+          categoryIds: ["103"],
+          evidenceIds: ["catalog-category:103"],
+          reason: "A verified daily-use category.",
+        },
+        {
+          label: "Targeted care",
+          role: "pairing",
+          categoryIds: ["101", "104"],
+          evidenceIds: ["catalog-category:101", "catalog-category:104"],
+          reason: "Verified treatment categories.",
+        },
+        {
+          label: "Mask moments",
+          role: "accessory",
+          categoryIds: ["102"],
+          evidenceIds: ["catalog-category:102"],
+          reason: "A verified mask category.",
+        },
+      ],
+      scenarioHypotheses: [
+        {
+          name: "Simple daily routine",
+          shoppingGoal: "Build a cleanser and toner routine.",
+          categoryIds: ["103", "104"],
+          evidenceIds: ["catalog-category:103", "catalog-category:104"],
+          reason: "Two verified routine steps.",
+        },
+        {
+          name: "Focused treatment",
+          shoppingGoal: "Pair a serum with a mask.",
+          categoryIds: ["101", "102"],
+          evidenceIds: ["catalog-category:101", "catalog-category:102"],
+          reason: "Two verified treatment categories.",
+        },
+      ],
+    };
+    const categoryProducts = (categoryId: number, label: string, count: number, rank: number) =>
+      Array.from({ length: count }, (_, index) => ({
+        id: `${categoryId}-${index + 1}`,
+        title: `ANUA ${label} ${index + 1}`,
+        brand: "ANUA",
+        price: "$20.00",
+        imageUrl: `https://example.com/${categoryId}-${index + 1}.webp`,
+        productUrl: `https://example.com/${categoryId}-${index + 1}`,
+        sourceRank: rank + index,
+        categoryL3Id: categoryId,
+        categoryL3Name: label,
+      }));
+    const products = [
+      ...categoryProducts(101, "Serums", 6, 1),
+      ...categoryProducts(102, "Sheet Masks", 5, 7),
+      ...categoryProducts(103, "Cleansers", 5, 12),
+      ...categoryProducts(104, "Toners", 4, 17),
+    ];
+    const run = advanceProductSelectionRun({
+      snapshot: {
+        keyword: "ANUA",
+        site: "us",
+        sourceUrl: "https://example.com/search?q=ANUA",
+        fetchedAt: "2026-08-20T00:00:00.000Z",
+        provider: "yami-catalog-search",
+        products,
+        intent,
+      },
+      strategyRef: "relevance/intent-themes@3",
+    });
+
+    expect(run.status).toBe("ready");
+    if (run.status !== "ready") return;
+    expect(run.result.pools.primaryIds).toEqual(products.map(({ id }) => id));
+    expect(run.result.modules.find(({ id }) => id === "shortcuts")?.groups)
+      .toEqual([
+        {
+          id: "category-hypothesis-1",
+          label: "Daily cleansing",
+          role: "core",
+          productIds: ["103-1", "103-2", "103-3", "103-4", "103-5"],
+        },
+        {
+          id: "category-hypothesis-2",
+          label: "Targeted care",
+          role: "pairing",
+          productIds: ["101-1", "101-2", "101-3", "101-4", "101-5", "101-6", "104-1", "104-2", "104-3", "104-4"],
+        },
+        {
+          id: "category-hypothesis-3",
+          label: "Mask moments",
+          role: "accessory",
+          productIds: ["102-1", "102-2", "102-3", "102-4", "102-5"],
+        },
+      ]);
+    expect(run.result.modules.find(({ id }) => id === "start-here")?.groups)
+      .toEqual([
+        {
+          id: "scenario-hypothesis-1",
+          label: "Simple daily routine",
+          role: "core",
+          productIds: ["103-1", "103-2", "103-3", "103-4", "103-5", "104-1", "104-2", "104-3"],
+        },
+        {
+          id: "scenario-hypothesis-2",
+          label: "Focused treatment",
+          role: "core",
+          productIds: ["101-1", "101-2", "101-3", "101-4", "101-5", "101-6", "102-1", "102-2"],
+        },
+      ]);
+  });
+
+  it("falls back to verified catalog categories when semantic hypotheses cannot form two groups", () => {
+    const intent: NonNullable<YamiSearchSnapshot["intent"]> = {
+      ...brandIntent([
+        { id: "101", label: "Serums", evidenceCount: 4 },
+        { id: "102", label: "Sheet Masks", evidenceCount: 4 },
+      ]),
+      categoryHypotheses: [{
+        label: "Too small",
+        role: "core",
+        categoryIds: ["101"],
+        evidenceIds: ["catalog-category:101"],
+        reason: "Only one proposed group.",
+      }],
+      scenarioHypotheses: [],
+    };
+    const products = [101, 102].flatMap((categoryId, categoryIndex) =>
+      Array.from({ length: 4 }, (_, index) => ({
+        id: `${categoryId}-${index + 1}`,
+        title: `ANUA Product ${categoryId}-${index + 1}`,
+        brand: "ANUA",
+        price: "$20.00",
+        imageUrl: `https://example.com/${categoryId}-${index + 1}.webp`,
+        productUrl: `https://example.com/${categoryId}-${index + 1}`,
+        sourceRank: categoryIndex * 4 + index + 1,
+        categoryL3Id: categoryId,
+        categoryL3Name: categoryId === 101 ? "Serums" : "Sheet Masks",
+      })),
+    );
+    const run = advanceProductSelectionRun({
+      snapshot: {
+        keyword: "ANUA",
+        site: "us",
+        sourceUrl: "https://example.com/search?q=ANUA",
+        fetchedAt: "2026-08-20T00:00:00.000Z",
+        provider: "yami-catalog-search",
+        products,
+        intent,
+      },
+      strategyRef: "relevance/intent-themes@3",
+    });
+
+    expect(run.status).toBe("ready");
+    if (run.status !== "ready") return;
+    expect(run.result.modules.find(({ id }) => id === "shortcuts")?.groups)
+      .toEqual([
+        { id: "theme-101", label: "Serums", role: "core", productIds: ["101-1", "101-2", "101-3", "101-4"] },
+        { id: "theme-102", label: "Sheet Masks", role: "core", productIds: ["102-1", "102-2", "102-3", "102-4"] },
+      ]);
+    expect(run.result.modules.find(({ id }) => id === "start-here")?.groups)
+      .toEqual([
+        { id: "theme-101", label: "Serums", role: "core", productIds: ["101-1", "101-2", "101-3", "101-4"] },
+        { id: "theme-102", label: "Sheet Masks", role: "core", productIds: ["102-1", "102-2", "102-3", "102-4"] },
+      ]);
+  });
+
   it("retrieves every page for an exact catalog brand before theme display limits are applied", async () => {
     const intent = brandIntent([
       { id: "101", label: "Serums", evidenceCount: 3 },
@@ -379,6 +556,12 @@ describe("ProductSelection Module", () => {
     expect(refined.products.map(({ id }) => id)).toEqual(["a1", "a2", "a3", "b1", "b2"]);
     expect(refined.evidence?.brands[0]?.resultCount).toBe(5);
     expect(refined.retrievalTerms).toContain("brand:11712");
+    expect(refined.catalogRefinement).toMatchObject({
+      status: "fallback",
+      target: "brand",
+      completedKeys: ["structured-brand:11712"],
+      failedKeys: ["brand-page:11712"],
+    });
   });
 
   it("loads complete brand coverage and sorts products by weekly sales", async () => {
@@ -519,6 +702,12 @@ describe("ProductSelection Module", () => {
       acceptedProductCount: 3,
       rejectedProductCount: 1,
     });
+    expect(refined.catalogRefinement).toMatchObject({
+      status: "complete",
+      target: "brand",
+      completedKeys: ["structured-brand:11712", "brand-page:11712"],
+      failedKeys: [],
+    });
   });
 
   it("paginates every ThemeIntent category while leaving four-to-eight limits to display themes", async () => {
@@ -593,6 +782,295 @@ describe("ProductSelection Module", () => {
       .toHaveLength(5);
     expect(refined.products.filter(({ categoryL3Id }) => categoryL3Id === 102))
       .toHaveLength(4);
+    expect(refined.catalogRefinement).toMatchObject({
+      status: "complete",
+      target: "categories",
+      completedKeys: ["category:101", "category:102"],
+      failedKeys: [],
+    });
+  });
+
+  it("marks category refinement partial instead of hiding a failed category page", async () => {
+    const categories = [
+      { id: "101", label: "Serums", evidenceCount: 4 },
+      { id: "102", label: "Toners", evidenceCount: 4 },
+    ];
+    const intent: NonNullable<YamiSearchSnapshot["intent"]> = {
+      ...brandIntent(categories),
+      themeType: "product",
+      entityType: "unknown",
+      canonicalEntity: null,
+      shoppingIntent: "find-product",
+      shopperAction: "find",
+      shoppingGoal: "Find products across verified categories.",
+      decision: {
+        ...brandIntent(categories).decision,
+        selectedCandidateId: "product:unknown:verified-categories:find-product:find",
+      },
+    };
+    const fetchMock = vi.fn(async (_url: string | URL | Request, init?: RequestInit) => {
+      const request = JSON.parse(String(init?.body)) as { category_ids: string };
+      if (request.category_ids === "102") throw new Error("catalog timeout");
+      return Response.json({
+        messageId: "10000",
+        body: {
+          page: { total: 1, page_index: 1, page_size: 60, hasNext: false },
+          items: [{
+            item_number: "serum-1",
+            goods_ename: "Verified Serum",
+            category_l3_id: 101,
+            image_url: "/item/serum-1.webp",
+            slug: "verified-serum",
+            status: "A",
+            goods_number: 10,
+          }],
+        },
+      });
+    });
+    const snapshot: YamiSearchSnapshot = {
+      keyword: "skincare",
+      site: "us",
+      sourceUrl: "https://example.com/search?q=skincare",
+      fetchedAt: "2026-08-19T00:00:00.000Z",
+      provider: "yami-catalog-search",
+      products: [],
+      intent,
+    };
+
+    const refined = await refineYamiCatalogSnapshotForIntent(snapshot, intent, {
+      fetch: fetchMock as typeof fetch,
+    });
+
+    expect(refined.products.map(({ id }) => id)).toEqual(["serum-1"]);
+    expect(refined.catalogRefinement).toMatchObject({
+      status: "partial",
+      target: "categories",
+      completedKeys: ["category:101"],
+      failedKeys: ["category:102"],
+    });
+    expect(refined.catalogRefinement?.issues[0]).toContain("category:102");
+  });
+
+  it("does not fill a review-required modifier intent with unrelated category products", () => {
+    const base = brandIntent([{ id: "102", label: "Toners", evidenceCount: 8 }]);
+    const intent: NonNullable<YamiSearchSnapshot["intent"]> = {
+      ...base,
+      themeType: "product",
+      entityType: "category",
+      canonicalEntity: { id: "102", label: "Toners" },
+      shoppingIntent: "find-product",
+      shopperAction: "find",
+      shoppingGoal: "Find heartleaf toners.",
+      mustInclude: ["Toners"],
+      searchTerms: ["heartleaf toner", "Toners"],
+      constraints: [
+        {
+          id: "core-entity:toners",
+          kind: "core-entity",
+          value: "Toners",
+          status: "verified",
+          evidenceIds: ["catalog-category:102"],
+        },
+        {
+          id: "modifier:heartleaf",
+          kind: "modifier",
+          value: "heartleaf",
+          status: "unverified",
+          evidenceIds: [],
+        },
+      ],
+      decision: {
+        ...base.decision,
+        status: "needs-review",
+        selectedCandidateId: "product:category:102:find-product:find",
+        evidenceLevel: "medium",
+        requiresAgentReview: true,
+      },
+    };
+    const product = (id: string, title: string, sourceRank: number) => ({
+      id,
+      title,
+      brand: "ANUA",
+      price: "$20.00",
+      imageUrl: `https://example.com/${id}.webp`,
+      productUrl: `https://example.com/${id}`,
+      sourceRank,
+      categoryL3Id: 102,
+      categoryL3Name: "Toners",
+    });
+    const run = advanceProductSelectionRun({
+      snapshot: {
+        keyword: "heartleaf toner",
+        site: "us",
+        sourceUrl: "https://example.com/search?q=heartleaf+toner",
+        fetchedAt: "2026-08-19T00:00:00.000Z",
+        provider: "yami-catalog-search",
+        products: [
+          product("heartleaf", "Heartleaf 77 Toner", 1),
+          product("rice", "Rice Glow Toner", 2),
+          product("peach", "Peach Brightening Toner", 3),
+        ],
+        intent,
+      },
+      strategyRef: "relevance/intent-themes@2",
+    });
+
+    expect(run.status).toBe("ready");
+    if (run.status !== "ready") return;
+    expect(run.result.pools.primaryIds).toEqual(["heartleaf"]);
+    expect(run.result.pools.relatedIds).toEqual(["rice", "peach"]);
+  });
+
+  it("uses bilingual catalog aliases to verify a Chinese modifier against English-site products", () => {
+    const base = brandIntent([{ id: "178", label: "Mooncakes", evidenceCount: 20 }]);
+    const intent: NonNullable<YamiSearchSnapshot["intent"]> = {
+      ...base,
+      themeType: "activity",
+      entityType: "category",
+      canonicalEntity: { id: "178", label: "Mooncakes" },
+      shoppingIntent: "assemble-scenario",
+      shopperAction: "gift",
+      shoppingGoal: "Shop Mid-Autumn Festival mooncakes.",
+      mustInclude: ["Mooncakes"],
+      searchTerms: ["中秋节", "Mooncakes"],
+      constraints: [
+        {
+          id: "core-entity:mooncakes",
+          kind: "core-entity",
+          value: "Mooncakes",
+          status: "verified",
+          evidenceIds: ["catalog-category:178"],
+        },
+        {
+          id: "modifier:中秋节",
+          kind: "modifier",
+          value: "中秋节",
+          status: "unverified",
+          evidenceIds: [],
+        },
+      ],
+      decision: {
+        ...base.decision,
+        status: "needs-review",
+        selectedCandidateId: "activity:category:178:assemble-scenario:gift",
+        evidenceLevel: "medium",
+        requiresAgentReview: true,
+      },
+    };
+    const product = (
+      id: string,
+      title: string,
+      sourceRank: number,
+      searchAliases: string[] = [],
+    ) => ({
+      id,
+      title,
+      brand: "Yami",
+      price: "$20.00",
+      imageUrl: `https://example.com/${id}.webp`,
+      productUrl: `https://example.com/${id}`,
+      sourceRank,
+      categoryL3Id: 178,
+      categoryL3Name: "Mooncakes",
+      searchAliases,
+    });
+    const run = advanceProductSelectionRun({
+      snapshot: {
+        keyword: "中秋节",
+        site: "us",
+        sourceUrl: "https://www.yami.com/us/en/search?q=%E4%B8%AD%E7%A7%8B%E8%8A%82",
+        fetchedAt: "2026-08-19T00:00:00.000Z",
+        provider: "yami-catalog-search",
+        products: [
+          product("festival", "Mid-Autumn Festival Mooncake Gift Box", 1, ["中秋节月饼礼盒"]),
+          product("plain", "Classic Mooncake Gift Box", 2),
+        ],
+        intent,
+      },
+      strategyRef: "relevance/intent-themes@2",
+    });
+
+    expect(run.status).toBe("ready");
+    if (run.status !== "ready") return;
+    expect(run.result.pools.primaryIds).toEqual(["festival"]);
+    expect(run.result.pools.relatedIds).toEqual(["plain"]);
+  });
+
+  it("caps a resolved single-category occasion before page theme expansion", () => {
+    const base = brandIntent([{ id: "178", label: "Mooncakes", evidenceCount: 30 }]);
+    const intent: NonNullable<YamiSearchSnapshot["intent"]> = {
+      ...base,
+      themeType: "activity",
+      entityType: "scenario",
+      canonicalEntity: { id: "中秋节", label: "中秋节" },
+      shoppingIntent: "assemble-scenario",
+      shopperAction: "gift",
+      shoppingGoal: "Shop Mooncakes for 中秋节.",
+      mustInclude: ["Mooncakes"],
+      searchTerms: ["中秋节", "Mooncakes"],
+      categories: [{
+        id: "178",
+        label: "Mooncakes",
+        path: ["Snack", "Mooncakes"],
+        evidenceCount: 30,
+      }],
+      constraints: [
+        {
+          id: "scenario:中秋节",
+          kind: "scenario",
+          value: "中秋节",
+          status: "verified",
+          evidenceIds: ["catalog-products:occasion-中秋节"],
+        },
+        {
+          id: "core-entity:mooncakes",
+          kind: "core-entity",
+          value: "Mooncakes",
+          status: "verified",
+          evidenceIds: ["catalog-category:178"],
+        },
+      ],
+      decision: {
+        ...base.decision,
+        status: "resolved",
+        selectedCandidateId: "activity:scenario:中秋节:assemble-scenario:gift",
+        evidenceLevel: "high",
+        requiresAgentReview: false,
+      },
+    };
+    const products = Array.from({ length: 30 }, (_, index) => ({
+      id: `mooncake-${index + 1}`,
+      title: `Mooncake Gift Box ${index + 1}`,
+      brand: "Yami",
+      price: "$20.00",
+      imageUrl: `https://example.com/mooncake-${index + 1}.webp`,
+      productUrl: `https://example.com/mooncake-${index + 1}`,
+      sourceRank: index + 1,
+      categoryL3Id: 178,
+      categoryL3Name: "Mooncakes",
+      searchAliases: [`中秋节月饼礼盒 ${index + 1}`],
+    }));
+    const run = advanceProductSelectionRun({
+      snapshot: {
+        keyword: "中秋节",
+        site: "us",
+        sourceUrl: "https://www.yami.com/us/en/search?q=%E4%B8%AD%E7%A7%8B%E8%8A%82",
+        fetchedAt: "2026-08-19T00:00:00.000Z",
+        provider: "yami-catalog-search",
+        products,
+        intent,
+      },
+      strategyRef: "relevance/intent-themes@2",
+    });
+
+    expect(run.status).toBe("ready");
+    if (run.status !== "ready") return;
+    expect(run.result.pools.primaryIds).toEqual(
+      products.slice(0, 20).map(({ id }) => id),
+    );
+    expect(run.result.pools.relatedIds).toEqual(
+      products.slice(20, 26).map(({ id }) => id),
+    );
   });
 
   it("does not expand an exact category through unrelated keyword matches", async () => {

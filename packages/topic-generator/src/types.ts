@@ -79,6 +79,22 @@ export interface ThemeIntentCategory {
   evidenceCount: number;
 }
 
+export interface ThemeIntentCategoryHypothesis {
+  label: string;
+  role: "core" | "pairing" | "accessory";
+  categoryIds: string[];
+  evidenceIds: string[];
+  reason: string;
+}
+
+export interface ThemeIntentScenarioHypothesis {
+  name: string;
+  shoppingGoal: string;
+  categoryIds: string[];
+  evidenceIds: string[];
+  reason: string;
+}
+
 export interface ThemeIntent {
   schemaVersion: "theme-intent/v2";
   source: "catalog-evidence" | "search-fallback";
@@ -96,6 +112,10 @@ export interface ThemeIntent {
   mustExclude: string[];
   searchTerms: string[];
   categories: ThemeIntentCategory[];
+  /** Accepted Agent organization backed by catalog category IDs. */
+  categoryHypotheses?: ThemeIntentCategoryHypothesis[];
+  /** Accepted shopping-scene suggestions backed by at least two catalog categories. */
+  scenarioHypotheses?: ThemeIntentScenarioHypothesis[];
   constraints: ThemeIntentConstraint[];
   evidenceRefs: ThemeIntentEvidenceRef[];
   candidates: ThemeIntentCandidate[];
@@ -120,6 +140,8 @@ export interface YamiProduct {
   categoryL1Name?: string;
   categoryL2Name?: string;
   categoryL3Name?: string;
+  /** Non-display catalog text used only for cross-language retrieval evidence. */
+  searchAliases?: string[];
   soldCount?: number;
   rating?: number;
   sellerKind?: CatalogSellerKind;
@@ -196,6 +218,15 @@ export interface CatalogSnapshotQualityReport {
   issueCounts: CatalogSnapshotQualityIssueCounts;
 }
 
+export interface CatalogRefinementReport {
+  status: "complete" | "fallback" | "partial";
+  target: "brand" | "categories";
+  requestedKeys: string[];
+  completedKeys: string[];
+  failedKeys: string[];
+  issues: string[];
+}
+
 export interface YamiSearchSnapshot {
   keyword: string;
   site: YamiSite;
@@ -207,6 +238,7 @@ export interface YamiSearchSnapshot {
   evidence?: CatalogEvidence;
   quality?: CatalogSnapshotQualityReport;
   catalogCoverage?: CatalogCoverage;
+  catalogRefinement?: CatalogRefinementReport;
   intent?: ThemeIntent;
 }
 
@@ -251,6 +283,8 @@ export interface TopicModulePlan {
   required: boolean;
   visible: boolean;
   productIds: string[];
+  /** Module-owned semantic grouping. Falls back to PagePlan groups when absent. */
+  groups?: TopicGroup[];
   reason: string;
 }
 
@@ -261,6 +295,23 @@ export interface WorkflowStep {
 }
 
 export type TopicGenerationMode = "selection" | "page";
+
+export interface TopicIntentRuntimeEvidence {
+  mode: "automatic" | "catalog-fallback";
+  status: "ready" | "fallback";
+  agent:
+    | { status: "ready"; id: string }
+    | { status: "missing" };
+  proposalReview?: {
+    status: "not-provided" | "accepted" | "partially-accepted" | "rejected";
+    acceptedFields: string[];
+    rejectedFields: string[];
+    warnings: string[];
+  };
+  categoryHypothesisCount: number;
+  scenarioHypothesisCount: number;
+  issues: string[];
+}
 
 export type CategoryRoleRuntimeStageId =
   | "taxonomy"
@@ -345,6 +396,7 @@ export interface TopicPagePlan {
     relatedIds: string[];
   };
   catalogCoverage?: CatalogCoverage;
+  catalogRefinement?: CatalogRefinementReport;
   products: TopicProduct[];
   selectedCategories: TopicCategorySelection[];
   groups: TopicGroup[];

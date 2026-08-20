@@ -75,7 +75,7 @@ Usage:
 
 Options:
   -k, --keyword   Keyword to analyze
-  --proposal      Optional semantic-proposal/v1 JSON from the product Agent
+  --proposal      Optional semantic-proposal/v1 or v2 JSON from the Topic Intent Agent
   --selection-strategy  Versioned ProductSelection config ref
   --taxonomy            CatalogTaxonomySnapshot JSON for category-role
   --taxonomy-tsv        LandingPageAgent category TSV; imported and digest-bound

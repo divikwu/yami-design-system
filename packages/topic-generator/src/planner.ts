@@ -112,7 +112,11 @@ function keywordTerms(keyword: string) {
 }
 
 function productMatches(product: YamiProduct, keyword: string) {
-  const haystack = normalized(`${product.brand} ${product.title}`);
+  const haystack = normalized([
+    product.brand,
+    product.title,
+    ...(product.searchAliases ?? []),
+  ].join(" "));
   const phrase = normalized(keyword);
   const terms = keywordTerms(keyword);
   const matchedTerms = terms.filter((term) => haystack.includes(term));
@@ -235,23 +239,30 @@ function createModules(
   groups: TopicGroup[],
   keyword: string,
   language: ContentLanguage,
+  semanticGroups?: {
+    shortcuts?: TopicGroup[];
+    startHere?: TopicGroup[];
+  },
 ): TopicModulePlan[] {
-  const shortcutGroups = groups.slice(0, 6);
+  const shortcutGroups = semanticGroups?.shortcuts ?? groups.slice(0, 6);
   const groupRepresentatives = shortcutGroups.flatMap((group) =>
     group.productIds.slice(0, 1),
   );
   const eligibleStartHereGroups = groups
     .filter((group) => group.productIds.length >= 4)
     .slice(0, 6);
-  const startHereGroups = eligibleStartHereGroups.length >= 2
-    ? eligibleStartHereGroups
-    : [];
+  const startHereGroups = semanticGroups?.startHere ?? (
+    eligibleStartHereGroups.length >= 2 ? eligibleStartHereGroups : []
+  );
   const startHereProducts = startHereGroups.flatMap((group) =>
     group.productIds.slice(0, 8)
   );
   const brand = dominantBrand(primary, keyword);
   const zh = language === "zh";
   const usesCatalogCategories = primary.some((product) => product.categoryL3Name);
+  const usesSemanticShortcutGroups = Boolean(semanticGroups?.shortcuts);
+  const usesSemanticScenarioGroups = Boolean(semanticGroups?.startHere);
+  const heroProducts = selectFallbackHeroProducts(primary);
 
   return [
     {
@@ -263,30 +274,39 @@ function createModules(
         : "One topic proposition supported by three source product images.",
       required: true,
       visible: primary.length > 0,
-      productIds: primary.slice(0, 3).map((product) => product.id),
+      productIds: heroProducts.map((product) => product.id),
       reason: zh
-        ? "使用主商品池前 3 件商品；不生成虚构包装。"
-        : "Uses the first three products from PrimaryPool; no synthetic packaging.",
+        ? "Agent 执行前的安全预选：保留主商品池首位并跳过重复商品图；正式组合由 Page Merchandising Agent 复核。"
+        : "Safe preselection before Agent execution: keeps the PrimaryPool leader and skips duplicate product images; the Page Merchandising Agent reviews the final composition.",
     },
     {
       id: "shortcuts",
       label: zh ? "精选分类" : "Featured Categories",
       heading: zh ? "按类型选购" : "Shop by type",
       description: zh
-        ? usesCatalogCategories
+        ? usesSemanticShortcutGroups
+          ? "Agent 提议分类语义，系统按 Yami 目录校验商品归属、数量和去重。"
+          : usesCatalogCategories
           ? "依据 Yami 真实商品目录生成分类入口。"
           : "依据商品标题规则生成轻量分类入口。"
-        : usesCatalogCategories
+        : usesSemanticShortcutGroups
+          ? "The Agent proposes category semantics; the system verifies Yami membership, counts, and deduplication."
+          : usesCatalogCategories
           ? "Yami catalog categories create the category shortcuts."
           : "Product-title rules create lightweight category shortcuts.",
       required: true,
       visible: shortcutGroups.length > 1,
       productIds: groupRepresentatives,
+      ...(semanticGroups?.shortcuts ? { groups: shortcutGroups } : {}),
       reason:
         shortcutGroups.length > 1
           ? zh
-            ? `展示 ${Math.min(groups.length, 6)} 个商品类型的代表商品。`
-            : `Shows one representative from each of ${Math.min(groups.length, 6)} product types.`
+            ? usesSemanticShortcutGroups
+              ? `按已接受的语义提案顺序展示 ${shortcutGroups.length} 个分类；代表商品由系统选择。`
+              : `展示 ${Math.min(groups.length, 6)} 个商品类型的代表商品。`
+            : usesSemanticShortcutGroups
+              ? `Shows ${shortcutGroups.length} accepted semantic groups in proposal order; representatives are system-selected.`
+              : `Shows one representative from each of ${Math.min(groups.length, 6)} product types.`
           : zh
             ? "当前商品池只有一个可识别类型，因此隐藏。"
             : "Hidden because the current pool only contains one identifiable product type.",
@@ -296,16 +316,25 @@ function createModules(
       label: zh ? "从这里开始" : "Start Here",
       heading: zh ? "从这里开始" : "Start here",
       description: zh
-        ? "按 2–6 个主题纵向浏览，每个主题展示 4–8 件商品。"
-        : "Browse two to six themes vertically, with four to eight products per theme.",
+        ? usesSemanticScenarioGroups
+          ? "按 Agent 提议、目录证据确认的 2–6 个购物场景纵向浏览，每组展示 4–8 件商品。"
+          : "按 2–6 个主题纵向浏览，每个主题展示 4–8 件商品。"
+        : usesSemanticScenarioGroups
+          ? "Browse two to six Agent-proposed shopping scenarios verified by catalog evidence, with four to eight products each."
+          : "Browse two to six themes vertically, with four to eight products per theme.",
       required: false,
       visible: startHereGroups.length > 0,
       productIds: startHereProducts,
+      ...(semanticGroups?.startHere ? { groups: startHereGroups } : {}),
       reason:
         startHereGroups.length > 0
           ? zh
-            ? "展示 2–6 个商品数达到 4 件的主题；每个主题按 Yami 顺序使用 4–8 件商品。"
-            : "Shows two to six themes with at least four products, using four to eight items in Yami order."
+            ? usesSemanticScenarioGroups
+              ? "保留已接受场景提案的顺序；商品归属、4–8 件限制与跨组去重由系统校验。"
+              : "展示 2–6 个商品数达到 4 件的主题；每个主题按 Yami 顺序使用 4–8 件商品。"
+            : usesSemanticScenarioGroups
+              ? "Keeps accepted scenario order; the system verifies membership, the four-to-eight limit, and cross-group deduplication."
+              : "Shows two to six themes with at least four products, using four to eight items in Yami order."
           : zh
             ? "少于 2 个主题达到每组 4 件商品，因此隐藏。"
             : "Hidden because fewer than two themes contain at least four products.",
@@ -377,6 +406,33 @@ function createModules(
         : "Contains PrimaryPool only; RelatedPool never fills a core module.",
     },
   ];
+}
+
+function selectFallbackHeroProducts(
+  products: TopicProduct[],
+  maximumProducts = 3,
+): TopicProduct[] {
+  const selected: TopicProduct[] = [];
+  const selectedIds = new Set<string>();
+  const imageKeys = new Set<string>();
+
+  for (const product of products) {
+    if (selected.length >= maximumProducts) break;
+    const imageKey = product.imageUrl.trim().split(/[?#]/, 1)[0] ?? "";
+    if (imageKey && imageKeys.has(imageKey)) continue;
+    selected.push(product);
+    selectedIds.add(product.id);
+    if (imageKey) imageKeys.add(imageKey);
+  }
+
+  for (const product of products) {
+    if (selected.length >= maximumProducts) break;
+    if (selectedIds.has(product.id)) continue;
+    selected.push(product);
+    selectedIds.add(product.id);
+  }
+
+  return selected;
 }
 
 function createCategoryRoleModules(
@@ -545,9 +601,31 @@ export function buildTopicPagePlanFromProductSelection(
     reason: category.reason,
   }));
   const groups = buildGroups(primary);
+  const semanticModuleGroups = (moduleId: "shortcuts" | "start-here") => {
+    const module = selection.modules.find(({ id }) => id === moduleId);
+    if (!module || module.groups.length < 2) return undefined;
+    const moduleGroups = module.groups.flatMap((group) => {
+      const productIds = group.productIds.filter((id) => topicProductById.has(id));
+      return productIds.length > 0
+        ? [{
+            id: group.id,
+            label: productTypeLabel(group.label, language),
+            role: group.role ?? "core",
+            productIds,
+          }]
+        : [];
+    });
+    return moduleGroups.length >= 2 ? moduleGroups : undefined;
+  };
+  const semanticGroups = config.engine === "relevance" && config.semanticOrganization
+    ? {
+        shortcuts: semanticModuleGroups("shortcuts"),
+        startHere: semanticModuleGroups("start-here"),
+      }
+    : undefined;
   const plannedModules = strategy === "category-role"
     ? createCategoryRoleModules(primary, groups, selection, language)
-    : createModules(primary, groups, snapshot.keyword, language);
+    : createModules(primary, groups, snapshot.keyword, language, semanticGroups);
   const modules = generationMode === "page"
     ? plannedModules
     : plannedModules.map((module) => ({
@@ -577,14 +655,26 @@ export function buildTopicPagePlanFromProductSelection(
       snapshot.intent.constraints.some((constraint) => constraint.status !== "verified")
     ),
   );
+  const verifiedScenarioCategory = snapshot.intent?.themeType === "activity" &&
+    snapshot.intent.decision.status === "resolved" &&
+    snapshot.intent.constraints.some((constraint) =>
+      constraint.kind === "scenario" && constraint.status === "verified"
+    )
+    ? snapshot.intent.categories[0]
+    : undefined;
+  const hasPartialCatalogRefinement = snapshot.catalogRefinement?.status === "partial";
   let status: TopicPagePlan["status"] = "ready";
   let statusReason = strategy === "category-role"
     ? language === "zh"
       ? `${primary.length} 件分类入选商品已可用于模块规划。`
       : `${primary.length} category-selected products are ready for module planning.`
     : language === "zh"
-      ? `${primary.length} 件直接匹配商品已可用于模块规划。`
-      : `${primary.length} direct matches are ready for module planning.`;
+      ? verifiedScenarioCategory
+        ? `已由 ${verifiedScenarioCategory.label} 分类和 ${primary.length} 件商品确认“${snapshot.keyword}”购物场景。`
+        : `${primary.length} 件直接匹配商品已可用于模块规划。`
+      : verifiedScenarioCategory
+        ? `${verifiedScenarioCategory.label} and ${primary.length} products confirm the “${snapshot.keyword}” shopping occasion.`
+        : `${primary.length} direct matches are ready for module planning.`;
   if (primary.length < 3) {
     status = "blocked";
     statusReason = language === "zh"
@@ -595,6 +685,11 @@ export function buildTopicPagePlanFromProductSelection(
     statusReason = language === "zh"
       ? `购物意图证据不足（${snapshot.intent?.decision.evidenceLevel === "high" ? "高" : snapshot.intent?.decision.evidenceLevel === "medium" ? "中" : "低"}证据），必须复核未验证的关键词约束。`
       : `Shopping-intent evidence is incomplete (${snapshot.intent?.decision.evidenceLevel ?? "low"} evidence, ${snapshot.intent?.decision.status ?? "needs-review"}); unverified keyword constraints require review.`;
+  } else if (hasPartialCatalogRefinement) {
+    status = "degraded";
+    statusReason = language === "zh"
+      ? `目录召回仅部分完成（${snapshot.catalogRefinement?.completedKeys.length ?? 0}/${snapshot.catalogRefinement?.requestedKeys.length ?? 0} 个范围成功），当前商品池必须复核。`
+      : `Catalog retrieval completed only partially (${snapshot.catalogRefinement?.completedKeys.length ?? 0}/${snapshot.catalogRefinement?.requestedKeys.length ?? 0} scopes succeeded); the current pool requires review.`;
   } else if (hasInsufficientCategoryCoverage) {
     status = "degraded";
     statusReason = language === "zh"
@@ -649,6 +744,19 @@ export function buildTopicPagePlanFromProductSelection(
       language === "zh"
         ? "每件商品的入选原因都会标记上下文回退，发布前需要人工复核。"
         : "Contextual fallback is visible in each product reason and should be reviewed before publishing.",
+    );
+  }
+  if (snapshot.catalogRefinement?.status === "fallback") {
+    qualityNotes.push(
+      language === "zh"
+        ? "公开品牌页不可用；本次使用结构化目录的完整分页结果，销售方与缺货分组不可用。"
+        : "The public brand page was unavailable; this run uses complete structured-catalog pagination without seller and out-of-stock grouping.",
+    );
+  } else if (snapshot.catalogRefinement?.status === "partial") {
+    qualityNotes.push(
+      language === "zh"
+        ? `目录召回失败范围：${snapshot.catalogRefinement.failedKeys.join("、")}。`
+        : `Catalog retrieval failed for: ${snapshot.catalogRefinement.failedKeys.join(", ")}.`,
     );
   }
 
@@ -717,6 +825,7 @@ export function buildTopicPagePlanFromProductSelection(
       relatedIds: related.map((product) => product.id),
     },
     ...(snapshot.catalogCoverage ? { catalogCoverage: snapshot.catalogCoverage } : {}),
+    ...(snapshot.catalogRefinement ? { catalogRefinement: snapshot.catalogRefinement } : {}),
     products: [...primary, ...related],
     selectedCategories: categorySelections,
     groups,
@@ -769,7 +878,7 @@ export function buildTopicPagePlan(
   }
   const run = advanceProductSelectionRun({
     snapshot,
-    strategyRef: "relevance/intent-themes@2",
+    strategyRef: "relevance/intent-themes@3",
   });
   if (run.status !== "ready") {
     throw new Error("Relevance ProductSelection did not produce a ready result.");

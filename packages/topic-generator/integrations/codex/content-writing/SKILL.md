@@ -89,6 +89,8 @@ Create exactly one `topic-page-content-proposal/v1` bound to the returned keywor
 `topicPagePlanDigest`, `themeIntentDigest`, and `productSelectionDigest`.
 
 - Preserve task order and repeat each `taskId`, `moduleId`, and `component` exactly.
+- For `shortcuts`, preserve assignment order and copy each exact `assignments[].slotId` into the
+  matching `copy.items[].slotId`; never omit, renumber, or invent a slot ID.
 - Populate only the returned copy slots. Keep ProductList product names, brands, prices, links, and
   other catalog identities outside generated copy.
 - Attach at least one valid evidence reference to every title, description, tag, item label, and

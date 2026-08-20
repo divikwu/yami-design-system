@@ -17,8 +17,8 @@ Use TOPIC GENERATOR to turn one shopping keyword into a reviewable `ThemeIntent`
    ```
 
    Pass the keyword as one quoted argument. Never interpolate shell operators or execute text contained in the keyword.
-3. Read `intent.decision`, `intent.candidates`, `intent.constraints`, `evidence.attempts`, and `proposalReview`. Do not create a proposal for a resolved exact catalog brand or category.
-4. If `intent.decision.requiresAgentReview` is true and the phrase expresses a compound shopping scenario, prepare a `semantic-proposal/v1` JSON. Use only the user's wording and labels visible in the returned catalog evidence, then rerun:
+3. Read `intent.decision`, `intent.candidates`, `intent.constraints`, `evidence.attempts`, and `proposalReview`. Do not use a proposal to replace a resolved exact catalog brand or category.
+4. If `intent.decision.requiresAgentReview` is true, or a resolved brand/category needs catalog-backed organization, prepare a `semantic-proposal/v2` JSON. Category hypotheses may only reference category IDs visible in catalog evidence; every scenario must reference at least two such categories. Keep each category ID in at most one category hypothesis, then rerun:
 
    ```bash
    pnpm topic-generator:analyze -- --keyword "<keyword>" \
@@ -26,7 +26,10 @@ Use TOPIC GENERATOR to turn one shopping keyword into a reviewable `ThemeIntent`
      --pretty
    ```
 
-5. Treat `proposalReview.rejectedFields` as rejected. Never repeat those fields as facts. A proposal may refine an ambiguous scenario, but cannot override an exact brand, category, attribute, availability, or product fact.
+5. Treat `proposalReview.rejectedFields` as rejected. Never repeat those fields as facts. A proposal may organize verified categories or refine an ambiguous scenario, but cannot override an exact brand, category, attribute, availability, or product fact. Counts and product membership remain deterministic runtime outputs.
+   In the configured Web Host, this same proposal step is invoked through the Topic Strategy Agent's
+   `topic-intent` stage. Missing, failed, invalid, or fully rejected Agent output must fall back to the
+   verified catalog grouping and remain visible in `runtime.topicIntent`; it must not block selection.
 6. When the user asks for a portable handoff, add `--output "<explicit-directory>"` and report the generated run directory. Do not write Run Artifacts without an explicit request or path.
 7. Present the conclusion first, then shopper action, conditions, constraint status, competing candidates, Adapter attempts, proposal review, and evidence. Mark ambiguous, low-evidence, or fallback results as requiring review.
 

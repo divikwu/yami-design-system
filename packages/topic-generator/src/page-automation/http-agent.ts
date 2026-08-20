@@ -8,15 +8,17 @@ import type {
   TopicPageVisualMimeType,
 } from "../page-visual/contracts.js";
 import type { TopicVisualAgent } from "../page-visual/workflow.js";
+import type { TopicIntentAgent } from "../topic-intent.js";
 
 export type HttpTopicPageAgentStage =
+  | "topic-intent"
   | "workflow-planning"
   | "module-merchandising"
   | "content-writing"
   | "visual-generation"
   | "experience-review";
 
-export type HttpTopicPageAgent = LandingPageOrchestratorAgent & PageMerchandisingAgent &
+export type HttpTopicPageAgent = TopicIntentAgent & LandingPageOrchestratorAgent & PageMerchandisingAgent &
   TopicContentAgent & TopicVisualAgent & TopicPageReviewAgent;
 
 export interface CreateHttpTopicPageAgentOptions {
@@ -30,11 +32,13 @@ export interface CreateHttpTopicPageAgentOptions {
 
 export class HttpTopicPageAgentError extends Error {
   readonly agentId: string;
+  readonly code?: string;
   readonly stage: HttpTopicPageAgentStage;
   readonly status?: number;
 
   constructor(options: {
     agentId: string;
+    code?: string;
     stage: HttpTopicPageAgentStage;
     message: string;
     status?: number;
@@ -42,8 +46,60 @@ export class HttpTopicPageAgentError extends Error {
     super(options.message);
     this.name = "HttpTopicPageAgentError";
     this.agentId = options.agentId;
+    this.code = options.code;
     this.stage = options.stage;
     this.status = options.status;
+  }
+}
+
+const MAX_RUNNER_ERROR_BYTES = 8 * 1024;
+
+async function boundedRunnerError(response: Response) {
+  const contentType = response.headers.get("content-type") ?? "";
+  const declaredLength = response.headers.get("content-length");
+  if (!contentType.toLowerCase().includes("application/json")) {
+    return null;
+  }
+  if (declaredLength !== null) {
+    const contentLength = Number(declaredLength);
+    if (!Number.isInteger(contentLength) || contentLength < 0 ||
+        contentLength > MAX_RUNNER_ERROR_BYTES) {
+      return null;
+    }
+  }
+  if (!response.body) return null;
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > MAX_RUNNER_ERROR_BYTES) {
+        await reader.cancel();
+        return null;
+      }
+      chunks.push(value);
+    }
+    const bytes = new Uint8Array(total);
+    let offset = 0;
+    for (const chunk of chunks) {
+      bytes.set(chunk, offset);
+      offset += chunk.byteLength;
+    }
+    const payload = objectValue(JSON.parse(new TextDecoder().decode(bytes)) as unknown);
+    const code = typeof payload?.code === "string" ? payload.code.trim() : "";
+    const message = typeof payload?.message === "string" ? payload.message.trim() : "";
+    if (payload?.schemaVersion !== "topic-agent-runner-error/v1" ||
+        !/^[a-z][a-z0-9_]{0,63}$/.test(code) || !message || message.length > 512) {
+      return null;
+    }
+    return { code, message };
+  } catch {
+    return null;
+  } finally {
+    reader.releaseLock();
   }
 }
 
@@ -122,11 +178,13 @@ export function createHttpTopicPageAgent(
       });
     }
     if (!response.ok) {
+      const runnerError = await boundedRunnerError(response);
       throw new HttpTopicPageAgentError({
         agentId,
+        code: runnerError?.code,
         stage,
         status: response.status,
-        message: `Topic Page Agent returned HTTP ${response.status}.`,
+        message: runnerError?.message ?? `Topic Page Agent returned HTTP ${response.status}.`,
       });
     }
     let payload: unknown;
@@ -177,6 +235,7 @@ export function createHttpTopicPageAgent(
 
   return {
     id: options.id,
+    proposeSemanticIntent: (run) => requestProposal("topic-intent", run),
     proposeExecutionPlan: (run) => requestProposal("workflow-planning", run),
     proposeModuleMerchandising: (run) => requestProposal("module-merchandising", run),
     proposePageContent: (run) => requestProposal("content-writing", run),

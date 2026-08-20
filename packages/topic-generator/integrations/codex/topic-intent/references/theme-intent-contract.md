@@ -18,6 +18,8 @@ The CLI emits `schemaVersion: theme-intent/v2`.
 | `mustExclude` | Explicit exclusions inferred from the keyword |
 | `searchTerms` | Terms used to retrieve supporting catalog evidence |
 | `categories` | Matched catalog category IDs, paths, and evidence counts |
+| `categoryHypotheses` | Optional accepted Agent grouping of verified catalog category IDs into core, pairing, and accessory semantics |
+| `scenarioHypotheses` | Optional accepted shopping-scene suggestions, each backed by at least two verified catalog category IDs |
 | `constraints` | Every retrieval constraint with verified, unverified, or rejected status and evidence IDs |
 | `evidenceRefs` | Structured catalog or fallback evidence referenced by constraints and candidates |
 | `candidates` | Ranked alternative interpretations retained for review |

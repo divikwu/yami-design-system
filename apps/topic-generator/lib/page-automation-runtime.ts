@@ -5,17 +5,22 @@ import { dirname, isAbsolute, relative, resolve } from "node:path";
 import {
   createHttpTopicPageAgent,
   type HttpTopicPageAgent,
+  type TopicIntentAgent,
   type TopicPageAssetStore,
   type TopicPageImageDecoder,
+  type TopicPageReviewPreviewResolver,
 } from "@yami/topic-generator";
 import { topicPageImageDecoder } from "./topic-page-image-decoder";
+import { createConfiguredTopicPageReviewPreviewRegistry } from "./topic-page-review-preview-registry";
 
 type RuntimeEnvironment = Record<string, string | undefined>;
 
 export interface TopicGeneratorPageAutomationRuntime {
+  topicIntentAgent?: TopicIntentAgent;
   topicPageAgent?: HttpTopicPageAgent;
   topicPageAssetStore?: TopicPageAssetStore;
   topicPageImageDecoder: TopicPageImageDecoder;
+  topicPagePreviewResolver?: TopicPageReviewPreviewResolver;
   pageAutomationConfigurationIssues: string[];
 }
 
@@ -33,11 +38,11 @@ function validAgentEndpoint(value: string) {
 }
 
 function agentTimeout(value: string | undefined) {
-  if (!value) return 120_000;
+  if (!value) return 330_000;
   const timeout = Number(value);
-  if (!Number.isInteger(timeout) || timeout < 1_000 || timeout > 300_000) {
+  if (!Number.isInteger(timeout) || timeout < 1_000 || timeout > 330_000) {
     throw new Error(
-      "TOPIC_GENERATOR_PAGE_AGENT_TIMEOUT_MS must be between 1000 and 300000.",
+      "TOPIC_GENERATOR_PAGE_AGENT_TIMEOUT_MS must be between 1000 and 330000.",
     );
   }
   return timeout;
@@ -116,6 +121,9 @@ export async function loadTopicGeneratorPageAutomationRuntime(options: {
         timeoutMs: agentTimeout(environment.TOPIC_GENERATOR_PAGE_AGENT_TIMEOUT_MS),
         fetch: options.fetch,
         agentIds: {
+          "topic-intent": environment.TOPIC_GENERATOR_TOPIC_INTENT_AGENT_ID?.trim() ||
+            environment.TOPIC_GENERATOR_STRATEGY_AGENT_ID?.trim() ||
+            "topic-strategy",
           "workflow-planning": environment.TOPIC_GENERATOR_ORCHESTRATOR_AGENT_ID?.trim() ||
             "topic-page-orchestrator",
           "module-merchandising": environment.TOPIC_GENERATOR_STRATEGY_AGENT_ID?.trim() ||
@@ -138,6 +146,7 @@ export async function loadTopicGeneratorPageAutomationRuntime(options: {
   }
 
   let topicPageAssetStore: TopicPageAssetStore | undefined;
+  let topicPagePreviewResolver: TopicPageReviewPreviewResolver | undefined;
   const assetRoot = environment.TOPIC_GENERATOR_ASSET_ROOT?.trim();
   if (!assetRoot) {
     issues.push("TOPIC_GENERATOR_ASSET_ROOT is not configured.");
@@ -152,11 +161,29 @@ export async function loadTopicGeneratorPageAutomationRuntime(options: {
       );
     }
   }
+  if (topicPageAssetStore) {
+    try {
+      const previewRegistry = createConfiguredTopicPageReviewPreviewRegistry(environment);
+      topicPagePreviewResolver = ({ executionPlan, generationSpec }) =>
+        previewRegistry.publish({
+          pageTypeRef: executionPlan.pageTypeRef,
+          generationSpec,
+        });
+    } catch (error) {
+      issues.push(
+        error instanceof Error
+          ? `Configured Topic Page preview registry is invalid: ${error.message}`
+          : "Configured Topic Page preview registry is invalid.",
+      );
+    }
+  }
 
   return {
+    topicIntentAgent: topicPageAgent,
     topicPageAgent,
     topicPageAssetStore,
     topicPageImageDecoder,
+    topicPagePreviewResolver,
     pageAutomationConfigurationIssues: issues,
   };
 }

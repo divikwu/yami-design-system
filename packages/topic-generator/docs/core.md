@@ -59,8 +59,11 @@ if (pageTask.status === "ready") {
 `analyzeTopicIntent` 组合这些 Interface。它先生成目录基线，再按已确认的核心实体补充分类分页
 证据。第二阶段可以更新商品数量和分类证据，但精确品牌或分类的核心身份被冻结；若补充证据
 与核心身份冲突，结果进入 `needs-review`，不会静默改判。调用方可以显式提供
-`SemanticProposal`，但当前运行路径没有自动 `TopicIntentAgent` 或 `BackgroundEvidence`
-Adapter。返回值包含 `intent`、商品证据 `snapshot`、`fallbackUsed`、`attempts` 与
+`SemanticProposal`；配置了 Topic Strategy Agent 的 Web Host 也会通过 `topic-intent` stage
+自动请求同一 `semantic-proposal/v2`。`runTopicIntentAgentWorkflow` 只向 Agent 暴露已验证的
+目录分类和代表商品，随后解析并逐字段复核提案；Agent 缺失、失败、格式错误或没有任何可接受
+语义分组时返回目录分类降级结果，并通过 `runtime.topicIntent` 保留原因，不阻止选品。
+`BackgroundEvidence` 仍不参与商品归属。返回值包含 `intent`、商品证据 `snapshot`、`fallbackUsed`、`attempts` 与
 `proposalReview`；HTTP Host 将这份完整证据原样提供给 Workbench。
 
 `advanceLandingPageOrchestrationRun` 是受约束的编排 Interface。它先返回版本化页面类型、选品
@@ -173,7 +176,7 @@ ready 的 PagePlan v2。
 `--taxonomy` 接收规范化 `catalog-taxonomy-snapshot/v1` JSON；`--taxonomy-tsv`
 直接接收目标仓库的分类 TSV 导出格式，并在本地转换成同一份摘要绑定契约。
 
-`--proposal` 读取可选 `semantic-proposal/v1` JSON；它是 Agent 的不可信输入。`--output` 是唯一会写文件的开关，生成一个独立 run 目录，其中包含：
+`--proposal` 读取可选 `semantic-proposal/v2` JSON；它是 Agent 的不可信输入。v2 可提出由真实目录分类 ID 支撑的分类组织与使用场景，运行时仍负责验证、计数与商品归属；v1 仅保留回放兼容。`--output` 是唯一会写文件的开关，生成一个独立 run 目录，其中包含：
 
 - `theme-intent.json`
 - `catalog-snapshot.json`
