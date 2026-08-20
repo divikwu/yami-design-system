@@ -185,9 +185,13 @@ function validProposal(
         id: "hero",
         visible: true,
         shoppingGoal: "Introduce the strongest matcha proposition",
-        reason: "Two unused core products represent the topic.",
+        reason: "Three core products balance a strong anchor with representative variety.",
         scenes: [],
-        assignments: [{ productId: "core-5" }, { productId: "core-6" }],
+        assignments: [
+          { productId: "core-5", selectionReason: "Strong sales anchor for the Hero." },
+          { productId: "core-6", selectionReason: "Adds a distinct product type." },
+          { productId: "core-7", selectionReason: "Completes representative catalog coverage." },
+        ],
       },
       {
         id: "shortcuts",
@@ -195,7 +199,19 @@ function validProposal(
         shoppingGoal: "Offer stable category entry points",
         reason: "Two core categories have representative products.",
         scenes: [],
-        assignments: [{ productId: "core-7" }, { productId: "core-8" }],
+        assignments: [
+          {
+            groupId: "shortcut-core-7",
+            productId: "core-7",
+            reuseReason: "Also broadens the Hero composition.",
+            selectionReason: "Highest-ranked representative for daily matcha.",
+          },
+          {
+            groupId: "shortcut-core-8",
+            productId: "core-8",
+            selectionReason: "Distinct representative for ceremonial matcha.",
+          },
+        ],
       },
       {
         id: "start-here",
@@ -290,6 +306,10 @@ describe("PageMerchandising", () => {
       expect(route?.templateRef).toBe(templateRef);
 
       const template = getPageMerchandisingTemplateConfig(templateRef);
+      expect(template.modules.find(({ id }) => id === "hero")).toMatchObject({
+        minimumProducts: 3,
+        maximumProducts: 5,
+      });
       expect(template.modules.find(({ id }) => id === "start-here")).toMatchObject({
         required: true,
         minimumProducts: 1,
@@ -427,6 +447,7 @@ describe("PageMerchandising", () => {
       assignments: [
         { slotId: "hero-1", productId: "core-5", pool: "primary", role: "core" },
         { slotId: "hero-2", productId: "core-6", pool: "primary", role: "core" },
+        { slotId: "hero-3", productId: "core-7", pool: "primary", role: "core" },
       ],
     });
     expect(first.modules.find(({ id }) => id === "start-here")).toMatchObject({
@@ -453,6 +474,161 @@ describe("PageMerchandising", () => {
         }),
       ]),
     });
+  });
+
+  it("requires three to five Hero products and rejects duplicate source images", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    selection.products.find(({ id }) => id === "core-6")!.imageUrl =
+      selection.products.find(({ id }) => id === "core-5")!.imageUrl;
+    const proposal = validProposal(selection, intent, "topic-landing/topic@2");
+
+    const duplicateImageRun = advancePageMerchandisingRun({ intent, selection, proposal });
+    expect(duplicateImageRun).toMatchObject({
+      status: "blocked",
+      issues: expect.arrayContaining([
+        "Hero cannot assign more than one product with the same source image.",
+      ]),
+    });
+
+    selection.products.find(({ id }) => id === "core-6")!.imageUrl =
+      "https://example.com/core-6.webp";
+    const tooSmallProposal = validProposal(selection, intent, "topic-landing/topic@2");
+    tooSmallProposal.modules.find(({ id }) => id === "hero")!.assignments.pop();
+    const tooSmallRun = advancePageMerchandisingRun({
+      intent,
+      selection,
+      proposal: tooSmallProposal,
+    });
+    expect(tooSmallRun).toMatchObject({
+      status: "blocked",
+      issues: expect.arrayContaining([
+        "Module hero must assign 3-5 products when visible.",
+      ]),
+    });
+
+    const missingReasonProposal = validProposal(selection, intent, "topic-landing/topic@2");
+    delete missingReasonProposal.modules.find(({ id }) => id === "hero")!
+      .assignments[0]!.selectionReason;
+    const missingReasonRun = advancePageMerchandisingRun({
+      intent,
+      selection,
+      proposal: missingReasonProposal,
+    });
+    expect(missingReasonRun).toMatchObject({
+      status: "blocked",
+      issues: expect.arrayContaining([
+        "Hero assignment core-5 requires selectionReason.",
+      ]),
+    });
+  });
+
+  it("binds every semantic shortcut group to one reviewed representative", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    selection.modules.push({
+      id: "shortcuts",
+      productIds: ["core-7", "core-8"],
+      groups: [
+        { id: "shortcut-core-7", label: "Daily matcha", role: "core", productIds: ["core-7"] },
+        { id: "shortcut-core-8", label: "Ceremonial matcha", role: "core", productIds: ["core-8"] },
+      ],
+    });
+    const proposal = validProposal(selection, intent, "topic-landing/topic@1");
+
+    const ready = advancePageMerchandisingRun({ intent, selection, proposal });
+    expect(ready.status).toBe("ready");
+    if (ready.status === "ready") {
+      expect(ready.plan.modules.find(({ id }) => id === "shortcuts")?.assignments)
+        .toEqual([
+          expect.objectContaining({
+            groupId: "shortcut-core-7",
+            productId: "core-7",
+            selectionReason: "Highest-ranked representative for daily matcha.",
+          }),
+          expect.objectContaining({
+            groupId: "shortcut-core-8",
+            productId: "core-8",
+            selectionReason: "Distinct representative for ceremonial matcha.",
+          }),
+        ]);
+    }
+
+    delete proposal.modules.find(({ id }) => id === "shortcuts")!
+      .assignments[0]!.groupId;
+    const missingGroup = advancePageMerchandisingRun({ intent, selection, proposal });
+    expect(missingGroup).toMatchObject({
+      status: "blocked",
+      issues: expect.arrayContaining([
+        "Shortcut assignment core-7 requires groupId.",
+        "Shortcut group shortcut-core-7 has no representative assignment.",
+      ]),
+    });
+  });
+
+  it("derives the Shortcuts assignment count from all frozen navigation groups", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const shortcutProducts = Array.from({ length: 7 }, (_, index) => ({
+      id: `shortcut-${index + 1}`,
+      title: `Shortcut product ${index + 1}`,
+      brand: "Shortcut brand",
+      price: "$10.00",
+      imageUrl: `https://example.com/shortcut-${index + 1}.webp`,
+      productUrl: `https://example.com/shortcut-${index + 1}`,
+      sourceRank: 100 + index,
+      categoryL3Id: 2000 + index,
+      categoryL3Name: `Shortcut category ${index + 1}`,
+      soldCount: 10 - index,
+      pool: "primary" as const,
+      role: "core" as const,
+    }));
+    selection.products.push(...shortcutProducts);
+    selection.pools.primaryIds.push(...shortcutProducts.map(({ id }) => id));
+    selection.modules.push({
+      id: "shortcuts",
+      productIds: shortcutProducts.map(({ id }) => id),
+      groups: shortcutProducts.map((product, index) => ({
+        id: `shortcut-group-${index + 1}`,
+        label: `Shortcut group ${index + 1}`,
+        role: "core",
+        productIds: [product.id],
+      })),
+    });
+
+    const pending = advancePageMerchandisingRun({
+      intent,
+      selection,
+      templateRef: "topic-landing/topic@1",
+    });
+    expect(pending).toMatchObject({
+      status: "needs-module-proposal",
+      context: {
+        moduleRules: expect.arrayContaining([
+          expect.objectContaining({
+            id: "shortcuts",
+            minimumProducts: 7,
+            maximumProducts: 7,
+          }),
+        ]),
+      },
+    });
+
+    const proposal = validProposal(selection, intent, "topic-landing/topic@1");
+    const shortcuts = proposal.modules.find(({ id }) => id === "shortcuts")!;
+    shortcuts.reason = "Every frozen category group has one representative.";
+    shortcuts.assignments = shortcutProducts.map((product, index) => ({
+      groupId: `shortcut-group-${index + 1}`,
+      productId: product.id,
+      selectionReason: `Represents shortcut group ${index + 1}.`,
+    }));
+
+    const ready = advancePageMerchandisingRun({ intent, selection, proposal });
+    expect(ready.status).toBe("ready");
+    if (ready.status === "ready") {
+      expect(ready.plan.modules.find(({ id }) => id === "shortcuts")?.assignments)
+        .toHaveLength(7);
+    }
   });
 
   it("declares one brand-banner task for each unique assigned brand", () => {

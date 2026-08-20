@@ -71,7 +71,7 @@ Web 页面：`http://127.0.0.1:3300/`
    Agent 负责主题、选品与页面陈列语义；Content、Visual、Review Agent 各自独立。七个 Skill
    只负责阶段调用约定，不承载运行时业务逻辑。
 2. TopicIntent 使用两轴分类：`themeType` 表示品牌、商品导购或活动场景，`entityType` 表示品牌、品类、属性、场景或未知实体。它先生成 Yami 目录规则基线；场景主题或仍需复核的主题才按需读取公开背景资料。精确品牌或品类不允许 Agent 改写核心实体，但可通过 `semantic-proposal/v2` 提议目录分类组织与使用场景。
-3. 未被目录证据覆盖的核心修饰词会让基线保持 `needs-review`。`semantic-proposal/v2` 的分类只能引用当前目录分类 ID，单个分类 ID 只能由一个展示分类拥有；每个使用场景必须由至少两个真实分类支持。提案会与目录候选统一审查，不能填写商品归属或数量，也不能覆盖更强目录证据。`semantic-proposal/v1` 继续用于历史回放。
+3. 未被目录证据覆盖的核心修饰词会让基线保持 `needs-review`。`semantic-proposal/v2` 会同时收到完整商品证据与目录分类参考；每个 Shortcuts 分类提案可引用一个或多个当前非空目录叶子分类，按主题购物心智合并相近分类，并应覆盖全部非空目录分类。目录分类不能跨组重复；遗漏项会形成可见警告，再由 ProductSelection 按目录事实补齐。每个使用场景仍必须由至少两个真实分类支持。提案会与目录候选统一审查，不能伪造商品归属或数量，也不能覆盖更强目录证据。`semantic-proposal/v1` 继续用于历史回放。
    配置了 `TOPIC_GENERATOR_PAGE_AGENT_ENDPOINT` 时，Workbench 的精准匹配会通过 Topic Strategy
    Agent 的 `topic-intent` stage 自动请求 v2 提案；缺失、失败、无效或完全被拒绝的提案会记录在
    `runtime.topicIntent` 并回退到已验证目录分类，不阻止选品。
@@ -198,8 +198,9 @@ Visual 响应除提案外必须返回每个任务的 `taskId/ref/mimeType/dataBa
 
 Brand、Topic、Campaign 三个 `@2` 模板要求已验证来源场景。分类角色流程使用
 `category-role/landing-page-agent@1`；当前默认的 `relevance/intent-themes@3` 优先把已接受的
-ThemeIntent 分类提案编译为 Shortcuts，把场景提案编译为 2–6 个 StartHere 主题，每个主题
-冻结 4–8 件商品；没有足够提案时使用已验证的 YAMI 分类。随后分别路由到
+ThemeIntent 分类提案完整编译为 Shortcuts 与底部综合推荐的同源分类 Tab，不设置固定展示
+数量上限；场景提案编译为 2–6 个 StartHere 主题，每个主题冻结 4–8 件商品。没有足够提案时
+使用已验证的 YAMI 分类。随后分别路由到
 `topic-landing/brand-relevance@1`、`topic-landing/topic-relevance@1` 与
 `topic-landing/campaign-relevance@1`。这些模板会用冻结的相关性商品生成 Hero、快捷入口、
 主题化 StartHere、热门与探索模块；Topic 与 Campaign 在商品证据足够时还可显示品牌模块。

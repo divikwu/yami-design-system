@@ -3,6 +3,7 @@ import {
   resolveCatalogThemeIntent,
 } from "./yami-catalog.js";
 import type {
+  ContentLanguage,
   ShoppingIntent,
   ThemeEntityType,
   ThemeIntent,
@@ -69,6 +70,7 @@ export interface TopicIntentAgentRun {
   context: {
     keyword: string;
     site: YamiSearchSnapshot["site"];
+    language: ContentLanguage;
     intent: ThemeIntent;
     categories: Array<{
       id: string;
@@ -76,6 +78,7 @@ export interface TopicIntentAgentRun {
       path: string[];
       productCount: number;
     }>;
+    /** Complete current product evidence; legacy field name retained for protocol compatibility. */
     representativeProducts: Array<{
       id: string;
       title: string;
@@ -94,6 +97,7 @@ export interface TopicIntentAgent {
 export interface TopicIntentAgentWorkflowRequest {
   snapshot: YamiSearchSnapshot;
   intent: ThemeIntent;
+  language: ContentLanguage;
   proposalReview: SemanticProposalReview;
   agent?: TopicIntentAgent;
 }
@@ -329,7 +333,7 @@ function reviewSemanticHypotheses(
     const categories = hypothesis.categoryIds.map((id) => evidenceCategories.get(id));
     const hasUnknownCategory = categories.some((category) => !category);
     const reusesCategory = hypothesis.categoryIds.some((id) => usedCategoryIds.has(id));
-    if (index >= 6 || hasUnknownCategory || reusesCategory) {
+    if (hasUnknownCategory || reusesCategory) {
       rejectedFields.push(field);
       return;
     }
@@ -378,13 +382,19 @@ function reviewSemanticHypotheses(
     label: category.label,
     count: category.evidenceCount,
   }));
+  const omittedCategoryCount = [...evidenceCategories.keys()]
+    .filter((categoryId) => !usedCategoryIds.has(categoryId))
+    .length;
   const warnings = uniqueStrings([
     ...resolution.proposalReview.warnings,
     ...(rejectedFields.some((field) => field.startsWith("categoryHypotheses"))
-      ? ["Category hypotheses with unknown, reused, or excess catalog category IDs were ignored."]
+      ? ["Category hypotheses must reference one or more known, unused catalog leaf category IDs; invalid hypotheses were ignored."]
       : []),
     ...(rejectedFields.some((field) => field.startsWith("scenarioHypotheses"))
       ? ["Scenario hypotheses with unknown or excess catalog category IDs were ignored."]
+      : []),
+    ...(omittedCategoryCount > 0
+      ? [`Category hypotheses omitted ${omittedCategoryCount} catalog ${omittedCategoryCount === 1 ? "category" : "categories"}; deterministic ProductSelection will restore ${omittedCategoryCount === 1 ? "it" : "them"} as ${omittedCategoryCount === 1 ? "a verified category group" : "verified category groups"}.`]
       : []),
   ]);
 
@@ -789,6 +799,7 @@ export function resolveTopicIntent(
 function topicIntentAgentRun(
   snapshot: YamiSearchSnapshot,
   intent: ThemeIntent,
+  language: ContentLanguage,
 ): TopicIntentAgentRun {
   return {
     schemaVersion: "topic-intent-agent-run/v1",
@@ -796,6 +807,7 @@ function topicIntentAgentRun(
     context: {
       keyword: snapshot.keyword,
       site: snapshot.site,
+      language,
       intent,
       categories: (snapshot.evidence?.categories ?? [])
         .filter(({ productCount }) => productCount > 0)
@@ -805,7 +817,7 @@ function topicIntentAgentRun(
           path: [...path],
           productCount,
         })),
-      representativeProducts: snapshot.products.slice(0, 24).map((product) => ({
+      representativeProducts: snapshot.products.map((product) => ({
         id: product.id,
         title: product.title,
         brand: product.brand,
@@ -847,7 +859,7 @@ export async function runTopicIntentAgentWorkflow(
   try {
     const proposal = parseSemanticProposal(
       await request.agent.proposeSemanticIntent(
-        topicIntentAgentRun(request.snapshot, request.intent),
+        topicIntentAgentRun(request.snapshot, request.intent, request.language),
       ),
     );
     const resolution = resolveTopicIntent(request.snapshot, proposal);

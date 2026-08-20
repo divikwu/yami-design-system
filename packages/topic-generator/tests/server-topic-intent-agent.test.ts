@@ -3,24 +3,25 @@ import { describe, expect, it, vi } from "vitest";
 import {
   handleTopicGeneratorPost,
   type CatalogSnapshotAdapter,
+  type HttpTopicPageAgent,
   type TopicIntentAgent,
 } from "../src/index.js";
 
-function catalogFixture() {
+function catalogFixture(productsPerCategory = 4) {
   const categories = [
     { id: "101", label: "Cleansers", path: ["Beauty", "Cleansers"] },
     { id: "102", label: "Toners", path: ["Beauty", "Toners"] },
     { id: "103", label: "Serums", path: ["Beauty", "Serums"] },
   ];
   const products = categories.flatMap((category, categoryIndex) =>
-    Array.from({ length: 4 }, (_, productIndex) => ({
+    Array.from({ length: productsPerCategory }, (_, productIndex) => ({
       id: `${category.id}-${productIndex + 1}`,
       title: `ANUA ${category.label} ${productIndex + 1}`,
       brand: "ANUA",
       price: "$19.99",
       imageUrl: `https://example.com/${category.id}-${productIndex + 1}.webp`,
       productUrl: `https://example.com/${category.id}-${productIndex + 1}`,
-      sourceRank: categoryIndex * 4 + productIndex + 1,
+      sourceRank: categoryIndex * productsPerCategory + productIndex + 1,
       categoryL3Id: Number(category.id),
       categoryL3Name: category.label,
     })),
@@ -35,12 +36,12 @@ function catalogFixture() {
       provider: "yami-catalog-search",
       products,
       evidence: {
-        brands: [{ id: "anua", label: "ANUA", aliases: ["ANUA"], resultCount: 12 }],
+        brands: [{ id: "anua", label: "ANUA", aliases: ["ANUA"], resultCount: products.length }],
         categories: categories.map((category) => ({
           ...category,
           aliases: [],
-          resultCount: 4,
-          productCount: 4,
+          resultCount: productsPerCategory,
+          productCount: productsPerCategory,
         })),
         attributes: [],
       },
@@ -68,10 +69,16 @@ function semanticProposal() {
         reason: "Cleansers are verified in the current catalog snapshot.",
       },
       {
-        label: "补水护理",
+        label: "补水爽肤",
         role: "pairing",
-        categoryIds: ["102", "103"],
-        reason: "Toners and serums are verified in the current catalog snapshot.",
+        categoryIds: ["102"],
+        reason: "Toners are a verified navigation category in the current catalog snapshot.",
+      },
+      {
+        label: "精华护理",
+        role: "pairing",
+        categoryIds: ["103"],
+        reason: "Serums are a verified navigation category in the current catalog snapshot.",
       },
     ],
     scenarioHypotheses: [
@@ -92,8 +99,229 @@ function semanticProposal() {
 }
 
 describe("Topic Generator automatic TopicIntent Agent integration", () => {
-  it("uses a reviewed semantic proposal for relevance module grouping", async () => {
+  it("returns an Agent-reviewed Hero when selection mode has a Topic Page Agent", async () => {
     const { adapter } = catalogFixture();
+    const proposeExecutionPlan = vi.fn<HttpTopicPageAgent["proposeExecutionPlan"]>(
+      async (run) => ({
+        schemaVersion: "landing-page-execution-plan-proposal/v1",
+        keyword: run.context.keyword,
+        site: run.context.site,
+        language: run.context.language,
+        themeIntentDigest: run.context.themeIntentDigest,
+        requestedPageTypeRef: run.context.requestedPageTypeRef,
+        requestedSelectionStrategyRef: run.context.requestedSelectionStrategyRef,
+        pageTypeRef: "landing-page/brand@2",
+        selectionStrategyRef: "relevance/intent-themes@3",
+        templateRef: "topic-landing/brand-relevance@1",
+        reason: "Use the registered relevance route for the resolved brand intent.",
+      }),
+    );
+    const proposeModuleMerchandising = vi.fn<HttpTopicPageAgent["proposeModuleMerchandising"]>(
+      async (run) => ({
+        schemaVersion: "module-merchandising-proposal/v1",
+        keyword: run.context.keyword,
+        site: run.context.site,
+        strategyRef: run.context.strategyRef,
+        templateRef: run.context.templateRef,
+        themeIntentDigest: run.context.themeIntentDigest,
+        productSelectionDigest: run.context.productSelectionDigest,
+        moduleOrder: [...run.context.moduleOrder],
+        modules: [
+          {
+            id: "hero",
+            visible: true,
+            shoppingGoal: "Introduce a representative ANUA routine",
+            reason: "Three distinct catalog types create a representative ANUA Hero.",
+            scenes: [],
+            assignments: [
+              { productId: "101-1", selectionReason: "Strong catalog anchor." },
+              { productId: "102-1", selectionReason: "Adds toner coverage." },
+              { productId: "103-1", selectionReason: "Adds serum coverage." },
+            ],
+          },
+          {
+            id: "shortcuts",
+            visible: true,
+            shoppingGoal: "Open verified category entry points",
+            reason: "Each accepted semantic group has one representative product.",
+            scenes: [],
+            assignments: [
+              {
+                groupId: "category-hypothesis-1",
+                productId: "101-2",
+                selectionReason: "Represents the verified cleanser group.",
+              },
+              {
+                groupId: "category-hypothesis-2",
+                productId: "102-3",
+                selectionReason: "Represents the verified toner group.",
+              },
+              {
+                groupId: "category-hypothesis-3",
+                productId: "103-3",
+                selectionReason: "Represents the verified serum group.",
+              },
+            ],
+          },
+          {
+            id: "start-here",
+            visible: true,
+            shoppingGoal: "Give shoppers a clear starting product",
+            reason: "A distinct toner supports the first step.",
+            scenes: [],
+            assignments: [{ productId: "102-2" }],
+          },
+          {
+            id: "popular-picks",
+            visible: true,
+            shoppingGoal: "Show a strong catalog pick",
+            reason: "A distinct serum provides a popular-pick slot.",
+            scenes: [],
+            assignments: [{ productId: "103-2" }],
+          },
+          {
+            id: "brand-spotlight",
+            visible: false,
+            shoppingGoal: "",
+            reason: "The compact selection does not need another brand rail.",
+            scenes: [],
+            assignments: [],
+          },
+          {
+            id: "reviews",
+            visible: false,
+            shoppingGoal: "",
+            reason: "No verified review evidence is available.",
+            scenes: [],
+            assignments: [],
+          },
+          {
+            id: "explore-more",
+            visible: true,
+            shoppingGoal: "Continue ANUA discovery",
+            reason: "A distinct catalog product extends discovery.",
+            scenes: [],
+            assignments: [{ productId: "101-3" }],
+          },
+        ],
+      }),
+    );
+    const response = await handleTopicGeneratorPost(
+      new Request("http://localhost/api/topic-generator", {
+        method: "POST",
+        body: JSON.stringify({
+          keyword: "ANUA",
+          mode: "selection",
+          strategy: "relevance",
+          language: "zh",
+        }),
+      }),
+      {
+        adapters: [adapter],
+        topicIntentAgent: {
+          id: "topic-intent-agent",
+          proposeSemanticIntent: async () => semanticProposal(),
+        },
+        topicPageAgent: {
+          id: "topic-page-agent",
+          proposeExecutionPlan,
+          proposeModuleMerchandising,
+        } as unknown as HttpTopicPageAgent,
+        requireAutomaticHeroReview: true,
+      },
+    );
+
+    const payload = await response.json();
+    expect(response.status, JSON.stringify(payload)).toBe(200);
+    expect(proposeExecutionPlan).toHaveBeenCalledOnce();
+    expect(proposeModuleMerchandising).toHaveBeenCalledOnce();
+    expect(proposeModuleMerchandising).toHaveBeenCalledWith(expect.objectContaining({
+      context: expect.objectContaining({ language: "zh" }),
+    }));
+    expect(payload.automation).toBeUndefined();
+    expect(payload.heroSelection).toMatchObject({
+      schemaVersion: "hero-selection-run/v1",
+      status: "ready",
+      source: "page-merchandising-agent",
+      agentId: "topic-page-agent",
+      templateRef: "topic-landing/brand-relevance@1",
+      productIds: ["101-1", "102-1", "103-1"],
+      moduleReason: "Three distinct catalog types create a representative ANUA Hero.",
+      productReasons: {
+        "101-1": "Strong catalog anchor.",
+        "102-1": "Adds toner coverage.",
+        "103-1": "Adds serum coverage.",
+      },
+    });
+    expect(payload.shortcutSelection).toMatchObject({
+      schemaVersion: "shortcut-selection-run/v1",
+      status: "ready",
+      source: "page-merchandising-agent",
+      agentId: "topic-page-agent",
+      assignments: [
+        {
+          groupId: "category-hypothesis-1",
+          productId: "101-2",
+          selectionReason: "Represents the verified cleanser group.",
+        },
+        {
+          groupId: "category-hypothesis-2",
+          productId: "102-3",
+          selectionReason: "Represents the verified toner group.",
+        },
+        {
+          groupId: "category-hypothesis-3",
+          productId: "103-3",
+          selectionReason: "Represents the verified serum group.",
+        },
+      ],
+      moduleReason: "Each accepted semantic group has one representative product.",
+    });
+    expect(payload.plans.zh.relevance.modules.find(
+      (module: { id: string }) => module.id === "hero",
+    )).toMatchObject({
+      productIds: ["101-1", "102-1", "103-1"],
+      reason: "Three distinct catalog types create a representative ANUA Hero.",
+    });
+    expect(payload.plans.zh.relevance.modules.find(
+      (module: { id: string }) => module.id === "shortcuts",
+    )).toMatchObject({
+      productIds: ["101-2", "102-3", "103-3"],
+      reason: "Each accepted semantic group has one representative product.",
+    });
+  });
+
+  it("labels the deterministic Hero as fallback when its Agent is unavailable", async () => {
+    const { adapter } = catalogFixture();
+    const response = await handleTopicGeneratorPost(
+      new Request("http://localhost/api/topic-generator", {
+        method: "POST",
+        body: JSON.stringify({ keyword: "ANUA", mode: "selection", strategy: "relevance" }),
+      }),
+      {
+        adapters: [adapter],
+        requireAutomaticHeroReview: true,
+      },
+    );
+
+    const payload = await response.json();
+    expect(response.status, JSON.stringify(payload)).toBe(200);
+    expect(payload.heroSelection).toMatchObject({
+      schemaVersion: "hero-selection-run/v1",
+      status: "fallback",
+      source: "deterministic-rules",
+      issues: ["Automatic module selection requires a Topic Page Agent."],
+    });
+    expect(payload.shortcutSelection).toMatchObject({
+      schemaVersion: "shortcut-selection-run/v1",
+      status: "fallback",
+      source: "deterministic-rules",
+      issues: ["Automatic module selection requires a Topic Page Agent."],
+    });
+  });
+
+  it("uses a reviewed semantic proposal for relevance module grouping", async () => {
+    const { adapter } = catalogFixture(10);
     const proposeSemanticIntent = vi.fn<TopicIntentAgent["proposeSemanticIntent"]>(
       async () => semanticProposal(),
     );
@@ -120,17 +348,20 @@ describe("Topic Generator automatic TopicIntent Agent integration", () => {
       status: "needs-semantic-proposal",
       context: expect.objectContaining({
         keyword: "ANUA",
+        language: "zh",
         categories: expect.arrayContaining([
-          expect.objectContaining({ id: "101", label: "Cleansers", productCount: 4 }),
+          expect.objectContaining({ id: "101", label: "Cleansers", productCount: 10 }),
         ]),
       }),
     }));
+    expect(proposeSemanticIntent.mock.calls[0]?.[0].context.representativeProducts)
+      .toHaveLength(30);
     expect(payload.runtime.topicIntent).toMatchObject({
       mode: "automatic",
       status: "ready",
       agent: { status: "ready", id: "topic-intent-agent" },
       proposalReview: { status: "accepted" },
-      categoryHypothesisCount: 2,
+      categoryHypothesisCount: 3,
       scenarioHypothesisCount: 2,
       issues: [],
     });
@@ -142,7 +373,8 @@ describe("Topic Generator automatic TopicIntent Agent integration", () => {
     );
     expect(shortcutModule.groups.map(({ label }: { label: string }) => label)).toEqual([
       "基础清洁",
-      "补水护理",
+      "补水爽肤",
+      "精华护理",
     ]);
     expect(startHereModule.groups.map(({ label }: { label: string }) => label)).toEqual([
       "日常基础护理",

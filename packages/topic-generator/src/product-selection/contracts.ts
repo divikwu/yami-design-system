@@ -158,6 +158,10 @@ export interface ProductSelectionModuleGroup {
   label: string;
   role?: ProductRole;
   productIds: string[];
+  /** Frozen catalog leaf categories that define this navigation group. */
+  sourceCategoryIds?: string[];
+  /** Reviewable category rationale supplied by TopicIntent, not product-selection rationale. */
+  classificationReason?: string;
 }
 
 export interface ProductSelectionRequest {

@@ -172,6 +172,18 @@ export function reviewModuleMerchandisingProposal(
     const selectionModule = preserveModuleAssignments && DETERMINISTIC_SELECTION_MODULE_IDS.has(id)
       ? selectionModulesById.get(id)
       : undefined;
+    const shortcutSelectionModule = id === "shortcuts"
+      ? selectionModulesById.get("shortcuts")
+      : undefined;
+    const shortcutGroupsById = new Map(
+      (shortcutSelectionModule?.groups ?? []).map((group) => [group.id, group]),
+    );
+    const minimumProducts = id === "shortcuts" && shortcutGroupsById.size > 0
+      ? shortcutGroupsById.size
+      : rule.minimumProducts;
+    const maximumProducts = id === "shortcuts"
+      ? shortcutGroupsById.size > 0 ? shortcutGroupsById.size : selection.products.length
+      : rule.maximumProducts;
 
     const rawScenes = Array.isArray(module.scenes) ? module.scenes : [];
     if (!Array.isArray(module.scenes)) issues.push(`Module ${id} scenes must be an array.`);
@@ -216,17 +228,25 @@ export function reviewModuleMerchandisingProposal(
       issues.push(`Hidden module ${id} cannot contain scenes or product assignments.`);
     }
     if (visible && (
-      rawAssignments.length < rule.minimumProducts ||
-      rawAssignments.length > rule.maximumProducts
+      rawAssignments.length < minimumProducts ||
+      rawAssignments.length > maximumProducts
     )) {
       issues.push(
-        `Module ${id} must assign ${rule.minimumProducts}-${rule.maximumProducts} products when visible.`,
+        `Module ${id} must assign ${minimumProducts}-${maximumProducts} products when visible.`,
+      );
+    }
+    if (visible && shortcutGroupsById.size > 0 && rawAssignments.length !== shortcutGroupsById.size) {
+      issues.push(
+        `Module shortcuts must assign exactly one representative for each of ${shortcutGroupsById.size} ProductSelection groups.`,
       );
     }
 
     const assignments: PageMerchandisingAssignmentProposal[] = [];
     const nonSceneProductIds = new Set<string>();
     const productIdsByScene = new Map<string, Set<string>>();
+    const heroImageKeys = new Set<string>();
+    const shortcutImageKeys = new Set<string>();
+    const assignedShortcutGroupIds = new Set<string>();
     rawAssignments.forEach((rawAssignment, assignmentIndex) => {
       const assignment = objectValue(rawAssignment);
       if (!assignment) {
@@ -234,8 +254,27 @@ export function reviewModuleMerchandisingProposal(
         return;
       }
       const productId = stringValue(assignment.productId);
+      const groupId = stringValue(assignment.groupId) || undefined;
       const sceneId = stringValue(assignment.sceneId) || undefined;
       const reuseReason = stringValue(assignment.reuseReason) || undefined;
+      const selectionReason = stringValue(assignment.selectionReason) || undefined;
+      if (id === "hero" && !selectionReason) {
+        issues.push(`Hero assignment ${productId || assignmentIndex} requires selectionReason.`);
+      }
+      if (id === "shortcuts" && shortcutGroupsById.size > 0) {
+        if (!groupId) {
+          issues.push(`Shortcut assignment ${productId || assignmentIndex} requires groupId.`);
+        } else if (!shortcutGroupsById.has(groupId)) {
+          issues.push(`Shortcut assignment references unknown ProductSelection group ${groupId}.`);
+        } else if (assignedShortcutGroupIds.has(groupId)) {
+          issues.push(`Shortcut group ${groupId} is assigned more than once.`);
+        } else {
+          assignedShortcutGroupIds.add(groupId);
+        }
+        if (!selectionReason) {
+          issues.push(`Shortcut assignment ${productId || assignmentIndex} requires selectionReason.`);
+        }
+      }
       const product = productsById.get(productId);
       if (!product) {
         issues.push(`Product ${productId || assignmentIndex} is absent from ProductSelectionResult.`);
@@ -249,6 +288,26 @@ export function reviewModuleMerchandisingProposal(
         }
         if (!rule.allowedRoles.includes(product.role as ProductRole)) {
           issues.push(`Product ${productId} cannot fill the ${product.role} role in module ${id}.`);
+        }
+        if (id === "hero") {
+          const imageKey = product.imageUrl.trim().split(/[?#]/, 1)[0] ?? "";
+          if (imageKey && heroImageKeys.has(imageKey)) {
+            issues.push("Hero cannot assign more than one product with the same source image.");
+          } else if (imageKey) {
+            heroImageKeys.add(imageKey);
+          }
+        }
+        if (id === "shortcuts" && shortcutGroupsById.size > 0) {
+          const group = groupId ? shortcutGroupsById.get(groupId) : undefined;
+          if (group && !group.productIds.includes(productId)) {
+            issues.push(`Product ${productId} does not belong to shortcut group ${group.id}.`);
+          }
+          const imageKey = product.imageUrl.trim().split(/[?#]/, 1)[0] ?? "";
+          if (imageKey && shortcutImageKeys.has(imageKey)) {
+            issues.push("Shortcuts cannot assign more than one representative with the same source image.");
+          } else if (imageKey) {
+            shortcutImageKeys.add(imageKey);
+          }
         }
         if (selectionModule && !selectionModule.productIds.includes(productId)) {
           issues.push(`Product ${productId} is not assigned to module ${id} by ProductSelectionResult.`);
@@ -298,8 +357,27 @@ export function reviewModuleMerchandisingProposal(
         }
       }
       if (!firstModule) firstModuleByProduct.set(productId, id);
-      if (productId) assignments.push({ productId, ...(sceneId ? { sceneId } : {}), ...(reuseReason ? { reuseReason } : {}) });
+      if (productId) assignments.push({
+        productId,
+        ...(groupId ? { groupId } : {}),
+        ...(sceneId ? { sceneId } : {}),
+        ...(reuseReason ? { reuseReason } : {}),
+        ...(selectionReason ? { selectionReason } : {}),
+      });
     });
+    if (visible && shortcutGroupsById.size > 0) {
+      shortcutGroupsById.forEach((_group, groupId) => {
+        if (!assignedShortcutGroupIds.has(groupId)) {
+          issues.push(`Shortcut group ${groupId} has no representative assignment.`);
+        }
+      });
+      if (!exactOrder(
+        assignments.flatMap(({ groupId }) => groupId ? [groupId] : []),
+        [...shortcutGroupsById.keys()],
+      )) {
+        issues.push("Module shortcuts must preserve ProductSelection group order.");
+      }
+    }
     scenes.forEach((scene) => {
       const assignedProductIds = assignments
         .filter((assignment) => assignment.sceneId === scene.id)

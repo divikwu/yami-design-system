@@ -20,6 +20,10 @@ export interface RelevanceStrategyConfig extends ProductSelectionStrategyConfigB
   themeCollections?: {
     minimumThemes: number;
     maximumThemes: number;
+    /** `null` lets verified category navigation follow every accepted catalog group. */
+    maximumShortcutThemes?: number | null;
+    /** Category navigation keeps even a one-product verified group. */
+    minimumShortcutProducts?: number;
     minimumProducts: number;
     maximumProducts: number;
   };
@@ -90,12 +94,14 @@ const RELEVANCE_INTENT_THEMES = {
   engine: "relevance",
   label: { en: "Intent-backed themes", zh: "意图主题匹配" },
   description: {
-    en: "Builds two to six catalog-backed themes from ThemeIntent while preserving Yami order within each theme.",
-    zh: "使用 ThemeIntent 构建 2–6 个目录证据主题，并保留每个主题内的 Yami 顺序。",
+    en: "Builds catalog-backed category navigation from ThemeIntent while preserving Yami order within each group.",
+    zh: "使用 ThemeIntent 构建目录证据分类导航，并保留每个分组内的 Yami 顺序。",
   },
   themeCollections: {
     minimumThemes: 2,
     maximumThemes: 6,
+    maximumShortcutThemes: null,
+    minimumShortcutProducts: 1,
     minimumProducts: 4,
     maximumProducts: 8,
   },
@@ -116,6 +122,8 @@ const RELEVANCE_SEMANTIC_INTENT_THEMES = {
   themeCollections: {
     minimumThemes: 2,
     maximumThemes: 6,
+    maximumShortcutThemes: null,
+    minimumShortcutProducts: 1,
     minimumProducts: 4,
     maximumProducts: 8,
   },

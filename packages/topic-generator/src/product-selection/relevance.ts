@@ -135,13 +135,14 @@ interface SemanticGroupSource {
   label: string;
   role: ProductRole;
   categoryIds: string[];
+  classificationReason?: string;
 }
 
 function compileSemanticGroups(
   products: YamiProduct[],
   sources: SemanticGroupSource[],
   minimumProducts: number,
-  maximumThemes: number,
+  maximumThemes: number | undefined,
   maximumProducts?: number,
 ) {
   const assigned = new Set<string>();
@@ -149,7 +150,7 @@ function compileSemanticGroups(
   const categoryIds = new Set<string>();
 
   for (const source of sources) {
-    if (groups.length >= maximumThemes) break;
+    if (maximumThemes !== undefined && groups.length >= maximumThemes) break;
     const sourceCategoryIds = new Set(source.categoryIds);
     const candidates = products
       .filter((product) =>
@@ -175,6 +176,67 @@ function compileSemanticGroups(
   return { groups, categoryIds };
 }
 
+function completeShortcutCoverage(
+  products: YamiProduct[],
+  result: ReturnType<typeof compileSemanticGroups>,
+) {
+  const assignedIds = new Set(result.groups.flatMap(({ productIds }) => productIds));
+  const unassignedProducts = products.filter(({ id }) => !assignedIds.has(id));
+  if (unassignedProducts.length === 0) return result;
+
+  return {
+    groups: [
+      ...result.groups,
+      {
+        id: "theme-more-to-explore",
+        label: "More to Explore",
+        role: "core" as const,
+        productIds: unassignedProducts.map(({ id }) => id),
+        sourceCategoryIds: [],
+      },
+    ],
+    categoryIds: result.categoryIds,
+  };
+}
+
+function withShortcutClassification(
+  result: ReturnType<typeof compileSemanticGroups>,
+  sources: SemanticGroupSource[],
+) {
+  const sourcesById = new Map(sources.map((source) => [source.id, source]));
+  return {
+    ...result,
+    groups: result.groups.map((group) => {
+      const source = sourcesById.get(group.id);
+      return source
+        ? {
+            ...group,
+            sourceCategoryIds: [...source.categoryIds],
+            ...(source.classificationReason
+              ? { classificationReason: source.classificationReason }
+              : {}),
+          }
+        : group;
+    }),
+  };
+}
+
+function assertCompleteShortcutCoverage(
+  products: YamiProduct[],
+  groups: ProductSelectionModuleGroup[],
+) {
+  const expectedIds = new Set(products.map(({ id }) => id));
+  const groupedIds = groups.flatMap(({ productIds }) => productIds);
+  const uniqueGroupedIds = new Set(groupedIds);
+  if (
+    groupedIds.length !== expectedIds.size ||
+    uniqueGroupedIds.size !== expectedIds.size ||
+    groupedIds.some((id) => !expectedIds.has(id))
+  ) {
+    throw new Error("Shortcuts must assign every PrimaryPool product to exactly one group.");
+  }
+}
+
 function semanticIntentThemeSelection(
   products: YamiProduct[],
   snapshot: YamiSearchSnapshot,
@@ -190,14 +252,26 @@ function semanticIntentThemeSelection(
     role: "core",
     categoryIds: [category.id],
   }));
-  const categorySources: SemanticGroupSource[] = (intent.categoryHypotheses ?? []).map(
-    (hypothesis, index) => ({
-      id: `category-hypothesis-${index + 1}`,
-      label: hypothesis.label,
-      role: hypothesis.role,
-      categoryIds: hypothesis.categoryIds,
-    }),
+  const categorySources: SemanticGroupSource[] = (intent.categoryHypotheses ?? []).flatMap(
+    (hypothesis, index) => hypothesis.categoryIds.length > 0
+      ? [{
+          id: `category-hypothesis-${index + 1}`,
+          label: hypothesis.label,
+          role: hypothesis.role,
+          categoryIds: hypothesis.categoryIds,
+          classificationReason: hypothesis.reason,
+        }]
+      : [],
   );
+  const proposedCategoryIds = new Set(categorySources.flatMap(({ categoryIds }) => categoryIds));
+  const completeCategorySources = categorySources.length > 0
+    ? [
+        ...categorySources,
+        ...catalogSources.filter(({ categoryIds }) =>
+          categoryIds.some((categoryId) => !proposedCategoryIds.has(categoryId))
+        ),
+      ]
+    : [];
   const scenarioSources: SemanticGroupSource[] = (intent.scenarioHypotheses ?? []).map(
     (hypothesis, index) => ({
       id: `scenario-hypothesis-${index + 1}`,
@@ -206,11 +280,21 @@ function semanticIntentThemeSelection(
       categoryIds: hypothesis.categoryIds,
     }),
   );
-  const proposedShortcuts = compileSemanticGroups(
+  const shortcutMinimumProducts = policy.minimumShortcutProducts ?? policy.minimumProducts;
+  const shortcutMaximumThemes = policy.maximumShortcutThemes === null
+    ? undefined
+    : policy.maximumShortcutThemes ?? policy.maximumThemes;
+  const proposedShortcuts = completeShortcutCoverage(
     products,
-    categorySources,
-    policy.minimumProducts,
-    policy.maximumThemes,
+    withShortcutClassification(
+      compileSemanticGroups(
+        products,
+        completeCategorySources,
+        shortcutMinimumProducts,
+        shortcutMaximumThemes,
+      ),
+      completeCategorySources,
+    ),
   );
   const proposedStartHere = compileSemanticGroups(
     products,
@@ -219,11 +303,17 @@ function semanticIntentThemeSelection(
     policy.maximumThemes,
     policy.maximumProducts,
   );
-  const fallbackShortcuts = compileSemanticGroups(
+  const fallbackShortcuts = completeShortcutCoverage(
     products,
-    catalogSources,
-    policy.minimumProducts,
-    policy.maximumThemes,
+    withShortcutClassification(
+      compileSemanticGroups(
+        products,
+        catalogSources,
+        shortcutMinimumProducts,
+        shortcutMaximumThemes,
+      ),
+      catalogSources,
+    ),
   );
   const fallbackStartHere = compileSemanticGroups(
     products,
@@ -237,11 +327,11 @@ function semanticIntentThemeSelection(
     : fallbackShortcuts;
   const startHere = proposedStartHere.groups.length >= policy.minimumThemes
     ? proposedStartHere
-    : fallbackStartHere;
-  if (
-    shortcuts.groups.length < policy.minimumThemes ||
-    startHere.groups.length < policy.minimumThemes
-  ) return null;
+    : fallbackStartHere.groups.length >= policy.minimumThemes
+      ? fallbackStartHere
+      : { groups: [], categoryIds: new Set<string>() };
+  if (shortcuts.groups.length < policy.minimumThemes) return null;
+  assertCompleteShortcutCoverage(products, shortcuts.groups);
 
   const selectedCategoryIds = new Set([
     ...shortcuts.categoryIds,

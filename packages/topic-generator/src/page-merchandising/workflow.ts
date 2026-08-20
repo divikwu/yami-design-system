@@ -1,5 +1,5 @@
 import type { ProductSelectionResult } from "../product-selection/contracts.js";
-import type { ThemeIntent } from "../types.js";
+import type { ContentLanguage, ThemeIntent } from "../types.js";
 import type {
   ModuleMerchandisingProposal,
   PageMerchandisingRun,
@@ -20,6 +20,7 @@ export interface PageMerchandisingAgent {
 export interface PageMerchandisingAgentWorkflowRequest {
   intent: ThemeIntent;
   selection: ProductSelectionResult;
+  language?: ContentLanguage;
   templateRef: TopicPageTemplateRef;
   agent: PageMerchandisingAgent;
   proposal?: unknown;
@@ -40,6 +41,7 @@ export async function runPageMerchandisingAgentWorkflow(
   let run = advancePageMerchandisingRun({
     intent: request.intent,
     selection: request.selection,
+    language: request.language,
     templateRef: request.templateRef,
     proposal,
   });
@@ -48,6 +50,7 @@ export async function runPageMerchandisingAgentWorkflow(
     run = advancePageMerchandisingRun({
       intent: request.intent,
       selection: request.selection,
+      language: request.language,
       templateRef: request.templateRef,
       proposal,
     });

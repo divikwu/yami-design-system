@@ -255,6 +255,8 @@ export interface TopicGroup {
   label: string;
   role: ProductRole;
   productIds: string[];
+  sourceCategoryIds?: string[];
+  classificationReason?: string;
 }
 
 export interface TopicCategorySelection {
@@ -283,6 +285,8 @@ export interface TopicModulePlan {
   required: boolean;
   visible: boolean;
   productIds: string[];
+  /** Reviewable, module-specific rationale for selected products. */
+  productReasons?: Record<string, string>;
   /** Module-owned semantic grouping. Falls back to PagePlan groups when absent. */
   groups?: TopicGroup[];
   reason: string;

@@ -103,9 +103,10 @@ describe("TopicGenerator result navigation", () => {
         sourceRank: index + 1,
       })),
     };
-    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      Response.json({ plans: buildTopicPagePlanMatrix(snapshot, "selection") }),
-    );
+    const plans = buildTopicPagePlanMatrix(snapshot, "selection");
+    expect(plans.zh.relevance.modules.find(({ id }) => id === "shortcuts")?.reason)
+      .toBe("按全部可识别商品类型生成 3 个分类入口；每个入口使用一件代表商品。");
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({ plans }));
 
     await act(async () => root.render(<TopicGenerator />));
     const button = (label: string) => [...container.querySelectorAll<HTMLButtonElement>("button")]
@@ -131,6 +132,9 @@ describe("TopicGenerator result navigation", () => {
     expect(preview).not.toBeNull();
     expect(preview?.textContent).toContain("文案与场景图未生成");
     expect(preview?.textContent).toContain("精选分类");
+    expect(preview?.textContent).toContain(
+      "3 个分类入口已按主题语义与商品归属生成；代表商品等待 Page Merchandising Agent 复核",
+    );
     const startHereThemes = preview?.querySelectorAll("[data-start-here-theme]");
     expect(startHereThemes).toHaveLength(3);
     expect(startHereThemes?.[0]?.textContent).toContain("洁面");
@@ -145,6 +149,157 @@ describe("TopicGenerator result navigation", () => {
       mode: "selection",
       strategy: "relevance",
     });
+  });
+
+  it("presents an Agent-reviewed Hero as the completed selection result", async () => {
+    const snapshot: YamiSearchSnapshot = {
+      keyword: "ANUA",
+      site: "us",
+      sourceUrl: buildYamiSearchUrl("ANUA"),
+      fetchedAt: "2026-08-20T00:00:00.000Z",
+      products: [1, 2, 3, 4].map((rank) => ({
+        id: `anua-${rank}`,
+        title: `ANUA Product ${rank}`,
+        brand: "ANUA",
+        price: "$19.99",
+        imageUrl: `https://cdn.yamibuy.net/item/anua-${rank}.webp`,
+        productUrl: `https://www.yami.com/us/en/p/anua-${rank}`,
+        sourceRank: rank,
+      })),
+    };
+    const plans = buildTopicPagePlanMatrix(snapshot, "selection");
+    const hero = plans.zh.relevance.modules.find(({ id }) => id === "hero")!;
+    hero.productIds = ["anua-1", "anua-3", "anua-4"];
+    hero.reason = "Agent selected a representative three-product ANUA composition.";
+    hero.productReasons = {
+      "anua-1": "Strong catalog anchor",
+      "anua-3": "Adds treatment coverage",
+      "anua-4": "Adds hydration coverage",
+    };
+    const shortcuts = plans.zh.relevance.modules.find(({ id }) => id === "shortcuts")!;
+    shortcuts.visible = true;
+    shortcuts.productIds = ["anua-1", "anua-3"];
+    shortcuts.groups = [
+      {
+        id: "group-cleansing",
+        label: "基础清洁",
+        role: "core",
+        productIds: ["anua-1", "anua-2", "anua-3"],
+        sourceCategoryIds: ["101", "102"],
+        classificationReason: "帮助用户找到日常洁面商品。",
+      },
+      {
+        id: "group-care",
+        label: "集中护理",
+        role: "pairing",
+        productIds: ["anua-4"],
+        sourceCategoryIds: ["102"],
+        classificationReason: "帮助用户找到针对性护理商品。",
+      },
+    ];
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({
+      plans,
+      selectionRuns: { relevance: { status: "ready" } },
+      heroSelection: {
+        schemaVersion: "hero-selection-run/v1",
+        status: "ready",
+        source: "page-merchandising-agent",
+        agentId: "topic-strategy",
+        templateRef: "topic-landing/brand-relevance@1",
+        planDigest: `sha256:${"a".repeat(64)}`,
+        productIds: ["anua-1", "anua-3", "anua-4"],
+        productReasons: hero.productReasons,
+        moduleReason: hero.reason,
+      },
+      shortcutSelection: {
+        schemaVersion: "shortcut-selection-run/v1",
+        status: "ready",
+        source: "page-merchandising-agent",
+        agentId: "topic-strategy",
+        templateRef: "topic-landing/brand-relevance@1",
+        planDigest: `sha256:${"b".repeat(64)}`,
+        assignments: [
+          {
+            groupId: "group-cleansing",
+            productId: "anua-2",
+            selectionReason: "代表基础清洁分类。",
+          },
+          {
+            groupId: "group-care",
+            productId: "anua-4",
+            selectionReason: "代表集中护理分类。",
+          },
+        ],
+        moduleReason: "Agent reviewed each semantic category representative.",
+      },
+    }));
+
+    await act(async () => root.render(<TopicGenerator />));
+    const select = [...container.querySelectorAll<HTMLButtonElement>("button")]
+      .find((candidate) => candidate.textContent === "选品")!;
+    await act(async () => select.click());
+
+    const preview = container.querySelector('[data-preview-mode="selection"]');
+    expect(preview?.textContent).toContain("Hero 选品完成 · 3 件商品");
+    expect(preview?.textContent).toContain("Page Merchandising Agent 已复核组合");
+    expect(preview?.textContent).toContain("Adds treatment coverage");
+    expect(preview?.textContent).toContain(
+      "2 个分类入口已按主题语义与商品归属生成；2 件代表商品已由 Page Merchandising Agent 复核",
+    );
+    expect(preview?.textContent).toContain(
+      "“基础清洁”覆盖 3/4 件商品，分类范围较宽，建议复核是否存在可验证子分类",
+    );
+    expect(preview?.textContent).not.toContain("必须恢复为一类一入口");
+    expect(preview?.textContent).toContain("帮助用户找到日常洁面商品");
+    expect(preview?.textContent).not.toContain("代表基础清洁分类");
+    expect(preview?.querySelectorAll("[data-shortcut-group]")).toHaveLength(2);
+    expect(preview?.querySelector('[data-shortcut-group="group-cleansing"] img')
+      ?.getAttribute("src")).toContain("anua-2.webp");
+    expect(preview?.querySelector('[data-shortcut-group="group-care"] img')
+      ?.getAttribute("src")).toContain("anua-4.webp");
+    expect(preview?.querySelector('a[href^="#group-"]')).toBeNull();
+    expect(preview?.textContent).not.toContain("临时预选");
+    expect(container.textContent).toContain("模块选品Agent 已复核");
+  });
+
+  it("labels deterministic Hero output as a visible fallback", async () => {
+    const snapshot: YamiSearchSnapshot = {
+      keyword: "ANUA",
+      site: "us",
+      sourceUrl: buildYamiSearchUrl("ANUA"),
+      fetchedAt: "2026-08-20T00:00:00.000Z",
+      products: [1, 2, 3].map((rank) => ({
+        id: `anua-${rank}`,
+        title: `ANUA Product ${rank}`,
+        brand: "ANUA",
+        price: "$19.99",
+        imageUrl: `https://cdn.yamibuy.net/item/anua-${rank}.webp`,
+        productUrl: `https://www.yami.com/us/en/p/anua-${rank}`,
+        sourceRank: rank,
+      })),
+    };
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({
+      plans: buildTopicPagePlanMatrix(snapshot, "selection"),
+      selectionRuns: { relevance: { status: "ready" } },
+      heroSelection: {
+        schemaVersion: "hero-selection-run/v1",
+        status: "fallback",
+        source: "deterministic-rules",
+        productIds: ["anua-1", "anua-2", "anua-3"],
+        productReasons: {},
+        issues: ["Automatic Hero selection requires a Topic Page Agent."],
+      },
+    }));
+
+    await act(async () => root.render(<TopicGenerator />));
+    const select = [...container.querySelectorAll<HTMLButtonElement>("button")]
+      .find((candidate) => candidate.textContent === "选品")!;
+    await act(async () => select.click());
+
+    const preview = container.querySelector('[data-preview-mode="selection"]');
+    expect(preview?.textContent).toContain("Hero 规则预选 · 3 件商品");
+    expect(preview?.textContent).toContain("Agent 复核暂不可用");
+    expect(container.textContent).toContain("模块选品规则预选");
   });
 
   it("renders module-owned semantic groups instead of reconstructing raw catalog categories", async () => {
@@ -211,17 +366,79 @@ describe("TopicGenerator result navigation", () => {
       .find((candidate) => candidate.textContent === "选品")!;
     await act(async () => select.click());
 
-    expect(container.querySelector('a[href="#group-category-hypothesis-1"]')?.textContent)
+    expect(container.querySelector('[data-shortcut-group="category-hypothesis-1"]')?.textContent)
       .toContain("日常基础");
-    expect(container.querySelector('a[href="#group-category-hypothesis-2"]')?.textContent)
+    expect(container.querySelector('[data-shortcut-group="category-hypothesis-2"]')?.textContent)
       .toContain("集中护理");
+    expect(container.querySelector('a[href^="#group-category-hypothesis-"]')).toBeNull();
     expect(
       [...container.querySelectorAll("[data-start-here-theme]")].map((theme) =>
         theme.querySelector("h4")?.textContent
       ),
     ).toEqual(["晨间流程", "晚间流程"]);
     expect(container.querySelector('[data-preview-mode="selection"]')?.textContent)
-      .toContain("Agent 已复核分类与场景");
+      .toContain("Hero 预选");
+    expect(container.querySelector('[data-preview-mode="selection"]')?.textContent)
+      .toContain("正式组合复核尚未完成");
+  });
+
+  it("uses every Shortcut as a directory link to the matching recommendation tab", async () => {
+    const products = Array.from({ length: 14 }, (_, index) => ({
+      id: `navigation-${index + 1}`,
+      title: `ANUA Product ${index + 1}`,
+      brand: "ANUA",
+      price: "$19.99",
+      imageUrl: `https://cdn.yamibuy.net/item/navigation-${index + 1}.webp`,
+      productUrl: `https://www.yami.com/us/en/p/navigation-${index + 1}`,
+      sourceRank: index + 1,
+    }));
+    const snapshot: YamiSearchSnapshot = {
+      keyword: "ANUA",
+      site: "us",
+      sourceUrl: buildYamiSearchUrl("ANUA"),
+      fetchedAt: "2026-08-20T00:00:00.000Z",
+      products,
+    };
+    const plans = buildTopicPagePlanMatrix(snapshot, "selection");
+    const groups = Array.from({ length: 7 }, (_, index) => ({
+      id: `navigation-group-${index + 1}`,
+      label: `分类 ${index + 1}`,
+      role: "core" as const,
+      productIds: [`navigation-${index * 2 + 1}`, `navigation-${index * 2 + 2}`],
+    }));
+    plans.zh.relevance.modules = plans.zh.relevance.modules.map((module) =>
+      module.id === "shortcuts"
+        ? {
+            ...module,
+            visible: true,
+            groups,
+            productIds: groups.map(({ productIds }) => productIds[0]!),
+          }
+        : module.id === "explore-more"
+          ? { ...module, visible: true, groups, productIds: products.map(({ id }) => id) }
+          : module
+    );
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({ plans }));
+
+    await act(async () => root.render(<TopicGenerator />));
+    const select = [...container.querySelectorAll<HTMLButtonElement>("button")]
+      .find((candidate) => candidate.textContent === "选品")!;
+    await act(async () => select.click());
+
+    const shortcutLinks = container.querySelectorAll<HTMLAnchorElement>(
+      '[data-shortcut-group][href="#explore-more"]',
+    );
+    expect(shortcutLinks).toHaveLength(7);
+    const recommendationTabs = container.querySelectorAll<HTMLButtonElement>(
+      '#explore-more [role="tab"]',
+    );
+    expect(recommendationTabs).toHaveLength(7);
+
+    await act(async () => shortcutLinks[6]!.click());
+
+    expect(recommendationTabs[6]?.getAttribute("aria-selected")).toBe("true");
+    expect(container.querySelector('#explore-more [role="tabpanel"]')?.textContent)
+      .toContain("ANUA Product 13");
   });
 
   it("explains the five-Agent and seven-Skill architecture inside the workflow", async () => {
@@ -639,8 +856,9 @@ describe("TopicGenerator result navigation", () => {
     expect(distributionPreview).not.toBeNull();
     expect(distributionPreview?.textContent).toContain("HERO · 商品分布");
     expect(distributionPreview?.textContent).toContain(
-      "已预选 1 件商品；正式生成时由 Agent 复核商品组合。",
+      "Hero 选品完成 · 1 件商品；Page Merchandising Agent 已复核组合",
     );
+    expect(distributionPreview?.textContent).toContain("主商品池首位锚点");
     expect(distributionPreview?.textContent).not.toContain("探索 Matcha");
     expect(distributionPreview?.textContent).not.toContain("真实生成的抹茶主题");
 
