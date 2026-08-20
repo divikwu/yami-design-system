@@ -10,6 +10,7 @@ import type {
   ProductSelectionRequest,
   ProductSelectionRun,
 } from "./contracts.js";
+import { reviewProductSemanticProposal } from "./product-semantic.js";
 import { selectByRelevance } from "./relevance.js";
 
 export function advanceProductSelectionRun(
@@ -17,10 +18,62 @@ export function advanceProductSelectionRun(
 ): ProductSelectionRun {
   const config = getProductSelectionStrategyConfig(request.strategyRef);
   if (config.engine === "relevance") {
+    const baseline = selectByRelevance(request.snapshot, config);
+    const policy = config.themeCollections;
+    const shortcutGroups = baseline.modules.find(({ id }) => id === "shortcuts")?.groups ?? [];
+    const primaryProducts = baseline.products
+      .filter(({ pool }) => pool === "primary")
+      .map(({ pool: _pool, role: _role, ...product }) => product);
+    const needsProductSemantics = Boolean(
+      config.productSemanticGrouping &&
+      policy &&
+      shortcutGroups.length < policy.minimumThemes &&
+      primaryProducts.length >= policy.minimumThemes * policy.minimumProducts,
+    );
+    if (needsProductSemantics && request.productSemanticProposal === undefined && policy) {
+      return {
+        schemaVersion: "product-selection-run/v1",
+        status: "needs-product-semantic-proposal",
+        strategyRef: config.ref,
+        context: {
+          keyword: request.snapshot.keyword,
+          language: request.language ?? "en",
+          minimumGroups: policy.minimumThemes,
+          maximumScenes: policy.maximumThemes,
+          minimumProductsPerScene: policy.minimumProducts,
+          maximumProductsPerScene: policy.maximumProducts,
+          products: primaryProducts,
+        },
+      };
+    }
+    if (needsProductSemantics && request.productSemanticProposal !== null) {
+      const productSemanticProposalReview = reviewProductSemanticProposal(
+        request.productSemanticProposal,
+        request.snapshot.keyword,
+        primaryProducts,
+        config,
+        request.language ?? "en",
+      );
+      if (productSemanticProposalReview.status === "rejected") {
+        return {
+          schemaVersion: "product-selection-run/v1",
+          status: "blocked",
+          strategyRef: config.ref,
+          productSemanticProposalReview,
+          issues: productSemanticProposalReview.issues,
+        };
+      }
+      return {
+        schemaVersion: "product-selection-run/v1",
+        status: "ready",
+        productSemanticProposalReview,
+        result: selectByRelevance(request.snapshot, config, productSemanticProposalReview),
+      };
+    }
     return {
       schemaVersion: "product-selection-run/v1",
       status: "ready",
-      result: selectByRelevance(request.snapshot, config),
+      result: baseline,
     };
   }
 

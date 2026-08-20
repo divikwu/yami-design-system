@@ -44,9 +44,11 @@ export interface TopicGeneratorCliOptions {
   selectionStrategy: ProductSelectionStrategyRef | "";
   taxonomyPath: string;
   taxonomyTsvPath: string;
+  productSemanticProposalPath: string;
   categoryProposalPath: string;
   candidateSnapshotPath: string;
   sceneProposalPath: string;
+  selectionLanguage: ContentLanguage | "";
   pageTemplateRef: TopicPageTemplateRef | "";
   moduleProposalPath: string;
   contentLanguage: ContentLanguage | "";
@@ -79,9 +81,11 @@ Options:
   --selection-strategy  Versioned ProductSelection config ref
   --taxonomy            CatalogTaxonomySnapshot JSON for category-role
   --taxonomy-tsv        LandingPageAgent category TSV; imported and digest-bound
+  --product-semantic-proposal  ProductSemanticProposal JSON for in-category grouping
   --category-proposal   CategoryRoleProposal JSON from the product Agent
   --candidate-snapshot  CatalogCandidateSnapshot JSON from a previous run
   --scene-proposal      SceneProposal JSON from the product Agent
+  --selection-language  Product-semantic label language: en or zh
   --page-template       Versioned PageMerchandising template ref
   --module-proposal     ModuleMerchandisingProposal JSON from the Topic Generator Agent
   --content-language    Content language: en or zh
@@ -103,9 +107,11 @@ export function parseTopicGeneratorCliArgs(args: string[]): TopicGeneratorCliOpt
   let selectionStrategy: ProductSelectionStrategyRef | "" = "";
   let taxonomyPath = "";
   let taxonomyTsvPath = "";
+  let productSemanticProposalPath = "";
   let categoryProposalPath = "";
   let candidateSnapshotPath = "";
   let sceneProposalPath = "";
+  let selectionLanguage: ContentLanguage | "" = "";
   let pageTemplateRef: TopicPageTemplateRef | "" = "";
   let moduleProposalPath = "";
   let contentLanguage: ContentLanguage | "" = "";
@@ -131,12 +137,13 @@ export function parseTopicGeneratorCliArgs(args: string[]): TopicGeneratorCliOpt
       }
       keyword = value;
       index += 1;
-    } else if (argument === "--content-language") {
+    } else if (argument === "--selection-language" || argument === "--content-language") {
       const value = args[index + 1];
       if (value !== "en" && value !== "zh") {
-        throw new TopicGeneratorCliError("--content-language must be en or zh.");
+        throw new TopicGeneratorCliError(`${argument} must be en or zh.`);
       }
-      contentLanguage = value;
+      if (argument === "--selection-language") selectionLanguage = value;
+      else contentLanguage = value;
       index += 1;
     } else if (argument === "--visual-production-mode") {
       const value = args[index + 1];
@@ -155,6 +162,7 @@ export function parseTopicGeneratorCliArgs(args: string[]): TopicGeneratorCliOpt
       "--selection-strategy",
       "--taxonomy",
       "--taxonomy-tsv",
+      "--product-semantic-proposal",
       "--category-proposal",
       "--candidate-snapshot",
       "--scene-proposal",
@@ -173,6 +181,9 @@ export function parseTopicGeneratorCliArgs(args: string[]): TopicGeneratorCliOpt
         selectionStrategy = value as ProductSelectionStrategyRef;
       } else if (argument === "--taxonomy") taxonomyPath = value;
       else if (argument === "--taxonomy-tsv") taxonomyTsvPath = value;
+      else if (argument === "--product-semantic-proposal") {
+        productSemanticProposalPath = value;
+      }
       else if (argument === "--category-proposal") categoryProposalPath = value;
       else if (argument === "--candidate-snapshot") candidateSnapshotPath = value;
       else if (argument === "--scene-proposal") sceneProposalPath = value;
@@ -205,9 +216,11 @@ export function parseTopicGeneratorCliArgs(args: string[]): TopicGeneratorCliOpt
     selectionStrategy,
     taxonomyPath,
     taxonomyTsvPath,
+    productSemanticProposalPath,
     categoryProposalPath,
     candidateSnapshotPath,
     sceneProposalPath,
+    selectionLanguage,
     pageTemplateRef,
     moduleProposalPath,
     contentLanguage,
@@ -322,6 +335,12 @@ export async function runTopicGeneratorCli(args = process.argv.slice(2)) {
     const categoryRoleProposal = options.categoryProposalPath
       ? await loadJsonFile(resolveInputPath(options.categoryProposalPath), "CategoryRoleProposal")
       : undefined;
+    const productSemanticProposal = options.productSemanticProposalPath
+      ? await loadJsonFile(
+          resolveInputPath(options.productSemanticProposalPath),
+          "ProductSemanticProposal",
+        )
+      : undefined;
     const candidateSnapshot = options.candidateSnapshotPath
       ? parseCatalogCandidateSnapshot(await loadJsonFile(
           resolveInputPath(options.candidateSnapshotPath),
@@ -373,6 +392,8 @@ export async function runTopicGeneratorCli(args = process.argv.slice(2)) {
       ? await runProductSelectionWorkflow({
           snapshot: analysis.snapshot,
           strategyRef: options.selectionStrategy,
+          language: options.selectionLanguage || "en",
+          productSemanticProposal,
           taxonomySnapshot,
           categoryRoleProposal,
           candidateSnapshot,

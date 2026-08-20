@@ -16,7 +16,42 @@ const categoryRun = {
   },
 } as const satisfies ProductSelectionRun;
 
+const semanticRun = {
+  schemaVersion: "product-selection-run/v1",
+  status: "needs-product-semantic-proposal",
+  strategyRef: "relevance/intent-themes@5",
+  context: {
+    keyword: "Matcha",
+    language: "zh",
+    minimumGroups: 2,
+    maximumScenes: 6,
+    minimumProductsPerScene: 4,
+    maximumProductsPerScene: 16,
+    products: [],
+  },
+} as const satisfies ProductSelectionRun;
+
 describe("HTTP ProductSelection Agent", () => {
+  it("routes product-semantic requests through the same constrained endpoint", async () => {
+    const proposal = { schemaVersion: "product-semantic-proposal/v1" };
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      schemaVersion: "product-selection-agent-response/v1",
+      proposal,
+    }), { status: 200, headers: { "content-type": "application/json" } }));
+    const agent = createHttpProductSelectionAgent({
+      id: "topic-strategy",
+      endpoint: "https://agent.example.com/product-selection",
+      fetch: fetchMock,
+    });
+
+    await expect(agent.proposeProductSemantics?.(semanticRun)).resolves.toEqual(proposal);
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(JSON.parse(String(init.body))).toMatchObject({
+      stage: "product-semantic-proposal",
+      run: semanticRun,
+    });
+  });
+
   it("sends the requested state to a server Agent and returns only its proposal", async () => {
     const proposal = {
       schemaVersion: "category-role-proposal/v1",

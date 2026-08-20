@@ -65,6 +65,10 @@ pnpm dev:topic-generator
 
 Web 页面：`http://127.0.0.1:3300/`
 
+默认命令会同时启动 3300 Web Host 与 4400 Agent Runner，并注入 Topic Intent、
+ProductSelection 和 Page Agent endpoint。仅调试无 Agent 的确定性降级时，使用
+`pnpm dev:topic-generator-web`。
+
 ## 实现原则
 
 1. Topic Page Orchestrator Agent 只选择注册过的页面类型与策略—模板路由；Topic Strategy
@@ -131,7 +135,7 @@ CLI 生成受限 proposal；商品事实、成员关系、排序、配额、dige
 `@yami/topic-generator` 校验。开发环境可直接运行：
 
 ```bash
-pnpm dev:topic-generator-stack
+pnpm dev:topic-generator
 ```
 
 Runner 默认监听 `127.0.0.1:4400`，提供 `/topic-page`、`/product-selection` 与 `/health`。

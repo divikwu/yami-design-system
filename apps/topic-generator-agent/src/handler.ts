@@ -104,10 +104,16 @@ function normalizeResult(route: AgentRoute, result: unknown) {
   const body = asObject(result);
   if (!body) throw new Error("Agent executor returned a non-object result.");
   const isEnvelope = body.schemaVersion === route.responseSchemaVersion && "proposal" in body;
+  const isProductHandoff = route.protocol === "product-selection" &&
+    body.schemaVersion === "product-selection-handoff-response/v1";
+  if (isProductHandoff && body.stage !== route.stage) {
+    throw new Error(`Agent response stage must be "${route.stage}".`);
+  }
+  const isProductHandoffEnvelope = isProductHandoff && "proposal" in body;
   if (isEnvelope && route.protocol === "topic-page" && body.stage !== route.stage) {
     throw new Error(`Agent response stage must be "${route.stage}".`);
   }
-  const proposal = isEnvelope ? body.proposal : body;
+  const proposal = isEnvelope || isProductHandoffEnvelope ? body.proposal : body;
   const response: Record<string, unknown> = {
     schemaVersion: route.responseSchemaVersion,
     stage: route.stage,

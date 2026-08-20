@@ -6,12 +6,17 @@ import type {
 } from "../types.js";
 import type {
   ProductSelectionModuleGroup,
+  ProductSelectionModuleResult,
   ProductSelectionResult,
+  ProductSemanticProposalReview,
 } from "./contracts.js";
 import type { RelevanceStrategyConfig } from "./config.js";
 
 const RELATED_LIMIT = 6;
 const SCENARIO_FALLBACK_PRIMARY_LIMIT = 20;
+const BRAND_SPOTLIGHT_MINIMUM_BRANDS = 2;
+const BRAND_SPOTLIGHT_MAXIMUM_BRANDS = 6;
+const BRAND_SPOTLIGHT_PRODUCTS_PER_BRAND = 3;
 
 function normalized(value: string) {
   return value.toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
@@ -73,6 +78,69 @@ function matchesIntent(product: YamiProduct, keyword: string, intent?: ThemeInte
   const categoryIds = new Set(intent.categories.map(({ id }) => id));
   if (categoryIds.has(String(product.categoryL3Id ?? ""))) return true;
   return matchesKeyword(product, keyword);
+}
+
+function weeklySalesLowerBound(product: YamiProduct) {
+  const quantity = product.weeklySalesLabel?.match(/[\d,]+/)?.[0];
+  if (!quantity) return -1;
+  const value = Number(quantity.replaceAll(",", ""));
+  return Number.isFinite(value) ? value : -1;
+}
+
+function brandSpotlightModule(products: YamiProduct[]): ProductSelectionModuleResult {
+  const brands = new Map<string, { id: string; label: string; products: YamiProduct[] }>();
+  products.forEach((product) => {
+    const normalizedBrand = normalized(product.brand);
+    if (!normalizedBrand) return;
+    const key = product.brandId ? `id:${product.brandId}` : `label:${normalizedBrand}`;
+    const candidate = brands.get(key) ?? {
+      id: product.brandId ? `brand-${product.brandId}` : `brand-${normalizedBrand.replaceAll(" ", "-")}`,
+      label: product.brand.trim(),
+      products: [],
+    };
+    candidate.products.push(product);
+    brands.set(key, candidate);
+  });
+
+  const ranked = [...brands.values()]
+    .filter(({ products: brandProducts }) =>
+      brandProducts.length >= BRAND_SPOTLIGHT_PRODUCTS_PER_BRAND
+    )
+    .map((brand) => ({
+      ...brand,
+      products: [...brand.products].sort((left, right) =>
+        (right.soldCount ?? weeklySalesLowerBound(right)) -
+          (left.soldCount ?? weeklySalesLowerBound(left)) ||
+        left.sourceRank - right.sourceRank ||
+        left.id.localeCompare(right.id)
+      ),
+    }))
+    .sort((left, right) =>
+      right.products.length - left.products.length ||
+      (right.products[0]?.soldCount ?? weeklySalesLowerBound(right.products[0]!)) -
+        (left.products[0]?.soldCount ?? weeklySalesLowerBound(left.products[0]!)) ||
+      (left.products[0]?.sourceRank ?? Number.MAX_SAFE_INTEGER) -
+        (right.products[0]?.sourceRank ?? Number.MAX_SAFE_INTEGER) ||
+      left.label.localeCompare(right.label)
+    )
+    .slice(0, BRAND_SPOTLIGHT_MAXIMUM_BRANDS);
+
+  if (ranked.length < BRAND_SPOTLIGHT_MINIMUM_BRANDS) {
+    return { id: "brand-spotlight", productIds: [], groups: [] };
+  }
+  const groups = ranked.map<ProductSelectionModuleGroup>((brand) => ({
+    id: brand.id,
+    label: brand.label,
+    role: "core",
+    productIds: brand.products
+      .slice(0, BRAND_SPOTLIGHT_PRODUCTS_PER_BRAND)
+      .map(({ id }) => id),
+  }));
+  return {
+    id: "brand-spotlight",
+    productIds: groups.flatMap(({ productIds }) => productIds),
+    groups,
+  };
 }
 
 function intentThemeSelection(
@@ -416,9 +484,115 @@ function semanticIntentThemeSelection(
   };
 }
 
+function productSemanticThemeSelection(
+  products: YamiProduct[],
+  snapshot: YamiSearchSnapshot,
+  config: RelevanceStrategyConfig,
+  review: ProductSemanticProposalReview,
+) {
+  const policy = config.themeCollections;
+  const intent = snapshot.intent;
+  if (!policy || review.status !== "accepted") return null;
+  const productsById = new Map(products.map((product) => [product.id, product]));
+  const orderedIds = (ids: string[]) => ids
+    .map((id) => productsById.get(id))
+    .filter((product): product is YamiProduct => Boolean(product))
+    .sort((left, right) => left.sourceRank - right.sourceRank)
+    .map(({ id }) => id);
+  const sourceCategoryIds = (ids: string[]) => [...new Set(ids.flatMap((id) => {
+    const categoryId = productsById.get(id)?.categoryL3Id;
+    return categoryId === undefined ? [] : [String(categoryId)];
+  }))];
+  const shortcutGroups: ProductSelectionModuleGroup[] = review.groups.map((group) => ({
+    id: group.id,
+    label: group.label,
+    role: "core",
+    productIds: orderedIds(group.productIds),
+    sourceCategoryIds: sourceCategoryIds(group.productIds),
+    classificationReason: group.reason,
+    semanticSource: "agent-proposal",
+  }));
+  assertCompleteShortcutCoverage(products, shortcutGroups);
+
+  const groupsById = new Map(review.groups.map((group) => [group.id, group]));
+  const assignedSceneIds = new Set<string>();
+  const startHereGroups: ProductSelectionModuleGroup[] = review.scenes.map((scene) => {
+    const candidateIds = orderedIds(scene.groupIds.flatMap((groupId) =>
+      groupsById.get(groupId)?.productIds ?? []
+    )).filter((id) => !assignedSceneIds.has(id));
+    const productIds = candidateIds.slice(0, policy.maximumProducts);
+    productIds.forEach((id) => assignedSceneIds.add(id));
+    return {
+      id: scene.id,
+      label: scene.name,
+      role: "core" as const,
+      productIds,
+      sourceCategoryIds: sourceCategoryIds(productIds),
+      shoppingGoal: scene.shoppingGoal,
+      scenarioReason: scene.reason,
+      semanticSource: "agent-proposal" as const,
+    };
+  });
+  const startHereProductIds = startHereGroups.flatMap(({ productIds }) => productIds);
+
+  return {
+    primary: products,
+    selectedCategories: intent
+      ? intent.categories.map((category) => ({
+          id: category.id,
+          label: category.label,
+          path: [...category.path],
+          role: "core" as const,
+          reason: "Verified ThemeIntent category represented by Agent-reviewed product semantics.",
+        }))
+      : [...new Map(products.flatMap((product) => {
+          const id = product.categoryL3Id;
+          const label = product.categoryL3Name;
+          if (id === undefined || !label) return [];
+          const categoryId = String(id);
+          const path = [
+            product.categoryL1Name,
+            product.categoryL2Name,
+            product.categoryL3Name,
+          ].filter((value): value is string => Boolean(value));
+          return [[categoryId, {
+            id: categoryId,
+            label,
+            path,
+            role: "core" as const,
+            reason: "Verified catalog category represented by Agent-reviewed product semantics.",
+          }]] as const;
+        })).values()],
+    scenes: startHereGroups.map((group) => ({
+      id: group.id,
+      name: group.label,
+      title: group.shoppingGoal ?? group.label,
+      description: group.scenarioReason ?? group.label,
+      productGroups: group.productIds.map((productId) => ({
+        core: productId,
+        pairing: null,
+        accessory: null,
+      })),
+    })),
+    modules: [
+      {
+        id: "shortcuts" as const,
+        productIds: shortcutGroups.flatMap(({ productIds }) => productIds),
+        groups: shortcutGroups,
+      },
+      {
+        id: "start-here" as const,
+        productIds: startHereProductIds,
+        groups: startHereGroups,
+      },
+    ],
+  };
+}
+
 export function selectByRelevance(
   snapshot: YamiSearchSnapshot,
   config: RelevanceStrategyConfig,
+  productSemanticReview?: ProductSemanticProposalReview,
 ): ProductSelectionResult {
   const seenProductIds = new Set<string>();
   const products = snapshot.products.filter((product) => {
@@ -441,9 +615,14 @@ export function selectByRelevance(
     : directProducts.length < minimumDirectCount
     ? products.slice(0, 12)
     : directProducts;
-  const themedSelection = config.semanticOrganization
+  const catalogThemedSelection = config.semanticOrganization
     ? semanticIntentThemeSelection(primarySource, snapshot, config)
     : intentThemeSelection(primarySource, snapshot, config);
+  const themedSelection = catalogThemedSelection ?? (
+    productSemanticReview
+      ? productSemanticThemeSelection(primarySource, snapshot, config, productSemanticReview)
+      : null
+  );
   const themedIds = new Set(themedSelection?.primary.map(({ id }) => id) ?? []);
   const usesSingleCategoryScenarioFallback = !themedSelection &&
     snapshot.intent?.themeType === "activity" &&
@@ -461,6 +640,11 @@ export function selectByRelevance(
   const related = (hasResolvedIntent ? directProducts : products)
     .filter((product) => !primaryIds.has(product.id))
     .slice(0, RELATED_LIMIT);
+  const themedModules = themedSelection
+    ? "modules" in themedSelection
+      ? themedSelection.modules
+      : [themedSelection.module]
+    : [];
 
   return {
     schemaVersion: "product-selection-result/v1",
@@ -478,10 +662,6 @@ export function selectByRelevance(
     ],
     selectedCategories: themedSelection?.selectedCategories ?? [],
     scenes: themedSelection?.scenes ?? [],
-    modules: themedSelection
-      ? "modules" in themedSelection
-        ? themedSelection.modules
-        : [themedSelection.module]
-      : [],
+    modules: [...themedModules, brandSpotlightModule(primary)],
   };
 }

@@ -16,6 +16,10 @@ const PAGE_TYPES: readonly LandingPageTypeConfig[] = [
     requiresExplicitRequest: false,
     routes: [
       {
+        selectionStrategyRef: "relevance/intent-themes@5",
+        templateRef: "topic-landing/brand-relevance@2",
+      },
+      {
         selectionStrategyRef: "relevance/intent-themes@4",
         templateRef: "topic-landing/brand-relevance@2",
       },
@@ -42,6 +46,10 @@ const PAGE_TYPES: readonly LandingPageTypeConfig[] = [
     supportedThemeTypes: ["product"],
     requiresExplicitRequest: false,
     routes: [
+      {
+        selectionStrategyRef: "relevance/intent-themes@5",
+        templateRef: "topic-landing/topic-relevance@2",
+      },
       {
         selectionStrategyRef: "relevance/intent-themes@4",
         templateRef: "topic-landing/topic-relevance@2",
@@ -70,6 +78,10 @@ const PAGE_TYPES: readonly LandingPageTypeConfig[] = [
     requiresExplicitRequest: false,
     routes: [
       {
+        selectionStrategyRef: "relevance/intent-themes@5",
+        templateRef: "topic-landing/campaign-relevance@2",
+      },
+      {
         selectionStrategyRef: "relevance/intent-themes@4",
         templateRef: "topic-landing/campaign-relevance@2",
       },
@@ -95,6 +107,7 @@ const LEGACY_PAGE_TYPES: readonly LandingPageTypeConfig[] = PAGE_TYPES.map((conf
   version: 1,
   routes: config.routes.flatMap((route) => {
     if (
+      route.selectionStrategyRef === "relevance/intent-themes@5" ||
       route.selectionStrategyRef === "relevance/intent-themes@2" ||
       route.selectionStrategyRef === "relevance/intent-themes@3"
     ) return [];

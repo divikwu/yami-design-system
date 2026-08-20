@@ -766,6 +766,7 @@ function PreviewView({
   const popularModule = moduleMap.get("popular-picks");
   const brandModule = moduleMap.get("brand-spotlight");
   const exploreModule = moduleMap.get("explore-more");
+  const brandGroups = brandModule?.groups ?? [];
   const shortcutProductIds = new Set(shortcutModule?.productIds ?? []);
   const shortcutGroups = shortcutModule?.groups ?? plan.groups.filter((group) =>
     group.productIds.some((id) => shortcutProductIds.has(id)),
@@ -1048,11 +1049,30 @@ function PreviewView({
       {brandModule?.visible && (
         <section className={`${styles.previewModule} ${styles.brandModule}`}>
           <ModuleHeading module={brandModule} structureOnly />
-          <div className={styles.brandProducts}>
-            {productsFor("brand-spotlight").map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          {brandGroups.length > 0 ? (
+            <div className={styles.brandGroups}>
+              {brandGroups.map((group) => (
+                <section key={group.id} className={styles.brandGroup}>
+                  <header className={styles.brandGroupHeading}>
+                    <h4>{group.label}</h4>
+                    <span>{itemCountLabel(group.productIds.length, plan.language)}</span>
+                  </header>
+                  <div className={styles.brandProducts}>
+                    {group.productIds.map((id) => {
+                      const product = productMap.get(id);
+                      return product ? <ProductCard key={id} product={product} /> : null;
+                    })}
+                  </div>
+                </section>
+              ))}
+            </div>
+          ) : (
+            <div className={styles.brandProducts}>
+              {productsFor("brand-spotlight").map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          )}
         </section>
       )}
 

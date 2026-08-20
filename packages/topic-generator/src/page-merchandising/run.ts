@@ -15,6 +15,7 @@ import type {
   TopicPageTemplateRef,
 } from "./contracts.js";
 import {
+  brandSpotlightSelectionIssues,
   productSelectionDigest,
   reviewModuleMerchandisingProposal,
   themeIntentDigest,
@@ -231,7 +232,7 @@ function selectionPreflightIssues(
 ) {
   const primaryIds = new Set(selection.pools.primaryIds);
   const relatedIds = new Set(selection.pools.relatedIds);
-  const issues: string[] = [];
+  const issues = brandSpotlightSelectionIssues(selection);
   if (config.assignmentAuthority === "product-selection") {
     const firstOwnedModuleByProduct = new Map<string, string>();
     selection.modules.forEach((module) => {

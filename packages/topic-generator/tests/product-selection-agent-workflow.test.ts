@@ -53,6 +53,93 @@ function fixture() {
 }
 
 describe("ProductSelection Agent workflow", () => {
+  it("uses one bounded product-semantic proposal when an exact leaf cannot form themes", async () => {
+    const products = Array.from({ length: 12 }, (_, index) => ({
+      id: `matcha-${index + 1}`,
+      title: `${["Matcha powder", "Matcha snack", "Matcha drink"][Math.floor(index / 4)]} ${index + 1}`,
+      brand: "Matcha brand",
+      brandId: 42,
+      price: "$9.99",
+      imageUrl: `https://example.com/matcha-${index + 1}.webp`,
+      productUrl: `https://example.com/matcha-${index + 1}`,
+      sourceRank: index + 1,
+      categoryL3Id: 1691,
+      categoryL3Name: "Matcha",
+      soldCount: 100 - index,
+    }));
+    const snapshot: YamiSearchSnapshot = {
+      keyword: "Matcha",
+      site: "us",
+      sourceUrl: "https://example.com/search?q=Matcha",
+      fetchedAt: "2026-08-20T00:00:00.000Z",
+      products,
+    };
+    let productSemanticCall = 0;
+    const proposeProductSemantics = vi.fn<
+      NonNullable<ProductSelectionAgent["proposeProductSemantics"]>
+    >(
+      async (run) => {
+        productSemanticCall += 1;
+        return productSemanticCall === 1
+          ? { schemaVersion: "product-selection-agent-error/v1" }
+          : ({
+            schemaVersion: "product-semantic-proposal/v1",
+            keyword: run.context.keyword,
+            strategyRef: run.strategyRef,
+            groups: [0, 1, 2].map((groupIndex) => ({
+              id: `matcha-group-${groupIndex + 1}`,
+              label: ["Matcha powder", "Matcha snacks", "Matcha drinks"][groupIndex],
+              productIds: products.slice(groupIndex * 4, groupIndex * 4 + 4).map(({ id }) => id),
+              reason: `Distinct Matcha shopping goal ${groupIndex + 1}`,
+            })),
+            scenes: [
+              {
+                id: "prepare-matcha",
+                name: "Prepare matcha",
+                shoppingGoal: "Prepare matcha at home.",
+                groupIds: ["matcha-group-1"],
+                reason: "Four powder products support preparation.",
+              },
+              {
+                id: "enjoy-matcha",
+                name: "Enjoy matcha treats",
+                shoppingGoal: "Browse ready-to-enjoy matcha products.",
+                groupIds: ["matcha-group-2", "matcha-group-3"],
+                reason: "Snacks and drinks support an immediate consumption goal.",
+              },
+            ],
+            });
+      },
+    );
+    const result = await runProductSelectionAgentWorkflow({
+      snapshot,
+      strategyRef: "relevance/intent-themes@5",
+      language: "en",
+      candidateAdapter: { id: "unused", search: vi.fn() },
+      agent: {
+        id: "fixture-agent",
+        proposeProductSemantics,
+        proposeCategoryRoles: vi.fn(),
+        proposeScenes: vi.fn(),
+      },
+    });
+
+    expect(proposeProductSemantics).toHaveBeenCalledTimes(2);
+    expect(proposeProductSemantics.mock.calls[1]?.[0].context.repair?.issues).toEqual([
+      'schemaVersion must be "product-semantic-proposal/v1".',
+    ]);
+    expect(result.run).toMatchObject({
+      status: "ready",
+      productSemanticProposalReview: { status: "accepted" },
+    });
+    if (result.run.status !== "ready") throw new Error("Expected a ready result.");
+    expect(result.run.result.modules.find(({ id }) => id === "shortcuts")?.groups).toHaveLength(3);
+    expect(result.run.result.modules.find(({ id }) => id === "start-here")?.groups).toHaveLength(2);
+    expect(result.artifacts.productSemanticProposal).toMatchObject({
+      schemaVersion: "product-semantic-proposal/v1",
+    });
+  });
+
   it("runs the Matcha CategoryRole flow through two bounded Agent proposals", async () => {
     const { snapshot, taxonomySnapshot } = fixture();
     const queries: CatalogCandidateQuery[] = [];

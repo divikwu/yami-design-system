@@ -17,6 +17,7 @@ export interface ProductSelectionStrategyConfigBase {
 export interface RelevanceStrategyConfig extends ProductSelectionStrategyConfigBase {
   engine: "relevance";
   semanticOrganization?: boolean;
+  productSemanticGrouping?: boolean;
   themeCollections?: {
     minimumThemes: number;
     maximumThemes: number;
@@ -151,6 +152,18 @@ const RELEVANCE_EXPANDED_INTENT_THEMES = {
   },
 } as const satisfies RelevanceStrategyConfig;
 
+const RELEVANCE_PRODUCT_SEMANTIC_THEMES = {
+  ...RELEVANCE_EXPANDED_INTENT_THEMES,
+  ref: "relevance/intent-themes@5",
+  version: 5,
+  label: { en: "Product-semantic intent themes", zh: "商品语义意图主题" },
+  description: {
+    en: "Requests one bounded product-semantic proposal when catalog leaves cannot form useful navigation and scenes.",
+    zh: "在目录叶子分类无法形成有效导航与场景时，请求一次受限的商品语义分组提案。",
+  },
+  productSemanticGrouping: true,
+} as const satisfies RelevanceStrategyConfig;
+
 const CATEGORY_ROLE_LANDING_PAGE_AGENT = {
   schemaVersion: "product-selection-strategy/v1",
   ref: "category-role/landing-page-agent@1",
@@ -208,6 +221,7 @@ const BUILT_IN_CONFIGS: readonly ProductSelectionStrategyConfig[] = [
   RELEVANCE_INTENT_THEMES,
   RELEVANCE_SEMANTIC_INTENT_THEMES,
   RELEVANCE_EXPANDED_INTENT_THEMES,
+  RELEVANCE_PRODUCT_SEMANTIC_THEMES,
   CATEGORY_ROLE_LANDING_PAGE_AGENT,
 ];
 
