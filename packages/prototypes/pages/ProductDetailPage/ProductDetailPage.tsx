@@ -51,6 +51,10 @@ const minusIcon = new URL(
   "../../../design-system/assets/icons/system/minus.svg",
   import.meta.url
 ).href;
+const optionArrowIcon = new URL(
+  "../../../design-system/assets/icons/system/arrow-right.svg",
+  import.meta.url
+).href;
 const sameDayIcon = new URL(
   "../../../design-system/assets/icons/base/same-day.svg",
   import.meta.url
@@ -135,6 +139,7 @@ export function ProductDetailPage({
   serviceDetailsHref,
   purchaseTags = [],
   recommendations,
+  recentlyViewed,
   reviewSection,
   brandSection,
   copy,
@@ -350,7 +355,27 @@ export function ProductDetailPage({
                     >
                       {optionGroups.map((group) => (
                         <fieldset key={group.id} className={styles.optionGroup}>
-                          <legend>{group.label}</legend>
+                          <legend className={styles.optionGroupLegend}>
+                            {group.label}
+                          </legend>
+                          <div
+                            className={styles.optionGroupHeading}
+                            data-slot="product-detail-option-group-heading"
+                            aria-hidden="true"
+                          >
+                            <span>{group.label}</span>
+                            <div
+                              className={styles.optionGroupArrow}
+                              data-slot="product-detail-option-group-arrow"
+                            >
+                              <img
+                                src={optionArrowIcon}
+                                alt=""
+                                width={16}
+                                height={16}
+                              />
+                            </div>
+                          </div>
                           <FilterChipGroup
                             className={styles.optionChips}
                             aria-label={group.label}
@@ -536,6 +561,10 @@ export function ProductDetailPage({
                       data-slot="product-detail-purchase-secondary"
                     >
                       <div
+                        className={styles.purchaseFulfillmentGroup}
+                        data-slot="product-detail-purchase-fulfillment"
+                      >
+                      <div
                         className={styles.purchaseSellerShippingSection}
                         data-slot="product-detail-seller-shipping-section"
                       >
@@ -627,6 +656,7 @@ export function ProductDetailPage({
                           </a>
                         ) : null}
                       </div>
+                      </div>
                       {purchaseTags.length > 0 ? (
                         <div
                           className={styles.purchaseTagsBlock}
@@ -700,7 +730,23 @@ export function ProductDetailPage({
           <ProductList
             id="torriden-products"
             className={styles.brandProducts}
-            title={brandSection.title}
+            title={
+              <>
+                <span>{brandSection.title}</span>
+                {brandSection.logo ? (
+                  <img
+                    className={styles.brandLogo}
+                    src={brandSection.logo.src}
+                    alt=""
+                    width={brandSection.logo.width}
+                    height={brandSection.logo.height}
+                    loading="lazy"
+                    decoding="async"
+                    data-slot="product-detail-brand-logo"
+                  />
+                ) : null}
+              </>
+            }
             introContent={
               <div className={styles.brandIntro}>
                 <h3>{brandSection.aboutLabel}</h3>
@@ -717,6 +763,19 @@ export function ProductDetailPage({
             onAddToCart={() => {}}
             dividerPosition="top"
             data-pdp-module="brand-products"
+          />
+        ) : null}
+
+        {recentlyViewed?.length ? (
+          <ProductList
+            className={styles.recentlyViewed}
+            title={copy.recentlyViewed}
+            products={recentlyViewed}
+            layout="rail"
+            imageLoadingStrategy="windowed"
+            onAddToCart={() => {}}
+            dividerPosition="top"
+            data-pdp-module="recently-viewed"
           />
         ) : null}
       </main>

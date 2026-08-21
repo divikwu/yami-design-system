@@ -45,6 +45,7 @@ export interface ProductReviewSortOption {
 
 export interface ProductReviewSectionCopy {
   reviewsLabel: ReactNode;
+  referenceNotice?: ReactNode;
   writeReview: ReactNode;
   all: ReactNode;
   purchased: ReactNode;

@@ -136,17 +136,40 @@ function ReviewCard({
       <footer className={styles.cardFooter}>
         {review.showOriginalHref ? (
           <a className={styles.originalLink} href={review.showOriginalHref}>
+            <span
+              className={cx(styles.feedbackIcon, styles.translateIcon)}
+              data-product-review-icon="translate"
+              aria-hidden="true"
+            />
             {copy.showOriginal}
           </a>
         ) : (
           <span />
         )}
         <div className={styles.feedback}>
-          <span aria-label={`${copy.helpful}: ${review.helpfulCount ?? 0}`}>
-            {copy.helpful} {review.helpfulCount ?? 0}
+          <span
+            className={styles.feedbackItem}
+            data-product-review-feedback="helpful"
+            aria-label={`${copy.helpful}: ${review.helpfulCount ?? 0}`}
+          >
+            <span
+              className={cx(styles.feedbackIcon, styles.likeIcon)}
+              data-product-review-icon="like"
+              aria-hidden="true"
+            />
+            {review.helpfulCount ?? 0}
           </span>
-          <span aria-label={`${copy.comments}: ${review.commentCount ?? 0}`}>
-            {copy.comments} {review.commentCount ?? 0}
+          <span
+            className={styles.feedbackItem}
+            data-product-review-feedback="comments"
+            aria-label={`${copy.comments}: ${review.commentCount ?? 0}`}
+          >
+            <span
+              className={cx(styles.feedbackIcon, styles.commentIcon)}
+              data-product-review-icon="comment"
+              aria-hidden="true"
+            />
+            {review.commentCount ?? 0}
           </span>
         </div>
       </footer>
@@ -290,7 +313,13 @@ export function ProductReviewSection({
           </div>
         </div>
 
-        <div className={styles.toolbar}>
+        {copy.referenceNotice ? (
+          <p className={styles.referenceNotice} data-slot="product-review-reference-notice">
+            {copy.referenceNotice}
+          </p>
+        ) : null}
+
+        <div className={styles.toolbar} data-slot="product-review-toolbar">
           <FilterChipGroup
             className={styles.filters}
             role="group"
@@ -346,6 +375,7 @@ export function ProductReviewSection({
         {visibleReviews.items.length < visibleReviews.total ? (
           <div className={styles.viewMoreRow}>
             <Button
+              className={styles.viewMoreButton}
               variant="tertiary"
               onClick={() =>
                 setVisibleCount((current) => current + Math.max(1, viewMoreIncrement))
