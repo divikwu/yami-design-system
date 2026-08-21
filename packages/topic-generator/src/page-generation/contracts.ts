@@ -47,6 +47,12 @@ export interface TopicPageGeneratedAsset {
   altText: TopicPageVisualAltText | null;
 }
 
+export interface TopicPageGeneratedProductGroup {
+  id: string;
+  label: string;
+  productIds: string[];
+}
+
 export interface TopicPageGenerationModule {
   id: TopicModuleId;
   component: TopicPageComponent;
@@ -54,6 +60,7 @@ export interface TopicPageGenerationModule {
   reason: string;
   copy: TopicPageContentCopy;
   products: TopicPageGeneratedProduct[];
+  groups?: TopicPageGeneratedProductGroup[];
   scenes: TopicPagePlanSceneV2[];
   assets: TopicPageGeneratedAsset[];
 }

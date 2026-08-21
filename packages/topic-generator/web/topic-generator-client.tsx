@@ -28,13 +28,20 @@ import type {
   TopicPlanMatrix,
   TopicProduct,
 } from "../src/types";
-import type { ProductSelectionRun } from "../src/product-selection/contracts";
+import type {
+  ProductSelectionResult,
+  ProductSelectionRun,
+} from "../src/product-selection/contracts";
 import type { TopicPageAutomationRun } from "../src/page-automation/contracts";
 import type {
   HeroSelectionRun,
   ShortcutSelectionRun,
   StartHereSelectionRun,
+  TopicPagePlanV2,
 } from "../src/page-merchandising/contracts";
+import type { TopicPageContentSpec } from "../src/page-content/contracts";
+import type { TopicPageContentReviewDecision } from "../src/page-content/content-review";
+import type { TopicBackgroundEvidenceBundle } from "../src/background-evidence/contracts";
 import type { LandingPageTypeRef } from "../src/page-orchestration/contracts";
 import type {
   TopicPageGeneratedProduct,
@@ -57,6 +64,7 @@ import styles from "./topic-generator.module.css";
 type ResultView = "preview" | "pools" | "workflow" | "analysis" | "rules";
 type WorkflowMode = "diagram" | "details" | "agents";
 type PreviewMode = "distribution" | "page";
+type CapabilityMode = TopicGenerationMode | "content" | "visual";
 type SelectionRuns = Partial<Record<ProductSelectionStrategy, ProductSelectionRun>>;
 type ReadyTopicPageAutomationRun = Extract<TopicPageAutomationRun, { status: "ready" }>;
 
@@ -66,16 +74,86 @@ interface LocalizedAutomationCache {
   runs: Partial<Record<ContentLanguage, ReadyTopicPageAutomationRun>>;
 }
 
-export interface TopicPagePreviewRendererProps {
+interface CapabilityArtifacts {
+  intent: TopicPagePlan["intent"];
+  selection: ProductSelectionResult;
+  plan: TopicPagePlanV2;
   pageTypeRef: LandingPageTypeRef;
-  generationSpec: TopicPageGenerationSpec;
+  backgroundEvidence?: TopicBackgroundEvidenceBundle;
 }
+
+export type TopicPagePreviewRendererProps =
+  | {
+      mode: "selection";
+      pageTypeRef: LandingPageTypeRef;
+      plan: TopicPagePlan;
+    }
+  | {
+      mode: "generated";
+      pageTypeRef: LandingPageTypeRef;
+      generationSpec: TopicPageGenerationSpec;
+    }
+  | {
+      mode: "content";
+      pageTypeRef: LandingPageTypeRef;
+      plan: TopicPagePlan;
+      contentSpec: TopicPageContentSpec;
+    }
+  | {
+      mode: "visual";
+      pageTypeRef: LandingPageTypeRef;
+      generationSpec: TopicPageGenerationSpec;
+    };
 
 export interface TopicGeneratorProps {
   PagePreviewRenderer?: ComponentType<TopicPagePreviewRendererProps>;
 }
 
+export function selectionDefaultCopy(keyword: string, language: ContentLanguage) {
+  if (language === "zh") {
+    return {
+      heroTitle: `浏览 ${keyword} 商品`,
+      heroDescription: `查看本次选中的 ${keyword} 商品，并按品类和选购场景继续浏览。`,
+      shortcutsTitle: `按品类浏览 ${keyword}`,
+      startHereTitle: "按选购场景开始浏览",
+      sceneDescription: `查看这一场景下已选的 ${keyword} 商品。`,
+      popularTitle: `${keyword} 精选商品`,
+      brandTitle: "按品牌浏览",
+      reviewsTitle: "顾客评价",
+      exploreTitle: `继续浏览 ${keyword} 商品`,
+      exploreDescription: "按更多品类查看本次选中的商品。",
+    };
+  }
+  return {
+    heroTitle: `Browse ${keyword} products`,
+    heroDescription: `Browse the selected ${keyword} products by category and shopping scenario.`,
+    shortcutsTitle: `Browse ${keyword} by category`,
+    startHereTitle: "Start with a shopping scenario",
+    sceneDescription: `Browse the selected ${keyword} products for this scenario.`,
+    popularTitle: `Selected ${keyword} products`,
+    brandTitle: "Browse by brand",
+    reviewsTitle: "Customer reviews",
+    exploreTitle: `Continue browsing ${keyword} products`,
+    exploreDescription: "Browse more of the selected products by category.",
+  };
+}
+
+function selectionModuleTitle(plan: TopicPagePlan, module: TopicModulePlan) {
+  const copy = selectionDefaultCopy(plan.keyword, plan.language);
+  const fallback = {
+    hero: copy.heroTitle,
+    shortcuts: copy.shortcutsTitle,
+    "start-here": copy.startHereTitle,
+    "popular-picks": copy.popularTitle,
+    "brand-spotlight": copy.brandTitle,
+    reviews: copy.reviewsTitle,
+    "explore-more": copy.exploreTitle,
+  }[module.id];
+  return module.heading.trim() || fallback || module.label;
+}
+
 interface GeneratorError {
+  code?: string;
   message: string;
   sourceUrl?: string;
 }
@@ -259,6 +337,10 @@ const UI_COPY = {
     strategyLabel: "Product selection strategy",
     selectProducts: "Select products",
     selectingProducts: "Selecting…",
+    generateContent: "Generate copy",
+    generatingContent: "Generating copy…",
+    generateVisuals: "Generate images",
+    generatingVisuals: "Generating images…",
     generatePage: "Generate page",
     generatingPage: "Generating…",
     currentRun: "Current run",
@@ -293,6 +375,10 @@ const UI_COPY = {
     strategyLabel: "选品策略",
     selectProducts: "选品",
     selectingProducts: "选品中…",
+    generateContent: "生成文案",
+    generatingContent: "生成文案中…",
+    generateVisuals: "生成图片",
+    generatingVisuals: "生成图片中…",
     generatePage: "生成页面",
     generatingPage: "生成中…",
     currentRun: "当前运行",
@@ -342,6 +428,9 @@ const PREVIEW_COPY = {
     ],
     blocked: "RUN BLOCKED",
     errorTitle: "Yami search could not be converted into a page plan.",
+    contentBlocked: "COPY OPTIMIZATION INCOMPLETE",
+    contentErrorTitle: "Copy optimization could not be completed.",
+    genericErrorTitle: "Page generation could not be completed.",
     sourceLink: "Open the source search ↗",
   },
   zh: {
@@ -366,6 +455,9 @@ const PREVIEW_COPY = {
     ],
     blocked: "生成已阻止",
     errorTitle: "Yami 搜索结果无法转换为页面方案。",
+    contentBlocked: "文案优化未完成",
+    contentErrorTitle: "文案优化未能完成。",
+    genericErrorTitle: "页面生成未能完成。",
     sourceLink: "打开来源搜索 ↗",
   },
 } satisfies Record<ContentLanguage, {
@@ -384,6 +476,9 @@ const PREVIEW_COPY = {
   loadingSteps: string[];
   blocked: string;
   errorTitle: string;
+  contentBlocked: string;
+  contentErrorTitle: string;
+  genericErrorTitle: string;
   sourceLink: string;
 }>;
 
@@ -409,10 +504,14 @@ function ProductCard({
   product,
   showCatalogMeta = false,
   uiLanguage = "zh",
+  selectionProductId,
+  hideImage = false,
 }: {
   product: ProductCardProduct;
   showCatalogMeta?: boolean;
   uiLanguage?: ContentLanguage;
+  selectionProductId?: string;
+  hideImage?: boolean;
 }) {
   return (
     <a
@@ -422,8 +521,9 @@ function ProductCard({
       href={product.productUrl}
       target="_blank"
       rel="noreferrer"
+      data-selection-product-id={selectionProductId}
     >
-      <span className={styles.productImageWrap}>
+      {!hideImage && <span className={styles.productImageWrap}>
         <img
           src={product.imageUrl}
           alt={product.title}
@@ -437,7 +537,7 @@ function ProductCard({
             <span className={styles.outOfStockBadge}>缺货</span>
           )}
         </span>
-      </span>
+      </span>}
       <span className={styles.productMeta}>
         <span className={styles.productMetaHeader}>
           <span className={styles.productBrand}>{product.brand}</span>
@@ -455,16 +555,18 @@ function ProductCard({
 
 function ModuleHeading({
   module,
+  plan,
   structureOnly = false,
 }: {
   module: TopicModulePlan;
+  plan: TopicPagePlan;
   structureOnly?: boolean;
 }) {
   return (
     <header className={styles.moduleHeading}>
       <div>
         <span>{structureOnly ? module.id : module.label}</span>
-        <h3>{structureOnly ? module.label : module.heading}</h3>
+        <h3>{selectionModuleTitle(plan, module)}</h3>
       </div>
       {!structureOnly && <p>{module.description}</p>}
     </header>
@@ -512,7 +614,7 @@ function LoadingState({
 }: {
   keyword: string;
   language: ContentLanguage;
-  mode: TopicGenerationMode;
+  mode: CapabilityMode;
   strategy: ProductSelectionStrategy;
 }) {
   const copy = PREVIEW_COPY[language];
@@ -534,15 +636,33 @@ function LoadingState({
         "Review the final Hero composition with the Page Merchandising Agent",
       ];
   const steps = strategy === "category-role" ? categoryRoleSteps : copy.loadingSteps;
-  const visibleSteps = mode === "selection"
-    ? strategy === "category-role" ? categoryRoleSteps : copy.loadingSteps.slice(0, 4)
-    : steps;
+  const capabilitySteps = language === "zh"
+    ? {
+        content: ["读取冻结的 PagePlan 与商品证据", "由页面文案 Agent 生成并校验 ContentSpec"],
+        visual: ["读取已通过校验的 ContentSpec", "由场景视觉 Agent 生成图片并装配预览"],
+      }
+    : {
+        content: ["Read the frozen PagePlan and product evidence", "Generate and validate ContentSpec with the Content Agent"],
+        visual: ["Read the validated ContentSpec", "Generate imagery and assemble the preview with the Visual Agent"],
+      };
+  const visibleSteps = mode === "content" || mode === "visual"
+    ? capabilitySteps[mode]
+    : mode === "selection"
+      ? strategy === "category-role" ? categoryRoleSteps : copy.loadingSteps.slice(0, 4)
+      : steps;
+  const heading = mode === "selection"
+    ? copy.selecting(keyword)
+    : mode === "content"
+      ? language === "zh" ? `正在为“${keyword}”生成文案` : `Generating copy for “${keyword}”`
+      : mode === "visual"
+        ? language === "zh" ? `正在为“${keyword}”生成图片` : `Generating images for “${keyword}”`
+        : copy.building(keyword);
 
   return (
     <section className={styles.loadingState} aria-live="polite">
       <div className={styles.loadingMark}><span /></div>
       <span className={styles.kicker}>{copy.running}</span>
-      <h2>{mode === "selection" ? copy.selecting(keyword) : copy.building(keyword)}</h2>
+      <h2>{heading}</h2>
       <ol>
         {visibleSteps.map((step, index) => (
           <li key={step}>
@@ -683,11 +803,24 @@ function ErrorState({
   language: ContentLanguage;
 }) {
   const copy = PREVIEW_COPY[language];
+  const contentError = error.code?.startsWith("content_") === true ||
+    error.code === "missing_content_spec";
+  const catalogError = error.code === "catalog_unavailable" ||
+    error.code === "candidate_catalog_unavailable" ||
+    error.code === "product_agent_unavailable";
 
   return (
     <section className={styles.errorState} role="alert">
-      <span className={styles.errorCode}>{copy.blocked}</span>
-      <h2>{copy.errorTitle}</h2>
+      <span className={styles.errorCode}>
+        {contentError ? copy.contentBlocked : copy.blocked}
+      </span>
+      <h2>
+        {contentError
+          ? copy.contentErrorTitle
+          : catalogError
+            ? copy.errorTitle
+            : copy.genericErrorTitle}
+      </h2>
       <p>{error.message}</p>
       {error.sourceUrl && (
         <a href={error.sourceUrl} target="_blank" rel="noreferrer">
@@ -831,7 +964,7 @@ function PreviewView({
       <section className={styles.topicHero}>
         <div className={styles.heroCopy}>
           <span>HERO · {plan.language === "zh" ? "商品分布" : "Product distribution"}</span>
-          <h1>{plan.keyword}</h1>
+          <h1>{selectionDefaultCopy(plan.keyword, plan.language).heroTitle}</h1>
           <p aria-live="polite">
             {plan.language === "zh"
               ? heroSelection?.status === "ready"
@@ -876,7 +1009,7 @@ function PreviewView({
 
       {shortcutModule?.visible && (
         <section className={styles.previewModule}>
-          <ModuleHeading module={shortcutModule} structureOnly />
+          <ModuleHeading module={shortcutModule} plan={plan} structureOnly />
           <div className={styles.shortcutSelectionStatus} aria-live="polite">
             <span>
               {plan.language === "zh"
@@ -944,7 +1077,7 @@ function PreviewView({
 
       {startHereModule?.visible && (
         <section className={styles.previewModule}>
-          <ModuleHeading module={startHereModule} structureOnly />
+          <ModuleHeading module={startHereModule} plan={plan} structureOnly />
           <div className={styles.startHereSelectionStatus} aria-live="polite">
             {plan.language === "zh"
               ? startHereSelection?.status === "ready"
@@ -1017,7 +1150,7 @@ function PreviewView({
 
       {popularModule?.visible && activePopularGroupId && (
         <section id="popular-picks" className={styles.previewModule}>
-          <ModuleHeading module={popularModule} structureOnly />
+          <ModuleHeading module={popularModule} plan={plan} structureOnly />
           <WorkbenchTabs
             label={plan.language === "zh" ? "热门精选分类" : "Popular Picks categories"}
             options={popularGroups.map((group) => ({
@@ -1048,7 +1181,7 @@ function PreviewView({
 
       {brandModule?.visible && (
         <section className={`${styles.previewModule} ${styles.brandModule}`}>
-          <ModuleHeading module={brandModule} structureOnly />
+          <ModuleHeading module={brandModule} plan={plan} structureOnly />
           {brandGroups.length > 0 ? (
             <div className={styles.brandGroups}>
               {brandGroups.map((group) => (
@@ -1081,7 +1214,7 @@ function PreviewView({
           id="explore-more"
           className={`${styles.previewModule} ${styles.recommendationModule}`}
         >
-          <ModuleHeading module={exploreModule} structureOnly />
+          <ModuleHeading module={exploreModule} plan={plan} structureOnly />
           {activeExploreGroupId && (
             <WorkbenchTabs
               label={plan.language === "zh" ? "综合推荐分类" : "Recommendation categories"}
@@ -1111,6 +1244,46 @@ function PreviewView({
           )}
         </section>
       )}
+    </div>
+  );
+}
+
+function SelectionPagePreview({ plan }: { plan: TopicPagePlan }) {
+  const productMap = new Map(plan.products.map((product) => [product.id, product]));
+  return (
+    <div
+      className={styles.pagePreview}
+      data-selection-page-preview="true"
+      data-preview-mode={plan.generationMode}
+    >
+      {plan.modules.filter(({ visible }) => visible).map((module) => {
+        const hideProductImages = module.id === "hero" || module.id === "shortcuts";
+        return (
+          <section
+            key={module.id}
+            className={module.id === "hero" ? styles.topicHero : styles.previewModule}
+            data-selection-preview-module={module.id}
+          >
+            <ModuleHeading module={module} plan={plan} />
+            <div className={styles.productGrid}>
+              {module.productIds.flatMap((productId) => {
+                const product = productMap.get(productId);
+                return product
+                  ? [(
+                      <ProductCard
+                        key={productId}
+                        product={product}
+                        uiLanguage={plan.language}
+                        selectionProductId={productId}
+                        hideImage={hideProductImages}
+                      />
+                    )]
+                  : [];
+              })}
+            </div>
+          </section>
+        );
+      })}
     </div>
   );
 }
@@ -1487,9 +1660,11 @@ function PoolsView({
 const AUTOMATION_STAGE_LABELS = {
   en: {
     "workflow-planning": "Workflow planning",
+    "background-evidence": "Background evidence",
     "product-selection": "Product selection",
     "module-merchandising": "Module merchandising",
     "content-writing": "Content writing",
+    "content-review": "Content review",
     "visual-generation": "Visual generation",
     "asset-persistence": "Asset persistence",
     "page-generation": "Page assembly",
@@ -1498,9 +1673,11 @@ const AUTOMATION_STAGE_LABELS = {
   },
   zh: {
     "workflow-planning": "流程编排",
+    "background-evidence": "品牌 / 文化背景证据",
     "product-selection": "选品",
     "module-merchandising": "模块策划与商品分配",
     "content-writing": "页面文案",
+    "content-review": "文案审核",
     "visual-generation": "场景图片生成",
     "asset-persistence": "图片本体落盘",
     "page-generation": "页面确定性装配",
@@ -1511,9 +1688,11 @@ const AUTOMATION_STAGE_LABELS = {
 
 const AUTOMATION_STAGE_NUMBERS = {
   "workflow-planning": "02",
+  "background-evidence": "02",
   "product-selection": "03",
   "module-merchandising": "04",
   "content-writing": "05",
+  "content-review": "05",
   "visual-generation": "05",
   "asset-persistence": "05",
   "page-generation": "05",
@@ -1560,6 +1739,8 @@ function AutomationRuntimePanel({
       {automation.status === "ready" && (
         <dl>
           <div><dt>ExecutionPlan</dt><dd>{automation.executionPlan.digest.slice(0, 18)}…</dd></div>
+          {automation.copyBrief && <div><dt>CopyBrief</dt><dd>{automation.copyBrief.digest.slice(0, 18)}…</dd></div>}
+          {automation.contentReview && <div><dt>ContentReview</dt><dd>{automation.contentReview.verdict}</dd></div>}
           <div><dt>PageGenerationSpec</dt><dd>{automation.generationSpec.digest.slice(0, 18)}…</dd></div>
           <div><dt>QAReport</dt><dd>{automation.qaReport.status}</dd></div>
           <div><dt>ExperienceReview</dt><dd>{automation.experienceReview.status}</dd></div>
@@ -1611,8 +1792,8 @@ function WorkflowView({
       icon: WORKFLOW_ICONS.route,
       label: isChinese ? "理解主题并生成页面路由" : "Interpret the topic and create the page route",
       output: isChinese
-        ? "基于 Yami 目录证据生成 ThemeIntent，并选择已注册的页面类型、选品策略和模板"
-        : "Build ThemeIntent from Yami catalog evidence, then select registered page, selection, and template refs",
+        ? "基于 Yami 目录证据生成 ThemeIntent，补充品牌 / 文化背景证据，并选择已注册的页面路由"
+        : "Build ThemeIntent from Yami catalog evidence, add brand or cultural background evidence, then select a registered page route",
       input: isChinese
         ? "关键词 + 站点 / 页面语言 / 选品策略约束"
         : "Keyword + site / page language / selection constraints",
@@ -1620,8 +1801,8 @@ function WorkflowView({
         ? "keyword、site、language 与 requestedSelectionStrategy；结合 CatalogSnapshot 的品牌、分类、标签、商品和 Adapter attempts"
         : "keyword, site, language, and requestedSelectionStrategy, together with CatalogSnapshot brands, categories, tags, products, and Adapter attempts",
       action: isChinese
-        ? "解析并校验主题意图，再从注册表生成兼容的页面执行路由"
-        : "Resolve and validate the topic intent, then create a compatible page execution route from registered configs",
+        ? "解析并校验主题意图，为陌生用户研究可审计背景，再从注册表生成兼容的页面执行路由"
+        : "Resolve and validate the topic intent, research auditable newcomer context, then create a compatible route from registered configs",
       actionGroups: isChinese
         ? [
             {
@@ -1631,6 +1812,15 @@ function WorkflowView({
                 "先生成目录基线 ThemeIntent，再按已确认分类补充分页商品证据",
                 "精确品牌或分类的核心实体保持冻结；歧义或证据冲突进入待确认",
                 "此阶段不直接选择商品",
+              ],
+            },
+            {
+              title: "陌生用户所需的品牌 / 文化背景",
+              items: [
+                "品牌主题优先打开品牌官网；Wikipedia 只补充中性背景，不能替代可用官网",
+                "节日和文化主题使用具名权威机构或 Wikipedia，页面内容始终按不可信外部证据处理",
+                "背景事实仅用于解释身份、来源、含义、传统和术语，不能证明商品功效或流行度",
+                "研究能力不可用时记录 unavailable 并继续选品，不从模型记忆补造事实",
               ],
             },
             {
@@ -1654,6 +1844,15 @@ function WorkflowView({
               ],
             },
             {
+              title: "Brand and cultural background for unfamiliar shoppers",
+              items: [
+                "Open the official brand site first; Wikipedia adds neutral context but cannot replace an available official source",
+                "Use a named authority or Wikipedia for festivals and cultural topics, treating every page as untrusted evidence",
+                "Use background only for identity, origin, meaning, tradition, and terminology—not product efficacy or popularity",
+                "Record background as unavailable and continue selection when research is unavailable; never fill gaps from model memory",
+              ],
+            },
+            {
               title: "The system validates and creates an executable route",
               items: [
                 "Allow only a resolved ThemeIntent into page orchestration",
@@ -1663,7 +1862,7 @@ function WorkflowView({
               ],
             },
           ],
-      result: "CatalogSnapshot + ThemeIntent + LandingPageExecutionPlan",
+      result: "CatalogSnapshot + ThemeIntent + BackgroundEvidence + LandingPageExecutionPlan",
       rollback: isChinese
         ? "主题证据不足或冲突时返回 01 补充输入；注册路由不兼容时阻止执行"
         : "Return to 01 for insufficient or conflicting topic evidence; block incompatible registered routes",
@@ -1698,14 +1897,14 @@ function WorkflowView({
     {
       stage: "05",
       icon: WORKFLOW_ICONS.content,
-      label: isChinese ? "生成内容、图片并装配页面" : "Generate content and imagery, then assemble the page",
+      label: isChinese ? "生成文案、审核、图片并装配页面" : "Generate and review copy, then create imagery and assemble the page",
       output: isChinese
-        ? "并行生成文案与视觉资产，汇合后确定性装配页面"
-        : "Generate copy and visual assets in parallel, then assemble the page deterministically",
-      input: isChinese ? "PagePlan + 来源证据" : "PagePlan + source evidence",
-      action: isChinese ? "生成中文页面文案、绑定来源商品图、生成所需资产并装配组件" : "Generate English page copy, bind source product imagery, create required assets, and assemble modules",
-      result: "PageGenerationSpec + Preview + AssetManifest",
-      rollback: isChinese ? "文案或图片问题只重跑 05 的受影响节点" : "Rerun only the affected copy or image nodes in 05",
+        ? "先按陌生用户 CopyBrief 生成文案并独立审核；审核通过后才生成视觉资产并确定性装配页面"
+        : "Generate copy from the newcomer CopyBrief and review it independently; create visual assets only after approval, then assemble deterministically",
+      input: isChinese ? "PagePlan + AudienceContext + BackgroundEvidence + 来源证据" : "PagePlan + AudienceContext + BackgroundEvidence + source evidence",
+      action: isChinese ? "编译 CopyBrief、生成文案、校验主题与场景表达，审核通过后再生成资产并装配组件" : "Compile the CopyBrief, generate copy, validate topic and scene specificity, then generate assets and assemble modules after approval",
+      result: "CopyBrief + ContentReviewDecision + PageGenerationSpec + Preview + AssetManifest",
+      rollback: isChinese ? "文案审核失败返回 content-writing；图片问题只重跑受影响的视觉节点" : "Return failed copy review to content-writing; rerun only affected visual nodes for image issues",
       state: "automatic",
     },
     {
@@ -1785,6 +1984,23 @@ function WorkflowView({
     },
     {
       index: "03",
+      id: "topic-background-evidence",
+      icon: WORKFLOW_ICONS.search,
+      name: isChinese ? "背景证据 Agent" : "Background Evidence Agent",
+      role: isChinese ? "只读研究 Agent" : "Read-only research Agent",
+      stage: isChinese ? "ThemeIntent 后、选品前" : "After ThemeIntent, before selection",
+      skills: ["background-evidence"],
+      responsibility: isChinese
+        ? "为不熟悉主题的用户检索品牌官网、Wikipedia 或具名文化机构，形成可审计的背景事实。"
+        : "Research official brand, Wikipedia, or named cultural sources into auditable context for unfamiliar shoppers.",
+      input: "Resolved ThemeIntent + AudienceContext + Host research capability",
+      output: "TopicBackgroundEvidenceProposal",
+      boundary: isChinese
+        ? "不使用模型记忆补事实，不证明商品功效或流行度，不改变主题、选品、模块或文案。"
+        : "Does not fill facts from model memory, prove product efficacy or popularity, or change intent, selection, modules, or copy.",
+    },
+    {
+      index: "04",
       id: "topic-content",
       icon: TextIcon,
       name: isChinese ? "页面文案 Agent" : "Topic Content Agent",
@@ -1794,14 +2010,31 @@ function WorkflowView({
       responsibility: isChinese
         ? "根据冻结 PagePlan、语言与可引用证据生成模块标题、说明、标签和 CTA。"
         : "Generate module titles, descriptions, labels, and CTAs from the frozen PagePlan and scoped evidence.",
-      input: "PagePlan + language + scoped evidence",
+      input: "PagePlan + CopyBrief + BackgroundEvidence + scoped catalog evidence",
       output: "TopicPageContentProposal",
       boundary: isChinese
         ? "不换商品，不改变模块显隐或顺序，不创造商品事实。"
         : "Does not swap products, change module visibility or order, or invent product facts.",
     },
     {
-      index: "04",
+      index: "05",
+      id: "topic-content-review",
+      icon: WORKFLOW_ICONS.qa,
+      name: isChinese ? "文案审核 Agent" : "Topic Content Review Agent",
+      role: isChinese ? "只读专业 Agent" : "Read-only specialist",
+      stage: isChinese ? "文案后、图片前" : "After copy, before imagery",
+      skills: ["content-review"],
+      responsibility: isChinese
+        ? "独立检查陌生用户可理解性、主题与场景感、模块差异、证据边界和语言质量。"
+        : "Independently review newcomer clarity, topic and scene specificity, module differentiation, evidence boundaries, and language quality.",
+      input: "ContentSpec + CopyBrief + BackgroundEvidence",
+      output: "TopicPageContentReviewDecision",
+      boundary: isChinese
+        ? "不改写文案，不搜索新事实，不检查布局或图片；失败时只返回可执行的文案修改问题。"
+        : "Does not rewrite copy, research new facts, or review layout and imagery; returns actionable copy issues only.",
+    },
+    {
+      index: "06",
       id: "topic-visual",
       icon: WORKFLOW_ICONS.content,
       name: isChinese ? "场景视觉 Agent" : "Topic Visual Agent",
@@ -1811,14 +2044,14 @@ function WorkflowView({
       responsibility: isChinese
         ? "根据视觉任务、ContentSpec 与商品引用生成场景媒体和受约束的资产元数据。"
         : "Generate scene media and constrained asset metadata from visual tasks, ContentSpec, and product references.",
-      input: "PagePlan + ContentSpec + asset tasks",
+      input: "PagePlan + approved ContentReviewDecision + ContentSpec + asset tasks",
       output: "Image media + TopicPageVisualProposal",
       boundary: isChinese
         ? "不改商品分配或场景定义，不伪造图片字节、品牌标识和元数据。"
         : "Does not change assignments or scenes, or fabricate image bytes, brand marks, or metadata.",
     },
     {
-      index: "05",
+      index: "07",
       id: "topic-review",
       icon: WORKFLOW_ICONS.qa,
       name: isChinese ? "体验审核 Agent" : "Topic Review Agent",
@@ -1839,13 +2072,15 @@ function WorkflowView({
     ? [
         "页面类型、选品策略与模板注册表",
         "状态机、执行顺序、尝试次数与回退边界",
-        "目录证据、任务成员和全部 SHA-256 摘要校验",
+        "目录 / 背景证据、CopyBrief、任务成员和全部 SHA-256 摘要校验",
+        "文案审核通过后才开放视觉生成",
         "资产落盘、确定性装配、硬 QA 与发布门禁",
       ]
     : [
         "Page-type, selection-strategy, and template registries",
         "Workflow state, execution order, attempts, and rollback boundaries",
-        "Catalog evidence, task membership, and every SHA-256 binding",
+        "Catalog and background evidence, CopyBrief, task membership, and every SHA-256 binding",
+        "Visual generation only after content-review approval",
         "Asset persistence, deterministic assembly, hard QA, and publish gate",
       ];
   const renderAgentFlowNode = (agent: (typeof agentArchitecture)[number]) => (
@@ -2105,11 +2340,11 @@ function WorkflowView({
       >
         <section className={styles.agentArchitectureIntro}>
           <div>
-            <span>AGENT SYSTEM MAP · 1 + 4</span>
+            <span>AGENT SYSTEM MAP · 1 + 6</span>
             <h4>
               {isChinese
-                ? "1 个薄编排 Agent + 4 个专业 Agent"
-                : "1 thin orchestrator + 4 specialist Agents"}
+                ? "1 个薄编排 Agent + 6 个专业 Agent"
+                : "1 thin orchestrator + 6 specialist Agents"}
             </h4>
             <p>
               {isChinese
@@ -2118,9 +2353,9 @@ function WorkflowView({
             </p>
           </div>
           <dl className={styles.agentArchitectureMetrics}>
-            <div><dt>Agents</dt><dd>1 + 4</dd></div>
-            <div><dt>Skills</dt><dd>7</dd></div>
-            <div><dt>{isChinese ? "运行阶段" : "Runtime stages"}</dt><dd>9</dd></div>
+            <div><dt>Agents</dt><dd>1 + 6</dd></div>
+            <div><dt>Skills</dt><dd>9</dd></div>
+            <div><dt>{isChinese ? "运行阶段" : "Runtime stages"}</dt><dd>11</dd></div>
             <div><dt>{isChinese ? "规则权威" : "Rule authority"}</dt><dd>TypeScript</dd></div>
           </dl>
         </section>
@@ -2141,16 +2376,22 @@ function WorkflowView({
               <HugeiconsIcon icon={ArrowDown01Icon} size={20} strokeWidth={1.5} />
             </span>
           </li>
+          <li className={styles.agentArchitectureFlowStep}>
+            {renderAgentFlowNode(agentArchitecture[2])}
+            <span className={styles.agentArchitectureFlowConnector} aria-hidden="true">
+              <HugeiconsIcon icon={ArrowDown01Icon} size={20} strokeWidth={1.5} />
+            </span>
+          </li>
           <li className={styles.agentArchitectureParallelStep}>
             <span className={styles.agentArchitectureParallelLabel}>
-              {isChinese ? "阶段 05 · 并行执行" : "Stage 05 · Run in parallel"}
+              {isChinese ? "阶段 05 · 按依赖顺序执行" : "Stage 05 · Run in dependency order"}
             </span>
             <ol
               className={styles.agentArchitectureParallelNodes}
               data-agent-flow="parallel"
-              aria-label={isChinese ? "文案与视觉 Agent 并行执行" : "Content and Visual Agents run in parallel"}
+              aria-label={isChinese ? "文案生成、独立审核、视觉生成按依赖顺序执行" : "Content generation, independent review, and visual generation run in dependency order"}
             >
-              {[agentArchitecture[2], agentArchitecture[3]].map((agent) => (
+              {[agentArchitecture[3], agentArchitecture[4], agentArchitecture[5]].map((agent) => (
                 <li key={agent.id}>{renderAgentFlowNode(agent)}</li>
               ))}
             </ol>
@@ -2167,7 +2408,7 @@ function WorkflowView({
             </span>
           </li>
           <li className={styles.agentArchitectureFlowStep}>
-            {renderAgentFlowNode(agentArchitecture[4])}
+            {renderAgentFlowNode(agentArchitecture[6])}
           </li>
         </ol>
 
@@ -2651,15 +2892,25 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
   const [selectionRuns, setSelectionRuns] = useState<SelectionRuns | null>(null);
   const [categoryRoleRuntime, setCategoryRoleRuntime] =
     useState<CategoryRoleRuntimeEvidence | null>(null);
+  const [backgroundEvidence, setBackgroundEvidence] =
+    useState<TopicBackgroundEvidenceBundle | null>(null);
   const [automation, setAutomation] = useState<TopicPageAutomationRun | null>(null);
+  const [pagePreviewTypeRef, setPagePreviewTypeRef] = useState<LandingPageTypeRef | null>(null);
   const [heroSelection, setHeroSelection] = useState<HeroSelectionRun | null>(null);
   const [shortcutSelection, setShortcutSelection] = useState<ShortcutSelectionRun | null>(null);
   const [startHereSelection, setStartHereSelection] = useState<StartHereSelectionRun | null>(null);
   const [localizedAutomationCache, setLocalizedAutomationCache] =
     useState<LocalizedAutomationCache | null>(null);
+  const [capabilityArtifacts, setCapabilityArtifacts] =
+    useState<CapabilityArtifacts | null>(null);
+  const [contentSpec, setContentSpec] = useState<TopicPageContentSpec | null>(null);
+  const [capabilityContentReview, setCapabilityContentReview] =
+    useState<TopicPageContentReviewDecision | null>(null);
+  const [visualGenerationSpec, setVisualGenerationSpec] =
+    useState<TopicPageGenerationSpec | null>(null);
   const [view, setView] = useState<ResultView>("preview");
   const [previewMode, setPreviewMode] = useState<PreviewMode>("page");
-  const [activeMode, setActiveMode] = useState<TopicGenerationMode>("page");
+  const [activeMode, setActiveMode] = useState<CapabilityMode>("page");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<GeneratorError | null>(null);
   const plan = plans?.[uiLanguage]?.[strategy] ?? null;
@@ -2728,13 +2979,19 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
     setLoading(true);
     setError(null);
     setCategoryRoleRuntime(null);
+    setBackgroundEvidence(null);
     setAutomation(null);
+    setPagePreviewTypeRef(null);
     setHeroSelection(null);
     setShortcutSelection(null);
     setStartHereSelection(null);
+    setCapabilityArtifacts(null);
+    setContentSpec(null);
+    setCapabilityContentReview(null);
+    setVisualGenerationSpec(null);
     if (!options.preserveLocalizedCache) setLocalizedAutomationCache(null);
     setView("preview");
-    setPreviewMode(mode === "selection" ? "distribution" : "page");
+    setPreviewMode("distribution");
 
     try {
       const response = await fetch("/api/topic-generator", {
@@ -2757,6 +3014,9 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
         shortcutSelection?: ShortcutSelectionRun;
         startHereSelection?: StartHereSelectionRun;
         automation?: TopicPageAutomationRun;
+        pagePreview?: { pageTypeRef: LandingPageTypeRef };
+        capabilityArtifacts?: CapabilityArtifacts;
+        backgroundEvidence?: TopicBackgroundEvidenceBundle;
         error?: GeneratorError;
       };
 
@@ -2767,9 +3027,12 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
       setPlans(payload.plans);
       setSelectionRuns(payload.selectionRuns ?? null);
       setCategoryRoleRuntime(payload.runtime?.categoryRole ?? null);
+      setBackgroundEvidence(payload.backgroundEvidence ?? null);
       setHeroSelection(payload.heroSelection ?? null);
       setShortcutSelection(payload.shortcutSelection ?? null);
       setStartHereSelection(payload.startHereSelection ?? null);
+      setPagePreviewTypeRef(payload.pagePreview?.pageTypeRef ?? null);
+      setCapabilityArtifacts(payload.capabilityArtifacts ?? null);
       const nextAutomation = payload.automation ?? null;
       setAutomation(nextAutomation);
       if (mode === "page" && nextAutomation?.status === "ready") {
@@ -2789,11 +3052,81 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
         });
       }
       setView("preview");
-      setPreviewMode(mode === "selection" ? "distribution" : "page");
+      setPreviewMode(
+        mode === "page" && nextAutomation?.status === "ready"
+          ? "page"
+          : "distribution",
+      );
+    } catch (caught) {
+      const generatorError = caught as GeneratorError;
+      setPreviewMode("distribution");
+      setError({
+        code: generatorError.code,
+        message: generatorError.message || "The topic page could not be generated.",
+        sourceUrl: generatorError.sourceUrl,
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function generateCapability(mode: "content" | "visual") {
+    if (!capabilityArtifacts ||
+        (mode === "visual" && (!contentSpec || !capabilityContentReview))) return;
+    setActiveMode(mode);
+    setLoading(true);
+    setError(null);
+    if (mode === "content") {
+      setContentSpec(null);
+      setCapabilityContentReview(null);
+      setVisualGenerationSpec(null);
+    } else {
+      setVisualGenerationSpec(null);
+    }
+    setView("preview");
+    setPreviewMode("page");
+    try {
+      const response = await fetch("/api/topic-generator", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          mode,
+          language: uiLanguage,
+          artifacts: capabilityArtifacts,
+          ...(mode === "visual"
+            ? { contentSpec, contentReview: capabilityContentReview }
+            : {}),
+        }),
+      });
+      const payload = await response.json() as {
+        contentSpec?: TopicPageContentSpec;
+        contentReview?: TopicPageContentReviewDecision;
+        backgroundEvidence?: TopicBackgroundEvidenceBundle;
+        generationSpec?: TopicPageGenerationSpec;
+        error?: GeneratorError;
+      };
+      if (!response.ok || !payload.contentSpec) {
+        throw payload.error ?? { message: "The capability returned an invalid response." };
+      }
+      setContentSpec(payload.contentSpec);
+      setCapabilityContentReview(payload.contentReview ?? null);
+      if (payload.backgroundEvidence) {
+        setBackgroundEvidence(payload.backgroundEvidence);
+        setCapabilityArtifacts((current) => current
+          ? { ...current, backgroundEvidence: payload.backgroundEvidence }
+          : current);
+      }
+      if (mode === "visual") {
+        if (!payload.generationSpec) {
+          throw { message: "Visual generation returned no page generation spec." };
+        }
+        setVisualGenerationSpec(payload.generationSpec);
+      }
     } catch (caught) {
       const generatorError = caught as GeneratorError;
       setError({
-        message: generatorError.message || "The topic page could not be generated.",
+        code: generatorError.code,
+        message: generatorError.message || "The capability could not be completed.",
         sourceUrl: generatorError.sourceUrl,
       });
     } finally {
@@ -2812,10 +3145,20 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
     const cachedAutomation = activeCache?.runs[requestedLanguage];
     const shouldResolvePage = activeCache !== null &&
       view === "preview" && previewMode === "page";
-    const shouldResolveSelection = plans !== null &&
-      activeMode === "selection" && view === "preview";
     setUiLanguage(requestedLanguage);
     setError(null);
+
+    if (plans !== null && capabilityArtifacts !== null && activeMode !== "page") {
+      setActiveMode("selection");
+      setContentSpec(null);
+      setCapabilityContentReview(null);
+      setVisualGenerationSpec(null);
+      setAutomation(null);
+      return;
+    }
+
+    if (plans !== null && activeMode === "selection") return;
+
     setHeroSelection(null);
     setShortcutSelection(null);
     setStartHereSelection(null);
@@ -2824,8 +3167,6 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
       setAutomation(cachedAutomation);
     } else if (shouldResolvePage) {
       void generate("page", requestedLanguage, { preserveLocalizedCache: true });
-    } else if (shouldResolveSelection) {
-      void generate("selection", requestedLanguage);
     } else {
       setAutomation(null);
     }
@@ -2935,6 +3276,31 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
                   ? copy.selectingProducts
                   : copy.selectProducts}
               </WorkbenchButton>
+              <div className={styles.capabilityActions}>
+                <WorkbenchButton
+                  type="button"
+                  variant="secondary"
+                  size="default"
+                  disabled={loading || !capabilityArtifacts}
+                  onClick={() => void generateCapability("content")}
+                >
+                  {loading && activeMode === "content"
+                    ? copy.generatingContent
+                    : copy.generateContent}
+                </WorkbenchButton>
+                <WorkbenchButton
+                  type="button"
+                  variant="secondary"
+                  size="default"
+                  disabled={loading || !capabilityArtifacts || !contentSpec ||
+                    !capabilityContentReview}
+                  onClick={() => void generateCapability("visual")}
+                >
+                  {loading && activeMode === "visual"
+                    ? copy.generatingVisuals
+                    : copy.generateVisuals}
+                </WorkbenchButton>
+              </div>
             </div>
           </form>
 
@@ -2962,7 +3328,7 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
                   label: copy.tabs[tab],
                   disabled:
                     (tab !== "workflow" && tab !== "preview" && !plan) ||
-                    (tab !== "workflow" && loading) ||
+                    (tab !== "workflow" && tab !== "preview" && loading) ||
                     (plan?.generationMode === "selection" && tab === "rules"),
                 }))}
               value={view}
@@ -2992,7 +3358,11 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
                     />
                   </div>
                 ) : view === "analysis" && plan && !loading ? (
-                  <TopicAnalysisView plan={plan} uiLanguage={uiLanguage} />
+                  <TopicAnalysisView
+                    plan={plan}
+                    uiLanguage={uiLanguage}
+                    backgroundEvidence={backgroundEvidence}
+                  />
                 ) : loading ? (
                   <LoadingState
                     keyword={keyword.trim()}
@@ -3019,8 +3389,12 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
                                 : "English selection and module review complete"
                               : moduleSelectionStatus === "fallback"
                                 ? uiLanguage === "zh"
-                                  ? "已完成中文选品；模块组合使用规则预选"
-                                  : "English selection complete; modules use rule fallback"
+                                  ? capabilityArtifacts
+                                    ? "已完成中文选品与规则模块方案"
+                                    : "已完成中文选品；页面模块方案未就绪"
+                                  : capabilityArtifacts
+                                    ? "English selection and rule-based module plan complete"
+                                    : "English selection complete; page module plan is not ready"
                                 : copy.selectedPlan
                             : copy.generatedPlan}
                           {` · ${plan.site.toUpperCase()} · ${strategyLabel}`}
@@ -3075,7 +3449,12 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
                             </strong>
                           </div>
                           <div>
-                            {plan.generationMode === "selection" ? (
+                            {capabilityContentReview ? (
+                              <>
+                                <span>{uiLanguage === "zh" ? "文案审核" : "Content review"}</span>
+                                <strong>{uiLanguage === "zh" ? "已通过" : "Approved"}</strong>
+                              </>
+                            ) : plan.generationMode === "selection" ? (
                               <>
                                 <span>{uiLanguage === "zh" ? "模块选品" : "Module selection"}</span>
                                 <strong>
@@ -3109,7 +3488,6 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
                           label: copy.previewModes[mode],
                           id: `preview-${mode}-tab`,
                           controls: `preview-${mode}-panel`,
-                          disabled: mode === "page" && automation?.status !== "ready",
                         }))}
                         value={previewMode}
                         onValueChange={setPreviewMode}
@@ -3141,17 +3519,38 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
                             ? PagePreviewRenderer
                               ? (
                                   <PagePreviewRenderer
+                                    mode="generated"
                                     pageTypeRef={automation.executionPlan.pageTypeRef}
                                     generationSpec={automation.generationSpec}
                                   />
                                 )
                               : <PageGenerationPreview spec={automation.generationSpec} />
-                            : <PreviewView
-                                plan={plan}
-                                heroSelection={resolvedHeroSelection}
-                                shortcutSelection={resolvedShortcutSelection}
-                                startHereSelection={resolvedStartHereSelection}
-                              />
+                            : visualGenerationSpec && PagePreviewRenderer && capabilityArtifacts
+                              ? (
+                                  <PagePreviewRenderer
+                                    mode="visual"
+                                    pageTypeRef={capabilityArtifacts.pageTypeRef}
+                                    generationSpec={visualGenerationSpec}
+                                  />
+                                )
+                              : contentSpec && PagePreviewRenderer && capabilityArtifacts
+                                ? (
+                                    <PagePreviewRenderer
+                                      mode="content"
+                                      pageTypeRef={capabilityArtifacts.pageTypeRef}
+                                      plan={plan}
+                                      contentSpec={contentSpec}
+                                    />
+                                  )
+                            : PagePreviewRenderer && pagePreviewTypeRef
+                              ? (
+                                  <PagePreviewRenderer
+                                    mode="selection"
+                                    pageTypeRef={pagePreviewTypeRef}
+                                    plan={plan}
+                                  />
+                                )
+                              : <SelectionPagePreview plan={plan} />
                       )}
                       {view === "pools" && <PoolsView plan={plan} uiLanguage={uiLanguage} />}
                       {view === "rules" && (

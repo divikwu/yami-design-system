@@ -101,6 +101,32 @@ function semanticProposal() {
 describe("Topic Generator automatic TopicIntent Agent integration", () => {
   it("returns an Agent-reviewed Hero when selection mode has a Topic Page Agent", async () => {
     const { adapter } = catalogFixture();
+    const proposeSemanticIntent = vi.fn<TopicIntentAgent["proposeSemanticIntent"]>(
+      async () => semanticProposal(),
+    );
+    const proposeBackgroundEvidence = vi.fn<HttpTopicPageAgent["proposeBackgroundEvidence"]>(
+      async (run) => ({
+        schemaVersion: "topic-background-evidence-proposal/v1",
+        keyword: run.context.keyword,
+        site: run.context.site,
+        language: run.context.language,
+        themeIntentDigest: run.context.themeIntentDigest,
+        sources: [{
+          id: "source:anua-official",
+          type: "official-brand",
+          title: "About ANUA",
+          url: "https://brand.example/about",
+          publisher: "ANUA",
+        }],
+        claims: [{
+          id: "claim:anua-identity",
+          type: "identity",
+          text: "A source-backed brand identity statement for a first-time shopper.",
+          sourceIds: ["source:anua-official"],
+          usage: "context-only",
+        }],
+      }),
+    );
     const proposeExecutionPlan = vi.fn<HttpTopicPageAgent["proposeExecutionPlan"]>(
       async (run) => ({
         schemaVersion: "landing-page-execution-plan-proposal/v1",
@@ -117,7 +143,8 @@ describe("Topic Generator automatic TopicIntent Agent integration", () => {
       }),
     );
     const proposeModuleMerchandising = vi.fn<HttpTopicPageAgent["proposeModuleMerchandising"]>(
-      async (run) => ({
+      async (run) => {
+        return ({
         schemaVersion: "module-merchandising-proposal/v1",
         keyword: run.context.keyword,
         site: run.context.site,
@@ -192,13 +219,10 @@ describe("Topic Generator automatic TopicIntent Agent integration", () => {
           {
             id: "popular-picks",
             visible: true,
-            shoppingGoal: "Show a strong catalog pick",
-            reason: "A distinct serum provides a popular-pick slot.",
+            shoppingGoal: "Show the complete frozen popular assortment",
+            reason: "ProductSelection owns the complete Popular Picks assortment.",
             scenes: [],
-            assignments: [{
-              productId: "103-2",
-              reuseReason: "Popular Picks references a product already used in Start Here.",
-            }],
+            assignments: [],
           },
           {
             id: "brand-spotlight",
@@ -219,16 +243,14 @@ describe("Topic Generator automatic TopicIntent Agent integration", () => {
           {
             id: "explore-more",
             visible: true,
-            shoppingGoal: "Continue ANUA discovery",
-            reason: "A distinct catalog product extends discovery.",
+            shoppingGoal: "Browse the complete frozen catalog assortment",
+            reason: "ProductSelection owns the complete Explore More assortment.",
             scenes: [],
-            assignments: [{
-              productId: "101-3",
-              reuseReason: "Explore More references a product already used in Start Here.",
-            }],
+            assignments: [],
           },
         ],
-      }),
+        });
+      },
     );
     const response = await handleTopicGeneratorPost(
       new Request("http://localhost/api/topic-generator", {
@@ -244,10 +266,11 @@ describe("Topic Generator automatic TopicIntent Agent integration", () => {
         adapters: [adapter],
         topicIntentAgent: {
           id: "topic-intent-agent",
-          proposeSemanticIntent: async () => semanticProposal(),
+          proposeSemanticIntent,
         },
         topicPageAgent: {
           id: "topic-page-agent",
+          proposeBackgroundEvidence,
           proposeExecutionPlan,
           proposeModuleMerchandising,
         } as unknown as HttpTopicPageAgent,
@@ -257,12 +280,37 @@ describe("Topic Generator automatic TopicIntent Agent integration", () => {
 
     const payload = await response.json();
     expect(response.status, JSON.stringify(payload)).toBe(200);
+    expect(proposeSemanticIntent).toHaveBeenCalledOnce();
+    expect(proposeBackgroundEvidence).toHaveBeenCalledOnce();
     expect(proposeExecutionPlan).toHaveBeenCalledOnce();
     expect(proposeModuleMerchandising).toHaveBeenCalledOnce();
+    expect(proposeSemanticIntent.mock.invocationCallOrder[0]).toBeLessThan(
+      proposeBackgroundEvidence.mock.invocationCallOrder[0]!,
+    );
+    expect(proposeBackgroundEvidence.mock.invocationCallOrder[0]).toBeLessThan(
+      proposeExecutionPlan.mock.invocationCallOrder[0]!,
+    );
     expect(proposeModuleMerchandising).toHaveBeenCalledWith(expect.objectContaining({
-      context: expect.objectContaining({ language: "zh" }),
+      context: expect.objectContaining({
+        language: "zh",
+        moduleRules: expect.arrayContaining([
+          expect.objectContaining({ id: "popular-picks", minimumProducts: 12, maximumProducts: 12 }),
+          expect.objectContaining({ id: "explore-more", minimumProducts: 12, maximumProducts: 12 }),
+        ]),
+      }),
     }));
     expect(payload.automation).toBeUndefined();
+    expect(payload.pagePreview).toEqual({ pageTypeRef: "landing-page/brand@2" });
+    expect(payload.capabilityArtifacts).toMatchObject({
+      pageTypeRef: "landing-page/brand@2",
+      intent: { canonicalEntity: { label: "ANUA" } },
+      selection: { keyword: "ANUA", strategyRef: "relevance/intent-themes@5" },
+      plan: { schemaVersion: "topic-page-plan/v2", status: "plan-ready" },
+      backgroundEvidence: {
+        status: "ready",
+        claims: [{ id: "claim:anua-identity", usage: "context-only" }],
+      },
+    });
     expect(payload.heroSelection).toMatchObject({
       schemaVersion: "hero-selection-run/v1",
       status: "ready",
@@ -360,6 +408,51 @@ describe("Topic Generator automatic TopicIntent Agent integration", () => {
     expect(payload.plans.zh.relevance.modules.find(
       (module: { id: string }) => module.id === "start-here",
     ).productIds).toHaveLength(12);
+    expect(payload.plans.zh.relevance.modules.map(
+      (module: { id: string; visible: boolean; productIds: string[] }) => ({
+        id: module.id,
+        visible: module.visible,
+        productIds: module.productIds,
+      }),
+    )).toEqual([
+      { id: "hero", visible: true, productIds: ["101-1", "102-1", "103-1"] },
+      { id: "shortcuts", visible: true, productIds: ["101-2", "102-3", "103-3"] },
+      {
+        id: "start-here",
+        visible: true,
+        productIds: payload.startHereSelection.scenes.flatMap(
+          (scene: { productIds: string[] }) => scene.productIds,
+        ),
+      },
+      {
+        id: "popular-picks",
+        visible: true,
+        productIds: [
+          "101-1", "101-2", "101-3", "101-4",
+          "102-1", "102-2", "102-3", "102-4",
+          "103-1", "103-2", "103-3", "103-4",
+        ],
+      },
+      { id: "brand-spotlight", visible: false, productIds: [] },
+      { id: "reviews", visible: false, productIds: [] },
+      {
+        id: "explore-more",
+        visible: true,
+        productIds: [
+          "101-1", "101-2", "101-3", "101-4",
+          "102-1", "102-2", "102-3", "102-4",
+          "103-1", "103-2", "103-3", "103-4",
+        ],
+      },
+    ]);
+    for (const moduleId of ["popular-picks", "explore-more"]) {
+      const module = payload.plans.zh.relevance.modules.find(
+        (candidate: { id: string }) => candidate.id === moduleId,
+      );
+      expect([
+        ...new Set(module.groups.flatMap((group: { productIds: string[] }) => group.productIds)),
+      ]).toEqual(module.productIds);
+    }
   });
 
   it("labels the deterministic Hero as fallback when its Agent is unavailable", async () => {
@@ -395,6 +488,69 @@ describe("Topic Generator automatic TopicIntent Agent integration", () => {
       source: "deterministic-rules",
       visible: true,
       issues: ["Automatic module selection requires a Topic Page Agent."],
+    });
+  });
+
+  it("returns capability artifacts when module review uses the deterministic fallback", async () => {
+    const { adapter } = catalogFixture();
+    const proposeModuleMerchandising = vi.fn(async () => ({
+      schemaVersion: "invalid-module-proposal/v1",
+    }));
+    const proposeExecutionPlan = vi.fn<HttpTopicPageAgent["proposeExecutionPlan"]>(
+      async (run) => ({
+        schemaVersion: "landing-page-execution-plan-proposal/v1",
+        keyword: run.context.keyword,
+        site: run.context.site,
+        language: run.context.language,
+        themeIntentDigest: run.context.themeIntentDigest,
+        requestedPageTypeRef: run.context.requestedPageTypeRef,
+        requestedSelectionStrategyRef: run.context.requestedSelectionStrategyRef,
+        pageTypeRef: "landing-page/brand@2",
+        selectionStrategyRef: "relevance/intent-themes@5",
+        templateRef: "topic-landing/brand-relevance@2",
+        reason: "Use the registered relevance route for the resolved brand intent.",
+      }),
+    );
+    const response = await handleTopicGeneratorPost(
+      new Request("http://localhost/api/topic-generator", {
+        method: "POST",
+        body: JSON.stringify({
+          keyword: "ANUA",
+          mode: "selection",
+          strategy: "relevance",
+          language: "zh",
+        }),
+      }),
+      {
+        adapters: [adapter],
+        topicIntentAgent: {
+          id: "topic-intent-agent",
+          proposeSemanticIntent: async () => semanticProposal(),
+        },
+        topicPageAgent: {
+          id: "topic-page-agent",
+          proposeExecutionPlan,
+          proposeModuleMerchandising,
+        } as unknown as HttpTopicPageAgent,
+        requireAutomaticHeroReview: true,
+      },
+    );
+
+    const payload = await response.json();
+    expect(response.status, JSON.stringify(payload)).toBe(200);
+    expect(proposeModuleMerchandising).toHaveBeenCalledTimes(2);
+    expect(payload.heroSelection).toMatchObject({
+      status: "fallback",
+      source: "deterministic-rules",
+    });
+    expect(payload.capabilityArtifacts).toMatchObject({
+      pageTypeRef: "landing-page/brand@2",
+      selection: { keyword: "ANUA" },
+      plan: {
+        schemaVersion: "topic-page-plan/v2",
+        status: "plan-ready",
+        templateRef: "topic-landing/brand-relevance@2",
+      },
     });
   });
 

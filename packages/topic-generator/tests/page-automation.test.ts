@@ -9,6 +9,7 @@ import {
   type ProductSelectionResult,
   type ThemeIntent,
   type TopicContentAgent,
+  type TopicPageContentReviewAgent,
   type TopicPageAssetStore,
   type TopicPageImageDecoder,
   type TopicPageReviewAgent,
@@ -228,6 +229,17 @@ function workflowFixture(options: {
       })),
     }),
   };
+  const contentReview: TopicPageContentReviewAgent = {
+    id: "fixture-content-review-agent",
+    reviewPageContent: async (run) => ({
+      schemaVersion: "topic-page-content-review-proposal/v1",
+      contentSpecDigest: run.context.contentSpecDigest,
+      copyBriefDigest: run.context.copyBriefDigest,
+      backgroundEvidenceDigest: run.context.backgroundEvidenceDigest,
+      verdict: "approved",
+      issues: [],
+    }),
+  };
   const completeHeroBytes = pngFixture("1600x900");
   const heroBytes = options.truncatedHero ? completeHeroBytes.slice(0, 24) : completeHeroBytes;
   const shortcutBytes = pngFixture("512x512");
@@ -322,7 +334,7 @@ function workflowFixture(options: {
     intent,
     selection,
     executionPlan: orchestration.plan,
-    agents: { merchandising, content, visual, review },
+    agents: { merchandising, content, contentReview, visual, review },
     assetStore,
     imageDecoder,
     persisted,
@@ -346,9 +358,11 @@ describe("Topic page automation workflow", () => {
       stage: "review-ready",
       stages: [
         { id: "workflow-planning", status: "completed" },
+        { id: "background-evidence", status: "completed" },
         { id: "product-selection", status: "completed" },
         { id: "module-merchandising", status: "completed" },
         { id: "content-writing", status: "completed" },
+        { id: "content-review", status: "completed" },
         { id: "visual-generation", status: "completed" },
         { id: "asset-persistence", status: "completed" },
         { id: "page-generation", status: "completed" },
@@ -447,6 +461,107 @@ describe("Topic page automation workflow", () => {
       qaReport: { status: "qa-blocked" },
     });
     expect(previewResolver).not.toHaveBeenCalled();
+  });
+
+  it("rewrites once when independent content review requests revision before visual generation", async () => {
+    const data = workflowFixture();
+    const proposePageContent = vi.fn(data.agents.content.proposePageContent);
+    data.agents.content = { ...data.agents.content, proposePageContent };
+    const generatePageVisuals = vi.fn(data.agents.visual.generatePageVisuals);
+    data.agents.visual = { ...data.agents.visual, generatePageVisuals };
+    let reviewAttempt = 0;
+    data.agents.contentReview = {
+      id: "fixture-content-review-agent",
+      reviewPageContent: async (run) => {
+        reviewAttempt += 1;
+        return {
+          schemaVersion: "topic-page-content-review-proposal/v1",
+          contentSpecDigest: run.context.contentSpecDigest,
+          copyBriefDigest: run.context.copyBriefDigest,
+          backgroundEvidenceDigest: run.context.backgroundEvidenceDigest,
+          verdict: reviewAttempt === 1 ? "revision-required" : "approved",
+          issues: reviewAttempt === 1
+            ? [{
+                code: "generic-theme-copy",
+                severity: "error",
+                moduleId: "hero",
+                message: "Explain what makes this topic distinct for a first-time shopper.",
+              }]
+            : [],
+        };
+      },
+    };
+
+    const result = await runTopicPageAutomationWorkflow({
+      ...data,
+      language: "zh",
+      previewRefs: { desktop: "/", mobile: "/" },
+    });
+
+    expect(result).toMatchObject({ status: "ready", stage: "review-ready" });
+    expect(proposePageContent).toHaveBeenCalledTimes(2);
+    expect(proposePageContent.mock.calls[1]?.[0].context.revision).toMatchObject({
+      schemaVersion: "topic-page-content-revision/v1",
+      attempt: 2,
+      review: {
+        source: "review-agent",
+        issues: [{
+          code: "generic-theme-copy",
+          moduleId: "hero",
+          message: "Explain what makes this topic distinct for a first-time shopper.",
+        }],
+      },
+    });
+    expect(generatePageVisuals).toHaveBeenCalledOnce();
+  });
+
+  it("blocks visual generation when the bounded content rewrite still fails review", async () => {
+    const data = workflowFixture();
+    const proposePageContent = vi.fn(data.agents.content.proposePageContent);
+    data.agents.content = { ...data.agents.content, proposePageContent };
+    const generatePageVisuals = vi.fn(data.agents.visual.generatePageVisuals);
+    data.agents.visual = { ...data.agents.visual, generatePageVisuals };
+    const reviewPageContent = vi.fn(async (run: Parameters<
+      TopicPageContentReviewAgent["reviewPageContent"]
+    >[0]) => ({
+      schemaVersion: "topic-page-content-review-proposal/v1" as const,
+      contentSpecDigest: run.context.contentSpecDigest,
+      copyBriefDigest: run.context.copyBriefDigest,
+      backgroundEvidenceDigest: run.context.backgroundEvidenceDigest,
+      verdict: "revision-required" as const,
+      issues: [{
+        code: "generic-theme-copy",
+        severity: "error" as const,
+        moduleId: "hero" as const,
+        message: "Explain what makes this topic distinct for a first-time shopper.",
+      }],
+    }));
+    data.agents.contentReview = {
+      id: "fixture-content-review-agent",
+      reviewPageContent,
+    };
+
+    const result = await runTopicPageAutomationWorkflow({
+      ...data,
+      language: "zh",
+      previewRefs: { desktop: "/", mobile: "/" },
+    });
+
+    expect(result).toMatchObject({
+      status: "blocked",
+      stage: "content-review",
+      rollbackStage: "content-writing",
+      issues: ["Hero: Explain what makes this topic distinct for a first-time shopper."],
+      contentReview: {
+        status: "blocked",
+        faultKind: "content-quality",
+        decision: { verdict: "revision-required" },
+      },
+    });
+    expect(proposePageContent).toHaveBeenCalledTimes(2);
+    expect(reviewPageContent).toHaveBeenCalledTimes(2);
+    expect(generatePageVisuals).not.toHaveBeenCalled();
+    expect(data.put).not.toHaveBeenCalled();
   });
 
   it("carries the requested visual production mode through the full automation workflow", async () => {

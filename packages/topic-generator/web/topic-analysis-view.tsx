@@ -1,4 +1,5 @@
 import type { ContentLanguage, TopicPagePlan } from "../src/types";
+import type { TopicBackgroundEvidenceBundle } from "../src/background-evidence/contracts";
 import { themeIntentDisplayCopy } from "./theme-intent-copy";
 import styles from "./topic-generator.module.css";
 
@@ -102,12 +103,15 @@ const SOURCE_LABELS = {
 export function TopicAnalysisView({
   plan,
   uiLanguage = plan.language,
+  backgroundEvidence,
 }: {
   plan: TopicPagePlan;
   uiLanguage?: ContentLanguage;
+  backgroundEvidence?: TopicBackgroundEvidenceBundle | null;
 }) {
   const zh = uiLanguage === "zh";
   const intent = plan.intent;
+  const backgroundEvidenceMatchesLanguage = backgroundEvidence?.language === uiLanguage;
   const entityLabel = intent.canonicalEntity?.label ?? plan.keyword;
   const emptyLabel = zh ? "无" : "None";
   const displayCopy = themeIntentDisplayCopy(intent, plan.keyword, uiLanguage);
@@ -131,6 +135,7 @@ export function TopicAnalysisView({
   const showResolvedAlternatives = competingCandidates.length > 0 && intent.decision.status === "resolved";
   const rulesSectionNumber = showCandidateReview ? "03" : "02";
   const evidenceSectionNumber = showCandidateReview ? "04" : "03";
+  const backgroundSectionNumber = showCandidateReview ? "05" : "04";
   const maxCategoryEvidence = Math.max(
     1,
     ...intent.categories.map((category) => category.evidenceCount),
@@ -349,6 +354,74 @@ export function TopicAnalysisView({
             {zh
               ? "当前没有结构化分类证据；需要根据判断原因 Review 本次结果。"
               : "No structured category evidence is available; review the result using the stated reason."}
+          </p>
+        )}
+      </section>
+
+      <section className={styles.analysisSection}>
+        <header>
+          <span>{backgroundSectionNumber}</span>
+          <div>
+            <h3>{zh ? "品牌 / 文化背景证据" : "Brand & cultural background"}</h3>
+            <p>
+              {zh
+                ? "为不熟悉当前主题的用户补充入门背景；这些资料只用于解释主题，不能证明商品功效、热度或销量。"
+                : "Adds newcomer context for this topic; it cannot prove product efficacy, popularity, or sales."}
+            </p>
+          </div>
+        </header>
+        {backgroundEvidence && backgroundEvidenceMatchesLanguage &&
+          backgroundEvidence.claims.length > 0 ? (
+          <>
+            <ol className={styles.analysisEvidence}>
+              {backgroundEvidence.claims.map((claim, index) => {
+                const sourceLabels = claim.sourceIds.map((sourceId) =>
+                  backgroundEvidence.sources.find(({ id }) => id === sourceId)?.publisher ?? sourceId
+                );
+                return (
+                  <li key={claim.id}>
+                    <span>{String(index + 1).padStart(2, "0")}</span>
+                    <div>
+                      <strong>{claim.text}</strong>
+                      <small>{claim.type} · {sourceLabels.join(" · ")}</small>
+                    </div>
+                    <b>{zh ? "仅背景" : "Context only"}</b>
+                  </li>
+                );
+              })}
+            </ol>
+            <ul className={styles.analysisValueList}>
+              {backgroundEvidence.sources.map((source) => (
+                <li key={source.id}>
+                  <a href={source.url} target="_blank" rel="noreferrer">
+                    {source.publisher} · {source.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : backgroundEvidence && !backgroundEvidenceMatchesLanguage ? (
+          <>
+            <p className={styles.analysisNoEvidence}>
+              {zh
+                ? "已保留本次选品的背景来源；生成文案时会按当前语言重新生成可引用摘要，不会重新选品。"
+                : "Background sources from this selection are preserved. Generate copy to create citable summaries in the current language without selecting products again."}
+            </p>
+            <ul className={styles.analysisValueList}>
+              {backgroundEvidence.sources.map((source) => (
+                <li key={source.id}>
+                  <a href={source.url} target="_blank" rel="noreferrer">
+                    {source.publisher} · {source.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : (
+          <p className={styles.analysisNoEvidence}>
+            {zh
+              ? "本次没有获得可引用的官方品牌或文化背景资料；后续文案只使用 Yami 目录证据。"
+              : "No eligible official-brand or cultural background was available; downstream copy uses Yami catalog evidence only."}
           </p>
         )}
       </section>

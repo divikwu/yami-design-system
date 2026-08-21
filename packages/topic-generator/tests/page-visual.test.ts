@@ -7,10 +7,12 @@ import {
   runTopicVisualAgentWorkflow,
   sha256Digest,
   themeIntentDigest,
+  topicBackgroundEvidenceDigest,
   topicPageContentSpecDigest,
   topicPagePlanDigest,
   type ProductSelectionResult,
   type ThemeIntent,
+  type TopicBackgroundEvidenceBundle,
   type TopicPageContentSpec,
   type TopicPagePlanV2,
   type TopicPageVisualProposal,
@@ -269,6 +271,35 @@ function contentSpecFixture(
   return { ...spec, digest: sha256Digest(spec) };
 }
 
+function backgroundEvidenceFixture(
+  intent = themeIntentFixture(),
+): TopicBackgroundEvidenceBundle {
+  const bundle = {
+    schemaVersion: "topic-background-evidence/v1" as const,
+    status: "ready" as const,
+    keyword: "Matcha",
+    site: "us" as const,
+    language: "zh" as const,
+    themeIntentDigest: themeIntentDigest(intent),
+    sources: [{
+      id: "source:matcha-wikipedia",
+      type: "wikipedia" as const,
+      title: "Matcha",
+      url: "https://en.wikipedia.org/wiki/Matcha",
+      publisher: "Wikipedia",
+    }],
+    claims: [{
+      id: "claim:matcha-definition",
+      type: "identity" as const,
+      text: "Matcha is finely ground green tea traditionally prepared with water.",
+      sourceIds: ["source:matcha-wikipedia"],
+      usage: "context-only" as const,
+    }],
+    issues: [],
+  };
+  return { ...bundle, digest: topicBackgroundEvidenceDigest(bundle) };
+}
+
 function artifact(
   ref: string,
   width: number,
@@ -389,6 +420,44 @@ function visualProposalFixture(
 }
 
 describe("TopicPageVisual", () => {
+  it("revalidates background-backed copy with its bound evidence without expanding visual evidence", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const backgroundEvidence = backgroundEvidenceFixture(intent);
+    const contentSpec = contentSpecFixture(intent, selection, plan);
+    contentSpec.backgroundEvidenceDigest = backgroundEvidence.digest;
+    contentSpec.tasks[0]!.copy.title.evidenceRefs = [
+      "background:claim:matcha-definition",
+    ];
+    contentSpec.digest = topicPageContentSpecDigest(contentSpec);
+
+    const run = advanceTopicPageVisualRun({
+      intent,
+      selection,
+      plan,
+      contentSpec,
+      backgroundEvidence,
+    });
+
+    expect(run.status).toBe("needs-visual-proposal");
+    if (run.status !== "needs-visual-proposal") throw new Error("Expected visual tasks.");
+    expect(run.context.evidenceNamespaces).not.toContain("background:<claim-id>");
+
+    const missingEvidenceRun = advanceTopicPageVisualRun({
+      intent,
+      selection,
+      plan,
+      contentSpec,
+    });
+    expect(missingEvidenceRun).toMatchObject({
+      status: "blocked",
+      issues: expect.arrayContaining([
+        "TopicPageVisual requires the BackgroundEvidence bound to TopicPageContentSpec.",
+      ]),
+    });
+  });
+
   it("returns only PagePlan asset tasks with real component presentation requirements", () => {
     const intent = themeIntentFixture();
     const selection = selectionFixture();

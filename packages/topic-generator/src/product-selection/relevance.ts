@@ -17,6 +17,8 @@ const SCENARIO_FALLBACK_PRIMARY_LIMIT = 20;
 const BRAND_SPOTLIGHT_MINIMUM_BRANDS = 2;
 const BRAND_SPOTLIGHT_MAXIMUM_BRANDS = 6;
 const BRAND_SPOTLIGHT_PRODUCTS_PER_BRAND = 3;
+const POPULAR_PICKS_MINIMUM_PRODUCTS = 6;
+const POPULAR_PICKS_MAXIMUM_PRODUCTS = 12;
 
 function normalized(value: string) {
   return value.toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
@@ -141,6 +143,58 @@ function brandSpotlightModule(products: YamiProduct[]): ProductSelectionModuleRe
     productIds: groups.flatMap(({ productIds }) => productIds),
     groups,
   };
+}
+
+function relevanceCommerceModules(
+  products: YamiProduct[],
+  modules: ProductSelectionModuleResult[],
+): ProductSelectionModuleResult[] {
+  const productsById = new Map(products.map((product) => [product.id, product]));
+  const rankedProductIds = (productIds: string[]) => productIds
+    .flatMap((id) => {
+      const product = productsById.get(id);
+      return product ? [product] : [];
+    })
+    .sort((left, right) =>
+      weeklySalesLowerBound(right) - weeklySalesLowerBound(left) ||
+      left.sourceRank - right.sourceRank
+    )
+    .slice(0, POPULAR_PICKS_MAXIMUM_PRODUCTS)
+    .map(({ id }) => id);
+  const allProductIds = rankedProductIds(products.map(({ id }) => id));
+  const shortcutGroups = modules.find(({ id }) => id === "shortcuts")?.groups ?? [];
+  const popularGroups: ProductSelectionModuleGroup[] = allProductIds.length <
+      POPULAR_PICKS_MINIMUM_PRODUCTS
+    ? []
+    : [
+        {
+          id: "popular-picks-all",
+          label: "All",
+          role: "core",
+          productIds: allProductIds,
+        },
+        ...shortcutGroups.flatMap((group) => {
+          const productIds = rankedProductIds(group.productIds);
+          return productIds.length >= POPULAR_PICKS_MINIMUM_PRODUCTS
+            ? [{ ...group, productIds }]
+            : [];
+        }),
+      ];
+  const popularProductIds = [...new Set(
+    popularGroups.flatMap(({ productIds }) => productIds),
+  )];
+
+  return [
+    { id: "popular-picks", productIds: popularProductIds, groups: popularGroups },
+    {
+      id: "explore-more",
+      productIds: products.map(({ id }) => id),
+      groups: shortcutGroups.map((group) => ({
+        ...group,
+        productIds: [...group.productIds],
+      })),
+    },
+  ];
 }
 
 function intentThemeSelection(
@@ -662,6 +716,10 @@ export function selectByRelevance(
     ],
     selectedCategories: themedSelection?.selectedCategories ?? [],
     scenes: themedSelection?.scenes ?? [],
-    modules: [...themedModules, brandSpotlightModule(primary)],
+    modules: [
+      ...themedModules,
+      ...relevanceCommerceModules(primary, themedModules),
+      brandSpotlightModule(primary),
+    ],
   };
 }

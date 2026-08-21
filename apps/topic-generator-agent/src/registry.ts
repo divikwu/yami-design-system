@@ -5,9 +5,11 @@ export type AgentProtocol = "topic-page" | "product-selection";
 
 export type TopicPageStage =
   | "topic-intent"
+  | "background-evidence"
   | "workflow-planning"
   | "module-merchandising"
   | "content-writing"
+  | "content-review"
   | "visual-generation"
   | "experience-review";
 
@@ -68,6 +70,14 @@ export const AGENT_ROUTES: readonly AgentRoute[] = [
   }),
   route({
     protocol: "topic-page",
+    stage: "background-evidence",
+    agentId: "topic-background-evidence",
+    kiroAgent: "topic-background-evidence",
+    skill: "background-evidence",
+    responseSchemaVersion: "topic-page-agent-response/v1",
+  }),
+  route({
+    protocol: "topic-page",
     stage: "workflow-planning",
     agentId: "topic-page-orchestrator",
     kiroAgent: "topic-page-orchestrator",
@@ -88,6 +98,14 @@ export const AGENT_ROUTES: readonly AgentRoute[] = [
     agentId: "topic-content",
     kiroAgent: "topic-content",
     skill: "content-writing",
+    responseSchemaVersion: "topic-page-agent-response/v1",
+  }),
+  route({
+    protocol: "topic-page",
+    stage: "content-review",
+    agentId: "topic-content-review",
+    kiroAgent: "topic-content-review",
+    skill: "content-review",
     responseSchemaVersion: "topic-page-agent-response/v1",
   }),
   route({

@@ -1,6 +1,10 @@
 import type { ContentLanguage, ThemeIntent } from "../types.js";
 import type { ProductSelectionResult } from "../product-selection/contracts.js";
 import type { TopicPagePlanV2 } from "../page-merchandising/contracts.js";
+import type {
+  TopicAudienceContext,
+  TopicBackgroundEvidenceBundle,
+} from "../background-evidence/contracts.js";
 import {
   productSelectionDigest,
   themeIntentDigest,
@@ -8,9 +12,11 @@ import {
 import type {
   TopicPageContentAttemptArtifact,
   TopicPageContentProposal,
+  TopicPageContentRevisionContext,
   TopicPageContentRun,
 } from "./contracts.js";
 import { advanceTopicPageContentRun } from "./run.js";
+import { topicPageContentSpecDigest } from "./review.js";
 
 type NeedsContentProposalRun = Extract<
   TopicPageContentRun,
@@ -27,8 +33,11 @@ export interface TopicContentAgentWorkflowRequest {
   selection: ProductSelectionResult;
   plan: TopicPagePlanV2;
   language: ContentLanguage;
+  audienceContext?: TopicAudienceContext;
+  backgroundEvidence?: TopicBackgroundEvidenceBundle;
   agent: TopicContentAgent;
   proposal?: unknown;
+  revision?: TopicPageContentRevisionContext;
   resume?: {
     attempt: TopicPageContentAttemptArtifact;
     proposal: unknown;
@@ -67,6 +76,9 @@ function attemptArtifact(
     topicPagePlanDigest: request.plan.digest,
     themeIntentDigest: request.plan.themeIntentDigest,
     productSelectionDigest: request.plan.productSelectionDigest,
+    ...(request.backgroundEvidence
+      ? { backgroundEvidenceDigest: request.backgroundEvidence.digest }
+      : {}),
     language: request.language,
     ...(proposal === undefined ? {} : { proposal }),
     ...(run && "proposalReview" in run ? { proposalReview: run.proposalReview } : {}),
@@ -88,6 +100,48 @@ function contentResumeIssues(request: TopicContentAgentWorkflowRequest) {
   }
   if (attempt.language !== request.language) {
     issues.push("Content resume language does not match the current request.");
+  }
+  if (attempt.backgroundEvidenceDigest !== request.backgroundEvidence?.digest) {
+    issues.push("Content resume backgroundEvidenceDigest does not match the current background evidence.");
+  }
+  return issues;
+}
+
+function contentRevisionIssues(
+  request: TopicContentAgentWorkflowRequest,
+  pending: NeedsContentProposalRun,
+) {
+  const revision = request.revision;
+  if (!revision) return [];
+  const issues: string[] = [];
+  if (request.resume || request.proposal !== undefined) {
+    issues.push("Content revision cannot be combined with a supplied proposal or explicit resume.");
+  }
+  if (revision.schemaVersion !== "topic-page-content-revision/v1" || revision.attempt !== 2) {
+    issues.push("Content revision must be the bounded second content attempt.");
+  }
+  const previous = revision.previousContentSpec;
+  if (previous.digest !== topicPageContentSpecDigest(previous)) {
+    issues.push("Content revision previous ContentSpec digest is invalid.");
+  }
+  if (previous.topicPagePlanDigest !== request.plan.digest ||
+      previous.themeIntentDigest !== themeIntentDigest(request.intent) ||
+      previous.productSelectionDigest !== productSelectionDigest(request.selection) ||
+      previous.language !== request.language) {
+    issues.push("Content revision previous ContentSpec bindings do not match the current request.");
+  }
+  if (previous.backgroundEvidenceDigest !== request.backgroundEvidence?.digest ||
+      (previous.copyBriefDigest !== undefined &&
+        previous.copyBriefDigest !== pending.context.copyBrief.digest)) {
+    issues.push("Content revision evidence or CopyBrief binding does not match the current request.");
+  }
+  if (revision.review.contentSpecDigest !== previous.digest ||
+      revision.review.copyBriefDigest !== pending.context.copyBrief.digest ||
+      revision.review.backgroundEvidenceDigest !== (request.backgroundEvidence?.digest ?? null)) {
+    issues.push("Content revision review bindings do not match the previous ContentSpec.");
+  }
+  if (!revision.review.issues.some(({ severity }) => severity === "error")) {
+    issues.push("Content revision requires at least one blocking review issue.");
   }
   return issues;
 }
@@ -128,12 +182,36 @@ export async function runTopicContentAgentWorkflow(
     selection: request.selection,
     plan: request.plan,
     language: request.language,
+    audienceContext: request.audienceContext,
+    backgroundEvidence: request.backgroundEvidence,
     proposal,
   });
   if (run.status === "blocked" && run.faultKind === "upstream-invalid") {
     return { run };
   }
   if (run.status === "needs-content-proposal") {
+    const revisionIssues = contentRevisionIssues(request, run);
+    if (revisionIssues.length > 0) {
+      return {
+        run: {
+          schemaVersion: "topic-page-content-run/v1",
+          status: "blocked",
+          faultKind: "upstream-invalid",
+          rollbackStage: "content-writing",
+          issues: revisionIssues,
+          proposalReview: { status: "rejected", issues: revisionIssues },
+        },
+      };
+    }
+    if (request.revision) {
+      run = {
+        ...run,
+        context: {
+          ...run.context,
+          revision: structuredClone(request.revision),
+        },
+      };
+    }
     try {
       proposal = await request.agent.proposePageContent(run);
     } catch (error) {
@@ -154,6 +232,8 @@ export async function runTopicContentAgentWorkflow(
       selection: request.selection,
       plan: request.plan,
       language: request.language,
+      audienceContext: request.audienceContext,
+      backgroundEvidence: request.backgroundEvidence,
       proposal,
     });
   }

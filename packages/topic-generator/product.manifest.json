@@ -21,9 +21,11 @@
     "codexSkill": "integrations/codex/topic-intent/SKILL.md",
     "codexSkills": [
       "integrations/codex/topic-intent/SKILL.md",
+      "integrations/codex/background-evidence/SKILL.md",
       "integrations/codex/product-selection/SKILL.md",
       "integrations/codex/page-merchandising/SKILL.md",
       "integrations/codex/content-writing/SKILL.md",
+      "integrations/codex/content-review/SKILL.md",
       "integrations/codex/visual-generation/SKILL.md",
       "integrations/codex/page-orchestration/SKILL.md",
       "integrations/codex/page-review/SKILL.md"
@@ -32,7 +34,9 @@
     "kiroAgents": [
       "integrations/kiro/topic-page-orchestrator.json",
       "integrations/kiro/topic-strategy.json",
+      "integrations/kiro/topic-background-evidence.json",
       "integrations/kiro/topic-content.json",
+      "integrations/kiro/topic-content-review.json",
       "integrations/kiro/topic-visual.json",
       "integrations/kiro/topic-review.json"
     ],
@@ -56,6 +60,9 @@
   "contracts": {
     "semanticProposal": "semantic-proposal/v2",
     "themeIntent": "theme-intent/v2",
+    "topicAudienceContext": "topic-audience-context/v1",
+    "topicBackgroundEvidenceProposal": "topic-background-evidence-proposal/v1",
+    "topicBackgroundEvidence": "topic-background-evidence/v1",
     "catalogSnapshot": "catalog-snapshot/v1",
     "catalogTaxonomySnapshot": "catalog-taxonomy-snapshot/v1",
     "productSemanticProposal": "product-semantic-proposal/v1",
@@ -79,6 +86,11 @@
     "topicPageContentProposal": "topic-page-content-proposal/v1",
     "topicPageContentRun": "topic-page-content-run/v1",
     "topicPageContentSpec": "topic-page-content-spec/v1",
+    "topicPageContentRevision": "topic-page-content-revision/v1",
+    "topicPageCopyBrief": "topic-page-copy-brief/v2",
+    "topicPageContentReviewProposal": "topic-page-content-review-proposal/v1",
+    "topicPageContentReviewRun": "topic-page-content-review-run/v1",
+    "topicPageContentReviewDecision": "topic-page-content-review/v1",
     "topicPageVisualProposal": "topic-page-visual-proposal/v1",
     "topicPageVisualAgentOutput": "topic-page-visual-agent-output/v1",
     "topicPageVisualRun": "topic-page-visual-run/v1",
@@ -107,7 +119,9 @@
     "kiroAgent": "ready",
     "orchestratorAgent": "ready",
     "strategyAgent": "ready",
+    "backgroundEvidenceAgent": "host-web-research-capability-required",
     "contentAgent": "ready",
+    "contentReviewAgent": "ready",
     "visualAgent": "generator-adapter-required",
     "reviewAgent": "preview-inspection-adapter-required",
     "webSource": "ready",

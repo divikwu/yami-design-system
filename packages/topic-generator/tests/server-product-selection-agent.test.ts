@@ -218,6 +218,40 @@ describe("Topic Generator automatic category-role Host integration", () => {
     });
   });
 
+  it("does not start page automation after product selection", async () => {
+    const fixture = runtimeFixture();
+    const response = await handleTopicGeneratorPost(
+      new Request("http://localhost/api/topic-generator", {
+        method: "POST",
+        body: JSON.stringify({
+          keyword: "Matcha",
+          strategy: "relevance",
+          mode: "selection",
+          language: "zh",
+        }),
+      }),
+      {
+        adapters: fixture.adapters,
+        requireAutomaticPage: true,
+        requireAutomaticModuleReview: true,
+        pageAutomationConfigurationIssues: [
+          "TOPIC_GENERATOR_PAGE_AGENT_ENDPOINT is not configured.",
+        ],
+      },
+    );
+
+    const payload = await response.json();
+    expect(response.status, JSON.stringify(payload)).toBe(200);
+    expect(payload).toMatchObject({
+      plans: {
+        zh: {
+          relevance: { generationMode: "selection" },
+        },
+      },
+    });
+    expect(payload.automation).toBeUndefined();
+  });
+
   it("keeps explicit Codex/Kiro handoff resumable without invoking the HTTP Agent", async () => {
     const fixture = runtimeFixture();
     const proposeCategoryRoles = vi.spyOn(fixture.agent, "proposeCategoryRoles");

@@ -122,6 +122,19 @@ StartHere、Popular、Brand、Explore 商品、顺序与场景分组；Hero 和 
 `runTopicContentAgentWorkflow` 可注入独立 `TopicContentAgent`，但 Agent 只生成文案 Proposal；
 任务边界、字段完整性、证据范围和 ContentSpec digest 都由核心 Module 拥有。
 
+`runTopicBackgroundEvidenceAgentWorkflow` 在 ThemeIntent 确认后、选品能力之前运行。品牌主题优先
+品牌官网，Wikipedia 只作为次级中性背景；文化主题使用具名权威机构或 Wikipedia。产物
+`topic-background-evidence/v1` 的 claim 只能以 `background:<claim-id>` 为陌生用户提供身份、
+来源、含义、传统或术语语境，不能证明商品功效、流行度、库存或评价。检索失败会形成显式
+`unavailable` bundle，不会从模型记忆补事实，也不会重新执行选品。
+
+自动文案链路会编译 `topic-page-copy-brief/v2`，把 AudienceContext、背景证据、模块购物任务与
+场景目标绑定到 ContentSpec。`runTopicPageContentReviewAgentWorkflow` 随后独立检查陌生用户可
+理解性、主题 / 场景感、模块差异、证据边界与语言质量；首次 `content-quality` 会携带上一版
+ContentSpec 与结构化问题自动返回 Content Agent 重写一次，并再次独立审核。重写期间冻结
+ThemeIntent、BackgroundEvidence、选品、PagePlan、CopyBrief、语言与 digest；第二次仍未通过才
+阻止流程，且审核批准前 Visual Agent 不会启动。
+
 `advanceTopicPageVisualRun` 是 PageVisual Interface。第一次调用重新校验 ready PagePlan 与
 ContentSpec，只返回 `assetTaskIds` 声明的 Hero、快捷入口、场景和品牌横幅任务；第二次传入
 `TopicPageVisualProposal` 后，校验任务、证据作用域、安全路径、MIME、尺寸比例、SHA-256、
@@ -133,7 +146,7 @@ ContentSpec，只返回 `assetTaskIds` 声明的 Hero、快捷入口、场景和
 Module 拥有。`asset-manifest-ready` 不等于资产文件和页面渲染硬 QA 已通过。
 
 `runTopicPageAutomationWorkflow` 必须消费已校验的 `LandingPageExecutionPlan`。它按注册顺序
-执行选品完成确认、模块陈列、文案、视觉、资产持久化、页面规范编译、硬 QA 与体验 Review；
+执行选品完成确认、模块陈列、文案、独立文案审核、视觉、资产持久化、页面规范编译、硬 QA 与体验 Review；
 任何拒绝、图片字节不匹配、QA 失败或 Review 修订请求都会停在明确 stage，不会静默回退。
 
 `advanceTopicPageExperienceReviewRun` 只接受硬 QA 已通过的 GenerationSpec。它把 Review Agent
@@ -215,10 +228,11 @@ PageMerchandising/PagePlan、PageContent、PageVisual、PageGeneration 与 QA Mo
 approved HTTP 或 imported artifact，不复制目标仓库的生产数据库访问。详见
 [`architecture.md`](architecture.md)；治理决策记录在 ADR 004、ADR 005 与 ADR 006。
 
-当前 Codex/Kiro 通过共享 `page-orchestration`、`topic-intent`、`product-selection`、
-`page-merchandising`、`content-writing`、`visual-generation` 与 `page-review` 七个 Skill 驱动
-同一状态机。逻辑上拆为 Topic Page Orchestrator、Topic Strategy、Topic Content、Topic
-Visual 与 Topic Review 五个 Agent；交互式 Agent 不由 Web 页面同步调用。独立 Next.js Host
+当前 Codex/Kiro 通过共享 `page-orchestration`、`topic-intent`、`background-evidence`、
+`product-selection`、`page-merchandising`、`content-writing`、`content-review`、
+`visual-generation` 与 `page-review` 九个 Skill 驱动同一状态机。逻辑上拆为 Topic Page
+Orchestrator、Topic Strategy、Background Evidence、Topic Content、Content Review、Topic
+Visual 与 Topic Review 七个 Agent；交互式 Agent 不由 Web 页面同步调用。独立 Next.js Host
 使用 `TOPIC_GENERATOR_TAXONOMY_PATH`、
 `TOPIC_GENERATOR_AGENT_ENDPOINT`、`TOPIC_GENERATOR_PAGE_AGENT_ENDPOINT` 与
 `TOPIC_GENERATOR_ASSET_ROOT` 开启完整 API 自动链路。配置只在 Node.js Route Handler

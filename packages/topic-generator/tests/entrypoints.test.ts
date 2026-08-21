@@ -10,7 +10,7 @@ import { handleTopicGeneratorPost } from "../src/server.js";
 import type { CatalogSnapshotAdapter } from "../src/catalog-snapshot.js";
 
 describe("TOPIC GENERATOR portable entry points", () => {
-  it("shares seven stage Skills while keeping five logical Agents separate", async () => {
+  it("shares nine stage Skills while keeping seven logical Agents separate", async () => {
     const integrationRoot = new URL("../integrations/", import.meta.url);
     const topicIntentSkill = await readFile(
       new URL("codex/topic-intent/SKILL.md", integrationRoot),
@@ -24,6 +24,14 @@ describe("TOPIC GENERATOR portable entry points", () => {
       new URL("codex/product-selection/SKILL.md", integrationRoot),
       "utf8",
     );
+    const backgroundEvidenceSkill = await readFile(
+      new URL("codex/background-evidence/SKILL.md", integrationRoot),
+      "utf8",
+    );
+    const kiroBackgroundEvidenceSkill = await readFile(
+      new URL("../../../.kiro/skills/background-evidence/SKILL.md", import.meta.url),
+      "utf8",
+    );
     const pageMerchandisingSkill = await readFile(
       new URL("codex/page-merchandising/SKILL.md", integrationRoot),
       "utf8",
@@ -34,6 +42,14 @@ describe("TOPIC GENERATOR portable entry points", () => {
     );
     const visualGenerationSkill = await readFile(
       new URL("codex/visual-generation/SKILL.md", integrationRoot),
+      "utf8",
+    );
+    const contentReviewSkill = await readFile(
+      new URL("codex/content-review/SKILL.md", integrationRoot),
+      "utf8",
+    );
+    const kiroContentReviewSkill = await readFile(
+      new URL("../../../.kiro/skills/content-review/SKILL.md", import.meta.url),
       "utf8",
     );
     const pageOrchestrationSkill = await readFile(
@@ -62,6 +78,14 @@ describe("TOPIC GENERATOR portable entry points", () => {
       new URL("kiro/topic-content.json", integrationRoot),
       "utf8",
     )) as typeof orchestratorAgent;
+    const backgroundEvidenceAgent = JSON.parse(await readFile(
+      new URL("kiro/topic-background-evidence.json", integrationRoot),
+      "utf8",
+    )) as typeof orchestratorAgent;
+    const contentReviewAgent = JSON.parse(await readFile(
+      new URL("kiro/topic-content-review.json", integrationRoot),
+      "utf8",
+    )) as typeof orchestratorAgent;
     const visualAgent = JSON.parse(await readFile(
       new URL("kiro/topic-visual.json", integrationRoot),
       "utf8",
@@ -78,6 +102,10 @@ describe("TOPIC GENERATOR portable entry points", () => {
     expect(productSelectionSkill).toContain(
       "description: This skill should be used when the user asks to",
     );
+    expect(backgroundEvidenceSkill).toContain(
+      "description: Research bounded brand or cultural background",
+    );
+    expect(kiroBackgroundEvidenceSkill).toBe(backgroundEvidenceSkill);
     expect(pageMerchandisingSkill).toContain(
       "description: This skill should be used when the user asks to",
     );
@@ -87,6 +115,10 @@ describe("TOPIC GENERATOR portable entry points", () => {
     expect(visualGenerationSkill).toContain(
       "description: This skill should be used when the user asks to",
     );
+    expect(contentReviewSkill).toContain(
+      "description: Independently review a generated Topic page ContentSpec",
+    );
+    expect(kiroContentReviewSkill).toBe(contentReviewSkill);
     expect(pageOrchestrationSkill).toContain(
       "description: This skill should be used when the user asks to",
     );
@@ -118,6 +150,12 @@ describe("TOPIC GENERATOR portable entry points", () => {
     expect(contentAgent.resources).toEqual(expect.arrayContaining([
       "skill://.kiro/skills/content-writing/SKILL.md",
     ]));
+    expect(backgroundEvidenceAgent.resources).toContain(
+      "skill://.kiro/skills/background-evidence/SKILL.md",
+    );
+    expect(contentReviewAgent.resources).toContain(
+      "skill://.kiro/skills/content-review/SKILL.md",
+    );
     expect(contentAgent.resources).not.toContain(
       "skill://.kiro/skills/product-selection/SKILL.md",
     );
@@ -140,7 +178,16 @@ describe("TOPIC GENERATOR portable entry points", () => {
     expect(orchestratorAgent.prompt).toContain("Never invent or execute an unregistered route");
     expect(strategyAgent.prompt).toContain("Never infer catalog facts");
     expect(contentAgent.prompt).toContain("independent Topic Content Agent");
+    expect(backgroundEvidenceAgent.prompt).toContain("official brand site first");
+    expect(backgroundEvidenceAgent.prompt).toContain("official assortment organization");
+    expect(backgroundEvidenceAgent.prompt).toContain("report the research failure explicitly");
+    expect(contentReviewAgent.prompt).toContain("before visual generation");
+    expect(contentReviewAgent.prompt).toContain("interchangeability test");
+    expect(contentReviewAgent.prompt).toContain("Never browse for new facts");
     expect(contentAgent.prompt).toContain("customer-facing copy");
+    expect(contentAgent.prompt).toContain("languagePolicy.immutableProperNouns");
+    expect(contentWritingSkill).toContain("complete exception list");
+    expect(contentWritingSkill).toContain("decision-usefulness check");
     expect(contentAgent.prompt).toContain("Do not require codex or kiro-cli");
     expect(contentWritingSkill).toContain("Host tool or API");
     expect(contentWritingSkill).toContain("not a\n  prerequisite");
@@ -150,6 +197,8 @@ describe("TOPIC GENERATOR portable entry points", () => {
     expect(reviewAgent.prompt).toContain("Never repair generated output");
     expect(orchestratorAgent.tools).toEqual(["read", "write"]);
     expect(reviewAgent.tools).toEqual(["read", "write"]);
+    expect(backgroundEvidenceAgent.tools).toEqual(["read"]);
+    expect(contentReviewAgent.tools).toEqual(["read"]);
     expect(contentAgent.tools).toEqual(["read", "write", "shell"]);
     expect(contentAgent.allowedTools).toEqual(["read"]);
     expect(contentAgent.permissions.rules).toContainEqual({
@@ -176,6 +225,11 @@ describe("TOPIC GENERATOR portable entry points", () => {
     };
 
     expect(manifest.contracts).toMatchObject({
+      topicAudienceContext: "topic-audience-context/v1",
+      topicBackgroundEvidence: "topic-background-evidence/v1",
+      topicPageCopyBrief: "topic-page-copy-brief/v2",
+      topicPageContentRevision: "topic-page-content-revision/v1",
+      topicPageContentReviewDecision: "topic-page-content-review/v1",
       landingPageExecutionPlan: "landing-page-execution-plan/v1",
       topicPageAgentRequest: "topic-page-agent-request/v1",
       topicPageAutomationRun: "topic-page-automation-run/v1",
@@ -427,6 +481,21 @@ describe("TOPIC GENERATOR portable entry points", () => {
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toMatchObject({
       error: { code: "invalid_keyword" },
+    });
+  });
+
+  it("requires frozen upstream artifacts for an isolated capability run", async () => {
+    const response = await handleTopicGeneratorPost(
+      new Request("http://localhost/api/topic-generator", {
+        method: "POST",
+        body: JSON.stringify({ mode: "content", language: "zh" }),
+      }),
+      { topicPageAgent: { id: "topic-page-agent" } as never },
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      error: { code: "missing_upstream_artifacts" },
     });
   });
 

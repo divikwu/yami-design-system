@@ -1,5 +1,10 @@
 import type { ProductSelectionResult } from "../product-selection/contracts.js";
-import type { ContentLanguage, ThemeIntent } from "../types.js";
+import type {
+  ContentLanguage,
+  ThemeIntent,
+  TopicModuleId,
+  TopicPagePlan,
+} from "../types.js";
 import { sha256Digest } from "../product-selection/digest.js";
 import {
   evidenceSizedSceneProductRange,
@@ -8,6 +13,7 @@ import {
 } from "./config.js";
 import type {
   ModuleMerchandisingProposal,
+  PageMerchandisingModuleProposal,
   PageMerchandisingRun,
   PageMerchandisingTaskContext,
   TopicPagePlanModuleV2,
@@ -17,6 +23,7 @@ import type {
 import {
   brandSpotlightSelectionIssues,
   productSelectionDigest,
+  preservesCurrentRelevanceSelectionAssignments,
   reviewModuleMerchandisingProposal,
   themeIntentDigest,
 } from "./review.js";
@@ -130,6 +137,148 @@ export function compileTopicPagePlanV2(
   return compileAcceptedPlan(selection, review.proposal);
 }
 
+export function compileDeterministicTopicPagePlanV2(
+  intent: ThemeIntent,
+  selection: ProductSelectionResult,
+  sourcePlan: TopicPagePlan,
+  templateRef: TopicPageTemplateRef,
+): TopicPagePlanV2 {
+  const config = getPageMerchandisingTemplateConfig(templateRef);
+  const sourceModulesById = new Map(sourcePlan.modules.map((module) => [module.id, module]));
+  const selectionModulesById = new Map<
+    TopicModuleId,
+    ProductSelectionResult["modules"][number]
+  >(selection.modules.map((module) => [module.id, module]));
+  const assignedModuleByProductId = new Map<string, TopicModuleId>();
+  const assignmentsWithReuseReason = (
+    moduleId: TopicModuleId,
+    assignments: PageMerchandisingModuleProposal["assignments"],
+  ) => assignments.map((assignment) => {
+    const firstModuleId = assignedModuleByProductId.get(assignment.productId);
+    if (!firstModuleId) assignedModuleByProductId.set(assignment.productId, moduleId);
+    return firstModuleId && firstModuleId !== moduleId
+      ? {
+          ...assignment,
+          reuseReason: assignment.reuseReason ??
+            `Rule fallback reuses the frozen ${firstModuleId} assignment.`,
+        }
+      : assignment;
+  });
+  const modules: ModuleMerchandisingProposal["modules"] = config.moduleOrder.map((id) => {
+    const rule = config.modules.find((candidate) => candidate.id === id)!;
+    const sourceModule = sourceModulesById.get(id);
+    const selectionModule = selectionModulesById.get(id);
+    const productSelectionOwnsAssignments = config.assignmentAuthority === "product-selection" &&
+      (id === "start-here" || id === "popular-picks" || id === "brand-spotlight" ||
+        id === "explore-more");
+    const visible = id === "reviews"
+      ? false
+      : productSelectionOwnsAssignments
+        ? Boolean(selectionModule?.productIds.length) || rule.required
+        : Boolean(sourceModule?.visible);
+    const shoppingGoal = visible
+      ? sourceModule?.heading || sourceModule?.label || `Support the ${id} shopping task.`
+      : "";
+    const reason = sourceModule?.reason || (visible
+      ? `Rule fallback preserves the frozen ${id} product assignment.`
+      : `Rule fallback hides ${id} because no verified assignment is available.`);
+
+    if (id === "shortcuts") {
+      const groups = selectionModulesById.get("shortcuts")?.groups ?? sourceModule?.groups ?? [];
+      return {
+        id,
+        visible,
+        shoppingGoal,
+        reason,
+        scenes: [],
+        assignments: assignmentsWithReuseReason(id, groups.flatMap((group) => {
+          const productId = group.productIds[0];
+          return productId
+            ? [{
+                productId,
+                groupId: group.id,
+                selectionReason: group.classificationReason || sourceModule?.productReasons?.[productId] ||
+                  `Highest-ranked frozen representative for ${group.label}.`,
+              }]
+            : [];
+        })),
+      };
+    }
+
+    if (id === "start-here" && visible) {
+      const scenes = selection.scenes.map((scene) => {
+        const sourceGroup = selectionModule?.groups.find((group) => group.id === scene.id);
+        const productIds = scene.productGroups.flatMap(({ core, pairing, accessory }) =>
+          [core, pairing, accessory].filter((productId): productId is string => Boolean(productId))
+        );
+        return {
+          scene: {
+            id: scene.id,
+            sourceSceneId: scene.id,
+            ...(rule.requireSceneTargetProductCount
+              ? { targetProductCount: productIds.length }
+              : {}),
+            shoppingGoal: sourceGroup?.shoppingGoal || scene.title,
+            reason: sourceGroup?.scenarioReason || scene.description,
+          },
+          productIds,
+        };
+      });
+      return {
+        id,
+        visible,
+        shoppingGoal,
+        reason,
+        scenes: scenes.map(({ scene }) => scene),
+        assignments: assignmentsWithReuseReason(id, scenes.flatMap(({ scene, productIds }) =>
+          productIds.map((productId) => ({ productId, sceneId: scene.id }))
+        )),
+      };
+    }
+
+    const groupIdByProductId = new Map(
+      (selectionModule?.groups ?? []).flatMap((group) =>
+        group.productIds.map((productId) => [productId, group.id] as const)
+      ),
+    );
+    const productIds = productSelectionOwnsAssignments
+      ? selectionModule?.productIds ?? []
+      : sourceModule?.productIds ?? [];
+    return {
+      id,
+      visible,
+      shoppingGoal,
+      reason,
+      scenes: [],
+      assignments: assignmentsWithReuseReason(id, visible
+        ? productIds.map((productId) => ({
+            productId,
+            ...(groupIdByProductId.has(productId)
+              ? { groupId: groupIdByProductId.get(productId) }
+              : {}),
+            ...(id === "hero"
+              ? {
+                  selectionReason: sourceModule?.productReasons?.[productId] ||
+                    "Highest-ranked frozen core product with distinct source imagery.",
+                }
+              : {}),
+          }))
+        : []),
+    };
+  });
+  return compileTopicPagePlanV2(intent, selection, {
+    schemaVersion: "module-merchandising-proposal/v1",
+    keyword: selection.keyword,
+    site: selection.site,
+    strategyRef: selection.strategyRef,
+    templateRef,
+    themeIntentDigest: themeIntentDigest(intent),
+    productSelectionDigest: productSelectionDigest(selection),
+    moduleOrder: [...config.moduleOrder],
+    modules,
+  });
+}
+
 function taskContext(
   intent: ThemeIntent,
   selection: ProductSelectionResult,
@@ -144,6 +293,10 @@ function taskContext(
   );
   const shortcutGroupCount = selection.modules.find(({ id }) => id === "shortcuts")
     ?.groups.length ?? 0;
+  const selectionModulesById = new Map<
+    TopicModuleId,
+    ProductSelectionResult["modules"][number]
+  >(selection.modules.map((module) => [module.id, module]));
   return {
     keyword: selection.keyword,
     site: selection.site,
@@ -154,16 +307,27 @@ function taskContext(
     productSelectionDigest: productSelectionDigest(selection),
     assignmentAuthority: config.assignmentAuthority,
     moduleOrder: [...config.moduleOrder],
-    moduleRules: config.modules.map((rule) => ({
+    moduleRules: config.modules.map((rule) => {
+      const exactSelectionProductCount = (
+        rule.id === "brand-spotlight" ||
+        preservesCurrentRelevanceSelectionAssignments(templateRef, rule.id)
+      )
+        ? selectionModulesById.get(rule.id)?.productIds.length
+        : undefined;
+      return {
       id: rule.id,
       component: rule.component,
       required: rule.required,
-      minimumProducts: rule.id === "shortcuts" && shortcutGroupCount > 0
-        ? shortcutGroupCount
-        : rule.minimumProducts,
-      maximumProducts: rule.id === "shortcuts"
-        ? shortcutGroupCount > 0 ? shortcutGroupCount : selection.products.length
-        : rule.maximumProducts,
+      minimumProducts: exactSelectionProductCount ?? (
+        rule.id === "shortcuts" && shortcutGroupCount > 0
+          ? shortcutGroupCount
+          : rule.minimumProducts
+      ),
+      maximumProducts: exactSelectionProductCount ?? (
+        rule.id === "shortcuts"
+          ? shortcutGroupCount > 0 ? shortcutGroupCount : selection.products.length
+          : rule.maximumProducts
+      ),
       allowedPools: [...rule.allowedPools],
       allowedRoles: [...rule.allowedRoles],
       ...(rule.sceneRange ? { sceneRange: rule.sceneRange } : {}),
@@ -173,7 +337,8 @@ function taskContext(
       ...(rule.requireSceneTargetProductCount
         ? { requireSceneTargetProductCount: true }
         : {}),
-    })),
+      };
+    }),
     themeIntent: structuredClone(intent),
     selectedCategories: selection.selectedCategories.map((category) => ({
       ...category,

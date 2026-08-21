@@ -6,6 +6,8 @@ import {
 } from "../page-merchandising/review.js";
 import type { TopicPagePlanV2 } from "../page-merchandising/contracts.js";
 import type { TopicPageContentSpec } from "../page-content/contracts.js";
+import type { TopicBackgroundEvidenceBundle } from "../background-evidence/contracts.js";
+import { reviewTopicBackgroundEvidenceBundle } from "../background-evidence/review.js";
 import {
   reviewTopicPageContentPreflight,
   reviewTopicPageContentProposal,
@@ -55,6 +57,7 @@ export function reviewTopicPageVisualPreflight(
   selection: ProductSelectionResult,
   plan: TopicPagePlanV2,
   contentSpec: TopicPageContentSpec,
+  backgroundEvidence?: TopicBackgroundEvidenceBundle,
 ) {
   const issues = reviewTopicPageContentPreflight(intent, selection, plan);
   if (
@@ -91,12 +94,30 @@ export function reviewTopicPageVisualPreflight(
     issues.push("TopicPageContentSpec language must be en or zh.");
   }
 
+  if (contentSpec.backgroundEvidenceDigest) {
+    if (!backgroundEvidence) {
+      issues.push("TopicPageVisual requires the BackgroundEvidence bound to TopicPageContentSpec.");
+    } else {
+      issues.push(...reviewTopicBackgroundEvidenceBundle(intent, backgroundEvidence));
+      if (backgroundEvidence.digest !== contentSpec.backgroundEvidenceDigest) {
+        issues.push("BackgroundEvidence digest does not match TopicPageContentSpec.");
+      }
+      if (backgroundEvidence.keyword !== plan.keyword || backgroundEvidence.site !== plan.site ||
+          backgroundEvidence.language !== contentSpec.language) {
+        issues.push("BackgroundEvidence identity does not match TopicPageContentSpec.");
+      }
+    }
+  }
+
   const contentReview = reviewTopicPageContentProposal(
     intent,
     selection,
     plan,
     contentSpec.language,
     reconstructedContentProposal(contentSpec),
+    contentSpec.backgroundEvidenceDigest === backgroundEvidence?.digest
+      ? backgroundEvidence
+      : undefined,
   );
   issues.push(...contentReview.issues);
 

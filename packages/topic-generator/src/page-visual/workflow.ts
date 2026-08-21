@@ -2,6 +2,7 @@ import type { ThemeIntent } from "../types.js";
 import type { ProductSelectionResult } from "../product-selection/contracts.js";
 import type { TopicPagePlanV2 } from "../page-merchandising/contracts.js";
 import type { TopicPageContentSpec } from "../page-content/contracts.js";
+import type { TopicBackgroundEvidenceBundle } from "../background-evidence/contracts.js";
 import type {
   TopicPageVisualAgentOutput,
   TopicPageVisualAssetBody,
@@ -26,6 +27,7 @@ export interface TopicVisualAgentWorkflowRequest {
   selection: ProductSelectionResult;
   plan: TopicPagePlanV2;
   contentSpec: TopicPageContentSpec;
+  backgroundEvidence?: TopicBackgroundEvidenceBundle;
   productionMode?: TopicPageVisualProductionMode;
   agent: TopicVisualAgent;
   proposal?: unknown;
@@ -60,6 +62,7 @@ export async function runTopicVisualAgentWorkflow(
     selection: request.selection,
     plan: request.plan,
     contentSpec: request.contentSpec,
+    backgroundEvidence: request.backgroundEvidence,
     productionMode: request.productionMode,
     proposal,
   });
@@ -72,6 +75,7 @@ export async function runTopicVisualAgentWorkflow(
       selection: request.selection,
       plan: request.plan,
       contentSpec: request.contentSpec,
+      backgroundEvidence: request.backgroundEvidence,
       productionMode: request.productionMode,
       proposal,
     });

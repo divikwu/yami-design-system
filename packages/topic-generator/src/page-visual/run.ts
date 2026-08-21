@@ -3,6 +3,7 @@ import type { ProductSelectionResult } from "../product-selection/contracts.js";
 import { sha256Digest } from "../product-selection/digest.js";
 import type { TopicPagePlanV2 } from "../page-merchandising/contracts.js";
 import type { TopicPageContentSpec } from "../page-content/contracts.js";
+import type { TopicBackgroundEvidenceBundle } from "../background-evidence/contracts.js";
 import type {
   TopicPageAssetManifest,
   TopicPageVisualContext,
@@ -20,6 +21,7 @@ export interface TopicPageVisualRequest {
   selection: ProductSelectionResult;
   plan: TopicPagePlanV2;
   contentSpec: TopicPageContentSpec;
+  backgroundEvidence?: TopicBackgroundEvidenceBundle;
   productionMode?: TopicPageVisualProductionMode;
   proposal?: unknown;
 }
@@ -87,12 +89,14 @@ export function compileTopicPageAssetManifest(
   contentSpec: TopicPageContentSpec,
   proposal: unknown,
   productionMode: TopicPageVisualProductionMode = "generated-images",
+  backgroundEvidence?: TopicBackgroundEvidenceBundle,
 ) {
   const preflightIssues = reviewTopicPageVisualPreflight(
     intent,
     selection,
     plan,
     contentSpec,
+    backgroundEvidence,
   );
   if (preflightIssues.length > 0) {
     throw new Error(`TopicPageVisual preflight failed: ${preflightIssues.join(" ")}`);
@@ -123,6 +127,7 @@ export function advanceTopicPageVisualRun(
     request.selection,
     request.plan,
     request.contentSpec,
+    request.backgroundEvidence,
   );
   if (preflightIssues.length > 0) {
     const proposalReview = { status: "rejected" as const, issues: preflightIssues };

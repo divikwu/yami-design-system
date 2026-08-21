@@ -5,6 +5,16 @@ import type { PageMerchandisingAgent } from "../page-merchandising/workflow.js";
 import type { TopicPagePlanV2 } from "../page-merchandising/contracts.js";
 import type { TopicContentAgent } from "../page-content/workflow.js";
 import type {
+  TopicAudienceContext,
+  TopicBackgroundEvidenceBundle,
+} from "../background-evidence/contracts.js";
+import type {
+  TopicPageContentReviewAgent,
+  TopicPageContentReviewDecision,
+  TopicPageContentReviewRun,
+} from "../page-content/content-review.js";
+import type { TopicPageCopyBrief } from "../page-content/contracts.js";
+import type {
   TopicPageContentAttemptArtifact,
   TopicPageContentFaultKind,
   TopicPageContentRollbackStage,
@@ -28,9 +38,11 @@ import type { TopicPageImageDecoder } from "../page-generation/image.js";
 
 export type TopicPageAutomationStageId =
   | "workflow-planning"
+  | "background-evidence"
   | "product-selection"
   | "module-merchandising"
   | "content-writing"
+  | "content-review"
   | "visual-generation"
   | "asset-persistence"
   | "page-generation"
@@ -57,10 +69,13 @@ export interface TopicPageAutomationWorkflowOptions {
   selection: ProductSelectionResult;
   executionPlan: LandingPageExecutionPlan;
   language: ContentLanguage;
+  audienceContext?: TopicAudienceContext;
+  backgroundEvidence?: TopicBackgroundEvidenceBundle;
   visualProductionMode?: TopicPageVisualProductionMode;
   agents: {
     merchandising: PageMerchandisingAgent;
     content: TopicContentAgent;
+    contentReview: TopicPageContentReviewAgent;
     visual: TopicVisualAgent;
     review: TopicPageReviewAgent;
   };
@@ -81,6 +96,8 @@ interface TopicPageAutomationPartialArtifacts {
   contentRun?: TopicPageContentRun;
   contentAttempt?: TopicPageContentAttemptArtifact;
   contentSpec?: TopicPageContentSpec;
+  copyBrief?: TopicPageCopyBrief;
+  contentReview?: TopicPageContentReviewRun;
   assetManifest?: TopicPageAssetManifest;
   generationSpec?: TopicPageGenerationSpec;
   qaReport?: TopicPageQaReport;
@@ -97,6 +114,8 @@ export type TopicPageAutomationRun =
       executionPlan: LandingPageExecutionPlan;
       plan: TopicPagePlanV2;
       contentSpec: TopicPageContentSpec;
+      copyBrief: TopicPageCopyBrief;
+      contentReview: TopicPageContentReviewDecision & { verdict: "approved" };
       assetManifest: TopicPageAssetManifest;
       generationSpec: TopicPageGenerationSpec;
       qaReport: TopicPageQaReport & { status: "passed" };

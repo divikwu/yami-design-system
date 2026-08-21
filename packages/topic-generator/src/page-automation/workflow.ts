@@ -3,6 +3,7 @@ import {
   runTopicContentAgentWorkflow,
   TopicContentAgentWorkflowError,
 } from "../page-content/workflow.js";
+import { runTopicPageContentApprovalWorkflow } from "../page-content/approval-workflow.js";
 import {
   LANDING_PAGE_EXECUTION_STAGES,
   landingPageExecutionPlanDigest,
@@ -26,9 +27,11 @@ import type {
 
 const STAGE_IDS: readonly TopicPageAutomationStageId[] = [
   "workflow-planning",
+  "background-evidence",
   "product-selection",
   "module-merchandising",
   "content-writing",
+  "content-review",
   "visual-generation",
   "asset-persistence",
   "page-generation",
@@ -104,7 +107,7 @@ function decodeBase64(value: string) {
   }
 }
 
-async function validateAssetBodies(
+export async function validateTopicPageVisualAssetBodies(
   assetBodies: TopicPageVisualAssetBody[] | undefined,
   manifest: NonNullable<Extract<TopicPageAutomationRun, { status: "ready" }>["assetManifest"]>,
   imageDecoder: TopicPageAutomationWorkflowOptions["imageDecoder"],
@@ -158,6 +161,7 @@ export async function runTopicPageAutomationWorkflow(
   const planIssues = executionPlanIssues(options);
   if (planIssues.length > 0) return block("workflow-planning", planIssues);
   mark(stages, "workflow-planning", "completed");
+  mark(stages, "background-evidence", "completed");
   mark(stages, "product-selection", "completed");
   let plan;
   if (options.contentResume) {
@@ -205,6 +209,8 @@ export async function runTopicPageAutomationWorkflow(
       selection: options.selection,
       plan,
       language: options.language,
+      audienceContext: options.audienceContext,
+      backgroundEvidence: options.backgroundEvidence,
       agent: options.agents.content,
       ...(options.contentResume
         ? {
@@ -242,8 +248,51 @@ export async function runTopicPageAutomationWorkflow(
       { plan, ...recovery },
     );
   }
-  const contentSpec = content.run.spec;
+  const initialContentSpec = content.run.spec;
   mark(stages, "content-writing", "completed");
+
+  const contentApproval = await runTopicPageContentApprovalWorkflow({
+    intent: options.intent,
+    selection: options.selection,
+    plan,
+    language: options.language,
+    audienceContext: options.audienceContext,
+    backgroundEvidence: options.backgroundEvidence,
+    contentSpec: initialContentSpec,
+    contentAgent: options.agents.content,
+    reviewAgent: options.agents.contentReview,
+  });
+  if (contentApproval.status !== "ready") {
+    return block(
+      contentApproval.stage,
+      contentApproval.issues,
+      {
+        plan,
+        ...(contentApproval.contentSpec
+          ? { contentSpec: contentApproval.contentSpec }
+          : { contentSpec: initialContentSpec }),
+        ...(contentApproval.copyBrief ? { copyBrief: contentApproval.copyBrief } : {}),
+        ...(contentApproval.contentReview
+          ? { contentReview: contentApproval.contentReview }
+          : {}),
+        ...(contentApproval.contentRun ? { contentRun: contentApproval.contentRun } : {}),
+        ...(contentApproval.contentAttempt
+          ? { contentAttempt: contentApproval.contentAttempt }
+          : {}),
+        faultKind: contentApproval.faultKind,
+        rollbackStage: contentApproval.rollbackStage,
+      },
+    );
+  }
+  const contentSpec = contentApproval.contentSpec;
+  const copyBrief = contentApproval.copyBrief;
+  const contentReview = contentApproval.contentReview;
+  const contentReviewRun = {
+    schemaVersion: "topic-page-content-review-run/v1" as const,
+    status: "ready" as const,
+    decision: contentReview,
+  };
+  mark(stages, "content-review", "completed");
 
   let visual;
   try {
@@ -252,11 +301,17 @@ export async function runTopicPageAutomationWorkflow(
       selection: options.selection,
       plan,
       contentSpec,
+      backgroundEvidence: options.backgroundEvidence,
       productionMode: options.visualProductionMode,
       agent: options.agents.visual,
     });
   } catch (error) {
-    return block("visual-generation", [message(error)], { plan, contentSpec });
+    return block("visual-generation", [message(error)], {
+      plan,
+      contentSpec,
+      copyBrief,
+      contentReview: contentReviewRun,
+    });
   }
   if (visual.run.status !== "ready") {
     return block(
@@ -264,13 +319,13 @@ export async function runTopicPageAutomationWorkflow(
       visual.run.status === "blocked"
         ? visual.run.issues
         : ["Visual Agent did not return a proposal."],
-      { plan, contentSpec },
+      { plan, contentSpec, copyBrief, contentReview: contentReviewRun },
     );
   }
   const assetManifest = visual.run.manifest;
   mark(stages, "visual-generation", "completed");
 
-  const validatedBodies = await validateAssetBodies(
+  const validatedBodies = await validateTopicPageVisualAssetBodies(
     visual.artifacts.assetBodies,
     assetManifest,
     options.imageDecoder,
@@ -302,6 +357,7 @@ export async function runTopicPageAutomationWorkflow(
       selection: options.selection,
       plan,
       contentSpec,
+      backgroundEvidence: options.backgroundEvidence,
       manifest: assetManifest,
       assetUrl: (ref) => options.assetStore.publicUrl(ref),
     });
@@ -409,6 +465,8 @@ export async function runTopicPageAutomationWorkflow(
     executionPlan: options.executionPlan,
     plan,
     contentSpec,
+    copyBrief,
+    contentReview,
     assetManifest,
     generationSpec,
     qaReport: qaReport as typeof qaReport & { status: "passed" },

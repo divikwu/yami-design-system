@@ -15,6 +15,10 @@ scene and accepted content task, verified ThemeIntent evidence, and selected cat
 cannot add tasks, switch components, expose hidden modules, reallocate products, rewrite copy, or
 change any digest.
 
+Visual preflight may receive the BackgroundEvidence bundle already bound to ContentSpec only to
+revalidate accepted copy provenance. `background:*` references remain content-only and are not
+eligible visual direction or alt-text evidence.
+
 `productionMode` is either `generated-images` or `source-product-images`. The proposal must preserve
 the requested mode. Scene tasks may include `compositionGuidance`; it is a preference for art
 direction, not a deterministic rejection rule.
@@ -89,6 +93,9 @@ order. `referenceProductIds` must equal the task product IDs in exact order.
 - `product:<task-product-id>` — product assigned to the current visual task only.
 - `scene:<task-scene-id>` — the current scene-image task's PagePlan scene only.
 - `content-task:<module-content-task-id>` — the accepted content task attached to this visual task.
+
+An accepted content task can itself contain `background:*` copy references. They are not part of
+this list and must not be copied into a visual proposal.
 
 Attach at least one reference to art direction and every required alt text. Evidence constrains the
 direction; it does not authorize facts absent from the referenced artifact.

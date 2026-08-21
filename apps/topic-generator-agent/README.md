@@ -8,17 +8,19 @@ runtime.
 
 ## Routes
 
-- `POST /topic-page`: `topic-intent`, `workflow-planning`, `module-merchandising`,
-  `content-writing`, `visual-generation`, and `experience-review`.
+- `POST /topic-page`: `topic-intent`, `background-evidence`, `workflow-planning`,
+  `module-merchandising`, `content-writing`, `content-review`, `visual-generation`, and
+  `experience-review`.
 - `POST /product-selection`: `product-semantic-proposal`, `category-role-proposal`, and
   `scene-proposal`.
 - `GET /health`: executor and stage registry without credentials.
 
 Each execution loads the selected `SKILL.md`, its directly linked local `references/*` contracts,
-and the matching `agents/openai.yaml`. These nine protocol stages load all seven canonical Skills.
+and the matching `agents/openai.yaml`. These eleven protocol stages load all nine canonical Skills.
 `topic-intent`, all three ProductSelection
 stages, and `module-merchandising` share the constrained Topic Strategy Agent; the other stages use
-the Orchestrator, Content, Visual, or Review Agent declared by the repository.
+the Orchestrator, Background Evidence, Content, Content Review, Visual, or Experience Review Agent
+declared by the repository.
 
 ## Start locally
 
@@ -72,6 +74,9 @@ If `TOPIC_AGENT_RUNNER_TOKEN` is set, use the same value for
 - The default local execution budget is five minutes so image composition and two-viewport review
   can finish without weakening any deterministic validation.
 - CLI processes are invoked without a shell. Semantic stages run in a read-only sandbox.
+- Live web search is enabled only for `background-evidence`; all other text stages keep the existing
+  bounded tool set. Brand research prioritizes the official site and treats Wikipedia as secondary
+  context.
 - In source-product-image mode, `visual-generation` first creates real deterministic WebP assets
   from approved Yami CDN images, then supplies those images to an image-capable CLI for semantic
   direction and alt text.
@@ -87,8 +92,9 @@ If `TOPIC_AGENT_RUNNER_TOKEN` is set, use the same value for
 
 ## Verified capability versus protocol support
 
-The registry and contract-loading tests cover all five logical Agents, seven Skills, and nine
-automatic stages. The Codex executor supports source-product-image composition and screenshot-based
-experience review. The Kiro CLI integration supports the text stages but currently has no image
-attachment interface, so visual generation and experience review return an explicit capability
-failure instead of pretending those checks ran.
+The registry and contract-loading tests cover all seven logical Agents, nine Skills, and eleven
+automatic routes. The Codex executor supports bounded background web research,
+source-product-image composition, and screenshot-based experience review. The Kiro CLI integration
+supports the non-research text stages but currently has neither a Host web-research capability nor
+an image attachment interface, so background research, visual generation, and experience review
+return explicit capability failures instead of pretending those checks ran.

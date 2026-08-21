@@ -16,6 +16,7 @@ export default async function TopicPageReviewPreviewPage({
   if (!preview) notFound();
   return (
     <RealTopicPagePreview
+      mode="generated"
       pageTypeRef={preview.pageTypeRef}
       generationSpec={preview.generationSpec}
     />

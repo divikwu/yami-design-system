@@ -94,6 +94,25 @@ const DETERMINISTIC_SELECTION_MODULE_IDS = new Set<TopicModuleId>([
   "explore-more",
 ]);
 
+const CURRENT_RELEVANCE_TEMPLATE_REFS = new Set<TopicPageTemplateRef>([
+  "topic-landing/brand-relevance@2",
+  "topic-landing/topic-relevance@2",
+  "topic-landing/campaign-relevance@2",
+]);
+
+const CURRENT_RELEVANCE_SELECTION_MODULE_IDS = new Set<TopicModuleId>([
+  "popular-picks",
+  "explore-more",
+]);
+
+export function preservesCurrentRelevanceSelectionAssignments(
+  templateRef: TopicPageTemplateRef,
+  moduleId: TopicModuleId,
+) {
+  return CURRENT_RELEVANCE_TEMPLATE_REFS.has(templateRef) &&
+    CURRENT_RELEVANCE_SELECTION_MODULE_IDS.has(moduleId);
+}
+
 const REFERENCE_MODULE_IDS = new Set<TopicModuleId>(["hero", "shortcuts"]);
 
 function sourceSceneProductOrder(selection: ProductSelectionResult) {
@@ -235,9 +254,11 @@ export function reviewModuleMerchandisingProposal(
     if (visible && rule.maximumProducts === 0) {
       issues.push(`Module ${id} cannot be visible without supported evidence.`);
     }
+    const preserveCurrentRelevanceAssignments =
+      preservesCurrentRelevanceSelectionAssignments(templateRef, id);
     const selectionModule = preserveModuleAssignments && DETERMINISTIC_SELECTION_MODULE_IDS.has(id)
       ? selectionModulesById.get(id)
-      : id === "brand-spotlight"
+      : id === "brand-spotlight" || preserveCurrentRelevanceAssignments
         ? selectionModulesById.get(id)
         : undefined;
     const shortcutSelectionModule = id === "shortcuts"
@@ -250,24 +271,26 @@ export function reviewModuleMerchandisingProposal(
     const brandGroupIdByProductId = new Map(
       brandGroups.flatMap((group) => group.productIds.map((productId) => [productId, group.id] as const)),
     );
-    const brandSelectionProductCount = id === "brand-spotlight" && selectionModule
+    const exactSelectionProductCount = selectionModule && (
+      id === "brand-spotlight" || preserveCurrentRelevanceAssignments
+    )
       ? selectionModule.productIds.length
       : null;
-    const minimumProducts = brandSelectionProductCount !== null
-      ? brandSelectionProductCount
+    const minimumProducts = exactSelectionProductCount !== null
+      ? exactSelectionProductCount
       : id === "shortcuts" && shortcutGroupsById.size > 0
         ? shortcutGroupsById.size
         : rule.minimumProducts;
-    const maximumProducts = brandSelectionProductCount !== null
-      ? brandSelectionProductCount
+    const maximumProducts = exactSelectionProductCount !== null
+      ? exactSelectionProductCount
       : id === "shortcuts"
         ? shortcutGroupsById.size > 0 ? shortcutGroupsById.size : selection.products.length
         : rule.maximumProducts;
-    if (brandSelectionProductCount !== null) {
-      if (brandSelectionProductCount > 0 && !visible) {
+    if (id === "brand-spotlight" && exactSelectionProductCount !== null) {
+      if (exactSelectionProductCount > 0 && !visible) {
         issues.push("Module brand-spotlight must be visible when ProductSelection provides 2-6 eligible brand groups.");
       }
-      if (brandSelectionProductCount === 0 && visible) {
+      if (exactSelectionProductCount === 0 && visible) {
         issues.push("Module brand-spotlight must be hidden when ProductSelection provides fewer than two eligible brands.");
       }
     }

@@ -12,6 +12,7 @@ import {
   themeIntentDigest,
   topicPageAssetManifestDigest,
   topicPageContentSpecDigest,
+  topicPageGenerationSpecDigest,
   topicPagePlanDigest,
   topicPageExperienceReviewDecisionDigest,
   type ProductSelectionResult,
@@ -30,6 +31,12 @@ const REAL_PNG_FIXTURES = {
 
 function pngFixture(size: keyof typeof REAL_PNG_FIXTURES) {
   return new Uint8Array(Buffer.from(REAL_PNG_FIXTURES[size], "base64"));
+}
+
+function withoutDigest<T extends object>(value: T) {
+  const copy = { ...value } as T & { digest?: string };
+  delete copy.digest;
+  return copy;
 }
 
 const imageDecoder: TopicPageImageDecoder = {
@@ -261,6 +268,83 @@ function executionPlanFor(data: ReturnType<typeof fixture>) {
   return run.plan;
 }
 
+function groupedFixture() {
+  const data = fixture();
+  const selection: ProductSelectionResult = {
+    ...data.selection,
+    modules: [{
+      id: "popular-picks",
+      productIds: ["matcha-1"],
+      groups: [{
+        id: "all",
+        label: "全部",
+        productIds: ["matcha-1"],
+      }, {
+        id: "matcha-powder",
+        label: "抹茶粉",
+        productIds: ["matcha-1"],
+      }],
+    }],
+  };
+  const planBase = {
+    ...data.plan,
+    productSelectionDigest: productSelectionDigest(selection),
+    moduleOrder: ["hero", "popular-picks"] as const,
+    modules: [...data.plan.modules, {
+      id: "popular-picks" as const,
+      component: "ProductList" as const,
+      visible: true,
+      shoppingGoal: "Surface popular matcha products",
+      reason: "The frozen selection contains a popular group.",
+      assignments: [{
+        slotId: "popular-picks-1",
+        productId: "matcha-1",
+        pool: "primary" as const,
+        role: "core" as const,
+      }],
+      scenes: [],
+      contentTaskId: "content-popular-picks",
+      assetTaskIds: [],
+    }],
+  };
+  const planWithoutDigest = withoutDigest(planBase);
+  const plan: TopicPagePlanV2 = {
+    ...planWithoutDigest,
+    moduleOrder: [...planBase.moduleOrder],
+    digest: topicPagePlanDigest(planWithoutDigest),
+  };
+  const contentBase = {
+    ...data.contentSpec,
+    topicPagePlanDigest: plan.digest,
+    productSelectionDigest: plan.productSelectionDigest,
+    tasks: [...data.contentSpec.tasks, {
+      taskId: "content-popular-picks",
+      moduleId: "popular-picks" as const,
+      component: "ProductList" as const,
+      copy: {
+        title: { text: "热门精选", evidenceRefs: ["product:matcha-1"] },
+      },
+    }],
+  };
+  const contentWithoutDigest = withoutDigest(contentBase);
+  const contentSpec: TopicPageContentSpec = {
+    ...contentWithoutDigest,
+    digest: topicPageContentSpecDigest(contentWithoutDigest),
+  };
+  const manifestBase = {
+    ...data.manifest,
+    topicPagePlanDigest: plan.digest,
+    topicPageContentSpecDigest: contentSpec.digest,
+    productSelectionDigest: plan.productSelectionDigest,
+  };
+  const manifestWithoutDigest = withoutDigest(manifestBase);
+  const manifest: TopicPageAssetManifest = {
+    ...manifestWithoutDigest,
+    digest: topicPageAssetManifestDigest(manifestWithoutDigest),
+  };
+  return { ...data, selection, plan, contentSpec, manifest };
+}
+
 describe("PageGenerationSpec and final automatic QA", () => {
   it("freezes copy, products, and generated assets into a renderable spec", () => {
     const data = fixture();
@@ -289,6 +373,40 @@ describe("PageGenerationSpec and final automatic QA", () => {
       }],
     });
     expect(spec.digest).toMatch(/^sha256:[a-f0-9]{64}$/);
+  });
+
+  it("freezes ProductSelection groups into generated product modules", () => {
+    const data = groupedFixture();
+
+    const spec = compileTopicPageGenerationSpec({
+      ...data,
+      assetUrl: (ref) => `/assets?ref=${encodeURIComponent(ref)}`,
+    });
+
+    expect(spec.modules.find(({ id }) => id === "popular-picks")?.groups).toEqual([
+      { id: "all", label: "全部", productIds: ["matcha-1"] },
+      { id: "matcha-powder", label: "抹茶粉", productIds: ["matcha-1"] },
+    ]);
+  });
+
+  it("blocks final QA when generated product groups drift from ProductSelection", async () => {
+    const data = groupedFixture();
+    const generationSpec = compileTopicPageGenerationSpec({
+      ...data,
+      assetUrl: (ref) => `/assets?ref=${encodeURIComponent(ref)}`,
+    });
+    const popular = generationSpec.modules.find(({ id }) => id === "popular-picks")!;
+    popular.groups = [{ id: "all", label: "全部", productIds: [] }];
+    generationSpec.digest = topicPageGenerationSpecDigest(generationSpec);
+
+    const qaReport = await runTopicPageQa({ ...data, generationSpec });
+
+    expect(qaReport).toMatchObject({
+      status: "qa-blocked",
+      issues: expect.arrayContaining([
+        "Generated module popular-picks groups do not match ProductSelectionResult.",
+      ]),
+    });
   });
 
   it("checks real bytes, MIME, dimensions, digests, bindings, and review readiness", async () => {

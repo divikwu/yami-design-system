@@ -61,7 +61,10 @@ export function usesStrictPageCopyPolicy(templateRef: string) {
   return STRICT_TEMPLATE_REFS.has(templateRef);
 }
 
-export function topicPageCopyPolicyRef(templateRef: string) {
+export function topicPageCopyPolicyRef(templateRef: string, noviceGuided = false) {
+  if (noviceGuided && usesStrictPageCopyPolicy(templateRef)) {
+    return "topic-page-copy/novice-guided@2" as const;
+  }
   return usesStrictPageCopyPolicy(templateRef)
     ? "topic-page-copy/evidence-bound@1" as const
     : "topic-page-copy/legacy@1" as const;
@@ -102,7 +105,12 @@ export function pageCopyUsesRequestedLanguage(
   language: ContentLanguage,
   properNouns: readonly string[],
 ) {
-  const generatedText = properNouns.reduce(
+  const catalogAcronyms = properNouns.flatMap(
+    (noun) => noun.match(/\b[A-Z]{2,}[A-Z0-9+.-]*\b/g) ?? [],
+  );
+  const allowedTerms = [...new Set([...properNouns, ...catalogAcronyms])]
+    .sort((left, right) => right.length - left.length);
+  const generatedText = allowedTerms.reduce(
     (value, noun) => value.replace(new RegExp(escapeRegExp(noun), "giu"), " "),
     text,
   );

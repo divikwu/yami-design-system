@@ -51,34 +51,67 @@ pnpm topic-generator:analyze -- --keyword "<keyword>" \
 
 Expect `pageContent.status` to be `needs-content-proposal`. Read the complete returned `context`,
 then read [the content proposal contract](references/topic-page-content-contract.md). Process only
-the returned tasks and `copySlots`. For active `@2` templates, require
-`copyPolicyRef: topic-page-copy/evidence-bound@1`; obey every returned `copyRules` character limit
-and cite only IDs listed by `eligibleThemeIntentEvidenceIds`.
+the returned tasks and `copySlots`, and obey the returned `claimPolicy`. For the newcomer flow,
+require `copyPolicyRef: topic-page-copy/novice-guided@2`; obey every returned `copyRules` character
+limit and cite only IDs listed by `eligibleThemeIntentEvidenceIds` and
+`eligibleBackgroundEvidenceClaimIds`. Older replay contexts may still use
+`topic-page-copy/evidence-bound@1`.
 
 ## Compose customer-facing copy
 
-Before writing, build a compact copy brief from the returned context:
+When `context.revision` is present, this is the automatic Host's second and final Content Agent
+attempt. Start from `revision.previousContentSpec`, address every error in
+`revision.review.issues`, and return one complete replacement proposal. Change only the cited copy
+fields unless another field must change to keep the module coherent; preserve unaffected copy,
+task order, evidence references, products, scenes, language, and every digest. Do not reinterpret
+the theme or broaden the page plan.
 
-1. Read `themeIntent.themeType`, `canonicalEntity`, `shoppingIntent`, `shopperAction`, verified
-   constraints, needs, conditions, and evidence. Use them to determine the page proposition.
-2. Read `templateRef` to distinguish Brand, Topic, and Campaign copy. Brand copy should clarify the
+Before writing, use the returned digest-bound `copyBrief`:
+
+1. Read `audienceContext`, `copyBrief.pageProposition`, `newcomerQuestions`, and every
+   `moduleObjectives` entry. Assume no prior brand, product, or cultural knowledge. The page must
+   answer what the topic is and where a first-time shopper should begin.
+2. Read `themeIntent.themeType`, `canonicalEntity`, `shoppingIntent`, `shopperAction`, verified
+   constraints, needs, conditions, and evidence. Use them to support the returned proposition.
+3. Read `templateRef` to distinguish Brand, Topic, and Campaign copy. Brand copy should clarify the
    brand's available product breadth; Topic copy should help shoppers compare or discover; Campaign
    copy should organize the declared occasion or shopping action.
-3. For each task, use only its `shoppingGoal`, scenes, assigned products, and selected categories.
+4. For each task, use only its `shoppingGoal`, scenes, assigned products, and selected categories.
    Give every visible module a distinct customer decision to support.
-4. Write natural copy for the requested locale. Prefer concise, specific shopping language over
+5. Write natural copy for the requested locale. Prefer concise, specific shopping language over
    generic labels or full catalog product titles. Before returning the proposal, scan every copy
-   segment and rewrite accidental mixed-language output; brand and product names are the only
-   expected exceptions.
-5. Keep implementation language out of the page. Do not mention Agent, PagePlan, evidence,
+   segment and rewrite accidental mixed-language output. Treat
+   `languagePolicy.immutableProperNouns` as the complete exception list: do not shorten a listed
+   product title into a new English label or introduce terms such as `K-Beauty`, `Heartleaf`,
+   `skincare`, `routine`, `serum`, or `toner` unless that exact value appears in the list. For
+   `zh`, after mentally removing the listed values, no Latin letters may remain; for `en`, no CJK
+   or Korean characters may remain.
+6. Keep implementation language out of the page. Do not mention Agent, PagePlan, evidence,
    validation, catalog internals, frozen pools, or phrases such as "已验证的商品池" in customer copy.
-6. Use multiple relevant evidence inputs when the slot warrants it: the Hero proposition should
+7. Use multiple relevant evidence inputs when the slot warrants it: the Hero proposition should
    reflect ThemeIntent plus assigned product or category evidence; scene copy should reflect its
    declared scene and products.
-7. Treat `themeIntent.evidenceRefs` as the complete audit record, not an automatic content
-   allowlist. Only `eligibleThemeIntentEvidenceIds` may support generated claims. Wikipedia or
-   other public background text is unavailable unless the runtime later declares a separate,
-   digest-bound background evidence namespace.
+8. Treat `themeIntent.evidenceRefs` as the complete catalog audit record, not an automatic content
+   allowlist. Only `eligibleThemeIntentEvidenceIds` may support generated catalog claims. When the
+   context contains a ready or partial `backgroundEvidence` bundle, use only its eligible claim IDs
+   through `background:<claim-id>`. The Hero title or description must cite at least one eligible
+   background claim. Background context may explain identity, origin, meaning, tradition, or
+   terminology; it never proves product performance.
+
+Before returning, run a decision-usefulness check:
+
+- For the Hero, mentally replace the keyword with an unrelated brand or topic. If the title and
+  description would still work unchanged, add the supported identity and a concrete shopping frame
+  from the assigned categories, products, or scenes.
+- For `start-here`, make every scene answer a shopper situation, comparison sequence, or choice.
+  “View the products in this scene” is not a scene proposition.
+- For `popular-picks`, name a real comparison axis or pairing job supported by its assignments.
+  Do not use “精选 / 热门 / 跨品类比较 / browse products” as the entire proposition.
+- For `explore-more`, name the gap to fill or the deeper direction and the categories that support
+  it. Do not use “继续浏览 / 探索更多 / 完整品类 / explore more” as the entire proposition.
+- After removing the immutable keyword, the Hero, `popular-picks`, and `explore-more` must still
+  describe three different shopper decisions. Rewrite them if they collapse into generic catalog
+  navigation.
 
 Planning goals guide tone and structure but never authorize ingredient, benefit, efficacy,
 popularity, inventory, discount, rating, or customer-outcome claims.
@@ -107,7 +140,7 @@ Create exactly one `topic-page-content-proposal/v1` bound to the returned keywor
 - Keep review copy absent when verified review records are unavailable. Do not paraphrase or invent
   reviews.
 - Exclude image prompts, art direction, alt text, and asset decisions. Hand the ready ContentSpec
-  to the independent `visual-generation` Skill.
+  to the independent Content Review stage; visual generation starts only after approval.
 
 Write the proposal to a new caller-approved path. Do not overwrite ThemeIntent, ProductSelection,
 PagePlan, or image artifacts.
@@ -126,7 +159,10 @@ Accept the result only when `pageContent.status` is `ready`. Preserve the return
 and follow `rollbackStage`: revise only the content proposal for `content-writing`, but return to
 PageMerchandising for `module-merchandising`. When a `topic-page-content-attempt/v1` is available,
 preserve it with the rejected proposal; a resume must reuse its PagePlan, ThemeIntent,
-ProductSelection, and language bindings and must not silently invoke a second Agent attempt.
+ProductSelection, and language bindings. Caller-managed resume supplies its revised proposal and
+does not invoke the Agent. Automatic Host mode may invoke one bounded second Content Agent attempt
+only for `content-quality` / `revision-required`, using `context.revision`; a second failed review,
+binding drift, invalid review, or transport failure remains blocked.
 
 In automatic Host mode, accept only a `topic-page-agent-request/v1` whose stage is
 `content-writing`, and return the proposal inside `topic-page-agent-response/v1` with the same

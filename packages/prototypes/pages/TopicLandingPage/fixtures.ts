@@ -13,7 +13,6 @@ import {
   createFooterSocialLinks,
   footerCopy,
 } from "@yami/design-system/components/Footer/fixtures";
-import { createHeaderProps } from "@yami/design-system/components/Header/fixtures";
 import {
   createProductListProducts,
   createProductListTabs,
@@ -23,6 +22,7 @@ import { createReviewListProps } from "@yami/design-system/components/ReviewList
 import { createFullBleedShortcutItems } from "@yami/design-system/components/ShortcutRail/fixtures";
 import { createThemeHeroProps } from "@yami/design-system/components/ThemeHero/fixtures";
 
+import { createStorefrontHeader } from "../storefront-header.fixture";
 import type { TopicLandingPageProps } from "./TopicLandingPage.types";
 import {
   createExploreMoreProducts,
@@ -264,15 +264,6 @@ const pageCopy = {
   },
 } as const;
 
-function createHeader(locale: TopicLandingPageLocale): HeaderProps {
-  const header = createHeaderProps(locale, { href: (slot) => `#${slot}` });
-  return {
-    ...header,
-    cart: { ...header.cart, count: 2 },
-    onSearchSubmit: () => {},
-  };
-}
-
 function createActivityHeader(
   header: HeaderProps,
   locale: TopicLandingPageLocale,
@@ -360,7 +351,7 @@ export function createTopicLandingPageFixture(
   locale: TopicLandingPageLocale = "en",
 ): TopicLandingPageProps {
   const copy = pageCopy[locale];
-  const header = createHeader(locale);
+  const header = createStorefrontHeader(locale);
   const hero = createThemeHeroProps();
   const shortcutItems = createFullBleedShortcutItems()
     .slice(0, copy.shortcutLabels.length)
