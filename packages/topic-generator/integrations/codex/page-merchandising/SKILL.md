@@ -81,6 +81,12 @@ strategy, template, `themeIntentDigest`, and `productSelectionDigest`.
 - For a category-role `@2` task, copy the complete ordered assignments from each returned
   `selectionModules` entry into StartHere, Popular Picks, Brand Spotlight, and Explore More. Do not
   truncate, reorder, or move those products.
+- For a current relevance `@2` task, Popular Picks and Explore More are also frozen
+  ProductSelection-owned modules. In the shared Agent workflow, keep both modules present with
+  their planning metadata and return `assignments: []`; the deterministic host materializes every
+  ordered assignment from `selectionModules` after the proposal. For a direct CLI proposal, copy
+  those complete assignments yourself. Never truncate, reorder, move, or reselect those products.
+  The Agent may still review Hero, Shortcuts, and the scene composition of Start Here.
 - Whenever `context.selectionModules` contains Brand Spotlight, keep it hidden when its groups are
   empty. When it contains two to six brand groups, make the module visible and copy every group in
   order with exactly three products. Add the exact group ID to each assignment; do not drop a

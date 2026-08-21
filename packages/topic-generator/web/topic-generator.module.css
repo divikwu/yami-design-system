@@ -175,6 +175,16 @@
   background: var(--surface-secondary);
 }
 
+.capabilityActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.capabilityActions button {
+  width: 100%;
+}
+
 .previewStage {
   display: grid;
   min-width: 0;

@@ -1,5 +1,6 @@
 import type { ContentLanguage, ThemeIntent, TopicModuleId } from "../types.js";
 import type { ProductSelectionResult } from "../product-selection/contracts.js";
+import type { TopicBackgroundEvidenceBundle } from "../background-evidence/contracts.js";
 import { sha256Digest } from "../product-selection/digest.js";
 import {
   productSelectionDigest,
@@ -131,6 +132,7 @@ interface EvidenceScope {
   eligibleCategoryIds: Set<string>;
   productIds: Set<string>;
   sceneIds: Set<string>;
+  backgroundClaimIds: Set<string>;
   language: ContentLanguage;
   properNouns: readonly string[];
   strictPolicy: boolean;
@@ -173,6 +175,13 @@ function reviewEvidenceRef(
     const id = evidenceRef.slice("scene:".length);
     if (!scope.sceneIds.has(id)) {
       issues.push(`Evidence reference ${evidenceRef} is outside module ${moduleId}.`);
+    }
+    return;
+  }
+  if (evidenceRef.startsWith("background:")) {
+    const id = evidenceRef.slice("background:".length);
+    if (!scope.backgroundClaimIds.has(id)) {
+      issues.push(`Unknown background evidence reference: ${evidenceRef}.`);
     }
     return;
   }
@@ -352,6 +361,7 @@ function reviewTaskCopy(
   selection: ProductSelectionResult,
   plan: TopicPagePlanV2,
   language: ContentLanguage,
+  backgroundEvidence: TopicBackgroundEvidenceBundle | undefined,
   issues: string[],
 ): TopicPageContentCopy {
   const rawCopy = objectValue(value) ?? {};
@@ -366,6 +376,7 @@ function reviewTaskCopy(
       .flatMap(({ categoryL3Id }) => categoryL3Id === undefined ? [] : [String(categoryL3Id)])),
     productIds: new Set(module.assignments.map(({ productId }) => productId)),
     sceneIds: new Set(module.scenes.map(({ id }) => id)),
+    backgroundClaimIds: new Set(backgroundEvidence?.claims.map(({ id }) => id) ?? []),
     language,
     properNouns: pageCopyProperNouns(intent, selection, plan.keyword),
     strictPolicy: usesStrictPageCopyPolicy(plan.templateRef),
@@ -441,6 +452,7 @@ export function reviewTopicPageContentProposal(
   plan: TopicPagePlanV2,
   language: ContentLanguage,
   value: unknown,
+  backgroundEvidence?: TopicBackgroundEvidenceBundle,
 ): TopicPageContentProposalReview {
   const proposal = objectValue(value);
   const issues: string[] = [];
@@ -506,7 +518,16 @@ export function reviewTopicPageContentProposal(
       taskId,
       moduleId: module.id,
       component: module.component,
-      copy: reviewTaskCopy(task.copy, module, intent, selection, plan, language, issues),
+      copy: reviewTaskCopy(
+        task.copy,
+        module,
+        intent,
+        selection,
+        plan,
+        language,
+        backgroundEvidence,
+        issues,
+      ),
     });
   });
   expectedModules.forEach((module) => {

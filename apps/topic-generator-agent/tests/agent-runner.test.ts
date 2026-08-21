@@ -32,9 +32,11 @@ describe("TOPIC GENERATOR Agent Runner", () => {
   it("registers every canonical Skill and automatic stage", () => {
     expect(AGENT_ROUTES.map(({ protocol, stage }) => `${protocol}:${stage}`)).toEqual([
       "topic-page:topic-intent",
+      "topic-page:background-evidence",
       "topic-page:workflow-planning",
       "topic-page:module-merchandising",
       "topic-page:content-writing",
+      "topic-page:content-review",
       "topic-page:visual-generation",
       "topic-page:experience-review",
       "product-selection:product-semantic-proposal",
@@ -43,9 +45,11 @@ describe("TOPIC GENERATOR Agent Runner", () => {
     ]);
     expect(new Set(AGENT_ROUTES.map(({ skill }) => skill))).toEqual(new Set([
       "topic-intent",
+      "background-evidence",
       "page-orchestration",
       "page-merchandising",
       "content-writing",
+      "content-review",
       "visual-generation",
       "page-review",
       "product-selection",
@@ -475,7 +479,7 @@ describe("TOPIC GENERATOR Agent Runner", () => {
     const response = await handler(new Request("http://127.0.0.1:4400/health"));
     expect(response.status).toBe(200);
     const payload = await response.json();
-    expect(payload.routes).toHaveLength(9);
+    expect(payload.routes).toHaveLength(11);
     expect(JSON.stringify(payload)).not.toContain("secret");
   });
 

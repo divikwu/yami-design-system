@@ -5,9 +5,16 @@ import type { TopicPagePreviewRendererProps } from "@yami/topic-generator/web";
 
 import {
   baseFixture,
+  contentPrototypeProps,
   generatedPrototypeProps,
   RealTopicPagePreview,
+  selectionPrototypeProps,
 } from "./topic-generator-workbench";
+
+type GenerationSpec = Extract<
+  TopicPagePreviewRendererProps,
+  { mode: "generated" }
+>["generationSpec"];
 
 describe("Topic Generator Workbench preview", () => {
   it.each([
@@ -76,7 +83,7 @@ describe("Topic Generator Workbench preview", () => {
         }],
       }],
       digest: "sha256:generation",
-    } satisfies TopicPagePreviewRendererProps["generationSpec"];
+    } satisfies GenerationSpec;
 
     const props = generatedPrototypeProps("landing-page/topic@2", generationSpec);
 
@@ -85,12 +92,13 @@ describe("Topic Generator Workbench preview", () => {
       objectPosition: "25% 40%",
     });
     expect(renderToStaticMarkup(createElement(RealTopicPagePreview, {
+      mode: "generated",
       pageTypeRef: "landing-page/topic@2",
       generationSpec,
     }))).toContain('data-generation-spec="sha256:generation"');
   });
 
-  it("keeps internal shopping goals out of localized preview copy and marks generated hero media", () => {
+  it("does not restore template descriptions when generated modules omit them", () => {
     const generationSpec = {
       schemaVersion: "topic-page-generation-spec/v1",
       status: "generation-ready",
@@ -149,15 +157,342 @@ describe("Topic Generator Workbench preview", () => {
         assets: [],
       }],
       digest: "sha256:generation",
-    } satisfies TopicPagePreviewRendererProps["generationSpec"];
-    const localizedBase = baseFixture("landing-page/brand@2", "zh");
+    } satisfies GenerationSpec;
+    const props = generatedPrototypeProps("landing-page/brand@2", generationSpec);
+
+    expect(props.hero.description).toBeUndefined();
+    expect(props.hero.className).toBeTruthy();
+    expect(props.standardRail?.content.description).toBeUndefined();
+  });
+
+  it("preserves generated Popular Picks and Explore More product groups as tabs", () => {
+    const generationSpec = {
+      schemaVersion: "topic-page-generation-spec/v1",
+      status: "generation-ready",
+      keyword: "ANUA",
+      site: "us",
+      language: "zh",
+      strategyRef: "relevance/intent-themes@3",
+      templateRef: "topic-landing/brand-relevance@1",
+      bindings: {
+        themeIntentDigest: "sha256:intent",
+        productSelectionDigest: "sha256:selection",
+        topicPagePlanDigest: "sha256:plan",
+        topicPageContentSpecDigest: "sha256:content",
+        topicPageAssetManifestDigest: "sha256:assets",
+      },
+      moduleOrder: ["popular-picks", "explore-more"],
+      modules: [{
+        id: "popular-picks",
+        component: "ProductList",
+        shoppingGoal: "Surface popular products",
+        reason: "Frozen selection groups",
+        copy: { title: { text: "热门精选", evidenceRefs: ["product:1"] } },
+        products: ["1", "2"].map((id, index) => ({
+          id,
+          title: `ANUA ${id}`,
+          brand: "ANUA",
+          price: "$10.00",
+          imageUrl: `/products/${id}.webp`,
+          productUrl: `/products/${id}`,
+          sourceRank: index + 1,
+          pool: "primary" as const,
+          role: "core" as const,
+        })),
+        groups: [{ id: "all", label: "全部", productIds: ["1", "2"] }, {
+          id: "cleanser",
+          label: "清洁",
+          productIds: ["1"],
+        }],
+        scenes: [],
+        assets: [],
+      }, {
+        id: "explore-more",
+        component: "ProductList",
+        shoppingGoal: "Help shoppers explore",
+        reason: "Frozen selection groups",
+        copy: {
+          title: { text: "综合推荐", evidenceRefs: ["product:2"] },
+          description: { text: "按品类继续探索。", evidenceRefs: ["product:2"] },
+        },
+        products: ["1", "2"].map((id, index) => ({
+          id,
+          title: `ANUA ${id}`,
+          brand: "ANUA",
+          price: "$10.00",
+          imageUrl: `/products/${id}.webp`,
+          productUrl: `/products/${id}`,
+          sourceRank: index + 1,
+          pool: "primary" as const,
+          role: "core" as const,
+        })),
+        groups: [{ id: "treatment", label: "护理", productIds: ["2"] }],
+        scenes: [],
+        assets: [],
+      }],
+      digest: "sha256:generation",
+    } satisfies GenerationSpec;
 
     const props = generatedPrototypeProps("landing-page/brand@2", generationSpec);
 
-    expect(props.hero.description).toEqual(localizedBase.hero.description);
-    expect(props.hero.className).toBeTruthy();
-    expect(props.standardRail?.content.description).toEqual(
-      localizedBase.standardRail?.content.description,
+    expect(props.productRail.tabs).toEqual([
+      { value: "all", label: "全部" },
+      { value: "cleanser", label: "清洁" },
+    ]);
+    expect(props.productRail.productsByTab?.cleanser.map(({ id }) => id)).toEqual(["1"]);
+    expect(props.waterfall.tabs).toEqual([{ value: "treatment", label: "护理" }]);
+    expect(props.waterfall.productsByTab?.treatment.map(({ id }) => id)).toEqual(["2"]);
+  });
+
+  it("fills the final page with selection products and marks ungenerated content as placeholders", () => {
+    const plan = {
+      generationMode: "selection",
+      keyword: "Matcha",
+      site: "us",
+      language: "zh",
+      content: {
+        eyebrow: "Matcha",
+        headline: "Matcha",
+        description: "默认选品文案",
+        tags: [],
+        copyMode: "not-generated",
+      },
+      products: ["1", "2"].map((id, index) => ({
+        id,
+        title: `Matcha ${id}`,
+        brand: "Matcha Brand",
+        price: "$10.00",
+        imageUrl: `/products/${id}.webp`,
+        productUrl: `/products/${id}`,
+        sourceRank: index + 1,
+      })),
+      modules: [{
+        id: "hero",
+        label: "Hero",
+        heading: "Matcha",
+        description: "默认选品文案",
+        required: true,
+        visible: true,
+        productIds: ["1"],
+        reason: "Reviewed hero selection.",
+      }, {
+        id: "popular-picks",
+        label: "热门精选",
+        heading: "热门精选",
+        description: "默认热门文案",
+        required: true,
+        visible: true,
+        productIds: ["2", "1"],
+        groups: [{
+          id: "popular-picks-all",
+          label: "全部",
+          role: "core",
+          productIds: ["2", "1"],
+        }, {
+          id: "cleansers",
+          label: "清洁",
+          role: "core",
+          productIds: ["1"],
+        }],
+        reason: "Reviewed product order.",
+      }, {
+        id: "reviews",
+        label: "顾客评价",
+        heading: "顾客评价",
+        description: "默认评价文案",
+        required: false,
+        visible: true,
+        productIds: ["1"],
+        reason: "Reviewed review product.",
+      }, {
+        id: "explore-more",
+        label: "综合推荐",
+        heading: "综合推荐",
+        description: "默认综合推荐文案",
+        required: true,
+        visible: true,
+        productIds: ["1", "2"],
+        groups: [{
+          id: "cleansers",
+          label: "清洁",
+          role: "core",
+          productIds: ["1"],
+        }, {
+          id: "treatments",
+          label: "护理",
+          role: "core",
+          productIds: ["2"],
+        }],
+        reason: "Reviewed recommendation groups.",
+      }],
+      generatedAt: "2026-08-21T00:00:00.000Z",
+    } as unknown as Extract<TopicPagePreviewRendererProps, { mode: "selection" }>["plan"];
+
+    const props = selectionPrototypeProps("landing-page/topic@2", plan);
+    expect(props.hero.title).toBe("Matcha");
+    expect(props.hero.description).toBe("默认选品文案");
+    expect(props.productRail.products.map(({ id }) => id)).toEqual(["2", "1"]);
+    expect(props.productRail.tabs).toEqual([
+      { value: "popular-picks-all", label: "全部" },
+      { value: "cleansers", label: "清洁" },
+    ]);
+    expect(props.productRail.productsByTab?.cleansers.map(({ id }) => id)).toEqual(["1"]);
+    expect(props.waterfall.tabs).toEqual([
+      { value: "cleansers", label: "清洁" },
+      { value: "treatments", label: "护理" },
+    ]);
+    expect(props.waterfall.productsByTab?.treatments.map(({ id }) => id)).toEqual(["2"]);
+    expect(props.reviewList?.reviews.map(({ product }) => product.imageSrc)).toEqual([
+      "/products/1.webp",
+    ]);
+    const markup = renderToStaticMarkup(createElement(RealTopicPagePreview, {
+      mode: "selection",
+      pageTypeRef: "landing-page/topic@2",
+      plan,
+    }));
+    expect(markup).toContain('data-page-preview-state="selection"');
+    expect(markup).not.toContain("图片待生成");
+  });
+
+  it("uses one neutral default copy set before generated copy is available", () => {
+    const plan = {
+      generationMode: "selection",
+      keyword: "Matcha",
+      site: "us",
+      language: "zh",
+      content: {
+        eyebrow: "",
+        headline: "",
+        description: "",
+        tags: [],
+        copyMode: "not-generated",
+      },
+      selectedCategories: [{ id: "tea", label: "茶饮", path: ["茶饮"] }, {
+        id: "snacks",
+        label: "零食",
+        path: ["零食"],
+      }],
+      products: ["1", "2"].map((id, index) => ({
+        id,
+        title: `Matcha ${id}`,
+        brand: index === 0 ? "Brand A" : "Brand B",
+        price: "$10.00",
+        imageUrl: `/products/${id}.webp`,
+        productUrl: `/products/${id}`,
+        sourceRank: index + 1,
+      })),
+      modules: [{
+        id: "hero",
+        label: "Hero",
+        heading: "",
+        description: "",
+        required: true,
+        visible: true,
+        productIds: ["1"],
+        reason: "Reviewed hero selection.",
+      }, {
+        id: "shortcuts",
+        label: "Shortcuts",
+        heading: "",
+        description: "",
+        required: true,
+        visible: true,
+        productIds: ["1", "2"],
+        reason: "Reviewed category shortcuts.",
+      }, {
+        id: "start-here",
+        label: "Start here",
+        heading: "",
+        description: "",
+        required: true,
+        visible: true,
+        productIds: ["1", "2"],
+        groups: [{
+          id: "daily",
+          label: "日常选择",
+          role: "core",
+          productIds: ["1", "2"],
+        }],
+        reason: "Reviewed shopping scene.",
+      }, {
+        id: "popular-picks",
+        label: "Popular picks",
+        heading: "",
+        description: "",
+        required: true,
+        visible: true,
+        productIds: ["1", "2"],
+        reason: "Reviewed popular products.",
+      }, {
+        id: "brand-spotlight",
+        label: "Brands",
+        heading: "",
+        description: "",
+        required: false,
+        visible: true,
+        productIds: ["1", "2"],
+        groups: [{
+          id: "brand-a",
+          label: "Brand A",
+          role: "core",
+          productIds: ["1"],
+        }, {
+          id: "brand-b",
+          label: "Brand B",
+          role: "core",
+          productIds: ["2"],
+        }],
+        reason: "Multiple brands are available.",
+      }, {
+        id: "explore-more",
+        label: "Explore more",
+        heading: "",
+        description: "",
+        required: true,
+        visible: true,
+        productIds: ["1", "2"],
+        reason: "Reviewed product order.",
+      }],
+      generatedAt: "2026-08-21T00:00:00.000Z",
+    } as unknown as Extract<TopicPagePreviewRendererProps, { mode: "selection" }>["plan"];
+
+    const props = selectionPrototypeProps("landing-page/topic@2", plan);
+
+    expect(props.hero.title).toBe("浏览 Matcha 商品");
+    expect(props.hero.description).toBe(
+      "查看本次选中的 Matcha 商品，并按品类和选购场景继续浏览。",
     );
+    expect(props.hero.tags).toEqual(["茶饮", "零食"]);
+    expect(props.shortcutRail.title).toBe("按品类浏览 Matcha");
+    expect(props.standardRail?.title).toBe("按选购场景开始浏览");
+    expect(props.standardRail?.content.title).toBe("日常选择");
+    expect(props.standardRail?.content.description).toBe(
+      "查看这一场景下已选的 Matcha 商品。",
+    );
+    expect(props.productRail.title).toBe("Matcha 精选商品");
+    expect(props.brandRail?.title).toBe("按品牌浏览");
+    expect(props.waterfall.title).toBe("继续浏览 Matcha 商品");
+    expect(props.waterfall.description).toBe("按更多品类查看本次选中的商品。");
+
+    const contentSpec = {
+      tasks: [{
+        moduleId: "hero",
+        copy: { title: { text: "生成后的 Hero", evidenceRefs: [] } },
+      }, {
+        moduleId: "start-here",
+        copy: { title: { text: "生成后的场景模块", evidenceRefs: [] }, scenes: [] },
+      }, {
+        moduleId: "explore-more",
+        copy: { title: { text: "生成后的更多商品", evidenceRefs: [] } },
+      }],
+    } as unknown as Extract<TopicPagePreviewRendererProps, { mode: "content" }>["contentSpec"];
+    const generatedCopyProps = contentPrototypeProps(
+      "landing-page/topic@2",
+      plan,
+      contentSpec,
+    );
+    expect(generatedCopyProps.hero.description).toBeUndefined();
+    expect(generatedCopyProps.standardRail?.content.description).toBeUndefined();
+    expect(generatedCopyProps.waterfall.description).toBeUndefined();
   });
 });

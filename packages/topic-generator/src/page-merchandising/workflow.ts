@@ -5,6 +5,7 @@ import type {
   PageMerchandisingRun,
   TopicPageTemplateRef,
 } from "./contracts.js";
+import { preservesCurrentRelevanceSelectionAssignments } from "./review.js";
 import { advancePageMerchandisingRun } from "./run.js";
 
 type NeedsModuleProposalRun = Extract<
@@ -35,10 +36,51 @@ export interface PageMerchandisingAgentWorkflowResult {
   };
 }
 
+function materializeFrozenRelevanceAssignments(
+  selection: ProductSelectionResult,
+  templateRef: TopicPageTemplateRef,
+  value: unknown,
+) {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return value;
+  const proposal = value as Record<string, unknown>;
+  if (!Array.isArray(proposal.modules)) return value;
+  const selectionModulesById = new Map(selection.modules.map((module) => [module.id, module]));
+  return {
+    ...proposal,
+    modules: proposal.modules.map((rawModule) => {
+      if (typeof rawModule !== "object" || rawModule === null || Array.isArray(rawModule)) {
+        return rawModule;
+      }
+      const module = rawModule as Record<string, unknown>;
+      const moduleId = typeof module.id === "string" ? module.id : "";
+      if (
+        moduleId !== "popular-picks" && moduleId !== "explore-more" ||
+        !preservesCurrentRelevanceSelectionAssignments(templateRef, moduleId)
+      ) {
+        return rawModule;
+      }
+      const selectionModule = selectionModulesById.get(moduleId);
+      if (!selectionModule) return rawModule;
+      return {
+        ...module,
+        assignments: selectionModule.productIds.map((productId) => ({
+          productId,
+          reuseReason:
+            "Preserved from the ProductSelection-owned module; the Agent does not reselect it.",
+        })),
+      };
+    }),
+  };
+}
+
 export async function runPageMerchandisingAgentWorkflow(
   request: PageMerchandisingAgentWorkflowRequest,
 ): Promise<PageMerchandisingAgentWorkflowResult> {
-  let proposal = request.proposal;
+  let proposal = materializeFrozenRelevanceAssignments(
+    request.selection,
+    request.templateRef,
+    request.proposal,
+  );
   let attemptCount = 0;
   let run = advancePageMerchandisingRun({
     intent: request.intent,
@@ -49,7 +91,11 @@ export async function runPageMerchandisingAgentWorkflow(
   });
   while (run.status === "needs-module-proposal" && attemptCount < 2) {
     const taskRun = run;
-    proposal = await request.agent.proposeModuleMerchandising(taskRun);
+    proposal = materializeFrozenRelevanceAssignments(
+      request.selection,
+      request.templateRef,
+      await request.agent.proposeModuleMerchandising(taskRun),
+    );
     attemptCount += 1;
     run = advancePageMerchandisingRun({
       intent: request.intent,

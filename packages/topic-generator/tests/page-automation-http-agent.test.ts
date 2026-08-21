@@ -11,6 +11,11 @@ const runs = {
     status: "needs-semantic-proposal",
     context: { keyword: "Matcha" },
   },
+  background: {
+    schemaVersion: "topic-background-evidence-run/v1",
+    status: "needs-background-evidence-proposal",
+    context: { keyword: "Matcha" },
+  },
   orchestration: {
     schemaVersion: "landing-page-orchestration-run/v1",
     status: "needs-execution-plan-proposal",
@@ -26,6 +31,11 @@ const runs = {
     status: "needs-content-proposal",
     context: { keyword: "Matcha" },
   },
+  contentReview: {
+    schemaVersion: "topic-page-content-review-run/v1",
+    status: "needs-content-review-proposal",
+    context: { contentSpecDigest: "sha256:content" },
+  },
   visual: {
     schemaVersion: "topic-page-visual-run/v1",
     status: "needs-visual-proposal",
@@ -39,7 +49,7 @@ const runs = {
 } as const;
 
 describe("Topic Page Agent HTTP contract", () => {
-  it("routes TopicIntent and five page Agents through one versioned endpoint", async () => {
+  it("routes TopicIntent and seven page Agents through one versioned endpoint", async () => {
     const fetchMock = vi.fn<typeof fetch>(async (_input, init) => {
       const request = JSON.parse(String(init?.body)) as { stage: string };
       return Response.json({
@@ -65,9 +75,11 @@ describe("Topic Page Agent HTTP contract", () => {
       fetch: fetchMock,
       agentIds: {
         "topic-intent": "topic-intent",
+        "background-evidence": "topic-background-evidence",
         "workflow-planning": "topic-page-orchestrator",
         "module-merchandising": "topic-strategy",
         "content-writing": "topic-content",
+        "content-review": "topic-content-review",
         "visual-generation": "topic-visual",
         "experience-review": "topic-review",
       },
@@ -75,12 +87,16 @@ describe("Topic Page Agent HTTP contract", () => {
 
     await expect(agent.proposeSemanticIntent(runs.intent as never))
       .resolves.toEqual({ stage: "topic-intent" });
+    await expect(agent.proposeBackgroundEvidence(runs.background as never))
+      .resolves.toEqual({ stage: "background-evidence" });
     await expect(agent.proposeExecutionPlan(runs.orchestration as never))
       .resolves.toEqual({ stage: "workflow-planning" });
     await expect(agent.proposeModuleMerchandising(runs.merchandising as never))
       .resolves.toEqual({ stage: "module-merchandising" });
     await expect(agent.proposePageContent(runs.content as never))
       .resolves.toEqual({ stage: "content-writing" });
+    await expect(agent.reviewPageContent(runs.contentReview as never))
+      .resolves.toEqual({ stage: "content-review" });
     await expect(agent.generatePageVisuals(runs.visual as never)).resolves.toEqual({
       schemaVersion: "topic-page-visual-agent-output/v1",
       proposal: { stage: "visual-generation" },
@@ -94,24 +110,28 @@ describe("Topic Page Agent HTTP contract", () => {
     await expect(agent.reviewPageExperience(runs.review as never))
       .resolves.toEqual({ stage: "experience-review" });
 
-    expect(fetchMock).toHaveBeenCalledTimes(6);
+    expect(fetchMock).toHaveBeenCalledTimes(8);
     const requests = fetchMock.mock.calls.map(([, init]) => ({
       headers: init?.headers,
       body: JSON.parse(String(init?.body)),
     }));
     expect(requests.map(({ body }) => body.stage)).toEqual([
       "topic-intent",
+      "background-evidence",
       "workflow-planning",
       "module-merchandising",
       "content-writing",
+      "content-review",
       "visual-generation",
       "experience-review",
     ]);
     expect(requests.map(({ body }) => body.agentId)).toEqual([
       "topic-intent",
+      "topic-background-evidence",
       "topic-page-orchestrator",
       "topic-strategy",
       "topic-content",
+      "topic-content-review",
       "topic-visual",
       "topic-review",
     ]);

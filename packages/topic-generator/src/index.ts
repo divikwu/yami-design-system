@@ -1,4 +1,5 @@
 export * from "./analyze.js";
+export * from "./background-evidence/index.js";
 export * from "./catalog-snapshot.js";
 export * from "./evaluate.js";
 export * from "./page-content/index.js";

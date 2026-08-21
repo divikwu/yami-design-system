@@ -6,14 +6,20 @@ import {
   productSelectionDigest,
   runTopicContentAgentWorkflow,
   themeIntentDigest,
+  topicAudienceContext,
+  topicBackgroundEvidenceDigest,
   topicPagePlanDigest,
   type ProductSelectionResult,
   type ThemeIntent,
+  type TopicBackgroundEvidenceBundle,
   type TopicContentAgent,
   type TopicPageContentProposal,
   type TopicPagePlanV2,
 } from "../src/index.js";
-import { usesStrictPageCopyPolicy } from "../src/page-content/config.js";
+import {
+  pageCopyUsesRequestedLanguage,
+  usesStrictPageCopyPolicy,
+} from "../src/page-content/config.js";
 
 const MODULE_ORDER = [
   "hero",
@@ -329,6 +335,35 @@ function proposalFixture(
   };
 }
 
+function backgroundEvidenceFixture(
+  intent = themeIntentFixture(),
+): TopicBackgroundEvidenceBundle {
+  const bundle = {
+    schemaVersion: "topic-background-evidence/v1" as const,
+    status: "ready" as const,
+    keyword: "Matcha",
+    site: "us" as const,
+    language: "zh" as const,
+    themeIntentDigest: themeIntentDigest(intent),
+    sources: [{
+      id: "source:matcha-wikipedia",
+      type: "wikipedia" as const,
+      title: "Matcha",
+      url: "https://en.wikipedia.org/wiki/Matcha",
+      publisher: "Wikipedia",
+    }],
+    claims: [{
+      id: "claim:matcha-definition",
+      type: "identity" as const,
+      text: "Matcha is finely ground green tea traditionally prepared by whisking it with water.",
+      sourceIds: ["source:matcha-wikipedia"],
+      usage: "context-only" as const,
+    }],
+    issues: [],
+  };
+  return { ...bundle, digest: topicBackgroundEvidenceDigest(bundle) };
+}
+
 describe("TopicPageContent", () => {
   it("applies strict copy policy to every active relevance template", () => {
     expect([
@@ -340,6 +375,19 @@ describe("TopicPageContent", () => {
       "topic-landing/campaign-relevance@2",
     ].every((templateRef) => usesStrictPageCopyPolicy(templateRef))).toBe(true);
     expect(usesStrictPageCopyPolicy("topic-landing/relevance@1")).toBe(false);
+  });
+
+  it("allows catalog-backed uppercase acronyms in Chinese copy", () => {
+    expect(pageCopyUsesRequestedLanguage(
+      "PDRN 与 SPF 50 日常护理",
+      "zh",
+      ["ANUA PDRN Serum", "ANUA Daily Sunscreen SPF 50"],
+    )).toBe(true);
+    expect(pageCopyUsesRequestedLanguage(
+      "Explore PDRN 日常护理",
+      "zh",
+      ["ANUA PDRN Serum"],
+    )).toBe(false);
   });
 
   it("returns only the declared visible content tasks and their real component copy slots", () => {
@@ -360,6 +408,21 @@ describe("TopicPageContent", () => {
       context: {
         language: "zh",
         copyPolicyRef: "topic-page-copy/evidence-bound@1",
+        claimPolicy: {
+          evidenceRequirement: "explicit-in-cited-artifact",
+          evidenceRefsAuthorize: "scope-only",
+          planningGoalsAuthorizeClaims: false,
+          restrictedClaimTypes: [
+            "ingredient",
+            "benefit",
+            "efficacy",
+            "popularity",
+            "inventory",
+            "discount",
+            "rating",
+            "customer-outcome",
+          ],
+        },
         topicPagePlanDigest: plan.digest,
         eligibleThemeIntentEvidenceIds: ["scenario:matcha"],
         tasks: [
@@ -388,6 +451,125 @@ describe("TopicPageContent", () => {
     expect(run.context.tasks.find(({ moduleId }) => moduleId === "hero")?.products)
       .toEqual([expect.objectContaining({ id: "core-1" })]);
     expect(run.context.tasks.flatMap(({ moduleId }) => moduleId)).not.toContain("reviews");
+  });
+
+  it("builds a novice copy brief and exposes only digest-bound background claims", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const backgroundEvidence = backgroundEvidenceFixture(intent);
+    const audienceContext = topicAudienceContext("zh");
+
+    const run = advanceTopicPageContentRun({
+      intent,
+      selection,
+      plan,
+      language: "zh",
+      audienceContext,
+      backgroundEvidence,
+    });
+
+    expect(run).toMatchObject({
+      status: "needs-content-proposal",
+      context: {
+        copyPolicyRef: "topic-page-copy/novice-guided@2",
+        languagePolicy: {
+          requestedLanguage: "zh",
+          immutableProperNouns: expect.arrayContaining([
+            "Matcha",
+            "Ceremonial Matcha",
+          ]),
+          generatedCopyRequirement: "requested-language-only-except-listed-proper-nouns",
+        },
+        audienceContext: {
+          familiarity: "unfamiliar",
+          marketContext: "non-asian-us",
+        },
+        backgroundEvidence: {
+          digest: backgroundEvidence.digest,
+          status: "ready",
+        },
+        eligibleBackgroundEvidenceClaimIds: ["claim:matcha-definition"],
+        copyBrief: {
+          schemaVersion: "topic-page-copy-brief/v2",
+          backgroundEvidenceDigest: backgroundEvidence.digest,
+          newcomerQuestions: expect.arrayContaining([
+            "这个主题是什么？",
+            "我应该从哪个品类或场景开始？",
+          ]),
+          moduleObjectives: expect.arrayContaining([
+            expect.objectContaining({ moduleId: "hero", taskId: "content-hero" }),
+            expect.objectContaining({ moduleId: "start-here", taskId: "content-start-here" }),
+          ]),
+        },
+      },
+    });
+    if (run.status !== "needs-content-proposal") throw new Error("Expected content task.");
+    expect(run.context.evidenceNamespaces).toContain("background:<claim-id>");
+    expect(run.context.copyBrief.digest).toMatch(/^sha256:[a-f0-9]{64}$/);
+  });
+
+  it("blocks background evidence from a different content language", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const backgroundEvidence = backgroundEvidenceFixture(intent);
+
+    const run = advanceTopicPageContentRun({
+      intent,
+      selection,
+      plan,
+      language: "en",
+      audienceContext: topicAudienceContext("en"),
+      backgroundEvidence,
+    });
+
+    expect(run).toMatchObject({
+      status: "blocked",
+      faultKind: "upstream-invalid",
+      rollbackStage: "background-evidence",
+      issues: ["Background evidence language does not match the content request."],
+    });
+  });
+
+  it("accepts a scoped background claim and rejects an unknown background reference", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const backgroundEvidence = backgroundEvidenceFixture(intent);
+    const proposal = proposalFixture(intent, selection, plan);
+    proposal.tasks[0]!.copy.title.evidenceRefs = ["background:claim:matcha-definition"];
+
+    const ready = advanceTopicPageContentRun({
+      intent,
+      selection,
+      plan,
+      language: "zh",
+      audienceContext: topicAudienceContext("zh"),
+      backgroundEvidence,
+      proposal,
+    });
+    expect(ready.status).toBe("ready");
+    if (ready.status !== "ready") throw new Error("Expected ready content.");
+    expect(ready.spec).toMatchObject({
+      backgroundEvidenceDigest: backgroundEvidence.digest,
+      copyBriefDigest: expect.stringMatching(/^sha256:/),
+    });
+
+    proposal.tasks[0]!.copy.title.evidenceRefs = ["background:claim:missing"];
+    const blocked = advanceTopicPageContentRun({
+      intent,
+      selection,
+      plan,
+      language: "zh",
+      audienceContext: topicAudienceContext("zh"),
+      backgroundEvidence,
+      proposal,
+    });
+    expect(blocked).toMatchObject({
+      status: "blocked",
+      issues: [expect.stringContaining("Unknown background evidence reference")],
+    });
   });
 
   it("compiles evidence-bound copy into a deterministic ContentSpec", () => {
@@ -656,7 +838,9 @@ describe("TopicPageContent", () => {
     const selection = selectionFixture();
     const plan = planFixture(intent, selection);
     const proposal = proposalFixture(intent, selection, plan);
-    const proposePageContent = vi.fn(async () => proposal);
+    const proposePageContent = vi.fn(async (
+      _run: Parameters<TopicContentAgent["proposePageContent"]>[0],
+    ) => proposal);
     const agent: TopicContentAgent = {
       id: "topic-content-agent",
       proposePageContent,
@@ -681,6 +865,76 @@ describe("TopicPageContent", () => {
       language: "zh",
       proposal,
       proposalReview: result.run.status === "ready" ? result.run.proposalReview : undefined,
+    });
+  });
+
+  it("gives a bounded rewrite the previous ContentSpec and structured review issues", async () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const proposal = proposalFixture(intent, selection, plan);
+    const initial = advanceTopicPageContentRun({
+      intent,
+      selection,
+      plan,
+      language: "zh",
+      proposal,
+    });
+    const pending = advanceTopicPageContentRun({
+      intent,
+      selection,
+      plan,
+      language: "zh",
+    });
+    if (initial.status !== "ready" || pending.status !== "needs-content-proposal") {
+      throw new Error("Expected ready content and a bound pending context.");
+    }
+    const proposePageContent = vi.fn(async (
+      _run: Parameters<TopicContentAgent["proposePageContent"]>[0],
+    ) => proposal);
+    const agent: TopicContentAgent = {
+      id: "topic-content-agent",
+      proposePageContent,
+    };
+
+    const result = await runTopicContentAgentWorkflow({
+      intent,
+      selection,
+      plan,
+      language: "zh",
+      agent,
+      revision: {
+        schemaVersion: "topic-page-content-revision/v1",
+        attempt: 2,
+        previousContentSpec: initial.spec,
+        review: {
+          source: "review-agent",
+          contentSpecDigest: initial.spec.digest,
+          copyBriefDigest: pending.context.copyBrief.digest,
+          backgroundEvidenceDigest: null,
+          reviewerAgentId: "topic-content-review",
+          decisionDigest: "sha256:review-decision",
+          issues: [{
+            code: "generic-theme-copy",
+            severity: "error",
+            moduleId: "hero",
+            message: "Explain what makes this topic distinct for a first-time shopper.",
+          }],
+        },
+      },
+    });
+
+    expect(result.run).toMatchObject({ status: "ready" });
+    expect(proposePageContent).toHaveBeenCalledOnce();
+    expect(proposePageContent.mock.calls[0]?.[0].context.revision).toMatchObject({
+      schemaVersion: "topic-page-content-revision/v1",
+      attempt: 2,
+      previousContentSpec: { digest: initial.spec.digest },
+      review: {
+        contentSpecDigest: initial.spec.digest,
+        copyBriefDigest: pending.context.copyBrief.digest,
+        issues: [{ code: "generic-theme-copy", moduleId: "hero" }],
+      },
     });
   });
 

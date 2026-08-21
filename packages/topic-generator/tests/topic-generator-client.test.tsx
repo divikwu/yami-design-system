@@ -52,6 +52,192 @@ describe("TopicGenerator result navigation", () => {
     expect(button("页面预览").getAttribute("aria-selected")).toBe("true");
   });
 
+  it("returns to the selection loading preview after viewing the workflow", async () => {
+    let resolveRequest!: (response: Response) => void;
+    vi.spyOn(globalThis, "fetch").mockImplementation(() => new Promise((resolve) => {
+      resolveRequest = resolve;
+    }));
+    await act(async () => {
+      root.render(<TopicGenerator />);
+    });
+    const button = (label: string) =>
+      [...container.querySelectorAll<HTMLButtonElement>("button")]
+        .find((candidate) => candidate.textContent === label)!;
+
+    await act(async () => button("选品").click());
+    await act(async () => button("自动化流程").click());
+
+    expect(button("页面预览").disabled).toBe(false);
+    await act(async () => button("页面预览").click());
+    expect(button("页面预览").getAttribute("aria-selected")).toBe("true");
+    expect(container.textContent).toContain("正在为“ANUA”选品");
+
+    await act(async () => {
+      resolveRequest(Response.json({ plans: null }));
+      await Promise.resolve();
+    });
+  });
+
+  it("keeps Generate page as the primary full-flow action and gates capability actions", async () => {
+    const snapshot: YamiSearchSnapshot = {
+      keyword: "ANUA",
+      site: "us",
+      sourceUrl: buildYamiSearchUrl("ANUA"),
+      fetchedAt: "2026-08-21T00:00:00.000Z",
+      products: [1, 2, 3].map((rank) => ({
+        id: `anua-${rank}`,
+        title: `ANUA Product ${rank}`,
+        brand: "ANUA",
+        price: "$19.99",
+        imageUrl: `https://example.com/${rank}.webp`,
+        productUrl: `https://example.com/${rank}`,
+        sourceRank: rank,
+      })),
+    };
+    const plans = buildTopicPagePlanMatrix(snapshot, "selection");
+    const contentSpec = {
+      schemaVersion: "topic-page-content-spec/v1",
+      status: "content-ready",
+      keyword: "ANUA",
+      site: "us",
+      language: "zh",
+      strategyRef: "relevance/intent-themes@5",
+      templateRef: "topic-landing/brand@2",
+      topicPagePlanDigest: "sha256:plan",
+      themeIntentDigest: "sha256:intent",
+      productSelectionDigest: "sha256:selection",
+      tasks: [],
+      digest: "sha256:content",
+    } as const;
+    const contentReview = { verdict: "approved" } as const;
+    const initialBackgroundEvidence = {
+      language: "zh",
+      digest: "sha256:selection-background",
+    } as const;
+    const contentBackgroundEvidence = {
+      language: "zh",
+      digest: "sha256:content-background",
+    } as const;
+    const generationSpec = {
+      schemaVersion: "topic-page-generation-spec/v1",
+      status: "generation-ready",
+      modules: [],
+      digest: "sha256:generation",
+    } as const;
+    const fetchMock = vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(Response.json({
+        plans,
+        pagePreview: { pageTypeRef: "landing-page/brand@2" },
+        capabilityArtifacts: {
+          intent: {},
+          selection: {},
+          plan: {},
+          pageTypeRef: "landing-page/brand@2",
+          backgroundEvidence: initialBackgroundEvidence,
+        },
+      }))
+      .mockResolvedValueOnce(Response.json({
+        capability: "content",
+        contentSpec,
+        contentReview,
+        backgroundEvidence: contentBackgroundEvidence,
+      }))
+      .mockResolvedValueOnce(Response.json({
+        capability: "visual",
+        contentSpec,
+        contentReview,
+        backgroundEvidence: contentBackgroundEvidence,
+        generationSpec,
+      }));
+
+    function CapabilityPreview(props: TopicPagePreviewRendererProps) {
+      return <div data-preview-capability={props.mode} />;
+    }
+
+    await act(async () => root.render(
+      <TopicGenerator PagePreviewRenderer={CapabilityPreview} />,
+    ));
+    const button = (label: string) => [...container.querySelectorAll<HTMLButtonElement>("button")]
+      .find((candidate) => candidate.textContent === label)!;
+
+    expect(button("生成页面").type).toBe("submit");
+    expect(button("选品").type).toBe("button");
+    expect(button("生成文案").disabled).toBe(true);
+    expect(button("生成图片").disabled).toBe(true);
+
+    await act(async () => button("选品").click());
+    expect(button("生成文案").disabled).toBe(false);
+    expect(button("生成图片").disabled).toBe(true);
+
+    await act(async () => button("生成文案").click());
+    expect(JSON.parse(String(fetchMock.mock.calls[1]?.[1]?.body))).toMatchObject({
+      mode: "content",
+      artifacts: { pageTypeRef: "landing-page/brand@2" },
+    });
+    expect(button("生成图片").disabled).toBe(false);
+    expect(container.querySelector("[data-preview-capability='content']")).not.toBeNull();
+    expect(container.textContent).toContain("文案审核");
+    expect(container.textContent).toContain("已通过");
+
+    await act(async () => button("生成图片").click());
+    expect(JSON.parse(String(fetchMock.mock.calls[2]?.[1]?.body))).toMatchObject({
+      mode: "visual",
+      contentSpec: { digest: "sha256:content" },
+      contentReview: { verdict: "approved" },
+      artifacts: {
+        backgroundEvidence: { digest: "sha256:content-background" },
+      },
+    });
+    expect(container.querySelector("[data-preview-capability='visual']")).not.toBeNull();
+  });
+
+  it("labels an exhausted content optimization as a copy failure instead of a Yami search failure", async () => {
+    const snapshot: YamiSearchSnapshot = {
+      keyword: "ANUA",
+      site: "us",
+      sourceUrl: buildYamiSearchUrl("ANUA"),
+      fetchedAt: "2026-08-21T00:00:00.000Z",
+      products: [1, 2, 3].map((rank) => ({
+        id: `anua-${rank}`,
+        title: `ANUA Product ${rank}`,
+        brand: "ANUA",
+        price: "$19.99",
+        imageUrl: `https://example.com/${rank}.webp`,
+        productUrl: `https://example.com/${rank}`,
+        sourceRank: rank,
+      })),
+    };
+    const plans = buildTopicPagePlanMatrix(snapshot, "selection");
+    vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(Response.json({
+        plans,
+        pagePreview: { pageTypeRef: "landing-page/brand@2" },
+        capabilityArtifacts: {
+          intent: {},
+          selection: {},
+          plan: {},
+          pageTypeRef: "landing-page/brand@2",
+        },
+      }))
+      .mockResolvedValueOnce(Response.json({
+        error: {
+          code: "content_optimization_blocked",
+          message: "Hero copy still does not orient a first-time shopper.",
+        },
+      }, { status: 422 }));
+
+    await act(async () => root.render(<TopicGenerator />));
+    const button = (label: string) => [...container.querySelectorAll<HTMLButtonElement>("button")]
+      .find((candidate) => candidate.textContent === label)!;
+
+    await act(async () => button("选品").click());
+    await act(async () => button("生成文案").click());
+
+    expect(container.textContent).toContain("文案优化未完成");
+    expect(container.textContent).toContain("文案优化未能完成。");
+    expect(container.textContent).not.toContain("Yami 搜索结果无法转换为页面方案。");
+  });
+
   it("keeps the topic-intent explanation entry while showing the current stage 02 contract", async () => {
     await act(async () => root.render(<TopicGenerator />));
     const button = (label: string) =>
@@ -63,7 +249,9 @@ describe("TopicGenerator result navigation", () => {
       .find((candidate) => candidate.textContent?.includes("02理解主题并生成页面路由"))!;
     await act(async () => details.querySelector("summary")!.click());
 
-    expect(details.textContent).toContain("CatalogSnapshot + ThemeIntent + LandingPageExecutionPlan");
+    expect(details.textContent).toContain(
+      "CatalogSnapshot + ThemeIntent + BackgroundEvidence + LandingPageExecutionPlan",
+    );
     expect(details.textContent).toContain("不决定模块显隐、顺序或具体商品槽位");
 
     await act(async () => button("目录证据驱动的主题理解").click());
@@ -82,7 +270,7 @@ describe("TopicGenerator result navigation", () => {
     expect(dialog.textContent).toContain("阶段 02 不决定模块显隐、顺序或具体商品槽位");
   });
 
-  it("keeps selection-only runs on the module preview without generated copy or scenes", async () => {
+  it("keeps product distribution selected after selection updates the page preview", async () => {
     const productTypes = [
       "Cleanser", "Cleanser", "Cleanser", "Cleanser",
       "Toner", "Toner", "Toner", "Toner",
@@ -106,9 +294,29 @@ describe("TopicGenerator result navigation", () => {
     const plans = buildTopicPagePlanMatrix(snapshot, "selection");
     expect(plans.zh.relevance.modules.find(({ id }) => id === "shortcuts")?.reason)
       .toBe("按全部可识别商品类型生成 3 个分类入口；每个入口使用一件代表商品。");
-    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({ plans }));
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({
+      plans,
+      pagePreview: { pageTypeRef: "landing-page/brand@2" },
+    }));
 
-    await act(async () => root.render(<TopicGenerator />));
+    function FinalPagePreview(props: TopicPagePreviewRendererProps) {
+      if (props.mode !== "selection") return null;
+      return (
+        <div data-testid="final-selection-page" data-page-type-ref={props.pageTypeRef}>
+          {props.plan.modules.filter(({ visible }) => visible).map((module) => (
+            <section key={module.id} data-final-page-module={module.id}>
+              {module.productIds.map((productId) => (
+                <span key={productId} data-final-page-product={productId} />
+              ))}
+            </section>
+          ))}
+        </div>
+      );
+    }
+
+    await act(async () => root.render(
+      <TopicGenerator PagePreviewRenderer={FinalPagePreview} />,
+    ));
     const button = (label: string) => [...container.querySelectorAll<HTMLButtonElement>("button")]
       .find((candidate) => candidate.textContent === label)!;
 
@@ -132,7 +340,7 @@ describe("TopicGenerator result navigation", () => {
       .find((candidate) => candidate.textContent === "页面预览")!;
     expect(distributionTab.getAttribute("aria-selected")).toBe("true");
     expect(pageTab.getAttribute("aria-selected")).toBe("false");
-    expect(pageTab.getAttribute("aria-disabled")).toBe("true");
+    expect(pageTab.disabled).toBe(false);
     const preview = container.querySelector('[data-preview-mode="selection"]');
     expect(preview).not.toBeNull();
     expect(preview?.querySelector(
@@ -142,7 +350,10 @@ describe("TopicGenerator result navigation", () => {
       '[role="tablist"][aria-label="综合推荐分类"]',
     )?.getAttribute("data-slot")).toBe("workbench-tab-list");
     expect(preview?.textContent).toContain("文案与场景图未生成");
-    expect(preview?.textContent).toContain("精选分类");
+    expect(preview?.textContent).toContain("按品类浏览 ANUA");
+    expect(preview?.textContent).toContain("按选购场景开始浏览");
+    expect(preview?.textContent).toContain("ANUA 精选商品");
+    expect(preview?.textContent).toContain("继续浏览 ANUA 商品");
     expect(preview?.textContent).toContain(
       "3 个分类入口已按主题语义与商品归属生成；代表商品等待 Page Merchandising Agent 复核",
     );
@@ -174,6 +385,27 @@ describe("TopicGenerator result navigation", () => {
       .toBe(false);
     expect(preview?.textContent).not.toContain("探索 ANUA");
     expect(preview?.querySelectorAll("img").length).toBeGreaterThan(0);
+
+    await act(async () => pageTab.click());
+    expect(pageTab.getAttribute("aria-selected")).toBe("true");
+    const pagePreview = container.querySelector<HTMLElement>('[data-testid="final-selection-page"]')!;
+    expect(pagePreview.dataset.pageTypeRef).toBe("landing-page/brand@2");
+    const distributionModuleIds = [...plans.zh.relevance.modules]
+      .filter(({ visible }) => visible)
+      .map(({ id }) => id);
+    expect(
+      [...pagePreview.querySelectorAll<HTMLElement>("[data-final-page-module]")]
+        .map((module) => module.dataset.finalPageModule),
+    ).toEqual(distributionModuleIds);
+    for (const module of plans.zh.relevance.modules.filter(({ visible }) => visible)) {
+      const previewModule = pagePreview.querySelector<HTMLElement>(
+        `[data-final-page-module="${module.id}"]`,
+      )!;
+      expect(
+        [...previewModule.querySelectorAll<HTMLElement>("[data-final-page-product]")]
+          .map((product) => product.dataset.finalPageProduct),
+      ).toEqual(module.productIds);
+    }
     expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toMatchObject({
       mode: "selection",
       strategy: "relevance",
@@ -584,7 +816,7 @@ describe("TopicGenerator result navigation", () => {
       .toContain("ANUA Product 13");
   });
 
-  it("explains the five-Agent and seven-Skill architecture inside the workflow", async () => {
+  it("explains the seven-Agent and nine-Skill architecture inside the workflow", async () => {
     await act(async () => {
       root.render(<TopicGenerator />);
     });
@@ -606,10 +838,12 @@ describe("TopicGenerator result navigation", () => {
     expect(agentsTab.getAttribute("aria-selected")).toBe("true");
     expect(agentsPanel?.hidden).toBe(false);
     expect(container.querySelector<HTMLDivElement>("#workflow-diagram-panel")?.hidden).toBe(true);
-    expect(agentsPanel?.textContent).toContain("1 个薄编排 Agent + 4 个专业 Agent");
+    expect(agentsPanel?.textContent).toContain("1 个薄编排 Agent + 6 个专业 Agent");
     expect(agentsPanel?.textContent).toContain("topic-page-orchestrator");
     expect(agentsPanel?.textContent).toContain("topic-strategy");
+    expect(agentsPanel?.textContent).toContain("topic-background-evidence");
     expect(agentsPanel?.textContent).toContain("topic-content");
+    expect(agentsPanel?.textContent).toContain("topic-content-review");
     expect(agentsPanel?.textContent).toContain("topic-visual");
     expect(agentsPanel?.textContent).toContain("topic-review");
     expect(agentsPanel?.textContent).toContain("page-orchestration");
@@ -619,7 +853,7 @@ describe("TopicGenerator result navigation", () => {
     const agentCards = [
       ...agentsPanel!.querySelectorAll<HTMLDetailsElement>("details"),
     ];
-    expect(agentCards).toHaveLength(5);
+    expect(agentCards).toHaveLength(7);
     expect(agentCards.every((card) => !card.open)).toBe(true);
 
     await act(async () => agentCards[0].querySelector("summary")!.click());
@@ -631,9 +865,10 @@ describe("TopicGenerator result navigation", () => {
     expect(agentCards[1].open).toBe(true);
 
     const agentFlow = agentsPanel?.querySelector('[aria-label="Agent 执行关系"]');
-    expect(agentFlow?.querySelectorAll("[data-agent-flow-node]")).toHaveLength(5);
+    expect(agentFlow?.querySelectorAll("[data-agent-flow-node]")).toHaveLength(7);
     const parallelAgents = agentFlow?.querySelector('[data-agent-flow="parallel"]');
     expect(parallelAgents?.textContent).toContain("页面文案 Agent");
+    expect(parallelAgents?.textContent).toContain("文案审核 Agent");
     expect(parallelAgents?.textContent).toContain("场景视觉 Agent");
     expect(agentFlow?.textContent).toContain("Proposal 汇合");
     expect(agentFlow?.textContent).toContain("确定性核心验证 · 自动 QA");
@@ -868,9 +1103,11 @@ describe("TopicGenerator result navigation", () => {
     const plans = buildTopicPagePlanMatrix(snapshot);
     const stages = [
       "workflow-planning",
+      "background-evidence",
       "product-selection",
       "module-merchandising",
       "content-writing",
+      "content-review",
       "visual-generation",
       "asset-persistence",
       "page-generation",
@@ -893,6 +1130,8 @@ describe("TopicGenerator result navigation", () => {
             selectionStrategyRef: "relevance/default@1",
             templateRef: "topic-landing/relevance@1",
           },
+          copyBrief: { digest: `sha256:${"2".repeat(64)}` },
+          contentReview: { verdict: "approved" },
           generationSpec: {
             schemaVersion: "topic-page-generation-spec/v1",
             status: "generation-ready",
@@ -956,10 +1195,9 @@ describe("TopicGenerator result navigation", () => {
       }),
     );
 
-    function PagePreviewRenderer({
-      pageTypeRef,
-      generationSpec,
-    }: TopicPagePreviewRendererProps) {
+    function PagePreviewRenderer(props: TopicPagePreviewRendererProps) {
+      if (props.mode !== "generated") return null;
+      const { pageTypeRef, generationSpec } = props;
       return (
         <div data-testid="prototype-preview" data-page-type-ref={pageTypeRef}>
           <h1>{generationSpec.modules[0]?.copy.title.text}</h1>
@@ -1018,7 +1256,27 @@ describe("TopicGenerator result navigation", () => {
 
     await act(async () => button("自动化流程").click());
     expect(container.textContent).toContain("等待用户 Review");
+    expect(container.textContent).toContain("文案审核");
     expect(container.textContent).toContain("图片本体落盘");
+
+    fetchMock.mockResolvedValueOnce(Response.json({
+      plans: buildTopicPagePlanMatrix(snapshot, "selection"),
+      selectionRuns: { relevance: { status: "ready" } },
+    }));
+    await act(async () => button("选品").click());
+    expect(container.querySelector('[data-testid="prototype-preview"]')).toBeNull();
+    const selectionPreviewTabs = container.querySelector<HTMLElement>(
+      '[role="tablist"][aria-label="页面预览方式"]',
+    )!;
+    const selectionDistributionTab = [...selectionPreviewTabs.querySelectorAll<HTMLButtonElement>(
+      "button",
+    )].find((candidate) => candidate.textContent === "商品分布")!;
+    const selectionPageTab = [...selectionPreviewTabs.querySelectorAll<HTMLButtonElement>("button")]
+      .find((candidate) => candidate.textContent === "页面预览")!;
+    expect(selectionDistributionTab.getAttribute("aria-selected")).toBe("true");
+    await act(async () => selectionPageTab.click());
+    expect(container.querySelector('[data-selection-page-preview="true"]')).not.toBeNull();
+    expect(container.textContent).not.toContain("真实生成的抹茶主题");
   });
 
   it("generates a missing preview locale once and reuses the cached result", async () => {
@@ -1093,7 +1351,9 @@ describe("TopicGenerator result navigation", () => {
         automation: readyAutomation("en", "A practical ANUA beauty edit"),
       }));
 
-    function LocalizedPreview({ generationSpec }: TopicPagePreviewRendererProps) {
+    function LocalizedPreview(props: TopicPagePreviewRendererProps) {
+      if (props.mode !== "generated") return null;
+      const { generationSpec } = props;
       return (
         <div data-testid="localized-preview" lang={generationSpec.language}>
           {generationSpec.modules[0]?.copy.title.text}
@@ -1136,6 +1396,94 @@ describe("TopicGenerator result navigation", () => {
     expect(container.querySelector('[data-testid="localized-preview"]')?.textContent)
       .toBe("ANUA 护肤选购指南");
     expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("switches an existing selection preview language without selecting products again", async () => {
+    const snapshot: YamiSearchSnapshot = {
+      keyword: "ANUA",
+      site: "us",
+      sourceUrl: buildYamiSearchUrl("ANUA"),
+      fetchedAt: "2026-08-18T00:00:00.000Z",
+      products: [{
+        id: "anua-1",
+        title: "ANUA Heartleaf Serum",
+        brand: "ANUA",
+        price: "$19.99",
+        imageUrl: "https://example.com/anua.webp",
+        productUrl: "https://example.com/anua",
+        sourceRank: 1,
+      }],
+    };
+    const plans = buildTopicPagePlanMatrix(snapshot, "selection");
+    const backgroundEvidence = {
+      schemaVersion: "topic-background-evidence/v1",
+      status: "ready",
+      keyword: "ANUA",
+      site: "us",
+      language: "zh",
+      themeIntentDigest: `sha256:${"a".repeat(64)}`,
+      sources: [{
+        id: "source:brand",
+        type: "official-brand",
+        title: "About ANUA",
+        url: "https://brand.example/about",
+        publisher: "ANUA official",
+      }],
+      claims: [{
+        id: "claim:identity",
+        type: "identity",
+        text: "切换英文后不应显示的中文摘要。",
+        sourceIds: ["source:brand"],
+        usage: "context-only",
+      }],
+      issues: [],
+      digest: `sha256:${"b".repeat(64)}`,
+    } as const;
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({
+      plans,
+      pagePreview: { pageTypeRef: "landing-page/brand@2" },
+      backgroundEvidence,
+      capabilityArtifacts: {
+        intent: plans.zh.relevance.intent,
+        selection: { keyword: "ANUA", site: "us" },
+        plan: {},
+        pageTypeRef: "landing-page/brand@2",
+        backgroundEvidence,
+      },
+    }));
+
+    function SelectionPreview(props: TopicPagePreviewRendererProps) {
+      if (props.mode !== "selection") return null;
+      return <div data-testid="selection-language">{props.plan.language}</div>;
+    }
+
+    await act(async () => root.render(
+      <TopicGenerator PagePreviewRenderer={SelectionPreview} />,
+    ));
+    const button = (label: string) => [...container.querySelectorAll<HTMLButtonElement>("button")]
+      .find((candidate) => candidate.textContent === label)!;
+
+    await act(async () => button("选品").click());
+    const previewTabs = container.querySelector<HTMLElement>(
+      '[role="tablist"][aria-label="页面预览方式"]',
+    )!;
+    const pageTab = [...previewTabs.querySelectorAll<HTMLButtonElement>("button")]
+      .find((candidate) => candidate.textContent === "页面预览")!;
+    await act(async () => pageTab.click());
+    expect(container.querySelector('[data-testid="selection-language"]')?.textContent).toBe("zh");
+
+    await act(async () => {
+      container.querySelector<HTMLInputElement>('input[value="en"]')!.click();
+      await Promise.resolve();
+    });
+
+    expect(container.querySelector('[data-testid="selection-language"]')?.textContent).toBe("en");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    await act(async () => button("Keyword analysis").click());
+    expect(container.textContent).not.toContain("切换英文后不应显示的中文摘要");
+    expect(container.textContent).toContain("without selecting products again");
+    expect(container.querySelector('a[href="https://brand.example/about"]')).not.toBeNull();
   });
 
   it("shows the explicit taxonomy blocker for the category-role strategy", async () => {
@@ -1217,9 +1565,18 @@ describe("TopicGenerator result navigation", () => {
         stages: [],
         issues: ["TOPIC_GENERATOR_PAGE_AGENT_ENDPOINT is not configured."],
       },
+      pagePreview: { pageTypeRef: "landing-page/brand@2" },
     }));
 
-    await act(async () => root.render(<TopicGenerator />));
+    function SelectionPageRenderer(props: TopicPagePreviewRendererProps) {
+      return props.mode === "selection"
+        ? <div data-testid="selection-page-skeleton">{props.plan.keyword}</div>
+        : null;
+    }
+
+    await act(async () => root.render(
+      <TopicGenerator PagePreviewRenderer={SelectionPageRenderer} />,
+    ));
     const generateButton = [...container.querySelectorAll<HTMLButtonElement>("button")]
       .find((button) => button.textContent === "生成页面")!;
     await act(async () => generateButton.click());
@@ -1228,6 +1585,23 @@ describe("TopicGenerator result navigation", () => {
     expect(container.textContent).toContain("主商品池");
     expect(container.textContent).not.toContain("Yami 搜索结果无法转换为页面方案");
     expect(container.textContent).not.toContain("生成已阻止");
+    const previewTabs = container.querySelector<HTMLElement>(
+      '[role="tablist"][aria-label="页面预览方式"]',
+    )!;
+    const distributionTab = [...previewTabs.querySelectorAll<HTMLButtonElement>("button")]
+      .find((button) => button.textContent === "商品分布")!;
+    const pageTab = [...previewTabs.querySelectorAll<HTMLButtonElement>("button")]
+      .find((button) => button.textContent === "页面预览")!;
+    expect(distributionTab.getAttribute("aria-selected")).toBe("true");
+    expect(pageTab.getAttribute("aria-selected")).toBe("false");
+    expect(pageTab.getAttribute("aria-disabled")).toBe("false");
+    expect(container.querySelector('[data-preview-mode="page"]')?.textContent)
+      .toContain("HERO · 商品分布");
+    expect(container.textContent).not.toContain("探索 ANUA");
+
+    await act(async () => pageTab.click());
+    expect(container.querySelector('[data-testid="selection-page-skeleton"]')?.textContent)
+      .toBe("ANUA");
 
     const workflowButton = [...container.querySelectorAll<HTMLButtonElement>("button")]
       .find((button) => button.textContent === "自动化流程")!;

@@ -1,4 +1,6 @@
 import type { TopicContentAgent } from "../page-content/workflow.js";
+import type { TopicBackgroundEvidenceAgent } from "../background-evidence/workflow.js";
+import type { TopicPageContentReviewAgent } from "../page-content/content-review.js";
 import type { LandingPageOrchestratorAgent } from "../page-orchestration/workflow.js";
 import type { PageMerchandisingAgent } from "../page-merchandising/workflow.js";
 import type { TopicPageReviewAgent } from "../page-review/workflow.js";
@@ -12,14 +14,17 @@ import type { TopicIntentAgent } from "../topic-intent.js";
 
 export type HttpTopicPageAgentStage =
   | "topic-intent"
+  | "background-evidence"
   | "workflow-planning"
   | "module-merchandising"
   | "content-writing"
+  | "content-review"
   | "visual-generation"
   | "experience-review";
 
-export type HttpTopicPageAgent = TopicIntentAgent & LandingPageOrchestratorAgent & PageMerchandisingAgent &
-  TopicContentAgent & TopicVisualAgent & TopicPageReviewAgent;
+export type HttpTopicPageAgent = TopicIntentAgent & TopicBackgroundEvidenceAgent &
+  LandingPageOrchestratorAgent & PageMerchandisingAgent & TopicContentAgent &
+  TopicPageContentReviewAgent & TopicVisualAgent & TopicPageReviewAgent;
 
 export interface CreateHttpTopicPageAgentOptions {
   id: string;
@@ -236,9 +241,11 @@ export function createHttpTopicPageAgent(
   return {
     id: options.id,
     proposeSemanticIntent: (run) => requestProposal("topic-intent", run),
+    proposeBackgroundEvidence: (run) => requestProposal("background-evidence", run),
     proposeExecutionPlan: (run) => requestProposal("workflow-planning", run),
     proposeModuleMerchandising: (run) => requestProposal("module-merchandising", run),
     proposePageContent: (run) => requestProposal("content-writing", run),
+    reviewPageContent: (run) => requestProposal("content-review", run),
     generatePageVisuals: (run) => requestProposal("visual-generation", run),
     reviewPageExperience: (run) => requestProposal("experience-review", run),
   };

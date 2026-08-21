@@ -66,6 +66,25 @@ export function TopicLandingPage({
       waterfall.tabs?.find((tab) => !tab.disabled)?.value ??
       "",
   );
+  const [productRailTabValue, setProductRailTabValue] = useState(
+    () =>
+      productRail.value ??
+      productRail.defaultValue ??
+      productRail.tabs?.find((tab) => !tab.disabled)?.value ??
+      "",
+  );
+  const {
+    products: productRailFallbackProducts,
+    productsByTab: productRailProductsByTab,
+    ...productRailProps
+  } = productRail;
+  const activeProductRailTab = productRail.value ?? productRailTabValue;
+  const visibleProductRailProducts =
+    productRailProductsByTab?.[activeProductRailTab] ?? productRailFallbackProducts;
+  const selectProductRailTab = (value: string) => {
+    if (productRail.value === undefined) setProductRailTabValue(value);
+    productRail.onValueChange?.(value);
+  };
   const {
     products: waterfallFallbackProducts,
     productsByTab: waterfallProductsByTab,
@@ -516,7 +535,12 @@ export function TopicLandingPage({
           data-motion-reveal="scroll"
           data-slot="topic-landing-standard-rail"
         >
-          <ProductList {...productRail} />
+          <ProductList
+            {...productRailProps}
+            products={visibleProductRailProducts}
+            value={activeProductRailTab}
+            onValueChange={selectProductRailTab}
+          />
         </div>
         {brandRail && (
           <div

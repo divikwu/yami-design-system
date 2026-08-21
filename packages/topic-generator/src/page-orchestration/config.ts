@@ -132,9 +132,11 @@ const LEGACY_PAGE_TYPES: readonly LandingPageTypeConfig[] = PAGE_TYPES.map((conf
 export const LANDING_PAGE_WORKFLOW_REF = "landing-page/default@1" as const;
 
 export const LANDING_PAGE_EXECUTION_STAGES: readonly LandingPageExecutionStage[] = [
+  { id: "background-evidence", actor: "research-agent", maxAttempts: 1 },
   { id: "product-selection", actor: "strategy-agent", maxAttempts: 1 },
   { id: "module-merchandising", actor: "strategy-agent", maxAttempts: 2 },
-  { id: "content-writing", actor: "content-agent", maxAttempts: 1 },
+  { id: "content-writing", actor: "content-agent", maxAttempts: 2 },
+  { id: "content-review", actor: "review-agent", maxAttempts: 2 },
   { id: "visual-generation", actor: "visual-agent", maxAttempts: 1 },
   { id: "asset-persistence", actor: "system", maxAttempts: 1 },
   { id: "page-generation", actor: "system", maxAttempts: 1 },

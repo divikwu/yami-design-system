@@ -891,6 +891,27 @@ describe("PageMerchandising", () => {
     });
   });
 
+  it("preserves frozen Popular Picks and Explore More assignments for current relevance templates", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    selection.strategyRef = "relevance/intent-themes@5";
+    const proposal = validProposal(selection, intent, "topic-landing/topic-relevance@2");
+    proposal.modules.find(({ id }) => id === "popular-picks")!.assignments.splice(1);
+    proposal.modules.find(({ id }) => id === "explore-more")!.assignments.splice(1);
+
+    const run = advancePageMerchandisingRun({ intent, selection, proposal });
+
+    expect(run).toMatchObject({
+      status: "blocked",
+      issues: expect.arrayContaining([
+        "Module popular-picks must assign 4-4 products when visible.",
+        "Module popular-picks must preserve ProductSelectionResult product order.",
+        "Module explore-more must assign 2-2 products when visible.",
+        "Module explore-more must preserve ProductSelectionResult product order.",
+      ]),
+    });
+  });
+
   it("keeps category-role @1 proposal-owned assignments replayable", () => {
     const intent = themeIntentFixture();
     const selection = selectionFixture();

@@ -3,29 +3,50 @@
 ## State boundary
 
 ```text
-ThemeIntent + ready ProductSelectionResult + ready TopicPagePlan v2 + language
+ThemeIntent + BackgroundEvidence + AudienceContext + ready ProductSelectionResult
+  + ready TopicPagePlan v2 + language
   -> TopicPageContentContext
+  -> TopicPageCopyBrief v2
   -> TopicPageContentProposal
   -> deterministic review
   -> TopicPageContentSpec
+  -> independent Content Review
+  -> approved | one bounded rewrite -> independent Content Review
 ```
 
 The context contains only visible PagePlan content tasks, the assigned products needed by each
-task, PagePlan scenes, eligible ThemeIntent evidence IDs, selected categories, and the applicable
-copy policy. A proposal cannot
+task, PagePlan scenes, eligible ThemeIntent and BackgroundEvidence IDs, selected categories, the
+novice audience contract, a digest-bound CopyBrief, and the applicable copy policy. A proposal cannot
 add tasks, switch components, expose hidden modules, reallocate products, rename scenes, or change
 any digest.
+
+On the automatic Host's second and final content attempt, the same context adds
+`revision: topic-page-content-revision/v1`. It contains the previous digest-valid ContentSpec and
+the exact blocking review issues. The Content Agent must return a complete replacement proposal,
+but should change only the cited copy fields and preserve unaffected copy. Product selection,
+PagePlan, BackgroundEvidence, CopyBrief, language, and all input digests remain frozen.
+
+The context also carries a machine-readable `claimPolicy`. It states that every claim must be
+explicit in the cited artifact, evidence references authorize scope only, and planning goals do
+not authorize claims. Ingredient, benefit, efficacy, popularity, inventory, discount, rating, and
+customer-outcome claims therefore require explicit upstream evidence; attaching an in-scope ID is
+not enough by itself.
 
 Each proposal serves exactly one requested language. `language: "en"` requires English in every
 generated copy slot, while `language: "zh"` requires Simplified Chinese; immutable brand and
 product names are the only expected cross-language exceptions. Generate and validate a separate
 proposal when both locales are needed.
 
-Active `topic-landing/brand@2`, `topic-landing/topic@2`, and
-`topic-landing/campaign@2` contexts declare
-`copyPolicyRef: "topic-page-copy/evidence-bound@1"`. Their deterministic review checks text script,
-character limits, and narrowed evidence scope. Legacy `@1` templates remain replayable under
+Newcomer contexts for active `topic-landing/brand@2`, `topic-landing/topic@2`, and
+`topic-landing/campaign@2` templates declare
+`copyPolicyRef: "topic-page-copy/novice-guided@2"`. Their deterministic review checks text script,
+character limits, narrowed evidence scope, and CopyBrief bindings. Older active runs remain
+replayable under `topic-page-copy/evidence-bound@1`; legacy `@1` templates remain replayable under
 `topic-page-copy/legacy@1` without applying these new text restrictions to old proposals.
+
+`background:<claim-id>` may cite only IDs in `eligibleBackgroundEvidenceClaimIds`. It supports
+newcomer orientation and topic context only. It cannot authorize ingredient, benefit, efficacy,
+popularity, inventory, discount, rating, or customer-outcome claims.
 
 ## Component copy slots
 
@@ -158,10 +179,11 @@ array position alone is not a slot binding.
 Attach at least one reference to every copy segment. References make the claim reviewable; they do
 not authorize facts absent from the referenced artifact.
 
-Wikipedia and other public background sources are not part of this v1 Interface. A future
-integration must provide an independent digest-bearing namespace that authorizes conceptual
-background only; it must not authorize product, inventory, price, efficacy, rating, or availability
-claims.
+Public background sources enter only through the independent digest-bound BackgroundEvidence
+bundle. Brand topics prioritize the official brand site and may use Wikipedia only as a secondary
+neutral source; cultural topics require a named authoritative institution or Wikipedia. These
+sources authorize conceptual background only and never product, inventory, price, efficacy,
+rating, or availability claims.
 
 ## Failure and resume contract
 
@@ -174,11 +196,16 @@ text:
 - `agent-failed` belongs to the Agent Adapter workflow rather than the deterministic content run;
   its attempt still records the Agent ID, language, and all three input digests.
 
-Resume is explicit and never spends another Agent attempt automatically. Supply the preserved
-attempt plus one revised proposal. The Module rechecks the PagePlan, ThemeIntent,
-ProductSelection, and language bindings before reviewing the revision. Any binding drift changes
-the result to `upstream-invalid`; matching bindings skip the Agent and continue from
-`content-writing`.
+An explicit CLI or caller-managed resume still supplies the preserved attempt plus one revised
+proposal. The Module rechecks the PagePlan, ThemeIntent, ProductSelection, and language bindings;
+matching bindings skip the Agent and continue from `content-writing`.
+
+The automatic Host may spend exactly one additional Content Agent attempt when the independent
+review returns `content-quality` / `revision-required`. It passes the previous ContentSpec and
+structured review issues through `context.revision`, then reviews the replacement once more. It
+does not rerun ThemeIntent, BackgroundEvidence, product selection, PageMerchandising, or visual
+generation. Agent transport failures, invalid review output, binding drift, or a second failed
+review remain blocked and are reported with their owning stage.
 
 ## Ready output
 

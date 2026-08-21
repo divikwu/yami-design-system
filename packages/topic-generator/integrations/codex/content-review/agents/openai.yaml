@@ -1,0 +1,6 @@
+interface:
+  display_name: "Content Review"
+  short_description: "Review novice clarity and evidence alignment"
+  default_prompt: "Use $content-review to approve or request a bounded rewrite of this TopicPageContentSpec."
+policy:
+  allow_implicit_invocation: true

@@ -120,9 +120,11 @@ describe("Landing page orchestration", () => {
         templateRef: "topic-landing/relevance@1",
         workflowRef: "landing-page/default@1",
         stages: [
+          { id: "background-evidence", actor: "research-agent" },
           { id: "product-selection", actor: "strategy-agent" },
           { id: "module-merchandising", actor: "strategy-agent" },
           { id: "content-writing", actor: "content-agent" },
+          { id: "content-review", actor: "review-agent" },
           { id: "visual-generation", actor: "visual-agent" },
           { id: "asset-persistence", actor: "system" },
           { id: "page-generation", actor: "system" },
@@ -131,6 +133,9 @@ describe("Landing page orchestration", () => {
         ],
       },
     });
+    if (ready.status !== "ready") throw new Error("Expected an execution-ready plan.");
+    expect(ready.plan.stages.find(({ id }) => id === "content-writing")?.maxAttempts).toBe(2);
+    expect(ready.plan.stages.find(({ id }) => id === "content-review")?.maxAttempts).toBe(2);
   });
 
   it("accepts the unique Campaign route for activity intent and rejects incompatible intent", () => {

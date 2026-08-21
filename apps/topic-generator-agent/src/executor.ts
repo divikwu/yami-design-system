@@ -157,6 +157,7 @@ export function createCodexExecutor(
       const outputPath = join(executionRoot, "response.json");
       try {
         const args = [
+          ...(request.route.stage === "background-evidence" ? ["--search"] : []),
           "exec",
           "--ephemeral",
           "--ignore-user-config",

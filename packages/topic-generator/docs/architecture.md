@@ -2,10 +2,11 @@
 
 ## Outcome
 
-TOPIC GENERATOR uses one constrained Orchestrator Agent plus four specialist Agents around
+TOPIC GENERATOR uses one constrained Orchestrator Agent plus six specialist Agents around
 evidence-validated, deterministic Modules. The Orchestrator chooses only a registered page type,
 selection strategy, template, and workflow. The Strategy Agent interprets topic, category, scene,
-and merchandising semantics; Content, Visual, and Review have separate downstream responsibilities.
+and merchandising semantics; Background Evidence, Content, Content Review, Visual, and Experience
+Review have separate downstream responsibilities.
 No Agent replaces catalog identity, artifact validation, retrieval, frozen selection boundaries,
 state transitions, hard QA, or the publish gate.
 
@@ -15,6 +16,9 @@ Theme Keyword + optional page/strategy request
   ├─> CatalogSnapshot Adapters ─> TopicIntent Module ─> ThemeIntent
   │                                 ▲
   │                                 └─ optional SemanticProposal
+  │
+  ├─> Resolved ThemeIntent + AudienceContext
+  │                └─ Background Evidence Agent ─> BackgroundEvidence Module
   │
   └─> PageOrchestration Registry <─ Orchestrator Agent proposal
                  │
@@ -32,10 +36,13 @@ Theme Keyword + optional page/strategy request
                                ▲        │
                                │        └─ Strategy Agent: ModuleMerchandisingProposal
                                ▼
-  TopicPagePlan v2 ─> PageContent Module <─ Content Agent proposal
+  TopicPagePlan v2 + BackgroundEvidence ─> CopyBrief ─> PageContent Module <─ Content Agent proposal
                               │
                               ▼
-                     TopicPageContentSpec ─> PageVisual Module <─ Visual Agent
+                     TopicPageContentSpec ─> Content Review Module <─ Content Review Agent
+                                                       │ approved
+                                                       ▼
+                                             PageVisual Module <─ Visual Agent
                                                    │               media + proposal
                                                    ▼
                                         TopicPageAssetManifest ─> AssetStore
@@ -52,9 +59,10 @@ Theme Keyword + optional page/strategy request
                                                                   ReviewPackage
 ```
 
-Codex and Kiro discover the same seven canonical Skills: `page-orchestration`, `topic-intent`,
-`product-selection`, `page-merchandising`, `content-writing`, `visual-generation`, and
-`page-review`. They map to five logical Agents: Orchestrator, Strategy, Content, Visual, and Review.
+Codex and Kiro discover the same nine canonical Skills: `page-orchestration`, `topic-intent`,
+`background-evidence`, `product-selection`, `page-merchandising`, `content-writing`,
+`content-review`, `visual-generation`, and `page-review`. They map to seven logical Agents:
+Orchestrator, Strategy, Background Evidence, Content, Content Review, Visual, and Experience Review.
 Skills define task and evidence conventions; none is a second business-rule implementation. The
 automatic HTTP Adapter reuses the same proposal contracts and logical Agent IDs without moving
 validation into prompts or the remote service.
@@ -90,6 +98,15 @@ Host. It sends the baseline ThemeIntent, verified catalog categories, and the co
 evidence to the Topic Strategy Agent's `topic-intent` stage. The returned `semantic-proposal/v2` is
 parsed and reviewed by the same deterministic TopicIntent Module. Missing, failed, invalid, or fully
 rejected proposals retain the verified catalog grouping and publish explicit fallback evidence.
+
+### BackgroundEvidence Module
+
+`runTopicBackgroundEvidenceAgentWorkflow(...)` starts only from a resolved ThemeIntent and a fixed
+`topic-audience-context/v1`. Brand topics require the official brand site for `ready`; Wikipedia is
+secondary neutral context. Cultural topics use a named authoritative institution or Wikipedia.
+The deterministic Module accepts only opened HTTPS sources and `identity`, `origin`, `meaning`,
+`tradition`, or `terminology` claims with `context-only` usage. Research failure compiles an explicit
+`unavailable` bundle so product selection can continue without silently filling facts from memory.
 
 ### CatalogSnapshot Seam
 
@@ -179,33 +196,41 @@ old execution-plan replay and are not listed in new Agent task contexts.
 
 ### PageContent Module
 
-`advanceTopicPageContentRun({ intent, selection, plan, language, proposal? })` first validates the
+`advanceTopicPageContentRun({ intent, selection, plan, language, audienceContext?, backgroundEvidence?, proposal? })` first validates the
 PagePlan and both upstream digests, then emits only visible `contentTaskId` tasks with their real
 component copy slots and assigned evidence. It accepts one localized
 `topic-page-content-proposal/v1`, rejects undeclared tasks, component or language drift, missing
 copy fields, and out-of-scope ThemeIntent/category/product/scene evidence before compiling a
 digest-bound `topic-page-content-spec/v1`.
 
-Active category-role `@2` templates select the deep
-`topic-page-copy/evidence-bound@1` policy Module. The same policy registry derives Agent-facing
-`copySlots`/`copyRules` and deterministic proposal review, so locale, character limits, and evidence
-eligibility have one Interface and one Implementation. ThemeIntent evidence is narrowed to the
-selected candidate plus verified constraints; category evidence is narrowed to products assigned
-to the current module. Legacy `@1` templates retain `topic-page-copy/legacy@1` replay behavior.
-Public background material has no PageContent Adapter yet and therefore cannot cross this Seam.
+The automatic novice path selects `topic-page-copy/novice-guided@2` and compiles a digest-bound
+`topic-page-copy-brief/v2` from AudienceContext, module shopping goals, scenes, and the optional
+BackgroundEvidence bundle. The same policy registry derives Agent-facing `copySlots`/`copyRules`
+and deterministic proposal review. Background claims enter only as `background:<claim-id>` and stay
+`context-only`; they cannot prove product claims. Legacy calls retain `evidence-bound@1` or
+`topic-page-copy/legacy@1` replay behavior.
 
 `runTopicContentAgentWorkflow` injects the independent Content Agent. The Agent writes copy; the
 Module owns task membership, evidence scope, validation, and compilation. Review copy remains
 blocked until an upstream contract supplies verified review records. Image prompts and assets stay
 outside this Module.
 
+`runTopicPageContentReviewAgentWorkflow(...)` independently reviews the compiled ContentSpec against
+its CopyBrief and bound evidence for newcomer orientation, theme and scene specificity, module
+differentiation, evidence alignment, and language quality. A `revision-required` decision rolls back
+to `content-writing`. The automatic Host freezes ThemeIntent, BackgroundEvidence, selection,
+PagePlan, CopyBrief, language, and digests, then gives the Content Agent the previous ContentSpec
+plus structured review issues for one bounded rewrite and one final review. Automation cannot
+invoke the Visual Agent until review is approved; a second failure remains blocked.
+
 Blocked PageContent runs expose `faultKind` and `rollbackStage`: upstream drift returns to
 PageMerchandising, while rejected copy stays in PageContent. The Agent workflow records a
 digest-bound `topic-page-content-attempt/v1`; Automation preserves that attempt and the rejected
-run. An explicit resume must provide the preserved attempt and a revised proposal, revalidates all
-three upstream digests plus language, skips PageMerchandising and the Content Agent only when they
-still match, and never retries an Agent implicitly. Agent transport failure is classified at the
-Agent Adapter Seam rather than inside the deterministic PageContent Module.
+run. An explicit caller-managed resume provides the preserved attempt and revised proposal,
+revalidates all three upstream digests plus language, and skips PageMerchandising and the Content
+Agent only when they still match. The automatic bounded rewrite is a separate Host policy and is
+available only for `content-quality`; Agent transport failure is classified at the Agent Adapter
+Seam rather than inside the deterministic PageContent Module.
 
 ### PageVisual Module
 
@@ -233,7 +258,7 @@ base64 image bodies. The manifest status is `asset-manifest-ready`; it does not 
 
 `runTopicPageAutomationWorkflow` is the deterministic coordinator. It first validates the execution
 plan against the ThemeIntent, selected strategy, language, registered workflow order, and digest.
-It then invokes Strategy merchandising, Content, and Visual in order, stops on the first rejected
+It then invokes Strategy merchandising, Content, Content Review, and Visual in order, stops on the first rejected
 proposal, validates every returned image body before any store write, persists accepted media,
 compiles `topic-page-generation-spec/v1`, and runs the final hard QA gates.
 
@@ -261,8 +286,12 @@ separate authority.
   route and cannot run stages, retry itself, change state, or publish.
 - Topic Strategy loads `topic-intent`, `product-selection`, and `page-merchandising`; it may create
   only the semantic, category-role, scene, and module proposals requested by the current state.
+- Topic Background Evidence loads only `background-evidence`, opens official or authoritative
+  sources, and may create context-only claims for the resolved intent.
 - Topic Content loads only `content-writing` and may create copy for the declared PagePlan tasks and
-  language.
+  language from the bound CopyBrief and scoped evidence.
+- Topic Content Review loads only `content-review`, cannot rewrite copy or browse for facts, and
+  must approve the compiled ContentSpec before visual generation.
 - Topic Visual loads only `visual-generation`, requires the host media capability named by the
   frozen production mode, and may create media plus metadata for declared asset tasks.
 - Topic Review loads only `page-review`, reads only hard-QA-passed output, and may recommend approval
@@ -283,7 +312,7 @@ digests; hard QA remains a system boundary before Review.
 - No implicit server-side draft persistence.
 - The standalone Host returns explicit blocked or needs-input states and only emits review-ready
   automation after real asset QA.
-- The Host response includes the accepted execution plan, taxonomy/Agent readiness, nine automation
+- The Host response includes the accepted execution plan, taxonomy/Agent readiness, eleven automation
   stages, candidate-attempt totals, candidate-quality warnings, role distribution, scene count, QA,
   and experience-review evidence without exposing Agent tokens or hidden reasoning.
 - Public catalog access requires host-level rate limiting, timeout, and abuse monitoring before production exposure.

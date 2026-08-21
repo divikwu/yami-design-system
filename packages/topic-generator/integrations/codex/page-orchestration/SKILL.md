@@ -1,6 +1,6 @@
 ---
 name: page-orchestration
-description: This skill should be used when the user asks to "orchestrate a landing page", "choose a landing page type", "route a selection strategy", "create a LandingPageExecutionPlan", "support multiple landing page types", or coordinate Strategy, Content, Visual, and Review Agents. Do not use it to select products, write copy, generate images, or approve publication.
+description: This skill should be used when the user asks to "orchestrate a landing page", "choose a landing page type", "route a selection strategy", "create a LandingPageExecutionPlan", "support multiple landing page types", or coordinate Strategy, Background Evidence, Content, Content Review, Visual, and Experience Review Agents. Do not use it to research background, select products, write or review copy, generate images, or approve publication.
 ---
 
 # Page Orchestration
@@ -45,7 +45,8 @@ For automatic HTTP execution, respond through `topic-page-agent-response/v1` wit
 - Do not retrieve products, infer categories, assign product pools, or create shopping scenes.
 - Do not create or edit PagePlan modules.
 - Do not write page copy, prompts, alt text, or image metadata.
-- Do not invoke Content, Visual, or Review work before the runtime validates the execution plan.
+- Do not invoke Background Evidence, Content, Content Review, Visual, or Experience Review work
+  outside the stage order validated by the runtime.
 - Do not change artifact digests, stage order, retry limits, or rollback policy.
 - Do not retry indefinitely or route to an undeclared Agent.
 - Do not approve review or publication.

@@ -24,6 +24,7 @@ import {
   topicPageQaReportDigest,
 } from "./digest.js";
 import type { TopicPageImageDecoder } from "./image.js";
+import { topicPageGeneratedProductGroups } from "./groups.js";
 
 export interface RunTopicPageQaOptions {
   intent: ThemeIntent;
@@ -94,6 +95,13 @@ export async function runTopicPageQa(options: RunTopicPageQaOptions): Promise<To
       planModule.assignments.map(({ productId }) => productId),
     )) {
       add("modules", `Generated module ${module.id} products do not match TopicPagePlan assignments.`);
+    }
+    if (JSON.stringify(module.groups ?? []) !==
+      JSON.stringify(topicPageGeneratedProductGroups(selection, planModule))) {
+      add(
+        "modules",
+        `Generated module ${module.id} groups do not match ProductSelectionResult.`,
+      );
     }
   }
 

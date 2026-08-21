@@ -13,6 +13,60 @@
   display: none;
 }
 
+.prototypePreview[data-page-preview-state="selection"]
+  :global([data-slot="theme-hero-atmosphere"] img),
+.prototypePreview[data-page-preview-state="selection"]
+  :global([data-slot="theme-hero-media"] img),
+.prototypePreview[data-page-preview-state="selection"]
+  :global([data-slot="shortcut-rail-link"] img),
+.prototypePreview[data-page-preview-state="selection"]
+  :global([data-slot="theme-product-list-content"] img),
+.prototypePreview[data-page-preview-state="selection"]
+  :global([data-slot="brand-product-rail"] [data-slot="product-list-banner"] img) {
+  visibility: hidden;
+}
+
+.prototypePreview[data-page-preview-state="content"]
+  :global([data-slot="theme-hero-atmosphere"] img),
+.prototypePreview[data-page-preview-state="content"]
+  :global([data-slot="theme-hero-media"] img),
+.prototypePreview[data-page-preview-state="content"]
+  :global([data-slot="shortcut-rail-link"] img),
+.prototypePreview[data-page-preview-state="content"]
+  :global([data-slot="theme-product-list-content"] img),
+.prototypePreview[data-page-preview-state="content"]
+  :global([data-slot="brand-product-rail"] [data-slot="product-list-banner"] img) {
+  visibility: hidden;
+}
+
+.prototypePreview[data-page-preview-state="selection"]
+  :global([data-slot="theme-hero-atmosphere"]),
+.prototypePreview[data-page-preview-state="selection"]
+  :global([data-slot="theme-hero-media"]),
+.prototypePreview[data-page-preview-state="selection"]
+  :global([data-slot="shortcut-rail-link"] > span:first-child),
+.prototypePreview[data-page-preview-state="selection"]
+  :global([data-slot="theme-product-list-content"]),
+.prototypePreview[data-page-preview-state="selection"]
+  :global([data-slot="brand-product-rail"] [data-slot="product-list-banner"]) {
+  background-color: var(--fill-tertiary);
+  background-image: none;
+}
+
+.prototypePreview[data-page-preview-state="content"]
+  :global([data-slot="theme-hero-atmosphere"]),
+.prototypePreview[data-page-preview-state="content"]
+  :global([data-slot="theme-hero-media"]),
+.prototypePreview[data-page-preview-state="content"]
+  :global([data-slot="shortcut-rail-link"] > span:first-child),
+.prototypePreview[data-page-preview-state="content"]
+  :global([data-slot="theme-product-list-content"]),
+.prototypePreview[data-page-preview-state="content"]
+  :global([data-slot="brand-product-rail"] [data-slot="product-list-banner"]) {
+  background-color: var(--fill-tertiary);
+  background-image: none;
+}
+
 @media (max-width: 1023.98px) {
   .generatedHero :global([data-slot="theme-hero-media"] img) {
     top: 0;

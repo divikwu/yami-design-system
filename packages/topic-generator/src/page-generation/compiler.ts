@@ -4,16 +4,19 @@ import { productSelectionDigest, themeIntentDigest } from "../page-merchandising
 import type { TopicPagePlanV2 } from "../page-merchandising/contracts.js";
 import { topicPageContentSpecDigest, topicPagePlanDigest } from "../page-content/review.js";
 import type { TopicPageContentSpec } from "../page-content/contracts.js";
+import type { TopicBackgroundEvidenceBundle } from "../background-evidence/contracts.js";
 import { reviewTopicPageVisualPreflight, reviewTopicPageVisualProposal } from "../page-visual/review.js";
 import type { TopicPageAssetManifest } from "../page-visual/contracts.js";
 import type { TopicPageGenerationSpec } from "./contracts.js";
 import { topicPageAssetManifestDigest, topicPageGenerationSpecDigest } from "./digest.js";
+import { topicPageGeneratedProductGroups } from "./groups.js";
 
 export interface CompileTopicPageGenerationSpecOptions {
   intent: ThemeIntent;
   selection: ProductSelectionResult;
   plan: TopicPagePlanV2;
   contentSpec: TopicPageContentSpec;
+  backgroundEvidence?: TopicBackgroundEvidenceBundle;
   manifest: TopicPageAssetManifest;
   assetUrl(ref: string): string;
 }
@@ -23,8 +26,14 @@ function exactOrder(left: readonly string[], right: readonly string[]) {
 }
 
 function preflightIssues(options: CompileTopicPageGenerationSpecOptions) {
-  const { intent, selection, plan, contentSpec, manifest } = options;
-  const issues = reviewTopicPageVisualPreflight(intent, selection, plan, contentSpec);
+  const { intent, selection, plan, contentSpec, backgroundEvidence, manifest } = options;
+  const issues = reviewTopicPageVisualPreflight(
+    intent,
+    selection,
+    plan,
+    contentSpec,
+    backgroundEvidence,
+  );
   if (plan.digest !== topicPagePlanDigest(plan)) issues.push("TopicPagePlan digest is invalid.");
   if (contentSpec.digest !== topicPageContentSpecDigest(contentSpec)) {
     issues.push("TopicPageContentSpec digest is invalid.");
@@ -139,6 +148,7 @@ export function compileTopicPageGenerationSpec(
             role,
           };
         }),
+        groups: topicPageGeneratedProductGroups(selection, module),
         scenes: module.scenes.map((scene) => ({
           ...scene,
           productIds: [...scene.productIds],

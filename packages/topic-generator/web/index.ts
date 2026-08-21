@@ -1,5 +1,5 @@
 export { TopicAnalysisView } from "./topic-analysis-view";
-export { TopicGenerator } from "./topic-generator-client";
+export { selectionDefaultCopy, TopicGenerator } from "./topic-generator-client";
 export type {
   TopicGeneratorProps,
   TopicPagePreviewRendererProps,

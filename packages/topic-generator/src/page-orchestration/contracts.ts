@@ -17,9 +17,11 @@ export type LandingPageTypeRef = `${string}@${number}`;
 export type LandingPageWorkflowRef = `${string}@${number}`;
 
 export type LandingPageExecutionStageId =
+  | "background-evidence"
   | "product-selection"
   | "module-merchandising"
   | "content-writing"
+  | "content-review"
   | "visual-generation"
   | "asset-persistence"
   | "page-generation"
@@ -33,6 +35,7 @@ export type LandingPageReviewRollbackStage =
 
 export type LandingPageExecutionActor =
   | "strategy-agent"
+  | "research-agent"
   | "content-agent"
   | "visual-agent"
   | "review-agent"

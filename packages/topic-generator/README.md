@@ -12,6 +12,8 @@ Theme keyword ─> CatalogSnapshot ─> TopicIntent analysis ─> ThemeIntent
                                        └─ unresolved scenario only:
                                           public context ─> optional SemanticProposal
                                                                       │
+Resolved ThemeIntent + AudienceContext ─> Background Evidence Agent ─> BackgroundEvidence
+                                                                      │
 ThemeIntent + registered constraints ─> Topic Page Orchestrator Agent proposal
                                                │
                                                ▼
@@ -21,10 +23,10 @@ ThemeIntent + registered constraints ─> Topic Page Orchestrator Agent proposal
 Catalog + taxonomy ─> Topic Strategy Agent ─> ProductSelection ─> PagePlan v2
                                                                       │
                                                                       ▼
-                       Topic Content Agent ─> PageContent ─> ContentSpec
+        BackgroundEvidence + PagePlan ─> CopyBrief ─> Topic Content Agent ─> ContentSpec
                                                                       │
                                                                       ▼
-                    Topic Visual Agent ─> PageVisual ─> AssetManifest
+                  Content Review Agent ─> approved ─> Topic Visual Agent ─> AssetManifest
                                                                       │
                                                                       ▼
                             AssetStore ─> PageGenerationSpec ─> hard QA
@@ -40,10 +42,11 @@ Catalog + taxonomy ─> Topic Strategy Agent ─> ProductSelection ─> PagePlan
 - Web：`web`，提供可被 Next.js 宿主加载的产品界面。
 - Host：`apps/topic-generator`，独立暴露 `/` 与 `/api/topic-generator`，默认端口 3300。
 - Codex：`.agents/skills/*` 暴露 `page-orchestration`、`topic-intent`、
-  `product-selection`、`page-merchandising`、`content-writing`、`visual-generation` 与
-  `page-review` 七个阶段 Skill。
+  `background-evidence`、`product-selection`、`page-merchandising`、`content-writing`、
+  `content-review`、`visual-generation` 与 `page-review` 九个阶段 Skill。
 - Kiro：`.kiro/agents/topic-page-orchestrator.json`、`topic-strategy.json`、
-  `topic-content.json`、`topic-visual.json` 与 `topic-review.json` 暴露五个逻辑 Agent；
+  `topic-background-evidence.json`、`topic-content.json`、`topic-content-review.json`、
+  `topic-visual.json` 与 `topic-review.json` 暴露七个逻辑 Agent；
   `.kiro/skills/*` 指向相同 canonical Skill。旧 `topic-generator` Agent 仅作为兼容入口。
 - Canvas：独立的设计系统与原型产品，不依赖 Topic Generator 包。
 
@@ -72,9 +75,10 @@ ProductSelection 和 Page Agent endpoint。仅调试无 Agent 的确定性降级
 ## 实现原则
 
 1. Topic Page Orchestrator Agent 只选择注册过的页面类型与策略—模板路由；Topic Strategy
-   Agent 负责主题、选品与页面陈列语义；Content、Visual、Review Agent 各自独立。七个 Skill
+   Agent 负责主题、选品与页面陈列语义；Background Evidence、Content、Content Review、Visual、Review
+   Agent 各自独立。九个 Skill
    只负责阶段调用约定，不承载运行时业务逻辑。
-2. TopicIntent 使用两轴分类：`themeType` 表示品牌、商品导购或活动场景，`entityType` 表示品牌、品类、属性、场景或未知实体。它先生成 Yami 目录规则基线；场景主题或仍需复核的主题才按需读取公开背景资料。精确品牌或品类不允许 Agent 改写核心实体，但可通过 `semantic-proposal/v2` 提议目录分类组织与使用场景。
+2. TopicIntent 使用两轴分类：`themeType` 表示品牌、商品导购或活动场景，`entityType` 表示品牌、品类、属性、场景或未知实体。它先生成 Yami 目录规则基线；ThemeIntent 确认后，独立 Background Evidence Agent 才为陌生用户检索品牌官网、Wikipedia 或具名文化机构。精确品牌或品类不允许 Agent 改写核心实体；背景事实只用于解释身份、来源、含义、传统和术语，不能成为商品功效、库存或流行度证据。
 3. 未被目录证据覆盖的核心修饰词会让基线保持 `needs-review`。`semantic-proposal/v2` 会同时收到完整商品证据与目录分类参考；每个 Shortcuts 分类提案可引用一个或多个当前非空目录叶子分类，按主题购物心智合并相近分类，并应覆盖全部非空目录分类。目录分类不能跨组重复；遗漏项会形成可见警告，再由 ProductSelection 按目录事实补齐。每个使用场景必须由 2–8 个真实分类支持，场景名称与购物目标不能重复，后续场景还必须补充新的分类证据。Agent 通常提议 3–5 个场景，确定性合同允许 2–6 个。提案会与目录候选统一审查，不能伪造商品归属或数量，也不能覆盖更强目录证据。`semantic-proposal/v1` 继续用于历史回放。
    配置了 `TOPIC_GENERATOR_PAGE_AGENT_ENDPOINT` 时，Workbench 的精准匹配会通过 Topic Strategy
    Agent 的 `topic-intent` stage 自动请求 v2 提案；缺失、失败、无效或完全被拒绝的提案会记录在
@@ -96,12 +100,19 @@ Topic Page Orchestrator 只加载 `page-orchestration`，并从运行时返回�
 `topic-intent`、`product-selection` 或 `page-merchandising` canonical Skill。选品 Skill 只生成
 `CategoryRoleProposal` 与 `SceneProposal`；页面 Skill 只生成 `ModuleMerchandisingProposal`。
 独立 Topic Content Agent 只加载 `content-writing`，生成 `TopicPageContentProposal`；独立
+Background Evidence Agent 只加载 `background-evidence`，在已确认 ThemeIntent 后生成
+`TopicBackgroundEvidenceProposal`；独立 Content Review Agent 只加载 `content-review`，在
+ContentSpec 编译后、图片生成前审核陌生用户可理解性、主题 / 场景感与证据边界；独立
 Topic Visual Agent 只加载 `visual-generation`，按冻结视觉模式使用宿主图片生成器或 Yami
 来源商品图的确定性合成，并生成 `TopicPageVisualProposal`；独立 Topic Review Agent 只加载 `page-review`，在硬 QA 通过后生成
 只读 `TopicPageExperienceReviewProposal`。所有提案都会回到同一 TypeScript 运行时校验。
+首次文案审核返回 `revision-required` 时，自动 Host 会冻结全部上游产物，把上一版
+ContentSpec 与逐模块问题交回 Content Agent 重写一次；复审仍未通过才停止，Visual Agent
+始终只在文案审核批准后启动。
 
 Kiro 可在仓库根目录运行 `kiro-cli --agent topic-page-orchestrator`、
-`topic-strategy`、`topic-content`、`topic-visual` 或 `topic-review`；Codex 会从
+`topic-strategy`、`topic-background-evidence`、`topic-content`、`topic-content-review`、
+`topic-visual` 或 `topic-review`；Codex 会从
 `.agents/skills` 自动发现同一组 Skill。直接在 Codex App 或 Kiro IDE 中使用时，不要求电脑
 额外安装 `codex` 或 `kiro-cli`：宿主可原生加载 Skill，并通过 Host tool/API 提供待处理上下文
 和提案校验。项目 CLI 只是仓库内可选的确定性运行时适配器，不是 Agent 的必需入口。
@@ -186,8 +197,9 @@ Agent Endpoint 接收 `product-selection-agent-request/v1`，并返回：
 状态机上下文。Agent 不执行目录召回、配额、模块分配或去重。
 
 页面自动化 Endpoint 共用 `topic-page-agent-request/v1` / `topic-page-agent-response/v1`，按
-`topic-intent`、`workflow-planning`、`module-merchandising`、`content-writing`、
-`visual-generation` 与 `experience-review` 六个 stage 路由到五个逻辑 Agent；其中
+`topic-intent`、`background-evidence`、`workflow-planning`、`module-merchandising`、
+`content-writing`、`content-review`、`visual-generation` 与 `experience-review` 八个 stage
+路由到七个逻辑 Agent；其中
 `topic-intent` 与 `module-merchandising` 默认共用 Topic Strategy Agent。
 Visual 响应除提案外必须返回每个任务的 `taskId/ref/mimeType/dataBase64`。Host 先校验全部
 图片的任务绑定、完整像素解码、真实 MIME、像素尺寸与 SHA-256，再一次性写入
@@ -230,8 +242,9 @@ pnpm topic-generator:analyze -- --keyword "Matcha" \
 ID 的 `topic-page-plan/v2`。该阶段只决定模块目标、场景与冻结商品分配，不撰写最终文案，
 也不生成图片。
 
-独立 Content Agent 只消费 `contentTaskId` 和 PagePlan/上游 digests，不修改模块、场景或商品
-分配。独立 Visual Agent 只消费 `assetTaskIds`、ready ContentSpec 与任务内商品图片引用；
+独立 Content Agent 只消费 `contentTaskId`、CopyBrief 和 PagePlan/上游 digests，不修改模块、场景或商品
+分配。独立 Content Review Agent 在 ready ContentSpec 后返回通过或定点文案修改；只有通过后，
+独立 Visual Agent 才消费 `assetTaskIds`、ready ContentSpec 与任务内商品图片引用；
 PageVisual 会校验产物元数据和全部 digests。最终文件读取、组件渲染与视觉 QA 仍属于 Stage 06。
 
 ## PageContent 纵向切片
@@ -245,10 +258,12 @@ PageVisual 会校验产物元数据和全部 digests。最终文件读取、组�
 当前模块商品或当前场景。没有已验证评论记录时，`ReviewList` 不能进入 Content 任务。该阶段
 不生成图片、图片提示词或 alt text。
 
-新的分类角色 `@2` 模板使用 `topic-page-copy/evidence-bound@1`：Content context 会返回每个
-槽位的字符上限和可用 ThemeIntent evidence ID；确定性校验器拒绝混合语言、超长文案、竞争
-候选 evidence，以及不属于当前模块商品的分类 evidence。旧 `@1` proposal 仍按 legacy policy
-回放。Wikipedia 尚未进入 PageContent evidence namespace，不能作为商品事实引用。
+面向陌生用户的自动流程使用 `topic-page-copy/novice-guided@2`：Content context 会返回
+`topic-page-copy-brief/v2`、AudienceContext、每个槽位的字符上限，以及当前任务可用的目录和
+`background:<claim-id>` 证据。官网、Wikipedia 或文化机构的 background claim 仅允许提供
+背景语境，不能作为商品功效、流行度或库存事实。确定性校验器拒绝混合语言、超长文案、竞争
+候选 evidence，以及越出当前模块作用域的 evidence。无 AudienceContext 的旧调用继续按
+`evidence-bound@1` 或 legacy policy 回放。
 
 PageContent 的 blocked 结果会区分 `upstream-invalid` 与 `proposal-invalid`，并给出明确的
 `rollbackStage`。自动流程保留 `topic-page-content-attempt/v1`（Agent ID、语言、三组输入

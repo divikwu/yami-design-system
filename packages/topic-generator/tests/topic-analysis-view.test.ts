@@ -7,6 +7,7 @@ import {
   parseYamiCatalogResponse,
   type YamiProduct,
   type YamiSearchSnapshot,
+  type TopicBackgroundEvidenceBundle,
 } from "../src/index";
 import { TopicAnalysisView } from "../web/topic-analysis-view";
 
@@ -79,8 +80,95 @@ describe("TopicAnalysisView", () => {
     expect(html).toContain("需要复核");
     expect(html).toContain("浏览 Yami 上可售的 ANUA 商品");
     expect(html).toContain("结构化目录接口不可用");
+    expect(html).toContain("品牌 / 文化背景证据");
+    expect(html).toContain("本次没有获得可引用的官方品牌或文化背景资料");
     expect(html).not.toContain("56%");
     expect(html).not.toContain(plan.intent.reason);
+  });
+
+  it("shows source-linked context-only background claims separately from catalog evidence", () => {
+    const plan = buildTopicPagePlan(
+      snapshot([
+        product("1", "ANUA Heartleaf Soothing Toner", 1),
+        product("2", "ANUA Niacinamide Serum", 2),
+      ]),
+      "relevance",
+      "zh",
+    );
+    const backgroundEvidence: TopicBackgroundEvidenceBundle = {
+      schemaVersion: "topic-background-evidence/v1",
+      status: "ready",
+      keyword: "ANUA",
+      site: "us",
+      language: "zh",
+      themeIntentDigest: `sha256:${"a".repeat(64)}`,
+      sources: [{
+        id: "source:brand",
+        type: "official-brand",
+        title: "About the brand",
+        url: "https://brand.example/about",
+        publisher: "ANUA official",
+      }],
+      claims: [{
+        id: "claim:identity",
+        type: "identity",
+        text: "面向第一次了解该品牌用户的可核验身份背景。",
+        sourceIds: ["source:brand"],
+        usage: "context-only",
+      }],
+      issues: [],
+      digest: `sha256:${"b".repeat(64)}`,
+    };
+    const html = renderToStaticMarkup(createElement(TopicAnalysisView, {
+      plan,
+      backgroundEvidence,
+    }));
+
+    expect(html).toContain("面向第一次了解该品牌用户的可核验身份背景。");
+    expect(html).toContain("仅背景");
+    expect(html).toContain('href="https://brand.example/about"');
+    expect(html).toContain("ANUA official · About the brand");
+  });
+
+  it("preserves sources but hides a background summary from another language", () => {
+    const plan = buildTopicPagePlan(
+      snapshot([product("1", "ANUA Heartleaf Soothing Toner", 1)]),
+      "relevance",
+      "en",
+    );
+    const backgroundEvidence: TopicBackgroundEvidenceBundle = {
+      schemaVersion: "topic-background-evidence/v1",
+      status: "ready",
+      keyword: "ANUA",
+      site: "us",
+      language: "zh",
+      themeIntentDigest: `sha256:${"a".repeat(64)}`,
+      sources: [{
+        id: "source:brand",
+        type: "official-brand",
+        title: "About the brand",
+        url: "https://brand.example/about",
+        publisher: "ANUA official",
+      }],
+      claims: [{
+        id: "claim:identity",
+        type: "identity",
+        text: "不应显示的中文背景摘要。",
+        sourceIds: ["source:brand"],
+        usage: "context-only",
+      }],
+      issues: [],
+      digest: `sha256:${"b".repeat(64)}`,
+    };
+    const html = renderToStaticMarkup(createElement(TopicAnalysisView, {
+      plan,
+      uiLanguage: "en",
+      backgroundEvidence,
+    }));
+
+    expect(html).not.toContain("不应显示的中文背景摘要");
+    expect(html).toContain("without selecting products again");
+    expect(html).toContain('href="https://brand.example/about"');
   });
 
   it("keeps a long catalog label secondary to a concise shopper-facing conclusion", () => {

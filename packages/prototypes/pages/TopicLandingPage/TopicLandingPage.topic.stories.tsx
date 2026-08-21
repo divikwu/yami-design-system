@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
+import { createEcommerceHomeFixture } from "../EcommerceHome/fixtures";
 import { TopicLandingPage } from "./TopicLandingPage";
 import { createTopicKeywordLandingPageFixture } from "./topic.fixtures";
 
@@ -50,13 +51,23 @@ function assertPlainShortcutRail(canvasElement: HTMLElement) {
 
 export const Pc: Story = {
   name: "Topic — PC",
-  play: async ({ canvasElement }) => {
+  play: async ({ canvasElement, globals }) => {
     assertPlainShortcutRail(canvasElement);
+    const locale = globals.locale === "zh" ? "zh" : "en";
+    const topicSearchPanel =
+      createTopicKeywordLandingPageFixture(locale).header.searchPanel;
+    const homeSearchPanel =
+      createEcommerceHomeFixture(locale).header.searchPanel;
     const homeLink = canvasElement.querySelector<HTMLAnchorElement>(
       '[data-slot="header-brand"]',
     );
-    if (!homeLink?.href.includes("yami-pages-ecommerce-home--pc")) {
-      throw new Error("Matcha Topic logo must return to Ecommerce Home");
+    if (
+      !homeLink?.href.includes("yami-pages-ecommerce-home--pc") ||
+      JSON.stringify(topicSearchPanel) !== JSON.stringify(homeSearchPanel)
+    ) {
+      throw new Error(
+        "Matcha Topic must reuse Ecommerce Home header search data",
+      );
     }
   },
 };

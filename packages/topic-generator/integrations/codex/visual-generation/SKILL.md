@@ -55,6 +55,9 @@ For each task:
 1. Build art direction only from its ThemeIntent evidence, selected categories, assigned products,
    scene, and accepted content task. Product image URLs are visual references, not permission to
    infer ingredients, benefits, popularity, ratings, inventory, discounts, or customer outcomes.
+   The accepted content task may cite `background:*` claims. Treat those references as already
+   reviewed copy provenance: do not revalidate them in this stage and never copy them into visual
+   direction or alt-text evidenceRefs.
 2. Preserve every returned `referenceProductId`. Do not introduce unassigned products or change a
    brand, scene, module, component, crop, or text field.
 3. Follow the selected production mode. Generate a new image only for `generated-images`. For

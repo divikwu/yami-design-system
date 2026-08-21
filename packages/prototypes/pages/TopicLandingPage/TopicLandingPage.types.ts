@@ -28,6 +28,10 @@ export type TopicLandingPageWaterfallProps = ProductListProps & {
   productsByTab?: Record<string, ProductListItem[]>;
 };
 
+export type TopicLandingPageProductRailProps = ProductListProps & {
+  productsByTab?: Record<string, ProductListItem[]>;
+};
+
 export interface TopicLandingPageProps extends HTMLAttributes<HTMLDivElement> {
   /** Maximum width shared by every content container inside main. Numbers are treated as pixels. */
   contentMaxWidth?: number | string;
@@ -40,7 +44,7 @@ export interface TopicLandingPageProps extends HTMLAttributes<HTMLDivElement> {
   shortcutRail: ShortcutRailProps;
   standardRail?: ThemeProductListProps;
   reviewList?: ReviewListProps;
-  productRail: ProductListProps;
+  productRail: TopicLandingPageProductRailProps;
   /** Optional brand collection rendered immediately after Popular Picks. */
   brandRail?: BrandProductRailProps;
   waterfall: TopicLandingPageWaterfallProps;

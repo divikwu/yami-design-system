@@ -6,14 +6,34 @@ import { CatalogSnapshotLoadError } from "./catalog-snapshot.js";
 import { buildTopicPagePlanFromProductSelection } from "./planner.js";
 import {
   runTopicPageAutomationWorkflow,
+  validateTopicPageVisualAssetBodies,
   type HttpTopicPageAgent,
   type TopicPageAutomationRun,
   type TopicPageAutomationStageId,
   type TopicPageReviewPreviewResolver,
 } from "./page-automation/index.js";
-import type { TopicPageAssetStore } from "./page-generation/contracts.js";
+import {
+  compileTopicPageGenerationSpec,
+  type TopicPageAssetStore,
+} from "./page-generation/index.js";
 import type { TopicPageImageDecoder } from "./page-generation/image.js";
 import {
+  advanceTopicPageContentRun,
+  reviewTopicPageContentReviewDecision,
+  runTopicPageContentApprovalWorkflow,
+  runTopicContentAgentWorkflow,
+  type TopicPageContentReviewDecision,
+  type TopicPageContentSpec,
+} from "./page-content/index.js";
+import {
+  runTopicBackgroundEvidenceAgentWorkflow,
+  topicAudienceContext,
+  unavailableTopicBackgroundEvidence,
+  type TopicBackgroundEvidenceBundle,
+} from "./background-evidence/index.js";
+import { runTopicVisualAgentWorkflow } from "./page-visual/index.js";
+import {
+  compileDeterministicTopicPagePlanV2,
   runPageMerchandisingAgentWorkflow,
   type HeroSelectionRun,
   type ShortcutSelectionRun,
@@ -48,6 +68,7 @@ import type {
   ContentLanguage,
   ProductSelectionStrategy,
   ProductRole,
+  ThemeIntent,
   TopicGenerationMode,
   TopicPlanMatrix,
 } from "./types.js";
@@ -75,9 +96,11 @@ export interface HandleTopicGeneratorOptions extends AnalyzeTopicIntentOptions {
 
 const PAGE_AUTOMATION_STAGES: readonly TopicPageAutomationStageId[] = [
   "workflow-planning",
+  "background-evidence",
   "product-selection",
   "module-merchandising",
   "content-writing",
+  "content-review",
   "visual-generation",
   "asset-persistence",
   "page-generation",
@@ -396,6 +419,45 @@ function applyStartHereSelection(
   });
 }
 
+function applyReviewedModuleAssignments(
+  plans: TopicPlanMatrix,
+  strategy: ProductSelectionStrategy,
+  reviewedPlan: TopicPagePlanV2,
+) {
+  const reviewedModules = new Map(reviewedPlan.modules.map((module) => [module.id, module]));
+  (["en", "zh"] as const).forEach((language) => {
+    const plan = plans[language][strategy];
+    if (!plan) return;
+    plan.modules.forEach((module) => {
+      const reviewedModule = reviewedModules.get(module.id);
+      if (!reviewedModule) return;
+      module.visible = reviewedModule.visible;
+      module.productIds = reviewedModule.assignments.map(({ productId }) => productId);
+      module.productReasons = Object.fromEntries(reviewedModule.assignments.map((assignment) => [
+        assignment.productId,
+        assignment.selectionReason ?? assignment.reuseReason ?? reviewedModule.reason,
+      ]));
+      module.reason = reviewedModule.reason;
+      if (module.id === "brand-spotlight" && module.groups) {
+        module.groups = module.groups.flatMap((group) => {
+          const productIds = reviewedModule.assignments
+            .filter(({ groupId }) => groupId === group.id)
+            .map(({ productId }) => productId);
+          return productIds.length > 0 ? [{ ...group, productIds }] : [];
+        });
+      } else if ((module.id === "popular-picks" || module.id === "explore-more") &&
+          module.groups) {
+        module.groups = module.groups.flatMap((group) => {
+          const productIds = module.productIds.filter((productId) =>
+            group.productIds.includes(productId)
+          );
+          return productIds.length > 0 ? [{ ...group, productIds }] : [];
+        });
+      }
+    });
+  });
+}
+
 function categoryRoleRuntimeEvidence(options: {
   automatic: boolean;
   taxonomySnapshot?: CatalogTaxonomySnapshot;
@@ -478,6 +540,203 @@ function errorResponse(
   );
 }
 
+type TopicGeneratorCapabilityMode = "content" | "visual";
+
+interface TopicGeneratorCapabilityArtifacts {
+  intent: ThemeIntent;
+  selection: ProductSelectionResult;
+  plan: TopicPagePlanV2;
+  pageTypeRef: LandingPageTypeRef;
+  backgroundEvidence?: TopicBackgroundEvidenceBundle;
+}
+
+async function handleTopicGeneratorCapability(
+  mode: TopicGeneratorCapabilityMode,
+  requestPayload: Record<string, unknown>,
+  options: HandleTopicGeneratorOptions,
+) {
+  if (!options.topicPageAgent) {
+    return errorResponse(503, "agent_unavailable", "Topic Page Agent is not configured.");
+  }
+  const artifacts = requestPayload.artifacts as TopicGeneratorCapabilityArtifacts | undefined;
+  if (!artifacts?.intent || !artifacts.selection || !artifacts.plan || !artifacts.pageTypeRef) {
+    return errorResponse(
+      400,
+      "missing_upstream_artifacts",
+      "Capability execution requires the frozen selection and PagePlan artifacts.",
+    );
+  }
+  const language: ContentLanguage = requestPayload.language === "en" ? "en" : "zh";
+  const audienceContext = topicAudienceContext(language);
+  const frozenBackgroundEvidence = artifacts.backgroundEvidence;
+  const backgroundEvidenceMatchesRequest = frozenBackgroundEvidence?.keyword ===
+      artifacts.selection.keyword &&
+    frozenBackgroundEvidence.site === artifacts.selection.site &&
+    frozenBackgroundEvidence.language === language;
+  let backgroundEvidence: TopicBackgroundEvidenceBundle;
+  if (backgroundEvidenceMatchesRequest && frozenBackgroundEvidence) {
+    backgroundEvidence = frozenBackgroundEvidence;
+  } else {
+    const refreshedBackgroundEvidence = await runTopicBackgroundEvidenceAgentWorkflow({
+        intent: artifacts.intent,
+        keyword: artifacts.selection.keyword,
+        site: artifacts.selection.site,
+        language,
+        agent: options.topicPageAgent,
+      });
+    backgroundEvidence = refreshedBackgroundEvidence.bundle;
+  }
+  const contentContextRun = advanceTopicPageContentRun({
+    intent: artifacts.intent,
+    selection: artifacts.selection,
+    plan: artifacts.plan,
+    language,
+    audienceContext,
+    backgroundEvidence,
+  });
+  if (contentContextRun.status !== "needs-content-proposal") {
+    return errorResponse(
+      422,
+      "content_context_invalid",
+      contentContextRun.status === "blocked"
+        ? contentContextRun.issues.join(" ")
+        : "The bounded Content context could not be prepared.",
+    );
+  }
+  let contentSpec = requestPayload.contentSpec as TopicPageContentSpec | undefined;
+  if (mode === "visual" && !contentSpec) {
+    return errorResponse(
+      400,
+      "missing_content_spec",
+      "Visual generation requires the frozen ContentSpec produced by the content capability.",
+    );
+  }
+  if (!contentSpec) {
+    const content = await runTopicContentAgentWorkflow({
+      intent: artifacts.intent,
+      selection: artifacts.selection,
+      plan: artifacts.plan,
+      language,
+      audienceContext,
+      backgroundEvidence,
+      agent: options.topicPageAgent,
+    });
+    if (content.run.status !== "ready") {
+      return errorResponse(
+        422,
+        "content_generation_blocked",
+        content.run.status === "blocked"
+          ? content.run.issues.join(" ")
+          : "Content Agent did not return a proposal.",
+      );
+    }
+    contentSpec = content.run.spec;
+  }
+  if (mode === "content") {
+    const contentApproval = await runTopicPageContentApprovalWorkflow({
+      intent: artifacts.intent,
+      selection: artifacts.selection,
+      plan: artifacts.plan,
+      language,
+      audienceContext,
+      backgroundEvidence,
+      contentSpec,
+      contentAgent: options.topicPageAgent,
+      reviewAgent: options.topicPageAgent,
+    });
+    if (contentApproval.status !== "ready") {
+      return errorResponse(
+        422,
+        "content_optimization_blocked",
+        contentApproval.issues.join(" "),
+        undefined,
+        {
+          stage: contentApproval.stage,
+          faultKind: contentApproval.faultKind,
+        },
+      );
+    }
+    return Response.json({
+      capability: "content",
+      contentSpec: contentApproval.contentSpec,
+      contentReview: contentApproval.contentReview,
+      backgroundEvidence,
+    });
+  }
+  const contentReview = requestPayload.contentReview as
+    | TopicPageContentReviewDecision
+    | undefined;
+  const contentReviewIssues = reviewTopicPageContentReviewDecision({
+    contentSpec,
+    copyBrief: contentContextRun.context.copyBrief,
+    backgroundEvidence,
+  }, contentReview);
+  if (contentReviewIssues.length > 0) {
+    return errorResponse(
+      422,
+      "content_review_invalid",
+      contentReviewIssues.join(" "),
+    );
+  }
+  if (!options.topicPageAssetStore || !options.topicPageImageDecoder) {
+    return errorResponse(
+      503,
+      "visual_runtime_unavailable",
+      "Visual generation requires the configured asset store and image decoder.",
+    );
+  }
+  const visual = await runTopicVisualAgentWorkflow({
+    intent: artifacts.intent,
+    selection: artifacts.selection,
+    plan: artifacts.plan,
+    contentSpec,
+    backgroundEvidence,
+    productionMode: "source-product-images",
+    agent: options.topicPageAgent,
+  });
+  if (visual.run.status !== "ready") {
+    return errorResponse(
+      422,
+      "visual_generation_blocked",
+      visual.run.status === "blocked"
+        ? visual.run.issues.join(" ")
+        : "Visual Agent did not return a proposal.",
+    );
+  }
+  const manifest = visual.run.manifest;
+  const validatedBodies = await validateTopicPageVisualAssetBodies(
+    visual.artifacts.assetBodies,
+    manifest,
+    options.topicPageImageDecoder,
+  );
+  if (validatedBodies.issues.length > 0) {
+    return errorResponse(
+      422,
+      "visual_asset_invalid",
+      validatedBodies.issues.join(" "),
+    );
+  }
+  for (const body of validatedBodies.decoded) {
+    await options.topicPageAssetStore.put(body.ref, body.bytes);
+  }
+  const generationSpec = compileTopicPageGenerationSpec({
+    intent: artifacts.intent,
+    selection: artifacts.selection,
+    plan: artifacts.plan,
+    contentSpec,
+    backgroundEvidence,
+    manifest,
+    assetUrl: (ref) => options.topicPageAssetStore!.publicUrl(ref),
+  });
+  return Response.json({
+    capability: "visual",
+    contentSpec,
+    contentReview,
+    backgroundEvidence,
+    generationSpec,
+  });
+}
+
 /** Handle the product's JSON HTTP endpoint without coupling it to a Web framework. */
 export async function handleTopicGeneratorPost(
   request: Request,
@@ -489,6 +748,19 @@ export async function handleTopicGeneratorPost(
     payload = await request.json();
   } catch {
     return errorResponse(400, "invalid_json", "Request body must be valid JSON.");
+  }
+
+  const requestPayload = payload as Record<string, unknown>;
+  if (requestPayload.mode === "content" || requestPayload.mode === "visual") {
+    try {
+      return await handleTopicGeneratorCapability(requestPayload.mode, requestPayload, options);
+    } catch (error) {
+      return errorResponse(
+        500,
+        "capability_failed",
+        error instanceof Error ? error.message : "Capability execution failed.",
+      );
+    }
   }
 
   const keyword =
@@ -515,7 +787,6 @@ export async function handleTopicGeneratorPost(
   }
 
   try {
-    const requestPayload = payload as Record<string, unknown>;
     const requestedStrategy: ProductSelectionStrategy =
       requestPayload.strategy === "category-role" ? "category-role" : "relevance";
     const requestedSelectionStrategyRef: ProductSelectionStrategyRef =
@@ -558,6 +829,22 @@ export async function handleTopicGeneratorPost(
           },
         };
     const { intent, snapshot } = topicIntentWorkflow;
+    const backgroundEvidenceWorkflow = options.topicPageAgent
+      ? await runTopicBackgroundEvidenceAgentWorkflow({
+          intent,
+          keyword: snapshot.keyword,
+          site: snapshot.site,
+          language: contentLanguage,
+          agent: options.topicPageAgent,
+        })
+      : null;
+    const backgroundEvidence = backgroundEvidenceWorkflow?.bundle ??
+      unavailableTopicBackgroundEvidence({
+        intent,
+        keyword: snapshot.keyword,
+        site: snapshot.site,
+        language: contentLanguage,
+      }, ["Background Evidence Agent is not configured."]);
     const interactiveHandoff = requestPayload.agentMode === "interactive";
     const automaticCategoryRole = options.requireAutomaticCategoryRole === true &&
       !interactiveHandoff;
@@ -754,6 +1041,7 @@ export async function handleTopicGeneratorPost(
     let heroSelection: HeroSelectionRun | undefined;
     let shortcutSelection: ShortcutSelectionRun | undefined;
     let startHereSelection: StartHereSelectionRun | undefined;
+    let capabilityPlan: TopicPagePlanV2 | undefined;
     const automaticModuleReview = options.requireAutomaticModuleReview === true ||
       options.requireAutomaticHeroReview === true;
     if (generationMode === "selection" && automaticModuleReview) {
@@ -790,6 +1078,7 @@ export async function handleTopicGeneratorPost(
             shortcutSelection = fallbackShortcutSelection(fallbackPlan, issues);
             startHereSelection = fallbackStartHereSelection(fallbackPlan, issues);
           } else {
+            executionPlan = heroOrchestration.run.plan;
             const merchandising = await runPageMerchandisingAgentWorkflow({
               intent,
               selection: selectedRun.result,
@@ -798,6 +1087,8 @@ export async function handleTopicGeneratorPost(
               agent: options.topicPageAgent,
             });
             if (merchandising.run.status === "ready") {
+              capabilityPlan = merchandising.run.plan;
+              applyReviewedModuleAssignments(plans, selectedStrategy, merchandising.run.plan);
               heroSelection = reviewedHeroSelection(
                 merchandising.artifacts.agentId,
                 merchandising.run.plan,
@@ -824,6 +1115,18 @@ export async function handleTopicGeneratorPost(
               const issues = merchandising.run.status === "blocked"
                 ? merchandising.run.issues
                 : ["Page Merchandising Agent did not return a proposal."];
+              try {
+                capabilityPlan = compileDeterministicTopicPagePlanV2(
+                  intent,
+                  selectedRun.result,
+                  fallbackPlan,
+                  heroOrchestration.run.plan.templateRef,
+                );
+              } catch (error) {
+                issues.push(error instanceof Error
+                  ? `Rule fallback PagePlan failed: ${error.message}`
+                  : "Rule fallback PagePlan failed.");
+              }
               heroSelection = fallbackHeroSelection(fallbackPlan, issues);
               shortcutSelection = fallbackShortcutSelection(fallbackPlan, issues);
               startHereSelection = fallbackStartHereSelection(fallbackPlan, issues);
@@ -831,6 +1134,20 @@ export async function handleTopicGeneratorPost(
           }
         } catch (error) {
           const issues = [error instanceof Error ? error.message : "Module selection Agent failed."];
+          if (executionPlan && selectedRun.status === "ready") {
+            try {
+              capabilityPlan = compileDeterministicTopicPagePlanV2(
+                intent,
+                selectedRun.result,
+                fallbackPlan,
+                executionPlan.templateRef,
+              );
+            } catch (fallbackError) {
+              issues.push(fallbackError instanceof Error
+                ? `Rule fallback PagePlan failed: ${fallbackError.message}`
+                : "Rule fallback PagePlan failed.");
+            }
+          }
           heroSelection = fallbackHeroSelection(fallbackPlan, issues);
           shortcutSelection = fallbackShortcutSelection(fallbackPlan, issues);
           startHereSelection = fallbackStartHereSelection(fallbackPlan, issues);
@@ -864,9 +1181,12 @@ export async function handleTopicGeneratorPost(
             selection: selectedRun.result,
             executionPlan,
             language: contentLanguage,
+            audienceContext: topicAudienceContext(contentLanguage),
+            backgroundEvidence,
             agents: {
               merchandising: options.topicPageAgent,
               content: options.topicPageAgent,
+              contentReview: options.topicPageAgent,
               visual: options.topicPageAgent,
               review: options.topicPageAgent,
             },
@@ -886,6 +1206,14 @@ export async function handleTopicGeneratorPost(
       },
       runtime: {
         topicIntent: topicIntentWorkflow.runtime,
+        backgroundEvidence: {
+          mode: backgroundEvidenceWorkflow ? "agent" : "fallback",
+          status: backgroundEvidence.status,
+          sourceCount: backgroundEvidence.sources.length,
+          claimCount: backgroundEvidence.claims.length,
+          issues: backgroundEvidence.issues,
+          digest: backgroundEvidence.digest,
+        },
         categoryRole: categoryRoleRuntimeEvidence({
           automatic: automaticCategoryRole,
           taxonomySnapshot,
@@ -901,7 +1229,23 @@ export async function handleTopicGeneratorPost(
       ...(heroSelection ? { heroSelection } : {}),
       ...(shortcutSelection ? { shortcutSelection } : {}),
       ...(startHereSelection ? { startHereSelection } : {}),
+      ...(executionPlan
+        ? { pagePreview: { pageTypeRef: executionPlan.pageTypeRef } }
+        : {}),
+      ...(generationMode === "selection" && executionPlan && capabilityPlan &&
+          selectedRun.status === "ready"
+        ? {
+            capabilityArtifacts: {
+              intent,
+              selection: selectedRun.result,
+              plan: capabilityPlan,
+              pageTypeRef: executionPlan.pageTypeRef,
+              backgroundEvidence,
+            },
+          }
+        : {}),
       ...(automation ? { automation } : {}),
+      backgroundEvidence,
       ...(generatedCandidateSnapshot || candidateQualityReport
         ? {
             artifacts: {

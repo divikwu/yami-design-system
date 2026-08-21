@@ -467,6 +467,35 @@ describe("ProductSelection Module", () => {
           semanticSource: "agent-proposal",
         },
       ]);
+    expect(run.result.modules.find(({ id }) => id === "popular-picks"))
+      .toMatchObject({
+        productIds: [
+          "101-1", "101-2", "101-3", "101-4", "101-5", "101-6",
+          "102-1", "102-2", "102-3", "102-4", "102-5", "103-1",
+          "104-1", "104-2", "104-3", "104-4",
+        ],
+        groups: [
+          expect.objectContaining({
+            id: "popular-picks-all",
+            productIds: [
+              "101-1", "101-2", "101-3", "101-4", "101-5", "101-6",
+              "102-1", "102-2", "102-3", "102-4", "102-5", "103-1",
+            ],
+          }),
+          expect.objectContaining({
+            id: "category-hypothesis-2",
+            productIds: [
+              "101-1", "101-2", "101-3", "101-4", "101-5", "101-6",
+              "104-1", "104-2", "104-3", "104-4",
+            ],
+          }),
+        ],
+      });
+    expect(run.result.modules.find(({ id }) => id === "explore-more"))
+      .toMatchObject({
+        productIds: products.map(({ id }) => id),
+        groups: run.result.modules.find(({ id }) => id === "shortcuts")?.groups,
+      });
     expect(run.result.scenes).toEqual([
       expect.objectContaining({
         id: "scenario-hypothesis-1",
