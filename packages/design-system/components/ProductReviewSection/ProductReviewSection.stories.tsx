@@ -148,10 +148,16 @@ export const Showcase: Story = {
       '[data-slot="product-review-section"]',
     );
     const summary = root?.querySelector('[data-slot="product-review-summary"]');
+    const summaryStars = summary?.querySelectorAll<HTMLElement>(
+      '[role="img"] [data-star-state]',
+    );
     const grid = root?.querySelector<HTMLElement>('[data-slot="product-review-grid"]');
     const meters = Array.from(root?.querySelectorAll<HTMLElement>('[role="meter"]') ?? []);
     const filters = root?.querySelectorAll<HTMLButtonElement>("[data-review-filter]");
-    const sort = root?.querySelector<HTMLSelectElement>("[data-product-review-sort]");
+    const sort = root?.querySelector<HTMLElement>("[data-product-review-sort]");
+    const sortTrigger = sort?.querySelector<HTMLButtonElement>(
+      '[data-slot="filter-chip"]',
+    );
     const writeReview = root?.querySelector<HTMLButtonElement>(
       '[data-product-review-action="write-review"]',
     );
@@ -159,10 +165,17 @@ export const Showcase: Story = {
     if (
       !root ||
       !summary ||
+      !summaryStars ||
+      summaryStars.length !== 5 ||
+      Array.from(summaryStars).some(
+        (star) =>
+          getComputedStyle(star).width !== "20px" ||
+          getComputedStyle(star).height !== "20px",
+      ) ||
       !grid ||
       !filters ||
       filters.length !== 3 ||
-      !sort ||
+      !sortTrigger ||
       !writeReview ||
       root.querySelectorAll('[data-slot="product-review-card"]').length !== 6
     ) {
@@ -201,7 +214,25 @@ export const Showcase: Story = {
     });
 
     await userEvent.click(filters[0]);
-    await userEvent.selectOptions(sort, "lowest");
+    await userEvent.click(sortTrigger);
+    const sortOptions = await waitFor(() => {
+      const options = Array.from(
+        canvasElement.ownerDocument.querySelectorAll<HTMLLabelElement>(
+          '[data-filter-chip-menu-options="true"] label',
+        ),
+      );
+      if (!options.length) {
+        throw new Error("Sort menu did not open");
+      }
+      return options;
+    });
+    const lowestRating = sortOptions.find((option) =>
+      option.textContent?.includes("Lowest rating"),
+    );
+    if (!lowestRating) {
+      throw new Error("Lowest rating option did not render");
+    }
+    await userEvent.click(lowestRating);
     await waitFor(() => {
       const firstCard = root.querySelector<HTMLElement>(
         '[data-slot="product-review-card"]',

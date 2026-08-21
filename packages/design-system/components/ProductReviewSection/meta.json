@@ -17,7 +17,7 @@
     "ProductReviewSortOption",
     "ProductReviewSectionCopy"
   ],
-  "composes": ["Button", "FilterChip", "FilterChipGroup"],
+  "composes": ["Button", "FilterChip", "FilterChipGroup", "FilterChipMenu"],
   "props": {
     "title": {
       "type": "ReactNode",
@@ -52,7 +52,7 @@
     "sortOptions": {
       "type": "ProductReviewSortOption[]",
       "required": true,
-      "description": "Native select options with optional local comparators."
+      "description": "Single-select sort menu options with optional local comparators."
     },
     "initialVisibleCount": {
       "type": "number",
@@ -75,7 +75,7 @@
   "rules": {
     "focus": {
       "ruleId": "focus-style",
-      "note": "Shared buttons and chips retain token-backed focus states; the native select adds the same focus ring."
+      "note": "Shared buttons, chips, and sort menu retain token-backed focus states."
     },
     "radius": {
       "ruleId": "no-custom-radii",
@@ -88,6 +88,7 @@
     "--surface-secondary",
     "--text-primary",
     "--text-secondary",
+    "--text-success",
     "--text-emphasis",
     "--fill-disabled",
     "--fill-tertiary",
@@ -104,6 +105,7 @@
     "--space-100",
     "--space-150",
     "--space-200",
+    "--space-250",
     "--space-300",
     "--space-400",
     "--space-600"
@@ -112,7 +114,7 @@
     "wcagLevel": "AA",
     "tapTargetMin": 44,
     "keyboardNav": ["tab", "enter", "space", "arrow keys"],
-    "ariaPattern": "Labelled review region with accessible rating image, five meter rows, native filters and sort control.",
+    "ariaPattern": "Labelled review region with accessible rating image, five meter rows, shared filters, and a single-select sort menu.",
     "structure": "The heading labels the section; every review is an article within a responsive grid.",
     "interaction": "Filters and progressive disclosure update visible reviews without removing native focus behavior."
   },

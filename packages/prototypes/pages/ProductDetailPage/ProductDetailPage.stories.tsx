@@ -62,6 +62,12 @@ export const PDP: Story = {
     const decrease = canvasElement.querySelector<HTMLButtonElement>(
       'button[aria-label="Decrease quantity"]'
     );
+    const increaseIcon = increase?.querySelector<HTMLElement>(
+      '[data-slot="product-detail-stepper-icon"]'
+    );
+    const decreaseIcon = decrease?.querySelector<HTMLElement>(
+      '[data-slot="product-detail-stepper-icon"]'
+    );
     const addToCart = canvasElement.querySelector<HTMLButtonElement>(
       '[data-pdp-add-to-cart="true"]'
     );
@@ -74,6 +80,7 @@ export const PDP: Story = {
     const purchaseFavorite = canvasElement.querySelector<HTMLButtonElement>(
       '[data-pdp-purchase-action="favorite"]'
     );
+    const purchaseActions = purchaseFavorite?.parentElement;
     const purchaseShareButtons = canvasElement.querySelectorAll<HTMLButtonElement>(
       "[data-pdp-share-action]"
     );
@@ -89,11 +96,22 @@ export const PDP: Story = {
     const purchasePrimary = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-detail-purchase-primary"]'
     );
+    const purchaseSticky = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-detail-purchase-sticky"]'
+    );
     const purchaseCheckout = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-detail-purchase-checkout"]'
     );
     const purchaseSecondary = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-detail-purchase-secondary"]'
+    );
+    const purchaseSecondarySections =
+      purchaseSecondary?.querySelectorAll<HTMLElement>(":scope > div");
+    const sellerShippingSection = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-detail-seller-shipping-section"]'
+    );
+    const guaranteeSection = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-detail-guarantee-section"]'
     );
     const purchaseSeller = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-detail-seller"]'
@@ -110,6 +128,10 @@ export const PDP: Story = {
     const shippingBlock = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-detail-shipping"]'
     );
+    const deliveryEstimate = shippingBlock?.querySelector<HTMLParagraphElement>("p");
+    const deliveryTimes = shippingBlock?.querySelectorAll<HTMLElement>(
+      '[data-slot="product-detail-delivery-time"]'
+    );
     const shippingLocation = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-detail-shipping-location"]'
     );
@@ -119,14 +141,14 @@ export const PDP: Story = {
     const guaranteeItems = canvasElement.querySelectorAll<HTMLElement>(
       '[data-slot="product-detail-guarantees"] li'
     );
-    const guaranteeIcons = canvasElement.querySelectorAll<HTMLImageElement>(
-      '[data-slot="product-detail-guarantees"] img'
+    const guaranteeList = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-detail-guarantees"]'
+    );
+    const guaranteeIcons = canvasElement.querySelectorAll<HTMLElement>(
+      '[data-slot="product-detail-guarantee-icon"]'
     );
     const purchaseTagToggle = canvasElement.querySelector<HTMLButtonElement>(
       'button[aria-controls="product-purchase-tags"]'
-    );
-    const purchaseTagsDivider = canvasElement.querySelector<HTMLElement>(
-      '[data-slot="product-detail-tags-divider"]'
     );
     const purchaseTagsLabel = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-detail-tags-label"]'
@@ -239,8 +261,11 @@ export const PDP: Story = {
       '[data-slot="product-review-card"]'
     );
     const ratingMeters = reviews?.querySelectorAll('[role="meter"]');
-    const reviewSort = reviews?.querySelector<HTMLSelectElement>(
+    const reviewSort = reviews?.querySelector<HTMLElement>(
       '[data-product-review-sort="true"]'
+    );
+    const reviewSortTrigger = reviewSort?.querySelector<HTMLButtonElement>(
+      '[data-slot="filter-chip"]'
     );
     const brandIntro = brandProducts?.querySelector<HTMLElement>(
       '[data-slot="product-list-intro"]'
@@ -271,18 +296,52 @@ export const PDP: Story = {
       !quantityRow ||
       !increase ||
       !decrease ||
+      !increaseIcon ||
+      !decreaseIcon ||
       !addToCart ||
       !purchaseCard ||
       !purchaseCardContent ||
+      getComputedStyle(purchaseCard).overflow !== "visible" ||
+      Math.round(purchaseCard.getBoundingClientRect().height) !==
+        Math.round(purchasePanel.getBoundingClientRect().height) ||
+      Math.round(purchaseCardContent.getBoundingClientRect().height) !==
+        Math.round(purchasePanel.getBoundingClientRect().height) ||
       !purchaseFavorite ||
+      !purchaseActions ||
+      getComputedStyle(purchaseActions).paddingBottom !== "96px" ||
       purchaseShareButtons.length !== 4 ||
       !utilityRow ||
+      !content ||
+      getComputedStyle(content).paddingTop !== "12px" ||
+      getComputedStyle(content).paddingBottom !== "32px" ||
+      getComputedStyle(utilityRow).marginBottom !== "12px" ||
       !breadcrumb ||
       !shareGroup ||
       !purchasePrimary ||
+      !purchaseSticky ||
       !purchaseCheckout ||
-      getComputedStyle(purchaseCheckout).paddingTop !== "96px" ||
+      getComputedStyle(purchaseCheckout).paddingTop !== "0px" ||
       !purchaseSecondary ||
+      !purchaseSecondarySections ||
+      purchaseSecondarySections.length !== 3 ||
+      !sellerShippingSection ||
+      !guaranteeSection ||
+      purchaseSecondarySections[0] !== sellerShippingSection ||
+      purchaseSecondarySections[1] !== guaranteeSection ||
+      purchaseSecondarySections[2] !== purchaseTagsBlock ||
+      Array.from(purchaseSecondarySections).some(
+        (section, index) =>
+          getComputedStyle(section).paddingTop !== "16px" ||
+          getComputedStyle(section).paddingRight !== "12px" ||
+          getComputedStyle(section).paddingBottom !== "16px" ||
+          getComputedStyle(section).paddingLeft !== "12px" ||
+          getComputedStyle(section).borderTopWidth !==
+            (index === 0 ? "0px" : "1px")
+      ) ||
+      getComputedStyle(sellerShippingSection).rowGap !== "12px" ||
+      getComputedStyle(sellerShippingSection).columnGap !== "12px" ||
+      getComputedStyle(guaranteeSection).rowGap !== "12px" ||
+      getComputedStyle(guaranteeSection).columnGap !== "12px" ||
       !purchaseSeller ||
       !purchaseSellerLogo ||
       purchaseSellerLogo.alt !== "YAMI" ||
@@ -294,8 +353,19 @@ export const PDP: Story = {
       purchaseSeller.querySelector("strong") ||
       !shippingDestination ||
       !shippingBlock ||
+      !deliveryEstimate ||
+      !deliveryTimes ||
       !shippingLocation ||
       getComputedStyle(shippingBlock).fontSize !== "14px" ||
+      getComputedStyle(deliveryEstimate).color !== "rgba(0, 0, 0, 0.87)" ||
+      deliveryTimes.length !== 4 ||
+      Array.from(deliveryTimes).some(
+        (deliveryTime) => getComputedStyle(deliveryTime).color !== "rgb(224, 0, 0)"
+      ) ||
+      Array.from(deliveryTimes)
+        .map((deliveryTime) => deliveryTime.textContent)
+        .join("|") !== "tomorrow|Aug 21|1:30 AM|tomorrow" ||
+      deliveryEstimate.textContent !== args.copy.deliveryEstimate ||
       shippingDestination.textContent?.trim() !== "Ship toBrea 92821" ||
       shippingDestination.querySelector("strong") ||
       getComputedStyle(shippingDestination).display !== "flex" ||
@@ -306,34 +376,34 @@ export const PDP: Story = {
       getComputedStyle(purchaseDetails).fontSize !== "14px" ||
       getComputedStyle(purchaseDetails).lineHeight !== "20px" ||
       Math.round(purchaseDetails.getBoundingClientRect().height) !== 20 ||
+      !guaranteeList ||
+      getComputedStyle(guaranteeList).rowGap !== "12px" ||
       guaranteeItems.length !== 3 ||
       Array.from(guaranteeItems).some(
         (item) =>
           getComputedStyle(item).minHeight !== "auto" ||
-          getComputedStyle(item).alignItems !== "flex-start"
+          getComputedStyle(item).alignItems !== "flex-start" ||
+          getComputedStyle(item).color !== "rgba(0, 0, 0, 0.87)"
       ) ||
       guaranteeIcons.length !== 3 ||
       Array.from(guaranteeIcons).some(
-        (icon) =>
+        (icon, index) =>
           icon.getBoundingClientRect().width !== 20 ||
-          icon.getBoundingClientRect().height !== 20
+          icon.getBoundingClientRect().height !== 20 ||
+          getComputedStyle(icon).backgroundColor !== "rgba(0, 0, 0, 0.87)" ||
+          getComputedStyle(icon).maskImage === "none" ||
+          icon.dataset.iconName !==
+            ["same-day", "returns", "zipcode"][index]
       ) ||
       !purchaseTagToggle ||
-      !purchaseTagsDivider ||
       !purchaseTagsLabel ||
       !purchaseTagsBlock ||
       getComputedStyle(purchaseTagsBlock).rowGap !== "12px" ||
       getComputedStyle(purchaseTagsLabel).fontSize !== "14px" ||
-      Math.abs(
-        purchaseTagsDivider.getBoundingClientRect().left -
-          (purchaseSecondary.getBoundingClientRect().left +
-            purchaseSecondary.clientLeft)
-      ) > 1 ||
-      Math.abs(
-        purchaseTagsDivider.getBoundingClientRect().right -
-          (purchaseSecondary.getBoundingClientRect().right -
-            purchaseSecondary.clientLeft)
-      ) > 1 ||
+      !sellerShippingSection.contains(purchaseSeller) ||
+      !sellerShippingSection.contains(shippingBlock) ||
+      !guaranteeSection.contains(guaranteeItems[0]!) ||
+      !guaranteeSection.contains(purchaseDetails) ||
       purchaseTagToggle.dataset.slot !== "product-detail-tags-toggle" ||
       getComputedStyle(purchaseTagToggle).fontSize !==
         getComputedStyle(purchaseDetails).fontSize ||
@@ -355,31 +425,40 @@ export const PDP: Story = {
       shareGroup.parentElement !== utilityRow ||
       getComputedStyle(utilityRow).display !== "flex" ||
       breadcrumb.getBoundingClientRect().right >
-        shareGroup.getBoundingClientRect().left ||
+      shareGroup.getBoundingClientRect().left ||
       purchasePrimary.parentElement !== purchaseCardContent ||
-      purchaseSecondary.parentElement !== purchaseCardContent ||
+      getComputedStyle(purchasePrimary).display !== "contents" ||
       !purchasePrimary.contains(purchaseFavorite) ||
-      purchaseCheckout.parentElement !== purchasePrimary ||
-      !purchaseCheckout.previousElementSibling?.contains(purchaseFavorite) ||
+      purchaseSticky.parentElement !== purchasePrimary ||
+      purchaseCheckout.parentElement !== purchaseSticky ||
+      purchaseSecondary.parentElement !== purchaseSticky ||
+      purchaseSticky.previousElementSibling !== purchaseActions ||
       !purchaseCheckout.contains(quantity) ||
       !purchaseCheckout.contains(addToCart) ||
       getComputedStyle(purchaseCheckout).borderTopWidth !== "0px" ||
-      Math.round(decrease.getBoundingClientRect().width) !== 32 ||
-      Math.round(decrease.getBoundingClientRect().height) !== 32 ||
-      Math.round(increase.getBoundingClientRect().width) !== 32 ||
-      Math.round(increase.getBoundingClientRect().height) !== 32 ||
-      Math.round(
-        decrease.querySelector("img")?.getBoundingClientRect().width ?? 0
-      ) !== 16 ||
-      Math.round(
-        decrease.querySelector("img")?.getBoundingClientRect().height ?? 0
-      ) !== 16 ||
-      Math.round(
-        increase.querySelector("img")?.getBoundingClientRect().width ?? 0
-      ) !== 16 ||
-      Math.round(
-        increase.querySelector("img")?.getBoundingClientRect().height ?? 0
-      ) !== 16 ||
+      Math.round(decrease.getBoundingClientRect().width) !== 28 ||
+      Math.round(decrease.getBoundingClientRect().height) !== 28 ||
+      Math.round(increase.getBoundingClientRect().width) !== 28 ||
+      Math.round(increase.getBoundingClientRect().height) !== 28 ||
+      Math.round(decreaseIcon.getBoundingClientRect().width) !== 16 ||
+      Math.round(decreaseIcon.getBoundingClientRect().height) !== 16 ||
+      Math.round(increaseIcon.getBoundingClientRect().width) !== 16 ||
+      Math.round(increaseIcon.getBoundingClientRect().height) !== 16 ||
+      getComputedStyle(decrease).borderTopWidth !== "2px" ||
+      getComputedStyle(decrease).borderTopStyle !== "solid" ||
+      getComputedStyle(decrease).borderTopColor !==
+        getComputedStyle(decrease).color ||
+      getComputedStyle(increase).borderTopWidth !== "2px" ||
+      getComputedStyle(increase).borderTopStyle !== "solid" ||
+      getComputedStyle(increase).borderTopColor !== "rgb(224, 0, 0)" ||
+      getComputedStyle(decrease).backgroundColor !== "rgb(255, 255, 255)" ||
+      getComputedStyle(increase).backgroundColor !== "rgb(255, 255, 255)" ||
+      getComputedStyle(decrease).color !==
+        getComputedStyle(decreaseIcon).backgroundColor ||
+      getComputedStyle(increase).color !==
+        getComputedStyle(increaseIcon).backgroundColor ||
+      getComputedStyle(decreaseIcon).backgroundColor ===
+        getComputedStyle(increaseIcon).backgroundColor ||
       getComputedStyle(quantityRow).fontSize !== "14px" ||
       getComputedStyle(quantity).fontSize !== "20px" ||
       Array.from(purchaseShareButtons).some(
@@ -514,7 +593,11 @@ export const PDP: Story = {
       !maskTypeOption ||
       Math.round(maskTypeOption.getBoundingClientRect().height) !== 44 ||
       getComputedStyle(maskTypeOption).borderRadius !== "8px" ||
-      getComputedStyle(purchasePanel).position !== "sticky" ||
+      getComputedStyle(purchasePanel).position !== "static" ||
+      getComputedStyle(purchasePanel).alignSelf !== "stretch" ||
+      getComputedStyle(purchaseSticky).position !== "sticky" ||
+      getComputedStyle(purchaseSticky).top !== "24px" ||
+      getComputedStyle(purchaseCheckout).position !== "static" ||
       Math.round(purchasePanel.getBoundingClientRect().width) !== 240 ||
       overview.getBoundingClientRect().right >
         purchasePanel.getBoundingClientRect().left ||
@@ -547,15 +630,22 @@ export const PDP: Story = {
       headerCategoryImages.length !== headerCategories.length - 1 ||
       recommendations?.dataset.layout !== "rail" ||
       recommendations.dataset.mobileSurface !== "card" ||
+      getComputedStyle(recommendations).marginTop !== "0px" ||
+      recommendations.querySelector('[data-slot="product-list-view-all"]') ||
+      recommendations.querySelector(
+        '[data-slot="product-list-view-all-mobile"]'
+      ) ||
       recommendationItems?.length !== 8 ||
       !reviews ||
+      getComputedStyle(reviews).marginTop !== "0px" ||
       reviews.dataset.activeFilter !== "all" ||
       !reviews.textContent?.includes("Reviews (10)") ||
       reviewCards?.length !== 6 ||
       ratingMeters?.length !== 5 ||
-      !reviewSort ||
+      !reviewSortTrigger ||
       !reviewContainer ||
       brandProducts?.dataset.layout !== "rail" ||
+      getComputedStyle(brandProducts).marginTop !== "0px" ||
       !brandIntro ||
       !brandIntro.textContent?.includes("About the brand") ||
       !brandIntro.textContent.includes("5D-Complex") ||
@@ -568,6 +658,7 @@ export const PDP: Story = {
         '[data-slot="product-list-leading-content"]'
       ) ||
       main?.dataset.contentMaxWidth !== expectedContentMaxWidth ||
+      getComputedStyle(main).paddingBottom !== "0px" ||
       !content ||
       productListContainers.length !== 2 ||
       getComputedStyle(content).maxWidth !== expectedContentMaxWidth ||
@@ -595,7 +686,19 @@ export const PDP: Story = {
     const initialFirstReviewer = reviews.querySelector(
       '[data-slot="product-review-card"] strong'
     )?.textContent;
-    await userEvent.selectOptions(reviewSort, "recent");
+    const selectReviewSort = async (label: string) => {
+      await userEvent.click(reviewSortTrigger);
+      const option = Array.from(
+        canvasElement.ownerDocument.querySelectorAll<HTMLLabelElement>(
+          '[data-filter-chip-menu-options="true"] label'
+        )
+      ).find((item) => item.textContent?.includes(label));
+      if (!option) {
+        throw new Error(`PDP review sort option did not render: ${label}`);
+      }
+      await userEvent.click(option);
+    };
+    await selectReviewSort("Most recent");
     const recentFirstReviewer = reviews.querySelector(
       '[data-slot="product-review-card"] strong'
     )?.textContent;
@@ -605,7 +708,7 @@ export const PDP: Story = {
     ) {
       throw new Error("PDP review sort must move the most recent review first");
     }
-    await userEvent.selectOptions(reviewSort, "default");
+    await selectReviewSort("Default");
     if (
       canvasElement.querySelectorAll(
         '[data-slot="product-media-gallery-image"]'
@@ -616,6 +719,7 @@ export const PDP: Story = {
       );
     }
     const firstAlt = activeImage()?.alt;
+    gallery.focus();
     await userEvent.click(next);
     if (
       activeImage()?.alt === firstAlt ||
@@ -656,17 +760,17 @@ export const PDP: Story = {
       purchaseCardStyle.borderRadius !== "0px" ||
       purchaseCardStyle.backgroundColor !== "rgba(0, 0, 0, 0)" ||
       purchaseCardStyle.borderTopWidth !== "0px" ||
-      purchaseSecondaryStyle.paddingTop !== "16px" ||
-      purchaseSecondaryStyle.paddingRight !== "16px" ||
-      purchaseSecondaryStyle.paddingBottom !== "16px" ||
-      purchaseSecondaryStyle.paddingLeft !== "16px" ||
+      purchaseSecondaryStyle.paddingTop !== "0px" ||
+      purchaseSecondaryStyle.paddingRight !== "0px" ||
+      purchaseSecondaryStyle.paddingBottom !== "0px" ||
+      purchaseSecondaryStyle.paddingLeft !== "0px" ||
       purchaseSecondaryStyle.borderTopStyle !== "solid" ||
       purchaseSecondaryStyle.borderTopWidth !== "2px" ||
       purchaseSecondaryStyle.borderRadius !== "8px" ||
       purchaseSecondaryStyle.borderTopColor !== purchaseSecondaryStyle.color
     ) {
       throw new Error(
-        "PDP purchase card must keep a transparent, square, unpadded surface and place the rounded 2px black border only on its secondary group"
+        "PDP purchase card must keep a transparent, square, unpadded surface while its secondary group owns the rounded 2px black border and delegates padding to three internal sections"
       );
     }
     const overweightEmphasis = Array.from(
@@ -707,8 +811,38 @@ export const Mobile: Story = {
   },
   play: async ({ canvasElement }) => {
     const viewportWidth = canvasElement.ownerDocument.defaultView?.innerWidth;
+    if (!viewportWidth) {
+      throw new Error("Mobile PDP viewport width must be available");
+    }
     const gallery = canvasElement.querySelector<HTMLElement>(
       '[aria-label="Product image gallery"]'
+    );
+    const galleryStage = gallery?.querySelector<HTMLElement>(
+      '[data-slot="product-media-gallery-stage"]'
+    );
+    const galleryThumbnails = gallery?.querySelector<HTMLElement>(
+      '[data-slot="product-media-gallery-thumbnails"]'
+    );
+    const galleryNavigationButtons = gallery?.querySelectorAll<HTMLElement>(
+      '[data-rail-navigation-button="true"]'
+    );
+    const mobileHeaderBar = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="header-mobile-bar"]'
+    );
+    const mobileHeader = mobileHeaderBar?.closest<HTMLElement>(
+      '[data-slot="header"]'
+    );
+    const mobileHeaderPdpActions = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="header-mobile-pdp-actions"]'
+    );
+    const mobileHeaderSearch = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="header-mobile-search-action"]'
+    );
+    const mobileHeaderCart = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="header-mobile-cart"]'
+    );
+    const mobileHeaderSearchRow = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="header-mobile-search-row"]'
     );
     const leftContent = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-detail-left-content"]'
@@ -725,11 +859,17 @@ export const Mobile: Story = {
     const purchasePanel = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-detail-purchase"]'
     );
+    const purchaseSticky = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-detail-purchase-sticky"]'
+    );
     const purchaseCheckout = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-detail-purchase-checkout"]'
     );
     const details = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-detail-details"]'
+    );
+    const recommendations = canvasElement.querySelector<HTMLElement>(
+      '[data-pdp-module="recommendations"]'
     );
     const brandProducts = canvasElement.querySelector<HTMLElement>(
       '[data-pdp-module="brand-products"]'
@@ -755,6 +895,29 @@ export const Mobile: Story = {
     const shareGroup = canvasElement.querySelector<HTMLElement>(
       '[role="group"][aria-label="Share product"]'
     );
+    const mobileSummaryActions = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-detail-mobile-summary-actions"]'
+    );
+    const mobileSummaryButtons = mobileSummaryActions?.querySelectorAll(
+      "[data-pdp-mobile-action]"
+    );
+    const purchaseFavorite = purchasePanel?.querySelector<HTMLElement>(
+      '[data-pdp-purchase-action="favorite"]'
+    );
+    const purchaseActions = purchaseFavorite?.parentElement;
+    const quantityLabel = purchaseCheckout?.querySelector<HTMLElement>(
+      '[data-slot="product-detail-quantity-row"] > span'
+    );
+    const title = canvasElement.querySelector<HTMLElement>("#product-title");
+    const rating = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-detail-rating"]'
+    );
+    const ranking = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-detail-ranking"]'
+    );
+    const price = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-detail-price"]'
+    );
     const purchasePanelShareButtons = purchasePanel?.querySelectorAll(
       "[data-pdp-share-action]"
     );
@@ -763,57 +926,169 @@ export const Mobile: Story = {
       !brandIntro ||
       !brandItems ||
       !gallery ||
+      !galleryStage ||
+      !galleryThumbnails ||
+      !mobileHeader ||
+      getComputedStyle(mobileHeader).position !== "sticky" ||
+      getComputedStyle(mobileHeader).top !== "0px" ||
+      !mobileHeaderBar ||
+      Math.round(mobileHeaderBar.getBoundingClientRect().height) !== 56 ||
+      !mobileHeaderPdpActions ||
+      getComputedStyle(mobileHeaderPdpActions).display !== "flex" ||
+      !mobileHeaderSearch ||
+      Math.round(mobileHeaderSearch.getBoundingClientRect().width) !== 40 ||
+      !mobileHeaderCart ||
+      Math.round(mobileHeaderCart.getBoundingClientRect().width) !== 40 ||
+      !mobileHeaderSearchRow ||
+      getComputedStyle(mobileHeaderSearchRow).display !== "none" ||
+      Math.abs(
+        gallery.getBoundingClientRect().top -
+          mobileHeaderBar.getBoundingClientRect().bottom
+      ) > 1 ||
       getComputedStyle(gallery).position !== "static" ||
+      Math.abs(gallery.getBoundingClientRect().width - viewportWidth) > 1 ||
+      Math.abs(galleryStage.getBoundingClientRect().width - viewportWidth) > 1 ||
+      Math.abs(
+        galleryStage.getBoundingClientRect().width -
+          galleryStage.getBoundingClientRect().height
+      ) > 1 ||
+      getComputedStyle(galleryThumbnails).display !== "none" ||
+      galleryNavigationButtons?.length !== 2 ||
+      Array.from(galleryNavigationButtons).some(
+        (button) => getComputedStyle(button).display !== "none"
+      ) ||
       !leftContent ||
       !overview ||
       !productInfo ||
       !productInfoColumn ||
       !purchasePanel ||
+      !purchaseSticky ||
       !purchaseCheckout ||
-      getComputedStyle(purchaseCheckout).paddingTop !== "0px" ||
+      getComputedStyle(purchaseCheckout).position !== "fixed" ||
+      getComputedStyle(purchaseCheckout).bottom !== "0px" ||
+      getComputedStyle(purchaseCheckout).gridTemplateColumns.split(" ")
+        .length !== 2 ||
+      getComputedStyle(purchaseCheckout).columnGap !== "40px" ||
+      getComputedStyle(purchaseCheckout).paddingLeft !== "16px" ||
+      getComputedStyle(purchaseCheckout).paddingRight !== "16px" ||
+      getComputedStyle(purchaseSticky).position !== "static" ||
       !details ||
       overview.parentElement !== leftContent ||
       productInfoColumn.parentElement !== overview ||
       productInfo.parentElement !== productInfoColumn ||
       details.parentElement !== productInfoColumn ||
+      getComputedStyle(productInfoColumn).paddingTop !== "8px" ||
+      getComputedStyle(productInfoColumn).paddingBottom !== "8px" ||
       getComputedStyle(leftContent).display !== "contents" ||
       getComputedStyle(purchasePanel).position !== "static" ||
+      Math.round(productInfo.getBoundingClientRect().left) !== 8 ||
+      Math.abs(productInfo.getBoundingClientRect().width - (viewportWidth - 16)) >
+        1 ||
+      getComputedStyle(productInfo).padding !== "12px" ||
       overview.getBoundingClientRect().top >=
         details.getBoundingClientRect().top ||
       Math.abs(
-        details.getBoundingClientRect().top -
-          productInfo.getBoundingClientRect().bottom
+        Math.abs(
+          details.getBoundingClientRect().top -
+            productInfo.getBoundingClientRect().bottom
+        ) - 8
       ) > 1 ||
       details.getBoundingClientRect().bottom >=
         purchasePanel.getBoundingClientRect().top ||
+      !recommendations ||
+      getComputedStyle(recommendations).marginTop !== "0px" ||
+      recommendations.querySelector('[data-slot="product-list-view-all"]') ||
+      recommendations.querySelector(
+        '[data-slot="product-list-view-all-mobile"]'
+      ) ||
       !reviews ||
+      getComputedStyle(reviews).marginTop !== "0px" ||
+      !brandProducts ||
+      getComputedStyle(brandProducts).marginTop !== "0px" ||
       !reviewGrid ||
       !utilityRow ||
       !breadcrumb ||
       !shareGroup ||
+      getComputedStyle(utilityRow).display !== "none" ||
       breadcrumb.parentElement !== utilityRow ||
       shareGroup.parentElement !== utilityRow ||
+      !mobileSummaryActions ||
+      getComputedStyle(mobileSummaryActions).display !== "flex" ||
+      mobileSummaryButtons?.length !== 2 ||
+      !purchaseFavorite ||
+      !purchaseActions ||
+      getComputedStyle(purchaseActions).display !== "none" ||
+      !quantityLabel ||
+      getComputedStyle(quantityLabel).display !== "none" ||
+      !title ||
+      getComputedStyle(title).fontSize !== "16px" ||
+      getComputedStyle(title).lineHeight !== "20px" ||
+      !rating ||
+      !ranking ||
+      !price ||
+      rating.getBoundingClientRect().top >= ranking.getBoundingClientRect().top ||
+      ranking.getBoundingClientRect().top >= price.getBoundingClientRect().top ||
       purchasePanelShareButtons?.length !== 0 ||
       brandIntro.getBoundingClientRect().top >=
         brandItems.getBoundingClientRect().top ||
-      !viewportWidth ||
       getComputedStyle(reviewGrid).gridTemplateColumns.split(" ").length !==
         (viewportWidth < 768 ? 1 : 2) ||
       document.documentElement.scrollWidth >
         document.documentElement.clientWidth
     ) {
       throw new Error(
-        "Mobile PDP brand intro must precede its horizontal product rail without page overflow"
+        "Mobile PDP must match the Figma full-bleed gallery, inset info card, and fixed purchase bar without page overflow"
       );
     }
   },
 };
 
 export const Tablet: Story = {
-  ...Mobile,
-  name: "Tablet mobile layout",
+  name: "Tablet stable desktop layout",
   globals: {
     viewport: { value: "yamiTablet", isRotated: false },
+  },
+  play: async ({ canvasElement }) => {
+    const overview = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-detail-overview"]'
+    );
+    const gallery = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-media-gallery"]'
+    );
+    const productInfoColumn = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-detail-info-column"]'
+    );
+    const purchasePanel = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-detail-purchase"]'
+    );
+    const thumbnails = gallery?.querySelector<HTMLElement>(
+      '[data-slot="product-media-gallery-thumbnails"]'
+    );
+    const stage = gallery?.querySelector<HTMLElement>(
+      '[data-slot="product-media-gallery-stage"]'
+    );
+
+    if (
+      !overview ||
+      !gallery ||
+      !productInfoColumn ||
+      !purchasePanel ||
+      !thumbnails ||
+      !stage ||
+      getComputedStyle(overview).gridTemplateColumns.split(" ").length !== 2 ||
+      getComputedStyle(gallery).position !== "sticky" ||
+      Math.round(purchasePanel.getBoundingClientRect().width) !== 240 ||
+      productInfoColumn.getBoundingClientRect().left <=
+        gallery.getBoundingClientRect().right ||
+      thumbnails.getBoundingClientRect().top <
+        stage.getBoundingClientRect().bottom ||
+      document.documentElement.scrollWidth >
+        document.documentElement.clientWidth
+    ) {
+      throw new Error(
+        "Tablet PDP must preserve the desktop product layout without page overflow"
+      );
+    }
   },
 };
 
@@ -860,7 +1135,7 @@ export const DesktopMdBoundary: Story = {
 };
 
 export const NarrowDesktop: Story = {
-  name: "Narrow desktop",
+  name: "Narrow desktop stable layout",
   globals: {
     viewport: { value: "yamiDesktop", isRotated: false },
   },
@@ -877,6 +1152,12 @@ export const NarrowDesktop: Story = {
     const purchasePanel = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-detail-purchase"]'
     );
+    const purchaseSticky = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-detail-purchase-sticky"]'
+    );
+    const purchaseCheckout = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-detail-purchase-checkout"]'
+    );
     const thumbnails = gallery?.querySelector<HTMLElement>(
       '[data-slot="product-media-gallery-thumbnails"]'
     );
@@ -889,22 +1170,25 @@ export const NarrowDesktop: Story = {
       !gallery ||
       !productInfoColumn ||
       !purchasePanel ||
+      !purchaseSticky ||
+      !purchaseCheckout ||
       !thumbnails ||
       !stage ||
-      getComputedStyle(overview).gridTemplateColumns.split(" ").length !== 1 ||
-      getComputedStyle(gallery).position !== "static" ||
-      Math.round(purchasePanel.getBoundingClientRect().width) !== 320 ||
-      productInfoColumn.getBoundingClientRect().top <
-        gallery.getBoundingClientRect().bottom ||
-      thumbnails.getBoundingClientRect().left <
-        stage.getBoundingClientRect().right ||
-      Math.abs(
-        thumbnails.getBoundingClientRect().top -
-          stage.getBoundingClientRect().top
-      ) > 1
+      getComputedStyle(overview).gridTemplateColumns.split(" ").length !== 2 ||
+      getComputedStyle(gallery).position !== "sticky" ||
+      getComputedStyle(purchasePanel).position !== "static" ||
+      getComputedStyle(purchasePanel).alignSelf !== "stretch" ||
+      getComputedStyle(purchaseSticky).position !== "sticky" ||
+      getComputedStyle(purchaseSticky).top !== "24px" ||
+      getComputedStyle(purchaseCheckout).position !== "static" ||
+      Math.round(purchasePanel.getBoundingClientRect().width) !== 240 ||
+      productInfoColumn.getBoundingClientRect().left <=
+        gallery.getBoundingClientRect().right ||
+      thumbnails.getBoundingClientRect().top <
+        stage.getBoundingClientRect().bottom
     ) {
       throw new Error(
-        "PDP must stack gallery and product information below the 1280px desktop-md boundary"
+        "PDP must preserve the desktop layout between the 1024px and 1280px boundaries"
       );
     }
   },

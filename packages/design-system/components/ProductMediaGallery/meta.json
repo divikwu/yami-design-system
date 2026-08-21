@@ -74,22 +74,22 @@
   },
   "tokens": [
     "--text-primary",
-    "--text-primary-inverse",
+    "--product-card-add-icon",
+    "--product-card-add-surface",
     "--surface-secondary",
-    "--surface-inverse",
     "--fill-tertiary",
     "--border-default",
     "--border-focus",
     "--stroke-default",
+    "--stroke-thick",
     "--radius-component-default",
     "--radius-surface-default",
     "--radius-full",
     "--font-family-ios",
     "--font-size-caption-md",
     "--line-height-caption-md",
-    "--space-025",
-    "--space-050",
     "--space-100",
+    "--space-150",
     "--space-200",
     "--space-400",
     "--space-600",
@@ -105,13 +105,33 @@
       "property": "border-color and outline-color",
       "selector": ".thumbnailButton[data-selected='true'], .thumbnailButton:focus-visible"
     },
+    "--stroke-thick": {
+      "property": "border-width",
+      "selector": ".thumbnailButton[data-selected='true']"
+    },
     "--radius-surface-default": {
       "property": "border-radius",
       "selector": ".stage"
     },
     "--space-200": {
-      "property": "gap and desktop control inset",
-      "selector": ".root, .previousButton, .nextButton, .counter"
+      "property": "desktop control inset",
+      "selector": ".previousButton, .nextButton"
+    },
+    "--space-100": {
+      "property": "thumbnail gap; counter inset",
+      "selector": ".thumbnails, .counter"
+    },
+    "--space-150": {
+      "property": "vertical padding",
+      "selector": ".thumbnails"
+    },
+    "--product-card-add-surface": {
+      "property": "background-color",
+      "selector": ".counter"
+    },
+    "--product-card-add-icon": {
+      "property": "color",
+      "selector": ".counter"
     }
   },
   "accessibility": {

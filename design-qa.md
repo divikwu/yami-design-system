@@ -188,3 +188,45 @@ No actionable P0, P1, or P2 differences remain for this scoped annotation.
 ## Final result
 
 passed
+
+---
+
+# Product Detail purchase card design QA
+
+- Source visual truth: `/var/folders/wk/b2pxrhkn49v_sb753kw8ktp80000gn/T/codex-clipboard-2c98bdfa-a5d1-4aab-9b9a-c60070dad568.png`
+- Browser implementation: `http://127.0.0.1:6006/iframe.html?id=yami-pages-product-detail--desktop-md-boundary&viewMode=story`
+- Full-view evidence: `/Users/divikwu/.codex/visualizations/2026/08/21/01a02220-ec19-74f0-9770-8c1aa3efff5a/product-detail-three-sections-1432-viewport.png`
+- Focused implementation evidence: `/Users/divikwu/.codex/visualizations/2026/08/21/01a02220-ec19-74f0-9770-8c1aa3efff5a/product-detail-purchase-card-three-sections-half.png`
+- Combined comparison: `/Users/divikwu/.codex/visualizations/2026/08/21/01a02220-ec19-74f0-9770-8c1aa3efff5a/product-detail-purchase-card-comparison.png`
+- Viewport: desktop, `1432 × 1257` CSS px, light theme, Product Detail `desktop-md-boundary` story
+- Source pixels: `566 × 1050`
+- Implementation region: `240 × 522` CSS px; focused browser capture `120 × 261` px at the browser backend's 0.5 capture scale, enlarged 4× only for the combined visual comparison
+- State: default seller card with three guarantees, three visible tags, and collapsed tag disclosure
+
+## Findings
+
+No actionable P0, P1, or P2 differences remain for the requested structural change.
+
+- Fonts and typography: existing YAMI typography, weights, wrapping, and content are preserved. The source is a zoomed annotation, so its apparent text scale is not treated as a component-size target.
+- Spacing and layout rhythm: the seller/shipping, guarantees/details, and tags/disclosure content now occupy exactly three direct sections. Each section has `16px` padding; sections two and three have a `1px` semantic divider. The outer card remains `240px` wide with a `2px` border, `8px` radius, and no internal padding.
+- Colors and tokens: borders and dividers use existing semantic tokens. The green guarantee icons intentionally preserve the preceding approved change and therefore differ from the older black-icon reference.
+- Image and asset fidelity: the existing YAMI seller logo and three shipped design-system icons are reused; no substitute or generated assets were introduced.
+- Copy and content: seller, shipping, delivery, guarantee, details, tag, and disclosure copy remain unchanged and in the same order.
+- The red rounded rectangles in the source are annotation marks describing the three groups, not UI decoration, so they are intentionally absent from the implementation.
+
+## Interaction and runtime evidence
+
+- Product Detail Storybook interaction suite: 6 of 6 tests passed.
+- Direct-child structure, section padding, divider widths, outer border, and radius were verified through browser-computed styles.
+- Browser console errors: none.
+- Existing quantity, gallery, tag disclosure, and purchase interactions remain covered by the story interaction test.
+
+## Comparison history
+
+- Pass 1: the requested three-section hierarchy, spacing, dividers, content order, assets, and token usage matched the reference intent. No P0/P1/P2 fix loop was required.
+
+## Follow-up polish
+
+No P3 follow-up is required for the requested scope.
+
+final result: passed

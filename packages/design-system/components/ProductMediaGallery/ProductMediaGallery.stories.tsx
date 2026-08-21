@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { userEvent } from "storybook/test";
+import { userEvent, waitFor } from "storybook/test";
 
 import { ProductMediaGallery } from "./ProductMediaGallery";
 
@@ -65,6 +65,9 @@ export const Showcase: Story = {
     const next = canvasElement.querySelector<HTMLButtonElement>(
       '[data-rail-navigation-button="true"][data-direction="right"]',
     );
+    const previous = canvasElement.querySelector<HTMLButtonElement>(
+      '[data-rail-navigation-button="true"][data-direction="left"]',
+    );
     const thumbnails = canvasElement.querySelectorAll<HTMLButtonElement>(
       '[data-slot="product-media-gallery-thumbnail"]',
     );
@@ -74,24 +77,108 @@ export const Showcase: Story = {
     const stage = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-media-gallery-stage"]',
     );
-    if (!gallery || !next || !thumbnailRail || !stage || thumbnails.length !== images.length) {
+    const counter = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-media-gallery-counter"]',
+    );
+    if (
+      !gallery ||
+      !previous ||
+      !next ||
+      !thumbnailRail ||
+      !stage ||
+      !counter ||
+      thumbnails.length !== images.length
+    ) {
       throw new Error("Product media gallery did not render its controls");
     }
+    const counterStyle = getComputedStyle(counter);
+    const thumbnailRailStyle = getComputedStyle(thumbnailRail);
     if (
-      thumbnailRail.getBoundingClientRect().top < stage.getBoundingClientRect().bottom ||
+      counterStyle.right !== "8px" ||
+      counterStyle.bottom !== "8px" ||
+      counterStyle.height !== "28px" ||
+      counterStyle.backgroundColor !== "rgba(255, 255, 255, 0.87)" ||
+      counterStyle.color !== "rgba(0, 0, 0, 0.87)"
+    ) {
+      throw new Error(
+        "Product media gallery counter must share the quick-add surface, use a 28px height, and keep an 8px stage inset",
+      );
+    }
+    if (
+      thumbnailRailStyle.paddingTop !== "12px" ||
+      thumbnailRailStyle.paddingRight !== "0px" ||
+      thumbnailRailStyle.paddingBottom !== "12px" ||
+      thumbnailRailStyle.paddingLeft !== "0px" ||
+      thumbnailRailStyle.scrollPaddingInline !== "0px"
+    ) {
+      throw new Error(
+        "Product media gallery thumbnail rail must use 12px vertical padding with no inline inset",
+      );
+    }
+    if (
+      getComputedStyle(previous).visibility !== "hidden" ||
+      getComputedStyle(next).visibility !== "hidden"
+    ) {
+      throw new Error(
+        "Desktop gallery navigation must wait for image hover or keyboard focus",
+      );
+    }
+    gallery.focus();
+    if (
+      getComputedStyle(previous).visibility !== "visible" ||
+      getComputedStyle(next).visibility !== "visible"
+    ) {
+      throw new Error(
+        "Keyboard focus must reveal both gallery navigation controls",
+      );
+    }
+    for (const thumbnail of thumbnails) {
+      const { paddingTop, paddingRight, paddingBottom, paddingLeft } =
+        getComputedStyle(thumbnail);
+      if (
+        paddingTop !== "0px" ||
+        paddingRight !== "0px" ||
+        paddingBottom !== "0px" ||
+        paddingLeft !== "0px"
+      ) {
+        throw new Error("Product media gallery thumbnails must not have padding");
+      }
+    }
+    if (
+      Math.abs(
+        thumbnailRail.getBoundingClientRect().top -
+          stage.getBoundingClientRect().bottom,
+      ) > 0.5 ||
       getComputedStyle(thumbnailRail).flexDirection !== "row"
     ) {
-      throw new Error("Product media gallery thumbnails must sit in a horizontal rail below the main image");
+      throw new Error(
+        "Product media gallery thumbnails must sit in a horizontal rail with no grid gap below the main image",
+      );
     }
-    if (image()?.alt !== images[0].alt || gallery.dataset.activeIndex !== "0") {
-      throw new Error("Product media gallery must open on the first image");
+    if (
+      image()?.alt !== images[0].alt ||
+      gallery.dataset.activeIndex !== "0" ||
+      getComputedStyle(thumbnails[0]).borderWidth !== "2px" ||
+      getComputedStyle(thumbnails[1]).borderWidth !== "1px"
+    ) {
+      throw new Error(
+        "Product media gallery must open with a 2px selected thumbnail border",
+      );
     }
     await userEvent.click(next);
-    if (image()?.alt !== images[1].alt || gallery.dataset.activeIndex !== "1") {
+    if (
+      image()?.alt !== images[1].alt ||
+      gallery.dataset.activeIndex !== "1"
+    ) {
       throw new Error("Next must advance the active product image");
     }
     await userEvent.click(thumbnails[3]);
-    if (image()?.alt !== images[3].alt || thumbnails[3].getAttribute("aria-pressed") !== "true") {
+    if (
+      image()?.alt !== images[3].alt ||
+      thumbnails[3].getAttribute("aria-pressed") !== "true" ||
+      getComputedStyle(thumbnails[3]).borderWidth !== "2px" ||
+      getComputedStyle(thumbnails[0]).borderWidth !== "1px"
+    ) {
       throw new Error("Thumbnail selection must update the active image");
     }
     gallery.focus();
@@ -105,5 +192,52 @@ export const Showcase: Story = {
 export const Mobile: Story = {
   globals: {
     viewport: { value: "yamiMobile", isRotated: false },
+  },
+  play: async ({ canvasElement }) => {
+    const gallery = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-media-gallery"]',
+    );
+    const image = () =>
+      canvasElement.querySelector<HTMLImageElement>(
+        '[data-slot="product-media-gallery-image"]',
+      );
+    const navigationButtons = canvasElement.querySelectorAll<HTMLButtonElement>(
+      '[data-rail-navigation-button="true"]',
+    );
+    if (
+      !gallery ||
+      navigationButtons.length !== 2 ||
+      Array.from(navigationButtons).some(
+        (button) => getComputedStyle(button).display !== "none",
+      )
+    ) {
+      throw new Error(
+        "Mobile gallery navigation buttons must stay hidden",
+      );
+    }
+
+    const dispatchTouch = (type: "touchstart" | "touchend", clientX: number) => {
+      const event = new Event(type, { bubbles: true });
+      Object.defineProperty(event, "changedTouches", {
+        value: [{ clientX }],
+      });
+      gallery.dispatchEvent(event);
+    };
+
+    dispatchTouch("touchstart", 300);
+    dispatchTouch("touchend", 100);
+    await waitFor(() => {
+      if (gallery.dataset.activeIndex !== "1" || image()?.alt !== images[1].alt) {
+        throw new Error("Mobile swipe left must advance the active image");
+      }
+    });
+
+    dispatchTouch("touchstart", 100);
+    dispatchTouch("touchend", 300);
+    await waitFor(() => {
+      if (gallery.dataset.activeIndex !== "0" || image()?.alt !== images[0].alt) {
+        throw new Error("Mobile swipe right must restore the previous image");
+      }
+    });
   },
 };

@@ -3,6 +3,7 @@
 import {
   type HTMLAttributes,
   type ImgHTMLAttributes,
+  useRef,
   useState,
 } from "react";
 
@@ -38,6 +39,8 @@ function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
+const SWIPE_THRESHOLD_PX = 40;
+
 export function ProductMediaGallery({
   images,
   defaultIndex = 0,
@@ -53,6 +56,7 @@ export function ProductMediaGallery({
   const [activeIndex, setActiveIndex] = useState(() =>
     clampIndex(defaultIndex, images.length),
   );
+  const touchStartX = useRef<number | null>(null);
   const activeImage = images[activeIndex];
 
   if (!activeImage) return null;
@@ -88,6 +92,30 @@ export function ProductMediaGallery({
           event.preventDefault();
           move(1);
         }
+      }}
+      onTouchStart={(event) => {
+        rest.onTouchStart?.(event);
+        if (event.defaultPrevented) return;
+        touchStartX.current = event.changedTouches[0]?.clientX ?? null;
+      }}
+      onTouchEnd={(event) => {
+        rest.onTouchEnd?.(event);
+        const startX = touchStartX.current;
+        const endX = event.changedTouches[0]?.clientX;
+        touchStartX.current = null;
+        if (
+          event.defaultPrevented ||
+          startX === null ||
+          endX === undefined ||
+          Math.abs(endX - startX) < SWIPE_THRESHOLD_PX
+        ) {
+          return;
+        }
+        move(endX < startX ? 1 : -1);
+      }}
+      onTouchCancel={(event) => {
+        rest.onTouchCancel?.(event);
+        touchStartX.current = null;
       }}
     >
       <div

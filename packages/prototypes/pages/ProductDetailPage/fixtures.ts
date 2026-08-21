@@ -77,6 +77,7 @@ function createProductDetailHeader() {
   const header = createStorefrontHeader("en");
   return {
     ...header,
+    mobileVariant: "pdp" as const,
     imageLoadingStrategy: "windowed" as const,
   };
 }
