@@ -620,6 +620,75 @@ export const Mobile: Story = {
   },
 }
 
+export const PdpMobile: Story = {
+  name: 'H5 PDP navigation',
+  globals: {
+    locale: 'en',
+    viewport: { value: 'yamiMobile', isRotated: false },
+  },
+  render: (_args, { globals }) => (
+    <Header
+      {...createHeaderProps(localeFromGlobals(globals.locale))}
+      mobileVariant="pdp"
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const header = canvasElement.querySelector<HTMLElement>('[data-slot="header"]')
+    const band = canvasElement.querySelector<HTMLElement>('[data-slot="header-mobile"]')
+    const bar = canvasElement.querySelector<HTMLElement>('[data-slot="header-mobile-bar"]')
+    const brand = canvasElement.querySelector<HTMLElement>('[data-slot="header-mobile-brand"]')
+    const defaultActions = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="header-mobile-actions"]',
+    )
+    const pdpActions = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="header-mobile-pdp-actions"]',
+    )
+    const zipcode = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="header-mobile-pdp-zipcode"]',
+    )
+    const search = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="header-mobile-search-action"]',
+    )
+    const cart = canvasElement.querySelector<HTMLElement>('[data-slot="header-mobile-cart"]')
+    const searchRow = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="header-mobile-search-row"]',
+    )
+    const logo = visibleLockup(canvasElement, 'header-mobile-brand')
+
+    if (
+      !header ||
+      getComputedStyle(header).position !== 'sticky' ||
+      getComputedStyle(header).top !== '0px' ||
+      !band ||
+      band.dataset.mobileVariant !== 'pdp' ||
+      !bar ||
+      Math.round(bar.getBoundingClientRect().height) !== 56 ||
+      !brand ||
+      !logo ||
+      Math.round(logo.getBoundingClientRect().width) !== 84 ||
+      Math.round(logo.getBoundingClientRect().height) !== 32 ||
+      !defaultActions ||
+      getComputedStyle(defaultActions).display !== 'none' ||
+      !pdpActions ||
+      getComputedStyle(pdpActions).display !== 'flex' ||
+      !zipcode ||
+      Math.round(zipcode.getBoundingClientRect().height) !== 40 ||
+      !search ||
+      Math.round(search.getBoundingClientRect().width) !== 40 ||
+      Math.round(search.getBoundingClientRect().height) !== 40 ||
+      !cart ||
+      Math.round(cart.getBoundingClientRect().width) !== 40 ||
+      Math.round(cart.getBoundingClientRect().height) !== 40 ||
+      !searchRow ||
+      getComputedStyle(searchRow).display !== 'none'
+    ) {
+      throw new Error(
+        'H5 PDP navigation must match the Figma 56px single-row logo, zipcode, search, and cart anatomy',
+      )
+    }
+  },
+}
+
 export const DarkTheme: Story = {
   globals: {
     theme: 'dark',

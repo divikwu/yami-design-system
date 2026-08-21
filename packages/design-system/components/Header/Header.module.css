@@ -794,6 +794,10 @@
   gap: var(--space-050);
 }
 
+.mobilePdpActions {
+  display: none;
+}
+
 .mobileAction {
   display: inline-flex;
   width: 40px;
@@ -897,6 +901,52 @@
 
   .root::after {
     content: none;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .rootPdpMobile {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+
+  .mobileBandPdp {
+    background: var(--surface-primary);
+  }
+
+  .mobileBandPdp .mobileBar {
+    gap: var(--space-100);
+    padding-inline: 0;
+  }
+
+  .mobileBandPdp .mobileBrand {
+    padding-left: var(--space-100);
+  }
+
+  .mobileBandPdp .mobileDefaultActions,
+  .mobileBandPdp .mobileSearchRow {
+    display: none;
+  }
+
+  .mobileBandPdp .mobilePdpActions {
+    display: flex;
+    gap: 0;
+  }
+
+  .mobileBandPdp .mobileAction {
+    width: auto;
+    min-width: 40px;
+    height: 40px;
+    box-sizing: border-box;
+    flex-direction: row;
+    gap: var(--space-025);
+    padding-inline: var(--space-100);
+  }
+
+  .mobileBandPdp .mobileActionLabel {
+    font-size: var(--font-size-body-md);
+    line-height: var(--line-height-body-md);
   }
 }
 

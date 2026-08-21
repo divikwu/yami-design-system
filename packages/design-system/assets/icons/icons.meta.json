@@ -16,12 +16,16 @@
       "canvas": 24
     },
     "base": {
-      "count": 45,
+      "count": 46,
       "canvas": 24
     },
     "category": {
       "count": 14,
       "canvas": 24
+    },
+    "communications": {
+      "count": 5,
+      "canvas": 16
     },
     "discount": {
       "count": 3,
@@ -554,6 +558,14 @@
       "sha1": "27f0286d1a"
     },
     {
+      "name": "same-day",
+      "category": "base",
+      "path": "assets/icons/base/same-day.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "3ab4daea0b"
+    },
+    {
       "name": "settings",
       "category": "base",
       "path": "assets/icons/base/settings.svg",
@@ -704,6 +716,46 @@
       "width": 24,
       "height": 24,
       "sha1": "5a6a7fefd1"
+    },
+    {
+      "name": "comment",
+      "category": "communications",
+      "path": "assets/icons/communications/comment.svg",
+      "width": 16,
+      "height": 16,
+      "sha1": "8497d0dcd9"
+    },
+    {
+      "name": "like",
+      "category": "communications",
+      "path": "assets/icons/communications/like.svg",
+      "width": 16,
+      "height": 16,
+      "sha1": "6fda364e21"
+    },
+    {
+      "name": "liked",
+      "category": "communications",
+      "path": "assets/icons/communications/liked.svg",
+      "width": 16,
+      "height": 16,
+      "sha1": "747731269a"
+    },
+    {
+      "name": "more",
+      "category": "communications",
+      "path": "assets/icons/communications/more.svg",
+      "width": 16,
+      "height": 16,
+      "sha1": "62000add52"
+    },
+    {
+      "name": "translate",
+      "category": "communications",
+      "path": "assets/icons/communications/translate.svg",
+      "width": 16,
+      "height": 16,
+      "sha1": "d28b1064fd"
     },
     {
       "name": "code",

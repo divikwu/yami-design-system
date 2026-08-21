@@ -16,6 +16,8 @@ arrow-down, arrow-left, arrow-right, arrow-up, asterisk, book, cancel, file, fol
 - sort → `action/sort.svg` (`action / sort`, node `6616:4641`)
 - account → `base/account.svg` (`tabbar / account`, node `1624:151016`)
 - cart → `base/cart.svg` (`tabbar / cart-line`, node `1624:151015`)
+- same-day → `base/same-day.svg` (`base / same-day`, node `7785:7598`)
+- communications → `communications/*.svg` (`Communications` component set, node `7788:8314`): comment, like, liked, more, translate. The inactive glyphs follow the shared `currentColor` contract; `liked` retains Figma's `Text/$text-brand` color (`#ED0000`).
 
 ## Missing — substitute from Lucide
 Required for UI kits but not in source set. Use Lucide CDN as temporary fallback (1.5–2px stroke, close visual match). **Flagged — replace with Figma-exported SVGs when available.**

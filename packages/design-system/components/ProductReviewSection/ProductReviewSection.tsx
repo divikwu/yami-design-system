@@ -3,7 +3,7 @@
 import { useId, useMemo, useState, type ReactNode } from "react";
 
 import { Button } from "../Button";
-import { FilterChip, FilterChipGroup } from "../FilterChip";
+import { FilterChip, FilterChipGroup, FilterChipMenu } from "../FilterChip";
 
 import styles from "./ProductReviewSection.module.css";
 import type {
@@ -11,6 +11,11 @@ import type {
   ProductReviewItem,
   ProductReviewSectionProps,
 } from "./ProductReviewSection.types";
+
+const dropdownIcon = new URL(
+  "../../assets/icons/system/arrow-down.svg",
+  import.meta.url,
+).href;
 
 function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
@@ -238,46 +243,50 @@ export function ProductReviewSection({
         </h2>
 
         <div className={styles.summary} data-slot="product-review-summary">
-          <div className={styles.score}>
-            <strong className={styles.average}>{safeAverage.toFixed(1)}</strong>
-            <StarRating rating={safeAverage} />
-            <span className={styles.reviewCount}>
-              {reviewCount} {copy.reviewsLabel}
-            </span>
-            <Button
-              className={styles.writeReview}
-              variant="primary"
-              size="md"
-              onClick={onWriteReview}
-              data-product-review-action="write-review"
-            >
-              {copy.writeReview}
-            </Button>
-          </div>
-
-          <div className={styles.distribution} data-slot="product-review-distribution">
-            {distribution.map((item) => (
-              <div className={styles.distributionRow} key={item.stars}>
-                <span className={styles.distributionLabel}>
-                  {item.stars} {starsLabel}
+          <div className={styles.summaryContent} data-slot="product-review-summary-content">
+            <div className={styles.score}>
+              <div className={styles.scoreSummary} data-slot="product-review-score-summary">
+                <strong className={styles.average}>{safeAverage.toFixed(1)}</strong>
+                <StarRating rating={safeAverage} />
+                <span className={styles.reviewCount}>
+                  {reviewCount} {copy.reviewsLabel}
                 </span>
-                <div
-                  className={styles.meter}
-                  role="meter"
-                  aria-label={`${item.stars} ${starsLabel}: ${item.percentage}%`}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-valuenow={item.percentage}
-                  data-stars={item.stars}
-                >
-                  <span
-                    className={styles.meterFill}
-                    style={{ inlineSize: `${item.percentage}%` }}
-                  />
-                </div>
-                <span className={styles.percentage}>{item.percentage}%</span>
               </div>
-            ))}
+              <Button
+                className={styles.writeReview}
+                variant="primary"
+                size="md"
+                onClick={onWriteReview}
+                data-product-review-action="write-review"
+              >
+                {copy.writeReview}
+              </Button>
+            </div>
+
+            <div className={styles.distribution} data-slot="product-review-distribution">
+              {distribution.map((item) => (
+                <div className={styles.distributionRow} key={item.stars}>
+                  <span className={styles.distributionLabel}>
+                    {item.stars} {starsLabel}
+                  </span>
+                  <div
+                    className={styles.meter}
+                    role="meter"
+                    aria-label={`${item.stars} ${starsLabel}: ${item.percentage}%`}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={item.percentage}
+                    data-stars={item.stars}
+                  >
+                    <span
+                      className={styles.meterFill}
+                      style={{ inlineSize: `${item.percentage}%` }}
+                    />
+                  </div>
+                  <span className={styles.percentage}>{item.percentage}%</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -301,21 +310,20 @@ export function ProductReviewSection({
             ))}
           </FilterChipGroup>
 
-          <label className={styles.sort}>
-            <span>{copy.sortBy}</span>
-            <select
+          <div className={styles.sort} data-product-review-sort="true">
+            <FilterChipMenu
+              label={copy.sortBy}
+              popupAriaLabel={copy.sortBy}
+              selectionMode="single"
               value={activeSort}
-              onChange={(event) => selectSort(event.currentTarget.value)}
-              aria-label={copy.sortBy}
-              data-product-review-sort="true"
-            >
-              {sortOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
+              onValueChange={selectSort}
+              options={sortOptions.map((option) => ({
+                value: option.value,
+                label: accessibleText(option.label, option.value),
+              }))}
+              rightIcon={<img src={dropdownIcon} alt="" width={12} height={12} />}
+            />
+          </div>
         </div>
 
         {visibleReviews.items.length ? (

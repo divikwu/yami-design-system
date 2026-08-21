@@ -2,7 +2,7 @@
   display: grid;
   min-width: 0;
   grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-200);
+  gap: 0;
   color: var(--text-primary);
   font-family: var(--font-family-ios);
 }
@@ -13,9 +13,9 @@
   grid-row: 2;
   flex-direction: row;
   gap: var(--space-100);
-  padding: var(--space-025);
+  padding: var(--space-150) 0;
   overflow-x: auto;
-  scroll-padding-inline: var(--space-025);
+  scroll-padding-inline: 0;
   scroll-snap-type: inline mandatory;
   scrollbar-width: none;
 }
@@ -30,7 +30,7 @@
   width: var(--space-1000);
   height: var(--space-1000);
   flex: 0 0 auto;
-  padding: var(--space-050);
+  padding: 0;
   overflow: hidden;
   place-items: center;
   border: var(--stroke-default) solid var(--border-default);
@@ -46,6 +46,7 @@
 }
 
 .thumbnailButton[data-selected="true"] {
+  border-width: var(--stroke-thick);
   border-color: var(--border-focus);
 }
 
@@ -82,6 +83,19 @@
   transform: translateY(-50%);
 }
 
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  .navigationButton {
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .stage:hover .navigationButton,
+  .root:focus-within .navigationButton {
+    visibility: visible;
+    pointer-events: auto;
+  }
+}
+
 .previousButton {
   left: var(--space-200);
 }
@@ -92,17 +106,17 @@
 
 .counter {
   position: absolute;
-  right: var(--space-200);
-  bottom: var(--space-200);
+  right: var(--space-100);
+  bottom: var(--space-100);
   display: inline-flex;
   min-width: var(--space-600);
-  height: var(--space-400);
+  height: calc(var(--space-400) - var(--space-050));
   align-items: center;
   justify-content: center;
   padding-inline: var(--space-100);
   border-radius: var(--radius-full);
-  background: var(--surface-inverse);
-  color: var(--text-primary-inverse);
+  background: var(--product-card-add-surface);
+  color: var(--product-card-add-icon);
   font-size: var(--font-size-caption-md);
   line-height: var(--line-height-caption-md);
 }
@@ -121,8 +135,10 @@
     right: var(--space-100);
   }
 
-  .counter {
-    right: var(--space-100);
-    bottom: var(--space-100);
+}
+
+@media (max-width: 767.98px) {
+  .navigationButton {
+    display: none;
   }
 }

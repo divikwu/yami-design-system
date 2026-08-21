@@ -37,6 +37,7 @@ const accountIcon = new URL('../../assets/icons/base/account.svg', import.meta.u
 const cartIcon = new URL('../../assets/icons/base/cart.svg', import.meta.url).href
 const zipcodeIcon = new URL('../../assets/icons/base/zipcode.svg', import.meta.url).href
 const messageIcon = new URL('../../assets/icons/base/message.svg', import.meta.url).href
+const searchIcon = new URL('../../assets/icons/action/search.svg', import.meta.url).href
 
 function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(' ')
@@ -101,6 +102,7 @@ function ChevronDownIcon() {
 }
 
 export function Header({
+  mobileVariant = 'default',
   logo,
   mobileLogo,
   darkLogo,
@@ -146,12 +148,20 @@ export function Header({
   return (
     <header
       {...rest}
-      className={cx(styles.root, className)}
+      className={cx(
+        styles.root,
+        mobileVariant === 'pdp' && styles.rootPdpMobile,
+        className,
+      )}
       data-slot="header"
       aria-label={ariaLabel}
       style={style}
     >
-      <div className={styles.mobileBand} data-slot="header-mobile">
+      <div
+        className={cx(styles.mobileBand, mobileVariant === 'pdp' && styles.mobileBandPdp)}
+        data-slot="header-mobile"
+        data-mobile-variant={mobileVariant}
+      >
         <div className={styles.mobileBar} data-slot="header-mobile-bar">
           <a className={styles.mobileBrand} href={homeHref} data-slot="header-mobile-brand">
             <BrandLockup
@@ -162,7 +172,10 @@ export function Header({
             />
           </a>
 
-          <div className={styles.mobileActions} data-slot="header-mobile-actions">
+          <div
+            className={cx(styles.mobileActions, styles.mobileDefaultActions)}
+            data-slot="header-mobile-actions"
+          >
             {zipcode && (
               <a
                 className={styles.mobileAction}
@@ -199,6 +212,55 @@ export function Header({
               </a>
             )}
           </div>
+
+          {mobileVariant === 'pdp' && (
+            <div
+              className={cx(styles.mobileActions, styles.mobilePdpActions)}
+              data-slot="header-mobile-pdp-actions"
+            >
+              {zipcode && (
+                <a
+                  className={styles.mobileAction}
+                  href={zipcode.href}
+                  data-slot="header-mobile-pdp-zipcode"
+                  aria-label={`${zipcode.label} ${zipcode.code}`}
+                >
+                  <span
+                    className={styles.mobileActionIcon}
+                    aria-hidden="true"
+                    style={{ ['--mobile-action-icon' as string]: `url("${zipcodeIcon}")` }}
+                  />
+                  <span className={styles.mobileActionLabel} aria-hidden="true">
+                    {zipcode.code}
+                  </span>
+                </a>
+              )}
+              <a
+                className={styles.mobileAction}
+                href={mobileSearchHref}
+                data-slot="header-mobile-search-action"
+                aria-label={searchLabel}
+              >
+                <span
+                  className={styles.mobileActionIcon}
+                  aria-hidden="true"
+                  style={{ ['--mobile-action-icon' as string]: `url("${searchIcon}")` }}
+                />
+              </a>
+              <a
+                className={styles.mobileAction}
+                href={cart.href}
+                data-slot="header-mobile-cart"
+                aria-label={`${cart.label}, ${cart.count ?? 0}`}
+              >
+                <span
+                  className={styles.mobileActionIcon}
+                  aria-hidden="true"
+                  style={{ ['--mobile-action-icon' as string]: `url("${cartIcon}")` }}
+                />
+              </a>
+            </div>
+          )}
         </div>
 
         <div className={styles.mobileSearchRow} data-slot="header-mobile-search-row">

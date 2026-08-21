@@ -6,7 +6,6 @@ import {
   Badge,
   Button,
   Card,
-  Divider,
   FilterChip,
   FilterChipGroup,
   Footer,
@@ -22,6 +21,10 @@ import type { ProductDetailPageProps } from "./ProductDetailPage.types";
 
 const heartIcon = new URL(
   "../../../design-system/assets/icons/action/heart.svg",
+  import.meta.url
+).href;
+const shareIcon = new URL(
+  "../../../design-system/assets/icons/action/share.svg",
   import.meta.url
 ).href;
 const weiboIcon = new URL(
@@ -48,16 +51,16 @@ const minusIcon = new URL(
   "../../../design-system/assets/icons/system/minus.svg",
   import.meta.url
 ).href;
-const deliveryIcon = new URL(
-  "../../../design-system/assets/icons/base/delivery-fill.svg",
+const sameDayIcon = new URL(
+  "../../../design-system/assets/icons/base/same-day.svg",
   import.meta.url
 ).href;
 const returnsIcon = new URL(
-  "../../../design-system/assets/icons/base/returns-fill.svg",
+  "../../../design-system/assets/icons/base/returns.svg",
   import.meta.url
 ).href;
-const protectionIcon = new URL(
-  "../../../design-system/assets/icons/base/protection-fill.svg",
+const zipcodeIcon = new URL(
+  "../../../design-system/assets/icons/base/zipcode.svg",
   import.meta.url
 ).href;
 const yamiSellerLogo = new URL(
@@ -67,6 +70,29 @@ const yamiSellerLogo = new URL(
 
 function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
+}
+
+const deliveryTimePattern =
+  /(\btomorrow\b|\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{1,2}\b|\b\d{1,2}:\d{2} (?:AM|PM)\b)/gi;
+
+function DeliveryEstimate({ children }: { children: string }) {
+  return (
+    <p>
+      {children.split(deliveryTimePattern).map((part, index) =>
+        index % 2 === 1 ? (
+          <span
+            className={styles.deliveryTime}
+            data-slot="product-detail-delivery-time"
+            key={`${part}-${index}`}
+          >
+            {part}
+          </span>
+        ) : (
+          part
+        )
+      )}
+    </p>
+  );
 }
 
 function RatingStar() {
@@ -227,6 +253,29 @@ export function ProductDetailPage({
                         ) : (
                           <span className={styles.brand}>{brand}</span>
                         )}
+                        <div
+                          className={styles.mobileSummaryActions}
+                          data-slot="product-detail-mobile-summary-actions"
+                        >
+                          <Button
+                            variant="tertiary"
+                            form="icon"
+                            size="sm"
+                            aria-label={copy.addToFavorites}
+                            data-pdp-mobile-action="favorite"
+                          >
+                            <img src={heartIcon} alt="" width={20} height={20} />
+                          </Button>
+                          <Button
+                            variant="tertiary"
+                            form="icon"
+                            size="sm"
+                            aria-label={copy.share}
+                            data-pdp-mobile-action="share"
+                          >
+                            <img src={shareIcon} alt="" width={20} height={20} />
+                          </Button>
+                        </div>
                       </div>
 
                     <h1 id="product-title" className={styles.title}>
@@ -416,174 +465,212 @@ export function ProductDetailPage({
                   </div>
 
                   <div
-                    className={styles.purchaseCheckoutGroup}
-                    data-slot="product-detail-purchase-checkout"
+                    className={styles.purchaseStickyGroup}
+                    data-slot="product-detail-purchase-sticky"
                   >
                     <div
-                      className={styles.quantityRow}
-                      data-slot="product-detail-quantity-row"
+                      className={styles.purchaseCheckoutGroup}
+                      data-slot="product-detail-purchase-checkout"
                     >
-                      <span className={styles.purchaseLabel}>
-                        {copy.quantity}
-                      </span>
-                      <div className={styles.stepper}>
-                        <Button
-                          variant="secondary"
-                          form="icon"
-                          size="sm"
-                          aria-label={copy.decreaseQuantity}
-                          disabled={quantity === 1}
-                          onClick={() =>
-                            setQuantity((value) => Math.max(1, value - 1))
-                          }
-                        >
-                          <img src={minusIcon} alt="" width={16} height={16} />
-                        </Button>
-                        <output aria-live="polite">{quantity}</output>
-                        <Button
-                          variant="secondary"
-                          form="icon"
-                          size="sm"
-                          aria-label={copy.increaseQuantity}
-                          onClick={() => setQuantity((value) => value + 1)}
-                        >
-                          <img src={addIcon} alt="" width={16} height={16} />
-                        </Button>
-                      </div>
-                    </div>
-
-                    <Button
-                      variant="emphasis"
-                      form="full"
-                      size="lg"
-                      data-pdp-add-to-cart="true"
-                    >
-                      {copy.addToCart}
-                    </Button>
-                  </div>
-                </div>
-
-                <div
-                  className={`${styles.purchaseGroup} ${styles.purchaseSecondaryGroup}`}
-                  data-slot="product-detail-purchase-secondary"
-                >
-                  <div
-                    className={styles.sellerBlock}
-                    data-slot="product-detail-seller"
-                  >
-                    <span
-                      className={styles.purchaseLabel}
-                      data-slot="product-detail-seller-label"
-                    >
-                      {copy.seller}
-                    </span>
-                    <div className={styles.sellerIdentity}>
-                      <img
-                        className={styles.sellerLogo}
-                        src={yamiSellerLogo}
-                        alt="YAMI"
-                        width={95}
-                        height={40}
-                        data-slot="product-detail-seller-logo"
-                      />
-                    </div>
-                  </div>
-                  <div
-                    className={styles.shippingBlock}
-                    data-slot="product-detail-shipping"
-                  >
-                    <div
-                      className={styles.shippingDestination}
-                      data-slot="product-detail-shipping-destination"
-                    >
-                      <span className={styles.purchaseLabel}>{copy.shipTo}</span>
-                      <span
-                        className={styles.shippingLocation}
-                        data-slot="product-detail-shipping-location"
-                      >
-                        Brea 92821
-                      </span>
-                    </div>
-                    <p>{copy.deliveryEstimate}</p>
-                  </div>
-                  <ul
-                    className={styles.guaranteeList}
-                    data-slot="product-detail-guarantees"
-                  >
-                    {copy.serviceGuarantees.map((guarantee, index) => {
-                      const icons = [deliveryIcon, returnsIcon, protectionIcon];
-                      return (
-                        <li key={guarantee}>
-                          <img
-                            src={icons[index] ?? protectionIcon}
-                            alt=""
-                            width={20}
-                            height={20}
-                          />
-                          <span>{guarantee}</span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                  {serviceDetailsHref ? (
-                    <a
-                      className={styles.purchaseDetailsLink}
-                      href={serviceDetailsHref}
-                      data-slot="product-detail-purchase-details"
-                    >
-                      {copy.viewDetails}
-                    </a>
-                  ) : null}
-                  {purchaseTags.length > 0 ? (
-                    <>
                       <div
-                        className={styles.purchaseTagsDivider}
-                        data-slot="product-detail-tags-divider"
+                        className={styles.quantityRow}
+                        data-slot="product-detail-quantity-row"
                       >
-                        <Divider />
-                      </div>
-                      <div
-                        className={styles.purchaseTagsBlock}
-                        data-slot="product-detail-tags-block"
-                      >
-                        <span
-                          className={styles.purchaseLabel}
-                          data-slot="product-detail-tags-label"
-                        >
-                          {copy.tags}
+                        <span className={styles.purchaseLabel}>
+                          {copy.quantity}
                         </span>
-                        <ul
-                          id="product-purchase-tags"
-                          className={styles.purchaseTags}
-                        >
-                          {(showAllTags
-                            ? purchaseTags
-                            : purchaseTags.slice(0, 3)
-                          ).map((tag) => (
-                            <li key={tag}>
-                              <Tag tone="dark-outline">{tag}</Tag>
-                            </li>
-                          ))}
-                        </ul>
-                        {purchaseTags.length > 3 ? (
-                          <button
-                            className={styles.textButton}
-                            data-slot="product-detail-tags-toggle"
-                            type="button"
-                            aria-expanded={showAllTags}
-                            aria-controls="product-purchase-tags"
+                        <div className={styles.stepper}>
+                          <Button
+                            className={styles.quantityButton}
+                            variant="secondary"
+                            form="icon"
+                            size="sm"
+                            aria-label={copy.decreaseQuantity}
+                            disabled={quantity === 1}
                             onClick={() =>
-                              setShowAllTags((isExpanded) => !isExpanded)
+                              setQuantity((value) => Math.max(1, value - 1))
                             }
                           >
-                            {showAllTags
-                              ? copy.showFewerTags
-                              : copy.showAllTags}
-                          </button>
+                            <span
+                              className={styles.stepperIcon}
+                              data-slot="product-detail-stepper-icon"
+                              aria-hidden="true"
+                              style={{
+                                ["--product-detail-stepper-icon" as string]: `url("${minusIcon}")`,
+                              }}
+                            />
+                          </Button>
+                          <output aria-live="polite">{quantity}</output>
+                          <Button
+                            className={styles.quantityButton}
+                            variant="secondary"
+                            form="icon"
+                            size="sm"
+                            aria-label={copy.increaseQuantity}
+                            onClick={() => setQuantity((value) => value + 1)}
+                          >
+                            <span
+                              className={styles.stepperIcon}
+                              data-slot="product-detail-stepper-icon"
+                              aria-hidden="true"
+                              style={{
+                                ["--product-detail-stepper-icon" as string]: `url("${addIcon}")`,
+                              }}
+                            />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <Button
+                        variant="emphasis"
+                        form="full"
+                        size="lg"
+                        data-pdp-add-to-cart="true"
+                      >
+                        {copy.addToCart}
+                      </Button>
+                    </div>
+
+                    <div
+                      className={`${styles.purchaseGroup} ${styles.purchaseSecondaryGroup}`}
+                      data-slot="product-detail-purchase-secondary"
+                    >
+                      <div
+                        className={styles.purchaseSellerShippingSection}
+                        data-slot="product-detail-seller-shipping-section"
+                      >
+                        <div
+                          className={styles.sellerBlock}
+                          data-slot="product-detail-seller"
+                        >
+                          <span
+                            className={styles.purchaseLabel}
+                            data-slot="product-detail-seller-label"
+                          >
+                            {copy.seller}
+                          </span>
+                          <div className={styles.sellerIdentity}>
+                            <img
+                              className={styles.sellerLogo}
+                              src={yamiSellerLogo}
+                              alt="YAMI"
+                              width={95}
+                              height={40}
+                              data-slot="product-detail-seller-logo"
+                            />
+                          </div>
+                        </div>
+                        <div
+                          className={styles.shippingBlock}
+                          data-slot="product-detail-shipping"
+                        >
+                          <div
+                            className={styles.shippingDestination}
+                            data-slot="product-detail-shipping-destination"
+                          >
+                            <span className={styles.purchaseLabel}>
+                              {copy.shipTo}
+                            </span>
+                            <span
+                              className={styles.shippingLocation}
+                              data-slot="product-detail-shipping-location"
+                            >
+                              Brea 92821
+                            </span>
+                          </div>
+                          <DeliveryEstimate>{copy.deliveryEstimate}</DeliveryEstimate>
+                        </div>
+                      </div>
+                      <div
+                        className={styles.purchaseGuaranteeSection}
+                        data-slot="product-detail-guarantee-section"
+                      >
+                        <ul
+                          className={styles.guaranteeList}
+                          data-slot="product-detail-guarantees"
+                        >
+                          {copy.serviceGuarantees.map((guarantee, index) => {
+                            const icons = [
+                              sameDayIcon,
+                              returnsIcon,
+                              zipcodeIcon,
+                            ];
+                            const iconNames = [
+                              "same-day",
+                              "returns",
+                              "zipcode",
+                            ];
+                            return (
+                              <li key={guarantee}>
+                                <span
+                                  className={styles.guaranteeIcon}
+                                  data-slot="product-detail-guarantee-icon"
+                                  data-icon-name={iconNames[index] ?? "zipcode"}
+                                  aria-hidden="true"
+                                  style={{
+                                    ["--product-detail-guarantee-icon" as string]:
+                                      `url("${icons[index] ?? zipcodeIcon}")`,
+                                  }}
+                                />
+                                <span>{guarantee}</span>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                        {serviceDetailsHref ? (
+                          <a
+                            className={styles.purchaseDetailsLink}
+                            href={serviceDetailsHref}
+                            data-slot="product-detail-purchase-details"
+                          >
+                            {copy.viewDetails}
+                          </a>
                         ) : null}
                       </div>
-                    </>
-                  ) : null}
+                      {purchaseTags.length > 0 ? (
+                        <div
+                          className={styles.purchaseTagsBlock}
+                          data-slot="product-detail-tags-block"
+                        >
+                          <span
+                            className={styles.purchaseLabel}
+                            data-slot="product-detail-tags-label"
+                          >
+                            {copy.tags}
+                          </span>
+                          <ul
+                            id="product-purchase-tags"
+                            className={styles.purchaseTags}
+                          >
+                            {(showAllTags
+                              ? purchaseTags
+                              : purchaseTags.slice(0, 3)
+                            ).map((tag) => (
+                              <li key={tag}>
+                                <Tag tone="dark-outline">{tag}</Tag>
+                              </li>
+                            ))}
+                          </ul>
+                          {purchaseTags.length > 3 ? (
+                            <button
+                              className={styles.textButton}
+                              data-slot="product-detail-tags-toggle"
+                              type="button"
+                              aria-expanded={showAllTags}
+                              aria-controls="product-purchase-tags"
+                              onClick={() =>
+                                setShowAllTags((isExpanded) => !isExpanded)
+                              }
+                            >
+                              {showAllTags
+                                ? copy.showFewerTags
+                                : copy.showAllTags}
+                            </button>
+                          ) : null}
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
                 </div>
               </Card>
             </aside>
@@ -596,8 +683,6 @@ export function ProductDetailPage({
           products={recommendations}
           layout="rail"
           imageLoadingStrategy="windowed"
-          viewAllHref="#recommendations"
-          viewAllLabel={copy.viewAll}
           onAddToCart={() => {}}
           dividerPosition="top"
           data-pdp-module="recommendations"
