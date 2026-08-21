@@ -247,6 +247,11 @@
   border: 0;
 }
 
+.optionGroupHeading,
+.optionGroupArrow {
+  display: none;
+}
+
 .optionGroup legend {
   margin-bottom: var(--space-100);
   color: var(--text-secondary);
@@ -327,12 +332,19 @@
   border-radius: var(--radius-component-default);
 }
 
-.purchaseSecondaryGroup > div {
+.purchaseFulfillmentGroup > div,
+.purchaseTagsBlock {
   padding: var(--space-200) var(--space-150);
 }
 
-.purchaseSecondaryGroup > div + div {
+.purchaseFulfillmentGroup > div + div,
+.purchaseTagsBlock {
   border-block-start: var(--stroke-default) solid var(--divider-default);
+}
+
+.purchaseFulfillmentGroup {
+  display: flex;
+  flex-direction: column;
 }
 
 .purchaseSellerShippingSection,
@@ -647,7 +659,8 @@
 
 .recommendations,
 .reviews,
-.brandProducts {
+.brandProducts,
+.recentlyViewed {
   margin-top: 0;
 }
 
@@ -655,6 +668,34 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-100);
+}
+
+.brandProducts :global([data-slot="product-list-heading"]),
+.brandProducts :global([data-slot="product-list-title"]) {
+  min-height: calc(var(--space-600) + var(--space-150));
+}
+
+.brandProducts :global([data-slot="product-list-heading"]) {
+  position: relative;
+}
+
+.brandProducts :global([data-slot="product-list-title"]) {
+  display: flex;
+  align-items: center;
+  overflow: visible;
+}
+
+.brandLogo {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  display: block;
+  box-sizing: border-box;
+  max-width: calc(var(--space-1000) + var(--space-500));
+  max-height: calc(var(--space-600) + var(--space-150));
+  border: var(--stroke-default) solid var(--border-default);
+  object-fit: contain;
+  transform: translate(-50%, -50%);
 }
 
 .brandIntro h3,
@@ -685,6 +726,9 @@
 
 @media (max-width: 767.98px) {
   .main {
+    display: flex;
+    flex-direction: column;
+    gap: var(--layout-page-margin-card);
     padding-bottom: calc(var(--space-1000) + var(--space-400));
     background: var(--background-secondary);
   }
@@ -729,20 +773,113 @@
 
   .productInfoColumn {
     gap: var(--space-100);
-    padding-block: var(--space-100);
+    padding-block-start: var(--space-100);
     background: var(--background-secondary);
   }
 
-  .productInfo,
   .details {
+    gap: var(--space-200);
     margin-inline: var(--space-100);
     padding: var(--space-150);
     border-radius: var(--radius-surface-default);
     background: var(--surface-primary);
   }
 
+  .detailModule {
+    gap: var(--space-100);
+    padding-block: 0;
+  }
+
+  .detailModule + .detailModule {
+    padding-block-start: var(--space-150);
+  }
+
+  .productInfo {
+    display: contents;
+  }
+
+  .productSummary,
+  .productOptionsModule {
+    margin-inline: var(--space-100);
+    border-radius: var(--radius-surface-default);
+    background: var(--surface-primary);
+  }
+
   .productSummary {
     gap: var(--space-050);
+    padding: var(--space-150);
+  }
+
+  .productOptionsModule {
+    padding-inline: var(--space-150);
+    padding-block: 0;
+    border-block-start: 0;
+  }
+
+  .optionStack {
+    gap: var(--space-200);
+    padding-block-start: var(--space-200);
+  }
+
+  .optionGroupArrow {
+    display: flex;
+    width: var(--space-200);
+    height: var(--line-height-body-md);
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .optionGroupLegend {
+    position: absolute;
+    width: var(--stroke-default);
+    height: var(--stroke-default);
+    padding: 0;
+    margin: calc(var(--stroke-default) * -1);
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .optionGroupHeading {
+    display: flex;
+    height: var(--space-300);
+    align-items: center;
+    justify-content: space-between;
+    margin-block-end: var(--space-100);
+    color: var(--text-secondary);
+    font-size: var(--font-size-body-md);
+    font-weight: var(--font-weight-normal);
+    line-height: var(--line-height-body-md);
+  }
+
+  .optionGroupArrow img {
+    display: block;
+    width: var(--space-200);
+    height: var(--space-200);
+  }
+
+  .productOptionsModule .bestBefore {
+    padding-block-end: var(--space-150);
+  }
+
+  .optionChips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+
+  .optionChips [data-slot="filter-chip"] {
+    position: relative;
+    height: var(--space-400);
+    padding-inline: var(--space-100);
+  }
+
+  .optionChips [data-slot="filter-chip"]::before {
+    position: absolute;
+    inset-block: calc(var(--space-150) * -0.5);
+    inset-inline: 0;
+    content: "";
   }
 
   .brandRow {
@@ -776,7 +913,7 @@
   .purchasePanel {
     position: static;
     grid-area: purchase;
-    padding: 0 var(--space-100) var(--space-200);
+    padding-inline: var(--space-100);
     background: var(--background-secondary);
   }
 
@@ -787,6 +924,22 @@
   .purchaseStickyGroup {
     position: static;
     background: transparent;
+  }
+
+  .purchaseSecondaryGroup {
+    gap: var(--space-100);
+    border: 0;
+    background: transparent;
+  }
+
+  .purchaseFulfillmentGroup,
+  .purchaseTagsBlock {
+    border-radius: var(--radius-surface-default);
+    background: var(--surface-primary);
+  }
+
+  .purchaseTagsBlock {
+    border-block-start: 0;
   }
 
   .purchaseCheckoutGroup {

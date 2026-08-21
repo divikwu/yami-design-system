@@ -33,6 +33,12 @@ export interface ProductDetailSpecification {
 
 export interface ProductDetailBrandSection {
   title: string;
+  /** Optional decorative brand mark shown in the center of the section heading. */
+  logo?: {
+    src: string;
+    width: number;
+    height: number;
+  };
   aboutLabel: string;
   description: string;
   products: ProductListItem[];
@@ -73,6 +79,7 @@ export interface ProductDetailPageCopy {
   showAllTags: string;
   showFewerTags: string;
   recommendations: string;
+  recentlyViewed: string;
   viewAll: string;
 }
 
@@ -100,6 +107,7 @@ export interface ProductDetailPageProps
   serviceDetailsHref?: string;
   purchaseTags?: readonly string[];
   recommendations: ProductListItem[];
+  recentlyViewed?: ProductListItem[];
   reviewSection?: ProductReviewSectionProps;
   brandSection?: ProductDetailBrandSection;
   copy: ProductDetailPageCopy;

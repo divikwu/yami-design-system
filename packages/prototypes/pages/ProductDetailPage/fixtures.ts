@@ -52,6 +52,147 @@ function recommendation(
   };
 }
 
+const recentlyViewedProducts: ProductListItem[] = [
+  {
+    id: "recent-elegance-face-powder",
+    href: "#recent-elegance-face-powder",
+    image:
+      "https://cdn.yamibuy.net/item/ebde4aedd980a725501d9ed711255d2a_300x300.webp",
+    imageAlt: "ELEGANCE Face Powder Compact #I",
+    brand: "ELEGANCE",
+    brandHref: "#elegance",
+    title: "Face Powder Compact #I, 0.31 oz @Cosme Award",
+    ranking: "#6 Top Reordered Foundation, Concealer, Setting",
+    rating: 4.9,
+    ratingCount: "15",
+    soldCount: "60+ Sold",
+    priceCurrent: "$119.99",
+    priceOriginal: "$144.99",
+    addButtonAriaLabel: "Add ELEGANCE Face Powder Compact #I to cart",
+  },
+  {
+    id: "recent-skin1004-sun-serum",
+    href: "#recent-skin1004-sun-serum",
+    image:
+      "https://cdn.yamibuy.net/item/ae08094e7ec81daa6dccb333ee8e4b4e_300x300.webp",
+    imageAlt: "SKIN1004 Madagascar Centella Hyalu-Cica Water-Fit Sun Serum value pack",
+    brand: "SKIN1004",
+    brandHref: "#skin1004",
+    title:
+      "Madagascar Centella Hyalu-Cica Water-Fit Sun Serum, Brightening, 1.69 fl oz.*2 Dry&Sensitive Skin【Value Pack】",
+    rating: 5,
+    ratingCount: "4",
+    soldCount: "100+ Sold",
+    priceCurrent: "$24.29",
+    priceOriginal: "$34.99",
+    badges: [
+      { label: "Choice", type: "choice" },
+      { label: "-30%", type: "discount" },
+    ],
+    addButtonAriaLabel: "Add SKIN1004 sun serum value pack to cart",
+  },
+  {
+    id: "recent-beplain-cleanser",
+    href: "#recent-beplain-cleanser",
+    image:
+      "https://cdn.yamibuy.net/item/29aad4f8b0c444171882b043ca849b08_300x300.webp",
+    imageAlt: "beplain Mung Bean ph-Balanced Cleansing Foam",
+    brand: "beplain",
+    brandHref: "#beplain",
+    title: "Mung Bean ph-Balanced Cleansing Foam, 5.41 fl oz",
+    ranking: "#9 Best Sellers in Cleanser & Exfoliators",
+    rating: 4.7,
+    ratingCount: "3",
+    soldCount: "70+ Sold",
+    priceCurrent: "$18.99",
+    priceOriginal: "$26.00",
+    badges: [{ label: "-26%", type: "discount" }],
+    addButtonAriaLabel: "Add beplain Mung Bean Cleansing Foam to cart",
+  },
+  {
+    id: "recent-beauty-of-joseon-sun",
+    href: "#recent-beauty-of-joseon-sun",
+    image:
+      "https://cdn.yamibuy.net/item/0a5b71afa1d59b2f45ce0a5b90a3b4f2_300x300.webp",
+    imageAlt: "Beauty of Joseon Relief Sun Rice Probiotics value pack",
+    brand: "Beauty of Joseon",
+    brandHref: "#beauty-of-joseon",
+    title:
+      "Relief Sun Rice Probiotics Sunscreen SPF50+·PA++++, 1.7 fl oz*2【Value Pack】",
+    rating: 5,
+    ratingCount: "7",
+    soldCount: "200+ Sold",
+    priceCurrent: "$22.59",
+    priceOriginal: "$39.98",
+    badges: [
+      { label: "Choice", type: "choice" },
+      { label: "Low Price", type: "low-price" },
+    ],
+    addButtonAriaLabel: "Add Beauty of Joseon Relief Sun value pack to cart",
+  },
+  {
+    id: "recent-marukyu-matcha",
+    href: "#recent-marukyu-matcha",
+    image:
+      "https://cdn.yamibuy.net/item/e3c1f9f0a0fa194ebba0e3c6aa34928e_300x300.webp",
+    imageAlt: "MARUKYU KOYAMAEN Japanese Matcha Powder Wakatake",
+    brand: "MARUKYU KOYAMAEN",
+    brandHref: "#marukyu-koyamaen",
+    title:
+      "Japanese Matcha Powder Wakatake, 3.53 oz【Fresh Green Tea Aroma】【For Drinks & Cooking】",
+    soldCount: "60+ Sold",
+    priceCurrent: "$42.99",
+    priceOriginal: "$69.99",
+    badges: [{ label: "Low Price", type: "low-price" }],
+    addButtonAriaLabel: "Add MARUKYU KOYAMAEN Matcha Powder Wakatake to cart",
+  },
+  {
+    id: "recent-sk-ii-essence",
+    href: "#recent-sk-ii-essence",
+    image:
+      "https://cdn.yamibuy.net/item/b21c446891140d6f29c77841b085fd28_300x300.webp",
+    imageAlt: "SK-II Facial Treatment Essence",
+    brand: "SK-II",
+    brandHref: "#sk-ii",
+    title: "SK-II Facial Treatment Essence, 330 ml / 11 oz",
+    priceCurrent: "$339.00",
+    addButtonAriaLabel: "Add SK-II Facial Treatment Essence to cart",
+  },
+  {
+    id: "recent-anua-cleanser",
+    href: "#recent-anua-cleanser",
+    image:
+      "https://cdn.yamibuy.net/item/3ea01df0ad0bb3f01a8de350a241c9ba_300x300.webp",
+    imageAlt: "ANUA 8 Hyaluronic Acid Hydrating Gentle Foaming Cleanser",
+    brand: "ANUA",
+    brandHref: "#anua",
+    title: "8 Hyaluronic Acid Hydrating Gentle Foaming Cleanser, 5.07 fl oz",
+    rating: 5,
+    ratingCount: "1",
+    soldCount: "30+ Sold",
+    priceCurrent: "$11.52",
+    priceOriginal: "$13.99",
+    badges: [{ label: "Low Price", type: "low-price" }],
+    addButtonAriaLabel: "Add ANUA 8 Hyaluronic Acid Cleanser to cart",
+  },
+  {
+    id: "recent-anua-cleansing-oil",
+    href: "#recent-anua-cleansing-oil",
+    image:
+      "https://cdn.yamibuy.net/item/780e2ce08cddc33308de249579d7fced_300x300.webp",
+    imageAlt: "ANUA Heartleaf Pore Control Cleansing Oil",
+    brand: "ANUA",
+    brandHref: "#anua",
+    title:
+      "Heartleaf Pore Control Cleansing Oil, 6.76 fl oz, Quick Makeup Removal",
+    ranking: "#6 Most Liked Makeup Remover",
+    soldCount: "80+ Sold",
+    priceCurrent: "$18.99",
+    priceOriginal: "$19.99",
+    addButtonAriaLabel: "Add ANUA Heartleaf Pore Control Cleansing Oil to cart",
+  },
+];
+
 function createFooter(): FooterProps {
   const copy = footerCopy.en;
   return {
@@ -159,7 +300,7 @@ export function createProductDetailPageFixture(): ProductDetailPageProps {
       recommendation("snp-birds-nest-mask", "fd8182dd56284740b83a16dcd23cbeeb", "SNP", "Bird’s Nest Aqua Ampoule Mask, 10 sheets", "$8.09", "$17.50", "219"),
     ],
     reviewSection: {
-      title: "Reviews",
+      title: "Customer Reviews",
       reviewCount: 10,
       averageRating: 4.7,
       ratingDistribution: [
@@ -311,12 +452,14 @@ export function createProductDetailPageFixture(): ProductDetailPageProps {
       ],
       copy: {
         reviewsLabel: "Reviews",
+        referenceNotice:
+          "Some reviews are from other options and are shown for reference.",
         writeReview: "Write a review",
         all: "All",
         purchased: "Purchased",
         photos: "Photos",
         sortBy: "Sort by",
-        viewMore: "View more",
+        viewMore: "View All Reviews",
         verifiedPurchase: "Verified purchase",
         currentItem: "Current item",
         showOriginal: "Show original",
@@ -337,10 +480,15 @@ export function createProductDetailPageFixture(): ProductDetailPageProps {
         },
       ],
       initialVisibleCount: 6,
-      viewMoreIncrement: 3,
+      viewMoreIncrement: 4,
     },
     brandSection: {
       title: "Torriden",
+      logo: {
+        src: "https://cdn.yamibuy.net/brand/792b967e8361282011110f2387764792_240x120.webp",
+        width: 120,
+        height: 60,
+      },
       aboutLabel: "About the brand",
       description:
         "Torriden creates clean, vegan, and cruelty-free formulas focused on effective hydration. Its signature 5D-Complex low molecular hyaluronic acid supports layered moisture without a sticky finish.",
@@ -359,6 +507,7 @@ export function createProductDetailPageFixture(): ProductDetailPageProps {
         recommendation("torriden-toner", "a3c484049ff6976250c79c2bc9f5c65d", "Torriden", "Dive In Vegan Low Molecular Hyaluronic Acid Toner, 10.14 fl oz", "$15.49", "$19.99", "1"),
       ],
     },
+    recentlyViewed: recentlyViewedProducts,
     copy: {
       galleryLabel: "Product image gallery",
       thumbnailsLabel: "Choose a product image",
@@ -390,6 +539,7 @@ export function createProductDetailPageFixture(): ProductDetailPageProps {
       showAllTags: "Show all",
       showFewerTags: "Show fewer",
       recommendations: "Recommendations based on this item",
+      recentlyViewed: "You've Recently Viewed",
       viewAll: "View all",
     },
   };

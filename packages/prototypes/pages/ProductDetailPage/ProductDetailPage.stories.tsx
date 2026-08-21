@@ -105,8 +105,13 @@ export const PDP: Story = {
     const purchaseSecondary = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-detail-purchase-secondary"]'
     );
+    const purchaseFulfillment = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-detail-purchase-fulfillment"]'
+    );
     const purchaseSecondarySections =
       purchaseSecondary?.querySelectorAll<HTMLElement>(":scope > div");
+    const purchaseFulfillmentSections =
+      purchaseFulfillment?.querySelectorAll<HTMLElement>(":scope > div");
     const sellerShippingSection = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-detail-seller-shipping-section"]'
     );
@@ -232,6 +237,9 @@ export const PDP: Story = {
       '[data-slot="product-detail-options"]'
     );
     const optionLegends = optionStack?.querySelectorAll<HTMLElement>("legend");
+    const optionGroupArrows = optionStack?.querySelectorAll<HTMLElement>(
+      '[data-slot="product-detail-option-group-arrow"]'
+    );
     const packagingButtons = packagingOptions?.querySelectorAll("button");
     const headerCategories = canvasElement.querySelectorAll(
       '[data-slot="header-category"]'
@@ -250,6 +258,12 @@ export const PDP: Story = {
     );
     const brandProducts = canvasElement.querySelector<HTMLElement>(
       '[data-pdp-module="brand-products"]'
+    );
+    const recentlyViewed = canvasElement.querySelector<HTMLElement>(
+      '[data-pdp-module="recently-viewed"]'
+    );
+    const recentlyViewedItems = recentlyViewed?.querySelectorAll(
+      '[data-slot="product-list-item"]'
     );
     const reviews = canvasElement.querySelector<HTMLElement>(
       '[data-pdp-module="reviews"]'
@@ -273,6 +287,39 @@ export const PDP: Story = {
     const brandItems = brandProducts?.querySelectorAll(
       '[data-slot="product-list-item"]'
     );
+    const brandHeading = brandProducts?.querySelector<HTMLElement>(
+      '[data-slot="product-list-heading"]'
+    );
+    const brandLogo = brandProducts?.querySelector<HTMLImageElement>(
+      '[data-slot="product-detail-brand-logo"]'
+    );
+    const brandLogoStyle = brandLogo ? getComputedStyle(brandLogo) : null;
+    const brandHeadingRect = brandHeading?.getBoundingClientRect();
+    const brandLogoRect = brandLogo?.getBoundingClientRect();
+    if (
+      !brandHeading ||
+      !brandLogo ||
+      !brandHeadingRect ||
+      !brandLogoRect ||
+      brandLogo.alt !== "" ||
+      brandLogo.getAttribute("width") !== "120" ||
+      brandLogo.getAttribute("height") !== "60" ||
+      brandLogoRect.width !== 120 ||
+      brandLogoRect.height !== 60 ||
+      brandLogoStyle?.boxSizing !== "border-box" ||
+      brandLogoStyle.borderTopStyle !== "solid" ||
+      brandLogoStyle.borderTopWidth !== "1px" ||
+      brandLogoStyle.borderTopColor !== "rgba(0, 0, 0, 0.08)" ||
+      Math.abs(
+        brandLogoRect.left +
+          brandLogoRect.width / 2 -
+          (brandHeadingRect.left + brandHeadingRect.width / 2)
+      ) > 1
+    ) {
+      throw new Error(
+        "PDP brand logo must stay centered at 120x60 with a 1px gray semantic border"
+      );
+    }
     const main = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-detail-main"]'
     );
@@ -322,15 +369,20 @@ export const PDP: Story = {
       !purchaseCheckout ||
       getComputedStyle(purchaseCheckout).paddingTop !== "0px" ||
       !purchaseSecondary ||
+      !purchaseFulfillment ||
       !purchaseSecondarySections ||
-      purchaseSecondarySections.length !== 3 ||
+      purchaseSecondarySections.length !== 2 ||
+      !purchaseFulfillmentSections ||
+      purchaseFulfillmentSections.length !== 2 ||
       !sellerShippingSection ||
       !guaranteeSection ||
-      purchaseSecondarySections[0] !== sellerShippingSection ||
-      purchaseSecondarySections[1] !== guaranteeSection ||
-      purchaseSecondarySections[2] !== purchaseTagsBlock ||
-      Array.from(purchaseSecondarySections).some(
+      purchaseSecondarySections[0] !== purchaseFulfillment ||
+      purchaseSecondarySections[1] !== purchaseTagsBlock ||
+      purchaseFulfillmentSections[0] !== sellerShippingSection ||
+      purchaseFulfillmentSections[1] !== guaranteeSection ||
+      [sellerShippingSection, guaranteeSection, purchaseTagsBlock].some(
         (section, index) =>
+          !section ||
           getComputedStyle(section).paddingTop !== "16px" ||
           getComputedStyle(section).paddingRight !== "12px" ||
           getComputedStyle(section).paddingBottom !== "16px" ||
@@ -590,6 +642,11 @@ export const PDP: Story = {
           getComputedStyle(legend).fontWeight !== "400" ||
           getComputedStyle(legend).color !== "rgba(0, 0, 0, 0.55)"
       ) ||
+      !optionGroupArrows ||
+      optionGroupArrows.length !== 2 ||
+      Array.from(optionGroupArrows).some(
+        (arrow) => getComputedStyle(arrow).display !== "none"
+      ) ||
       !maskTypeOption ||
       Math.round(maskTypeOption.getBoundingClientRect().height) !== 44 ||
       getComputedStyle(maskTypeOption).borderRadius !== "8px" ||
@@ -657,10 +714,21 @@ export const PDP: Story = {
       brandProducts.querySelector(
         '[data-slot="product-list-leading-content"]'
       ) ||
+      recentlyViewed?.dataset.layout !== "rail" ||
+      recentlyViewed.dataset.mobileSurface !== "card" ||
+      getComputedStyle(recentlyViewed).marginTop !== "0px" ||
+      !recentlyViewed.textContent?.includes("You've Recently Viewed") ||
+      recentlyViewedItems?.length !== 8 ||
+      !recentlyViewed.querySelector(
+        'a[href="#recent-elegance-face-powder"]'
+      ) ||
+      !recentlyViewed.querySelector(
+        'a[href="#recent-anua-cleansing-oil"]'
+      ) ||
       main?.dataset.contentMaxWidth !== expectedContentMaxWidth ||
       getComputedStyle(main).paddingBottom !== "0px" ||
       !content ||
-      productListContainers.length !== 2 ||
+      productListContainers.length !== 3 ||
       getComputedStyle(content).maxWidth !== expectedContentMaxWidth ||
       Array.from(productListContainers).some(
         (container) =>
@@ -670,7 +738,9 @@ export const PDP: Story = {
       recommendations.getBoundingClientRect().top >=
         reviews.getBoundingClientRect().top ||
       reviews.getBoundingClientRect().top >=
-        brandProducts.getBoundingClientRect().top
+        brandProducts.getBoundingClientRect().top ||
+      brandProducts.getBoundingClientRect().top >=
+        recentlyViewed.getBoundingClientRect().top
     ) {
       throw new Error(
         "Product Detail page did not render its complete purchase state"
@@ -814,6 +884,9 @@ export const Mobile: Story = {
     if (!viewportWidth) {
       throw new Error("Mobile PDP viewport width must be available");
     }
+    const main = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-detail-main"]'
+    );
     const gallery = canvasElement.querySelector<HTMLElement>(
       '[aria-label="Product image gallery"]'
     );
@@ -856,6 +929,39 @@ export const Mobile: Story = {
     const productInfoColumn = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-detail-info-column"]'
     );
+    const mobileSummary = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-detail-summary"]'
+    );
+    const mobileOptionsModule = productInfo?.querySelector<HTMLElement>(
+      ':scope > [data-pdp-info-module="options"]'
+    );
+    const mobileOptionStack = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-detail-options"]'
+    );
+    const mobilePackagingOptions = canvasElement.querySelector<HTMLElement>(
+      '[data-pdp-option-group="packaging"]'
+    );
+    const mobilePackagingButtons =
+      mobilePackagingOptions?.querySelectorAll("button");
+    const mobileMaskTypeOption = canvasElement.querySelector<HTMLElement>(
+      '[data-pdp-option-group="mask-type"] [data-slot="filter-chip"]'
+    );
+    const mobileOptionChips = canvasElement.querySelectorAll<HTMLElement>(
+      '[data-slot="product-detail-options"] [data-slot="filter-chip"]'
+    );
+    const mobileOptionGroupArrows =
+      mobileOptionStack?.querySelectorAll<HTMLElement>(
+        '[data-slot="product-detail-option-group-arrow"]'
+      );
+    const mobileOptionGroupHeadings =
+      mobileOptionStack?.querySelectorAll<HTMLElement>(
+        '[data-slot="product-detail-option-group-heading"]'
+      );
+    const mobileOptionLegends =
+      mobileOptionStack?.querySelectorAll<HTMLElement>("legend");
+    const mobileMaskTypeHitArea = mobileMaskTypeOption
+      ? getComputedStyle(mobileMaskTypeOption, "::before")
+      : null;
     const purchasePanel = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-detail-purchase"]'
     );
@@ -865,14 +971,29 @@ export const Mobile: Story = {
     const purchaseCheckout = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-detail-purchase-checkout"]'
     );
+    const purchaseSecondary = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-detail-purchase-secondary"]'
+    );
+    const purchaseFulfillment = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-detail-purchase-fulfillment"]'
+    );
+    const purchaseTagsBlock = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-detail-tags-block"]'
+    );
     const details = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-detail-details"]'
+    );
+    const detailModules = details?.querySelectorAll<HTMLElement>(
+      '[data-pdp-detail-module]'
     );
     const recommendations = canvasElement.querySelector<HTMLElement>(
       '[data-pdp-module="recommendations"]'
     );
     const brandProducts = canvasElement.querySelector<HTMLElement>(
       '[data-pdp-module="brand-products"]'
+    );
+    const recentlyViewed = canvasElement.querySelector<HTMLElement>(
+      '[data-pdp-module="recently-viewed"]'
     );
     const brandIntro = brandProducts?.querySelector<HTMLElement>(
       '[data-slot="product-list-intro"]'
@@ -885,6 +1006,12 @@ export const Mobile: Story = {
     );
     const reviewGrid = reviews?.querySelector<HTMLElement>(
       '[data-slot="product-review-grid"]'
+    );
+    const reviewCards = reviewGrid?.querySelectorAll<HTMLElement>(
+      '[data-slot="product-review-card"]'
+    );
+    const reviewContainer = reviews?.querySelector<HTMLElement>(
+      '[data-slot="product-review-section-container"]'
     );
     const utilityRow = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-detail-utility-row"]'
@@ -922,6 +1049,10 @@ export const Mobile: Story = {
       "[data-pdp-share-action]"
     );
     if (
+      !main ||
+      getComputedStyle(main).display !== "flex" ||
+      getComputedStyle(main).flexDirection !== "column" ||
+      getComputedStyle(main).rowGap !== "8px" ||
       !brandProducts ||
       !brandIntro ||
       !brandItems ||
@@ -961,9 +1092,104 @@ export const Mobile: Story = {
       !overview ||
       !productInfo ||
       !productInfoColumn ||
+      !mobileSummary ||
+      !mobileOptionsModule ||
+      getComputedStyle(mobileOptionsModule).paddingTop !== "0px" ||
+      getComputedStyle(mobileOptionsModule).paddingBottom !== "0px" ||
+      getComputedStyle(mobileOptionsModule).paddingLeft !== "12px" ||
+      getComputedStyle(mobileOptionsModule).paddingRight !== "12px" ||
+      getComputedStyle(mobileOptionsModule).borderTopWidth !== "0px" ||
+      getComputedStyle(mobileOptionsModule).backgroundColor !==
+        "rgb(255, 255, 255)" ||
+      !mobileOptionStack ||
+      getComputedStyle(mobileOptionStack).paddingTop !== "16px" ||
+      getComputedStyle(mobileOptionStack).paddingBottom !== "0px" ||
+      getComputedStyle(mobileOptionStack).rowGap !== "16px" ||
+      !mobileOptionGroupHeadings ||
+      mobileOptionGroupHeadings.length !== 2 ||
+      Array.from(mobileOptionGroupHeadings).some(
+        (heading) =>
+          getComputedStyle(heading).display !== "flex" ||
+          getComputedStyle(heading).height !== "24px" ||
+          getComputedStyle(heading).justifyContent !== "space-between"
+      ) ||
+      !mobileOptionLegends ||
+      mobileOptionLegends.length !== 2 ||
+      Array.from(mobileOptionLegends).some(
+        (legend) =>
+          getComputedStyle(legend).position !== "absolute" ||
+          getComputedStyle(legend).width !== "1px" ||
+          getComputedStyle(legend).height !== "1px"
+      ) ||
+      !mobileOptionGroupArrows ||
+      mobileOptionGroupArrows.length !== 2 ||
+      Array.from(mobileOptionGroupArrows).some((arrow) => {
+        const icon = arrow.querySelector<HTMLImageElement>("img");
+        const arrowStyle = getComputedStyle(arrow);
+        const iconRect = icon?.getBoundingClientRect();
+        const arrowRect = arrow.getBoundingClientRect();
+        const headingRect = arrow.parentElement?.getBoundingClientRect();
+        return (
+          arrow.tagName !== "DIV" ||
+          arrowStyle.display !== "flex" ||
+          arrowStyle.position !== "static" ||
+          arrow.parentElement?.dataset.slot !==
+            "product-detail-option-group-heading" ||
+          !headingRect ||
+          Math.abs(headingRect.right - arrowRect.right) > 1 ||
+          !icon ||
+          icon.alt !== "" ||
+          !icon.src.startsWith("data:image/svg+xml") ||
+          Math.round(iconRect?.width ?? 0) !== 16 ||
+          Math.round(iconRect?.height ?? 0) !== 16
+        );
+      }) ||
+      !mobilePackagingOptions ||
+      getComputedStyle(mobilePackagingOptions).flexWrap !== "nowrap" ||
+      getComputedStyle(mobilePackagingOptions).overflowX !== "auto" ||
+      mobilePackagingOptions.scrollWidth <=
+        mobilePackagingOptions.clientWidth ||
+      Array.from(mobilePackagingButtons ?? []).some(
+        (button) =>
+          Math.abs(
+            button.getBoundingClientRect().top -
+              mobilePackagingButtons![0].getBoundingClientRect().top
+          ) > 1
+      ) ||
+      !mobileMaskTypeOption ||
+      Math.round(mobileMaskTypeOption.getBoundingClientRect().height) !== 32 ||
+      mobileOptionChips.length !== 8 ||
+      Array.from(mobileOptionChips).some(
+        (chip) =>
+          getComputedStyle(chip).paddingLeft !== "8px" ||
+          getComputedStyle(chip).paddingRight !== "8px"
+      ) ||
+      mobileMaskTypeHitArea?.position !== "absolute" ||
+      mobileMaskTypeHitArea.top !== "-6px" ||
+      mobileMaskTypeHitArea.bottom !== "-6px" ||
       !purchasePanel ||
       !purchaseSticky ||
       !purchaseCheckout ||
+      !purchaseSecondary ||
+      !purchaseFulfillment ||
+      !purchaseTagsBlock ||
+      getComputedStyle(purchaseSecondary).borderTopWidth !== "0px" ||
+      getComputedStyle(purchaseSecondary).borderRightWidth !== "0px" ||
+      getComputedStyle(purchaseSecondary).borderBottomWidth !== "0px" ||
+      getComputedStyle(purchaseSecondary).borderLeftWidth !== "0px" ||
+      getComputedStyle(purchaseSecondary).backgroundColor !==
+        "rgba(0, 0, 0, 0)" ||
+      getComputedStyle(purchaseSecondary).rowGap !== "8px" ||
+      getComputedStyle(purchaseFulfillment).backgroundColor !==
+        "rgb(255, 255, 255)" ||
+      getComputedStyle(purchaseTagsBlock).backgroundColor !==
+        "rgb(255, 255, 255)" ||
+      getComputedStyle(purchaseTagsBlock).borderTopWidth !== "0px" ||
+      Math.abs(
+        purchaseTagsBlock.getBoundingClientRect().top -
+          purchaseFulfillment.getBoundingClientRect().bottom -
+          8
+      ) > 1 ||
       getComputedStyle(purchaseCheckout).position !== "fixed" ||
       getComputedStyle(purchaseCheckout).bottom !== "0px" ||
       getComputedStyle(purchaseCheckout).gridTemplateColumns.split(" ")
@@ -973,25 +1199,47 @@ export const Mobile: Story = {
       getComputedStyle(purchaseCheckout).paddingRight !== "16px" ||
       getComputedStyle(purchaseSticky).position !== "static" ||
       !details ||
+      !detailModules ||
+      detailModules.length !== 3 ||
+      getComputedStyle(details).rowGap !== "16px" ||
+      Array.from(detailModules).some(
+        (module, index) =>
+          getComputedStyle(module).rowGap !== "8px" ||
+          getComputedStyle(module).paddingTop !==
+            (index === 0 ? "0px" : "12px") ||
+          getComputedStyle(module).paddingBottom !== "0px"
+      ) ||
       overview.parentElement !== leftContent ||
       productInfoColumn.parentElement !== overview ||
       productInfo.parentElement !== productInfoColumn ||
       details.parentElement !== productInfoColumn ||
       getComputedStyle(productInfoColumn).paddingTop !== "8px" ||
-      getComputedStyle(productInfoColumn).paddingBottom !== "8px" ||
+      getComputedStyle(productInfoColumn).paddingBottom !== "0px" ||
       getComputedStyle(leftContent).display !== "contents" ||
       getComputedStyle(purchasePanel).position !== "static" ||
-      Math.round(productInfo.getBoundingClientRect().left) !== 8 ||
-      Math.abs(productInfo.getBoundingClientRect().width - (viewportWidth - 16)) >
+      getComputedStyle(productInfo).display !== "contents" ||
+      Math.round(mobileSummary.getBoundingClientRect().left) !== 8 ||
+      Math.abs(
+        mobileSummary.getBoundingClientRect().width - (viewportWidth - 16)
+      ) > 1 ||
+      getComputedStyle(mobileSummary).padding !== "12px" ||
+      getComputedStyle(mobileSummary).backgroundColor !== "rgb(255, 255, 255)" ||
+      Math.round(mobileOptionsModule.getBoundingClientRect().left) !== 8 ||
+      Math.abs(
+        mobileOptionsModule.getBoundingClientRect().width - (viewportWidth - 16)
+      ) >
         1 ||
-      getComputedStyle(productInfo).padding !== "12px" ||
+      Math.abs(
+        mobileOptionsModule.getBoundingClientRect().top -
+          mobileSummary.getBoundingClientRect().bottom -
+          8
+      ) > 1 ||
       overview.getBoundingClientRect().top >=
         details.getBoundingClientRect().top ||
       Math.abs(
-        Math.abs(
-          details.getBoundingClientRect().top -
-            productInfo.getBoundingClientRect().bottom
-        ) - 8
+        details.getBoundingClientRect().top -
+          mobileOptionsModule.getBoundingClientRect().bottom -
+          8
       ) > 1 ||
       details.getBoundingClientRect().bottom >=
         purchasePanel.getBoundingClientRect().top ||
@@ -1005,7 +1253,15 @@ export const Mobile: Story = {
       getComputedStyle(reviews).marginTop !== "0px" ||
       !brandProducts ||
       getComputedStyle(brandProducts).marginTop !== "0px" ||
+      !recentlyViewed ||
+      recentlyViewed.dataset.layout !== "rail" ||
+      recentlyViewed.querySelectorAll('[data-slot="product-list-item"]')
+        .length !== 8 ||
+      getComputedStyle(recentlyViewed).marginTop !== "0px" ||
+      brandProducts.getBoundingClientRect().top >=
+        recentlyViewed.getBoundingClientRect().top ||
       !reviewGrid ||
+      !reviewContainer ||
       !utilityRow ||
       !breadcrumb ||
       !shareGroup ||
@@ -1031,13 +1287,54 @@ export const Mobile: Story = {
       purchasePanelShareButtons?.length !== 0 ||
       brandIntro.getBoundingClientRect().top >=
         brandItems.getBoundingClientRect().top ||
-      getComputedStyle(reviewGrid).gridTemplateColumns.split(" ").length !==
-        (viewportWidth < 768 ? 1 : 2) ||
+      getComputedStyle(reviewGrid).gridAutoFlow !== "column" ||
+      getComputedStyle(reviewGrid).overflowX !== "auto" ||
+      reviewGrid.scrollWidth <= reviewGrid.clientWidth ||
+      !reviewCards ||
+      reviewCards.length === 0 ||
+      Array.from(reviewCards).some(
+        (card) => Math.round(card.getBoundingClientRect().height) !== 200
+      ) ||
       document.documentElement.scrollWidth >
         document.documentElement.clientWidth
     ) {
       throw new Error(
         "Mobile PDP must match the Figma full-bleed gallery, inset info card, and fixed purchase bar without page overflow"
+      );
+    }
+
+    const mobileCardSequence = [
+      mobileSummary,
+      mobileOptionsModule,
+      details,
+      purchaseFulfillment,
+      purchaseTagsBlock,
+      recommendations,
+      reviewContainer,
+      brandProducts,
+      recentlyViewed,
+    ];
+    const mobileCardRects = mobileCardSequence.map((card) =>
+      card.getBoundingClientRect()
+    );
+    if (
+      getComputedStyle(productInfoColumn).paddingBottom !== "0px" ||
+      getComputedStyle(purchasePanel).paddingBottom !== "0px" ||
+      mobileCardSequence.some((card) => {
+        const rect = card.getBoundingClientRect();
+        return (
+          Math.round(rect.left) !== 8 ||
+          Math.abs(rect.width - (viewportWidth - 16)) > 1 ||
+          getComputedStyle(card).borderRadius !== "12px"
+        );
+      }) ||
+      mobileCardRects.slice(1).some(
+        (rect, index) =>
+          Math.abs(rect.top - mobileCardRects[index].bottom - 8) > 1
+      )
+    ) {
+      throw new Error(
+        "Mobile PDP cards must match the homepage 8px page inset, 12px surface radius, and 8px vertical rhythm"
       );
     }
   },
@@ -1215,7 +1512,7 @@ export const CustomContentWidth: Story = {
     if (
       main?.dataset.contentMaxWidth !== "1200px" ||
       !content ||
-      widthContainers.length !== 2 ||
+      widthContainers.length !== 3 ||
       !reviewContainer ||
       getComputedStyle(content).maxWidth !== "1200px" ||
       Array.from(widthContainers).some(

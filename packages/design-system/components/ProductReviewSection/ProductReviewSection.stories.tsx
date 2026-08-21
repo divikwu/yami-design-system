@@ -142,10 +142,40 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+function assertReviewGrid(
+  grid: HTMLElement,
+  columnCount: number,
+  rowCount: number,
+) {
+  const cards = Array.from(
+    grid.querySelectorAll<HTMLElement>('[data-slot="product-review-card"]'),
+  );
+  const gridStyle = getComputedStyle(grid);
+  const columns = gridStyle.gridTemplateColumns.split(" ");
+  const rows = new Set(
+    cards.map((card) => Math.round(card.getBoundingClientRect().top)),
+  );
+
+  if (
+    !cards.length ||
+    columns.length !== columnCount ||
+    rows.size !== rowCount ||
+    gridStyle.overflowX !== "visible" ||
+    grid.scrollWidth > grid.clientWidth + 1
+  ) {
+    throw new Error(
+      `Review cards must wrap into a ${columnCount}-column, ${rowCount}-row grid without horizontal scrolling`,
+    );
+  }
+}
+
 export const Showcase: Story = {
   play: async ({ canvasElement }) => {
     const root = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-review-section"]',
+    );
+    const container = root?.querySelector<HTMLElement>(
+      '[data-slot="product-review-section-container"]',
     );
     const summary = root?.querySelector('[data-slot="product-review-summary"]');
     const summaryStars = summary?.querySelectorAll<HTMLElement>(
@@ -161,9 +191,32 @@ export const Showcase: Story = {
     const writeReview = root?.querySelector<HTMLButtonElement>(
       '[data-product-review-action="write-review"]',
     );
+    const firstReview = root?.querySelector<HTMLElement>('[data-review-id="k-baby"]');
+    const originalLink = firstReview?.querySelector<HTMLAnchorElement>(
+      'a[href="#original-k-baby"]',
+    );
+    const translateIcon = firstReview?.querySelector<HTMLElement>(
+      '[data-product-review-icon="translate"]',
+    );
+    const helpfulFeedback = firstReview?.querySelector<HTMLElement>(
+      '[data-product-review-feedback="helpful"]',
+    );
+    const likeIcon = helpfulFeedback?.querySelector<HTMLElement>(
+      '[data-product-review-icon="like"]',
+    );
+    const commentsFeedback = firstReview?.querySelector<HTMLElement>(
+      '[data-product-review-feedback="comments"]',
+    );
+    const commentIcon = commentsFeedback?.querySelector<HTMLElement>(
+      '[data-product-review-icon="comment"]',
+    );
+    const reviewerIdentity = firstReview?.querySelector<HTMLElement>("header > div");
+    const reviewerLine = reviewerIdentity?.querySelector<HTMLElement>(":scope > div");
+    const reviewMeta = reviewerIdentity?.querySelector<HTMLElement>(":scope > p");
 
     if (
       !root ||
+      !container ||
       !summary ||
       !summaryStars ||
       summaryStars.length !== 5 ||
@@ -182,6 +235,17 @@ export const Showcase: Story = {
       throw new Error("ProductReviewSection did not render its complete structure");
     }
 
+    const containerStyle = getComputedStyle(container);
+    if (
+      containerStyle.paddingTop !== "32px" ||
+      containerStyle.paddingRight !== "48px" ||
+      containerStyle.paddingBottom !== "32px" ||
+      containerStyle.paddingLeft !== "48px"
+    ) {
+      throw new Error("Desktop review container spacing regressed");
+    }
+    assertReviewGrid(grid, 3, 2);
+
     if (
       meters.length !== 5 ||
       meters.map((meter) => meter.dataset.stars).join(",") !== "5,4,3,2,1" ||
@@ -191,6 +255,52 @@ export const Showcase: Story = {
       writeReview.dataset.slot !== "button"
     ) {
       throw new Error("Review summary semantics or shared Button integration regressed");
+    }
+
+    const reviewIcons = [
+      [translateIcon, "translate"],
+      [likeIcon, "like"],
+      [commentIcon, "comment"],
+    ] as const;
+    if (
+      !firstReview ||
+      !originalLink ||
+      originalLink.textContent?.trim() !== "Show original" ||
+      helpfulFeedback?.textContent?.trim() !== "2" ||
+      helpfulFeedback.getAttribute("aria-label") !== "Helpful: 2" ||
+      getComputedStyle(helpfulFeedback.parentElement!).columnGap !== "16px" ||
+      commentsFeedback?.textContent?.trim() !== "0" ||
+      commentsFeedback.getAttribute("aria-label") !== "Comments: 0" ||
+      reviewIcons.some(([icon, name]) => {
+        if (!icon || icon.getAttribute("aria-hidden") !== "true") return true;
+        const style = getComputedStyle(icon);
+        return (
+          icon.dataset.productReviewIcon !== name ||
+          style.width !== "16px" ||
+          style.height !== "16px" ||
+          !style.maskImage.startsWith("url(")
+        );
+      })
+    ) {
+      throw new Error("Review-card feedback icons or accessible labels regressed");
+    }
+
+    if (!reviewerIdentity || !reviewerLine || !reviewMeta) {
+      throw new Error("Review-card identity did not render");
+    }
+    const reviewerLineStyle = getComputedStyle(reviewerLine);
+    const reviewMetaStyle = getComputedStyle(reviewMeta);
+    const reviewerIdentityWidth = reviewerIdentity.getBoundingClientRect().width;
+    if (
+      reviewerLineStyle.whiteSpace !== "nowrap" ||
+      reviewerLineStyle.overflowX !== "hidden" ||
+      reviewMetaStyle.whiteSpace !== "nowrap" ||
+      reviewMetaStyle.overflowX !== "hidden" ||
+      reviewMetaStyle.textOverflow !== "ellipsis" ||
+      Math.abs(reviewerLine.getBoundingClientRect().width - reviewerIdentityWidth) > 1 ||
+      Math.abs(reviewMeta.getBoundingClientRect().width - reviewerIdentityWidth) > 1
+    ) {
+      throw new Error("Review-card identity rows must fill the width and stay single-line");
     }
 
     await userEvent.click(filters[1]);
@@ -248,8 +358,16 @@ export const Showcase: Story = {
     const viewMore = root.querySelector<HTMLButtonElement>(
       '[data-product-review-action="view-more"]',
     );
-    if (!viewMore || viewMore.dataset.slot !== "button") {
-      throw new Error("View more must reuse the shared Button component");
+    const viewMoreStyle = viewMore ? getComputedStyle(viewMore) : null;
+    if (
+      !viewMore ||
+      viewMore.dataset.slot !== "button" ||
+      viewMoreStyle?.textDecorationLine !== "underline" ||
+      viewMoreStyle.backgroundColor !== "rgba(0, 0, 0, 0)"
+    ) {
+      throw new Error(
+        "View more must reuse the shared Button component with an underlined treatment",
+      );
     }
     await userEvent.click(viewMore);
     await waitFor(() => {
@@ -261,8 +379,18 @@ export const Showcase: Story = {
 };
 
 export const Mobile: Story = {
+  args: {
+    title: "Customer Reviews",
+    copy: {
+      ...baseArgs.copy,
+      referenceNotice:
+        "Some reviews are from other options and are shown for reference.",
+      viewMore: "View All Reviews",
+    },
+  },
   globals: { viewport: { value: "yamiMobile", isRotated: false } },
   play: async ({ canvasElement }) => {
+    const viewportWidth = canvasElement.ownerDocument.defaultView?.innerWidth;
     const root = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-review-section"]',
     );
@@ -272,28 +400,122 @@ export const Mobile: Story = {
     const summary = root?.querySelector<HTMLElement>(
       '[data-slot="product-review-summary"]',
     );
+    const summaryContent = root?.querySelector<HTMLElement>(
+      '[data-slot="product-review-summary-content"]',
+    );
+    const score = root?.querySelector<HTMLElement>(
+      '[data-slot="product-review-score-summary"]',
+    )?.parentElement;
+    const distribution = root?.querySelector<HTMLElement>(
+      '[data-slot="product-review-distribution"]',
+    );
+    const notice = root?.querySelector<HTMLElement>(
+      '[data-slot="product-review-reference-notice"]',
+    );
+    const toolbar = root?.querySelector<HTMLElement>(
+      '[data-slot="product-review-toolbar"]',
+    );
+    const heading = root?.querySelector<HTMLElement>("h2");
+    const headingCount = heading?.querySelector<HTMLElement>("span");
+    const writeReview = root?.querySelector<HTMLElement>(
+      '[data-product-review-action="write-review"]',
+    );
     const grid = root?.querySelector<HTMLElement>('[data-slot="product-review-grid"]');
-    const firstCard = grid?.querySelector<HTMLElement>(
-      '[data-slot="product-review-card"]',
+    const cards = Array.from(
+      grid?.querySelectorAll<HTMLElement>('[data-slot="product-review-card"]') ?? [],
+    );
+    const firstCard = cards[0];
+    const viewMore = root?.querySelector<HTMLElement>(
+      '[data-product-review-action="view-more"]',
     );
 
-    if (!root || !container || !summary || !grid || !firstCard) {
+    if (
+      !viewportWidth ||
+      !root ||
+      !container ||
+      !summary ||
+      !summaryContent ||
+      !score ||
+      !distribution ||
+      !notice ||
+      !toolbar ||
+      !heading ||
+      !headingCount ||
+      !writeReview ||
+      !grid ||
+      !firstCard ||
+      !viewMore
+    ) {
       throw new Error("Mobile ProductReviewSection did not render");
     }
 
     const containerStyle = getComputedStyle(container);
-    const summaryColumns = getComputedStyle(summary).gridTemplateColumns.split(" ");
-    const gridColumns = getComputedStyle(grid).gridTemplateColumns.split(" ");
+    const summaryStyle = getComputedStyle(summary);
+    const gridStyle = getComputedStyle(grid);
+    const cardRows = new Set(
+      cards.map((card) => Math.round(card.getBoundingClientRect().top)),
+    );
     if (
+      Math.abs(container.getBoundingClientRect().width - (viewportWidth - 16)) > 1 ||
+      containerStyle.marginLeft !== "8px" ||
+      containerStyle.marginRight !== "8px" ||
       containerStyle.paddingLeft !== "16px" ||
       containerStyle.paddingRight !== "16px" ||
-      summaryColumns.length !== 1 ||
-      gridColumns.length !== 1 ||
-      Math.abs(firstCard.getBoundingClientRect().width - grid.clientWidth) > 1
+      containerStyle.backgroundColor !== "rgb(255, 255, 255)" ||
+      containerStyle.borderRadius !== "12px" ||
+      !heading.textContent?.includes("Customer Reviews") ||
+      getComputedStyle(headingCount).display !== "none" ||
+      summaryStyle.padding !== "0px" ||
+      summaryStyle.backgroundColor !== "rgba(0, 0, 0, 0)" ||
+      getComputedStyle(summaryContent).gridTemplateColumns.split(" ").length !== 1 ||
+      getComputedStyle(score).flexDirection !== "row" ||
+      getComputedStyle(writeReview).marginTop !== "0px" ||
+      getComputedStyle(distribution).display !== "none" ||
+      getComputedStyle(toolbar).display !== "none" ||
+      getComputedStyle(notice).display !== "block" ||
+      !notice.textContent?.includes("other options") ||
+      cards.length !== 6 ||
+      cardRows.size !== 1 ||
+      gridStyle.gridAutoFlow !== "column" ||
+      gridStyle.overflowX !== "auto" ||
+      grid.scrollWidth <= grid.clientWidth ||
+      Math.abs(firstCard.getBoundingClientRect().width - (grid.clientWidth - 40)) > 1 ||
+      cards.some((card) => Math.round(card.getBoundingClientRect().height) !== 200) ||
+      getComputedStyle(firstCard).backgroundColor !== "rgb(245, 245, 245)" ||
+      viewMore.textContent?.trim() !== "View All Reviews" ||
+      Math.abs(
+        viewMore.getBoundingClientRect().width -
+          (viewMore.parentElement?.clientWidth ?? 0)
+      ) > 1 ||
+      getComputedStyle(viewMore).textDecorationLine !== "none" ||
+      getComputedStyle(viewMore).backgroundColor !== "rgb(245, 245, 245)" ||
+      document.documentElement.scrollWidth > document.documentElement.clientWidth
     ) {
       throw new Error(
-        "Mobile ProductReviewSection must stack its summary and review cards in one column",
+        "Mobile ProductReviewSection must render a compact summary, reference notice, review rail, and full-width review action inside one white card",
       );
     }
+  },
+};
+
+export const Tablet: Story = {
+  globals: { viewport: { value: "yamiTablet", isRotated: false } },
+  play: async ({ canvasElement }) => {
+    const grid = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-review-grid"]',
+    );
+    if (!grid) throw new Error("Tablet review grid did not render");
+    assertReviewGrid(grid, 2, 3);
+  },
+};
+
+export const DesktopXl: Story = {
+  globals: { viewport: { value: "yamiDesktopXl", isRotated: false } },
+  play: async ({ canvasElement }) => {
+    const grid = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-review-grid"]',
+    );
+    if (!grid) throw new Error("Desktop-xl review grid did not render");
+    assertReviewGrid(grid, 4, 2);
   },
 };
