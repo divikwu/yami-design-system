@@ -24,6 +24,7 @@
   color: var(--text-primary);
   font-family: inherit;
   font-size: 14px;
+  font-weight: var(--font-weight-normal);
   line-height: 20px;
   transition: background-color 120ms ease, border-color 120ms ease;
 }
@@ -69,6 +70,7 @@
   cursor: pointer;
   font-family: inherit;
   font-size: 14px;
+  font-weight: var(--font-weight-normal);
   line-height: 20px;
   text-align: left;
   transition: background-color 120ms ease, border-color 120ms ease;
@@ -167,6 +169,7 @@
   color: var(--text-primary);
   cursor: default;
   font-size: 14px;
+  font-weight: var(--font-weight-normal);
   line-height: 20px;
   user-select: none;
 }
@@ -176,7 +179,7 @@
 }
 
 .selectItem[data-selected] {
-  font-weight: 500;
+  font-weight: var(--font-weight-normal);
 }
 
 .selectItem[data-disabled] {
@@ -198,7 +201,7 @@
   border-radius: 0;
   cursor: pointer;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: var(--font-weight-normal);
   line-height: 20px;
   transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
 }
@@ -257,6 +260,10 @@
 
 .tabsRootStage {
   background: transparent;
+}
+
+.tabsRootStage > .tabList {
+  border-bottom: 0;
 }
 
 .tabList {
@@ -382,6 +389,7 @@
   background: transparent;
   color: var(--text-secondary);
   font-size: 14px;
+  font-weight: var(--font-weight-normal);
   line-height: 20px;
   box-shadow: none;
   transition: background-color 120ms ease, color 120ms ease;
@@ -394,7 +402,7 @@
 .segmentedInput:checked + .segmentedLabel {
   background: var(--surface-primary);
   color: var(--text-primary);
-  font-weight: 500;
+  font-weight: var(--font-weight-normal);
 }
 
 .segmentedInput:disabled {

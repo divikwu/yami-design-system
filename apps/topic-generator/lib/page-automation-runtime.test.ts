@@ -21,6 +21,24 @@ afterEach(async () => {
 });
 
 describe("Topic Generator page automation runtime", () => {
+  it("uses generated scene imagery by default and keeps source composition explicit", async () => {
+    const generated = await loadTopicGeneratorPageAutomationRuntime({ environment: {} });
+    expect(generated.visualProductionMode).toBe("generated-images");
+
+    const sourceFallback = await loadTopicGeneratorPageAutomationRuntime({
+      environment: { TOPIC_GENERATOR_VISUAL_PRODUCTION_MODE: "source-product-images" },
+    });
+    expect(sourceFallback.visualProductionMode).toBe("source-product-images");
+
+    const invalid = await loadTopicGeneratorPageAutomationRuntime({
+      environment: { TOPIC_GENERATOR_VISUAL_PRODUCTION_MODE: "product-grid" },
+    });
+    expect(invalid.visualProductionMode).toBe("generated-images");
+    expect(invalid.pageAutomationConfigurationIssues).toContain(
+      "TOPIC_GENERATOR_VISUAL_PRODUCTION_MODE must be generated-images or source-product-images.",
+    );
+  });
+
   it("leaves a thirty-second client grace period around the local Runner budget", async () => {
     const timeout = vi.spyOn(AbortSignal, "timeout")
       .mockReturnValue(new AbortController().signal);

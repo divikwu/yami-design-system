@@ -56,7 +56,7 @@ function taskContext(
       "scene:<task-scene-id>",
       "content-task:<module-content-task-id>",
     ],
-    tasks: deriveTopicPageVisualTasks(plan, selection, contentSpec),
+    tasks: deriveTopicPageVisualTasks(intent, plan, selection, contentSpec),
   };
 }
 

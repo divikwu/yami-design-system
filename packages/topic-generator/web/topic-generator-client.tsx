@@ -2,6 +2,7 @@
 
 import {
   AiBrain01Icon,
+  ArchiveArrowDownIcon,
   ArrowDown01Icon,
   ArrowTurnBackwardIcon,
   Cancel01Icon,
@@ -16,7 +17,7 @@ import {
   UserIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import type { ComponentType, FormEvent, ReactNode } from "react";
+import type { ChangeEvent, ComponentType, FormEvent, ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type {
   CategoryRoleRuntimeEvidence,
@@ -48,6 +49,22 @@ import type {
   TopicPageGenerationModule,
   TopicPageGenerationSpec,
 } from "../src/page-generation/contracts";
+import type {
+  AutomaticQaStageOutput,
+  AssetPersistenceStageOutput,
+  BackgroundEvidenceStageOutput,
+  ContentReviewStageOutput,
+  ExperienceReviewStageOutput,
+  ModuleMerchandisingStageOutput,
+  PageGenerationStageOutput,
+  ProductSelectionStageOutput,
+  TopicGeneratorAnyRunDetail,
+  TopicGeneratorRunGoal,
+  TopicGeneratorRunDeletion,
+  TopicGeneratorRunStageId,
+  TopicGeneratorRunSummary,
+  TopicIntentStageOutput,
+} from "../src/managed-run/index";
 import {
   SegmentedControl,
   WorkbenchButton,
@@ -65,8 +82,190 @@ type ResultView = "preview" | "pools" | "workflow" | "analysis" | "rules";
 type WorkflowMode = "diagram" | "details" | "agents";
 type PreviewMode = "distribution" | "page";
 type CapabilityMode = TopicGenerationMode | "content" | "visual";
+type TopicSourceMode = "input" | "load";
 type SelectionRuns = Partial<Record<ProductSelectionStrategy, ProductSelectionRun>>;
 type ReadyTopicPageAutomationRun = Extract<TopicPageAutomationRun, { status: "ready" }>;
+
+const MANAGED_STAGE_ORDER: readonly TopicGeneratorRunStageId[] = [
+  "topic-intent",
+  "background-evidence",
+  "product-selection",
+  "module-merchandising",
+  "content-writing",
+  "content-review",
+  "visual-generation",
+  "asset-persistence",
+  "page-generation",
+  "automatic-qa",
+  "experience-review",
+  "user-approval",
+];
+
+const MANAGED_MILESTONE: Record<TopicGeneratorRunGoal, TopicGeneratorRunStageId> = {
+  selection: "module-merchandising",
+  content: "content-review",
+  visual: "page-generation",
+  page: "experience-review",
+};
+
+const MANAGED_REGENERATION_STAGE: Record<
+  TopicGeneratorRunGoal,
+  TopicGeneratorRunStageId
+> = {
+  selection: "product-selection",
+  content: "content-writing",
+  visual: "visual-generation",
+  page: "topic-intent",
+};
+
+const MANAGED_RUN_STATUS_LABELS: Record<
+  ContentLanguage,
+  Record<TopicGeneratorRunSummary["status"], string>
+> = {
+  en: {
+    pending: "Pending",
+    running: "Running",
+    paused: "Paused",
+    "awaiting-approval": "Awaiting approval",
+    completed: "Completed",
+    blocked: "Blocked",
+    interrupted: "Interrupted",
+  },
+  zh: {
+    pending: "待开始",
+    running: "生成中",
+    paused: "已暂停",
+    "awaiting-approval": "待审批",
+    completed: "已完成",
+    blocked: "已阻塞",
+    interrupted: "已中断",
+  },
+};
+
+interface ImportBrowserFile {
+  file: File;
+  path: string;
+  sha256: string;
+}
+
+interface ImportCandidate {
+  id: string;
+  sourceRoot: string;
+  runId: string;
+  schemaVersion: string;
+  keyword: string;
+  createdAt: string;
+  valid: boolean;
+  issues: string[];
+}
+
+interface PendingImport {
+  sessionId: string;
+  files: ImportBrowserFile[];
+  candidates: ImportCandidate[];
+  selectedIds: string[];
+  maxChunkBytes: number;
+}
+
+function isManagedV2Detail(
+  detail: TopicGeneratorAnyRunDetail,
+): detail is Extract<TopicGeneratorAnyRunDetail, { schemaVersion: "topic-generator-run-detail/v1" }> {
+  return detail.schemaVersion === "topic-generator-run-detail/v1";
+}
+
+function managedAutomation(
+  detail: Extract<TopicGeneratorAnyRunDetail, { schemaVersion: "topic-generator-run-detail/v1" }>,
+): ReadyTopicPageAutomationRun | null {
+  const selection = detail.stageResults["product-selection"] as
+    ProductSelectionStageOutput | undefined;
+  const merchandising = detail.stageResults["module-merchandising"] as
+    ModuleMerchandisingStageOutput | undefined;
+  const content = detail.stageResults["content-review"] as ContentReviewStageOutput | undefined;
+  const assets = detail.stageResults["asset-persistence"] as
+    AssetPersistenceStageOutput | undefined;
+  const page = detail.stageResults["page-generation"] as PageGenerationStageOutput | undefined;
+  const qa = detail.stageResults["automatic-qa"] as AutomaticQaStageOutput | undefined;
+  const experience = detail.stageResults["experience-review"] as
+    ExperienceReviewStageOutput | undefined;
+  if (!selection || !merchandising || !content || !assets || !page ||
+      qa?.qaReport.status !== "passed" ||
+      experience?.experienceReview.status !== "review-recommended") {
+    return null;
+  }
+  const passedQa = qa.qaReport as typeof qa.qaReport & { status: "passed" };
+  const recommendedReview = experience.experienceReview as
+    typeof experience.experienceReview & { status: "review-recommended" };
+  const completed = new Set(detail.state.stages
+    .filter(({ status }) => status === "completed")
+    .map(({ id }) => id));
+  return {
+    schemaVersion: "topic-page-automation-run/v1",
+    status: "ready",
+    stage: "review-ready",
+    stages: MANAGED_STAGE_ORDER
+      .filter((id) => id !== "topic-intent" && id !== "user-approval")
+      .map((id) => ({
+        id,
+        status: completed.has(id) ? "completed" as const : "pending" as const,
+      })),
+    issues: [],
+    executionPlan: selection.executionPlan,
+    plan: merchandising.plan,
+    contentSpec: content.contentSpec,
+    copyBrief: content.copyBrief,
+    contentReview: content.contentReview,
+    assetManifest: assets.assetManifest,
+    generationSpec: page.generationSpec,
+    qaReport: passedQa,
+    experienceReview: recommendedReview,
+    reviewPackage: experience.reviewPackage,
+  };
+}
+
+async function fileDigest(file: File) {
+  const digest = await crypto.subtle.digest("SHA-256", await file.arrayBuffer());
+  return [...new Uint8Array(digest)]
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function normalizedBrowserFiles(files: Array<{ file: File; path: string }>) {
+  const paths = files.map(({ path }) => path.replace(/^\/+/, ""));
+  const firstSegments = new Set(paths.map((path) => path.split("/", 1)[0]));
+  const removeRoot = firstSegments.size === 1 && !paths.includes("run.json");
+  return files.map(({ file }, index) => {
+    const path = paths[index]!;
+    return {
+      file,
+      path: removeRoot ? path.slice(path.indexOf("/") + 1) : path,
+    };
+  });
+}
+
+interface BrowserDirectoryHandle {
+  name: string;
+  kind: "directory";
+  values(): AsyncIterable<BrowserDirectoryHandle | BrowserFileHandle>;
+}
+
+interface BrowserFileHandle {
+  name: string;
+  kind: "file";
+  getFile(): Promise<File>;
+}
+
+async function filesFromDirectory(
+  directory: BrowserDirectoryHandle,
+  prefix = "",
+): Promise<Array<{ file: File; path: string }>> {
+  const files: Array<{ file: File; path: string }> = [];
+  for await (const entry of directory.values()) {
+    const path = prefix ? `${prefix}/${entry.name}` : entry.name;
+    if (entry.kind === "file") files.push({ file: await entry.getFile(), path });
+    else files.push(...await filesFromDirectory(entry, path));
+  }
+  return files;
+}
 
 interface LocalizedAutomationCache {
   requestKey: string;
@@ -107,6 +306,8 @@ export type TopicPagePreviewRendererProps =
 
 export interface TopicGeneratorProps {
   PagePreviewRenderer?: ComponentType<TopicPagePreviewRendererProps>;
+  /** Enables the standalone host's managed run, import, and resume APIs. */
+  managedRunApiBase?: string;
 }
 
 export function selectionDefaultCopy(keyword: string, language: ContentLanguage) {
@@ -329,7 +530,8 @@ function itemCountLabel(count: number, language: ContentLanguage) {
 }
 const UI_COPY = {
   en: {
-    keywordLabel: "Search keyword",
+    keywordLabel: "Enter topic",
+    loadedKeywordLabel: "Topic",
     keywordPlaceholder: "e.g. ANUA, ramen",
     examplesLabel: "Example keywords",
     interfaceLanguage: "Language",
@@ -367,7 +569,8 @@ const UI_COPY = {
     sourceImages: "Source images",
   },
   zh: {
-    keywordLabel: "搜索关键词",
+    keywordLabel: "输入主题",
+    loadedKeywordLabel: "主题",
     keywordPlaceholder: "例如 ANUA、ramen",
     examplesLabel: "示例关键词",
     interfaceLanguage: "语言",
@@ -2883,7 +3086,10 @@ function RulesView({
   );
 }
 
-export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}) {
+export function TopicGenerator({
+  PagePreviewRenderer,
+  managedRunApiBase,
+}: TopicGeneratorProps = {}) {
   const [keyword, setKeyword] = useState("ANUA");
   const [examplesOpen, setExamplesOpen] = useState(false);
   const [uiLanguage, setUiLanguage] = useState<ContentLanguage>("zh");
@@ -2913,6 +3119,32 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
   const [activeMode, setActiveMode] = useState<CapabilityMode>("page");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<GeneratorError | null>(null);
+  const [sourceMode, setSourceMode] = useState<TopicSourceMode>("input");
+  const [currentRun, setCurrentRun] = useState<TopicGeneratorRunSummary | null>(null);
+  const [currentDetail, setCurrentDetail] = useState<TopicGeneratorAnyRunDetail | null>(null);
+  const [managedRunPickerOpen, setManagedRunPickerOpen] = useState(false);
+  const [managedRunOptions, setManagedRunOptions] = useState<TopicGeneratorRunSummary[]>([]);
+  const [selectedManagedRunId, setSelectedManagedRunId] = useState<string | null>(null);
+  const [managedRunPickerBusy, setManagedRunPickerBusy] = useState(false);
+  const [managedRunPickerError, setManagedRunPickerError] = useState<string | null>(null);
+  const [pendingRunDeletion, setPendingRunDeletion] =
+    useState<TopicGeneratorRunSummary | null>(null);
+  const [runDeleteBusy, setRunDeleteBusy] = useState(false);
+  const [pendingImport, setPendingImport] = useState<PendingImport | null>(null);
+  const [importBusy, setImportBusy] = useState(false);
+  const directoryInputRef = useRef<HTMLInputElement>(null);
+  const managedRunDialogRef = useRef<HTMLDialogElement>(null);
+  const managedRunTriggerRef = useRef<HTMLButtonElement>(null);
+  const managedRunsUrl = managedRunApiBase ? `${managedRunApiBase}/runs` : null;
+  const managedImportsUrl = managedRunApiBase ? `${managedRunApiBase}/imports` : null;
+  const selectedManagedRun = managedRunOptions.find(
+    ({ runId }) => runId === selectedManagedRunId,
+  ) ?? null;
+  const managedHistoryReady = Boolean(managedRunApiBase && currentRun?.continuable);
+  const managedActionUnavailable = Boolean(managedRunApiBase && (
+    (sourceMode === "load" && currentRun === null) ||
+    (currentRun !== null && !currentRun.continuable)
+  ));
   const plan = plans?.[uiLanguage]?.[strategy] ?? null;
   const resolvedHeroSelection = heroSelection ?? heroSelectionFromAutomation(
     automation?.status === "ready" ? automation : null,
@@ -2965,6 +3197,484 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
       setStrategy(requestedStrategy);
     }
   }, []);
+
+  useEffect(() => {
+    const dialog = managedRunDialogRef.current;
+    if (!dialog) return;
+    if (managedRunPickerOpen && !dialog.open) dialog.showModal();
+    if (!managedRunPickerOpen && dialog.open) dialog.close();
+  }, [managedRunPickerOpen]);
+
+  async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
+    const response = await fetch(url, init);
+    const payload = await response.json() as T & { error?: string; message?: string };
+    if (!response.ok) {
+      throw {
+        message: payload.error ?? payload.message ?? "TOPIC GENERATOR request failed.",
+      } satisfies GeneratorError;
+    }
+    return payload;
+  }
+
+  function applyManagedDetail(detail: TopicGeneratorAnyRunDetail) {
+    setCurrentDetail(detail);
+    setCurrentRun(detail.summary);
+    setKeyword(detail.summary.keyword);
+    setUiLanguage(detail.summary.language);
+    setStrategy(detail.summary.strategy);
+    setCategoryRoleRuntime(null);
+    setHeroSelection(null);
+    setShortcutSelection(null);
+    setStartHereSelection(null);
+    setLocalizedAutomationCache(null);
+    if (!isManagedV2Detail(detail)) {
+      const legacyPlans = detail.artifacts["page-plans.json"] as
+        { plans?: TopicPlanMatrix } | undefined;
+      setPlans(legacyPlans?.plans ?? null);
+      setSelectionRuns(null);
+      setBackgroundEvidence(null);
+      setAutomation(null);
+      setPagePreviewTypeRef(null);
+      setCapabilityArtifacts(null);
+      setContentSpec(null);
+      setCapabilityContentReview(null);
+      setVisualGenerationSpec(null);
+      setView(legacyPlans?.plans ? "preview" : "analysis");
+      setPreviewMode("distribution");
+      setActiveMode("selection");
+      setError(detail.diagnostics.length > 0
+        ? { message: detail.diagnostics.join(" ") }
+        : null);
+      return;
+    }
+    const intent = detail.stageResults["topic-intent"] as TopicIntentStageOutput | undefined;
+    const background = detail.stageResults["background-evidence"] as
+      BackgroundEvidenceStageOutput | undefined;
+    const selection = detail.stageResults["product-selection"] as
+      ProductSelectionStageOutput | undefined;
+    const merchandising = detail.stageResults["module-merchandising"] as
+      ModuleMerchandisingStageOutput | undefined;
+    const content = detail.stageResults["content-review"] as ContentReviewStageOutput | undefined;
+    const page = detail.stageResults["page-generation"] as PageGenerationStageOutput | undefined;
+    const nextPlans = merchandising?.plans ?? selection?.plans ?? intent?.plans ?? null;
+    setPlans(nextPlans);
+    setSelectionRuns(selection
+      ? { [detail.manifest.request.strategy]: selection.selectionRun }
+      : null);
+    setBackgroundEvidence(background?.backgroundEvidence ?? null);
+    setPagePreviewTypeRef(selection?.executionPlan.pageTypeRef ?? null);
+    setCapabilityArtifacts(intent && selection && merchandising
+      ? {
+          intent: intent.analysis.intent,
+          selection: selection.selection,
+          plan: merchandising.plan,
+          pageTypeRef: selection.executionPlan.pageTypeRef,
+          ...(background ? { backgroundEvidence: background.backgroundEvidence } : {}),
+        }
+      : null);
+    setContentSpec(content?.contentSpec ?? null);
+    setCapabilityContentReview(content?.contentReview ?? null);
+    setVisualGenerationSpec(page?.generationSpec ?? null);
+    const nextAutomation = managedAutomation(detail);
+    setAutomation(nextAutomation);
+    const hasDraft = detail.state.deliverables.some(
+      ({ name, status }) => name === "page-draft.html" && status === "ready",
+    );
+    setView(hasDraft || page ? "preview" : nextPlans ? "analysis" : "workflow");
+    setPreviewMode(hasDraft || page ? "page" : "distribution");
+    setActiveMode(nextAutomation ? "page" : page ? "visual" : content ? "content" : "selection");
+    const issues = [...detail.diagnostics, ...detail.state.issues];
+    setError(issues.length > 0 ? { message: issues.join(" ") } : null);
+  }
+
+  function clearManagedRunState() {
+    setCurrentRun(null);
+    setCurrentDetail(null);
+    setPlans(null);
+    setSelectionRuns(null);
+    setCategoryRoleRuntime(null);
+    setBackgroundEvidence(null);
+    setAutomation(null);
+    setPagePreviewTypeRef(null);
+    setHeroSelection(null);
+    setShortcutSelection(null);
+    setStartHereSelection(null);
+    setLocalizedAutomationCache(null);
+    setCapabilityArtifacts(null);
+    setContentSpec(null);
+    setCapabilityContentReview(null);
+    setVisualGenerationSpec(null);
+    setView("preview");
+    setPreviewMode("page");
+    setActiveMode("page");
+    setError(null);
+  }
+
+  async function loadManagedRun(runId: string) {
+    if (!managedRunsUrl) return false;
+    setLoading(true);
+    setError(null);
+    try {
+      const detail = await requestJson<TopicGeneratorAnyRunDetail>(
+        `${managedRunsUrl}/${encodeURIComponent(runId)}`,
+      );
+      applyManagedDetail(detail);
+      setSourceMode("load");
+      return true;
+    } catch (caught) {
+      setError(caught as GeneratorError);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function openManagedRunPicker() {
+    if (!managedRunsUrl) return;
+    setPendingRunDeletion(null);
+    setManagedRunPickerOpen(true);
+    setManagedRunPickerBusy(true);
+    setManagedRunPickerError(null);
+    try {
+      const response = await requestJson<{
+        schemaVersion: "topic-generator-run-list/v1";
+        items: TopicGeneratorRunSummary[];
+        nextCursor: string | null;
+      }>(`${managedRunsUrl}?limit=100`);
+      setManagedRunOptions(response.items);
+      setSelectedManagedRunId((selected) => {
+        if (selected && response.items.some(({ runId }) => runId === selected)) return selected;
+        if (currentRun && response.items.some(({ runId }) => runId === currentRun.runId)) {
+          return currentRun.runId;
+        }
+        return response.items[0]?.runId ?? null;
+      });
+    } catch (caught) {
+      const issue = caught as GeneratorError;
+      setManagedRunOptions([]);
+      setSelectedManagedRunId(null);
+      setManagedRunPickerError(issue.message);
+    } finally {
+      setManagedRunPickerBusy(false);
+    }
+  }
+
+  function closeManagedRunPicker() {
+    if (importBusy || runDeleteBusy) return;
+    if (pendingImport) void cancelImport();
+    setPendingRunDeletion(null);
+    setManagedRunPickerOpen(false);
+  }
+
+  async function loadSelectedManagedRun() {
+    if (!selectedManagedRunId) return;
+    if (await loadManagedRun(selectedManagedRunId)) setManagedRunPickerOpen(false);
+  }
+
+  async function deleteSelectedManagedRun() {
+    if (!managedRunsUrl || !pendingRunDeletion) return;
+    const deleting = pendingRunDeletion;
+    setRunDeleteBusy(true);
+    setManagedRunPickerError(null);
+    try {
+      await requestJson<TopicGeneratorRunDeletion>(
+        `${managedRunsUrl}/${encodeURIComponent(deleting.runId)}`,
+        { method: "DELETE" },
+      );
+      const remaining = managedRunOptions.filter(({ runId }) => runId !== deleting.runId);
+      setManagedRunOptions(remaining);
+      setSelectedManagedRunId(
+        remaining.find(({ runId }) => runId === currentRun?.runId)?.runId ??
+          remaining[0]?.runId ??
+          null,
+      );
+      setPendingRunDeletion(null);
+      if (currentRun?.runId === deleting.runId) {
+        clearManagedRunState();
+      }
+    } catch (caught) {
+      setManagedRunPickerError((caught as GeneratorError).message);
+    } finally {
+      setRunDeleteBusy(false);
+    }
+  }
+
+  async function createManagedRun(goal: TopicGeneratorRunGoal) {
+    if (!managedRunsUrl) throw { message: "Managed run API is not configured." };
+    const runRequest = {
+      keyword: keyword.trim(),
+      site: "us" as const,
+      language: uiLanguage,
+      strategy,
+      goal,
+    };
+    const created = await requestJson<{ manifest: { runId: string } }>(
+      managedRunsUrl,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ request: runRequest }),
+      },
+    );
+    return created.manifest.runId;
+  }
+
+  async function ensureV2Run(runId: string) {
+    if (!managedRunsUrl) throw { message: "Managed run API is not configured." };
+    const detail = await requestJson<TopicGeneratorAnyRunDetail>(
+      `${managedRunsUrl}/${encodeURIComponent(runId)}`,
+    );
+    if (isManagedV2Detail(detail)) return detail;
+    const migrated = await requestJson<{ manifest: { runId: string } }>(
+      `${managedRunsUrl}/${encodeURIComponent(runId)}/derive`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ origin: "legacy-migration" }),
+      },
+    );
+    return requestJson<Extract<TopicGeneratorAnyRunDetail, {
+      schemaVersion: "topic-generator-run-detail/v1";
+    }>>(`${managedRunsUrl}/${encodeURIComponent(migrated.manifest.runId)}`);
+  }
+
+  async function advanceManaged(goal: TopicGeneratorRunGoal) {
+    if (keyword.trim().length < 2) return;
+    setActiveMode(goal);
+    setLoading(true);
+    setError(null);
+    try {
+      const sourceRunId = currentRun?.runId ?? null;
+      let runId = sourceRunId ?? await createManagedRun(goal);
+      let detail = await ensureV2Run(runId);
+      runId = detail.manifest.runId;
+      const targetStage = MANAGED_MILESTONE[goal];
+      const targetState = detail.state.stages.find(({ id }) => id === targetStage);
+      const strategyChanged = strategy !== detail.manifest.request.strategy;
+      const shouldRegenerate = sourceRunId === detail.manifest.runId && (
+        targetState?.status === "completed" || detail.state.status === "blocked"
+      );
+      if (strategyChanged || shouldRegenerate) {
+        const requestedRollback = strategyChanged
+          ? "product-selection"
+          : MANAGED_REGENERATION_STAGE[goal];
+        const requestedRollbackIndex = MANAGED_STAGE_ORDER.indexOf(requestedRollback);
+        const nextStageIndex = detail.state.nextStage
+          ? MANAGED_STAGE_ORDER.indexOf(detail.state.nextStage)
+          : -1;
+        const rollbackStage = nextStageIndex >= 0 && nextStageIndex < requestedRollbackIndex
+          ? detail.state.nextStage!
+          : requestedRollback;
+        const child = await requestJson<{ manifest: { runId: string } }>(
+          `${managedRunsUrl}/${encodeURIComponent(runId)}/derive`,
+          {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              origin: "derived",
+              rollbackStage,
+              ...(strategyChanged ? { request: { strategy } } : {}),
+            }),
+          },
+        );
+        runId = child.manifest.runId;
+        detail = await requestJson<Extract<TopicGeneratorAnyRunDetail, {
+          schemaVersion: "topic-generator-run-detail/v1";
+        }>>(`${managedRunsUrl}/${encodeURIComponent(runId)}`);
+      }
+      applyManagedDetail(detail);
+      setSourceMode("load");
+      setActiveMode(goal);
+      const targetIndex = MANAGED_STAGE_ORDER.indexOf(targetStage);
+      let advanced = false;
+      while (detail.state.nextStage) {
+        const nextIndex = MANAGED_STAGE_ORDER.indexOf(detail.state.nextStage);
+        if (nextIndex < 0 || nextIndex > targetIndex ||
+            detail.state.status === "awaiting-approval" ||
+            detail.state.status === "completed" ||
+            (detail.state.status === "blocked" && advanced)) break;
+        const response = await requestJson<{
+          detail: Extract<TopicGeneratorAnyRunDetail, {
+            schemaVersion: "topic-generator-run-detail/v1";
+          }>;
+        }>(`${managedRunsUrl}/${encodeURIComponent(runId)}/advance`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ requestId: crypto.randomUUID() }),
+        });
+        detail = response.detail;
+        advanced = true;
+        applyManagedDetail(detail);
+        setActiveMode(goal);
+        if (detail.state.status === "blocked") break;
+      }
+    } catch (caught) {
+      setError(caught as GeneratorError);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function approveManagedRun() {
+    if (!managedRunsUrl || !currentRun || !currentDetail || !isManagedV2Detail(currentDetail) ||
+        !currentDetail.state.review) return;
+    setLoading(true);
+    setError(null);
+    try {
+      await requestJson(
+        `${managedRunsUrl}/${encodeURIComponent(currentRun.runId)}/review`,
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            decision: "approve",
+            packageDigest: currentDetail.state.review.packageDigest,
+          }),
+        },
+      );
+      await loadManagedRun(currentRun.runId);
+    } catch (caught) {
+      setError(caught as GeneratorError);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function startDirectoryImport(files: Array<{ file: File; path: string }>) {
+    if (!managedImportsUrl) return;
+    setImportBusy(true);
+    setError(null);
+    try {
+      const normalized = normalizedBrowserFiles(files);
+      const prepared = await Promise.all(normalized.map(async ({ file, path }) => ({
+        file,
+        path,
+        sha256: await fileDigest(file),
+      })));
+      const manifests = await Promise.all(prepared
+        .filter(({ path }) => path === "run.json" || /^[^/]+\/run\.json$/.test(path))
+        .map(async ({ file, path }) => ({ path, contents: await file.text() })));
+      const session = await requestJson<{
+        id: string;
+        candidates: ImportCandidate[];
+        limits: { maxChunkBytes: number };
+      }>(`${managedImportsUrl}/start`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          files: prepared.map(({ path, file, sha256 }) => ({
+            path,
+            size: file.size,
+            sha256,
+          })),
+          manifests,
+        }),
+      });
+      const defaultCandidateId = session.candidates.find(({ valid }) => valid)?.id;
+      setPendingImport({
+        sessionId: session.id,
+        files: prepared,
+        candidates: session.candidates,
+        selectedIds: defaultCandidateId ? [defaultCandidateId] : [],
+        maxChunkBytes: session.limits.maxChunkBytes,
+      });
+    } catch (caught) {
+      setError(caught as GeneratorError);
+    } finally {
+      setImportBusy(false);
+    }
+  }
+
+  async function chooseImportDirectory() {
+    const picker = (window as unknown as {
+      showDirectoryPicker?: () => Promise<BrowserDirectoryHandle>;
+    }).showDirectoryPicker;
+    if (picker) {
+      try {
+        const directory = await picker();
+        await startDirectoryImport(await filesFromDirectory(directory));
+        return;
+      } catch (caught) {
+        if (caught instanceof DOMException && caught.name === "AbortError") return;
+      }
+    }
+    directoryInputRef.current?.click();
+  }
+
+  async function chooseExternalImportDirectory() {
+    await chooseImportDirectory();
+  }
+
+  function handleDirectoryInput(event: ChangeEvent<HTMLInputElement>) {
+    const files = [...(event.target.files ?? [])].map((file) => ({
+      file,
+      path: file.webkitRelativePath || file.name,
+    }));
+    event.target.value = "";
+    if (files.length > 0) void startDirectoryImport(files);
+  }
+
+  async function cancelImport() {
+    if (!managedImportsUrl || !pendingImport) return;
+    const sessionId = pendingImport.sessionId;
+    setPendingImport(null);
+    try {
+      await fetch(`${managedImportsUrl}/${encodeURIComponent(sessionId)}`, {
+        method: "DELETE",
+      });
+    } catch {
+      // The server expires abandoned import sessions independently.
+    }
+  }
+
+  async function commitImport() {
+    if (!managedImportsUrl || !pendingImport || pendingImport.selectedIds.length === 0) return;
+    setImportBusy(true);
+    setError(null);
+    try {
+      const selected = pendingImport.candidates.filter(({ id }) =>
+        pendingImport.selectedIds.includes(id)
+      );
+      const files = pendingImport.files.filter(({ path }) => selected.some((candidate) =>
+        candidate.sourceRoot === "" || path.startsWith(`${candidate.sourceRoot}/`)
+      ));
+      for (const { file, path } of files) {
+        let offset = 0;
+        let sentEmptyFile = false;
+        while (offset < file.size || (file.size === 0 && !sentEmptyFile)) {
+          const chunk = file.slice(offset, Math.min(file.size, offset + pendingImport.maxChunkBytes));
+          const response = await fetch(
+            `${managedImportsUrl}/${encodeURIComponent(pendingImport.sessionId)}/files?path=${encodeURIComponent(path)}`,
+            {
+              method: "PUT",
+              headers: { "x-file-offset": String(offset) },
+              body: chunk,
+            },
+          );
+          if (!response.ok) {
+            const payload = await response.json() as { error?: string };
+            throw { message: payload.error ?? `Could not upload ${path}.` };
+          }
+          offset += chunk.size;
+          sentEmptyFile = true;
+        }
+      }
+      const committed = await requestJson<{
+        results: Array<{ runId: string }>;
+      }>(`${managedImportsUrl}/${encodeURIComponent(pendingImport.sessionId)}/commit`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ candidateIds: pendingImport.selectedIds }),
+      });
+      setPendingImport(null);
+      const first = committed.results[0];
+      if (first && await loadManagedRun(first.runId)) setManagedRunPickerOpen(false);
+    } catch (caught) {
+      setError(caught as GeneratorError);
+    } finally {
+      setImportBusy(false);
+    }
+  }
 
   async function generate(
     mode: TopicGenerationMode,
@@ -3188,7 +3898,7 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
             value={uiLanguage}
             onValueChange={changeLanguage}
             name="ui-language"
-            disabled={loading}
+            disabled={loading || (sourceMode === "load" && currentRun !== null)}
           />
         </div>
       </header>
@@ -3198,10 +3908,311 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
           <form
             onSubmit={(event: FormEvent<HTMLFormElement>) => {
               event.preventDefault();
-              void generate("page");
+              if (managedRunApiBase) void advanceManaged("page");
+              else void generate("page");
             }}
             className={styles.generatorForm}
           >
+          {managedRunApiBase && (
+            <>
+          <section
+            className={styles.runLibrary}
+            aria-label={uiLanguage === "zh" ? "主题来源" : "Topic source"}
+          >
+            <SegmentedControl
+              label={uiLanguage === "zh" ? "主题来源" : "Topic source"}
+              options={[{
+                value: "input",
+                label: uiLanguage === "zh" ? "输入" : "Input",
+              }, {
+                value: "load",
+                label: uiLanguage === "zh" ? "加载" : "Load",
+              }]}
+              value={sourceMode}
+              name="topic-source"
+              disabled={loading}
+              onValueChange={(nextMode) => {
+                const mode = nextMode as TopicSourceMode;
+                if (mode === "input" && sourceMode !== "input") {
+                  clearManagedRunState();
+                }
+                setSourceMode(mode);
+              }}
+            />
+            {sourceMode === "load" && (
+              <div
+                id="topic-source-load-panel"
+                className={styles.sourceLoadPanel}
+              >
+                <div className={currentRun
+                  ? styles.loadedTopicField
+                  : styles.runLibraryActions}
+                >
+                  {currentRun && (
+                    <WorkbenchTextField
+                      label={copy.loadedKeywordLabel}
+                      value={currentRun.keyword}
+                      disabled
+                    />
+                  )}
+                  <WorkbenchButton
+                    type="button"
+                    variant="secondary"
+                    className={currentRun ? styles.changeTopicButton : undefined}
+                    onClick={(event) => {
+                      managedRunTriggerRef.current = event.currentTarget;
+                      void openManagedRunPicker();
+                    }}
+                    disabled={loading || importBusy || managedRunPickerBusy}
+                    aria-expanded={managedRunPickerOpen}
+                    aria-controls="topic-generator-managed-run-picker"
+                    aria-haspopup="dialog"
+                  >
+                    {managedRunPickerBusy
+                      ? uiLanguage === "zh" ? "正在读取…" : "Reading…"
+                      : importBusy
+                        ? uiLanguage === "zh" ? "正在导入…" : "Importing…"
+                        : currentRun
+                          ? uiLanguage === "zh" ? "更换主题" : "Change topic"
+                          : uiLanguage === "zh" ? "加载主题" : "Load topic"}
+                  </WorkbenchButton>
+                </div>
+                {currentRun && (
+                  <WorkbenchSelect
+                    label={copy.strategyLabel}
+                    options={STRATEGY_OPTIONS[uiLanguage]}
+                    value={strategy}
+                    onValueChange={(value) => {
+                      setStrategy(value as ProductSelectionStrategy);
+                    }}
+                    name="selection-strategy"
+                    disabled={loading}
+                  />
+                )}
+              </div>
+            )}
+              <input
+                ref={directoryInputRef}
+                className={styles.hiddenDirectoryInput}
+                type="file"
+                multiple
+                onChange={handleDirectoryInput}
+                {...({ webkitdirectory: "", directory: "" } as Record<string, string>)}
+              />
+            <dialog
+              ref={managedRunDialogRef}
+              id="topic-generator-managed-run-picker"
+              className={styles.managedRunDialog}
+              aria-labelledby="managed-run-dialog-title"
+              onClose={() => {
+                setManagedRunPickerOpen(false);
+                setPendingRunDeletion(null);
+                managedRunTriggerRef.current?.focus();
+              }}
+              onCancel={(event) => {
+                event.preventDefault();
+                closeManagedRunPicker();
+              }}
+              onClick={(event) => {
+                if (event.target === event.currentTarget) closeManagedRunPicker();
+              }}
+            >
+              {managedRunPickerOpen && (
+                <div className={styles.managedRunDialogPanel}>
+                  <header className={styles.managedRunDialogHeader}>
+                    <div>
+                      <span>{uiLanguage === "zh" ? "主题存储" : "Topic storage"}</span>
+                      <h2 id="managed-run-dialog-title">
+                        {pendingRunDeletion
+                          ? uiLanguage === "zh" ? "删除已存主题" : "Delete saved topic"
+                          : pendingImport
+                          ? uiLanguage === "zh" ? "选择一个要导入的运行" : "Choose one run to import"
+                          : managedRunPickerBusy
+                          ? uiLanguage === "zh" ? "选择已存主题" : "Choose a saved topic"
+                          : uiLanguage === "zh"
+                            ? `选择已存主题（${managedRunOptions.length}）`
+                            : `Choose a saved topic (${managedRunOptions.length})`}
+                      </h2>
+                    </div>
+                    <button
+                      type="button"
+                      className={styles.managedRunDialogClose}
+                      aria-label={uiLanguage === "zh" ? "关闭主题列表" : "Close topic list"}
+                      disabled={importBusy || runDeleteBusy}
+                      onClick={closeManagedRunPicker}
+                    >
+                      <HugeiconsIcon icon={Cancel01Icon} size={20} strokeWidth={1.5} aria-hidden="true" />
+                    </button>
+                  </header>
+                  <div className={styles.managedRunDialogBody} aria-live="polite">
+                    {pendingRunDeletion ? (
+                      <div className={styles.managedRunDeleteConfirmation}>
+                        <p>
+                          {uiLanguage === "zh"
+                            ? "将删除受管目录中的主题副本："
+                            : "This removes the managed copy of the topic:"}
+                        </p>
+                        <strong>{pendingRunDeletion.keyword}</strong>
+                        <code>{pendingRunDeletion.runId}</code>
+                        <p>
+                          {uiLanguage === "zh"
+                            ? "删除后会从主题列表移除并移入回收区；外部导入源不会被修改。"
+                            : "It will leave this list and move to recoverable trash. The external import source will not be changed."}
+                        </p>
+                        {managedRunPickerError && (
+                          <p role="alert">{managedRunPickerError}</p>
+                        )}
+                      </div>
+                    ) : pendingImport ? (
+                      <div className={styles.importCandidates}>
+                        {pendingImport.candidates.map((candidate) => (
+                          <label
+                            key={candidate.id}
+                            data-selected={pendingImport.selectedIds.includes(candidate.id)
+                              ? ""
+                              : undefined}
+                          >
+                            <input
+                              type="radio"
+                              name="topic-generator-import-candidate"
+                              checked={pendingImport.selectedIds.includes(candidate.id)}
+                              disabled={!candidate.valid || importBusy}
+                              onChange={(event) => setPendingImport((current) => current
+                                ? {
+                                    ...current,
+                                    selectedIds: event.target.checked ? [candidate.id] : [],
+                                  }
+                                : current)}
+                            />
+                            <span>
+                              <b>{candidate.keyword || candidate.runId}</b>
+                              <small>{candidate.schemaVersion} · {candidate.valid ? "READY" : "INVALID"}</small>
+                              {candidate.issues.map((issue) => <small key={issue}>{issue}</small>)}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    ) : managedRunPickerBusy ? (
+                      <p>{uiLanguage === "zh" ? "正在读取受管目录…" : "Reading managed storage…"}</p>
+                    ) : managedRunPickerError ? (
+                      <p role="alert">{managedRunPickerError}</p>
+                    ) : managedRunOptions.length > 0 ? (
+                      <div
+                        className={styles.managedRunOptions}
+                        role="radiogroup"
+                        aria-label={uiLanguage === "zh" ? "已存主题" : "Saved topics"}
+                      >
+                        {managedRunOptions.map((run) => (
+                          <label
+                            className={styles.managedRunOption}
+                            key={run.runId}
+                            data-selected={selectedManagedRunId === run.runId ? "" : undefined}
+                          >
+                            <input
+                              type="radio"
+                              name="topic-generator-managed-run"
+                              checked={selectedManagedRunId === run.runId}
+                              disabled={loading}
+                              onChange={() => setSelectedManagedRunId(run.runId)}
+                            />
+                            <span className={styles.managedRunOptionContent}>
+                              <b>{run.keyword}</b>
+                              <small className={styles.managedRunOptionMeta}>
+                                <time dateTime={run.updatedAt}>{run.updatedAt.slice(0, 10)}</time>
+                                <span aria-hidden="true">·</span>
+                                <code title={run.runId}>{run.runId}</code>
+                              </small>
+                            </span>
+                            <small className={styles.managedRunOptionStatus}>
+                              {MANAGED_RUN_STATUS_LABELS[uiLanguage][run.status]}
+                            </small>
+                          </label>
+                        ))}
+                      </div>
+                    ) : (
+                      <p>{uiLanguage === "zh" ? "受管目录中还没有主题。" : "No saved topics yet."}</p>
+                    )}
+                  </div>
+                  <footer className={styles.managedRunDialogFooter}>
+                    {pendingImport || pendingRunDeletion ? <span aria-hidden="true" /> : (
+                      <WorkbenchButton
+                        type="button"
+                        variant="secondary"
+                        size="default"
+                        disabled={loading || importBusy || runDeleteBusy}
+                        onClick={() => void chooseExternalImportDirectory()}
+                      >
+                        {uiLanguage === "zh" ? "导入" : "Import"}
+                      </WorkbenchButton>
+                    )}
+                    <div className={styles.managedRunDialogFooterActions}>
+                      {!pendingImport && !pendingRunDeletion && (
+                        <WorkbenchButton
+                          type="button"
+                          variant="secondary"
+                          size="default"
+                          className={styles.managedRunDeleteButton}
+                          disabled={loading || runDeleteBusy || !selectedManagedRun}
+                          onClick={() => setPendingRunDeletion(selectedManagedRun)}
+                        >
+                          {uiLanguage === "zh" ? "删除" : "Delete"}
+                        </WorkbenchButton>
+                      )}
+                      {(pendingImport || pendingRunDeletion) && (
+                        <WorkbenchButton
+                          type="button"
+                          variant="secondary"
+                          size="default"
+                          disabled={importBusy || runDeleteBusy}
+                          onClick={() => pendingRunDeletion
+                            ? setPendingRunDeletion(null)
+                            : void cancelImport()}
+                        >
+                          {uiLanguage === "zh" ? "取消" : "Cancel"}
+                        </WorkbenchButton>
+                      )}
+                      {pendingRunDeletion ? (
+                        <WorkbenchButton
+                          type="button"
+                          variant="emphasis"
+                          size="default"
+                          disabled={runDeleteBusy}
+                          onClick={() => void deleteSelectedManagedRun()}
+                        >
+                          {runDeleteBusy
+                            ? uiLanguage === "zh" ? "正在删除…" : "Deleting…"
+                            : uiLanguage === "zh" ? "确认删除" : "Confirm delete"}
+                        </WorkbenchButton>
+                      ) : (
+                        <WorkbenchButton
+                          type="button"
+                          variant="emphasis"
+                          size="default"
+                          disabled={pendingImport
+                            ? importBusy || pendingImport.selectedIds.length === 0
+                            : loading || managedRunPickerBusy || !selectedManagedRunId}
+                          onClick={() => pendingImport
+                            ? void commitImport()
+                            : void loadSelectedManagedRun()}
+                        >
+                          {pendingImport
+                            ? uiLanguage === "zh" ? "导入运行" : "Import run"
+                            : uiLanguage === "zh" ? "加载" : "Load"}
+                        </WorkbenchButton>
+                      )}
+                    </div>
+                  </footer>
+                </div>
+              )}
+            </dialog>
+          </section>
+            </>
+          )}
+          {(!managedRunApiBase || sourceMode === "input") && (
+            <div
+              id={managedRunApiBase ? "topic-source-input-panel" : undefined}
+              className={styles.sourceInputPanel}
+            >
             <div
               className={styles.keywordControl}
               onBlurCapture={(event) => {
@@ -3219,6 +4230,7 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
                 maxLength={80}
                 placeholder={copy.keywordPlaceholder}
                 autoComplete="off"
+                disabled={loading}
                 onPointerDown={() => setExamplesOpen(true)}
                 aria-expanded={examplesOpen}
                 aria-controls="topic-keyword-examples"
@@ -3252,13 +4264,15 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
               name="selection-strategy"
               disabled={loading}
             />
+            </div>
+          )}
             <div className={styles.generatorActions}>
               <WorkbenchButton
                 className={styles.generateButton}
                 type="submit"
                 variant="emphasis"
                 size="default"
-                disabled={loading || keyword.trim().length < 2}
+                disabled={loading || keyword.trim().length < 2 || managedActionUnavailable}
               >
                 {loading && activeMode === "page"
                   ? copy.generatingPage
@@ -3269,8 +4283,11 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
                 type="button"
                 variant="secondary"
                 size="default"
-                disabled={loading || keyword.trim().length < 2}
-                onClick={() => void generate("selection")}
+                disabled={loading || keyword.trim().length < 2 || managedActionUnavailable}
+                onClick={() => {
+                  if (managedRunApiBase) void advanceManaged("selection");
+                  else void generate("selection");
+                }}
               >
                 {loading && activeMode === "selection"
                   ? copy.selectingProducts
@@ -3281,8 +4298,12 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
                   type="button"
                   variant="secondary"
                   size="default"
-                  disabled={loading || !capabilityArtifacts}
-                  onClick={() => void generateCapability("content")}
+                  disabled={loading || managedActionUnavailable ||
+                    (!managedHistoryReady && !capabilityArtifacts)}
+                  onClick={() => {
+                    if (managedRunApiBase) void advanceManaged("content");
+                    else void generateCapability("content");
+                  }}
                 >
                   {loading && activeMode === "content"
                     ? copy.generatingContent
@@ -3292,9 +4313,14 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
                   type="button"
                   variant="secondary"
                   size="default"
-                  disabled={loading || !capabilityArtifacts || !contentSpec ||
-                    !capabilityContentReview}
-                  onClick={() => void generateCapability("visual")}
+                  disabled={loading || managedActionUnavailable ||
+                    (!managedHistoryReady && (
+                      !capabilityArtifacts || !contentSpec || !capabilityContentReview
+                    ))}
+                  onClick={() => {
+                    if (managedRunApiBase) void advanceManaged("visual");
+                    else void generateCapability("visual");
+                  }}
                 >
                   {loading && activeMode === "visual"
                     ? copy.generatingVisuals
@@ -3302,18 +4328,43 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
                 </WorkbenchButton>
               </div>
             </div>
+            {currentRun && (
+              <section
+                className={styles.managedRunOutput}
+                aria-label={uiLanguage === "zh" ? "生成内容" : "Generated content"}
+              >
+                {currentRun.status === "awaiting-approval" && (
+                  <WorkbenchButton
+                    type="button"
+                    variant="secondary"
+                    disabled={loading}
+                    onClick={() => void approveManagedRun()}
+                  >
+                    {uiLanguage === "zh" ? "批准最终页面" : "Approve final page"}
+                  </WorkbenchButton>
+                )}
+                {currentRun.deliverables.some(({ status }) => status === "ready") && (
+                  <div className={styles.deliverableLinks}>
+                    <a
+                      className={styles.topicPackageDownload}
+                      href={`${managedRunsUrl}/${encodeURIComponent(currentRun.runId)}/archive`}
+                      download={`${currentRun.runId}.zip`}
+                    >
+                      <HugeiconsIcon
+                        icon={ArchiveArrowDownIcon}
+                        size={16}
+                        strokeWidth={1.5}
+                        aria-hidden="true"
+                      />
+                      <span>
+                        {uiLanguage === "zh" ? "下载主题包" : "Download topic package"}
+                      </span>
+                    </a>
+                  </div>
+                )}
+              </section>
+            )}
           </form>
-
-          <div className={styles.pathReadout}>
-            <span>{copy.currentRun}</span>
-            <code>
-              {loading
-                ? copy.searching
-                : plan
-                  ? `${plan.site.toUpperCase()} · ${targetLocale} · ${strategyLabel.toUpperCase()} · ${planStatusLabel(plan, uiLanguage).toUpperCase()}`
-                  : copy.waiting}
-            </code>
-          </div>
 
         </aside>
 
@@ -3335,11 +4386,11 @@ export function TopicGenerator({ PagePreviewRenderer }: TopicGeneratorProps = {}
               onValueChange={setView}
               variant="stage"
             />
-            <span className={styles.stageMeta}>
-              {plan
-                ? `${targetLocale} · ${strategyLabel.toUpperCase()} · ${planStatusLabel(plan, uiLanguage).toUpperCase()}`
+              <span className={styles.stageMeta}>
+                {plan
+                ? `${plan.site.toUpperCase()} · ${targetLocale} · ${strategyLabel.toUpperCase()} · ${planStatusLabel(plan, uiLanguage).toUpperCase()}`
                 : `1440 PX · LIGHT · ${targetLocale}`}
-            </span>
+              </span>
           </div>
 
           <div className={`${styles.deviceMat} ${styles.generatorMat}`}>

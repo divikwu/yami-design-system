@@ -5,6 +5,7 @@ import type {
 } from "../page-generation/contracts.js";
 import type { LandingPageExecutionPlan } from "../page-orchestration/contracts.js";
 import type {
+  TopicPageExperienceReviewContext,
   TopicPageExperienceReviewDecision,
   TopicPageExperienceReviewRun,
 } from "./contracts.js";
@@ -22,6 +23,17 @@ export interface TopicPageExperienceReviewRequest {
   previewRefs: TopicPageReviewPackage["previewRefs"];
   proposal?: unknown;
 }
+
+const VISUAL_POLICY: TopicPageExperienceReviewContext["visualPolicy"] = {
+  priority: "scene-and-module-theme",
+  productRole: "reference-only",
+  blockingConditions: [
+    "isolated-product-packshot-used-as-semantic-scene",
+    "product-grid-or-montage-used-as-semantic-scene",
+    "asset-does-not-match-module-theme-or-copy",
+    "visible-product-packaging-is-generated-or-altered",
+  ],
+};
 
 function compileDecision(
   proposal: NonNullable<ReturnType<typeof reviewTopicPageExperienceProposal>["proposal"]>,
@@ -71,6 +83,7 @@ export function advanceTopicPageExperienceReviewRun(
           qaReport,
         }),
         allowedRollbackStages: [...request.executionPlan.allowedReviewRollbackStages],
+        visualPolicy: structuredClone(VISUAL_POLICY),
       },
     };
   }

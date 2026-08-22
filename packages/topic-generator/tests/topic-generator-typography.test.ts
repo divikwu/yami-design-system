@@ -21,7 +21,10 @@ describe("Topic Generator typography", () => {
       /\.generatorControls button,\s*\.generatorControls input\s*\{[^}]*font-size:\s*14px;[^}]*line-height:\s*20px;/s,
     );
     expect(generatorCss).toMatch(
-      /\.pathReadout span,[^{]*\.generatorControls label span\s*\{[^}]*font-size:\s*12px;[^}]*line-height:\s*14px;/s,
+      /\.generatorControls \[data-slot="workbench-field-label"\]\s*\{[^}]*font-size:\s*12px;[^}]*line-height:\s*14px;/s,
+    );
+    expect(generatorCss).not.toMatch(
+      /\.generatorControls label span\s*\{[^}]*font-size:/s,
     );
     for (const selector of [
       "textInput",
@@ -31,8 +34,59 @@ describe("Topic Generator typography", () => {
       "segmentedLabel",
     ]) {
       expect(generatorCss).toMatch(
-        new RegExp(`\\.${selector}\\s*\\{[^}]*font-size:\\s*14px;[^}]*line-height:\\s*20px;`, "s"),
+        new RegExp(`\\.${selector}\\s*\\{[^}]*font-size:\\s*14px;[^}]*font-weight:\\s*var\\(--font-weight-normal\\);[^}]*line-height:\\s*20px;`, "s"),
       );
     }
+    expect(generatorCss).toMatch(
+      /\.selectItem\[data-selected\]\s*\{[^}]*font-weight:\s*var\(--font-weight-normal\)/s,
+    );
+    expect(generatorCss).toMatch(
+      /\.segmentedInput:checked \+ \.segmentedLabel\s*\{[^}]*font-weight:\s*var\(--font-weight-normal\)/s,
+    );
+    expect(generatorCss).toMatch(
+      /\.topicPackageDownload\s*\{[^}]*font-size:\s*14px;[^}]*font-weight:\s*var\(--font-weight-normal\);[^}]*line-height:\s*20px;/s,
+    );
+  });
+
+  it("keeps saved topic metadata at a 12px minimum", () => {
+    expect(generatorCss).toMatch(
+      /\.managedRunOption small\s*\{[^}]*font-size:\s*12px;[^}]*line-height:\s*16px;/s,
+    );
+  });
+
+  it("shares one divider and spacing contract for generator actions", () => {
+    expect(generatorCss).toMatch(
+      /\.generatorActions\s*\{[^}]*padding-top:\s*16px;[^}]*border-top:\s*1px solid var\(--divider-default\);[^}]*gap:\s*8px;/s,
+    );
+    expect(generatorCss).toMatch(
+      /\.capabilityActions\s*\{[^}]*gap:\s*8px;/s,
+    );
+  });
+
+  it("anchors the topic package download to the sidebar footer", () => {
+    expect(generatorCss).toMatch(
+      /\.generatorControls\s*\{[^}]*display:\s*flex;[^}]*flex-direction:\s*column;/s,
+    );
+    expect(generatorCss).toMatch(
+      /\.generatorForm\s*\{[^}]*display:\s*flex;[^}]*flex:\s*1;[^}]*flex-direction:\s*column;/s,
+    );
+    expect(generatorCss).toMatch(
+      /\.managedRunOutput\s*\{[^}]*display:\s*flex;[^}]*flex:\s*1;[^}]*flex-direction:\s*column;/s,
+    );
+    expect(generatorCss).toMatch(
+      /\.deliverableLinks\s*\{[^}]*margin-top:\s*auto;/s,
+    );
+  });
+
+  it("keeps input and loaded topic sources on the same vertical rhythm", () => {
+    expect(generatorCss).toMatch(
+      /\.runLibrary\s*\{[^}]*gap:\s*16px;/s,
+    );
+    expect(generatorCss).toMatch(
+      /\.runLibrary:has\(> \.sourceLoadPanel\)\s*\{[^}]*margin-bottom:\s*0;/s,
+    );
+    expect(generatorCss).toMatch(
+      /\.sourceLoadPanel,\s*\.sourceInputPanel\s*\{[^}]*gap:\s*0;/s,
+    );
   });
 });

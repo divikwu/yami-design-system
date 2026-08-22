@@ -21,7 +21,7 @@ const maxRequestBytes = integerEnvironment(
   2 * 1024 * 1024,
   16 * 1024 * 1024,
 );
-const executor = createConfiguredExecutor();
+const executor = await createConfiguredExecutor();
 const handleRequest = createAgentRunnerHandler({
   executor,
   token: process.env.TOPIC_AGENT_RUNNER_TOKEN?.trim() || undefined,

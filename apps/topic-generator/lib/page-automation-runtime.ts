@@ -9,6 +9,7 @@ import {
   type TopicPageAssetStore,
   type TopicPageImageDecoder,
   type TopicPageReviewPreviewResolver,
+  type TopicPageVisualProductionMode,
 } from "@yami/topic-generator";
 import { topicPageImageDecoder } from "./topic-page-image-decoder";
 import { createConfiguredTopicPageReviewPreviewRegistry } from "./topic-page-review-preview-registry";
@@ -21,6 +22,7 @@ export interface TopicGeneratorPageAutomationRuntime {
   topicPageAssetStore?: TopicPageAssetStore;
   topicPageImageDecoder: TopicPageImageDecoder;
   topicPagePreviewResolver?: TopicPageReviewPreviewResolver;
+  visualProductionMode: TopicPageVisualProductionMode;
   pageAutomationConfigurationIssues: string[];
 }
 
@@ -46,6 +48,18 @@ function agentTimeout(value: string | undefined) {
     );
   }
   return timeout;
+}
+
+function visualProductionMode(
+  value: string | undefined,
+  issues: string[],
+): TopicPageVisualProductionMode {
+  const mode = value?.trim() || "generated-images";
+  if (mode === "generated-images" || mode === "source-product-images") return mode;
+  issues.push(
+    "TOPIC_GENERATOR_VISUAL_PRODUCTION_MODE must be generated-images or source-product-images.",
+  );
+  return "generated-images";
 }
 
 function safeAssetRef(ref: string) {
@@ -108,6 +122,10 @@ export async function loadTopicGeneratorPageAutomationRuntime(options: {
 } = {}): Promise<TopicGeneratorPageAutomationRuntime> {
   const environment = options.environment ?? process.env;
   const issues: string[] = [];
+  const configuredVisualProductionMode = visualProductionMode(
+    environment.TOPIC_GENERATOR_VISUAL_PRODUCTION_MODE,
+    issues,
+  );
   let topicPageAgent: HttpTopicPageAgent | undefined;
   const endpoint = environment.TOPIC_GENERATOR_PAGE_AGENT_ENDPOINT?.trim();
   if (!endpoint) {
@@ -184,6 +202,7 @@ export async function loadTopicGeneratorPageAutomationRuntime(options: {
     topicPageAssetStore,
     topicPageImageDecoder,
     topicPagePreviewResolver,
+    visualProductionMode: configuredVisualProductionMode,
     pageAutomationConfigurationIssues: issues,
   };
 }

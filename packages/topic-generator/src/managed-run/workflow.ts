@@ -1,0 +1,947 @@
+import { analyzeTopicIntent, type TopicIntentAnalysis } from "../analyze.js";
+import {
+  runTopicBackgroundEvidenceAgentWorkflow,
+  topicAudienceContext,
+  unavailableTopicBackgroundEvidence,
+  type TopicBackgroundEvidenceBundle,
+} from "../background-evidence/index.js";
+import {
+  runTopicPageContentApprovalWorkflow,
+  runTopicContentAgentWorkflow,
+  type TopicPageContentSpec,
+} from "../page-content/index.js";
+import {
+  compileTopicPageGenerationSpec,
+  compileTopicPageReviewPackage,
+  runTopicPageQa,
+} from "../page-generation/index.js";
+import {
+  compileDeterministicTopicPagePlanV2,
+  runPageMerchandisingAgentWorkflow,
+  type TopicPagePlanV2,
+} from "../page-merchandising/index.js";
+import {
+  runLandingPageOrchestratorAgentWorkflow,
+  type LandingPageExecutionPlan,
+} from "../page-orchestration/index.js";
+import { runTopicPageReviewAgentWorkflow } from "../page-review/index.js";
+import {
+  validateTopicPageVisualAssetBodies,
+} from "../page-automation/workflow.js";
+import { runTopicVisualAgentWorkflow } from "../page-visual/index.js";
+import {
+  getProductSelectionStrategyConfig,
+  runProductSelectionAgentWorkflow,
+  runProductSelectionWorkflow,
+  type ProductSelectionRun,
+  type ProductSelectionResult,
+} from "../product-selection/index.js";
+import { buildTopicPagePlanFromProductSelection, buildTopicPagePlanMatrix } from "../planner.js";
+import type { HandleTopicGeneratorOptions } from "../server.js";
+import { runTopicIntentAgentWorkflow } from "../topic-intent.js";
+import type { TopicPlanMatrix } from "../types.js";
+import { yamiCatalogCandidateAdapter } from "../yami-catalog.js";
+import type {
+  TopicGeneratorDeliverableName,
+  TopicGeneratorRunManifestV2,
+  TopicGeneratorRunStageId,
+  TopicGeneratorStageExecutionResult,
+} from "./contracts.js";
+import type { AdvanceTopicGeneratorRunOptions } from "./store.js";
+
+export interface TopicIntentStageOutput {
+  analysis: TopicIntentAnalysis;
+  plans?: TopicPlanMatrix;
+  runtime: Awaited<ReturnType<typeof runTopicIntentAgentWorkflow>>["runtime"];
+}
+
+export interface BackgroundEvidenceStageOutput {
+  backgroundEvidence: TopicBackgroundEvidenceBundle;
+  run: Awaited<ReturnType<typeof runTopicBackgroundEvidenceAgentWorkflow>>["run"] | null;
+}
+
+export interface ProductSelectionStageOutput {
+  executionPlan: LandingPageExecutionPlan;
+  selectionRun: ProductSelectionRun;
+  selection: ProductSelectionResult;
+  plans: TopicPlanMatrix;
+  artifacts: Record<string, unknown>;
+}
+
+export interface ModuleMerchandisingStageOutput {
+  plan: TopicPagePlanV2;
+  plans: TopicPlanMatrix;
+  fallbackUsed: boolean;
+  artifacts: Record<string, unknown>;
+}
+
+export interface ContentWritingStageOutput {
+  contentSpec: TopicPageContentSpec;
+  contentAttempt?: Awaited<ReturnType<typeof runTopicContentAgentWorkflow>>["artifacts"];
+}
+
+export interface ContentReviewStageOutput {
+  contentSpec: TopicPageContentSpec;
+  copyBrief: Extract<
+    Awaited<ReturnType<typeof runTopicPageContentApprovalWorkflow>>,
+    { status: "ready" }
+  >["copyBrief"];
+  contentReview: Extract<
+    Awaited<ReturnType<typeof runTopicPageContentApprovalWorkflow>>,
+    { status: "ready" }
+  >["contentReview"];
+}
+
+export interface VisualGenerationStageOutput {
+  assetManifest: Extract<
+    Awaited<ReturnType<typeof runTopicVisualAgentWorkflow>>["run"],
+    { status: "ready" }
+  >["manifest"];
+  assetBodies: NonNullable<
+    Awaited<ReturnType<typeof runTopicVisualAgentWorkflow>>["artifacts"]["assetBodies"]
+  >;
+}
+
+export interface AssetPersistenceStageOutput {
+  assetManifest: VisualGenerationStageOutput["assetManifest"];
+  persistedRefs: string[];
+}
+
+export interface PageGenerationStageOutput {
+  generationSpec: ReturnType<typeof compileTopicPageGenerationSpec>;
+}
+
+export interface AutomaticQaStageOutput {
+  qaReport: Awaited<ReturnType<typeof runTopicPageQa>>;
+}
+
+export interface ExperienceReviewStageOutput {
+  experienceReview: Extract<
+    Awaited<ReturnType<typeof runTopicPageReviewAgentWorkflow>>["run"],
+    { status: "ready" }
+  >["decision"];
+  reviewPackage: ReturnType<typeof compileTopicPageReviewPackage>;
+}
+
+export interface TopicGeneratorDeliverableRenderRequest {
+  name: TopicGeneratorDeliverableName;
+  manifest: TopicGeneratorRunManifestV2;
+  stages: Partial<Record<TopicGeneratorRunStageId, unknown>>;
+}
+
+export interface TopicGeneratorDeliverableRenderer {
+  render(request: TopicGeneratorDeliverableRenderRequest): Promise<string>;
+}
+
+export interface TopicGeneratorManagedRuntimeOptions extends HandleTopicGeneratorOptions {
+  deliverableRenderer: TopicGeneratorDeliverableRenderer;
+}
+
+function blocked(output: unknown, issues: string[]): TopicGeneratorStageExecutionResult {
+  return { status: "blocked", output, issues: [...new Set(issues)] };
+}
+
+function required<T>(value: unknown, label: string): T {
+  if (typeof value !== "object" || value === null) {
+    throw new Error(`${label} is missing from the managed run.`);
+  }
+  return value as T;
+}
+
+async function stageOutputs(
+  readStageResult: AdvanceTopicGeneratorRunOptions["execute"] extends (
+    input: infer T,
+  ) => unknown ? T extends { readStageResult: infer R } ? R : never : never,
+  currentStage: TopicGeneratorRunStageId,
+  currentOutput?: unknown,
+) {
+  const ids: TopicGeneratorRunStageId[] = [
+    "topic-intent",
+    "background-evidence",
+    "product-selection",
+    "module-merchandising",
+    "content-writing",
+    "content-review",
+    "visual-generation",
+    "asset-persistence",
+    "page-generation",
+    "automatic-qa",
+    "experience-review",
+  ];
+  const outputs: Partial<Record<TopicGeneratorRunStageId, unknown>> = {};
+  for (const id of ids) {
+    if (id === currentStage && currentOutput !== undefined) {
+      outputs[id] = currentOutput;
+      continue;
+    }
+    const result = await (readStageResult as (stageId: TopicGeneratorRunStageId) => Promise<unknown>)(id);
+    if (result !== undefined) outputs[id] = result;
+  }
+  return outputs;
+}
+
+function applyPagePlanV2ToLegacyPlans(
+  plans: TopicPlanMatrix,
+  strategy: "relevance" | "category-role",
+  reviewedPlan: TopicPagePlanV2,
+) {
+  const reviewedModules = new Map(reviewedPlan.modules.map((module) => [module.id, module]));
+  (["en", "zh"] as const).forEach((language) => {
+    const plan = plans[language][strategy];
+    if (!plan) return;
+    plan.modules.forEach((module) => {
+      const reviewedModule = reviewedModules.get(module.id);
+      if (!reviewedModule) return;
+      module.visible = reviewedModule.visible;
+      module.productIds = reviewedModule.assignments.map(({ productId }) => productId);
+      module.productReasons = Object.fromEntries(reviewedModule.assignments.map((assignment) => [
+        assignment.productId,
+        assignment.selectionReason ?? assignment.reuseReason ?? reviewedModule.reason,
+      ]));
+      module.reason = reviewedModule.reason;
+      if (module.id === "brand-spotlight" && module.groups) {
+        module.groups = module.groups.flatMap((group) => {
+          const productIds = reviewedModule.assignments
+            .filter(({ groupId }) => groupId === group.id)
+            .map(({ productId }) => productId);
+          return productIds.length > 0 ? [{ ...group, productIds }] : [];
+        });
+      } else if ((module.id === "popular-picks" || module.id === "explore-more") &&
+          module.groups) {
+        module.groups = module.groups.flatMap((group) => {
+          const productIds = module.productIds.filter((productId) =>
+            group.productIds.includes(productId)
+          );
+          return productIds.length > 0 ? [{ ...group, productIds }] : [];
+        });
+      }
+    });
+  });
+}
+
+async function topicIntentStage(
+  manifest: TopicGeneratorRunManifestV2,
+  options: TopicGeneratorManagedRuntimeOptions,
+): Promise<TopicGeneratorStageExecutionResult> {
+  const initial = await analyzeTopicIntent(manifest.request.keyword, options);
+  const resolved = await runTopicIntentAgentWorkflow({
+    snapshot: initial.snapshot,
+    intent: initial.intent,
+    language: manifest.request.language,
+    proposalReview: initial.proposalReview,
+    agent: options.topicIntentAgent,
+  });
+  const output: TopicIntentStageOutput = {
+    analysis: {
+      ...initial,
+      snapshot: resolved.snapshot,
+      intent: resolved.intent,
+      proposalReview: resolved.proposalReview,
+    },
+    plans: buildTopicPagePlanMatrix(resolved.snapshot, "selection"),
+    runtime: resolved.runtime,
+  };
+  return {
+    status: "completed",
+    request: {
+      keyword: manifest.request.keyword,
+      site: manifest.request.site,
+      language: manifest.request.language,
+    },
+    output,
+  };
+}
+
+async function backgroundEvidenceStage(
+  manifest: TopicGeneratorRunManifestV2,
+  readStageResult: (stageId: TopicGeneratorRunStageId) => Promise<unknown | undefined>,
+  options: TopicGeneratorManagedRuntimeOptions,
+): Promise<TopicGeneratorStageExecutionResult> {
+  const intentOutput = required<TopicIntentStageOutput>(
+    await readStageResult("topic-intent"),
+    "Topic intent stage",
+  );
+  const { intent, snapshot } = intentOutput.analysis;
+  const workflow = options.topicPageAgent
+    ? await runTopicBackgroundEvidenceAgentWorkflow({
+        intent,
+        keyword: snapshot.keyword,
+        site: snapshot.site,
+        language: manifest.request.language,
+        agent: options.topicPageAgent,
+      })
+    : null;
+  const backgroundEvidence = workflow?.bundle ?? unavailableTopicBackgroundEvidence({
+    intent,
+    keyword: snapshot.keyword,
+    site: snapshot.site,
+    language: manifest.request.language,
+  }, ["Background Evidence Agent is not configured."]);
+  const output: BackgroundEvidenceStageOutput = {
+    backgroundEvidence,
+    run: workflow?.run ?? null,
+  };
+  const html = await options.deliverableRenderer.render({
+    name: "topic-brief.html",
+    manifest,
+    stages: await stageOutputs(readStageResult, "background-evidence", output),
+  });
+  const blockedIssues = workflow?.run.status === "ready"
+    ? []
+    : backgroundEvidence.issues.length > 0
+      ? backgroundEvidence.issues
+      : ["Background evidence could not be completed."];
+  return {
+    status: blockedIssues.length > 0 ? "blocked" : "completed",
+    request: {
+      themeIntentDigest: backgroundEvidence.themeIntentDigest,
+      language: manifest.request.language,
+    },
+    proposal: workflow?.run && "proposalReview" in workflow.run
+      ? workflow.run.proposalReview.proposal ?? null
+      : null,
+    output,
+    ...(blockedIssues.length > 0 ? { issues: blockedIssues } : {}),
+    deliverables: { "topic-brief.html": html },
+  };
+}
+
+async function productSelectionStage(
+  manifest: TopicGeneratorRunManifestV2,
+  readStageResult: (stageId: TopicGeneratorRunStageId) => Promise<unknown | undefined>,
+  options: TopicGeneratorManagedRuntimeOptions,
+): Promise<TopicGeneratorStageExecutionResult> {
+  const intentOutput = required<TopicIntentStageOutput>(
+    await readStageResult("topic-intent"),
+    "Topic intent stage",
+  );
+  const { intent, snapshot } = intentOutput.analysis;
+  if (!options.topicPageAgent) {
+    return blocked(null, [
+      ...(options.pageAutomationConfigurationIssues ?? []),
+      "Product selection requires the configured Topic Page Orchestrator.",
+    ]);
+  }
+  const requestedSelectionStrategyRef = manifest.request.requestedSelectionStrategyRef ??
+    (manifest.request.strategy === "category-role"
+      ? "category-role/landing-page-agent@1"
+      : "relevance/intent-themes@5");
+  const orchestration = await runLandingPageOrchestratorAgentWorkflow({
+    intent,
+    keyword: snapshot.keyword,
+    site: snapshot.site,
+    language: manifest.request.language,
+    requestedPageTypeRef: manifest.request.requestedPageTypeRef,
+    requestedSelectionStrategyRef,
+    agent: options.topicPageAgent,
+  });
+  if (orchestration.run.status !== "ready") {
+    return blocked(
+      { orchestration: orchestration.run },
+      orchestration.run.status === "blocked"
+        ? orchestration.run.issues
+        : ["Orchestrator Agent returned no execution plan."],
+    );
+  }
+  const executionPlan = orchestration.run.plan;
+  const strategy = getProductSelectionStrategyConfig(executionPlan.selectionStrategyRef).engine;
+  let selectionWorkflow;
+  if (strategy === "category-role") {
+    const issues = [
+      ...(options.categoryRoleConfigurationIssues ?? []),
+      ...(!options.taxonomySnapshot ? ["CategoryRole selection requires a taxonomy snapshot."] : []),
+      ...(!options.productSelectionAgent ? ["CategoryRole selection requires a Product Agent."] : []),
+    ];
+    if (issues.length > 0 || !options.taxonomySnapshot || !options.productSelectionAgent) {
+      return blocked({ executionPlan }, issues);
+    }
+    selectionWorkflow = await runProductSelectionAgentWorkflow({
+      snapshot,
+      strategyRef: executionPlan.selectionStrategyRef,
+      language: manifest.request.language,
+      taxonomySnapshot: options.taxonomySnapshot,
+      candidateAdapter: options.candidateAdapter ?? yamiCatalogCandidateAdapter,
+      agent: options.productSelectionAgent,
+    });
+  } else if (options.productSelectionAgent) {
+    try {
+      selectionWorkflow = await runProductSelectionAgentWorkflow({
+        snapshot,
+        strategyRef: executionPlan.selectionStrategyRef,
+        language: manifest.request.language,
+        candidateAdapter: options.candidateAdapter ?? yamiCatalogCandidateAdapter,
+        agent: options.productSelectionAgent,
+      });
+    } catch {
+      selectionWorkflow = await runProductSelectionWorkflow({
+        snapshot,
+        strategyRef: executionPlan.selectionStrategyRef,
+        language: manifest.request.language,
+        productSemanticProposal: null,
+      });
+    }
+  } else {
+    selectionWorkflow = await runProductSelectionWorkflow({
+      snapshot,
+      strategyRef: executionPlan.selectionStrategyRef,
+      language: manifest.request.language,
+      productSemanticProposal: null,
+    });
+  }
+  if (selectionWorkflow.run.status !== "ready") {
+    return blocked(
+      { executionPlan, selectionRun: selectionWorkflow.run },
+      selectionWorkflow.run.status === "blocked"
+        ? selectionWorkflow.run.issues
+        : ["Product selection returned no ready result."],
+    );
+  }
+  const selection = selectionWorkflow.run.result;
+  const plans = buildTopicPagePlanMatrix(snapshot);
+  plans.en[strategy] = buildTopicPagePlanFromProductSelection(
+    snapshot,
+    selection,
+    "en",
+    manifest.request.goal === "selection" ? "selection" : "page",
+  );
+  plans.zh[strategy] = buildTopicPagePlanFromProductSelection(
+    snapshot,
+    selection,
+    "zh",
+    manifest.request.goal === "selection" ? "selection" : "page",
+  );
+  const output: ProductSelectionStageOutput = {
+    executionPlan,
+    selectionRun: selectionWorkflow.run,
+    selection,
+    plans,
+    artifacts: selectionWorkflow.artifacts,
+  };
+  return {
+    status: "completed",
+    request: {
+      executionPlanDigest: executionPlan.digest,
+      strategyRef: executionPlan.selectionStrategyRef,
+    },
+    proposal: {
+      orchestration: orchestration.artifacts.proposal ?? null,
+      selection: selectionWorkflow.artifacts,
+    },
+    output,
+  };
+}
+
+async function moduleMerchandisingStage(
+  manifest: TopicGeneratorRunManifestV2,
+  readStageResult: (stageId: TopicGeneratorRunStageId) => Promise<unknown | undefined>,
+  options: TopicGeneratorManagedRuntimeOptions,
+): Promise<TopicGeneratorStageExecutionResult> {
+  const intentOutput = required<TopicIntentStageOutput>(
+    await readStageResult("topic-intent"),
+    "Topic intent stage",
+  );
+  const selectionOutput = required<ProductSelectionStageOutput>(
+    await readStageResult("product-selection"),
+    "Product selection stage",
+  );
+  const strategy = getProductSelectionStrategyConfig(
+    selectionOutput.executionPlan.selectionStrategyRef,
+  ).engine;
+  const sourcePlan = selectionOutput.plans[manifest.request.language][strategy] ??
+    selectionOutput.plans[manifest.request.language].relevance;
+  let plan: TopicPagePlanV2;
+  let fallbackUsed = false;
+  let artifacts: Record<string, unknown> = {};
+  if (options.topicPageAgent) {
+    try {
+      const workflow = await runPageMerchandisingAgentWorkflow({
+        intent: intentOutput.analysis.intent,
+        selection: selectionOutput.selection,
+        language: manifest.request.language,
+        templateRef: selectionOutput.executionPlan.templateRef,
+        agent: options.topicPageAgent,
+      });
+      artifacts = workflow.artifacts;
+      if (workflow.run.status === "ready") {
+        plan = workflow.run.plan;
+      } else {
+        fallbackUsed = true;
+        plan = compileDeterministicTopicPagePlanV2(
+          intentOutput.analysis.intent,
+          selectionOutput.selection,
+          sourcePlan,
+          selectionOutput.executionPlan.templateRef,
+        );
+        artifacts = { ...artifacts, blockedRun: workflow.run };
+      }
+    } catch (error) {
+      fallbackUsed = true;
+      artifacts = {
+        issue: error instanceof Error ? error.message : "Page merchandising failed.",
+      };
+      plan = compileDeterministicTopicPagePlanV2(
+        intentOutput.analysis.intent,
+        selectionOutput.selection,
+        sourcePlan,
+        selectionOutput.executionPlan.templateRef,
+      );
+    }
+  } else {
+    fallbackUsed = true;
+    plan = compileDeterministicTopicPagePlanV2(
+      intentOutput.analysis.intent,
+      selectionOutput.selection,
+      sourcePlan,
+      selectionOutput.executionPlan.templateRef,
+    );
+  }
+  const plans = structuredClone(selectionOutput.plans);
+  applyPagePlanV2ToLegacyPlans(plans, strategy, plan);
+  const output: ModuleMerchandisingStageOutput = {
+    plan,
+    plans,
+    fallbackUsed,
+    artifacts,
+  };
+  const html = await options.deliverableRenderer.render({
+    name: "page-draft.html",
+    manifest,
+    stages: await stageOutputs(readStageResult, "module-merchandising", output),
+  });
+  return {
+    status: "completed",
+    request: {
+      executionPlanDigest: selectionOutput.executionPlan.digest,
+      selectionStrategyRef: selectionOutput.selection.strategyRef,
+    },
+    proposal: artifacts,
+    output,
+    deliverables: { "page-draft.html": html },
+  };
+}
+
+async function contentWritingStage(
+  manifest: TopicGeneratorRunManifestV2,
+  readStageResult: (stageId: TopicGeneratorRunStageId) => Promise<unknown | undefined>,
+  options: TopicGeneratorManagedRuntimeOptions,
+): Promise<TopicGeneratorStageExecutionResult> {
+  if (!options.topicPageAgent) {
+    return blocked(null, ["Content writing requires the configured Topic Page Agent."]);
+  }
+  const intentOutput = required<TopicIntentStageOutput>(
+    await readStageResult("topic-intent"),
+    "Topic intent stage",
+  );
+  const backgroundOutput = required<BackgroundEvidenceStageOutput>(
+    await readStageResult("background-evidence"),
+    "Background evidence stage",
+  );
+  const selectionOutput = required<ProductSelectionStageOutput>(
+    await readStageResult("product-selection"),
+    "Product selection stage",
+  );
+  const moduleOutput = required<ModuleMerchandisingStageOutput>(
+    await readStageResult("module-merchandising"),
+    "Module merchandising stage",
+  );
+  const workflow = await runTopicContentAgentWorkflow({
+    intent: intentOutput.analysis.intent,
+    selection: selectionOutput.selection,
+    plan: moduleOutput.plan,
+    language: manifest.request.language,
+    audienceContext: topicAudienceContext(manifest.request.language),
+    backgroundEvidence: backgroundOutput.backgroundEvidence,
+    agent: options.topicPageAgent,
+  });
+  if (workflow.run.status !== "ready") {
+    return blocked(
+      { contentRun: workflow.run, contentAttempt: workflow.artifacts },
+      workflow.run.status === "blocked"
+        ? workflow.run.issues
+        : ["Content Agent returned no proposal."],
+    );
+  }
+  const output: ContentWritingStageOutput = {
+    contentSpec: workflow.run.spec,
+    ...(workflow.artifacts ? { contentAttempt: workflow.artifacts } : {}),
+  };
+  return {
+    status: "completed",
+    request: {
+      topicPagePlanDigest: moduleOutput.plan.digest,
+      backgroundEvidenceDigest: backgroundOutput.backgroundEvidence.digest,
+    },
+    proposal: workflow.artifacts?.proposal ?? null,
+    output,
+  };
+}
+
+async function contentReviewStage(
+  manifest: TopicGeneratorRunManifestV2,
+  readStageResult: (stageId: TopicGeneratorRunStageId) => Promise<unknown | undefined>,
+  options: TopicGeneratorManagedRuntimeOptions,
+): Promise<TopicGeneratorStageExecutionResult> {
+  if (!options.topicPageAgent) {
+    return blocked(null, ["Content review requires the configured Topic Page Agent."]);
+  }
+  const intentOutput = required<TopicIntentStageOutput>(
+    await readStageResult("topic-intent"),
+    "Topic intent stage",
+  );
+  const backgroundOutput = required<BackgroundEvidenceStageOutput>(
+    await readStageResult("background-evidence"),
+    "Background evidence stage",
+  );
+  const selectionOutput = required<ProductSelectionStageOutput>(
+    await readStageResult("product-selection"),
+    "Product selection stage",
+  );
+  const moduleOutput = required<ModuleMerchandisingStageOutput>(
+    await readStageResult("module-merchandising"),
+    "Module merchandising stage",
+  );
+  const contentOutput = required<ContentWritingStageOutput>(
+    await readStageResult("content-writing"),
+    "Content writing stage",
+  );
+  const workflow = await runTopicPageContentApprovalWorkflow({
+    intent: intentOutput.analysis.intent,
+    selection: selectionOutput.selection,
+    plan: moduleOutput.plan,
+    language: manifest.request.language,
+    audienceContext: topicAudienceContext(manifest.request.language),
+    backgroundEvidence: backgroundOutput.backgroundEvidence,
+    contentSpec: contentOutput.contentSpec,
+    contentAgent: options.topicPageAgent,
+    reviewAgent: options.topicPageAgent,
+  });
+  if (workflow.status !== "ready") {
+    return blocked(workflow, workflow.issues);
+  }
+  const output: ContentReviewStageOutput = {
+    contentSpec: workflow.contentSpec,
+    copyBrief: workflow.copyBrief,
+    contentReview: workflow.contentReview,
+  };
+  return {
+    status: "completed",
+    request: {
+      contentSpecDigest: contentOutput.contentSpec.digest,
+      backgroundEvidenceDigest: backgroundOutput.backgroundEvidence.digest,
+    },
+    proposal: workflow.contentReview,
+    output,
+  };
+}
+
+async function visualGenerationStage(
+  readStageResult: (stageId: TopicGeneratorRunStageId) => Promise<unknown | undefined>,
+  options: TopicGeneratorManagedRuntimeOptions,
+): Promise<TopicGeneratorStageExecutionResult> {
+  if (!options.topicPageAgent) {
+    return blocked(null, ["Visual generation requires the configured Topic Page Agent."]);
+  }
+  const intentOutput = required<TopicIntentStageOutput>(
+    await readStageResult("topic-intent"),
+    "Topic intent stage",
+  );
+  const backgroundOutput = required<BackgroundEvidenceStageOutput>(
+    await readStageResult("background-evidence"),
+    "Background evidence stage",
+  );
+  const selectionOutput = required<ProductSelectionStageOutput>(
+    await readStageResult("product-selection"),
+    "Product selection stage",
+  );
+  const moduleOutput = required<ModuleMerchandisingStageOutput>(
+    await readStageResult("module-merchandising"),
+    "Module merchandising stage",
+  );
+  const contentOutput = required<ContentReviewStageOutput>(
+    await readStageResult("content-review"),
+    "Content review stage",
+  );
+  const workflow = await runTopicVisualAgentWorkflow({
+    intent: intentOutput.analysis.intent,
+    selection: selectionOutput.selection,
+    plan: moduleOutput.plan,
+    contentSpec: contentOutput.contentSpec,
+    backgroundEvidence: backgroundOutput.backgroundEvidence,
+    productionMode: options.visualProductionMode ?? "generated-images",
+    agent: options.topicPageAgent,
+  });
+  if (workflow.run.status !== "ready" || !workflow.artifacts.assetBodies) {
+    return blocked(
+      { visualRun: workflow.run },
+      workflow.run.status === "blocked"
+        ? workflow.run.issues
+        : ["Visual Agent returned no complete image output."],
+    );
+  }
+  const output: VisualGenerationStageOutput = {
+    assetManifest: workflow.run.manifest,
+    assetBodies: workflow.artifacts.assetBodies,
+  };
+  return {
+    status: "completed",
+    request: {
+      topicPagePlanDigest: moduleOutput.plan.digest,
+      contentSpecDigest: contentOutput.contentSpec.digest,
+    },
+    proposal: workflow.artifacts.proposal ?? null,
+    output,
+  };
+}
+
+async function assetPersistenceStage(
+  readStageResult: (stageId: TopicGeneratorRunStageId) => Promise<unknown | undefined>,
+  assetStore: Parameters<AdvanceTopicGeneratorRunOptions["execute"]>[0]["assetStore"],
+  options: TopicGeneratorManagedRuntimeOptions,
+): Promise<TopicGeneratorStageExecutionResult> {
+  const visualOutput = required<VisualGenerationStageOutput>(
+    await readStageResult("visual-generation"),
+    "Visual generation stage",
+  );
+  if (!options.topicPageImageDecoder) {
+    return blocked(null, ["Asset persistence requires an image decoder."]);
+  }
+  const validated = await validateTopicPageVisualAssetBodies(
+    visualOutput.assetBodies,
+    visualOutput.assetManifest,
+    options.topicPageImageDecoder,
+  );
+  if (validated.issues.length > 0) {
+    return blocked({ assetManifest: visualOutput.assetManifest }, validated.issues);
+  }
+  for (const body of validated.decoded) await assetStore.put(body.ref, body.bytes);
+  const output: AssetPersistenceStageOutput = {
+    assetManifest: visualOutput.assetManifest,
+    persistedRefs: validated.decoded.map(({ ref }) => ref),
+  };
+  return {
+    status: "completed",
+    request: { topicPageAssetManifestDigest: visualOutput.assetManifest.digest },
+    output,
+  };
+}
+
+async function pageGenerationStage(
+  readStageResult: (stageId: TopicGeneratorRunStageId) => Promise<unknown | undefined>,
+  assetStore: Parameters<AdvanceTopicGeneratorRunOptions["execute"]>[0]["assetStore"],
+): Promise<TopicGeneratorStageExecutionResult> {
+  const intentOutput = required<TopicIntentStageOutput>(
+    await readStageResult("topic-intent"),
+    "Topic intent stage",
+  );
+  const backgroundOutput = required<BackgroundEvidenceStageOutput>(
+    await readStageResult("background-evidence"),
+    "Background evidence stage",
+  );
+  const selectionOutput = required<ProductSelectionStageOutput>(
+    await readStageResult("product-selection"),
+    "Product selection stage",
+  );
+  const moduleOutput = required<ModuleMerchandisingStageOutput>(
+    await readStageResult("module-merchandising"),
+    "Module merchandising stage",
+  );
+  const contentOutput = required<ContentReviewStageOutput>(
+    await readStageResult("content-review"),
+    "Content review stage",
+  );
+  const assetsOutput = required<AssetPersistenceStageOutput>(
+    await readStageResult("asset-persistence"),
+    "Asset persistence stage",
+  );
+  const generationSpec = compileTopicPageGenerationSpec({
+    intent: intentOutput.analysis.intent,
+    selection: selectionOutput.selection,
+    plan: moduleOutput.plan,
+    contentSpec: contentOutput.contentSpec,
+    backgroundEvidence: backgroundOutput.backgroundEvidence,
+    manifest: assetsOutput.assetManifest,
+    assetUrl: assetStore.publicUrl,
+  });
+  const output: PageGenerationStageOutput = { generationSpec };
+  return {
+    status: "completed",
+    request: {
+      topicPagePlanDigest: moduleOutput.plan.digest,
+      topicPageContentSpecDigest: contentOutput.contentSpec.digest,
+      topicPageAssetManifestDigest: assetsOutput.assetManifest.digest,
+    },
+    output,
+  };
+}
+
+async function automaticQaStage(
+  readStageResult: (stageId: TopicGeneratorRunStageId) => Promise<unknown | undefined>,
+  assetStore: Parameters<AdvanceTopicGeneratorRunOptions["execute"]>[0]["assetStore"],
+  options: TopicGeneratorManagedRuntimeOptions,
+): Promise<TopicGeneratorStageExecutionResult> {
+  if (!options.topicPageImageDecoder) {
+    return blocked(null, ["Automatic QA requires an image decoder."]);
+  }
+  const intentOutput = required<TopicIntentStageOutput>(
+    await readStageResult("topic-intent"),
+    "Topic intent stage",
+  );
+  const selectionOutput = required<ProductSelectionStageOutput>(
+    await readStageResult("product-selection"),
+    "Product selection stage",
+  );
+  const moduleOutput = required<ModuleMerchandisingStageOutput>(
+    await readStageResult("module-merchandising"),
+    "Module merchandising stage",
+  );
+  const contentOutput = required<ContentReviewStageOutput>(
+    await readStageResult("content-review"),
+    "Content review stage",
+  );
+  const assetsOutput = required<AssetPersistenceStageOutput>(
+    await readStageResult("asset-persistence"),
+    "Asset persistence stage",
+  );
+  const generationOutput = required<PageGenerationStageOutput>(
+    await readStageResult("page-generation"),
+    "Page generation stage",
+  );
+  const qaReport = await runTopicPageQa({
+    intent: intentOutput.analysis.intent,
+    selection: selectionOutput.selection,
+    plan: moduleOutput.plan,
+    contentSpec: contentOutput.contentSpec,
+    manifest: assetsOutput.assetManifest,
+    generationSpec: generationOutput.generationSpec,
+    reader: assetStore,
+    imageDecoder: options.topicPageImageDecoder,
+  });
+  const output: AutomaticQaStageOutput = { qaReport };
+  return qaReport.status === "passed"
+    ? { status: "completed", request: { generationSpecDigest: generationOutput.generationSpec.digest }, output }
+    : blocked(output, qaReport.issues);
+}
+
+async function experienceReviewStage(
+  readStageResult: (stageId: TopicGeneratorRunStageId) => Promise<unknown | undefined>,
+  options: TopicGeneratorManagedRuntimeOptions,
+): Promise<TopicGeneratorStageExecutionResult> {
+  if (!options.topicPageAgent || !options.topicPagePreviewResolver) {
+    return blocked(null, [
+      "Experience review requires the Topic Page Agent and preview resolver.",
+    ]);
+  }
+  const selectionOutput = required<ProductSelectionStageOutput>(
+    await readStageResult("product-selection"),
+    "Product selection stage",
+  );
+  const generationOutput = required<PageGenerationStageOutput>(
+    await readStageResult("page-generation"),
+    "Page generation stage",
+  );
+  const qaOutput = required<AutomaticQaStageOutput>(
+    await readStageResult("automatic-qa"),
+    "Automatic QA stage",
+  );
+  if (qaOutput.qaReport.status !== "passed") {
+    return blocked(qaOutput, qaOutput.qaReport.issues);
+  }
+  const passedQaReport = qaOutput.qaReport as AutomaticQaStageOutput["qaReport"] & {
+    status: "passed";
+  };
+  const previewRefs = await options.topicPagePreviewResolver({
+    executionPlan: selectionOutput.executionPlan,
+    generationSpec: generationOutput.generationSpec,
+    qaReport: passedQaReport,
+  });
+  const workflow = await runTopicPageReviewAgentWorkflow({
+    executionPlan: selectionOutput.executionPlan,
+    generationSpec: generationOutput.generationSpec,
+    qaReport: passedQaReport,
+    previewRefs,
+    agent: options.topicPageAgent,
+  });
+  if (workflow.run.status !== "ready") {
+    return blocked(
+      { reviewRun: workflow.run },
+      workflow.run.status === "blocked"
+        ? workflow.run.issues
+        : ["Experience Review Agent returned no proposal."],
+    );
+  }
+  if (workflow.run.decision.status === "revision-requested") {
+    return blocked(
+      { experienceReview: workflow.run.decision },
+      workflow.run.decision.issues.map(({ message }) => message),
+    );
+  }
+  const reviewPackage = compileTopicPageReviewPackage({
+    executionPlan: selectionOutput.executionPlan,
+    generationSpec: generationOutput.generationSpec,
+    qaReport: passedQaReport,
+    experienceReview: workflow.run.decision,
+    previewRefs,
+  });
+  const output: ExperienceReviewStageOutput = {
+    experienceReview: workflow.run.decision,
+    reviewPackage,
+  };
+  return {
+    status: "completed",
+    request: {
+      executionPlanDigest: selectionOutput.executionPlan.digest,
+      generationSpecDigest: generationOutput.generationSpec.digest,
+      qaReportDigest: qaOutput.qaReport.digest,
+    },
+    proposal: workflow.artifacts.proposal ?? null,
+    output,
+    runStatus: "awaiting-approval",
+    reviewPackageDigest: reviewPackage.digest,
+  };
+}
+
+export function createTopicGeneratorManagedStageExecutor(
+  options: TopicGeneratorManagedRuntimeOptions,
+): AdvanceTopicGeneratorRunOptions["execute"] {
+  return async ({ manifest, stageId, readStageResult, assetStore }) => {
+    switch (stageId) {
+      case "topic-intent":
+        return topicIntentStage(manifest, options);
+      case "background-evidence":
+        return backgroundEvidenceStage(manifest, readStageResult, options);
+      case "product-selection":
+        return productSelectionStage(manifest, readStageResult, options);
+      case "module-merchandising":
+        return moduleMerchandisingStage(manifest, readStageResult, options);
+      case "content-writing":
+        return contentWritingStage(manifest, readStageResult, options);
+      case "content-review":
+        return contentReviewStage(manifest, readStageResult, options);
+      case "visual-generation":
+        return visualGenerationStage(readStageResult, options);
+      case "asset-persistence":
+        return assetPersistenceStage(readStageResult, assetStore, options);
+      case "page-generation":
+        return pageGenerationStage(readStageResult, assetStore);
+      case "automatic-qa":
+        return automaticQaStage(readStageResult, assetStore, options);
+      case "experience-review":
+        return experienceReviewStage(readStageResult, options);
+      case "user-approval":
+        return blocked(null, ["User approval must be submitted through the review API."]);
+    }
+  };
+}
+
+export async function renderTopicGeneratorManagedDeliverable(
+  name: TopicGeneratorDeliverableName,
+  manifest: TopicGeneratorRunManifestV2,
+  readStageResult: (stageId: TopicGeneratorRunStageId) => Promise<unknown | undefined>,
+  renderer: TopicGeneratorDeliverableRenderer,
+) {
+  return renderer.render({
+    name,
+    manifest,
+    stages: await stageOutputs(readStageResult, "user-approval"),
+  });
+}

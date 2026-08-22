@@ -132,6 +132,18 @@ describe("Topic page experience review", () => {
     expect(pending).toMatchObject({
       schemaVersion: "topic-page-experience-review-run/v1",
       status: "needs-review-proposal",
+      context: {
+        visualPolicy: {
+          priority: "scene-and-module-theme",
+          productRole: "reference-only",
+          blockingConditions: [
+            "isolated-product-packshot-used-as-semantic-scene",
+            "product-grid-or-montage-used-as-semantic-scene",
+            "asset-does-not-match-module-theme-or-copy",
+            "visible-product-packaging-is-generated-or-altered",
+          ],
+        },
+      },
     });
     if (pending.status !== "needs-review-proposal") throw new Error("Expected review context.");
 

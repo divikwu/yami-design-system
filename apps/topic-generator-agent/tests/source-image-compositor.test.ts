@@ -36,6 +36,13 @@ function visualRun(imageUrl = "https://cdn.yamibuy.net/item/test-product.webp") 
           preferredSubjectArea: "upper-three-quarters",
           lowerAreaUsage: "low-contrast-decoration-preferred",
         },
+        sceneId: "scene-routine-1",
+        scene: {
+          id: "scene-routine-1",
+          shoppingGoal: "Build a calm daily skincare routine",
+          reason: "The module explains a complete routine.",
+          productIds: ["anua-1"],
+        },
         assignments: [{ productId: "anua-1" }],
         products: [{
           id: "anua-1",
@@ -48,6 +55,41 @@ function visualRun(imageUrl = "https://cdn.yamibuy.net/item/test-product.webp") 
           role: "core",
         }],
         contentTask: { taskId: "content-scene-routine" },
+        sceneBrief: {
+          priority: "scene-first",
+          productRole: "reference-only",
+          theme: {
+            shoppingGoal: "Build a gentle skincare routine",
+            needs: ["hydration", "daily care"],
+            conditions: ["calm morning"],
+          },
+          module: {
+            shoppingGoal: "Build a calm daily skincare routine",
+            reason: "The module explains a complete routine.",
+          },
+          categories: [{ id: "toner", label: "Toner", role: "core" }],
+          scene: {
+            id: "scene-routine-1",
+            shoppingGoal: "Build a calm daily skincare routine",
+            reason: "The module explains a complete routine.",
+          },
+          content: {
+            taskId: "content-scene-routine",
+            texts: ["A calm morning routine"],
+          },
+          evidenceRefs: [
+            "theme-intent:gentle-routine",
+            "selected-category:toner",
+            "scene:scene-routine-1",
+            "content-task:content-scene-routine",
+          ],
+          requirements: [
+            "Depict a coherent, naturalistic scene that expresses this module's shopping goal.",
+            "Treat assigned products as visual references only; they do not need to appear.",
+            "Do not use isolated product packshots, tiled product grids, or product montages as the primary visual.",
+            "Do not generate or alter packaging, labels, logos, or product claims.",
+          ],
+        },
       }],
     },
   };
@@ -94,12 +136,24 @@ describe("source product image compositor", () => {
           taskId: "asset-scene-routine",
           kind: "scene-image",
           direction: {
-            evidenceRefs: ["product:anua-1"],
+            evidenceRefs: [
+              "theme-intent:gentle-routine",
+              "selected-category:toner",
+              "scene:scene-routine-1",
+              "content-task:content-scene-routine",
+              "product:anua-1",
+            ],
             referenceProductIds: ["anua-1"],
           },
           altText: {
             language: "zh",
-            evidenceRefs: ["product:anua-1"],
+            evidenceRefs: [
+              "theme-intent:gentle-routine",
+              "selected-category:toner",
+              "scene:scene-routine-1",
+              "content-task:content-scene-routine",
+              "product:anua-1",
+            ],
           },
           artifact: {
             mimeType: "image/webp",
@@ -120,6 +174,12 @@ describe("source product image compositor", () => {
     expect(metadata).toMatchObject({ format: "webp", width: 1024, height: 1024 });
     expect(result.proposal.assets[0]!.artifact.digest).toBe(
       `sha256:${createHash("sha256").update(body).digest("hex")}`,
+    );
+    expect(result.proposal.assets[0]!.direction.prompt).toContain(
+      "Draft-only source-product reference composition",
+    );
+    expect(result.proposal.assets[0]!.direction.prompt).toContain(
+      "Build a calm daily skincare routine",
     );
 
     const lowerQuarter = await sharp(body)
@@ -192,6 +252,13 @@ describe("source product image compositor", () => {
         preferredSubjectArea: "upper-three-quarters",
         lowerAreaUsage: "low-contrast-decoration-preferred",
       },
+      sceneId: "brand-anua-atmosphere",
+      scene: {
+        id: "brand-anua-atmosphere",
+        shoppingGoal: "Explore ANUA skincare",
+        reason: "The fallback still carries a scene-oriented brief.",
+        productIds,
+      },
       assignments: productIds.map((productId) => ({ productId })),
       products: productIds.map((id) => ({
         id,
@@ -204,6 +271,40 @@ describe("source product image compositor", () => {
         role: "core",
       })),
       contentTask: { taskId: "content-brand-anua" },
+      sceneBrief: {
+        priority: "scene-first",
+        productRole: "reference-only",
+        theme: {
+          shoppingGoal: "Explore ANUA skincare",
+          needs: ["daily care"],
+          conditions: [],
+        },
+        module: {
+          shoppingGoal: "Compare ANUA products",
+          reason: "The module groups one represented brand.",
+        },
+        scene: {
+          id: "brand-anua-atmosphere",
+          shoppingGoal: "Explore ANUA skincare",
+          reason: "The fallback still carries a scene-oriented brief.",
+        },
+        categories: [{ id: "serum", label: "Serum", role: "core" }],
+        content: {
+          taskId: "content-brand-anua",
+          texts: ["Explore ANUA"],
+        },
+        evidenceRefs: [
+          "theme-intent:anua-skincare",
+          "selected-category:serum",
+          "content-task:content-brand-anua",
+        ],
+        requirements: [
+          "Depict a coherent, naturalistic scene that expresses this module's shopping goal.",
+          "Treat assigned products as visual references only; they do not need to appear.",
+          "Do not use isolated product packshots, tiled product grids, or product montages as the primary visual.",
+          "Do not generate or alter packaging, labels, logos, or product claims.",
+        ],
+      },
     };
 
     const result = await composeSourceProductImages({

@@ -133,6 +133,49 @@ function isSourceImageVisualRun(route: AgentRoute, run: Record<string, unknown>)
     context?.productionMode === "source-product-images";
 }
 
+function isGeneratedImageVisualRun(route: AgentRoute, run: Record<string, unknown>) {
+  const context = asObject(run.context);
+  return route.protocol === "topic-page" && route.stage === "visual-generation" &&
+    run.schemaVersion === "topic-page-visual-run/v1" &&
+    run.status === "needs-visual-proposal" &&
+    context?.productionMode === "generated-images";
+}
+
+function validateGeneratedVisualResponse(
+  value: Record<string, unknown>,
+  run: Record<string, unknown>,
+) {
+  const context = asObject(run.context);
+  const tasks = Array.isArray(context?.tasks) ? context.tasks : [];
+  const proposal = asObject(value.proposal);
+  const proposalAssets = Array.isArray(proposal?.assets) ? proposal.assets : [];
+  const assets = Array.isArray(value.assets) ? value.assets : [];
+  const valid = tasks.length > 0 && proposalAssets.length === tasks.length &&
+    assets.length === tasks.length && assets.every((assetValue, index) => {
+      const task = asObject(tasks[index]);
+      const proposalAsset = asObject(proposalAssets[index]);
+      const artifact = asObject(proposalAsset?.artifact);
+      const asset = asObject(assetValue);
+      const dataBase64 = typeof asset?.dataBase64 === "string" ? asset.dataBase64 : "";
+      if (!task || !proposalAsset || !artifact || !asset ||
+          asset.taskId !== task.taskId || proposalAsset.taskId !== task.taskId ||
+          asset.ref !== artifact.ref || asset.mimeType !== artifact.mimeType || !dataBase64) {
+        return false;
+      }
+      const bytes = Buffer.from(dataBase64, "base64");
+      return bytes.byteLength > 0 &&
+        bytes.toString("base64").replace(/=+$/, "") === dataBase64.replace(/=+$/, "");
+    });
+  if (!valid) {
+    throw new RequestError(
+      422,
+      "generated_visual_assets_missing",
+      "Generated visual output must contain one real image body for every visual task.",
+    );
+  }
+  return value;
+}
+
 function isImageAwareMerchandisingRun(route: AgentRoute, run: Record<string, unknown>) {
   return route.protocol === "topic-page" && route.stage === "module-merchandising" &&
     run.schemaVersion === "page-merchandising-run/v1" &&
@@ -320,6 +363,13 @@ export function createAgentRunnerHandler(options: AgentRunnerHandlerOptions) {
           schemaVersion: "topic-agent-runner-health/v1",
           status: "ready",
           executor: options.executor.id,
+          capabilities: {
+            imageInput: options.executor.supportsImageInput === true,
+            imageGeneration: options.executor.supportsImageGeneration === true,
+          },
+          ...(options.executor.imageGeneration
+            ? { imageGeneration: options.executor.imageGeneration }
+            : {}),
           routes: AGENT_ROUTES.map(({ protocol, stage, agentId, skill }) => ({
             protocol,
             stage,
@@ -360,6 +410,14 @@ export function createAgentRunnerHandler(options: AgentRunnerHandlerOptions) {
       if (!route) {
         throw new RequestError(400, "unsupported_stage", "Agent stage is not registered.");
       }
+      if (isGeneratedImageVisualRun(route, body.run as Record<string, unknown>) &&
+          options.executor.supportsImageGeneration !== true) {
+        throw new RequestError(
+          422,
+          "capability_unavailable",
+          `${options.executor.id} does not expose image generation for visual-generation.`,
+        );
+      }
       const [skillInstructions, agentInstructions] = await Promise.all([
         loadSkillInstructions(root, route.skillPath),
         readFile(resolve(root, route.agentConfigPath), "utf8"),
@@ -378,7 +436,23 @@ export function createAgentRunnerHandler(options: AgentRunnerHandlerOptions) {
         return Response.json(response);
       }
       let result: unknown;
-      if (route.protocol === "topic-page" && route.stage === "experience-review") {
+      if (isGeneratedImageVisualRun(route, body.run as Record<string, unknown>)) {
+        if (!options.executor.generateVisuals) {
+          throw new RequestError(
+            422,
+            "capability_unavailable",
+            `${options.executor.id} does not expose native image generation for visual-generation.`,
+          );
+        }
+        result = await options.executor.generateVisuals({
+          route,
+          requestAgentId: body.agentId,
+          run: body.run as Record<string, unknown>,
+          repositoryRoot: root,
+          skillInstructions,
+          agentInstructions,
+        });
+      } else if (route.protocol === "topic-page" && route.stage === "experience-review") {
         result = await executeExperienceReview({
           route,
           requestAgentId: body.agentId,
@@ -450,7 +524,12 @@ export function createAgentRunnerHandler(options: AgentRunnerHandlerOptions) {
           agentInstructions,
         });
       }
-      return Response.json(normalizeResult(route, result));
+      const normalized = normalizeResult(route, result);
+      return Response.json(
+        isGeneratedImageVisualRun(route, body.run as Record<string, unknown>)
+          ? validateGeneratedVisualResponse(normalized, body.run as Record<string, unknown>)
+          : normalized,
+      );
     } catch (error) {
       return errorResponse(error);
     }

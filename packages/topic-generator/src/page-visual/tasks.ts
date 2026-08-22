@@ -1,3 +1,4 @@
+import type { ThemeIntent } from "../types.js";
 import type { ProductSelectionResult } from "../product-selection/contracts.js";
 import type {
   TopicPagePlanModuleV2,
@@ -9,6 +10,7 @@ import type {
   TopicPageVisualAspectRatio,
   TopicPageVisualAssetKind,
   TopicPageVisualCompositionGuidance,
+  TopicPageVisualSceneBrief,
   TopicPageVisualTaskContext,
 } from "./contracts.js";
 
@@ -61,6 +63,90 @@ const RULES = {
   },
 } as const satisfies Record<string, VisualRule>;
 
+const SCENE_FIRST_REQUIREMENTS = [
+  "Depict a coherent, naturalistic scene that expresses this module's shopping goal.",
+  "Treat assigned products as visual references only; they do not need to appear.",
+  "Do not use isolated product packshots, tiled product grids, or product montages as the primary visual.",
+  "Do not generate or alter packaging, labels, logos, or product claims.",
+] as const;
+
+const KIND_REQUIREMENT: Record<TopicPageVisualAssetKind, string> = {
+  "hero-image": "Establish the page theme through a broad lifestyle setting with a clear focal area.",
+  "shortcut-image": "Represent the assigned category through a compact contextual micro-scene.",
+  "scene-image": "Show the activity, environment, and props implied by the PagePlan scene and accepted copy.",
+  "brand-banner": "Express the module theme and brand atmosphere without turning the banner into a product lineup.",
+};
+
+function contentTexts(
+  contentTask: TopicPageVisualTaskContext["contentTask"],
+  sceneId?: string,
+) {
+  const copy = contentTask.copy;
+  const texts = [
+    copy.title.text,
+    copy.description?.text,
+    ...(copy.tags ?? []).map(({ text }) => text),
+    ...(copy.items ?? []).map(({ label }) => label.text),
+    ...(copy.scenes ?? [])
+      .filter((scene) => !sceneId || scene.sceneId === sceneId)
+      .flatMap((scene) => [scene.label.text, scene.title.text, scene.description.text]),
+  ];
+  return [...new Set(texts.filter((text): text is string => Boolean(text?.trim())))];
+}
+
+function sceneBrief(options: {
+  intent: ThemeIntent;
+  module: TopicPagePlanModuleV2;
+  selection: ProductSelectionResult;
+  taskProducts: TopicPageVisualTaskContext["products"];
+  contentTask: TopicPageVisualTaskContext["contentTask"];
+  kind: TopicPageVisualAssetKind;
+  scene?: TopicPageVisualTaskContext["scene"];
+}): TopicPageVisualSceneBrief {
+  const productCategoryIds = new Set(
+    options.taskProducts.map(({ categoryL3Id }) => String(categoryL3Id)),
+  );
+  const productRoles = new Set(options.taskProducts.map(({ role }) => role));
+  const categories = options.selection.selectedCategories
+    .filter((category) => productCategoryIds.has(category.id) || productRoles.has(category.role))
+    .map((category) => ({ ...category, path: [...category.path] }));
+  const evidenceRefs = [
+    ...options.intent.evidenceRefs.slice(0, 1).map(({ id }) => `theme-intent:${id}`),
+    ...categories.map(({ id }) => `selected-category:${id}`),
+    ...(options.scene ? [`scene:${options.scene.id}`] : []),
+    `content-task:${options.contentTask.taskId}`,
+  ];
+  return {
+    priority: "scene-first",
+    productRole: "reference-only",
+    theme: {
+      shoppingGoal: options.intent.shoppingGoal,
+      needs: [...options.intent.needs],
+      conditions: [...options.intent.conditions],
+    },
+    module: {
+      shoppingGoal: options.module.shoppingGoal,
+      reason: options.module.reason,
+    },
+    categories,
+    ...(options.scene
+      ? {
+          scene: {
+            id: options.scene.id,
+            shoppingGoal: options.scene.shoppingGoal,
+            reason: options.scene.reason,
+          },
+        }
+      : {}),
+    content: {
+      taskId: options.contentTask.taskId,
+      texts: contentTexts(options.contentTask, options.scene?.id),
+    },
+    evidenceRefs: [...new Set(evidenceRefs)],
+    requirements: [...SCENE_FIRST_REQUIREMENTS, KIND_REQUIREMENT[options.kind]],
+  };
+}
+
 function brandGroups(
   module: TopicPagePlanModuleV2,
   selection: ProductSelectionResult,
@@ -78,6 +164,7 @@ function brandGroups(
 }
 
 function task(
+  intent: ThemeIntent,
   module: TopicPagePlanModuleV2,
   contentSpec: TopicPageContentSpec,
   selection: ProductSelectionResult,
@@ -90,6 +177,20 @@ function task(
   const contentTask = contentSpec.tasks.find(
     (candidate) => candidate.taskId === module.contentTaskId,
   )!;
+  const taskProducts = assignments.map(({ productId }) => {
+    const product = productsById.get(productId)!;
+    return {
+      id: product.id,
+      title: product.title,
+      brand: product.brand,
+      imageUrl: product.imageUrl,
+      categoryL3Id: product.categoryL3Id,
+      categoryL3Name: product.categoryL3Name,
+      pool: product.pool,
+      role: product.role,
+    };
+  });
+  const clonedContentTask = structuredClone(contentTask);
   return {
     taskId,
     moduleId: module.id,
@@ -97,24 +198,22 @@ function task(
     ...rule,
     ...extra,
     assignments: assignments.map((assignment) => ({ ...assignment })),
-    products: assignments.map(({ productId }) => {
-      const product = productsById.get(productId)!;
-      return {
-        id: product.id,
-        title: product.title,
-        brand: product.brand,
-        imageUrl: product.imageUrl,
-        categoryL3Id: product.categoryL3Id,
-        categoryL3Name: product.categoryL3Name,
-        pool: product.pool,
-        role: product.role,
-      };
+    products: taskProducts,
+    contentTask: clonedContentTask,
+    sceneBrief: sceneBrief({
+      intent,
+      module,
+      selection,
+      taskProducts,
+      contentTask: clonedContentTask,
+      kind: rule.kind,
+      scene: extra.scene,
     }),
-    contentTask: structuredClone(contentTask),
   };
 }
 
 export function deriveTopicPageVisualTasks(
+  intent: ThemeIntent,
   plan: TopicPagePlanV2,
   selection: ProductSelectionResult,
   contentSpec: TopicPageContentSpec,
@@ -122,11 +221,12 @@ export function deriveTopicPageVisualTasks(
   return plan.modules.flatMap((module): TopicPageVisualTaskContext[] => {
     if (!module.visible) return [];
     if (module.component === "ThemeHero") {
-      return [task(module, contentSpec, selection, `asset-${module.id}`, RULES.hero, module.assignments)];
+      return [task(intent, module, contentSpec, selection, `asset-${module.id}`, RULES.hero, module.assignments)];
     }
     if (module.component === "ShortcutRail") {
       return module.assignments.map((assignment, index) =>
         task(
+          intent,
           module,
           contentSpec,
           selection,
@@ -140,6 +240,7 @@ export function deriveTopicPageVisualTasks(
     if (module.component === "ThemeProductList") {
       return module.scenes.map((scene) =>
         task(
+          intent,
           module,
           contentSpec,
           selection,
@@ -156,6 +257,7 @@ export function deriveTopicPageVisualTasks(
     if (module.component === "BrandProductRail") {
       return brandGroups(module, selection).map(({ brand, assignments }, index) =>
         task(
+          intent,
           module,
           contentSpec,
           selection,

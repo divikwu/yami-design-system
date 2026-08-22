@@ -2,18 +2,25 @@ import { access, readFile } from "node:fs/promises";
 
 import { describe, expect, it, vi } from "vitest";
 
-import { createCodexExecutor, type AgentExecutor } from "../src/executor.ts";
+import {
+  createCodexExecutor,
+  parseCodexImageGenerationProbe,
+  type AgentExecutor,
+} from "../src/executor.ts";
 import { createAgentRunnerHandler } from "../src/handler.ts";
 import { AGENT_ROUTES } from "../src/registry.ts";
 
 function fakeExecutor(
   result: unknown = { schemaVersion: "proposal/v1" },
   supportsImageInput = true,
+  supportsImageGeneration = true,
 ) {
   return {
     id: "test",
     supportsImageInput,
+    supportsImageGeneration,
     execute: vi.fn(async (_request: Parameters<AgentExecutor["execute"]>[0]) => result),
+    generateVisuals: vi.fn(async (_request: Parameters<AgentExecutor["execute"]>[0]) => result),
   } satisfies AgentExecutor;
 }
 
@@ -243,6 +250,67 @@ describe("TOPIC GENERATOR Agent Runner", () => {
       stage: "visual-generation",
       assets,
     });
+  });
+
+  it("rejects generated-image metadata when the Agent returns no real image body", async () => {
+    const handler = createAgentRunnerHandler({
+      executor: fakeExecutor({
+        schemaVersion: "topic-page-agent-response/v1",
+        stage: "visual-generation",
+        proposal: {
+          schemaVersion: "topic-page-visual-proposal/v1",
+          assets: [{
+            taskId: "asset-hero",
+            artifact: {
+              ref: "assets/fabricated-hero.png",
+              mimeType: "image/png",
+            },
+          }],
+        },
+      }),
+    });
+    const response = await handler(post("/topic-page", {
+      schemaVersion: "topic-page-agent-request/v1",
+      stage: "visual-generation",
+      agentId: "topic-visual",
+      run: {
+        schemaVersion: "topic-page-visual-run/v1",
+        status: "needs-visual-proposal",
+        context: {
+          productionMode: "generated-images",
+          tasks: [{ taskId: "asset-hero" }],
+        },
+      },
+    }));
+
+    expect(response.status).toBe(422);
+    await expect(response.json()).resolves.toMatchObject({
+      schemaVersion: "topic-agent-runner-error/v1",
+      code: "generated_visual_assets_missing",
+      message: "Generated visual output must contain one real image body for every visual task.",
+    });
+  });
+
+  it("fails before Agent execution when the executor has no image-generation capability", async () => {
+    const executor = fakeExecutor(undefined, true, false);
+    const handler = createAgentRunnerHandler({ executor });
+    const response = await handler(post("/topic-page", {
+      schemaVersion: "topic-page-agent-request/v1",
+      stage: "visual-generation",
+      agentId: "topic-visual",
+      run: {
+        schemaVersion: "topic-page-visual-run/v1",
+        status: "needs-visual-proposal",
+        context: { productionMode: "generated-images", tasks: [{ taskId: "asset-hero" }] },
+      },
+    }));
+
+    expect(response.status).toBe(422);
+    await expect(response.json()).resolves.toMatchObject({
+      code: "capability_unavailable",
+      message: "test does not expose image generation for visual-generation.",
+    });
+    expect(executor.execute).not.toHaveBeenCalled();
   });
 
   it("composes source product images before the Visual Agent inspects them", async () => {
@@ -480,6 +548,10 @@ describe("TOPIC GENERATOR Agent Runner", () => {
     expect(response.status).toBe(200);
     const payload = await response.json();
     expect(payload.routes).toHaveLength(11);
+    expect(payload.capabilities).toEqual({
+      imageInput: true,
+      imageGeneration: true,
+    });
     expect(JSON.stringify(payload)).not.toContain("secret");
   });
 
@@ -487,5 +559,31 @@ describe("TOPIC GENERATOR Agent Runner", () => {
     expect(() => createCodexExecutor({
       TOPIC_AGENT_RUNNER_TIMEOUT_MS: "300001",
     })).toThrow("Expected an integer between 1 and 300000.");
+  });
+
+  it("enables native image generation only for the Codex feature and ChatGPT login", () => {
+    expect(parseCodexImageGenerationProbe(
+      "Logged in using ChatGPT\n",
+      "image_generation                     stable             true\n",
+    )).toEqual({
+      available: true,
+      provider: "codex-native",
+      model: "gpt-image-2",
+      authMode: "chatgpt",
+    });
+    expect(parseCodexImageGenerationProbe(
+      "Logged in using an API key\n",
+      "image_generation                     stable             true\n",
+    )).toEqual({
+      available: false,
+      reason: "Codex native image generation requires a ChatGPT login.",
+    });
+    expect(parseCodexImageGenerationProbe(
+      "Logged in using ChatGPT\n",
+      "image_generation                     stable             false\n",
+    )).toEqual({
+      available: false,
+      reason: "Codex image_generation is not enabled.",
+    });
   });
 });

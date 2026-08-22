@@ -192,6 +192,7 @@ function fixture() {
     topicPageContentSpecDigest: contentSpec.digest,
     themeIntentDigest: plan.themeIntentDigest,
     productSelectionDigest: plan.productSelectionDigest,
+    productionMode: "generated-images" as const,
     assets: [{
       taskId: "asset-hero",
       moduleId: "hero" as const,
@@ -199,7 +200,11 @@ function fixture() {
       kind: "hero-image" as const,
       direction: {
         prompt: "Sunlit matcha scene",
-        evidenceRefs: ["theme-intent:matcha", "product:matcha-1"],
+        evidenceRefs: [
+          "theme-intent:matcha",
+          "product:matcha-1",
+          "content-task:content-hero",
+        ],
         referenceProductIds: ["matcha-1"],
       },
       altText: {
@@ -500,6 +505,28 @@ describe("PageGenerationSpec and final automatic QA", () => {
       experienceReview: undefined as never,
       previewRefs: { desktop: "/", mobile: "/" },
     })).toThrow("ReviewPackage requires a passed QAReport.");
+  });
+
+  it("keeps source-product compositions as draft fallback instead of final visual QA", async () => {
+    const data = fixture();
+    data.manifest.productionMode = "source-product-images";
+    data.manifest.digest = topicPageAssetManifestDigest(data.manifest);
+    const generationSpec = compileTopicPageGenerationSpec({
+      ...data,
+      assetUrl: (ref) => `/assets?ref=${encodeURIComponent(ref)}`,
+    });
+
+    const qaReport = await runTopicPageQa({ ...data, generationSpec });
+
+    expect(qaReport).toMatchObject({
+      status: "qa-blocked",
+      checks: expect.arrayContaining([
+        expect.objectContaining({ id: "visual-policy", status: "failed" }),
+      ]),
+      issues: expect.arrayContaining([
+        "Source-product image composition is a draft fallback and cannot pass final visual QA.",
+      ]),
+    });
   });
 
   it("blocks review when a persisted image has a valid header but cannot be decoded", async () => {

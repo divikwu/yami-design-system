@@ -35,6 +35,7 @@ function cx(...classes: Array<string | false | null | undefined>) {
 export function TopicLandingPage({
   contentMaxWidth = 1440,
   titleFontFamily = "serif",
+  showChrome = true,
   activityHeader,
   header,
   hero,
@@ -46,6 +47,7 @@ export function TopicLandingPage({
   brandRail,
   waterfall,
   footer,
+  hiddenModules = [],
   className,
   ...rest
 }: TopicLandingPageProps) {
@@ -452,12 +454,16 @@ export function TopicLandingPage({
       className={cx(styles.root, className)}
       data-slot="topic-landing-page"
     >
-      <div className={styles.activityHeader} data-slot="topic-landing-activity-header">
-        <ActivityPageHeader {...activityHeader} />
-      </div>
-      <div className={styles.globalHeader} data-slot="topic-landing-global-header">
-        <Header {...header} />
-      </div>
+      {showChrome && (
+        <>
+          <div className={styles.activityHeader} data-slot="topic-landing-activity-header">
+            <ActivityPageHeader {...activityHeader} />
+          </div>
+          <div className={styles.globalHeader} data-slot="topic-landing-global-header">
+            <Header {...header} />
+          </div>
+        </>
+      )}
 
       <main
         ref={mainRef}
@@ -472,51 +478,57 @@ export function TopicLandingPage({
           } as CSSProperties
         }
       >
-        <ThemeHero
-          {...hero}
-          className={cx(styles.initialReveal, hero.className)}
-          data-motion-reveal="initial"
-        />
-        <div
-          ref={primaryTabsRef}
-          className={styles.primaryTabs}
-          data-slot="topic-landing-tabs"
-        >
+        {!hiddenModules.includes("hero") && (
+          <ThemeHero
+            {...hero}
+            className={cx(styles.initialReveal, hero.className)}
+            data-motion-reveal="initial"
+          />
+        )}
+        {primaryTabs.items.length > 0 && (
           <div
-            className={styles.primaryTabsContainer}
-            data-slot="topic-landing-tabs-container"
+            ref={primaryTabsRef}
+            className={styles.primaryTabs}
+            data-slot="topic-landing-tabs"
           >
-            <Tabs
-              value={primaryTabValue}
-              onValueChange={selectPrimaryTab}
+            <div
+              className={styles.primaryTabsContainer}
+              data-slot="topic-landing-tabs-container"
             >
-              <TabsList
-                aria-label={primaryTabs.ariaLabel}
-                variant="primary"
-                styleVariant="a"
+              <Tabs
+                value={primaryTabValue}
+                onValueChange={selectPrimaryTab}
               >
-                {primaryTabs.items.map((item) => (
-                  <TabsTrigger
-                    key={item.value}
-                    value={item.value}
-                    controls={item.targetId}
-                  >
-                    {item.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
+                <TabsList
+                  aria-label={primaryTabs.ariaLabel}
+                  variant="primary"
+                  styleVariant="a"
+                >
+                  {primaryTabs.items.map((item) => (
+                    <TabsTrigger
+                      key={item.value}
+                      value={item.value}
+                      controls={item.targetId}
+                    >
+                      {item.label}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
+            </div>
           </div>
-        </div>
-        <div
-          id="explore"
-          className={styles.shortcutRail}
-          data-motion-reveal="scroll"
-          data-slot="topic-landing-shortcut-rail"
-        >
-          <ShortcutRail {...shortcutRail} items={linkedShortcutItems} />
-        </div>
-        {standardRail && (
+        )}
+        {!hiddenModules.includes("shortcuts") && (
+          <div
+            id="explore"
+            className={styles.shortcutRail}
+            data-motion-reveal="scroll"
+            data-slot="topic-landing-shortcut-rail"
+          >
+            <ShortcutRail {...shortcutRail} items={linkedShortcutItems} />
+          </div>
+        )}
+        {standardRail && !hiddenModules.includes("start-here") && (
           <div
             id="shop"
             className={styles.shopReveal}
@@ -529,20 +541,22 @@ export function TopicLandingPage({
             />
           </div>
         )}
-        <div
-          id="popular-picks"
-          className={styles.standardRail}
-          data-motion-reveal="scroll"
-          data-slot="topic-landing-standard-rail"
-        >
-          <ProductList
-            {...productRailProps}
-            products={visibleProductRailProducts}
-            value={activeProductRailTab}
-            onValueChange={selectProductRailTab}
-          />
-        </div>
-        {brandRail && (
+        {!hiddenModules.includes("popular-picks") && (
+          <div
+            id="popular-picks"
+            className={styles.standardRail}
+            data-motion-reveal="scroll"
+            data-slot="topic-landing-standard-rail"
+          >
+            <ProductList
+              {...productRailProps}
+              products={visibleProductRailProducts}
+              value={activeProductRailTab}
+              onValueChange={selectProductRailTab}
+            />
+          </div>
+        )}
+        {brandRail && !hiddenModules.includes("brand-spotlight") && (
           <div
             className={styles.brandRail}
             data-motion-reveal="scroll"
@@ -554,7 +568,7 @@ export function TopicLandingPage({
             />
           </div>
         )}
-        {reviewList && (
+        {reviewList && !hiddenModules.includes("reviews") && (
           <div
             id="reviews"
             className={styles.reviewList}
@@ -564,28 +578,30 @@ export function TopicLandingPage({
             <ReviewList {...reviewList} />
           </div>
         )}
-        <div
-          id="product-list"
-          className={styles.waterfallAnchor}
-          data-motion-reveal="scroll"
-          data-slot="topic-landing-waterfall-section"
-        >
-          <ProductList
-            {...waterfallProps}
-            id={`explore-more-${activeWaterfallTab}`}
-            products={visibleWaterfallProducts}
-            value={activeWaterfallTab}
-            onValueChange={selectWaterfallTab}
-            hasMore={
-              activeWaterfallTab === firstWaterfallTab && waterfall.hasMore
-            }
-            className={styles.waterfall}
-            data-page-slot="topic-landing-waterfall"
-          />
-        </div>
+        {!hiddenModules.includes("explore-more") && (
+          <div
+            id="product-list"
+            className={styles.waterfallAnchor}
+            data-motion-reveal="scroll"
+            data-slot="topic-landing-waterfall-section"
+          >
+            <ProductList
+              {...waterfallProps}
+              id={`explore-more-${activeWaterfallTab}`}
+              products={visibleWaterfallProducts}
+              value={activeWaterfallTab}
+              onValueChange={selectWaterfallTab}
+              hasMore={
+                activeWaterfallTab === firstWaterfallTab && waterfall.hasMore
+              }
+              className={styles.waterfall}
+              data-page-slot="topic-landing-waterfall"
+            />
+          </div>
+        )}
       </main>
 
-      <Footer {...footer} />
+      {showChrome && <Footer {...footer} />}
     </div>
   );
 }
