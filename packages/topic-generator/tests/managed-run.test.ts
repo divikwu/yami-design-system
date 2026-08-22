@@ -185,6 +185,49 @@ describe("TopicGeneratorRunStore", () => {
     }
   });
 
+  it("does not rerun a blocked content-review stage outside its internal rewrite budget", async () => {
+    const root = await mkdtemp(join(tmpdir(), "topic-generator-managed-content-review-"));
+    const store = new TopicGeneratorRunStore({ root });
+    try {
+      const run = await store.create({ ...request(), goal: "content" });
+      for (let index = 0; index < 5; index += 1) {
+        await store.advanceRun(run.manifest.runId, {
+          requestId: `upstream-${index}`,
+          execute: async ({ stageId }) => ({
+            status: "completed",
+            output: { stageId },
+          }),
+        });
+      }
+
+      let reviewExecutions = 0;
+      const execute = async () => {
+        reviewExecutions += 1;
+        return {
+          status: "blocked" as const,
+          output: { status: "revision-required" },
+          issues: ["The bounded content rewrite still requires revision."],
+        };
+      };
+      const blocked = await store.advanceRun(run.manifest.runId, {
+        requestId: "content-review-1",
+        execute,
+      });
+      const repeated = await store.advanceRun(run.manifest.runId, {
+        requestId: "content-review-2",
+        execute,
+      });
+
+      expect(reviewExecutions).toBe(1);
+      expect(blocked.state.stages.find(({ id }) => id === "content-review"))
+        .toMatchObject({ status: "blocked", attempts: 1 });
+      expect(repeated.state.stages.find(({ id }) => id === "content-review"))
+        .toMatchObject({ status: "blocked", attempts: 1 });
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
   it("moves a deleted managed run into the recoverable trash area", async () => {
     const root = await mkdtemp(join(tmpdir(), "topic-generator-managed-delete-"));
     const store = new TopicGeneratorRunStore({ root });

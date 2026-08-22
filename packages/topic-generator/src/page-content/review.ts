@@ -15,6 +15,7 @@ import type {
   EvidencedPageCopy,
   TopicPageContentCopy,
   TopicPageContentCopySlot,
+  TopicPageContentGroupCopy,
   TopicPageContentItemCopy,
   TopicPageContentProposalReview,
   TopicPageContentSceneCopy,
@@ -25,6 +26,7 @@ import {
   pageCopyProperNouns,
   pageCopyUsesRequestedLanguage,
   topicPageCopyMaxCharacters,
+  topicPageTemplateCopy,
   usesStrictPageCopyPolicy,
 } from "./config.js";
 
@@ -195,11 +197,15 @@ function reviewCopySegment(
   moduleId: TopicModuleId,
   scope: EvidenceScope,
   issues: string[],
+  templateText?: string,
 ): EvidencedPageCopy {
   const segment = objectValue(value);
   const text = stringValue(segment?.text);
   if (!segment) issues.push(`Copy field ${path} must be an object.`);
   if (!text) issues.push(`Copy field ${path} requires text.`);
+  if (text && templateText !== undefined && text !== templateText) {
+    issues.push(`Copy field ${path} must match template copy "${templateText}".`);
+  }
   if (text && scope.strictPolicy &&
       !pageCopyUsesRequestedLanguage(text, scope.language, scope.properNouns)) {
     issues.push(
@@ -209,6 +215,7 @@ function reviewCopySegment(
   const maxCharacters = topicPageCopyMaxCharacters(
     moduleId,
     slot,
+    scope.language,
   );
   if (text && scope.strictPolicy && maxCharacters !== undefined &&
       [...text].length > maxCharacters) {
@@ -354,6 +361,72 @@ function reviewScenes(
   return scenes;
 }
 
+function eligibleGroups(
+  module: TopicPagePlanModuleV2,
+  selection: ProductSelectionResult,
+) {
+  const assignedProductIds = new Set(
+    module.assignments.map(({ productId }) => productId),
+  );
+  return (selection.modules.find(({ id }) => id === module.id)?.groups ?? [])
+    .map((group) => ({
+      ...group,
+      productIds: group.productIds.filter((productId) =>
+        assignedProductIds.has(productId)
+      ),
+    }))
+    .filter(({ productIds }) => productIds.length > 0);
+}
+
+function reviewGroups(
+  value: unknown,
+  module: TopicPagePlanModuleV2,
+  selection: ProductSelectionResult,
+  baseScope: EvidenceScope,
+  issues: string[],
+) {
+  const expectedGroups = eligibleGroups(module, selection);
+  const rawGroups = Array.isArray(value) ? value : [];
+  if (!Array.isArray(value)) {
+    issues.push(`Module ${module.id} groups must be an array.`);
+  }
+  if (rawGroups.length !== expectedGroups.length) {
+    issues.push(`Module ${module.id} must define one label for every product group.`);
+  }
+  const groups: TopicPageContentGroupCopy[] = [];
+  rawGroups.forEach((rawGroup, index) => {
+    const groupCopy = objectValue(rawGroup);
+    if (!groupCopy) {
+      issues.push(`Module ${module.id} group ${index} must be an object.`);
+      return;
+    }
+    const groupId = stringValue(groupCopy.groupId);
+    const group = expectedGroups.find(({ id }) => id === groupId);
+    if (!group) {
+      issues.push(`Module ${module.id} content references unknown group ${groupId || index}.`);
+    } else if (expectedGroups[index]?.id !== groupId) {
+      issues.push(`Module ${module.id} group copy must preserve selection order.`);
+    }
+    const scope = {
+      ...baseScope,
+      productIds: new Set(group?.productIds ?? []),
+      eligibleCategoryIds: new Set(group?.sourceCategoryIds?.map(String) ?? []),
+    };
+    groups.push({
+      groupId,
+      label: reviewCopySegment(
+        groupCopy.label,
+        `${module.id}.groups[${index}].label`,
+        "groups[].label",
+        module.id,
+        scope,
+        issues,
+      ),
+    });
+  });
+  return groups;
+}
+
 function reviewTaskCopy(
   value: unknown,
   module: TopicPagePlanModuleV2,
@@ -362,6 +435,7 @@ function reviewTaskCopy(
   plan: TopicPagePlanV2,
   language: ContentLanguage,
   backgroundEvidence: TopicBackgroundEvidenceBundle | undefined,
+  enforceTemplateCopy: boolean,
   issues: string[],
 ): TopicPageContentCopy {
   const rawCopy = objectValue(value) ?? {};
@@ -381,6 +455,9 @@ function reviewTaskCopy(
     properNouns: pageCopyProperNouns(intent, selection, plan.keyword),
     strictPolicy: usesStrictPageCopyPolicy(plan.templateRef),
   };
+  const templateCopy = enforceTemplateCopy && scope.strictPolicy
+    ? topicPageTemplateCopy(module.id, language)
+    : undefined;
   const title = reviewCopySegment(
     rawCopy.title,
     `${module.id}.title`,
@@ -388,6 +465,7 @@ function reviewTaskCopy(
     module.id,
     scope,
     issues,
+    templateCopy?.title,
   );
 
   if (module.id === "hero") {
@@ -421,7 +499,13 @@ function reviewTaskCopy(
     return { title, scenes: reviewScenes(rawCopy.scenes, module, scope, issues) };
   }
   if (module.id === "explore-more") {
-    reportUnexpectedFields(rawCopy, module.id, ["title", "description"], issues);
+    const hasGroups = eligibleGroups(module, selection).length > 0;
+    reportUnexpectedFields(
+      rawCopy,
+      module.id,
+      hasGroups ? ["title", "description", "groups"] : ["title", "description"],
+      issues,
+    );
     if (!objectValue(rawCopy.description)) {
       issues.push("Module explore-more requires description.");
     }
@@ -434,7 +518,27 @@ function reviewTaskCopy(
         module.id,
         scope,
         issues,
+        templateCopy?.description,
       ),
+      ...(hasGroups
+        ? { groups: reviewGroups(rawCopy.groups, module, selection, scope, issues) }
+        : {}),
+    };
+  }
+
+  if (module.id === "popular-picks") {
+    const hasGroups = eligibleGroups(module, selection).length > 0;
+    reportUnexpectedFields(
+      rawCopy,
+      module.id,
+      hasGroups ? ["title", "groups"] : ["title"],
+      issues,
+    );
+    return {
+      title,
+      ...(hasGroups
+        ? { groups: reviewGroups(rawCopy.groups, module, selection, scope, issues) }
+        : {}),
     };
   }
 
@@ -453,6 +557,7 @@ export function reviewTopicPageContentProposal(
   language: ContentLanguage,
   value: unknown,
   backgroundEvidence?: TopicBackgroundEvidenceBundle,
+  options: { enforceTemplateCopy?: boolean } = {},
 ): TopicPageContentProposalReview {
   const proposal = objectValue(value);
   const issues: string[] = [];
@@ -526,6 +631,7 @@ export function reviewTopicPageContentProposal(
         plan,
         language,
         backgroundEvidence,
+        options.enforceTemplateCopy ?? backgroundEvidence !== undefined,
         issues,
       ),
     });

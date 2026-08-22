@@ -464,6 +464,9 @@ export async function runTopicPageAutomationWorkflow(
     issues: [],
     executionPlan: options.executionPlan,
     plan,
+    ...(contentApproval.revisionAttempt
+      ? { contentAttempt: contentApproval.revisionAttempt }
+      : {}),
     contentSpec,
     copyBrief,
     contentReview,

@@ -222,6 +222,21 @@ function managedAutomation(
   };
 }
 
+function managedContentForLanguage(
+  content: ContentReviewStageOutput | undefined,
+  language: ContentLanguage,
+) {
+  const localized = content?.contentByLanguage?.[language];
+  if (localized) return localized;
+  if (content?.contentSpec.language !== language) return null;
+  return {
+    contentSpec: content.contentSpec,
+    copyBrief: content.copyBrief,
+    contentReview: content.contentReview,
+    ...(content.revisionAttempt ? { revisionAttempt: content.revisionAttempt } : {}),
+  };
+}
+
 async function fileDigest(file: File) {
   const digest = await crypto.subtle.digest("SHA-256", await file.arrayBuffer());
   return [...new Uint8Array(digest)]
@@ -3277,6 +3292,15 @@ export function TopicGenerator({
     setVisualGenerationSpec(page?.generationSpec ?? null);
     const nextAutomation = managedAutomation(detail);
     setAutomation(nextAutomation);
+    setLocalizedAutomationCache(nextAutomation
+      ? {
+          requestKey: automationRequestKey(detail.summary.keyword, detail.summary.strategy),
+          sourceSignature: automationSourceSignature(nextAutomation),
+          runs: {
+            [nextAutomation.generationSpec.language]: nextAutomation,
+          },
+        }
+      : null);
     const hasDraft = detail.state.deliverables.some(
       ({ name, status }) => name === "page-draft.html" && status === "ready",
     );
@@ -3748,6 +3772,11 @@ export function TopicGenerator({
       if (mode === "page" && nextAutomation?.status === "ready") {
         const sourceSignature = automationSourceSignature(nextAutomation);
         setLocalizedAutomationCache((current) => {
+          if (options.preserveLocalizedCache &&
+              current?.requestKey === requestKey &&
+              current.sourceSignature !== sourceSignature) {
+            return current;
+          }
           const canMerge = options.preserveLocalizedCache &&
             current?.requestKey === requestKey &&
             current.sourceSignature === sourceSignature;
@@ -3847,6 +3876,32 @@ export function TopicGenerator({
   function changeLanguage(value: string) {
     const requestedLanguage = value as ContentLanguage;
     if (requestedLanguage === uiLanguage) return;
+    if (sourceMode === "load" && currentDetail && isManagedV2Detail(currentDetail)) {
+      const content = currentDetail.stageResults["content-review"] as
+        ContentReviewStageOutput | undefined;
+      const localizedContent = managedContentForLanguage(content, requestedLanguage);
+      if (localizedContent) {
+        const nextAutomation = managedAutomation(currentDetail);
+        const page = currentDetail.stageResults["page-generation"] as
+          PageGenerationStageOutput | undefined;
+        const hasGeneratedPage = nextAutomation?.generationSpec.language === requestedLanguage;
+        setUiLanguage(requestedLanguage);
+        setContentSpec(localizedContent.contentSpec);
+        setCapabilityContentReview(localizedContent.contentReview);
+        setAutomation(hasGeneratedPage ? nextAutomation : null);
+        setVisualGenerationSpec(hasGeneratedPage ? page?.generationSpec ?? null : null);
+        setView("preview");
+        setPreviewMode("page");
+        setActiveMode(hasGeneratedPage ? "page" : "content");
+        setError(null);
+        return;
+      }
+    }
+    if (sourceMode === "load" && currentDetail &&
+        requestedLanguage === currentDetail.summary.language) {
+      applyManagedDetail(currentDetail);
+      return;
+    }
 
     const requestKey = automationRequestKey(keyword.trim(), strategy);
     const activeCache = localizedAutomationCache?.requestKey === requestKey
@@ -3898,7 +3953,7 @@ export function TopicGenerator({
             value={uiLanguage}
             onValueChange={changeLanguage}
             name="ui-language"
-            disabled={loading || (sourceMode === "load" && currentRun !== null)}
+            disabled={loading}
           />
         </div>
       </header>

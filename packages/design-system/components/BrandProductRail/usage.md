@@ -18,6 +18,8 @@ products under image-led brand campaigns.
 
 - Each brand campaign is rendered with the existing `ProductList`.
 - Each product row is rendered with the existing compact `ProductCard`.
+- The campaign heading owns brand context, so product rows omit the duplicate
+  ProductCard brand line even when incoming product data includes it.
 - Mobile category navigation reuses the existing tertiary `Tabs`.
 - Previous and next controls reuse the shared YAMI rail navigation buttons.
 

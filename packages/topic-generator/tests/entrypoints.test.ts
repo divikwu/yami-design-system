@@ -227,7 +227,7 @@ describe("TOPIC GENERATOR portable entry points", () => {
     expect(manifest.contracts).toMatchObject({
       topicAudienceContext: "topic-audience-context/v1",
       topicBackgroundEvidence: "topic-background-evidence/v1",
-      topicPageCopyBrief: "topic-page-copy-brief/v2",
+      topicPageCopyBrief: "topic-page-copy-brief/v3",
       topicPageContentRevision: "topic-page-content-revision/v1",
       topicPageContentReviewDecision: "topic-page-content-review/v1",
       landingPageExecutionPlan: "landing-page-execution-plan/v1",

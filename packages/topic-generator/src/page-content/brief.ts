@@ -1,13 +1,80 @@
 import type { ContentLanguage, ThemeIntent, TopicModuleId } from "../types.js";
 import type {
   TopicAudienceContext,
+  TopicBackgroundEvidenceClaimType,
   TopicBackgroundEvidenceBundle,
 } from "../background-evidence/contracts.js";
 import { sha256Digest } from "../product-selection/digest.js";
 import type {
   TopicPageContentTaskContext,
   TopicPageCopyBrief,
+  TopicPageHeroStrategy,
 } from "./contracts.js";
+
+type HeroStrategyKind = TopicPageHeroStrategy["kind"];
+
+function heroStrategyKind(templateRef: string, intent: ThemeIntent): HeroStrategyKind {
+  if (templateRef.startsWith("topic-landing/brand")) return "brand";
+  if (templateRef.startsWith("topic-landing/campaign")) return "campaign";
+  if (templateRef.startsWith("topic-landing/topic")) return "topic";
+  if (intent.themeType === "brand") return "brand";
+  if (intent.themeType === "activity") return "campaign";
+  return "topic";
+}
+
+function heroStrategy(
+  kind: HeroStrategyKind,
+  language: ContentLanguage,
+): TopicPageHeroStrategy {
+  const zh: Record<HeroStrategyKind, Omit<TopicPageHeroStrategy, "kind">> = {
+    brand: {
+      titleFocus: "突出有证据支持的品牌定位、理念、特色或使用流程，不套用固定句式。",
+      descriptionFocus: "补充品牌身份与独特背景，并结合当前商品说明可浏览的品类、步骤或需求。",
+    },
+    topic: {
+      titleFocus: "突出主题带来的体验、用途、享用方式或选购启发，不套用固定句式。",
+      descriptionFocus: "补充主题身份、独特背景、文化语境或使用价值，并结合当前商品说明主要品类、用途或场景。",
+    },
+    campaign: {
+      titleFocus: "突出活动或节日的氛围、情感、仪式或具体场合任务，不套用固定句式。",
+      descriptionFocus: "补充活动或节日语境，并结合当前商品说明礼赠、聚会、准备或其他相关场景。",
+    },
+  };
+  const en: Record<HeroStrategyKind, Omit<TopicPageHeroStrategy, "kind">> = {
+    brand: {
+      titleFocus: "Express an evidence-supported brand position, idea, distinction, or routine without forcing a fixed construction.",
+      descriptionFocus: "Add the brand identity and distinctive context, then connect it to the available categories, steps, or needs.",
+    },
+    topic: {
+      titleFocus: "Express the topic's experience, use, way to enjoy it, or shopping inspiration without forcing a fixed construction.",
+      descriptionFocus: "Add the topic identity, distinctive context, cultural setting, or use value, then connect it to supported categories, uses, or scenes.",
+    },
+    campaign: {
+      titleFocus: "Express the occasion's atmosphere, emotion, ritual, or concrete shopping task without forcing a fixed construction.",
+      descriptionFocus: "Add the occasion context, then connect it to supported gifting, gathering, preparation, or other relevant scenes.",
+    },
+  };
+  return { kind, ...(language === "zh" ? zh : en)[kind] };
+}
+
+function topicSignature(
+  kind: HeroStrategyKind,
+  backgroundEvidence?: TopicBackgroundEvidenceBundle,
+) {
+  const priorities: Record<HeroStrategyKind, readonly TopicBackgroundEvidenceClaimType[]> = {
+    brand: ["identity", "origin", "meaning", "tradition", "terminology"],
+    topic: ["tradition", "origin", "terminology", "identity", "meaning"],
+    campaign: ["meaning", "tradition", "origin", "identity", "terminology"],
+  };
+  const rankedClaims = priorities[kind].flatMap((type) =>
+    backgroundEvidence?.claims.filter((claim) => claim.type === type) ?? []
+  );
+  return {
+    primaryClaimId: rankedClaims[0]?.id ?? null,
+    supportingClaimIds: rankedClaims.slice(1, 2).map(({ id }) => id),
+    usage: "preferred-topic-context-only" as const,
+  };
+}
 
 function newcomerQuestions(language: ContentLanguage) {
   return language === "zh"
@@ -31,22 +98,22 @@ function moduleObjective(
   language: ContentLanguage,
 ) {
   const zh: Record<TopicModuleId, string> = {
-    hero: `先用可核验的背景说明“${keyword}”是什么，再把这个身份连接到一个由当前品类、商品或场景支持的具体选购起点；不能只写“认识 / 浏览 ${keyword}”。`,
-    shortcuts: "把已选品类转译成清晰的入门路径；标题说明按什么维度进入，标签帮助用户预判点击后能比较什么，而不是只复制目录名称。",
-    "start-here": "解释每个选购场景中的用户情境、比较顺序或选择任务，以及用户为何可以从这里开始；不能只说查看该场景商品。",
-    "popular-picks": "用已分配商品或品类点明这组商品的实际比较轴或搭配任务；不能只写精选、热门、跨品类比较或浏览商品，模块名也不能被当作流行度或销量证据。",
-    "brand-spotlight": "使用可核验背景说明品牌与当前主题的具体关系，并给出下一步浏览理由；不虚构品牌历史、定位或功效。",
+    hero: `根据 copyBrief.heroStrategy，围绕“${keyword}”写一个简短、自然、有辨识度且面向用户的核心命题，可表达品牌定位、核心体验、使用方式、选购任务或场合主张。标题可采用定位式、陈述式、动作式、情绪式或问句，不要求固定动词或句式，也不因使用“找到、探索、选择”等通用动词自动重写。百科式定义、历史、品类罗列和选购跨度通常放在说明中；如果它们本身构成自然且有价值的主题定位，也可以进入标题。说明补充标题未表达的主题身份、背景、使用价值与当前商品范围，优先一句，必要时两句，避免简单复述。主题背景与商品主张都不得超出证据，尤其不能把文化关联扩大为全部商品产地，也不能加入未获支持的感官、功效或结果主张。标签优先保留 2–3 个具体浏览方向；第四个方向确有不同价值时可以保留。`,
+    shortcuts: "模块标题使用返回的通用模板文案；标签把已选品类转译成清晰、简短的浏览入口。",
+    "start-here": `模块标题概括整个主题的入门路径、流程或日常，可采用“打造你的 ${keyword} …流程 / 日常”这类上位表达，不能收窄到任一单一场景；每个场景再解释具体情境、比较顺序或选择任务。`,
+    "popular-picks": "模块标题使用返回的通用模板文案；商品组合、排序和标签承担具体的热门选购入口，不要把流行度或销量写成未经证实的事实。",
+    "brand-spotlight": "模块标题使用返回的通用模板文案；品牌与当前主题的关系由已分配商品和品牌分组表达，不虚构品牌历史、定位或功效。",
     reviews: "只呈现已验证的评价记录；没有记录时保持模块隐藏。",
-    "explore-more": "给出与前面不同的查漏补缺或深入比较方向，并点明哪些当前品类支撑这一步；不能只写继续浏览、探索更多或完整品类。",
+    "explore-more": `这是全页唯一可以轻量补充主题锚点的结构型标题。优先用“更多本地化主题短名选择”这类简短表达，让滚动到页面末段的用户仍能识别与“${keyword}”的关系；不要复述 Hero、罗列品类或写成分析句。主题短名加入后不自然时可使用简短通用标题。说明使用返回的通用模板文案，更深的浏览方向由标签、品类和商品分配表达。`,
   };
   const en: Record<TopicModuleId, string> = {
-    hero: `Use verified background to explain what “${keyword}” is, then connect that identity to one concrete entry point supported by the current categories, products, or scenes; do not stop at “meet / browse ${keyword}.”`,
-    shortcuts: "Translate selected categories into entry paths: the heading names the navigation dimension and labels preview what shoppers can compare instead of merely repeating catalog labels.",
-    "start-here": "Explain each scenario's shopper situation, comparison sequence, or decision and why a newcomer might start there; do not merely say to view the scene's products.",
-    "popular-picks": "Name the actual comparison axis or pairing job supported by assigned products or categories; do not stop at picks, popular, cross-category comparison, or browse products, and never treat the module name as popularity or sales evidence.",
-    "brand-spotlight": "Use verified background to explain the brand's specific relationship to the topic and a next browsing reason without inventing history, positioning, or efficacy.",
+    hero: `Follow copyBrief.heroStrategy and write a concise, natural, distinctive, user-facing proposition for “${keyword}.” It may express a brand position, core experience, way to use, shopping task, or occasion idea through a positioning line, statement, action, emotion, or question; it does not require a fixed verb or construction, and words such as find, discover, or choose are not automatic reasons to rewrite it. A dictionary definition, history, category list, or shopping range usually belongs in the description, but it may enter the headline when it is itself a natural and useful proposition. Use the description to add identity, context, use value, and the supported shopping range that the headline leaves unsaid; prefer one sentence and allow two when needed, without simply restating the headline. Keep cultural context and product claims within evidence, never turning association into blanket origin or adding unsupported sensory, efficacy, or outcome claims. Prefer 2–3 concrete browsing tags and use a fourth only when it adds a genuinely distinct direction.`,
+    shortcuts: "Use the returned template copy for the module heading; translate selected categories into concise browsing labels.",
+    "start-here": `Make the module heading describe the whole topic journey, routine, or getting-started path, using an umbrella direction such as “Build Your ${keyword} Routine” instead of narrowing it to one scenario; keep each scene specific to its situation, sequence, or choice.`,
+    "popular-picks": "Use the returned template copy for the module heading; let product composition, ordering, and tabs carry the concrete entry point without presenting popularity or sales as an unsupported fact.",
+    "brand-spotlight": "Use the returned template copy for the module heading; let assigned products and brand groups show the relationship to the topic without inventing history, positioning, or efficacy.",
     reviews: "Use verified review records only; keep the module hidden when none are available.",
-    "explore-more": "Offer a gap-filling or deeper comparison direction that differs from earlier modules and name which current categories support it; do not stop at explore more, keep browsing, or the full assortment.",
+    "explore-more": `This is the only structural heading that may add one light topic anchor. Prefer a compact expression such as “Explore More ${keyword}” so the relationship remains clear near the end of the page; do not repeat the Hero, list categories, or turn the heading into analysis. Use a short generic heading when adding the topic reads unnaturally. Use the returned template description, and let tabs, categories, and product assignments carry the deeper browsing directions.`,
   };
   return (language === "zh" ? zh : en)[moduleId];
 }
@@ -59,22 +126,42 @@ export function topicPageCopyBriefDigest<T extends object>(brief: T) {
 
 export function buildTopicPageCopyBrief(options: {
   intent: ThemeIntent;
+  templateRef: string;
   keyword: string;
   language: ContentLanguage;
   audienceContext: TopicAudienceContext;
   backgroundEvidence?: TopicBackgroundEvidenceBundle;
   tasks: TopicPageContentTaskContext[];
 }): TopicPageCopyBrief {
+  const strategy = heroStrategy(
+    heroStrategyKind(options.templateRef, options.intent),
+    options.language,
+  );
   const brief = {
-    schemaVersion: "topic-page-copy-brief/v2" as const,
+    schemaVersion: "topic-page-copy-brief/v3" as const,
     audienceContext: options.audienceContext,
     pageProposition: options.intent.shoppingGoal,
+    heroStrategy: strategy,
+    topicSignature: topicSignature(strategy.kind, options.backgroundEvidence),
+    localizationStrategy: {
+      requestedLanguage: options.language,
+      supportedLanguages: ["zh", "en"] as const,
+      generationMode: "separate-proposals" as const,
+      adaptation: "locale-native-not-literal" as const,
+    },
     newcomerQuestions: newcomerQuestions(options.language),
     moduleObjectives: options.tasks.map((task) => ({
       taskId: task.taskId,
       moduleId: task.moduleId,
       objective: moduleObjective(task.moduleId, options.keyword, options.language),
       shoppingGoal: task.shoppingGoal,
+      copyRules: task.copyRules.map((rule) => ({
+        ...rule,
+        ...(rule.preferredLength
+          ? { preferredLength: { ...rule.preferredLength } }
+          : {}),
+      })),
+      ...(task.templateCopy ? { templateCopy: { ...task.templateCopy } } : {}),
     })),
     backgroundEvidenceDigest: options.backgroundEvidence?.digest ?? null,
     backgroundEvidenceStatus: options.backgroundEvidence?.status ?? "not-provided" as const,

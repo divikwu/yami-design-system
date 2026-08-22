@@ -1275,7 +1275,7 @@
       "sourceSha256": "b9cb928d20dfb49ff68fac14dba7520a3e79c802a69f3e9e447dc6aa310fad4a",
       "disposition": "migrated",
       "destination": "packages/design-system/components/BrandProductRail/BrandProductRail.tsx",
-      "destinationSha256": "873c0d116004aa240fbaf36c2f9b5a228391c3a8042235ce3e113afa2c4efe5e"
+      "destinationSha256": "4532c2de6e4119f702189ca9ab7b6b619af9ff8b9c06435392a02c07790b6576"
     },
     {
       "source": "components/BrandProductRail/BrandProductRail.types.ts",
@@ -1492,7 +1492,7 @@
       "sourceSha256": "8d3a295dbc964b5ac48901fc8d46b6fd030000047f9a6daf1d64db787b30e957",
       "disposition": "migrated",
       "destination": "packages/design-system/components/BrandProductRail/usage.md",
-      "destinationSha256": "647d841660bfd3444a0dbbb1eab9e036773b589db5e344dc0249d2cae5932b4e"
+      "destinationSha256": "3fd04bf667b0e4b2ea74c7df5b9bb25249eda764ae88c81baa357f83ffd414aa"
     },
     {
       "source": "components/Button/Button.figma.tsx",

@@ -136,7 +136,7 @@ export const LANDING_PAGE_EXECUTION_STAGES: readonly LandingPageExecutionStage[]
   { id: "product-selection", actor: "strategy-agent", maxAttempts: 1 },
   { id: "module-merchandising", actor: "strategy-agent", maxAttempts: 2 },
   { id: "content-writing", actor: "content-agent", maxAttempts: 2 },
-  { id: "content-review", actor: "review-agent", maxAttempts: 2 },
+  { id: "content-review", actor: "review-agent", maxAttempts: 1 },
   { id: "visual-generation", actor: "visual-agent", maxAttempts: 1 },
   { id: "asset-persistence", actor: "system", maxAttempts: 1 },
   { id: "page-generation", actor: "system", maxAttempts: 1 },

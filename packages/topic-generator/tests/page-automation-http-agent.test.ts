@@ -110,6 +110,8 @@ describe("Topic Page Agent HTTP contract", () => {
     await expect(agent.reviewPageExperience(runs.review as never))
       .resolves.toEqual({ stage: "experience-review" });
 
+    expect(agent.reviewerAgentId).toBe("topic-content-review");
+
     expect(fetchMock).toHaveBeenCalledTimes(8);
     const requests = fetchMock.mock.calls.map(([, init]) => ({
       headers: init?.headers,

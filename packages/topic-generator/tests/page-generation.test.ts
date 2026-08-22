@@ -328,6 +328,13 @@ function groupedFixture() {
       component: "ProductList" as const,
       copy: {
         title: { text: "热门精选", evidenceRefs: ["product:matcha-1"] },
+        groups: [{
+          groupId: "all",
+          label: { text: "全部商品", evidenceRefs: ["product:matcha-1"] },
+        }, {
+          groupId: "matcha-powder",
+          label: { text: "纯抹茶粉", evidenceRefs: ["product:matcha-1"] },
+        }],
       },
     }],
   };
@@ -389,8 +396,8 @@ describe("PageGenerationSpec and final automatic QA", () => {
     });
 
     expect(spec.modules.find(({ id }) => id === "popular-picks")?.groups).toEqual([
-      { id: "all", label: "全部", productIds: ["matcha-1"] },
-      { id: "matcha-powder", label: "抹茶粉", productIds: ["matcha-1"] },
+      { id: "all", label: "全部商品", productIds: ["matcha-1"] },
+      { id: "matcha-powder", label: "纯抹茶粉", productIds: ["matcha-1"] },
     ]);
   });
 

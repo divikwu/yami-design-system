@@ -515,6 +515,22 @@ describe("Topic page automation workflow", () => {
         }],
       },
     });
+    expect(result).toMatchObject({
+      contentAttempt: {
+        schemaVersion: "topic-page-content-attempt/v1",
+        agentId: "fixture-content-agent",
+        copyBriefDigest: expect.stringMatching(/^sha256:/),
+        revision: {
+          schemaVersion: "topic-page-content-revision/v1",
+          attempt: 2,
+          review: {
+            source: "review-agent",
+            reviewerAgentId: "fixture-content-review-agent",
+            issues: [{ code: "generic-theme-copy", moduleId: "hero" }],
+          },
+        },
+      },
+    });
     expect(generatePageVisuals).toHaveBeenCalledOnce();
   });
 

@@ -27,6 +27,7 @@ type GenerationSpec = GeneratedPreviewProps["generationSpec"];
 type GenerationModule = GenerationSpec["modules"][number];
 type SelectionPreviewProps = Extract<TopicPagePreviewRendererProps, { mode: "selection" }>;
 type ContentPreviewProps = Extract<TopicPagePreviewRendererProps, { mode: "content" }>;
+type ContentCopy = ContentPreviewProps["contentSpec"]["tasks"][number]["copy"];
 type SelectionPlan = SelectionPreviewProps["plan"];
 type SelectionModule = SelectionPlan["modules"][number];
 
@@ -213,6 +214,11 @@ export function generatedPrototypeProps(
       label: popular.copy.title.text,
       targetId: "popular-picks",
     },
+    brands && {
+      value: "generated-brands",
+      label: brands.copy.title.text,
+      targetId: "brand-spotlight",
+    },
     explore && {
       value: "generated-explore",
       label: explore.copy.title.text,
@@ -315,6 +321,7 @@ export function generatedPrototypeProps(
           mobileSurface: "plain",
           dividerPosition: "top",
           dividerVariant: "gray",
+          onAddToCart: base.brandRail?.onAddToCart,
         }
       : undefined,
     reviewList: undefined,
@@ -408,6 +415,7 @@ export function selectionPrototypeProps(
     shortcuts && { value: "selection-shortcuts", label: selectionText(shortcuts.heading, defaultCopy.shortcutsTitle), targetId: "explore" },
     startHere && { value: "selection-start-here", label: selectionText(startHere.heading, defaultCopy.startHereTitle), targetId: "shop" },
     popular && { value: "selection-popular", label: selectionText(popular.heading, defaultCopy.popularTitle), targetId: "popular-picks" },
+    brands && { value: "selection-brands", label: selectionText(brands.heading, defaultCopy.brandTitle), targetId: "brand-spotlight" },
     explore && { value: "selection-explore", label: selectionText(explore.heading, defaultCopy.exploreTitle), targetId: "product-list" },
   ].filter((item): item is NonNullable<typeof item> => Boolean(item));
   const brandCampaigns = (brands?.groups ?? []).flatMap((group, index) => {
@@ -516,6 +524,7 @@ export function selectionPrototypeProps(
           mobileSurface: "plain",
           dividerPosition: "top",
           dividerVariant: "gray",
+          onAddToCart: base.brandRail?.onAddToCart,
         }
       : undefined,
     reviewList: undefined,
@@ -549,6 +558,25 @@ export function contentPrototypeProps(
   const brands = copyByModule.get("brand-spotlight");
   const reviews = copyByModule.get("reviews");
   const explore = copyByModule.get("explore-more");
+  const primaryTabLabels = new Map([
+    ["explore", shortcuts?.title.text],
+    ["shop", startHere?.title.text],
+    ["popular-picks", popular?.title.text],
+    ["brand-spotlight", brands?.title.text],
+    ["product-list", explore?.title.text],
+  ]);
+  const localizedTabs = (
+    tabs: TopicLandingPageProps["productRail"]["tabs"],
+    copy: ContentCopy | undefined,
+  ) => {
+    const labelsByGroupId = new Map(
+      copy?.groups?.map(({ groupId, label }) => [groupId, label.text]) ?? [],
+    );
+    return tabs?.map((tab) => ({
+      ...tab,
+      label: labelsByGroupId.get(tab.value) ?? tab.label,
+    }));
+  };
   return {
     ...props,
     hero: hero
@@ -559,6 +587,13 @@ export function contentPrototypeProps(
           tags: hero.tags?.map(({ text }) => text) ?? props.hero.tags,
         }
       : props.hero,
+    primaryTabs: {
+      ...props.primaryTabs,
+      items: props.primaryTabs.items.map((item) => ({
+        ...item,
+        label: primaryTabLabels.get(item.targetId) ?? item.label,
+      })),
+    },
     shortcutRail: shortcuts && props.shortcutRail
       ? {
           ...props.shortcutRail,
@@ -594,7 +629,11 @@ export function contentPrototypeProps(
         }
       : props.standardRail,
     productRail: popular
-      ? { ...props.productRail, title: popular.title.text }
+      ? {
+          ...props.productRail,
+          title: popular.title.text,
+          tabs: localizedTabs(props.productRail.tabs, popular),
+        }
       : props.productRail,
     brandRail: brands && props.brandRail
       ? { ...props.brandRail, title: brands.title.text }
@@ -607,6 +646,7 @@ export function contentPrototypeProps(
           ...props.waterfall,
           title: explore.title.text,
           description: explore.description?.text,
+          tabs: localizedTabs(props.waterfall.tabs, explore),
         }
       : props.waterfall,
   };

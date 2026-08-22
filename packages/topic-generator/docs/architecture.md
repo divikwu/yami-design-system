@@ -203,17 +203,37 @@ component copy slots and assigned evidence. It accepts one localized
 copy fields, and out-of-scope ThemeIntent/category/product/scene evidence before compiling a
 digest-bound `topic-page-content-spec/v1`.
 
-The automatic novice path selects `topic-page-copy/novice-guided@2` and compiles a digest-bound
-`topic-page-copy-brief/v2` from AudienceContext, module shopping goals, scenes, and the optional
-BackgroundEvidence bundle. The same policy registry derives Agent-facing `copySlots`/`copyRules`
+The automatic novice path selects `topic-page-copy/novice-guided@3` and compiles a digest-bound
+`topic-page-copy-brief/v3` from AudienceContext, the resolved Brand / Topic / Campaign template,
+module shopping goals, scenes, and the optional BackgroundEvidence bundle. V3 adds a flexible Hero
+strategy, one preferred plus at most one supporting context-only topic signal, and a locale strategy
+for separate Simplified Chinese and English proposals with native adaptation rather than literal
+translation. The current policy also returns locale-specific preferred Hero lengths plus hard
+Unicode character limits, and binds those rules into the CopyBrief for independent review. A
+preferred range is non-blocking guidance; only the hard maximum is deterministically rejected.
+Copy policy `novice-guided@2` and CopyBrief v2 remain accepted for saved-run replay. The same policy registry derives Agent-facing `copySlots`/`copyRules`
 and deterministic proposal review. Background claims enter only as `background:<claim-id>` and stay
 `context-only`; they cannot prove product claims. Legacy calls retain `evidence-bound@1` or
 `topic-page-copy/legacy@1` replay behavior.
+
+The managed Web Host schedules both locale-bound proposals in the same content milestone. It
+reuses the frozen ThemeIntent, ProductSelectionResult, and PagePlan, produces localized
+BackgroundEvidence as needed, and stores both approved results under `contentByLanguage`. Each
+proposal and review remains independently digest-bound; the request language is only the primary
+preview and downstream visual locale, not a request to omit the paired copy locale.
 
 `runTopicContentAgentWorkflow` injects the independent Content Agent. The Agent writes copy; the
 Module owns task membership, evidence scope, validation, and compilation. Review copy remains
 blocked until an upstream contract supplies verified review records. Image prompts and assets stay
 outside this Module.
+
+For novice-guided runs, nearby structural module chrome is template-owned and localized before the
+Agent call: `shortcuts`, `popular-picks`, and `brand-spotlight` expose exact title values, while
+`explore-more` exposes an exact generic description. The Agent preserves those values verbatim.
+Only the distant `explore-more` title may add one compact locale-native topic anchor; its
+locale-specific preferred and hard limits keep that variation short. Deterministic review rejects
+replacement of template copy, while independent Content Review rejects repeated anchors, Hero
+restatement, or analytical headings.
 
 `runTopicPageContentReviewAgentWorkflow(...)` independently reviews the compiled ContentSpec against
 its CopyBrief and bound evidence for newcomer orientation, theme and scene specificity, module
@@ -221,7 +241,9 @@ differentiation, evidence alignment, and language quality. A `revision-required`
 to `content-writing`. The automatic Host freezes ThemeIntent, BackgroundEvidence, selection,
 PagePlan, CopyBrief, language, and digests, then gives the Content Agent the previous ContentSpec
 plus structured review issues for one bounded rewrite and one final review. Automation cannot
-invoke the Visual Agent until review is approved; a second failure remains blocked.
+invoke the Visual Agent until review is approved; a second failure remains blocked and the managed
+stage cannot be executed again. A successful rewrite preserves its digest-bound attempt and the
+first review's structured issues in the content-review stage output.
 
 Blocked PageContent runs expose `faultKind` and `rollbackStage`: upstream drift returns to
 PageMerchandising, while rejected copy stays in PageContent. The Agent workflow records a

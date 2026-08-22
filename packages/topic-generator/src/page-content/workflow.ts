@@ -79,6 +79,12 @@ function attemptArtifact(
     ...(request.backgroundEvidence
       ? { backgroundEvidenceDigest: request.backgroundEvidence.digest }
       : {}),
+    ...(request.revision
+      ? {
+          copyBriefDigest: request.revision.review.copyBriefDigest,
+          revision: structuredClone(request.revision),
+        }
+      : {}),
     language: request.language,
     ...(proposal === undefined ? {} : { proposal }),
     ...(run && "proposalReview" in run ? { proposalReview: run.proposalReview } : {}),

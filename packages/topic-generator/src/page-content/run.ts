@@ -18,6 +18,7 @@ import {
   topicPageCopyRules,
   topicPageCopySlots,
   topicPageCopyPolicyRef,
+  topicPageTemplateCopy,
   usesStrictPageCopyPolicy,
 } from "./config.js";
 import {
@@ -51,34 +52,66 @@ function taskContext(
     : intent.evidenceRefs.map(({ id }) => id);
   const tasks = plan.modules
     .filter((module) => module.visible && module.contentTaskId)
-    .map((module) => ({
-      taskId: module.contentTaskId!,
-      moduleId: module.id,
-      component: module.component,
-      shoppingGoal: module.shoppingGoal,
-      reason: module.reason,
-      copySlots: [...topicPageCopySlots(module.id)],
-      copyRules: topicPageCopyRules(module.id).map((rule) => ({ ...rule })),
-      assignments: module.assignments.map((assignment) => ({ ...assignment })),
-      scenes: module.scenes.map((scene) => ({
-        ...scene,
-        productIds: [...scene.productIds],
-      })),
-      products: module.assignments.map(({ productId }) => {
-        const product = productsById.get(productId)!;
-        return {
-          id: product.id,
-          title: product.title,
-          brand: product.brand,
-          categoryL3Id: product.categoryL3Id,
-          categoryL3Name: product.categoryL3Name,
-          pool: product.pool,
-          role: product.role,
-        };
-      }),
-    }));
+    .map((module) => {
+      const assignedProductIds = new Set(
+        module.assignments.map(({ productId }) => productId),
+      );
+      const groups = (selection.modules.find(({ id }) => id === module.id)?.groups ?? [])
+        .map((group) => ({
+          id: group.id,
+          label: group.label,
+          productIds: group.productIds.filter((productId) =>
+            assignedProductIds.has(productId)
+          ),
+          ...(group.sourceCategoryIds
+            ? { sourceCategoryIds: [...group.sourceCategoryIds] }
+            : {}),
+        }))
+        .filter(({ productIds }) => productIds.length > 0);
+      const templateCopy = noviceGuided
+        ? topicPageTemplateCopy(module.id, language)
+        : undefined;
+      const copyRules = topicPageCopyRules(module.id, language)
+        .filter(({ slot }) => slot !== "groups[].label" || groups.length > 0)
+        .map((rule) => ({
+          ...rule,
+          ...(rule.preferredLength
+            ? { preferredLength: { ...rule.preferredLength } }
+            : {}),
+        }));
+      return {
+        taskId: module.contentTaskId!,
+        moduleId: module.id,
+        component: module.component,
+        shoppingGoal: module.shoppingGoal,
+        reason: module.reason,
+        copySlots: topicPageCopySlots(module.id)
+          .filter((slot) => slot !== "groups[].label" || groups.length > 0),
+        copyRules,
+        ...(templateCopy ? { templateCopy } : {}),
+        assignments: module.assignments.map((assignment) => ({ ...assignment })),
+        scenes: module.scenes.map((scene) => ({
+          ...scene,
+          productIds: [...scene.productIds],
+        })),
+        groups,
+        products: module.assignments.map(({ productId }) => {
+          const product = productsById.get(productId)!;
+          return {
+            id: product.id,
+            title: product.title,
+            brand: product.brand,
+            categoryL3Id: product.categoryL3Id,
+            categoryL3Name: product.categoryL3Name,
+            pool: product.pool,
+            role: product.role,
+          };
+        }),
+      };
+    });
   const copyBrief = buildTopicPageCopyBrief({
     intent,
+    templateRef: plan.templateRef,
     keyword: plan.keyword,
     language,
     audienceContext,
@@ -276,6 +309,7 @@ export function advanceTopicPageContentRun(
     request.language,
     request.proposal,
     request.backgroundEvidence,
+    { enforceTemplateCopy: noviceGuided },
   );
   if (proposalReview.status !== "accepted" || !proposalReview.proposal) {
     return {

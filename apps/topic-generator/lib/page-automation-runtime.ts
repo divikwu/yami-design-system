@@ -142,12 +142,17 @@ export async function loadTopicGeneratorPageAutomationRuntime(options: {
           "topic-intent": environment.TOPIC_GENERATOR_TOPIC_INTENT_AGENT_ID?.trim() ||
             environment.TOPIC_GENERATOR_STRATEGY_AGENT_ID?.trim() ||
             "topic-strategy",
+          "background-evidence":
+            environment.TOPIC_GENERATOR_BACKGROUND_EVIDENCE_AGENT_ID?.trim() ||
+            "topic-background-evidence",
           "workflow-planning": environment.TOPIC_GENERATOR_ORCHESTRATOR_AGENT_ID?.trim() ||
             "topic-page-orchestrator",
           "module-merchandising": environment.TOPIC_GENERATOR_STRATEGY_AGENT_ID?.trim() ||
             "topic-strategy",
           "content-writing": environment.TOPIC_GENERATOR_CONTENT_AGENT_ID?.trim() ||
             "topic-content",
+          "content-review": environment.TOPIC_GENERATOR_CONTENT_REVIEW_AGENT_ID?.trim() ||
+            "topic-content-review",
           "visual-generation": environment.TOPIC_GENERATOR_VISUAL_AGENT_ID?.trim() ||
             "topic-visual",
           "experience-review": environment.TOPIC_GENERATOR_REVIEW_AGENT_ID?.trim() ||

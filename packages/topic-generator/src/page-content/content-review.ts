@@ -83,6 +83,7 @@ export interface TopicPageContentReviewRequest {
 
 export interface TopicPageContentReviewAgent {
   id: string;
+  reviewerAgentId?: string;
   reviewPageContent(
     run: Extract<TopicPageContentReviewRun, { status: "needs-content-review-proposal" }>,
   ): Promise<unknown>;
@@ -406,7 +407,7 @@ export async function runTopicPageContentReviewAgentWorkflow(
     run: advanceTopicPageContentReviewRun({
       ...request,
       proposal,
-      reviewerAgentId: request.agent.id,
+      reviewerAgentId: request.agent.reviewerAgentId ?? request.agent.id,
     }),
   };
 }

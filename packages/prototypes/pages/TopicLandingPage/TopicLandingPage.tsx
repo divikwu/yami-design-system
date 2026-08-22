@@ -27,9 +27,32 @@ import styles from "./TopicLandingPage.module.css";
 import type { TopicLandingPageProps } from "./TopicLandingPage.types";
 
 const SECTION_REVEAL_ROOT_MARGIN = "0px 0px -40px 0px";
+const SCROLLABLE_OVERFLOW = /^(auto|scroll|overlay)$/;
 
 function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
+}
+
+export function resolveTopicLandingScrollRoot(
+  element: HTMLElement,
+): Window | HTMLElement {
+  let ancestor = element.parentElement;
+  while (ancestor) {
+    if (SCROLLABLE_OVERFLOW.test(window.getComputedStyle(ancestor).overflowY)) {
+      return ancestor;
+    }
+    ancestor = ancestor.parentElement;
+  }
+  return window;
+}
+
+export function getTopicLandingActivationLine(
+  scrollRoot: Window | HTMLElement,
+  tabsHeight: number,
+) {
+  if (scrollRoot === window) return tabsHeight + 1;
+  const element = scrollRoot as HTMLElement;
+  return element.getBoundingClientRect().top + element.clientTop + tabsHeight + 1;
 }
 
 export function TopicLandingPage({
@@ -218,12 +241,16 @@ export function TopicLandingPage({
   useLayoutEffect(() => {
     const primaryTabsElement = primaryTabsRef.current;
     if (!primaryTabsElement) return;
+    const scrollRoot = resolveTopicLandingScrollRoot(primaryTabsElement);
+    const scrollTarget: EventTarget = scrollRoot;
 
     let animationFrame = 0;
     const updateActiveTab = () => {
       animationFrame = 0;
-      const activationLine =
-        primaryTabsElement.getBoundingClientRect().height + 1;
+      const activationLine = getTopicLandingActivationLine(
+        scrollRoot,
+        primaryTabsElement.getBoundingClientRect().height,
+      );
       const pendingValue = pendingPrimaryTabValueRef.current;
       if (pendingValue) {
         const pendingItem = primaryTabs.items.find(
@@ -277,13 +304,13 @@ export function TopicLandingPage({
     };
 
     updateActiveTab();
-    window.addEventListener("scroll", scheduleUpdate, { passive: true });
-    window.addEventListener("scrollend", finishProgrammaticNavigation);
+    scrollTarget.addEventListener("scroll", scheduleUpdate, { passive: true });
+    scrollTarget.addEventListener("scrollend", finishProgrammaticNavigation);
     window.addEventListener("resize", scheduleUpdate);
 
     return () => {
-      window.removeEventListener("scroll", scheduleUpdate);
-      window.removeEventListener("scrollend", finishProgrammaticNavigation);
+      scrollTarget.removeEventListener("scroll", scheduleUpdate);
+      scrollTarget.removeEventListener("scrollend", finishProgrammaticNavigation);
       window.removeEventListener("resize", scheduleUpdate);
       if (animationFrame) window.cancelAnimationFrame(animationFrame);
     };
@@ -558,6 +585,7 @@ export function TopicLandingPage({
         )}
         {brandRail && !hiddenModules.includes("brand-spotlight") && (
           <div
+            id="brand-spotlight"
             className={styles.brandRail}
             data-motion-reveal="scroll"
             data-slot="topic-landing-brand-rail"

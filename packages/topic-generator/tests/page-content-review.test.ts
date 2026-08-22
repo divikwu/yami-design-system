@@ -170,7 +170,11 @@ describe("TopicPageContentReview", () => {
       contentSpec,
       copyBrief,
       backgroundEvidence,
-      agent: { id: "content-review", reviewPageContent },
+      agent: {
+        id: "topic-page-agent",
+        reviewerAgentId: "topic-content-review",
+        reviewPageContent,
+      },
     });
 
     expect(reviewPageContent).not.toHaveBeenCalled();
@@ -202,7 +206,11 @@ describe("TopicPageContentReview", () => {
       contentSpec,
       copyBrief,
       backgroundEvidence,
-      agent: { id: "content-review", reviewPageContent },
+      agent: {
+        id: "topic-page-agent",
+        reviewerAgentId: "topic-content-review",
+        reviewPageContent,
+      },
     });
 
     expect(reviewPageContent).toHaveBeenCalledOnce();
@@ -211,7 +219,7 @@ describe("TopicPageContentReview", () => {
       decision: {
         schemaVersion: "topic-page-content-review/v1",
         verdict: "approved",
-        reviewerAgentId: "content-review",
+        reviewerAgentId: "topic-content-review",
       },
     });
     if (result.run.status !== "ready") throw new Error("Expected approved content review.");

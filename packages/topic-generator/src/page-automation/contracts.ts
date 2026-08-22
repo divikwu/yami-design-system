@@ -113,6 +113,7 @@ export type TopicPageAutomationRun =
       issues: [];
       executionPlan: LandingPageExecutionPlan;
       plan: TopicPagePlanV2;
+      contentAttempt?: TopicPageContentAttemptArtifact;
       contentSpec: TopicPageContentSpec;
       copyBrief: TopicPageCopyBrief;
       contentReview: TopicPageContentReviewDecision & { verdict: "approved" };

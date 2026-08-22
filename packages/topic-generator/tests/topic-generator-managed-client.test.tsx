@@ -11,7 +11,10 @@ import {
   type TopicGeneratorRunStatus,
   type TopicGeneratorRunSummary,
 } from "../src/index";
-import { TopicGenerator } from "../web/topic-generator-client";
+import {
+  TopicGenerator,
+  type TopicPagePreviewRendererProps,
+} from "../web/topic-generator-client";
 
 ;(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean })
   .IS_REACT_ACT_ENVIRONMENT = true;
@@ -314,6 +317,18 @@ describe("Topic Generator managed run loading", () => {
         .find((button) => button.textContent === label)!;
       expect(action.disabled).toBe(false);
     }
+    const englishLanguage = container.querySelector<HTMLInputElement>(
+      'input[name="ui-language"][value="en"]',
+    )!;
+    expect(englishLanguage.closest("fieldset")?.disabled).toBe(false);
+    expect(englishLanguage.matches(":disabled")).toBe(false);
+    await act(async () => englishLanguage.click());
+    expect(container.querySelector("main")?.getAttribute("lang")).toBe("en");
+    await act(async () => {
+      container.querySelector<HTMLInputElement>(
+        'input[name="ui-language"][value="zh"]',
+      )!.click();
+    });
 
     await act(async () => {
       loadButton.click();
@@ -636,6 +651,138 @@ describe("Topic Generator managed run loading", () => {
     expect(container.querySelector('section[aria-label="生成内容"]')?.textContent)
       .not.toContain("下载内容");
     expect(container.querySelector('a[download$=".html"]')).toBeNull();
+  });
+
+  it("switches a newly generated managed run to its saved English content without a fallback request", async () => {
+    const bilingualRunId = "matcha-20260822150000000-bilingual";
+    const plans = buildTopicPagePlanMatrix({
+      keyword: "matcha",
+      site: "us",
+      sourceUrl: "https://example.com/search?q=matcha",
+      fetchedAt: "2026-08-22T15:00:00.000Z",
+      products: ["1", "2", "3"].map((id, index) => ({
+        id,
+        title: `Matcha ${id}`,
+        brand: "Matcha Brand",
+        price: "$9.99",
+        imageUrl: `https://example.com/${id}.webp`,
+        productUrl: `https://example.com/${id}`,
+        sourceRank: index + 1,
+      })),
+    }, "selection");
+    const base = v2Detail(bilingualRunId, {
+      status: "awaiting-approval",
+      nextStage: "user-approval",
+      completedThrough: "experience-review",
+    });
+    const deliverables = base.state.deliverables.map((deliverable) =>
+      deliverable.name === "page-draft.html"
+        ? {
+            ...deliverable,
+            status: "ready" as const,
+            sha256: "f".repeat(64),
+            bytes: 200,
+            generatedAt: "2026-08-22T15:00:00.000Z",
+          }
+        : deliverable
+    );
+    const localizedContent = (language: "zh" | "en", title: string) => ({
+      schemaVersion: "topic-page-content-spec/v1",
+      status: "content-ready",
+      keyword: "matcha",
+      site: "us",
+      language,
+      tasks: [{
+        taskId: "content-hero",
+        moduleId: "hero",
+        component: "ThemeHero",
+        copy: { title: { text: title, evidenceRefs: ["product:1"] } },
+      }],
+      digest: `sha256:${language}-content`,
+    });
+    const zhContent = localizedContent("zh", "从一碗抹茶开始品味日常");
+    const enContent = localizedContent("en", "Make Matcha Part of Your Everyday Ritual");
+    const detail: TopicGeneratorRunDetail = {
+      ...base,
+      state: { ...base.state, deliverables },
+      summary: { ...base.summary, deliverables },
+      stageResults: {
+        "topic-intent": { analysis: { intent: { id: "intent" } }, plans },
+        "background-evidence": { backgroundEvidence: { language: "zh" } },
+        "product-selection": {
+          executionPlan: { pageTypeRef: "landing-page/topic@2" },
+          selection: { id: "selection" },
+          selectionRun: { status: "ready" },
+          plans,
+        },
+        "module-merchandising": {
+          plan: { schemaVersion: "topic-page-plan/v2", digest: "sha256:plan" },
+          plans,
+        },
+        "content-review": {
+          contentSpec: zhContent,
+          copyBrief: { digest: "sha256:zh-brief" },
+          contentReview: { verdict: "approved", digest: "sha256:zh-review" },
+          contentByLanguage: {
+            zh: {
+              contentSpec: zhContent,
+              copyBrief: { digest: "sha256:zh-brief" },
+              contentReview: { verdict: "approved", digest: "sha256:zh-review" },
+            },
+            en: {
+              contentSpec: enContent,
+              copyBrief: { digest: "sha256:en-brief" },
+              contentReview: { verdict: "approved", digest: "sha256:en-review" },
+            },
+          },
+        },
+      },
+    } as never;
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
+      const url = String(input);
+      if (url.endsWith("/runs") && init?.method === "POST") {
+        return Response.json({ manifest: { runId: bilingualRunId } }, { status: 201 });
+      }
+      if (url.endsWith(`/runs/${bilingualRunId}`) && init?.method === undefined) {
+        return Response.json(detail);
+      }
+      throw new Error(`Unexpected ${init?.method ?? "GET"} ${url}`);
+    });
+    const Preview = (preview: TopicPagePreviewRendererProps) => (
+      <div data-testid="localized-preview">
+        {preview.mode}:{preview.mode === "content" ? preview.contentSpec.language : "other"}
+      </div>
+    );
+
+    await act(async () => {
+      root.render(
+        <TopicGenerator
+          PagePreviewRenderer={Preview}
+          managedRunApiBase="/api/topic-generator"
+        />,
+      );
+      await Promise.resolve();
+    });
+    const generateContent = [...container.querySelectorAll<HTMLButtonElement>("button")]
+      .find((button) => button.textContent === "生成页面")!;
+    await act(async () => {
+      generateContent.click();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(container.querySelector('[data-testid="localized-preview"]')?.textContent)
+      .toBe("content:zh");
+
+    const requestCount = fetchMock.mock.calls.length;
+    await act(async () => {
+      container.querySelector<HTMLInputElement>(
+        'input[name="ui-language"][value="en"]',
+      )!.click();
+    });
+
+    expect(container.querySelector('[data-testid="localized-preview"]')?.textContent)
+      .toBe("content:en");
+    expect(fetchMock).toHaveBeenCalledTimes(requestCount);
   });
 
   it.each([
