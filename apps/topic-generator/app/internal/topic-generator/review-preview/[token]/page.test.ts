@@ -2,20 +2,28 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { ReactElement } from "react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { TopicPageGenerationSpec } from "@yami/topic-generator";
 
-import { createConfiguredTopicPageReviewPreviewRegistry } from "../../../../../lib/topic-page-review-preview-registry";
+import {
+  createConfiguredTopicPageReviewPreviewRegistry,
+  createTopicPageReviewPreviewRegistry,
+} from "../../../../../lib/topic-page-review-preview-registry";
 import { RealTopicPagePreview } from "../../../../topic-generator-workbench";
 import TopicPageReviewPreviewPage from "./page";
 
+vi.mock("server-only", () => ({}));
+
 const roots: string[] = [];
 const originalAssetRoot = process.env.TOPIC_GENERATOR_ASSET_ROOT;
+const originalRunRoot = process.env.TOPIC_GENERATOR_RUN_ROOT;
 const originalPreviewOrigin = process.env.TOPIC_GENERATOR_PREVIEW_ORIGIN;
 
 afterEach(async () => {
   if (originalAssetRoot === undefined) delete process.env.TOPIC_GENERATOR_ASSET_ROOT;
   else process.env.TOPIC_GENERATOR_ASSET_ROOT = originalAssetRoot;
+  if (originalRunRoot === undefined) delete process.env.TOPIC_GENERATOR_RUN_ROOT;
+  else process.env.TOPIC_GENERATOR_RUN_ROOT = originalRunRoot;
   if (originalPreviewOrigin === undefined) delete process.env.TOPIC_GENERATOR_PREVIEW_ORIGIN;
   else process.env.TOPIC_GENERATOR_PREVIEW_ORIGIN = originalPreviewOrigin;
   await Promise.all(roots.splice(0).map((root) => rm(root, { recursive: true, force: true })));
@@ -63,8 +71,32 @@ describe("internal Topic Page review preview", () => {
 
     expect(element.type).toBe(RealTopicPagePreview);
     expect(element.props).toEqual({
+      mode: "generated",
       pageTypeRef: "landing-page/topic@2",
       generationSpec,
     });
+  });
+
+  it("loads previews published by the managed run registry", async () => {
+    const root = await mkdtemp(join(tmpdir(), "topic-page-managed-review-route-"));
+    roots.push(root);
+    delete process.env.TOPIC_GENERATOR_ASSET_ROOT;
+    process.env.TOPIC_GENERATOR_RUN_ROOT = root;
+    process.env.TOPIC_GENERATOR_PREVIEW_ORIGIN = "http://127.0.0.1:3300";
+    const registry = createTopicPageReviewPreviewRegistry({
+      root: join(root, ".review-previews"),
+      origin: process.env.TOPIC_GENERATOR_PREVIEW_ORIGIN,
+    });
+    const refs = await registry.publish({
+      pageTypeRef: "landing-page/topic@2",
+      generationSpec,
+    });
+    const token = new URL(refs.desktop).pathname.split("/").at(-1)!;
+
+    const element = await TopicPageReviewPreviewPage({
+      params: Promise.resolve({ token }),
+    }) as ReactElement<{ generationSpec: TopicPageGenerationSpec }>;
+
+    expect(element.props.generationSpec).toEqual(generationSpec);
   });
 });

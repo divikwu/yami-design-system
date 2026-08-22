@@ -45,3 +45,15 @@ review recommendation never grants user approval or publication authority.
 - `preview:mobile`
 
 Reject any evidence reference absent from the task context.
+
+## Visual policy
+
+The context includes `visualPolicy`. Treat each listed condition as blocking:
+
+- an isolated product packshot used as a semantic scene;
+- a product grid or montage used as a semantic scene;
+- an asset that does not match the module theme or accepted copy;
+- generated or altered visible product packaging.
+
+Products may inform scene direction but are references only. Review the environment, activity,
+composition, and module-theme fit first. Bind failures to `visual-generation`.

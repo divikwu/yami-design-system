@@ -31,7 +31,10 @@ import {
   unavailableTopicBackgroundEvidence,
   type TopicBackgroundEvidenceBundle,
 } from "./background-evidence/index.js";
-import { runTopicVisualAgentWorkflow } from "./page-visual/index.js";
+import {
+  runTopicVisualAgentWorkflow,
+  type TopicPageVisualProductionMode,
+} from "./page-visual/index.js";
 import {
   compileDeterministicTopicPagePlanV2,
   runPageMerchandisingAgentWorkflow,
@@ -88,6 +91,7 @@ export interface HandleTopicGeneratorOptions extends AnalyzeTopicIntentOptions {
   topicPageAssetStore?: TopicPageAssetStore;
   topicPageImageDecoder?: TopicPageImageDecoder;
   topicPagePreviewResolver?: TopicPageReviewPreviewResolver;
+  visualProductionMode?: TopicPageVisualProductionMode;
   requireAutomaticHeroReview?: boolean;
   requireAutomaticModuleReview?: boolean;
   requireAutomaticPage?: boolean;
@@ -691,7 +695,7 @@ async function handleTopicGeneratorCapability(
     plan: artifacts.plan,
     contentSpec,
     backgroundEvidence,
-    productionMode: "source-product-images",
+    productionMode: options.visualProductionMode ?? "generated-images",
     agent: options.topicPageAgent,
   });
   if (visual.run.status !== "ready") {
@@ -1190,7 +1194,7 @@ export async function handleTopicGeneratorPost(
               visual: options.topicPageAgent,
               review: options.topicPageAgent,
             },
-            visualProductionMode: "source-product-images",
+            visualProductionMode: options.visualProductionMode ?? "generated-images",
             assetStore: options.topicPageAssetStore,
             imageDecoder: options.topicPageImageDecoder,
             previewResolver: options.topicPagePreviewResolver,

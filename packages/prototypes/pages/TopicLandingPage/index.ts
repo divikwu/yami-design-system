@@ -2,6 +2,7 @@ export { TopicLandingPage } from "./TopicLandingPage";
 export type {
   TopicLandingPagePrimaryTab,
   TopicLandingPagePrimaryTabs,
+  TopicLandingPageModuleId,
   TopicLandingPageProps,
 } from "./TopicLandingPage.types";
 export {

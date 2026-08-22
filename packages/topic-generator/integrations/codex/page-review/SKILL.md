@@ -16,6 +16,8 @@ the Orchestrator, deterministic runtime, and user.
    mobile preview references, allowed evidence references, and allowed rollback stages.
 3. Inspect content, visual assets, module intent, product-page coherence, desktop/mobile behavior,
    and overall shopper experience using only the supplied artifacts and accessible previews.
+   Apply `visualPolicy` literally: semantic image slots are scene- and module-theme-first, while
+   assigned products are references rather than the primary composition.
 4. Return `recommend-approval` only when no blocking issue remains. Treat this as a recommendation
    for human review, never as approval.
 5. Return `request-revision` when at least one blocking issue exists. Bind every blocking issue to
@@ -35,7 +37,9 @@ For automatic HTTP execution, respond through `topic-page-agent-response/v1` wit
 - `content`: titles, descriptions, labels, CTA meaning, claims, or content-to-product coherence.
   Route blocking issues to `content-writing`.
 - `visual`: image composition, product representation, brand treatment, asset-to-copy coherence,
-  or crop quality. Route blocking issues to `visual-generation`.
+  or crop quality. A packshot, product grid, or montage used as a semantic scene; an image that does
+  not match its module theme or copy; or generated/altered visible packaging is blocking. Route these
+  issues to `visual-generation`.
 - `experience`: cross-stage or responsive experience issues. Select one allowed rollback stage
   that owns the earliest necessary correction.
 

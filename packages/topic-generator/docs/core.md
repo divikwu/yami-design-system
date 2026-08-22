@@ -235,7 +235,9 @@ Orchestrator、Topic Strategy、Background Evidence、Topic Content、Content Re
 Visual 与 Topic Review 七个 Agent；交互式 Agent 不由 Web 页面同步调用。独立 Next.js Host
 使用 `TOPIC_GENERATOR_TAXONOMY_PATH`、
 `TOPIC_GENERATOR_AGENT_ENDPOINT`、`TOPIC_GENERATOR_PAGE_AGENT_ENDPOINT` 与
-`TOPIC_GENERATOR_ASSET_ROOT` 开启完整 API 自动链路。配置只在 Node.js Route Handler
+`TOPIC_GENERATOR_ASSET_ROOT` 开启完整 API 自动链路；受管 v2 运行在开发环境默认保存到
+`.topic-generator/runs`，生产环境必须用绝对路径 `TOPIC_GENERATOR_RUN_ROOT` 指向持久磁盘。
+配置只在 Node.js Route Handler
 读取；浏览器提交的 taxonomy、candidate snapshot 或 Agent proposal 不会覆盖自动 Host 的证据。
 
 自动页面请求按统一 HTTP 契约完成编排、模块策划、文案、独立 Visual 与只读 Review stage。

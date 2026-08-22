@@ -20,8 +20,26 @@ revalidate accepted copy provenance. `background:*` references remain content-on
 eligible visual direction or alt-text evidence.
 
 `productionMode` is either `generated-images` or `source-product-images`. The proposal must preserve
-the requested mode. Scene tasks may include `compositionGuidance`; it is a preference for art
-direction, not a deterministic rejection rule.
+the requested mode. `generated-images` is the final-quality scene path. `source-product-images` is a
+draft-only reference fallback and final visual QA rejects it. Scene tasks may include
+`compositionGuidance`; it is a preference for art direction, not a deterministic rejection rule.
+
+## Module scene brief
+
+Every task includes a deterministic `sceneBrief` with:
+
+- `priority: scene-first` and `productRole: reference-only`;
+- the ThemeIntent shopping goal, needs, and conditions;
+- the module shopping goal and reason;
+- relevant selected categories and, when applicable, the exact PagePlan scene;
+- the accepted content task ID and localized copy text;
+- mandatory semantic evidence references and visual requirements.
+
+The generated environment and its match to the module theme are primary. Assigned products are
+references and need not be visible. A direction is rejected when it omits any `sceneBrief.evidenceRefs`.
+Isolated packshots, tiled product grids, or product montages cannot be used as the primary visual in
+any maintained semantic image slot. If recognizable packaging must be visible, preserve verified
+source pixels through supported compositing; do not generate or alter packaging, labels, or logos.
 
 ## Maintained image slots
 

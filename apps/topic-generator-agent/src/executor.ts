@@ -4,6 +4,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { parseAgentJson } from "./json.ts";
+import {
+  compileGeneratedImageVisualResponse,
+  parseNativeImageTaskResult,
+} from "./generated-image-visual.ts";
 import type { AgentRoute } from "./registry.ts";
 
 export interface AgentExecutionRequest {
@@ -22,8 +26,24 @@ export interface AgentExecutionRequest {
 export interface AgentExecutor {
   id: "codex" | "kiro" | string;
   supportsImageInput?: boolean;
+  supportsImageGeneration?: boolean;
+  imageGeneration?: {
+    provider: "codex-native";
+    model: "gpt-image-2";
+    authMode: "chatgpt";
+  };
   execute(request: AgentExecutionRequest): Promise<unknown>;
+  generateVisuals?(request: AgentExecutionRequest): Promise<unknown>;
 }
+
+export type CodexImageGenerationProbe =
+  | {
+      available: true;
+      provider: "codex-native";
+      model: "gpt-image-2";
+      authMode: "chatgpt";
+    }
+  | { available: false; reason: string };
 
 interface CommandResult {
   stdout: string;
@@ -145,13 +165,97 @@ function executionLimits(environment: NodeJS.ProcessEnv) {
   };
 }
 
+export function parseCodexImageGenerationProbe(
+  loginStatus: string,
+  featureList: string,
+): CodexImageGenerationProbe {
+  if (!/Logged in using ChatGPT/i.test(loginStatus)) {
+    return {
+      available: false,
+      reason: "Codex native image generation requires a ChatGPT login.",
+    };
+  }
+  const feature = featureList.split(/\r?\n/).find((line) => /^image_generation\s+/.test(line));
+  if (!feature || !/\btrue\s*$/.test(feature)) {
+    return { available: false, reason: "Codex image_generation is not enabled." };
+  }
+  return {
+    available: true,
+    provider: "codex-native",
+    model: "gpt-image-2",
+    authMode: "chatgpt",
+  };
+}
+
+export async function probeCodexImageGeneration(
+  environment: NodeJS.ProcessEnv = process.env,
+): Promise<CodexImageGenerationProbe> {
+  const command = environment.TOPIC_AGENT_RUNNER_CODEX_COMMAND?.trim() || "codex";
+  const cwd = process.cwd();
+  try {
+    const [login, features] = await Promise.all([
+      runCommand({
+        command,
+        args: ["login", "status"],
+        cwd,
+        timeoutMs: 10_000,
+        maxOutputBytes: 1024 * 1024,
+      }),
+      runCommand({
+        command,
+        args: ["features", "list"],
+        cwd,
+        timeoutMs: 10_000,
+        maxOutputBytes: 1024 * 1024,
+      }),
+    ]);
+    return parseCodexImageGenerationProbe(
+      `${login.stdout}\n${login.stderr}`,
+      `${features.stdout}\n${features.stderr}`,
+    );
+  } catch (error) {
+    return {
+      available: false,
+      reason: error instanceof Error
+        ? `Codex image-generation probe failed: ${error.message}`
+        : "Codex image-generation probe failed.",
+    };
+  }
+}
+
 export function createCodexExecutor(
   environment: NodeJS.ProcessEnv = process.env,
+  imageGenerationProbe: CodexImageGenerationProbe = {
+    available: false,
+    reason: "Codex image generation has not been probed.",
+  },
 ): AgentExecutor {
   const limits = executionLimits(environment);
+  const imageConcurrency = positiveInteger(
+    environment.TOPIC_AGENT_RUNNER_IMAGE_CONCURRENCY,
+    2,
+    4,
+  );
+  const maxImageBytes = positiveInteger(
+    environment.TOPIC_AGENT_RUNNER_MAX_IMAGE_BYTES,
+    25 * 1024 * 1024,
+    50 * 1024 * 1024,
+  );
+  const command = environment.TOPIC_AGENT_RUNNER_CODEX_COMMAND?.trim() || "codex";
+  const model = environment.TOPIC_AGENT_RUNNER_CODEX_MODEL?.trim();
   return {
     id: "codex",
     supportsImageInput: true,
+    supportsImageGeneration: imageGenerationProbe.available,
+    ...(imageGenerationProbe.available
+      ? {
+          imageGeneration: {
+            provider: imageGenerationProbe.provider,
+            model: imageGenerationProbe.model,
+            authMode: imageGenerationProbe.authMode,
+          },
+        }
+      : {}),
     execute: async (request) => {
       const executionRoot = await mkdtemp(join(tmpdir(), "yami-topic-agent-codex-"));
       const outputPath = join(executionRoot, "response.json");
@@ -171,12 +275,11 @@ export function createCodexExecutor(
           "--output-last-message",
           outputPath,
         ];
-        const model = environment.TOPIC_AGENT_RUNNER_CODEX_MODEL?.trim();
         if (model) args.push("--model", model);
         request.attachments?.forEach(({ path }) => args.push("--image", path));
         args.push("-");
         await runCommand({
-          command: environment.TOPIC_AGENT_RUNNER_CODEX_COMMAND?.trim() || "codex",
+          command,
           args,
           cwd: request.repositoryRoot,
           stdin: prompt(request),
@@ -187,6 +290,63 @@ export function createCodexExecutor(
         await rm(executionRoot, { recursive: true, force: true });
       }
     },
+    ...(imageGenerationProbe.available
+      ? {
+          generateVisuals: async (request: AgentExecutionRequest) =>
+            await compileGeneratedImageVisualResponse(
+              request.run,
+              async ({ task, prompt: taskPrompt, outputFilename }) => {
+                const executionRoot = await mkdtemp(
+                  join(tmpdir(), `yami-topic-image-${task.taskId.replace(/[^a-z0-9_-]/gi, "-")}-`),
+                );
+                const outputPath = join(executionRoot, "response.json");
+                const imagePath = join(executionRoot, outputFilename);
+                try {
+                  const args = [
+                    "exec",
+                    "--enable",
+                    "image_generation",
+                    "--ephemeral",
+                    "--ignore-user-config",
+                    "--skip-git-repo-check",
+                    "--sandbox",
+                    "workspace-write",
+                    "--cd",
+                    executionRoot,
+                    "--color",
+                    "never",
+                    "--output-last-message",
+                    outputPath,
+                  ];
+                  if (model) args.push("--model", model);
+                  args.push("-");
+                  await runCommand({
+                    command,
+                    args,
+                    cwd: request.repositoryRoot,
+                    stdin: taskPrompt,
+                    ...limits,
+                  });
+                  parseNativeImageTaskResult(
+                    parseAgentJson(await readFile(outputPath, "utf8")),
+                    task.taskId,
+                    outputFilename,
+                  );
+                  const bytes = await readFile(imagePath);
+                  if (bytes.byteLength > maxImageBytes) {
+                    throw new Error(
+                      `Generated image ${task.taskId} exceeds the ${maxImageBytes}-byte limit.`,
+                    );
+                  }
+                  return bytes;
+                } finally {
+                  await rm(executionRoot, { recursive: true, force: true });
+                }
+              },
+              { concurrency: imageConcurrency },
+            ),
+        }
+      : {}),
   };
 }
 
@@ -197,6 +357,7 @@ export function createKiroExecutor(
   return {
     id: "kiro",
     supportsImageInput: false,
+    supportsImageGeneration: false,
     execute: async (request) => {
       const args = [
         "chat",
@@ -221,11 +382,13 @@ export function createKiroExecutor(
   };
 }
 
-export function createConfiguredExecutor(
+export async function createConfiguredExecutor(
   environment: NodeJS.ProcessEnv = process.env,
 ) {
   const executor = environment.TOPIC_AGENT_RUNNER_EXECUTOR?.trim() || "codex";
-  if (executor === "codex") return createCodexExecutor(environment);
+  if (executor === "codex") {
+    return createCodexExecutor(environment, await probeCodexImageGeneration(environment));
+  }
   if (executor === "kiro") return createKiroExecutor(environment);
   throw new Error('TOPIC_AGENT_RUNNER_EXECUTOR must be "codex" or "kiro".');
 }

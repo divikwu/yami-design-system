@@ -341,7 +341,12 @@ function visualProposalFixture(
         kind: "hero-image",
         direction: {
           prompt: "Sunlit matcha ritual with the assigned ceremonial matcha as the visual anchor.",
-          evidenceRefs: ["theme-intent:scenario:matcha", "product:core-1", "content-task:content-hero"],
+          evidenceRefs: [
+            "theme-intent:scenario:matcha",
+            "selected-category:1000",
+            "product:core-1",
+            "content-task:content-hero",
+          ],
           referenceProductIds: ["core-1"],
         },
         altText: {
@@ -358,7 +363,12 @@ function visualProposalFixture(
         kind: "shortcut-image",
         direction: {
           prompt: "Square full-bleed matcha category scene centered on the assigned daily matcha.",
-          evidenceRefs: ["selected-category:1000", "product:core-2"],
+          evidenceRefs: [
+            "theme-intent:scenario:matcha",
+            "selected-category:1000",
+            "product:core-2",
+            "content-task:content-shortcuts",
+          ],
           referenceProductIds: ["core-2"],
         },
         altText: null,
@@ -371,7 +381,14 @@ function visualProposalFixture(
         kind: "scene-image",
         direction: {
           prompt: "Square lifestyle scene with matcha, rice crackers, and bamboo whisk from the assigned scene.",
-          evidenceRefs: ["scene:page-scene-1", "content-task:content-start-here"],
+          evidenceRefs: [
+            "theme-intent:scenario:matcha",
+            "selected-category:1000",
+            "selected-category:1001",
+            "selected-category:1002",
+            "scene:page-scene-1",
+            "content-task:content-start-here",
+          ],
           referenceProductIds: ["core-1", "pairing-1", "accessory-1"],
         },
         altText: {
@@ -388,7 +405,12 @@ function visualProposalFixture(
         kind: "brand-banner",
         direction: {
           prompt: "Wide editorial banner for Matcha House using its assigned ceremonial matcha.",
-          evidenceRefs: ["product:core-1", "content-task:content-brand-spotlight"],
+          evidenceRefs: [
+            "theme-intent:scenario:matcha",
+            "selected-category:1000",
+            "product:core-1",
+            "content-task:content-brand-spotlight",
+          ],
           referenceProductIds: ["core-1"],
         },
         altText: {
@@ -405,7 +427,12 @@ function visualProposalFixture(
         kind: "brand-banner",
         direction: {
           prompt: "Wide editorial banner for Tea Lab using its assigned daily matcha.",
-          evidenceRefs: ["product:core-2", "content-task:content-brand-spotlight"],
+          evidenceRefs: [
+            "theme-intent:scenario:matcha",
+            "selected-category:1000",
+            "product:core-2",
+            "content-task:content-brand-spotlight",
+          ],
           referenceProductIds: ["core-2"],
         },
         altText: {
@@ -488,6 +515,79 @@ describe("TopicPageVisual", () => {
     ]);
     expect(run.context.tasks[2]!.contentTask).toMatchObject({
       taskId: "content-start-here",
+    });
+    expect(run.context.tasks[2]!.sceneBrief).toMatchObject({
+      priority: "scene-first",
+      productRole: "reference-only",
+      theme: {
+        shoppingGoal: "Build a complete matcha ritual",
+        needs: ["matcha", "pairings", "tools"],
+        conditions: ["daily ritual"],
+      },
+      module: {
+        shoppingGoal: "Build a daily ritual",
+        reason: "The validated scene supplies the products.",
+      },
+      scene: {
+        id: "page-scene-1",
+        shoppingGoal: "Build a daily matcha ritual",
+      },
+      content: {
+        taskId: "content-start-here",
+        texts: expect.arrayContaining([
+          "从这里开始",
+          "每日仪式",
+          "一套配齐抹茶日常",
+          "搭配米果与茶筅完成冲泡。",
+        ]),
+      },
+      evidenceRefs: expect.arrayContaining([
+        "theme-intent:scenario:matcha",
+        "selected-category:1000",
+        "selected-category:1001",
+        "selected-category:1002",
+        "scene:page-scene-1",
+        "content-task:content-start-here",
+      ]),
+      requirements: expect.arrayContaining([
+        "Depict a coherent, naturalistic scene that expresses this module's shopping goal.",
+        "Treat assigned products as visual references only; they do not need to appear.",
+        "Do not use isolated product packshots, tiled product grids, or product montages as the primary visual.",
+        "Do not generate or alter packaging, labels, logos, or product claims.",
+      ]),
+    });
+  });
+
+  it("requires every direction to cite its deterministic module scene brief", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const contentSpec = contentSpecFixture(intent, selection, plan);
+    const proposal = visualProposalFixture(intent, selection, plan, contentSpec);
+    proposal.assets[0]!.direction.evidenceRefs = ["product:core-1"];
+    proposal.assets[1]!.direction.evidenceRefs = ["product:core-2"];
+    proposal.assets[2]!.direction.evidenceRefs = ["product:core-1"];
+    proposal.assets[3]!.direction.evidenceRefs = ["product:core-1"];
+
+    const run = advanceTopicPageVisualRun({
+      intent,
+      selection,
+      plan,
+      contentSpec,
+      proposal,
+    });
+
+    expect(run).toMatchObject({
+      status: "blocked",
+      issues: expect.arrayContaining([
+        "Asset asset-hero direction requires scene brief evidence reference theme-intent:scenario:matcha.",
+        "Asset asset-hero direction requires scene brief evidence reference content-task:content-hero.",
+        "Asset asset-shortcuts-1 direction requires scene brief evidence reference selected-category:1000.",
+        "Asset asset-shortcuts-1 direction requires scene brief evidence reference content-task:content-shortcuts.",
+        "Asset asset-start-here-page-scene-1 direction requires scene brief evidence reference scene:page-scene-1.",
+        "Asset asset-start-here-page-scene-1 direction requires scene brief evidence reference content-task:content-start-here.",
+        "Asset asset-brand-spotlight-1 direction requires scene brief evidence reference content-task:content-brand-spotlight.",
+      ]),
     });
   });
 

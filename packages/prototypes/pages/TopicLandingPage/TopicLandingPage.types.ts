@@ -24,6 +24,15 @@ export interface TopicLandingPagePrimaryTabs {
   items: TopicLandingPagePrimaryTab[];
 }
 
+export type TopicLandingPageModuleId =
+  | "hero"
+  | "shortcuts"
+  | "start-here"
+  | "popular-picks"
+  | "brand-spotlight"
+  | "reviews"
+  | "explore-more";
+
 export type TopicLandingPageWaterfallProps = ProductListProps & {
   productsByTab?: Record<string, ProductListItem[]>;
 };
@@ -37,6 +46,8 @@ export interface TopicLandingPageProps extends HTMLAttributes<HTMLDivElement> {
   contentMaxWidth?: number | string;
   /** Font family shared by the hero title and every module title inside main. */
   titleFontFamily?: "sans" | "serif";
+  /** Hides online-only global chrome for self-contained offline delivery. */
+  showChrome?: boolean;
   activityHeader: ActivityPageHeaderProps;
   header: HeaderProps;
   hero: ThemeHeroProps;
@@ -48,5 +59,7 @@ export interface TopicLandingPageProps extends HTMLAttributes<HTMLDivElement> {
   /** Optional brand collection rendered immediately after Popular Picks. */
   brandRail?: BrandProductRailProps;
   waterfall: TopicLandingPageWaterfallProps;
+  /** Modules intentionally omitted by the compiled page plan. */
+  hiddenModules?: readonly TopicLandingPageModuleId[];
   footer: FooterProps;
 }

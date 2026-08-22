@@ -215,7 +215,7 @@ describe("Topic Generator Workbench preview", () => {
           title: { text: "综合推荐", evidenceRefs: ["product:2"] },
           description: { text: "按品类继续探索。", evidenceRefs: ["product:2"] },
         },
-        products: ["1", "2"].map((id, index) => ({
+        products: Array.from({ length: 14 }, (_, index) => String(index + 1)).map((id, index) => ({
           id,
           title: `ANUA ${id}`,
           brand: "ANUA",
@@ -226,7 +226,11 @@ describe("Topic Generator Workbench preview", () => {
           pool: "primary" as const,
           role: "core" as const,
         })),
-        groups: [{ id: "treatment", label: "护理", productIds: ["2"] }],
+        groups: [{ id: "treatment", label: "护理", productIds: ["2"] }, {
+          id: "all-treatments",
+          label: "全部护理",
+          productIds: Array.from({ length: 14 }, (_, index) => String(index + 1)),
+        }],
         scenes: [],
         assets: [],
       }],
@@ -240,8 +244,13 @@ describe("Topic Generator Workbench preview", () => {
       { value: "cleanser", label: "清洁" },
     ]);
     expect(props.productRail.productsByTab?.cleanser.map(({ id }) => id)).toEqual(["1"]);
-    expect(props.waterfall.tabs).toEqual([{ value: "treatment", label: "护理" }]);
+    expect(props.waterfall.tabs).toEqual([
+      { value: "treatment", label: "护理" },
+      { value: "all-treatments", label: "全部护理" },
+    ]);
     expect(props.waterfall.productsByTab?.treatment.map(({ id }) => id)).toEqual(["2"]);
+    expect(props.waterfall.defaultValue).toBe("all-treatments");
+    expect(props.waterfall.productsByTab?.["all-treatments"]).toHaveLength(12);
   });
 
   it("fills the final page with selection products and marks ungenerated content as placeholders", () => {
@@ -321,7 +330,7 @@ describe("Topic Generator Workbench preview", () => {
           id: "treatments",
           label: "护理",
           role: "core",
-          productIds: ["2"],
+          productIds: ["2", "1"],
         }],
         reason: "Reviewed recommendation groups.",
       }],
@@ -341,10 +350,10 @@ describe("Topic Generator Workbench preview", () => {
       { value: "cleansers", label: "清洁" },
       { value: "treatments", label: "护理" },
     ]);
-    expect(props.waterfall.productsByTab?.treatments.map(({ id }) => id)).toEqual(["2"]);
-    expect(props.reviewList?.reviews.map(({ product }) => product.imageSrc)).toEqual([
-      "/products/1.webp",
-    ]);
+    expect(props.waterfall.productsByTab?.treatments.map(({ id }) => id)).toEqual(["2", "1"]);
+    expect(props.waterfall.defaultValue).toBe("treatments");
+    expect(props.reviewList).toBeUndefined();
+    expect(props.hiddenModules).toContain("reviews");
     const markup = renderToStaticMarkup(createElement(RealTopicPagePreview, {
       mode: "selection",
       pageTypeRef: "landing-page/topic@2",

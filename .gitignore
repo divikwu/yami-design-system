@@ -8,4 +8,5 @@ dist
 .env*
 !.env.example
 .vercel
+.topic-generator/
 *.tsbuildinfo

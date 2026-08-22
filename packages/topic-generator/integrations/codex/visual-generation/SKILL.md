@@ -15,10 +15,12 @@ modules, scenes, copy, task IDs, and digests as immutable.
 1. Complete the `content-writing` Skill until `pageContent.status` is `ready`.
 2. Preserve the exact inputs that reconstructed ThemeIntent, ProductSelectionResult, PagePlan, and
    ContentSpec.
-3. Read `productionMode`. For `generated-images`, confirm that the host exposes image generation.
+3. Read `productionMode`. `generated-images` is the final-quality path. Confirm that the host exposes
+   image generation before using it.
    For `source-product-images`, confirm that the host can compose the returned Yami product images
-   without regenerating their packaging. Stop when the selected capability is unavailable; never
-   substitute placeholders, invented paths, or fabricated metadata.
+   without regenerating their packaging. This mode is a draft-only catalog-reference fallback and
+   cannot pass final visual QA. Stop when the selected capability is unavailable; never substitute
+   placeholders, invented paths, or fabricated metadata.
 4. Obtain a caller-approved relative output directory. Never overwrite upstream JSON or source
    product images.
 5. Stop when PagePlan or ContentSpec is absent, blocked, or digest-invalid. Never repair upstream
@@ -52,24 +54,33 @@ once, in the returned order; create no unrequested image.
 
 For each task:
 
-1. Build art direction only from its ThemeIntent evidence, selected categories, assigned products,
+1. Read the complete `sceneBrief` first. It is the deterministic module-level art-direction brief:
+   its theme goal, module goal, relevant categories, optional PagePlan scene, accepted copy, required
+   evidence, and visual constraints are all mandatory.
+2. Make the scene and its fit to the module theme the primary subject. Treat assigned products as
+   visual references only; they do not need to appear. Never use isolated packshots, tiled product
+   grids, or a product montage as the primary Hero, shortcut, scene, or brand visual.
+3. Build art direction only from its ThemeIntent evidence, selected categories, assigned products,
    scene, and accepted content task. Product image URLs are visual references, not permission to
    infer ingredients, benefits, popularity, ratings, inventory, discounts, or customer outcomes.
    The accepted content task may cite `background:*` claims. Treat those references as already
    reviewed copy provenance: do not revalidate them in this stage and never copy them into visual
    direction or alt-text evidenceRefs.
-2. Preserve every returned `referenceProductId`. Do not introduce unassigned products or change a
+4. Preserve every returned `referenceProductId`. Do not introduce unassigned products or change a
    brand, scene, module, component, crop, or text field.
-3. Follow the selected production mode. Generate a new image only for `generated-images`. For
-   `source-product-images`, preserve the assigned Yami product images and use deterministic
-   composition. Keep the image free of generated labels and marketing copy unless the task
-   explicitly requires rendered text.
-4. Treat `compositionGuidance` as a preference, not a hard crop. When present, favor its subject
+5. Follow the selected production mode. Generate a new scene only for `generated-images`. If visible,
+   recognizable packaging is necessary, use verified source product pixels through a host-supported
+   compositing step; never ask an image model to recreate or alter a label, logo, package, or product
+   claim. For `source-product-images`, preserve the assigned Yami product images and return only the
+   explicit draft reference composition.
+6. Treat `compositionGuidance` as a preference, not a hard crop. When present, favor its subject
    area and lower-area usage unless the scene clearly benefits from a different composition.
-5. Inspect the produced image before accepting it. Save the actual bytes to a new safe relative
+7. Inspect the produced image before accepting it. Reject any asset whose primary reading is a
+   packshot, product grid, or montage, or whose environment conflicts with the module goal or copy.
+   Save the actual bytes to a new safe relative
    path and record their true MIME type, pixel dimensions, SHA-256 digest, focal point, and any
    required background color.
-6. Use `null` alt text for decorative shortcut images. Write concise localized alt text for Hero,
+8. Use `null` alt text for decorative shortcut images. Write concise localized alt text for Hero,
    scene, and brand-banner images, grounded only in the task evidence.
 
 If generation fails for any task, stop with the task ID and generator error. Do not emit a complete

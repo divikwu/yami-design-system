@@ -256,7 +256,10 @@ function workflowFixture(options: {
           kind: task.kind,
           direction: {
             prompt: "Catalog-grounded matcha product scene",
-            evidenceRefs: [`product:${task.products[0]!.id}`],
+            evidenceRefs: [
+              ...task.sceneBrief.evidenceRefs,
+              ...task.products.map(({ id }) => `product:${id}`),
+            ],
             referenceProductIds: task.products.map(({ id }) => id),
           },
           altText: task.altTextMode === "decorative"
@@ -575,8 +578,15 @@ describe("Topic page automation workflow", () => {
     });
 
     expect(result).toMatchObject({
-      status: "ready",
+      status: "blocked",
+      stage: "automatic-qa",
       assetManifest: { productionMode: "source-product-images" },
+      qaReport: {
+        status: "qa-blocked",
+        issues: expect.arrayContaining([
+          "Source-product image composition is a draft fallback and cannot pass final visual QA.",
+        ]),
+      },
     });
   });
 

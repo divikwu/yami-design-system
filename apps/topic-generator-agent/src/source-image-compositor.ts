@@ -24,6 +24,36 @@ interface SourceProduct {
   imageUrl: string;
 }
 
+interface SourceVisualSceneBrief {
+  priority: "scene-first";
+  productRole: "reference-only";
+  theme: {
+    shoppingGoal: string;
+    needs: string[];
+    conditions: string[];
+  };
+  module: {
+    shoppingGoal: string;
+    reason: string;
+  };
+  categories: Array<{
+    id: string;
+    label: string;
+    role: string;
+  }>;
+  scene?: {
+    id: string;
+    shoppingGoal: string;
+    reason: string;
+  };
+  content: {
+    taskId: string;
+    texts: string[];
+  };
+  evidenceRefs: string[];
+  requirements: string[];
+}
+
 interface SourceVisualTask {
   taskId: string;
   moduleId: string;
@@ -35,6 +65,7 @@ interface SourceVisualTask {
   altTextMode: "required" | "decorative";
   requiresBackgroundColor: boolean;
   products: SourceProduct[];
+  sceneBrief: SourceVisualSceneBrief;
 }
 
 interface SourceVisualContext {
@@ -91,6 +122,83 @@ function requiredInteger(value: unknown, path: string) {
     throw new SourceImageCompositorError("invalid_visual_run", `${path} must be a positive integer.`);
   }
   return value as number;
+}
+
+function stringArray(value: unknown, path: string, allowEmpty = true) {
+  if (!Array.isArray(value)) {
+    throw new SourceImageCompositorError("invalid_visual_run", `${path} must be an array.`);
+  }
+  const values = value.map((item, index) => requiredString(item, `${path}[${index}]`));
+  if (!allowEmpty && values.length === 0) {
+    throw new SourceImageCompositorError(
+      "invalid_visual_run",
+      `${path} must contain at least one value.`,
+    );
+  }
+  return values;
+}
+
+function parseSceneBrief(value: unknown, path: string): SourceVisualSceneBrief {
+  const brief = objectValue(value);
+  const theme = objectValue(brief?.theme);
+  const module = objectValue(brief?.module);
+  const scene = brief?.scene === undefined ? undefined : objectValue(brief.scene);
+  const content = objectValue(brief?.content);
+  if (!Array.isArray(brief?.categories)) {
+    throw new SourceImageCompositorError(
+      "invalid_visual_run",
+      `${path}.categories must be an array.`,
+    );
+  }
+  if (!brief || !theme || !module || !content || (brief.scene !== undefined && !scene) ||
+      brief.priority !== "scene-first" || brief.productRole !== "reference-only") {
+    throw new SourceImageCompositorError(
+      "invalid_visual_run",
+      `${path} must be a scene-first, reference-only brief.`,
+    );
+  }
+  return {
+    priority: "scene-first",
+    productRole: "reference-only",
+    theme: {
+      shoppingGoal: requiredString(theme.shoppingGoal, `${path}.theme.shoppingGoal`),
+      needs: stringArray(theme.needs, `${path}.theme.needs`),
+      conditions: stringArray(theme.conditions, `${path}.theme.conditions`),
+    },
+    module: {
+      shoppingGoal: requiredString(module.shoppingGoal, `${path}.module.shoppingGoal`),
+      reason: requiredString(module.reason, `${path}.module.reason`),
+    },
+    categories: brief.categories.map((value, index) => {
+      const category = objectValue(value);
+      if (!category) {
+        throw new SourceImageCompositorError(
+          "invalid_visual_run",
+          `${path}.categories[${index}] must be an object.`,
+        );
+      }
+      return {
+        id: requiredString(category.id, `${path}.categories[${index}].id`),
+        label: requiredString(category.label, `${path}.categories[${index}].label`),
+        role: requiredString(category.role, `${path}.categories[${index}].role`),
+      };
+    }),
+    ...(scene
+      ? {
+          scene: {
+            id: requiredString(scene.id, `${path}.scene.id`),
+            shoppingGoal: requiredString(scene.shoppingGoal, `${path}.scene.shoppingGoal`),
+            reason: requiredString(scene.reason, `${path}.scene.reason`),
+          },
+        }
+      : {}),
+    content: {
+      taskId: requiredString(content.taskId, `${path}.content.taskId`),
+      texts: stringArray(content.texts, `${path}.content.texts`, false),
+    },
+    evidenceRefs: stringArray(brief.evidenceRefs, `${path}.evidenceRefs`, false),
+    requirements: stringArray(brief.requirements, `${path}.requirements`, false),
+  };
 }
 
 const TASK_RULES: Record<VisualAssetKind, {
@@ -224,6 +332,7 @@ function parseTask(value: unknown, index: number): SourceVisualTask {
     products: task.products.map((product, productIndex) =>
       parseProduct(product, `${path}.products[${productIndex}]`)
     ),
+    sceneBrief: parseSceneBrief(task.sceneBrief, `${path}.sceneBrief`),
   };
 }
 
@@ -581,22 +690,24 @@ function artifactRef(planDigest: string, taskId: string, index: number) {
 
 function altText(context: SourceVisualContext, task: SourceVisualTask) {
   if (task.altTextMode === "decorative") return null;
-  const evidenceRefs = task.products.map(({ id }) => `product:${id}`);
+  const evidenceRefs = [
+    ...task.sceneBrief.evidenceRefs,
+    ...task.products.map(({ id }) => `product:${id}`),
+  ];
   const first = task.products[0]!;
   const text = context.language === "zh"
     ? task.products.length === 1
-      ? `${first.brand ? `${first.brand} ` : ""}${first.title} 商品图`
-      : `${context.keyword}主题的${task.products.length}件商品组合图`
+      ? `草稿核对用的${first.brand ? `${first.brand} ` : ""}${first.title}商品参考图`
+      : `草稿核对用的${context.keyword}主题商品参考组合`
     : task.products.length === 1
-      ? `Product image of ${first.brand ? `${first.brand} ` : ""}${first.title}`
-      : `A composition of ${task.products.length} products for ${context.keyword}`;
+      ? `Draft reference image of ${first.brand ? `${first.brand} ` : ""}${first.title}`
+      : `Draft product-reference composition for ${context.keyword}`;
   return { language: context.language, text, evidenceRefs };
 }
 
 /**
- * Deterministically composes the PagePlan-assigned Yami catalog images. This function intentionally
- * does not choose products or generate claims; the existing visual proposal reviewer remains the
- * authority for task membership, evidence scope, and artifact metadata.
+ * Deterministically composes the PagePlan-assigned Yami catalog images as a draft-only reference
+ * fallback. It is not scene generation and final QA rejects this production mode.
  */
 export async function composeSourceProductImages(
   input: SourceImageCompositorInput,
@@ -618,16 +729,21 @@ export async function composeSourceProductImages(
     }));
     const composed = await composeTask(task, sourceBytes, maxOutputBytes);
     const ref = artifactRef(context.topicPagePlanDigest, task.taskId, index);
-    const evidenceRefs = task.products.map(({ id }) => `product:${id}`);
+    const evidenceRefs = [
+      ...task.sceneBrief.evidenceRefs,
+      ...task.products.map(({ id }) => `product:${id}`),
+    ];
     const referenceProductIds = task.products.map(({ id }) => id);
+    const copySummary = task.sceneBrief.content.texts.join(" / ");
+    const categorySummary = task.sceneBrief.categories.map(({ label }) => label).join(", ");
     proposalAssets.push({
       taskId: task.taskId,
       moduleId: task.moduleId,
       component: task.component,
       kind: task.kind,
       direction: {
-        prompt: "Compose the assigned Yami product images without changing packaging or identity.",
-        negativePrompt: "generated packaging, altered labels, unsupported claims, added text",
+        prompt: `Draft-only source-product reference composition for "${task.sceneBrief.module.shoppingGoal}". Theme: "${task.sceneBrief.theme.shoppingGoal}". Categories: "${categorySummary}". Accepted copy: "${copySummary}". Preserve catalog identity; this is not a generated scene and cannot be used as a final semantic visual.`,
+        negativePrompt: "generated scene, generated packaging, altered labels, unsupported claims, added text",
         evidenceRefs,
         referenceProductIds,
       },

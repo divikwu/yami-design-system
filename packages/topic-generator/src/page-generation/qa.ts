@@ -49,6 +49,7 @@ export async function runTopicPageQa(options: RunTopicPageQaOptions): Promise<To
     ["modules", []],
     ["content", []],
     ["assets", []],
+    ["visual-policy", []],
     ["accessibility-structure", []],
   ]);
   const add = (id: TopicPageQaCheckId, issue: string) => issuesByCheck.get(id)!.push(issue);
@@ -61,6 +62,12 @@ export async function runTopicPageQa(options: RunTopicPageQaOptions): Promise<To
   }
   if (manifest.digest !== topicPageAssetManifestDigest(manifest)) {
     add("bindings", "TopicPageAssetManifest digest is invalid.");
+  }
+  if (manifest.productionMode === "source-product-images") {
+    add(
+      "visual-policy",
+      "Source-product image composition is a draft fallback and cannot pass final visual QA.",
+    );
   }
   if (generationSpec.digest !== topicPageGenerationSpecDigest(generationSpec)) {
     add("bindings", "PageGenerationSpec digest is invalid.");

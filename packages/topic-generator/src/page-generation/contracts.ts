@@ -91,6 +91,7 @@ export type TopicPageQaCheckId =
   | "modules"
   | "content"
   | "assets"
+  | "visual-policy"
   | "accessibility-structure";
 
 export interface TopicPageQaCheck {

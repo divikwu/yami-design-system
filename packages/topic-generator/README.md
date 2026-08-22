@@ -72,6 +72,30 @@ Web 页面：`http://127.0.0.1:3300/`
 ProductSelection 和 Page Agent endpoint。仅调试无 Agent 的确定性降级时，使用
 `pnpm dev:topic-generator-web`。
 
+### 可恢复运行与离线交付
+
+独立 Workbench 默认把 v2 运行保存到仓库根目录的 `.topic-generator/runs`。每次
+`POST /api/topic-generator/runs/:runId/advance` 只执行一个阶段；浏览器负责按当前里程碑逐次
+调用，因此关闭页面不会继续调度后续阶段。重新打开后，从左侧“历史运行”加载记录并手动点击
+“继续生成”，Host 会先校验不可变输入、事件合同、已完成结果及其上游摘要，再从第一个缺失或
+失效阶段继续。
+
+生产环境必须显式配置持久磁盘：
+
+```bash
+TOPIC_GENERATOR_RUN_ROOT=/absolute/persistent/path/topic-generator-runs
+```
+
+该路径必须为绝对路径；当前运行库面向单机或挂载文件系统，不提供多实例数据库或对象存储
+抽象。外部目录通过 Workbench 的“导入目录…”分块上传，经相对路径、大小、逐文件 SHA-256、
+schema 和运行摘要校验后复制到受管目录；源目录不会被修改。v1 运行可查看，继续时会创建 v2
+子运行，旧 PagePlan 不计为新版阶段完成。
+
+运行会按成熟度生成三个离线单文件 HTML：背景分析后的 `topic-brief.html`、新版 PagePlan
+完成后的 `page-draft.html`，以及硬 QA、体验审查和用户批准后的 `page-final.html`。页面所需
+CSS、字体、运行时代码和可见媒体全部内联；离线文件不会启动 localhost、Next.js、内部 API
+或远程媒体请求，商品详情链接只在用户点击后访问网络。
+
 ## 实现原则
 
 1. Topic Page Orchestrator Agent 只选择注册过的页面类型与策略—模板路由；Topic Strategy
@@ -168,12 +192,17 @@ TOPIC_GENERATOR_ORCHESTRATOR_AGENT_ID=topic-page-orchestrator
 TOPIC_GENERATOR_STRATEGY_AGENT_ID=topic-strategy
 TOPIC_GENERATOR_CONTENT_AGENT_ID=topic-content
 TOPIC_GENERATOR_VISUAL_AGENT_ID=topic-visual
+TOPIC_GENERATOR_VISUAL_PRODUCTION_MODE=generated-images
 TOPIC_GENERATOR_REVIEW_AGENT_ID=topic-review
 TOPIC_GENERATOR_PAGE_AGENT_TOKEN=server-only-token
 TOPIC_GENERATOR_PAGE_AGENT_TIMEOUT_MS=330000
 TOPIC_GENERATOR_ASSET_ROOT=/absolute/path/topic-page-assets
 TOPIC_GENERATOR_PREVIEW_ORIGIN=http://127.0.0.1:3300
+TOPIC_GENERATOR_RUN_ROOT=/absolute/path/topic-generator-runs
 ```
+
+`generated-images` 是最终视觉默认模式：按模块主题与场景生成图片，商品只作为视觉参考。
+`source-product-images` 仅用于草稿核对商品来源，最终视觉 QA 会拒绝该模式。
 
 Host 在进程内缓存已校验的 taxonomy 与 Agent Adapter。未配置或工件无效时，
 `category-role` 返回可操作的 `blocked`，不会接受浏览器提交的 taxonomy 或 Agent 提案。

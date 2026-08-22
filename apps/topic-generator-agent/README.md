@@ -13,7 +13,8 @@ runtime.
   `experience-review`.
 - `POST /product-selection`: `product-semantic-proposal`, `category-role-proposal`, and
   `scene-proposal`.
-- `GET /health`: executor and stage registry without credentials.
+- `GET /health`: executor, stage registry, and explicit `imageInput` / `imageGeneration`
+  capabilities without credentials.
 
 Each execution loads the selected `SKILL.md`, its directly linked local `references/*` contracts,
 and the matching `agents/openai.yaml`. These eleven protocol stages load all nine canonical Skills.
@@ -40,6 +41,11 @@ This uses the authenticated `codex` executable on the machine and wires the Web 
 http://127.0.0.1:4400/product-selection
 http://127.0.0.1:4400/topic-page
 ```
+
+For native `generated-images`, Codex must report `image_generation` as enabled and be logged in
+with ChatGPT. The Runner invokes the built-in ImageGen capability explicitly; it does not require,
+read, or expose `OPENAI_API_KEY`. `GET /health` reports the non-secret provider, model, and auth mode
+only after that startup probe succeeds.
 
 To run only the service:
 
@@ -71,15 +77,23 @@ If `TOPIC_AGENT_RUNNER_TOKEN` is set, use the same value for
 - The default bind address is `127.0.0.1`; remote HTTP is not a supported deployment mode.
 - Only registered protocol stages can select an Agent or Skill. Request data cannot choose a file.
 - Requests, subprocess output, and execution time are bounded.
-- The default local execution budget is five minutes so image composition and two-viewport review
-  can finish without weakening any deterministic validation.
+- The default local execution budget is five minutes per Codex task. Native image tasks run with a
+  bounded concurrency of two by default so a multi-module visual stage remains within the Host
+  deadline while preserving proposal order.
 - CLI processes are invoked without a shell. Semantic stages run in a read-only sandbox.
 - Live web search is enabled only for `background-evidence`; all other text stages keep the existing
   bounded tool set. Brand research prioritizes the official site and treats Wikipedia as secondary
   context.
-- In source-product-image mode, `visual-generation` first creates real deterministic WebP assets
-  from approved Yami CDN images, then supplies those images to an image-capable CLI for semantic
-  direction and alt text.
+- In `generated-images` mode, every visual task must return real image bytes for its module-specific
+  scene brief. Codex invokes the built-in GPT Image 2 capability once per task, inspects the result,
+  and copies the accepted source into a task-scoped temporary directory. The Runner then reads the
+  actual file, crops it to the maintained slot, converts it to WebP, and derives dimensions, MIME,
+  background color, and SHA-256 from the resulting bytes. A proposal or artifact path without
+  matching image bytes is rejected. An executor without image-generation capability fails before
+  execution instead of returning a placeholder.
+- In `source-product-images` mode, `visual-generation` creates deterministic WebP reference
+  compositions from approved Yami CDN images. This is a draft-only catalog fallback, not semantic
+  scene generation, and final visual QA rejects it.
 - For `module-merchandising`, an image-capable executor first creates the complete text proposal.
   The Runner then prepares 512px thumbnails only for its Start Here assignments plus a small number
   of title-similar source-scene alternatives. A second bounded Agent pass confirms visual duplicate
@@ -93,8 +107,10 @@ If `TOPIC_AGENT_RUNNER_TOKEN` is set, use the same value for
 ## Verified capability versus protocol support
 
 The registry and contract-loading tests cover all seven logical Agents, nine Skills, and eleven
-automatic routes. The Codex executor supports bounded background web research,
-source-product-image composition, and screenshot-based experience review. The Kiro CLI integration
-supports the non-research text stages but currently has neither a Host web-research capability nor
-an image attachment interface, so background research, visual generation, and experience review
-return explicit capability failures instead of pretending those checks ran.
+automatic routes. The local Codex executor supports bounded background web research, image input,
+native GPT Image 2 generation through the ChatGPT-authenticated Codex CLI, source-product-image
+draft composition, and screenshot-based experience review. Startup capability probing fails closed:
+if ChatGPT login or `image_generation` is unavailable, `generated-images` returns an explicit
+capability failure. The Kiro CLI integration supports the non-research text stages but currently has
+neither Host web research, image input, nor image generation, so affected stages return explicit
+capability failures instead of pretending those checks ran.

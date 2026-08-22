@@ -122,7 +122,7 @@ export function reviewTopicPageVisualPreflight(
   issues.push(...contentReview.issues);
 
   if (contentReview.status === "accepted") {
-    const tasks = deriveTopicPageVisualTasks(plan, selection, contentSpec);
+    const tasks = deriveTopicPageVisualTasks(intent, plan, selection, contentSpec);
     const taskIds = new Set<string>();
     tasks.forEach(({ taskId }) => {
       if (taskIds.has(taskId)) {
@@ -237,17 +237,25 @@ function reviewDirection(
   if (!exactOrder(referenceProductIds, task.products.map(({ id }) => id))) {
     issues.push(`Asset ${task.taskId} referenceProductIds must match its assigned products.`);
   }
+  const reviewedEvidenceRefs = evidenceRefs(
+    direction?.evidenceRefs,
+    `Asset ${task.taskId} direction`,
+    task,
+    intent,
+    selection,
+    issues,
+  );
+  task.sceneBrief.evidenceRefs.forEach((requiredRef) => {
+    if (!reviewedEvidenceRefs.includes(requiredRef)) {
+      issues.push(
+        `Asset ${task.taskId} direction requires scene brief evidence reference ${requiredRef}.`,
+      );
+    }
+  });
   return {
     prompt,
     ...(negativePrompt ? { negativePrompt } : {}),
-    evidenceRefs: evidenceRefs(
-      direction?.evidenceRefs,
-      `Asset ${task.taskId} direction`,
-      task,
-      intent,
-      selection,
-      issues,
-    ),
+    evidenceRefs: reviewedEvidenceRefs,
     referenceProductIds,
   };
 }
@@ -414,7 +422,7 @@ export function reviewTopicPageVisualProposal(
     issues.push("Proposal productionMode does not match the requested visual production mode.");
   }
 
-  const tasks = deriveTopicPageVisualTasks(plan, selection, contentSpec);
+  const tasks = deriveTopicPageVisualTasks(intent, plan, selection, contentSpec);
   const rawAssets = Array.isArray(proposal.assets) ? proposal.assets : [];
   if (!Array.isArray(proposal.assets)) issues.push("Visual proposal assets must be an array.");
   if (rawAssets.length !== tasks.length) {

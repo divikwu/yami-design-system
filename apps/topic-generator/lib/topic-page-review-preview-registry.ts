@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { mkdir, readFile, realpath, writeFile } from "node:fs/promises";
-import { isAbsolute, relative, resolve } from "node:path";
+import { isAbsolute, join, relative, resolve } from "node:path";
 import type {
   LandingPageTypeRef,
   TopicPageGenerationSpec,
@@ -124,5 +124,16 @@ export function createConfiguredTopicPageReviewPreviewRegistry(
   return createTopicPageReviewPreviewRegistry({
     root: resolve(assetRoot, ".topic-page-review-previews"),
     origin: environment.TOPIC_GENERATOR_PREVIEW_ORIGIN?.trim() || "http://127.0.0.1:3300",
+  });
+}
+
+export function createManagedTopicPageReviewPreviewRegistry(options: {
+  runRoot: string;
+  environment?: Record<string, string | undefined>;
+}) {
+  return createTopicPageReviewPreviewRegistry({
+    root: join(options.runRoot, ".review-previews"),
+    origin: options.environment?.TOPIC_GENERATOR_PREVIEW_ORIGIN?.trim() ||
+      "http://127.0.0.1:3300",
   });
 }

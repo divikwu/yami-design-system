@@ -66,6 +66,16 @@ export interface TopicPageExperienceReviewContext {
   previewRefs: TopicPageReviewPackage["previewRefs"];
   allowedEvidenceRefs: string[];
   allowedRollbackStages: LandingPageReviewRollbackStage[];
+  visualPolicy: {
+    priority: "scene-and-module-theme";
+    productRole: "reference-only";
+    blockingConditions: readonly [
+      "isolated-product-packshot-used-as-semantic-scene",
+      "product-grid-or-montage-used-as-semantic-scene",
+      "asset-does-not-match-module-theme-or-copy",
+      "visible-product-packaging-is-generated-or-altered",
+    ];
+  };
 }
 
 export type TopicPageExperienceReviewRun =

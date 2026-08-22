@@ -36,7 +36,7 @@
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid var(--canvas-line);
-  background: var(--canvas-panel);
+  background: var(--surface-primary);
 }
 
 .brandLockup {
@@ -84,11 +84,13 @@
 }
 
 .generatorControls {
+  display: flex;
   min-height: 0;
+  flex-direction: column;
   padding: 24px;
   overflow-y: auto;
   border-right: 1px solid var(--canvas-line);
-  background: var(--canvas-panel);
+  background: var(--surface-primary);
   font-size: var(--font-size-body-md);
   line-height: var(--line-height-body-md);
 }
@@ -99,36 +101,417 @@
   line-height: 20px;
 }
 
-.pathReadout span,
-.pathReadout code,
-.generatorControls [data-slot="workbench-field-label"],
-.generatorControls label span {
-  font-size: 12px;
-  line-height: 14px;
-}
-
-.pathReadout {
+.runLibrary {
   display: grid;
-  gap: 6px;
-  margin: 0 0 12px;
-  padding: 11px;
-  border-left: 3px solid var(--button-emphasis);
-  background: var(--color-neutral-200);
+  gap: 16px;
+  margin: 0 0 16px;
 }
 
-.pathReadout span {
+.runLibrary:has(> .sourceLoadPanel) {
+  margin-bottom: 0;
+}
+
+.runLibrary > fieldset {
+  margin: 0;
+}
+
+.runLibrary > fieldset > [data-slot="workbench-field-label"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.sourceLoadPanel,
+.sourceInputPanel {
+  display: grid;
+}
+
+.sourceLoadPanel,
+.sourceInputPanel {
+  gap: 0;
+}
+
+.loadedTopicField {
+  position: relative;
+  min-width: 0;
+}
+
+.loadedTopicField > .changeTopicButton {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: auto;
+  height: 14px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: var(--font-weight-normal);
+  line-height: 14px;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.loadedTopicField > .changeTopicButton:hover:not(:disabled),
+.loadedTopicField > .changeTopicButton:active:not(:disabled) {
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.loadedTopicField > .changeTopicButton:focus-visible {
+  position: absolute;
+  outline: 2px solid var(--border-focus);
+  outline-offset: 3px;
+}
+
+.loadedTopicField > .changeTopicButton:disabled {
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-disabled);
+}
+
+.managedRunOption > span {
+  display: grid;
+}
+
+.managedRunOption small {
   color: var(--canvas-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  line-height: 16px;
+}
+
+.importCandidates small {
+  color: var(--canvas-muted);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-caption-sm);
+  line-height: var(--line-height-caption-sm);
+  letter-spacing: .06em;
+}
+
+.runLibraryActions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.runLibraryActions button {
+  width: 100%;
+}
+
+.managedRunOutput {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.managedRunOutput > button {
+  width: 100%;
+}
+
+.hiddenDirectoryInput { display: none; }
+
+.managedRunDialog {
+  box-sizing: border-box;
+  width: min(640px, calc(100vw - 48px));
+  max-width: none;
+  max-height: calc(100dvh - 40px);
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border-default);
+  background: var(--surface-primary);
+  color: var(--text-primary);
+}
+
+.managedRunDialog::backdrop {
+  background: var(--overlay-scrim);
+}
+
+.managedRunDialogPanel {
+  display: flex;
+  max-height: inherit;
+  flex-direction: column;
+  background: var(--surface-primary);
+}
+
+.managedRunDialogHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.managedRunDialogHeader > div {
+  display: grid;
+  gap: 4px;
+}
+
+.managedRunDialogHeader span {
+  color: var(--canvas-muted);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-caption-sm);
+  line-height: var(--line-height-caption-sm);
+  letter-spacing: .06em;
   text-transform: uppercase;
 }
 
-.pathReadout code {
+.managedRunDialogHeader h2 {
+  margin: 0;
+  font-size: var(--font-size-heading-md);
+  line-height: var(--line-height-heading-md);
+}
+
+.managedRunDialogClose {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.managedRunDialogClose:hover {
+  background: var(--surface-secondary);
+}
+
+.managedRunDialogClose:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+.managedRunDialogClose:disabled {
+  background: var(--button-disabled);
+  color: var(--text-disabled);
+  cursor: not-allowed;
+}
+
+.managedRunDialogBody {
+  min-height: 168px;
+  padding: 0 24px;
+  overflow-y: auto;
+}
+
+.managedRunDialogBody > p {
+  margin: 24px 0;
+  color: var(--canvas-muted);
+  font-size: var(--font-size-caption-md);
+  line-height: var(--line-height-caption-md);
+}
+
+.managedRunDeleteConfirmation {
+  display: grid;
+  gap: 8px;
+  padding: 24px 0;
+}
+
+.managedRunDeleteConfirmation > p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--font-size-body-md);
+  line-height: var(--line-height-body-md);
+}
+
+.managedRunDeleteConfirmation > strong {
+  font-size: var(--font-size-heading-sm);
+  font-weight: var(--font-weight-emphasize);
+  line-height: var(--line-height-heading-sm);
+}
+
+.managedRunDeleteConfirmation > code {
+  padding: 12px;
+  overflow-wrap: anywhere;
+  background: var(--surface-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-caption-sm);
+  line-height: var(--line-height-caption-sm);
+}
+
+.managedRunDeleteConfirmation > [role="alert"] {
+  color: var(--text-error);
+}
+
+.managedRunOptions {
+  max-height: min(440px, calc(100dvh - 220px));
+  overflow-y: auto;
+}
+
+.managedRunOption {
+  display: grid;
+  min-height: 64px;
+  grid-template-columns: auto minmax(0, 1fr) max-content;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-default);
+  cursor: pointer;
+}
+
+.managedRunOption:hover,
+.managedRunOption[data-selected],
+.importCandidates > label:hover,
+.importCandidates > label[data-selected] {
+  background: var(--surface-secondary);
+}
+
+.managedRunOption:last-child {
+  border-bottom: 0;
+}
+
+.managedRunOption > input,
+.importCandidates > label > input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--text-primary);
+}
+
+.managedRunOption > input:focus-visible,
+.importCandidates > label > input:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+.managedRunOptionContent {
+  min-width: 0;
+  gap: 4px;
+}
+
+.managedRunOptionContent > b {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.generatorForm {
+.managedRunOptionStatus {
+  align-self: center;
+  color: var(--text-secondary);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.managedRunOptionMeta {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+}
+
+.managedRunOptionMeta code {
+  min-width: 0;
+  overflow: hidden;
+  color: inherit;
+  font: inherit;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.managedRunDialogFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border-default);
+}
+
+.managedRunDialogFooter > span {
+  flex: 1;
+}
+
+.managedRunDialogFooterActions {
+  display: flex;
+  gap: 8px;
+}
+
+.managedRunDeleteButton {
+  color: var(--text-error);
+}
+
+.managedRunDeleteButton:hover:not(:disabled),
+.managedRunDeleteButton:active:not(:disabled) {
+  border-color: var(--border-attention);
+  background: var(--fill-error-secondary);
+}
+
+.importCandidates {
   display: grid;
+  gap: 0;
+  padding: 16px 0;
+}
+
+.importCandidates > label {
+  display: grid;
+  min-height: 64px;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-default);
+  cursor: pointer;
+}
+
+.importCandidates > label:last-child { border-bottom: 0; }
+
+.importCandidates > label > span { display: grid; gap: 2px; }
+
+.deliverableLinks {
+  display: flex;
+  margin-top: auto;
+  align-items: center;
+}
+
+.topicPackageDownload {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: var(--font-weight-normal);
+  line-height: 20px;
+  text-decoration: none;
+}
+
+.topicPackageDownload svg {
+  flex: none;
+}
+
+.topicPackageDownload:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.topicPackageDownload:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+.generatorControls [data-slot="workbench-field-label"] {
+  font-size: 12px;
+  line-height: 14px;
+}
+
+.generatorForm {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
 }
 
 .keywordControl {
@@ -162,6 +545,8 @@
 .generatorActions {
   display: grid;
   margin: 0 0 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--divider-default);
   grid-template-columns: 1fr;
   gap: 8px;
 }
@@ -3307,6 +3692,23 @@
 }
 
 @media (max-width: 600px) {
+  .managedRunDialog {
+    width: 100vw;
+    height: 100dvh;
+    max-height: none;
+    border: 0;
+  }
+  .managedRunDialogPanel { height: 100%; max-height: none; }
+  .managedRunDialogHeader { gap: 16px; padding: 16px; }
+  .managedRunDialogBody { min-height: 0; flex: 1; padding: 0 16px; }
+  .managedRunDialogFooter { align-items: stretch; padding: 16px; flex-direction: column; }
+  .managedRunDialogFooter > span { display: none; }
+  .managedRunDialogFooter > button,
+  .managedRunDialogFooterActions button { width: 100%; }
+  .managedRunDialogFooterActions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  }
   .generatorMat { padding: 12px; }
   .runHeader,
   .moduleHeading,
