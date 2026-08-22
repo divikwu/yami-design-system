@@ -155,6 +155,15 @@ export const Showcase: Story = {
     ) {
       throw new Error("Brand product rail must use compact ProductCards");
     }
+    if (
+      Array.from(cards).some((card) =>
+        card.querySelector('[data-slot="product-card-brand"]'),
+      )
+    ) {
+      throw new Error(
+        "Brand product rail ProductCards must not repeat the campaign brand name",
+      );
+    }
 
     const firstBanner = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-list-banner"]',
@@ -308,8 +317,23 @@ async function verifyMobileLayout({
   const addButton = canvasElement.querySelector<HTMLElement>(
     '[data-slot="product-card-add-button"]',
   );
+  const card = canvasElement.querySelector<HTMLElement>(
+    '[data-slot="product-card"]',
+  );
+  const content = card?.querySelector<HTMLElement>(
+    '[data-slot="product-card-content"]',
+  );
 
-  if (!pageCanvas || !panel || !banner || !media || !image || !addButton) {
+  if (
+    !pageCanvas ||
+    !panel ||
+    !banner ||
+    !media ||
+    !image ||
+    !addButton ||
+    !card ||
+    !content
+  ) {
     throw new Error("Mobile brand campaign anatomy did not render");
   }
   if (getComputedStyle(pageCanvas).backgroundColor === "rgba(0, 0, 0, 0)") {
@@ -338,6 +362,15 @@ async function verifyMobileLayout({
   if (getComputedStyle(media).width !== "96px") {
     throw new Error(
       `Mobile compact ProductCard media must be 96px, got ${getComputedStyle(media).width}`,
+    );
+  }
+  if (
+    Math.abs(
+      content.getBoundingClientRect().height - card.getBoundingClientRect().height,
+    ) > 1
+  ) {
+    throw new Error(
+      "Mobile compact ProductCard content must stretch to the full card height",
     );
   }
   const tokenProbe = document.createElement("span");
@@ -571,6 +604,15 @@ export const MobileMinimumViewportCoverage: Story = {
   tags: ["!dev", "!autodocs"],
   globals: {
     viewport: { value: "yamiMobileSm", isRotated: false },
+  },
+  render: renderResponsiveStory,
+  play: verifyMobileLayout,
+};
+
+export const TabletCoverage: Story = {
+  tags: ["!dev", "!autodocs"],
+  globals: {
+    viewport: { value: "yamiTablet", isRotated: false },
   },
   render: renderResponsiveStory,
   play: verifyMobileLayout,

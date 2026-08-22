@@ -268,6 +268,24 @@ main.main[data-slot="ecommerce-home-main"]
   .sections {
     gap: var(--layout-page-margin-card);
   }
+
+  .main :global([data-slot="shortcut-rail-title"]),
+  .main :global([data-slot="product-list-heading"]),
+  .main :global([data-slot="trending-searches-heading"]),
+  .main :global([data-slot="social-media-gallery-heading"]),
+  .main :global([data-slot="brand-product-rail-heading"]),
+  .main :global([data-slot="review-list-heading"]) {
+    padding-inline-start: var(--space-050);
+  }
+
+  .main
+    :global(
+      [data-slot="product-list"][data-layout="waterfall"]
+        [data-slot="product-list-items"]
+    ) {
+    row-gap: var(--space-100);
+    padding: 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

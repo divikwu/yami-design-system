@@ -343,6 +343,30 @@ export const Pc: Story = {
     // and leaves the flow below --breakpoints-desktop instead of dragging the
     // page into a horizontal scroll.
     const isDesktop = page.getBoundingClientRect().width >= 1024;
+    if (!isDesktop) {
+      const sharedHeadings = Array.from(
+        page.querySelectorAll<HTMLElement>(
+          [
+            '[data-slot="shortcut-rail-title"]',
+            '[data-slot="product-list-heading"]',
+            '[data-slot="trending-searches-heading"]',
+            '[data-slot="social-media-gallery-heading"]',
+            '[data-slot="brand-product-rail-heading"]',
+            '[data-slot="review-list-heading"]',
+          ].join(", "),
+        ),
+      );
+      if (
+        sharedHeadings.length === 0 ||
+        sharedHeadings.some(
+          (heading) => getComputedStyle(heading).paddingLeft !== "4px",
+        )
+      ) {
+        throw new Error(
+          "Mobile shared section headings must use 4px left padding",
+        );
+      }
+    }
     const requiredSlots = [
       "header",
       "hero-banner",
@@ -494,6 +518,26 @@ export const Pc: Story = {
       '[data-slot="ecommerce-home-section"] > [data-slot="product-list"][data-layout="waterfall"]',
     );
     if (!waterfall) throw new Error("Ecommerce home waterfall did not render");
+    if (!isDesktop) {
+      const waterfallList = waterfall.querySelector<HTMLElement>(
+        '[data-slot="product-list-items"]',
+      );
+      if (!waterfallList) {
+        throw new Error("Ecommerce home mobile waterfall list did not render");
+      }
+      const waterfallListStyle = getComputedStyle(waterfallList);
+      if (
+        waterfallListStyle.paddingTop !== "0px" ||
+        waterfallListStyle.paddingRight !== "0px" ||
+        waterfallListStyle.paddingBottom !== "0px" ||
+        waterfallListStyle.paddingLeft !== "0px" ||
+        waterfallListStyle.rowGap !== "8px"
+      ) {
+        throw new Error(
+          "Ecommerce home mobile waterfall must use zero list padding and an 8px row gap",
+        );
+      }
+    }
     const locale = localeFromGlobals(globals.locale);
     const soldLabels = Array.from(
       page.querySelectorAll<HTMLElement>('[data-slot="product-card-sold"]'),

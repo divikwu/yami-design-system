@@ -22,6 +22,26 @@ function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
+function BrandArrowIcon() {
+  return (
+    <svg
+      className={styles.brandArrowIcon}
+      viewBox="0 0 12 12"
+      fill="none"
+      aria-hidden="true"
+      data-slot="brand-product-rail-title-arrow"
+    >
+      <path
+        d="M4.25 2.25 8 6 4.25 9.75"
+        stroke="currentColor"
+        strokeWidth="1.25"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function withoutProductBrand({
   brand: _brand,
   brandHref: _brandHref,
@@ -197,7 +217,7 @@ export function BrandProductRail({
                   campaign.href ? (
                     <a className={styles.brandTitle} href={campaign.href}>
                       {campaign.title}
-                      <span aria-hidden="true">›</span>
+                      <BrandArrowIcon />
                     </a>
                   ) : (
                     campaign.title
