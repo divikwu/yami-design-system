@@ -8,6 +8,7 @@
     "prebuild": "pnpm --filter @yami/topic-generator build",
     "build": "next build",
     "start": "next start -p 3300",
+    "pretest": "pnpm --filter @yami/topic-generator build",
     "test": "vitest run",
     "pretypecheck": "pnpm --filter @yami/topic-generator build",
     "typecheck": "tsc -p tsconfig.json"
