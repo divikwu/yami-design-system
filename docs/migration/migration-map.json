@@ -1254,7 +1254,7 @@
       "sourceSha256": "0c89b3b8058065dbcd190a3fe0dabbf1dbae9621e985c63e3318adef570d0173",
       "disposition": "migrated",
       "destination": "packages/design-system/components/BrandProductRail/BrandProductRail.module.css",
-      "destinationSha256": "c912fd44641f1ca4d2265f1131979696372318625c8e71bde1dd3fd966f82199"
+      "destinationSha256": "8158ef615fbe84bcd674920f801d454cf8ea140a30b890895804f0cde7127e35"
     },
     {
       "source": "components/BrandProductRail/BrandProductRail.stories.module.css",
@@ -1268,14 +1268,14 @@
       "sourceSha256": "45986533efaff63d307e19e36eca2e76eb601db82f5567e8c0cb8ac0dbcdf5dc",
       "disposition": "migrated",
       "destination": "packages/design-system/components/BrandProductRail/BrandProductRail.stories.tsx",
-      "destinationSha256": "0279905df19bf09f72b4673e5b9b0d70f2c14eef62be6c05653e2a7b680720ea"
+      "destinationSha256": "f6683e4dbd835c863a33b727ba966dbd444884fe91943d55edfa764ae6e589a2"
     },
     {
       "source": "components/BrandProductRail/BrandProductRail.tsx",
       "sourceSha256": "b9cb928d20dfb49ff68fac14dba7520a3e79c802a69f3e9e447dc6aa310fad4a",
       "disposition": "migrated",
       "destination": "packages/design-system/components/BrandProductRail/BrandProductRail.tsx",
-      "destinationSha256": "4532c2de6e4119f702189ca9ab7b6b619af9ff8b9c06435392a02c07790b6576"
+      "destinationSha256": "17887b6946c09c9d3e1bf7cd605677c2f1dbff4808f02d5a7dcba64da133a087"
     },
     {
       "source": "components/BrandProductRail/BrandProductRail.types.ts",
@@ -3452,14 +3452,14 @@
       "sourceSha256": "529bb72a58495d446f67f546bcb9569fe2e2debe205ec9a83e3b33a0052cefef",
       "disposition": "migrated",
       "destination": "packages/prototypes/pages/EcommerceHome/EcommerceHome.module.css",
-      "destinationSha256": "0078d3a2e7e44a5a43a789c77ae471e2734c4745ee35e8437830d6a2925ce368"
+      "destinationSha256": "2d70658fd957f18c199c87f7e64d129fbfc8ae2090b833d148e10b34bdfd816c"
     },
     {
       "source": "pages/EcommerceHome/EcommerceHome.stories.tsx",
       "sourceSha256": "225ba1253425bc2cb3483aa1af46662650e028799adeffabfda4cd06da2d16be",
       "disposition": "migrated",
       "destination": "packages/prototypes/pages/EcommerceHome/EcommerceHome.stories.tsx",
-      "destinationSha256": "501c5717026b613a283def45db3aa098595f049004e4c6b966dbaf0754e23856"
+      "destinationSha256": "19b5060f011ba904e203e6b42eca13b0c48d0b5025d6ad75cf701485d250b1a2"
     },
     {
       "source": "pages/EcommerceHome/EcommerceHome.tsx",

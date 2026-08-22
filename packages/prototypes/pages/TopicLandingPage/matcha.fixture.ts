@@ -803,6 +803,7 @@ export function createMatchaBrandCampaigns(
   return definitions.map((definition) => ({
     id: `matcha-${definition.brand}`,
     title: brands[definition.brand].name,
+    href: brandHref(definition.brand, locale),
     banner: {
       src: definition.banner,
       alt: definition.bannerAlt[locale],

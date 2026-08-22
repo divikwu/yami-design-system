@@ -54,19 +54,46 @@ export const Pc: Story = {
   play: async ({ canvasElement, globals }) => {
     assertPlainShortcutRail(canvasElement);
     const locale = globals.locale === "zh" ? "zh" : "en";
-    const topicSearchPanel =
-      createTopicKeywordLandingPageFixture(locale).header.searchPanel;
+    const topicFixture = createTopicKeywordLandingPageFixture(locale);
+    const topicSearchPanel = topicFixture.header.searchPanel;
     const homeSearchPanel =
       createEcommerceHomeFixture(locale).header.searchPanel;
     const homeLink = canvasElement.querySelector<HTMLAnchorElement>(
       '[data-slot="header-brand"]',
     );
+    const brandCampaigns = topicFixture.brandRail?.campaigns ?? [];
+    const brandTitleLinks = canvasElement.querySelectorAll<HTMLAnchorElement>(
+      '[data-slot="brand-product-rail-campaign"] [data-slot="product-list-title"] a',
+    );
     if (
       !homeLink?.href.includes("yami-pages-ecommerce-home--pc") ||
-      JSON.stringify(topicSearchPanel) !== JSON.stringify(homeSearchPanel)
+      JSON.stringify(topicSearchPanel) !== JSON.stringify(homeSearchPanel) ||
+      brandTitleLinks.length !== brandCampaigns.length ||
+      canvasElement.querySelector(
+        '[data-slot="brand-product-rail-campaign"] [data-slot="product-card-brand"]',
+      ) ||
+      Array.from(brandTitleLinks).some(
+        (link) => {
+          const arrow = link.querySelector<SVGElement>(
+            '[data-slot="brand-product-rail-title-arrow"]',
+          );
+          const arrowStyle = arrow ? getComputedStyle(arrow) : null;
+          return (
+            link.textContent?.includes("›") ||
+            !arrowStyle ||
+            arrowStyle.width !== "16px" ||
+            arrowStyle.height !== "16px"
+          );
+        },
+      ) ||
+      brandCampaigns.some(
+        (campaign) =>
+          !campaign.href ||
+          campaign.products.some((product) => product.brandHref !== campaign.href),
+      )
     ) {
       throw new Error(
-        "Matcha Topic must reuse Ecommerce Home header search data",
+        "Matcha Topic must reuse Ecommerce Home search data and link each brand campaign to its product brand destination",
       );
     }
   },

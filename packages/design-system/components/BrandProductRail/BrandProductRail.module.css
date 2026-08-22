@@ -223,10 +223,15 @@
 .brandTitle {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-050);
   color: inherit;
   pointer-events: auto;
   text-decoration: none;
+}
+
+.brandArrowIcon {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
 }
 
 .bannerLink {
@@ -467,7 +472,7 @@
   .panel
     :global([data-slot="product-card"][data-presentation="compact"]) {
     min-height: calc(var(--space-1000) + var(--space-200));
-    align-items: center;
+    align-items: stretch;
     gap: 0;
     padding: 0;
     border: 0;
