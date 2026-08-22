@@ -43,12 +43,18 @@ export interface TopicPageContentSceneCopy {
   description: EvidencedPageCopy;
 }
 
+export interface TopicPageContentGroupCopy {
+  groupId: string;
+  label: EvidencedPageCopy;
+}
+
 export interface TopicPageContentCopy {
   title: EvidencedPageCopy;
   description?: EvidencedPageCopy;
   tags?: EvidencedPageCopy[];
   items?: TopicPageContentItemCopy[];
   scenes?: TopicPageContentSceneCopy[];
+  groups?: TopicPageContentGroupCopy[];
 }
 
 export interface TopicPageContentTaskProposal {
@@ -84,6 +90,7 @@ export interface TopicPageContentAttemptArtifact {
   backgroundEvidenceDigest?: string;
   copyBriefDigest?: string;
   language: ContentLanguage;
+  revision?: TopicPageContentRevisionContext;
   proposal?: unknown;
   proposalReview?: TopicPageContentProposalReview;
 }
@@ -133,6 +140,7 @@ export type TopicPageContentCopySlot =
   | "description"
   | "tags"
   | "items[].label"
+  | "groups[].label"
   | "scenes[].label"
   | "scenes[].title"
   | "scenes[].description";
@@ -140,6 +148,17 @@ export type TopicPageContentCopySlot =
 export interface TopicPageContentCopyRule {
   slot: TopicPageContentCopySlot;
   maxCharacters: number;
+  preferredLength?: {
+    minCharacters?: number;
+    maxCharacters?: number;
+    minWords?: number;
+    maxWords?: number;
+  };
+}
+
+export interface TopicPageContentTemplateCopy {
+  title?: string;
+  description?: string;
 }
 
 export type TopicPageContentTaskProduct = Pick<
@@ -153,6 +172,13 @@ export type TopicPageContentTaskProduct = Pick<
   | "role"
 >;
 
+export interface TopicPageContentTaskGroup {
+  id: string;
+  label: string;
+  productIds: string[];
+  sourceCategoryIds?: string[];
+}
+
 export interface TopicPageContentTaskContext {
   taskId: string;
   moduleId: TopicModuleId;
@@ -161,8 +187,10 @@ export interface TopicPageContentTaskContext {
   reason: string;
   copySlots: TopicPageContentCopySlot[];
   copyRules: TopicPageContentCopyRule[];
+  templateCopy?: TopicPageContentTemplateCopy;
   assignments: TopicPagePlanAssignmentV2[];
   scenes: TopicPagePlanSceneV2[];
+  groups: TopicPageContentTaskGroup[];
   products: TopicPageContentTaskProduct[];
 }
 
@@ -187,10 +215,11 @@ export interface TopicPageCopyBriefModuleObjective {
   moduleId: TopicModuleId;
   objective: string;
   shoppingGoal: string;
+  copyRules?: TopicPageContentCopyRule[];
+  templateCopy?: TopicPageContentTemplateCopy;
 }
 
-export interface TopicPageCopyBrief {
-  schemaVersion: "topic-page-copy-brief/v2";
+interface TopicPageCopyBriefBase {
   audienceContext: TopicAudienceContext;
   pageProposition: string;
   newcomerQuestions: string[];
@@ -205,6 +234,38 @@ export interface TopicPageCopyBrief {
   digest: string;
 }
 
+export interface TopicPageHeroStrategy {
+  kind: "brand" | "topic" | "campaign";
+  titleFocus: string;
+  descriptionFocus: string;
+}
+
+export interface TopicPageCopyLocalizationStrategy {
+  requestedLanguage: ContentLanguage;
+  supportedLanguages: readonly ["zh", "en"];
+  generationMode: "separate-proposals";
+  adaptation: "locale-native-not-literal";
+}
+
+export interface TopicPageCopySignature {
+  primaryClaimId: string | null;
+  supportingClaimIds: string[];
+  usage: "preferred-topic-context-only";
+}
+
+export interface TopicPageCopyBriefV2 extends TopicPageCopyBriefBase {
+  schemaVersion: "topic-page-copy-brief/v2";
+}
+
+export interface TopicPageCopyBriefV3 extends TopicPageCopyBriefBase {
+  schemaVersion: "topic-page-copy-brief/v3";
+  heroStrategy: TopicPageHeroStrategy;
+  topicSignature: TopicPageCopySignature;
+  localizationStrategy: TopicPageCopyLocalizationStrategy;
+}
+
+export type TopicPageCopyBrief = TopicPageCopyBriefV2 | TopicPageCopyBriefV3;
+
 export interface TopicPageContentContext {
   keyword: string;
   site: YamiSite;
@@ -217,7 +278,8 @@ export interface TopicPageContentContext {
   copyPolicyRef:
     | "topic-page-copy/legacy@1"
     | "topic-page-copy/evidence-bound@1"
-    | "topic-page-copy/novice-guided@2";
+    | "topic-page-copy/novice-guided@2"
+    | "topic-page-copy/novice-guided@3";
   claimPolicy: TopicPageContentClaimPolicy;
   audienceContext: TopicAudienceContext;
   backgroundEvidence: TopicBackgroundEvidenceBundle | null;

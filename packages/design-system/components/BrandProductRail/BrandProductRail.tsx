@@ -11,7 +11,7 @@ import {
 
 import { RailNavigation } from "../Button/RailNavigation";
 import { SectionHeading } from "../SectionHeading";
-import { ProductList } from "../ProductList";
+import { ProductList, type ProductListItem } from "../ProductList";
 import { Tabs, TabsList, TabsTrigger } from "../Tabs";
 import { ImageLoadingWindow, ResponsiveImage } from "../ResponsiveImage";
 
@@ -20,6 +20,14 @@ import type { BrandProductRailProps } from "./BrandProductRail.types";
 
 function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
+}
+
+function withoutProductBrand({
+  brand: _brand,
+  brandHref: _brandHref,
+  ...product
+}: ProductListItem): ProductListItem {
+  return product;
 }
 
 function getPageDistance(rail: HTMLUListElement) {
@@ -204,7 +212,7 @@ export function BrandProductRail({
                 layout="waterfall"
                 mobileSurface={mobileSurface}
                 presentation="compact"
-                products={campaign.products}
+                products={campaign.products.map(withoutProductBrand)}
                 onAddToCart={
                   onAddToCart
                     ? (productId) => onAddToCart(campaign.id, productId)

@@ -41,7 +41,7 @@ describe("Topic Generator Workbench preview", () => {
         topicPageContentSpecDigest: "sha256:content",
         topicPageAssetManifestDigest: "sha256:assets",
       },
-      moduleOrder: ["start-here"],
+      moduleOrder: ["start-here", "brand-spotlight"],
       modules: [{
         id: "start-here",
         component: "ThemeProductList",
@@ -81,6 +81,17 @@ describe("Topic Generator Workbench preview", () => {
             evidenceRefs: ["scene:scene-1"],
           },
         }],
+      }, {
+        id: "brand-spotlight",
+        component: "BrandProductRail",
+        shoppingGoal: "Compare Matcha brands",
+        reason: "The selected products include multiple brands.",
+        copy: {
+          title: { text: "精选品牌", evidenceRefs: [] },
+        },
+        products: [],
+        scenes: [],
+        assets: [],
       }],
       digest: "sha256:generation",
     } satisfies GenerationSpec;
@@ -91,6 +102,7 @@ describe("Topic Generator Workbench preview", () => {
       src: "/assets/scene.webp",
       objectPosition: "25% 40%",
     });
+    expect(props.brandRail?.onAddToCart).toBeTypeOf("function");
     expect(renderToStaticMarkup(createElement(RealTopicPagePreview, {
       mode: "generated",
       pageTypeRef: "landing-page/topic@2",
@@ -431,6 +443,12 @@ describe("Topic Generator Workbench preview", () => {
         required: true,
         visible: true,
         productIds: ["1", "2"],
+        groups: [{
+          id: "pure-matcha",
+          label: "纯抹茶与茶道用粉",
+          role: "core",
+          productIds: ["1", "2"],
+        }],
         reason: "Reviewed popular products.",
       }, {
         id: "brand-spotlight",
@@ -460,6 +478,12 @@ describe("Topic Generator Workbench preview", () => {
         required: true,
         visible: true,
         productIds: ["1", "2"],
+        groups: [{
+          id: "matcha-tools",
+          label: "抹茶器具、食品与功能饮品",
+          role: "core",
+          productIds: ["1", "2"],
+        }],
         reason: "Reviewed product order.",
       }],
       generatedAt: "2026-08-21T00:00:00.000Z",
@@ -480,6 +504,7 @@ describe("Topic Generator Workbench preview", () => {
     );
     expect(props.productRail.title).toBe("Matcha 精选商品");
     expect(props.brandRail?.title).toBe("按品牌浏览");
+    expect(props.brandRail?.onAddToCart).toBeTypeOf("function");
     expect(props.waterfall.title).toBe("继续浏览 Matcha 商品");
     expect(props.waterfall.description).toBe("按更多品类查看本次选中的商品。");
 
@@ -488,11 +513,32 @@ describe("Topic Generator Workbench preview", () => {
         moduleId: "hero",
         copy: { title: { text: "生成后的 Hero", evidenceRefs: [] } },
       }, {
+        moduleId: "shortcuts",
+        copy: { title: { text: "生成后的精选分类", evidenceRefs: [] }, items: [] },
+      }, {
         moduleId: "start-here",
         copy: { title: { text: "生成后的场景模块", evidenceRefs: [] }, scenes: [] },
       }, {
+        moduleId: "popular-picks",
+        copy: {
+          title: { text: "生成后的热门精选", evidenceRefs: [] },
+          groups: [{
+            groupId: "pure-matcha",
+            label: { text: "Pure Matcha Powder", evidenceRefs: [] },
+          }],
+        },
+      }, {
+        moduleId: "brand-spotlight",
+        copy: { title: { text: "生成后的精选品牌", evidenceRefs: [] } },
+      }, {
         moduleId: "explore-more",
-        copy: { title: { text: "生成后的更多商品", evidenceRefs: [] } },
+        copy: {
+          title: { text: "生成后的更多商品", evidenceRefs: [] },
+          groups: [{
+            groupId: "matcha-tools",
+            label: { text: "Matcha Tools and More", evidenceRefs: [] },
+          }],
+        },
       }],
     } as unknown as Extract<TopicPagePreviewRendererProps, { mode: "content" }>["contentSpec"];
     const generatedCopyProps = contentPrototypeProps(
@@ -503,5 +549,25 @@ describe("Topic Generator Workbench preview", () => {
     expect(generatedCopyProps.hero.description).toBeUndefined();
     expect(generatedCopyProps.standardRail?.content.description).toBeUndefined();
     expect(generatedCopyProps.waterfall.description).toBeUndefined();
+    expect(generatedCopyProps.primaryTabs.items.map(({ label }) => label)).toEqual([
+      "生成后的精选分类",
+      "生成后的场景模块",
+      "生成后的热门精选",
+      "生成后的精选品牌",
+      "生成后的更多商品",
+    ]);
+    expect(generatedCopyProps.primaryTabs.items.map(({ targetId }) => targetId)).toEqual([
+      "explore",
+      "shop",
+      "popular-picks",
+      "brand-spotlight",
+      "product-list",
+    ]);
+    expect(generatedCopyProps.productRail.tabs).toEqual([
+      { value: "pure-matcha", label: "Pure Matcha Powder" },
+    ]);
+    expect(generatedCopyProps.waterfall.tabs).toEqual([
+      { value: "matcha-tools", label: "Matcha Tools and More" },
+    ]);
   });
 });

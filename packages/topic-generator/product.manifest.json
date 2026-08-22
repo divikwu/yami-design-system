@@ -87,7 +87,7 @@
     "topicPageContentRun": "topic-page-content-run/v1",
     "topicPageContentSpec": "topic-page-content-spec/v1",
     "topicPageContentRevision": "topic-page-content-revision/v1",
-    "topicPageCopyBrief": "topic-page-copy-brief/v2",
+    "topicPageCopyBrief": "topic-page-copy-brief/v3",
     "topicPageContentReviewProposal": "topic-page-content-review-proposal/v1",
     "topicPageContentReviewRun": "topic-page-content-review-run/v1",
     "topicPageContentReviewDecision": "topic-page-content-review/v1",

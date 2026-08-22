@@ -148,7 +148,7 @@ export function compileTopicPageGenerationSpec(
             role,
           };
         }),
-        groups: topicPageGeneratedProductGroups(selection, module),
+        groups: topicPageGeneratedProductGroups(selection, module, content.copy.groups),
         scenes: module.scenes.map((scene) => ({
           ...scene,
           productIds: [...scene.productIds],

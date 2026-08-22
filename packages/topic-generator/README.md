@@ -80,6 +80,12 @@ ProductSelection 和 Page Agent endpoint。仅调试无 Agent 的确定性降级
 “继续生成”，Host 会先校验不可变输入、事件合同、已完成结果及其上游摘要，再从第一个缺失或
 失效阶段继续。
 
+新版受管运行在 `background-evidence`、`content-writing` 与 `content-review` 阶段同时处理
+简体中文和英文：两种语言复用同一份冻结 ThemeIntent、ProductSelectionResult 与 PagePlan，
+但分别生成、校验并审核各自的 ContentSpec。阶段输出通过 `contentByLanguage.zh/en` 保存两份
+产物；运行请求中的 `language` 仅表示主预览语言，主语言继续驱动视觉与硬 QA，语言切换直接读取
+同一运行内已审核的另一份文案，不再调用通用占位模板。
+
 生产环境必须显式配置持久磁盘：
 
 ```bash
@@ -188,9 +194,11 @@ TOPIC_GENERATOR_AGENT_TIMEOUT_MS=330000
 TOPIC_GENERATOR_PAGE_AGENT_ENDPOINT=https://agent.example.com/topic-page
 TOPIC_GENERATOR_PAGE_AGENT_ID=topic-page-agent
 TOPIC_GENERATOR_TOPIC_INTENT_AGENT_ID=topic-strategy
+TOPIC_GENERATOR_BACKGROUND_EVIDENCE_AGENT_ID=topic-background-evidence
 TOPIC_GENERATOR_ORCHESTRATOR_AGENT_ID=topic-page-orchestrator
 TOPIC_GENERATOR_STRATEGY_AGENT_ID=topic-strategy
 TOPIC_GENERATOR_CONTENT_AGENT_ID=topic-content
+TOPIC_GENERATOR_CONTENT_REVIEW_AGENT_ID=topic-content-review
 TOPIC_GENERATOR_VISUAL_AGENT_ID=topic-visual
 TOPIC_GENERATOR_VISUAL_PRODUCTION_MODE=generated-images
 TOPIC_GENERATOR_REVIEW_AGENT_ID=topic-review
@@ -287,12 +295,25 @@ PageVisual 会校验产物元数据和全部 digests。最终文件读取、组�
 当前模块商品或当前场景。没有已验证评论记录时，`ReviewList` 不能进入 Content 任务。该阶段
 不生成图片、图片提示词或 alt text。
 
-面向陌生用户的自动流程使用 `topic-page-copy/novice-guided@2`：Content context 会返回
-`topic-page-copy-brief/v2`、AudienceContext、每个槽位的字符上限，以及当前任务可用的目录和
+面向陌生用户的自动流程使用 `topic-page-copy/novice-guided@3`：Content context 会返回
+`topic-page-copy-brief/v3`、AudienceContext、每个槽位的推荐长度与硬字符上限，以及当前任务可用的目录和
 `background:<claim-id>` 证据。官网、Wikipedia 或文化机构的 background claim 仅允许提供
 背景语境，不能作为商品功效、流行度或库存事实。确定性校验器拒绝混合语言、超长文案、竞争
 候选 evidence，以及越出当前模块作用域的 evidence。无 AudienceContext 的旧调用继续按
-`evidence-bound@1` 或 legacy policy 回放。
+`novice-guided@2`、`evidence-bound@1` 或 legacy policy 回放。Hero 中文标题推荐 8–18 字、硬上限
+24 字，描述推荐 28–50 字、硬上限 80 字；英文标题推荐 4–8 词且尽量不超过 48 字符、硬上限
+60 字符，描述推荐 14–24 词且尽量不超过 140 字符、硬上限 180 字符。推荐长度只引导精简，
+不会单独阻断自然且有证据支持的文案。
+
+结构型模块默认保持简短通用：`shortcuts`、`popular-picks`、`brand-spotlight` 标题由模板
+固定，避免每个模块重复主题词；只有位于页面末段的 `explore-more` 标题可以补一个本地化
+主题锚点，说明仍使用通用模板。该标题中文推荐 4–12 字、硬上限 20 字；英文推荐 2–5 词且
+尽量不超过 40 字符、硬上限 48 字符。主题锚点不自然时允许回退到通用短标题。
+
+CopyBrief v3 按已确定的 Brand、Topic 或 Campaign 模板返回不同的 Hero 创作方向，并从背景
+证据中标记一条优先主题信号及最多一条辅助信号。信号只提供主题语境，不规定标题句式。中文与
+英文使用同一上游计划分别生成、分别审核；语义与证据边界一致，措辞按语言习惯独立适配而不是
+逐字翻译。旧 `topic-page-copy-brief/v2` 仍可用于已保存运行的审核与回放。
 
 PageContent 的 blocked 结果会区分 `upstream-invalid` 与 `proposal-invalid`，并给出明确的
 `rollbackStage`。自动流程保留 `topic-page-content-attempt/v1`（Agent ID、语言、三组输入

@@ -135,7 +135,7 @@ describe("Landing page orchestration", () => {
     });
     if (ready.status !== "ready") throw new Error("Expected an execution-ready plan.");
     expect(ready.plan.stages.find(({ id }) => id === "content-writing")?.maxAttempts).toBe(2);
-    expect(ready.plan.stages.find(({ id }) => id === "content-review")?.maxAttempts).toBe(2);
+    expect(ready.plan.stages.find(({ id }) => id === "content-review")?.maxAttempts).toBe(1);
   });
 
   it("accepts the unique Campaign route for activity intent and rejects incompatible intent", () => {

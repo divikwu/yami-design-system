@@ -6,7 +6,7 @@
 ThemeIntent + BackgroundEvidence + AudienceContext + ready ProductSelectionResult
   + ready TopicPagePlan v2 + language
   -> TopicPageContentContext
-  -> TopicPageCopyBrief v2
+  -> TopicPageCopyBrief v3
   -> TopicPageContentProposal
   -> deterministic review
   -> TopicPageContentSpec
@@ -16,9 +16,15 @@ ThemeIntent + BackgroundEvidence + AudienceContext + ready ProductSelectionResul
 
 The context contains only visible PagePlan content tasks, the assigned products needed by each
 task, PagePlan scenes, eligible ThemeIntent and BackgroundEvidence IDs, selected categories, the
-novice audience contract, a digest-bound CopyBrief, and the applicable copy policy. A proposal cannot
+novice audience contract, a digest-bound CopyBrief, and the applicable copy policy. Current v3
+briefs add a template-resolved `heroStrategy`, preferred context-only `topicSignature`, and
+`localizationStrategy`; v2 briefs remain valid replay inputs. A proposal cannot
 add tasks, switch components, expose hidden modules, reallocate products, rename scenes, or change
 any digest.
+
+Some tasks also contain localized `templateCopy`. Those values are stable module chrome owned by
+the Topic template. The Content Agent must copy them verbatim into the matching slots; it generates
+only the remaining task copy.
 
 On the automatic Host's second and final content attempt, the same context adds
 `revision: topic-page-content-revision/v1`. It contains the previous digest-valid ContentSpec and
@@ -32,17 +38,24 @@ not authorize claims. Ingredient, benefit, efficacy, popularity, inventory, disc
 customer-outcome claims therefore require explicit upstream evidence; attaching an in-scope ID is
 not enough by itself.
 
-Each proposal serves exactly one requested language. `language: "en"` requires English in every
-generated copy slot, while `language: "zh"` requires Simplified Chinese; immutable brand and
+Each proposal serves exactly one requested language. `language: "en"` requires natural English in
+every generated copy slot, while `language: "zh"` requires Simplified Chinese; immutable brand and
 product names are the only expected cross-language exceptions. Generate and validate a separate
-proposal when both locales are needed.
+proposal when both locales are needed. Both runs preserve the same ThemeIntent, ProductSelection,
+PagePlan, proposition, and evidence boundaries, while wording is adapted naturally for each locale
+rather than translated word for word.
+
+The managed Web Host requests both locales during one content milestone and stores the two
+independently reviewed results under `contentByLanguage`. This orchestration does not change the
+single-language proposal contract or permit mixed-language copy.
 
 Newcomer contexts for active `topic-landing/brand@2`, `topic-landing/topic@2`, and
 `topic-landing/campaign@2` templates declare
-`copyPolicyRef: "topic-page-copy/novice-guided@2"`. Their deterministic review checks text script,
+`copyPolicyRef: "topic-page-copy/novice-guided@3"`. Their deterministic review checks text script,
 character limits, narrowed evidence scope, and CopyBrief bindings. Older active runs remain
-replayable under `topic-page-copy/evidence-bound@1`; legacy `@1` templates remain replayable under
-`topic-page-copy/legacy@1` without applying these new text restrictions to old proposals.
+replayable under `topic-page-copy/novice-guided@2` or `topic-page-copy/evidence-bound@1`; legacy
+`@1` templates remain replayable under `topic-page-copy/legacy@1` without applying these new text
+restrictions to old proposals.
 
 `background:<claim-id>` may cite only IDs in `eligibleBackgroundEvidenceClaimIds`. It supports
 newcomer orientation and topic context only. It cannot authorize ingredient, benefit, efficacy,
@@ -53,17 +66,52 @@ popularity, inventory, discount, rating, or customer-outcome claims.
 | Module | Maintained component | Required generated copy |
 | --- | --- | --- |
 | `hero` | `ThemeHero` | `title`, `description`, 2–4 `tags` |
-| `shortcuts` | `ShortcutRail` | `title`, one `items[].label` per assignment slot |
-| `start-here` | `ThemeProductList` | module `title`; `label`, `title`, and `description` for every PagePlan scene |
-| `popular-picks` | `ProductList` | `title` |
-| `brand-spotlight` | `BrandProductRail` | `title`; campaign brand identity remains catalog-derived |
+| `shortcuts` | `ShortcutRail` | template-owned `title`; one generated `items[].label` per assignment slot |
+| `start-here` | `ThemeProductList` | generated whole-topic `title`; generated `label`, `title`, and `description` for every PagePlan scene |
+| `popular-picks` | `ProductList` | template-owned `title`; one locale-native `groups[].label` per returned frozen group |
+| `brand-spotlight` | `BrandProductRail` | template-owned `title`; campaign brand identity remains catalog-derived |
 | `reviews` | `ReviewList` | unavailable unless a future upstream contract supplies verified review records |
-| `explore-more` | `ProductList` | `title`, `description` |
+| `explore-more` | `ProductList` | one generated compact `title`; template-owned `description`; one locale-native `groups[].label` per returned frozen group |
 
-The active policy returns these maximum character counts in each task's `copyRules`: module titles
-64; descriptions 180; Hero tags, shortcut labels, and scene labels 32; scene titles 72. Count
-Unicode characters, not encoded bytes. The runtime returns the rules with the task so an Agent does
-not need to copy this table into its own implementation.
+Within the returned limits, Hero copy targets one clear, user-facing proposition and preferably
+2–3 short tags. Follow the returned strategy without forcing a sentence template: Brand may use a
+position, idea, distinction, or routine; Topic may use an experience, use, way to enjoy, or shopping
+inspiration; Campaign may use an occasion's atmosphere, emotion, ritual, or concrete task. A title
+may be a positioning line, statement, action, emotion, or question and may use a general verb when
+the complete Hero remains specific. Definitions, history, and shopping breadth usually work better
+in the description, but may enter a natural, useful headline. Use the description to add identity,
+context, use value, and supported shopping range without simple repetition; prefer one sentence and
+allow two when clarity needs them. A fourth tag is allowed when it adds a distinct supported
+direction. Sensory, quality, efficacy, outcome, origin, and cultural claims remain evidence-bound.
+
+Structural headings stay generic by default. `shortcuts`, `popular-picks`, and `brand-spotlight`
+titles remain template-owned. Only `explore-more.title`, which appears near the end of the page,
+may add one short locale-native topic anchor such as “更多抹茶选择” or “Explore More Matcha.” Do not
+repeat the topic across neighboring headings, repeat the Hero, or turn this title into a category
+list. Use a concise generic title when the anchor would read unnaturally.
+
+`topicSignature.primaryClaimId` and its optional supporting claim identify preferred context, not
+required wording. They may improve specificity, but their context-only scope never proves every
+product's origin, performance, or positioning.
+
+The active policy returns locale-specific Hero guidance in the Hero task's `copyRules`:
+
+| Locale | Slot | Preferred length | Hard `maxCharacters` |
+| --- | --- | --- | --- |
+| `zh` | title | 8–18 characters | 24 |
+| `zh` | description | 28–50 characters | 80 |
+| `en` | title | 4–8 words and preferably no more than 48 characters | 60 |
+| `en` | description | 14–24 words and preferably no more than 140 characters | 180 |
+
+`preferredLength` guides concise generation and review but is not a deterministic rejection by
+itself. `maxCharacters` is the hard boundary and counts Unicode characters, not encoded bytes.
+When Chinese copy includes an immutable Latin brand name, judge the preferred range by rendered
+footprint as well as raw count, while still obeying the hard maximum. The generated Explore More
+title targets 4–12 Chinese characters with a hard maximum of 20, or 2–5 English words and
+preferably no more than 40 characters with a hard maximum of 48. Other module titles remain at 64;
+non-Hero descriptions at 180; Hero tags, shortcut labels, and scene labels at 32; scene titles at
+72. The runtime returns these rules with the task and binds them into the CopyBrief so Agents do
+not need a private copy of this table.
 
 These slots map to the maintained Topic Landing Page component props. Product titles and brand
 names are catalog identities, not generated copy. Hero and scene image alt text belongs to the
@@ -87,21 +135,25 @@ independent Visual Agent contract rather than this proposal.
       "component": "ThemeHero",
       "copy": {
         "title": {
-          "text": "开启你的抹茶日常",
-          "evidenceRefs": ["theme-intent:scenario:matcha"]
+          "text": "找到你的抹茶享用方式",
+          "evidenceRefs": ["theme-intent:scenario:matcha", "product:matcha-1"]
         },
         "description": {
-          "text": "从抹茶到茶具，按已选商品搭配日常所需。",
-          "evidenceRefs": ["product:matcha-1", "product:whisk-1"]
+          "text": "抹茶是细磨绿茶粉，从传统点茶、便捷冲饮到料理用粉，可按形态与用途比较不同选择。",
+          "evidenceRefs": ["background:claim:matcha-identity", "product:matcha-1", "product:culinary-matcha-1"]
         },
         "tags": [
           {
-            "text": "日常抹茶",
-            "evidenceRefs": ["theme-intent:scenario:matcha"]
+            "text": "纯抹茶粉",
+            "evidenceRefs": ["product:matcha-1"]
           },
           {
-            "text": "冲泡搭配",
-            "evidenceRefs": ["selected-category:tea-tools"]
+            "text": "冲饮选择",
+            "evidenceRefs": ["product:matcha-drink-1"]
+          },
+          {
+            "text": "烘焙料理",
+            "evidenceRefs": ["product:culinary-matcha-1"]
           }
         ]
       }
@@ -112,7 +164,7 @@ independent Visual Agent contract rather than this proposal.
       "component": "ShortcutRail",
       "copy": {
         "title": {
-          "text": "按品类快速浏览",
+          "text": "精选分类",
           "evidenceRefs": ["selected-category:tea"]
         },
         "items": [
@@ -176,8 +228,9 @@ array position alone is not a slot binding.
 - `scene:<module-scene-id>` — require a PagePlan scene in the current module. Scene fields may cite
   only their own scene.
 
-Attach at least one reference to every copy segment. References make the claim reviewable; they do
-not authorize facts absent from the referenced artifact.
+Attach at least one reference to every copy segment. For template-owned copy, the reference binds
+the label to its visible module rather than proving a factual claim. References make generated
+claims reviewable; they do not authorize facts absent from the referenced artifact.
 
 Public background sources enter only through the independent digest-bound BackgroundEvidence
 bundle. Brand topics prioritize the official brand site and may use Wikipedia only as a secondary

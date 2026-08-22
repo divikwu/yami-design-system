@@ -18,6 +18,7 @@ import {
 } from "../src/index.js";
 import {
   pageCopyUsesRequestedLanguage,
+  topicPageTemplateCopy,
   usesStrictPageCopyPolicy,
 } from "../src/page-content/config.js";
 
@@ -130,9 +131,27 @@ function selectionFixture(): ProductSelectionResult {
     }],
     modules: [
       { id: "start-here", productIds: ["core-1", "pairing-1", "accessory-1"], groups: [] },
-      { id: "popular-picks", productIds: ["core-2"], groups: [] },
+      {
+        id: "popular-picks",
+        productIds: ["core-2"],
+        groups: [{
+          id: "popular-picks-all",
+          label: "全部",
+          productIds: ["core-2"],
+          sourceCategoryIds: ["1000"],
+        }],
+      },
       { id: "brand-spotlight", productIds: [], groups: [] },
-      { id: "explore-more", productIds: ["accessory-1"], groups: [] },
+      {
+        id: "explore-more",
+        productIds: ["accessory-1"],
+        groups: [{
+          id: "tea-tools",
+          label: "茶具与周边",
+          productIds: ["accessory-1"],
+          sourceCategoryIds: ["1002"],
+        }],
+      },
     ],
   };
 }
@@ -293,7 +312,7 @@ function proposalFixture(
         moduleId: "shortcuts",
         component: "ShortcutRail",
         copy: {
-          title: copy("按分类探索", "selected-category:1000"),
+          title: copy("精选分类", "selected-category:1000"),
           items: [{
             slotId: "shortcuts-1",
             label: copy("抹茶", "product:core-2", "selected-category:1000"),
@@ -319,7 +338,11 @@ function proposalFixture(
         moduleId: "popular-picks",
         component: "ProductList",
         copy: {
-          title: copy("热门抹茶", "product:core-2"),
+          title: copy("热门精选", "product:core-2"),
+          groups: [{
+            groupId: "popular-picks-all",
+            label: copy("全部", "selected-category:1000"),
+          }],
         },
       },
       {
@@ -327,8 +350,12 @@ function proposalFixture(
         moduleId: "explore-more",
         component: "ProductList",
         copy: {
-          title: copy("探索更多搭配", "selected-category:1002"),
-          description: copy("继续发现让冲泡更顺手的茶具。", "product:accessory-1"),
+          title: copy("探索更多", "selected-category:1002"),
+          description: copy("浏览更多商品选择。", "product:accessory-1"),
+          groups: [{
+            groupId: "tea-tools",
+            label: copy("茶具与周边", "selected-category:1002"),
+          }],
         },
       },
     ],
@@ -365,6 +392,38 @@ function backgroundEvidenceFixture(
 }
 
 describe("TopicPageContent", () => {
+  it("provides stable localized chrome for structural Topic modules", () => {
+    expect({
+      shortcuts: topicPageTemplateCopy("shortcuts", "zh"),
+      popular: topicPageTemplateCopy("popular-picks", "zh"),
+      brands: topicPageTemplateCopy("brand-spotlight", "zh"),
+      explore: topicPageTemplateCopy("explore-more", "zh"),
+    }).toEqual({
+      shortcuts: { title: "精选分类" },
+      popular: { title: "热门精选" },
+      brands: { title: "精选品牌" },
+      explore: { description: "浏览更多商品选择。" },
+    });
+    expect(topicPageTemplateCopy("brand-spotlight", "en"))
+      .toEqual({ title: "Featured Brands" });
+  });
+
+  it("keeps nearby structural headings generic and leaves only Explore More free for one topic anchor", () => {
+    expect({
+      shortcuts: topicPageTemplateCopy("shortcuts", "zh"),
+      popular: topicPageTemplateCopy("popular-picks", "zh"),
+      brands: topicPageTemplateCopy("brand-spotlight", "zh"),
+      explore: topicPageTemplateCopy("explore-more", "zh"),
+    }).toEqual({
+      shortcuts: { title: "精选分类" },
+      popular: { title: "热门精选" },
+      brands: { title: "精选品牌" },
+      explore: { description: "浏览更多商品选择。" },
+    });
+    expect(topicPageTemplateCopy("explore-more", "en"))
+      .toEqual({ description: "Browse more product options." });
+  });
+
   it("applies strict copy policy to every active relevance template", () => {
     expect([
       "topic-landing/brand-relevance@1",
@@ -431,8 +490,16 @@ describe("TopicPageContent", () => {
             moduleId: "hero",
             copySlots: ["title", "description", "tags"],
             copyRules: [
-              { slot: "title", maxCharacters: 64 },
-              { slot: "description", maxCharacters: 180 },
+              {
+                slot: "title",
+                maxCharacters: 24,
+                preferredLength: { minCharacters: 8, maxCharacters: 18 },
+              },
+              {
+                slot: "description",
+                maxCharacters: 80,
+                preferredLength: { minCharacters: 28, maxCharacters: 50 },
+              },
               { slot: "tags", maxCharacters: 32 },
             ],
           },
@@ -442,8 +509,18 @@ describe("TopicPageContent", () => {
             moduleId: "start-here",
             copySlots: ["title", "scenes[].label", "scenes[].title", "scenes[].description"],
           },
-          { taskId: "content-popular-picks", moduleId: "popular-picks", copySlots: ["title"] },
-          { taskId: "content-explore-more", moduleId: "explore-more", copySlots: ["title", "description"] },
+          {
+            taskId: "content-popular-picks",
+            moduleId: "popular-picks",
+            copySlots: ["title", "groups[].label"],
+            groups: [{ id: "popular-picks-all", label: "全部", productIds: ["core-2"] }],
+          },
+          {
+            taskId: "content-explore-more",
+            moduleId: "explore-more",
+            copySlots: ["title", "description", "groups[].label"],
+            groups: [{ id: "tea-tools", label: "茶具与周边", productIds: ["accessory-1"] }],
+          },
         ],
       },
     });
@@ -472,7 +549,7 @@ describe("TopicPageContent", () => {
     expect(run).toMatchObject({
       status: "needs-content-proposal",
       context: {
-        copyPolicyRef: "topic-page-copy/novice-guided@2",
+        copyPolicyRef: "topic-page-copy/novice-guided@3",
         languagePolicy: {
           requestedLanguage: "zh",
           immutableProperNouns: expect.arrayContaining([
@@ -491,22 +568,449 @@ describe("TopicPageContent", () => {
         },
         eligibleBackgroundEvidenceClaimIds: ["claim:matcha-definition"],
         copyBrief: {
-          schemaVersion: "topic-page-copy-brief/v2",
+          schemaVersion: "topic-page-copy-brief/v3",
           backgroundEvidenceDigest: backgroundEvidence.digest,
+          heroStrategy: {
+            kind: "topic",
+            titleFocus: expect.stringContaining("体验、用途、享用方式或选购启发"),
+            descriptionFocus: expect.stringContaining("主题身份"),
+          },
+          localizationStrategy: {
+            requestedLanguage: "zh",
+            supportedLanguages: ["zh", "en"],
+            generationMode: "separate-proposals",
+            adaptation: "locale-native-not-literal",
+          },
           newcomerQuestions: expect.arrayContaining([
             "这个主题是什么？",
             "我应该从哪个品类或场景开始？",
           ]),
           moduleObjectives: expect.arrayContaining([
             expect.objectContaining({ moduleId: "hero", taskId: "content-hero" }),
-            expect.objectContaining({ moduleId: "start-here", taskId: "content-start-here" }),
+            expect.objectContaining({
+              moduleId: "hero",
+              objective: expect.stringContaining("面向用户"),
+            }),
+            expect.objectContaining({
+              moduleId: "hero",
+              objective: expect.stringContaining("核心体验、使用方式、选购任务"),
+            }),
+            expect.objectContaining({
+              moduleId: "hero",
+              objective: expect.stringContaining("百科式定义"),
+            }),
+            expect.objectContaining({
+              moduleId: "hero",
+              objective: expect.stringContaining("选购跨度"),
+            }),
+            expect.objectContaining({
+              moduleId: "hero",
+              objective: expect.stringContaining("优先一句，必要时两句"),
+            }),
+            expect.objectContaining({
+              moduleId: "hero",
+              objective: expect.stringContaining("不要求固定动词或句式"),
+            }),
+            expect.objectContaining({
+              moduleId: "hero",
+              objective: expect.stringContaining("感官、功效或结果主张"),
+            }),
+            expect.objectContaining({
+              moduleId: "shortcuts",
+              taskId: "content-shortcuts",
+              templateCopy: { title: "精选分类" },
+            }),
+            expect.objectContaining({
+              moduleId: "start-here",
+              taskId: "content-start-here",
+              objective: expect.stringContaining("整个主题"),
+            }),
+            expect.objectContaining({
+              moduleId: "popular-picks",
+              templateCopy: { title: "热门精选" },
+            }),
+            expect.objectContaining({
+              moduleId: "explore-more",
+              templateCopy: {
+                description: "浏览更多商品选择。",
+              },
+            }),
           ]),
         },
+        tasks: expect.arrayContaining([
+          expect.objectContaining({
+            moduleId: "shortcuts",
+            templateCopy: { title: "精选分类" },
+          }),
+          expect.objectContaining({
+            moduleId: "popular-picks",
+            templateCopy: { title: "热门精选" },
+          }),
+          expect.objectContaining({
+            moduleId: "explore-more",
+            templateCopy: {
+              description: "浏览更多商品选择。",
+            },
+          }),
+        ]),
       },
     });
     if (run.status !== "needs-content-proposal") throw new Error("Expected content task.");
     expect(run.context.evidenceNamespaces).toContain("background:<claim-id>");
     expect(run.context.copyBrief.digest).toMatch(/^sha256:[a-f0-9]{64}$/);
+  });
+
+  it("routes distinct Hero strategies from the resolved page template", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const backgroundEvidence = backgroundEvidenceFixture(intent);
+    const basePlan = planFixture(intent, selection);
+    const planFor = (templateRef: "topic-landing/brand@2" | "topic-landing/campaign@2") => {
+      const plan = { ...basePlan, templateRef };
+      return { ...plan, digest: topicPagePlanDigest(plan) };
+    };
+
+    const brandRun = advanceTopicPageContentRun({
+      intent,
+      selection,
+      plan: planFor("topic-landing/brand@2"),
+      language: "zh",
+      audienceContext: topicAudienceContext("zh"),
+      backgroundEvidence,
+    });
+    const campaignRun = advanceTopicPageContentRun({
+      intent,
+      selection,
+      plan: planFor("topic-landing/campaign@2"),
+      language: "zh",
+      audienceContext: topicAudienceContext("zh"),
+      backgroundEvidence,
+    });
+
+    expect(brandRun).toMatchObject({
+      status: "needs-content-proposal",
+      context: {
+        copyBrief: {
+          heroStrategy: {
+            kind: "brand",
+            titleFocus: expect.stringContaining("品牌定位、理念、特色或使用流程"),
+          },
+        },
+      },
+    });
+    expect(campaignRun).toMatchObject({
+      status: "needs-content-proposal",
+      context: {
+        copyBrief: {
+          heroStrategy: {
+            kind: "campaign",
+            titleFocus: expect.stringContaining("氛围、情感、仪式或具体场合任务"),
+          },
+        },
+      },
+    });
+  });
+
+  it("prioritizes background signals by page type without widening their scope", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const baseEvidence = backgroundEvidenceFixture(intent);
+    const claims = [
+      { id: "claim:identity", type: "identity" as const, text: "Topic identity." },
+      { id: "claim:origin", type: "origin" as const, text: "Topic origin." },
+      { id: "claim:tradition", type: "tradition" as const, text: "Topic tradition." },
+      { id: "claim:meaning", type: "meaning" as const, text: "Topic meaning." },
+      { id: "claim:terminology", type: "terminology" as const, text: "Topic terminology." },
+    ].map((claim) => ({
+      ...claim,
+      sourceIds: ["source:matcha-wikipedia"],
+      usage: "context-only" as const,
+    }));
+    const evidence = { ...baseEvidence, claims };
+    const backgroundEvidence = {
+      ...evidence,
+      digest: topicBackgroundEvidenceDigest(evidence),
+    };
+    const basePlan = planFixture(intent, selection);
+    const signatureFor = (
+      templateRef: "topic-landing/brand@2" | "topic-landing/topic@2" | "topic-landing/campaign@2",
+    ) => {
+      const plan = { ...basePlan, templateRef };
+      const run = advanceTopicPageContentRun({
+        intent,
+        selection,
+        plan: { ...plan, digest: topicPagePlanDigest(plan) },
+        language: "zh",
+        audienceContext: topicAudienceContext("zh"),
+        backgroundEvidence,
+      });
+      if (run.status !== "needs-content-proposal") throw new Error("Expected content task.");
+      if (run.context.copyBrief.schemaVersion !== "topic-page-copy-brief/v3") {
+        throw new Error("Expected the current CopyBrief contract.");
+      }
+      return run.context.copyBrief.topicSignature;
+    };
+
+    expect(signatureFor("topic-landing/brand@2")).toEqual({
+      primaryClaimId: "claim:identity",
+      supportingClaimIds: ["claim:origin"],
+      usage: "preferred-topic-context-only",
+    });
+    expect(signatureFor("topic-landing/topic@2")).toEqual({
+      primaryClaimId: "claim:tradition",
+      supportingClaimIds: ["claim:origin"],
+      usage: "preferred-topic-context-only",
+    });
+    expect(signatureFor("topic-landing/campaign@2")).toEqual({
+      primaryClaimId: "claim:meaning",
+      supportingClaimIds: ["claim:tradition"],
+      usage: "preferred-topic-context-only",
+    });
+  });
+
+  it("builds separate locale-native Chinese and English writing contexts", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const contextFor = (language: "zh" | "en") => {
+      const run = advanceTopicPageContentRun({
+        intent,
+        selection,
+        plan,
+        language,
+        audienceContext: topicAudienceContext(language),
+      });
+      if (run.status !== "needs-content-proposal") throw new Error("Expected content task.");
+      if (run.context.copyBrief.schemaVersion !== "topic-page-copy-brief/v3") {
+        throw new Error("Expected the current CopyBrief contract.");
+      }
+      return run.context.copyBrief;
+    };
+    const zh = contextFor("zh");
+    const en = contextFor("en");
+    const heroObjective = (copyBrief: typeof zh) =>
+      copyBrief.moduleObjectives.find(({ moduleId }) => moduleId === "hero")!.objective;
+
+    expect(zh.localizationStrategy).toEqual({
+      requestedLanguage: "zh",
+      supportedLanguages: ["zh", "en"],
+      generationMode: "separate-proposals",
+      adaptation: "locale-native-not-literal",
+    });
+    expect(en.localizationStrategy).toEqual({
+      requestedLanguage: "en",
+      supportedLanguages: ["zh", "en"],
+      generationMode: "separate-proposals",
+      adaptation: "locale-native-not-literal",
+    });
+    expect(heroObjective(zh)).toContain("不要求固定动词或句式");
+    expect(heroObjective(zh)).toContain("优先一句，必要时两句");
+    expect(heroObjective(zh)).not.toContain("说明只写一句");
+    expect(heroObjective(en)).toContain("does not require a fixed verb or construction");
+    expect(heroObjective(en)).toContain("prefer one sentence and allow two when needed");
+    expect(zh.digest).not.toBe(en.digest);
+  });
+
+  it("returns compact Chinese Hero length guidance", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const run = advanceTopicPageContentRun({
+      intent,
+      selection,
+      plan,
+      language: "zh",
+      audienceContext: topicAudienceContext("zh"),
+    });
+
+    if (run.status !== "needs-content-proposal") throw new Error("Expected content task.");
+    expect(run.context.tasks.find(({ moduleId }) => moduleId === "hero")?.copyRules)
+      .toEqual([
+        {
+          slot: "title",
+          maxCharacters: 24,
+          preferredLength: { minCharacters: 8, maxCharacters: 18 },
+        },
+        {
+          slot: "description",
+          maxCharacters: 80,
+          preferredLength: { minCharacters: 28, maxCharacters: 50 },
+        },
+        { slot: "tags", maxCharacters: 32 },
+      ]);
+  });
+
+  it("returns word-aware English Hero length guidance", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const run = advanceTopicPageContentRun({
+      intent,
+      selection,
+      plan,
+      language: "en",
+      audienceContext: topicAudienceContext("en"),
+    });
+
+    if (run.status !== "needs-content-proposal") throw new Error("Expected content task.");
+    expect(run.context.tasks.find(({ moduleId }) => moduleId === "hero")?.copyRules)
+      .toEqual([
+        {
+          slot: "title",
+          maxCharacters: 60,
+          preferredLength: {
+            minWords: 4,
+            maxWords: 8,
+            maxCharacters: 48,
+          },
+        },
+        {
+          slot: "description",
+          maxCharacters: 180,
+          preferredLength: {
+            minWords: 14,
+            maxWords: 24,
+            maxCharacters: 140,
+          },
+        },
+        { slot: "tags", maxCharacters: 32 },
+      ]);
+  });
+
+  it("bounds the single Explore More topic anchor for Chinese and English", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const runFor = (language: "zh" | "en") => advanceTopicPageContentRun({
+      intent,
+      selection,
+      plan,
+      language,
+      audienceContext: topicAudienceContext(language),
+    });
+    const zh = runFor("zh");
+    const en = runFor("en");
+
+    if (zh.status !== "needs-content-proposal" || en.status !== "needs-content-proposal") {
+      throw new Error("Expected content tasks.");
+    }
+    expect(zh.context.tasks.find(({ moduleId }) => moduleId === "explore-more"))
+      .toMatchObject({
+        templateCopy: { description: "浏览更多商品选择。" },
+        copyRules: [
+          {
+            slot: "title",
+            maxCharacters: 20,
+            preferredLength: { minCharacters: 4, maxCharacters: 12 },
+          },
+          { slot: "description", maxCharacters: 180 },
+          { slot: "groups[].label", maxCharacters: 32 },
+        ],
+      });
+    expect(en.context.tasks.find(({ moduleId }) => moduleId === "explore-more"))
+      .toMatchObject({
+        templateCopy: { description: "Browse more product options." },
+        copyRules: [
+          {
+            slot: "title",
+            maxCharacters: 48,
+            preferredLength: {
+              minWords: 2,
+              maxWords: 5,
+              maxCharacters: 40,
+            },
+          },
+          { slot: "description", maxCharacters: 180 },
+          { slot: "groups[].label", maxCharacters: 48 },
+        ],
+      });
+    expect(zh.context.copyBrief.moduleObjectives.find(
+      ({ moduleId }) => moduleId === "explore-more",
+    )?.objective).toContain("全页唯一");
+    expect(en.context.copyBrief.moduleObjectives.find(
+      ({ moduleId }) => moduleId === "explore-more",
+    )?.objective).toContain("only structural heading");
+  });
+
+  it("binds Hero length guidance into CopyBrief for independent review", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const run = advanceTopicPageContentRun({
+      intent,
+      selection,
+      plan,
+      language: "zh",
+      audienceContext: topicAudienceContext("zh"),
+    });
+
+    if (run.status !== "needs-content-proposal") throw new Error("Expected content task.");
+    expect(run.context.copyBrief.moduleObjectives.find(({ moduleId }) => moduleId === "hero"))
+      .toMatchObject({
+        copyRules: [
+          {
+            slot: "title",
+            maxCharacters: 24,
+            preferredLength: { minCharacters: 8, maxCharacters: 18 },
+          },
+          {
+            slot: "description",
+            maxCharacters: 80,
+            preferredLength: { minCharacters: 28, maxCharacters: 50 },
+          },
+          { slot: "tags", maxCharacters: 32 },
+        ],
+      });
+  });
+
+  it("rejects generated wording that replaces template-owned module chrome", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const backgroundEvidence = backgroundEvidenceFixture(intent);
+    const proposal = proposalFixture(intent, selection, plan);
+    proposal.tasks.find(({ moduleId }) => moduleId === "popular-picks")!
+      .copy.title.text = "比较抹茶粉与调饮";
+
+    const run = advanceTopicPageContentRun({
+      intent,
+      selection,
+      plan,
+      language: "zh",
+      audienceContext: topicAudienceContext("zh"),
+      backgroundEvidence,
+      proposal,
+    });
+
+    expect(run).toMatchObject({
+      status: "blocked",
+      faultKind: "proposal-invalid",
+      issues: expect.arrayContaining([
+        'Copy field popular-picks.title must match template copy "热门精选".',
+      ]),
+    });
+  });
+
+  it("accepts one compact topic anchor only in the distant Explore More heading", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const backgroundEvidence = backgroundEvidenceFixture(intent);
+    const proposal = proposalFixture(intent, selection, plan);
+    proposal.tasks.find(({ moduleId }) => moduleId === "explore-more")!
+      .copy.title.text = "更多抹茶选择";
+
+    const run = advanceTopicPageContentRun({
+      intent,
+      selection,
+      plan,
+      language: "zh",
+      audienceContext: topicAudienceContext("zh"),
+      backgroundEvidence,
+      proposal,
+    });
+
+    expect(run.status).toBe("ready");
   });
 
   it("blocks background evidence from a different content language", () => {
@@ -710,7 +1214,7 @@ describe("TopicPageContent", () => {
     const selection = selectionFixture();
     const plan = planFixture(intent, selection);
     const proposal = proposalFixture(intent, selection, plan);
-    proposal.tasks[0]!.copy.description!.text = "长".repeat(181);
+    proposal.tasks[0]!.copy.description!.text = "长".repeat(81);
 
     const run = advanceTopicPageContentRun({
       intent,
@@ -723,7 +1227,45 @@ describe("TopicPageContent", () => {
     expect(run).toMatchObject({
       status: "blocked",
       issues: expect.arrayContaining([
-        "Copy field hero.description exceeds 180 characters.",
+        "Copy field hero.description exceeds 80 characters.",
+      ]),
+    });
+  });
+
+  it("keeps preferred Chinese Hero length non-blocking below the hard limit", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const proposal = proposalFixture(intent, selection, plan);
+    proposal.tasks[0]!.copy.title.text = "这是一条超过推荐范围但仍在硬上限内的抹茶标题";
+    proposal.tasks[0]!.copy.description!.text = "这是一段超过推荐范围但仍在硬上限以内的抹茶说明，用来证明推荐长度只负责引导精简，不会单独阻断合法且有证据支持的文案。";
+
+    expect(advanceTopicPageContentRun({
+      intent,
+      selection,
+      plan,
+      language: "zh",
+      proposal,
+    })).toMatchObject({ status: "ready" });
+  });
+
+  it("rejects a Chinese Hero title above its locale hard limit", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const proposal = proposalFixture(intent, selection, plan);
+    proposal.tasks[0]!.copy.title.text = "长".repeat(25);
+
+    expect(advanceTopicPageContentRun({
+      intent,
+      selection,
+      plan,
+      language: "zh",
+      proposal,
+    })).toMatchObject({
+      status: "blocked",
+      issues: expect.arrayContaining([
+        "Copy field hero.title exceeds 24 characters.",
       ]),
     });
   });
@@ -829,6 +1371,57 @@ describe("TopicPageContent", () => {
       status: "blocked",
       issues: expect.arrayContaining([
         "Copy field hero.title must use en copy except immutable proper nouns.",
+      ]),
+    });
+  });
+
+  it("requires every product-group tab label to use the requested locale", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const proposal = proposalFixture(intent, selection, plan);
+    proposal.language = "en";
+    evidencedSegments(proposal.tasks).forEach((segment) => {
+      segment.text = `Shop ${plan.keyword}`;
+    });
+    const popular = proposal.tasks.find(({ moduleId }) => moduleId === "popular-picks")!;
+    popular.copy.groups![0]!.label.text = "纯抹茶与茶道用粉";
+
+    expect(advanceTopicPageContentRun({
+      intent,
+      selection,
+      plan,
+      language: "en",
+      proposal,
+    })).toMatchObject({
+      status: "blocked",
+      issues: expect.arrayContaining([
+        "Copy field popular-picks.groups[0].label must use en copy except immutable proper nouns.",
+      ]),
+    });
+  });
+
+  it("rejects an English Hero title above its locale hard limit", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const proposal = proposalFixture(intent, selection, plan);
+    proposal.language = "en";
+    evidencedSegments(proposal.tasks).forEach((segment) => {
+      segment.text = `Shop ${plan.keyword}`;
+    });
+    proposal.tasks[0]!.copy.title.text = "A".repeat(61);
+
+    expect(advanceTopicPageContentRun({
+      intent,
+      selection,
+      plan,
+      language: "en",
+      proposal,
+    })).toMatchObject({
+      status: "blocked",
+      issues: expect.arrayContaining([
+        "Copy field hero.title exceeds 60 characters.",
       ]),
     });
   });

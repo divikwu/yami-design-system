@@ -58,6 +58,33 @@ describe("Topic Generator page automation runtime", () => {
     expect(timeout).toHaveBeenCalledWith(330_000);
   });
 
+  it("uses dedicated background and content review identities by default", async () => {
+    const requests: Array<{ stage: string; agentId: string }> = [];
+    const runtime = await loadTopicGeneratorPageAutomationRuntime({
+      environment: {
+        TOPIC_GENERATOR_PAGE_AGENT_ENDPOINT: "http://127.0.0.1:4400/topic-page",
+      },
+      fetch: vi.fn(async (_input, init) => {
+        const request = JSON.parse(String(init?.body)) as { stage: string; agentId: string };
+        requests.push(request);
+        return Response.json({
+          schemaVersion: "topic-page-agent-response/v1",
+          stage: request.stage,
+          proposal: {},
+        });
+      }),
+    });
+
+    await runtime.topicPageAgent?.proposeBackgroundEvidence({} as never);
+    await runtime.topicPageAgent?.reviewPageContent({} as never);
+
+    expect(requests.map(({ stage, agentId }) => ({ stage, agentId }))).toEqual([
+      { stage: "background-evidence", agentId: "topic-background-evidence" },
+      { stage: "content-review", agentId: "topic-content-review" },
+    ]);
+    expect(runtime.topicPageAgent?.reviewerAgentId).toBe("topic-content-review");
+  });
+
   it("publishes absolute local review previews from the configured asset root", async () => {
     const root = await mkdtemp(join(tmpdir(), "topic-page-runtime-"));
     roots.push(root);

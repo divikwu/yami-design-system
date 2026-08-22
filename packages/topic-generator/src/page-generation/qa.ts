@@ -104,7 +104,11 @@ export async function runTopicPageQa(options: RunTopicPageQaOptions): Promise<To
       add("modules", `Generated module ${module.id} products do not match TopicPagePlan assignments.`);
     }
     if (JSON.stringify(module.groups ?? []) !==
-      JSON.stringify(topicPageGeneratedProductGroups(selection, planModule))) {
+      JSON.stringify(topicPageGeneratedProductGroups(
+        selection,
+        planModule,
+        module.copy.groups,
+      ))) {
       add(
         "modules",
         `Generated module ${module.id} groups do not match ProductSelectionResult.`,

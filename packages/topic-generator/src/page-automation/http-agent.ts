@@ -24,7 +24,9 @@ export type HttpTopicPageAgentStage =
 
 export type HttpTopicPageAgent = TopicIntentAgent & TopicBackgroundEvidenceAgent &
   LandingPageOrchestratorAgent & PageMerchandisingAgent & TopicContentAgent &
-  TopicPageContentReviewAgent & TopicVisualAgent & TopicPageReviewAgent;
+  TopicPageContentReviewAgent & TopicVisualAgent & TopicPageReviewAgent & {
+    reviewerAgentId: string;
+  };
 
 export interface CreateHttpTopicPageAgentOptions {
   id: string;
@@ -152,11 +154,13 @@ export function createHttpTopicPageAgent(
   options: CreateHttpTopicPageAgentOptions,
 ): HttpTopicPageAgent {
   const fetchImplementation = options.fetch ?? fetch;
+  const agentIdFor = (stage: HttpTopicPageAgentStage) =>
+    options.agentIds?.[stage] ?? options.id;
   const requestProposal = async (
     stage: HttpTopicPageAgentStage,
     run: unknown,
   ): Promise<unknown | TopicPageVisualAgentOutput> => {
-    const agentId = options.agentIds?.[stage] ?? options.id;
+    const agentId = agentIdFor(stage);
     let response: Response;
     try {
       response = await fetchImplementation(options.endpoint, {
@@ -240,6 +244,7 @@ export function createHttpTopicPageAgent(
 
   return {
     id: options.id,
+    reviewerAgentId: agentIdFor("content-review"),
     proposeSemanticIntent: (run) => requestProposal("topic-intent", run),
     proposeBackgroundEvidence: (run) => requestProposal("background-evidence", run),
     proposeExecutionPlan: (run) => requestProposal("workflow-planning", run),

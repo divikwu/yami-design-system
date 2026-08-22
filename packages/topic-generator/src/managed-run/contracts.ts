@@ -32,7 +32,7 @@ export const TOPIC_GENERATOR_RUN_STAGE_MAX_ATTEMPTS: Readonly<
   "product-selection": 1,
   "module-merchandising": 2,
   "content-writing": 2,
-  "content-review": 2,
+  "content-review": 1,
   "visual-generation": 1,
   "asset-persistence": 1,
   "page-generation": 1,

@@ -121,6 +121,8 @@ StartHere、Popular、Brand、Explore 商品、顺序与场景分组；Hero 和 
 
 `runTopicContentAgentWorkflow` 可注入独立 `TopicContentAgent`，但 Agent 只生成文案 Proposal；
 任务边界、字段完整性、证据范围和 ContentSpec digest 都由核心 Module 拥有。
+受管 Web 运行会在同一个文案里程碑分别调用 `zh` 与 `en` 两次，并将两份独立审核通过的
+ContentSpec 保存到 `contentByLanguage`；两种语言共享冻结上游产物，但不共享或直译 Proposal。
 
 `runTopicBackgroundEvidenceAgentWorkflow` 在 ThemeIntent 确认后、选品能力之前运行。品牌主题优先
 品牌官网，Wikipedia 只作为次级中性背景；文化主题使用具名权威机构或 Wikipedia。产物
@@ -128,8 +130,10 @@ StartHere、Popular、Brand、Explore 商品、顺序与场景分组；Hero 和 
 来源、含义、传统或术语语境，不能证明商品功效、流行度、库存或评价。检索失败会形成显式
 `unavailable` bundle，不会从模型记忆补事实，也不会重新执行选品。
 
-自动文案链路会编译 `topic-page-copy-brief/v2`，把 AudienceContext、背景证据、模块购物任务与
-场景目标绑定到 ContentSpec。`runTopicPageContentReviewAgentWorkflow` 随后独立检查陌生用户可
+自动文案链路会编译 `topic-page-copy-brief/v3`，把 AudienceContext、背景证据、模板类型策略、
+优先主题信号、双语本地化策略、模块购物任务与场景目标绑定到 ContentSpec。Brand、Topic 与
+Campaign 使用不同创作方向，但不要求固定标题句式；中文与英文基于同一计划分别生成并按语言
+习惯适配。旧 v2 CopyBrief 仍可回放。`runTopicPageContentReviewAgentWorkflow` 随后独立检查陌生用户可
 理解性、主题 / 场景感、模块差异、证据边界与语言质量；首次 `content-quality` 会携带上一版
 ContentSpec 与结构化问题自动返回 Content Agent 重写一次，并再次独立审核。重写期间冻结
 ThemeIntent、BackgroundEvidence、选品、PagePlan、CopyBrief、语言与 digest；第二次仍未通过才

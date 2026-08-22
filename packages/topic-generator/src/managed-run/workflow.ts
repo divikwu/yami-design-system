@@ -39,7 +39,7 @@ import {
 import { buildTopicPagePlanFromProductSelection, buildTopicPagePlanMatrix } from "../planner.js";
 import type { HandleTopicGeneratorOptions } from "../server.js";
 import { runTopicIntentAgentWorkflow } from "../topic-intent.js";
-import type { TopicPlanMatrix } from "../types.js";
+import type { ContentLanguage, TopicPlanMatrix } from "../types.js";
 import { yamiCatalogCandidateAdapter } from "../yami-catalog.js";
 import type {
   TopicGeneratorDeliverableName,
@@ -58,6 +58,11 @@ export interface TopicIntentStageOutput {
 export interface BackgroundEvidenceStageOutput {
   backgroundEvidence: TopicBackgroundEvidenceBundle;
   run: Awaited<ReturnType<typeof runTopicBackgroundEvidenceAgentWorkflow>>["run"] | null;
+  backgroundEvidenceByLanguage: Record<ContentLanguage, TopicBackgroundEvidenceBundle>;
+  runByLanguage: Record<
+    ContentLanguage,
+    Awaited<ReturnType<typeof runTopicBackgroundEvidenceAgentWorkflow>>["run"] | null
+  >;
 }
 
 export interface ProductSelectionStageOutput {
@@ -78,6 +83,10 @@ export interface ModuleMerchandisingStageOutput {
 export interface ContentWritingStageOutput {
   contentSpec: TopicPageContentSpec;
   contentAttempt?: Awaited<ReturnType<typeof runTopicContentAgentWorkflow>>["artifacts"];
+  contentByLanguage: Record<ContentLanguage, {
+    contentSpec: TopicPageContentSpec;
+    contentAttempt?: Awaited<ReturnType<typeof runTopicContentAgentWorkflow>>["artifacts"];
+  }>;
 }
 
 export interface ContentReviewStageOutput {
@@ -90,6 +99,25 @@ export interface ContentReviewStageOutput {
     Awaited<ReturnType<typeof runTopicPageContentApprovalWorkflow>>,
     { status: "ready" }
   >["contentReview"];
+  revisionAttempt?: Extract<
+    Awaited<ReturnType<typeof runTopicPageContentApprovalWorkflow>>,
+    { status: "ready" }
+  >["revisionAttempt"];
+  contentByLanguage: Record<ContentLanguage, {
+    contentSpec: TopicPageContentSpec;
+    copyBrief: Extract<
+      Awaited<ReturnType<typeof runTopicPageContentApprovalWorkflow>>,
+      { status: "ready" }
+    >["copyBrief"];
+    contentReview: Extract<
+      Awaited<ReturnType<typeof runTopicPageContentApprovalWorkflow>>,
+      { status: "ready" }
+    >["contentReview"];
+    revisionAttempt?: Extract<
+      Awaited<ReturnType<typeof runTopicPageContentApprovalWorkflow>>,
+      { status: "ready" }
+    >["revisionAttempt"];
+  }>;
 }
 
 export interface VisualGenerationStageOutput {
@@ -146,6 +174,10 @@ function required<T>(value: unknown, label: string): T {
     throw new Error(`${label} is missing from the managed run.`);
   }
   return value as T;
+}
+
+function contentLanguages(primary: ContentLanguage): [ContentLanguage, ContentLanguage] {
+  return primary === "zh" ? ["zh", "en"] : ["en", "zh"];
 }
 
 async function stageOutputs(
@@ -262,44 +294,71 @@ async function backgroundEvidenceStage(
     "Topic intent stage",
   );
   const { intent, snapshot } = intentOutput.analysis;
-  const workflow = options.topicPageAgent
-    ? await runTopicBackgroundEvidenceAgentWorkflow({
-        intent,
-        keyword: snapshot.keyword,
-        site: snapshot.site,
-        language: manifest.request.language,
-        agent: options.topicPageAgent,
-      })
-    : null;
-  const backgroundEvidence = workflow?.bundle ?? unavailableTopicBackgroundEvidence({
-    intent,
-    keyword: snapshot.keyword,
-    site: snapshot.site,
-    language: manifest.request.language,
-  }, ["Background Evidence Agent is not configured."]);
+  const localized = await Promise.all(contentLanguages(manifest.request.language).map(
+    async (language) => {
+      const workflow = options.topicPageAgent
+        ? await runTopicBackgroundEvidenceAgentWorkflow({
+            intent,
+            keyword: snapshot.keyword,
+            site: snapshot.site,
+            language,
+            agent: options.topicPageAgent,
+          })
+        : null;
+      return {
+        language,
+        workflow,
+        backgroundEvidence: workflow?.bundle ?? unavailableTopicBackgroundEvidence({
+          intent,
+          keyword: snapshot.keyword,
+          site: snapshot.site,
+          language,
+        }, ["Background Evidence Agent is not configured."]),
+      };
+    },
+  ));
+  const byLanguage = Object.fromEntries(localized.map(({ language, backgroundEvidence }) => [
+    language,
+    backgroundEvidence,
+  ])) as Record<ContentLanguage, TopicBackgroundEvidenceBundle>;
+  const runByLanguage = Object.fromEntries(localized.map(({ language, workflow }) => [
+    language,
+    workflow?.run ?? null,
+  ])) as BackgroundEvidenceStageOutput["runByLanguage"];
+  const backgroundEvidence = byLanguage[manifest.request.language];
+  const workflow = localized.find(({ language }) => language === manifest.request.language)!
+    .workflow;
   const output: BackgroundEvidenceStageOutput = {
     backgroundEvidence,
     run: workflow?.run ?? null,
+    backgroundEvidenceByLanguage: byLanguage,
+    runByLanguage,
   };
   const html = await options.deliverableRenderer.render({
     name: "topic-brief.html",
     manifest,
     stages: await stageOutputs(readStageResult, "background-evidence", output),
   });
-  const blockedIssues = workflow?.run.status === "ready"
-    ? []
-    : backgroundEvidence.issues.length > 0
-      ? backgroundEvidence.issues
-      : ["Background evidence could not be completed."];
+  const blockedIssues = localized.flatMap(({ language, workflow: localizedWorkflow, backgroundEvidence }) =>
+    localizedWorkflow?.run.status === "ready"
+      ? []
+      : (backgroundEvidence.issues.length > 0
+          ? backgroundEvidence.issues
+          : ["Background evidence could not be completed."])
+        .map((issue) => `${language}: ${issue}`)
+  );
   return {
     status: blockedIssues.length > 0 ? "blocked" : "completed",
     request: {
       themeIntentDigest: backgroundEvidence.themeIntentDigest,
       language: manifest.request.language,
     },
-    proposal: workflow?.run && "proposalReview" in workflow.run
-      ? workflow.run.proposalReview.proposal ?? null
-      : null,
+    proposal: Object.fromEntries(localized.map(({ language, workflow }) => [
+      language,
+      workflow?.run && "proposalReview" in workflow.run
+        ? workflow.run.proposalReview.proposal ?? null
+        : null,
+    ])),
     output,
     ...(blockedIssues.length > 0 ? { issues: blockedIssues } : {}),
     deliverables: { "topic-brief.html": html },
@@ -544,34 +603,58 @@ async function contentWritingStage(
     await readStageResult("module-merchandising"),
     "Module merchandising stage",
   );
-  const workflow = await runTopicContentAgentWorkflow({
-    intent: intentOutput.analysis.intent,
-    selection: selectionOutput.selection,
-    plan: moduleOutput.plan,
-    language: manifest.request.language,
-    audienceContext: topicAudienceContext(manifest.request.language),
-    backgroundEvidence: backgroundOutput.backgroundEvidence,
-    agent: options.topicPageAgent,
-  });
-  if (workflow.run.status !== "ready") {
+  const localized = await Promise.all(contentLanguages(manifest.request.language).map(
+    async (language) => ({
+      language,
+      workflow: await runTopicContentAgentWorkflow({
+        intent: intentOutput.analysis.intent,
+        selection: selectionOutput.selection,
+        plan: moduleOutput.plan,
+        language,
+        audienceContext: topicAudienceContext(language),
+        backgroundEvidence: backgroundOutput.backgroundEvidenceByLanguage[language],
+        agent: options.topicPageAgent!,
+      }),
+    }),
+  ));
+  const failed = localized.filter(({ workflow }) => workflow.run.status !== "ready");
+  if (failed.length > 0) {
     return blocked(
-      { contentRun: workflow.run, contentAttempt: workflow.artifacts },
-      workflow.run.status === "blocked"
-        ? workflow.run.issues
-        : ["Content Agent returned no proposal."],
+      { contentByLanguage: Object.fromEntries(localized.map(({ language, workflow }) => [
+        language,
+        { contentRun: workflow.run, contentAttempt: workflow.artifacts },
+      ])) },
+      failed.flatMap(({ language, workflow }) => (
+        workflow.run.status === "blocked"
+          ? workflow.run.issues
+          : ["Content Agent returned no proposal."]
+      ).map((issue) => `${language}: ${issue}`)),
     );
   }
+  const contentByLanguage = Object.fromEntries(localized.map(({ language, workflow }) => {
+    const ready = workflow.run as Extract<typeof workflow.run, { status: "ready" }>;
+    return [language, {
+      contentSpec: ready.spec,
+      ...(workflow.artifacts ? { contentAttempt: workflow.artifacts } : {}),
+    }];
+  })) as ContentWritingStageOutput["contentByLanguage"];
+  const primary = contentByLanguage[manifest.request.language];
   const output: ContentWritingStageOutput = {
-    contentSpec: workflow.run.spec,
-    ...(workflow.artifacts ? { contentAttempt: workflow.artifacts } : {}),
+    contentSpec: primary.contentSpec,
+    ...(primary.contentAttempt ? { contentAttempt: primary.contentAttempt } : {}),
+    contentByLanguage,
   };
   return {
     status: "completed",
     request: {
       topicPagePlanDigest: moduleOutput.plan.digest,
-      backgroundEvidenceDigest: backgroundOutput.backgroundEvidence.digest,
+      backgroundEvidenceDigests: Object.fromEntries(contentLanguages(manifest.request.language)
+        .map((language) => [language, backgroundOutput.backgroundEvidenceByLanguage[language].digest])),
     },
-    proposal: workflow.artifacts?.proposal ?? null,
+    proposal: Object.fromEntries(localized.map(({ language, workflow }) => [
+      language,
+      workflow.artifacts?.proposal ?? null,
+    ])),
     output,
   };
 }
@@ -604,32 +687,64 @@ async function contentReviewStage(
     await readStageResult("content-writing"),
     "Content writing stage",
   );
-  const workflow = await runTopicPageContentApprovalWorkflow({
-    intent: intentOutput.analysis.intent,
-    selection: selectionOutput.selection,
-    plan: moduleOutput.plan,
-    language: manifest.request.language,
-    audienceContext: topicAudienceContext(manifest.request.language),
-    backgroundEvidence: backgroundOutput.backgroundEvidence,
-    contentSpec: contentOutput.contentSpec,
-    contentAgent: options.topicPageAgent,
-    reviewAgent: options.topicPageAgent,
-  });
-  if (workflow.status !== "ready") {
-    return blocked(workflow, workflow.issues);
+  const localized = await Promise.all(contentLanguages(manifest.request.language).map(
+    async (language) => ({
+      language,
+      workflow: await runTopicPageContentApprovalWorkflow({
+        intent: intentOutput.analysis.intent,
+        selection: selectionOutput.selection,
+        plan: moduleOutput.plan,
+        language,
+        audienceContext: topicAudienceContext(language),
+        backgroundEvidence: backgroundOutput.backgroundEvidenceByLanguage[language],
+        contentSpec: contentOutput.contentByLanguage[language].contentSpec,
+        contentAgent: options.topicPageAgent!,
+        reviewAgent: options.topicPageAgent!,
+      }),
+    }),
+  ));
+  const failed = localized.filter(({ workflow }) => workflow.status !== "ready");
+  if (failed.length > 0) {
+    return blocked(
+      { contentByLanguage: Object.fromEntries(localized.map(({ language, workflow }) => [
+        language,
+        workflow,
+      ])) },
+      failed.flatMap(({ language, workflow }) => {
+        const blockedWorkflow = workflow as Exclude<typeof workflow, { status: "ready" }>;
+        return blockedWorkflow.issues.map((issue) => `${language}: ${issue}`);
+      }),
+    );
   }
+  const contentByLanguage = Object.fromEntries(localized.map(({ language, workflow }) => {
+    const ready = workflow as Extract<typeof workflow, { status: "ready" }>;
+    return [language, {
+      contentSpec: ready.contentSpec,
+      copyBrief: ready.copyBrief,
+      contentReview: ready.contentReview,
+      ...(ready.revisionAttempt ? { revisionAttempt: ready.revisionAttempt } : {}),
+    }];
+  })) as ContentReviewStageOutput["contentByLanguage"];
+  const primary = contentByLanguage[manifest.request.language];
   const output: ContentReviewStageOutput = {
-    contentSpec: workflow.contentSpec,
-    copyBrief: workflow.copyBrief,
-    contentReview: workflow.contentReview,
+    contentSpec: primary.contentSpec,
+    copyBrief: primary.copyBrief,
+    contentReview: primary.contentReview,
+    ...(primary.revisionAttempt ? { revisionAttempt: primary.revisionAttempt } : {}),
+    contentByLanguage,
   };
   return {
     status: "completed",
     request: {
-      contentSpecDigest: contentOutput.contentSpec.digest,
-      backgroundEvidenceDigest: backgroundOutput.backgroundEvidence.digest,
+      contentSpecDigests: Object.fromEntries(contentLanguages(manifest.request.language)
+        .map((language) => [language, contentOutput.contentByLanguage[language].contentSpec.digest])),
+      backgroundEvidenceDigests: Object.fromEntries(contentLanguages(manifest.request.language)
+        .map((language) => [language, backgroundOutput.backgroundEvidenceByLanguage[language].digest])),
     },
-    proposal: workflow.contentReview,
+    proposal: Object.fromEntries(contentLanguages(manifest.request.language).map((language) => [
+      language,
+      contentByLanguage[language].contentReview,
+    ])),
     output,
   };
 }
