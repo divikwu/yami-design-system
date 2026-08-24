@@ -53,12 +53,12 @@ const BRAND_CANDIDATE_DIRECTIONS = [
   {
     id: "candidate-1",
     focus: "brand-position",
-    objective: "Express the strongest evidence-supported brand position or idea; use identity only as supporting context, not as the proposition.",
+    objective: "Create a compact brand-positioning capsule for a newcomer: combine the canonical brand name with supported category or identity context and the strongest evidence-backed distinction or shopper value across the Hero pair. When natural, let the headline itself state the brand, category or identity, and distinction instead of hiding them behind abstract wrapper labels such as brand promise, concept, approach, 主张, 构思, or 视角. A colon is optional, and identity should orient rather than stand alone as the proposition. Use the description to translate the distinction into two or three supported shopper needs or choice benefits rather than a category inventory.",
   },
   {
     id: "candidate-2",
     focus: "signature-concept",
-    objective: "Build the Hero around the most distinctive brand-defined concept or terminology in the eligible evidence, not catalog navigation.",
+    objective: "Build the Hero around the most distinctive brand-defined concept, terminology, or signature ingredient explicitly supported by eligible evidence, not catalog navigation.",
   },
   {
     id: "candidate-3",
@@ -77,6 +77,9 @@ const BRAND_CANDIDATE_DIRECTIONS = [
   },
 ] as const satisfies readonly TopicPageContentCandidateDirection[];
 
+const BRAND_TITLE_ANCHOR_PREFERENCE =
+  "When it reads naturally, include the canonical brand name once in the Hero headline and let the complete pair answer what the brand is, what distinguishes it, and why it matters to the shopper. When one precise category clearly represents the brand and is supported, prefer that category in the headline. For a multi-category brand, do not falsely narrow it; prefer the narrowest accurate supported umbrella category or identity. If no umbrella identity is supported, keep the brand and distinction in the headline and leave representative category breadth to the description, tags, and category navigation instead of inventing an identity or enumerating the taxonomy. Prefer distinct supported tag axes such as signature concept or ingredient, formulation or position, and shopper need or category. These are editorial preferences, never validity requirements.";
+
 const SELECTION_CRITERIA = [
   "newcomer-orientation",
   "theme-specificity",
@@ -85,6 +88,8 @@ const SELECTION_CRITERIA = [
   "module-differentiation",
   "evidence-claim-alignment",
   "language-quality",
+  "locale-naturalness",
+  "topic-anchor-visibility",
   "cross-module-coherence",
   "consumer-relevance",
   "editorial-quality",
@@ -95,6 +100,8 @@ const SELECTION_CRITERIA = [
 const ADVISORY_SELECTION_CRITERIA = [
   "evidence-claim-alignment",
   "language-quality",
+  "locale-naturalness",
+  "topic-anchor-visibility",
   "consumer-relevance",
   "meta-navigation-avoidance",
   "module-redundancy-avoidance",
@@ -128,15 +135,21 @@ export function topicPageContentCandidateGeneration(
   const available = new Set(context.tasks.map(({ moduleId }) => moduleId));
   const targetModuleIds = (["hero", "start-here"] as const).filter((id) => available.has(id));
   if (targetModuleIds.length === 0) return null;
-  const directions = context.copyBrief.schemaVersion === "topic-page-copy-brief/v3" &&
-      context.copyBrief.heroStrategy.kind === "brand"
+  const brandBrief = context.copyBrief.schemaVersion === "topic-page-copy-brief/v3" &&
+    context.copyBrief.heroStrategy.kind === "brand";
+  const directions = brandBrief
     ? BRAND_CANDIDATE_DIRECTIONS
     : TOPIC_PAGE_CONTENT_CANDIDATE_DIRECTIONS;
   return {
     schemaVersion: "topic-page-content-candidate-generation/v1",
     candidateCount: 5,
     targetModuleIds,
-    directions: directions.map((direction) => ({ ...direction })),
+    directions: directions.map((direction) => ({
+      ...direction,
+      objective: brandBrief
+        ? `${direction.objective} ${BRAND_TITLE_ANCHOR_PREFERENCE}`
+        : direction.objective,
+    })),
     selectionUnit: "module-package-with-optional-scene-picks",
     sharedTaskPolicy: "generate-once-preserve-exactly",
   };
@@ -507,7 +520,7 @@ export async function runTopicPageContentCandidateSelectorWorkflow(request: {
       "topic-page-copy-brief/v3" &&
     request.contentContext.copyBrief.heroStrategy.kind === "brand";
   const brandCriterion = brandBrief
-    ? (["brand-distinctiveness"] as const)
+    ? (["brand-distinctiveness", "brand-category-orientation"] as const)
     : [];
   const pending = {
     schemaVersion: "topic-page-content-candidate-selection-run/v1" as const,

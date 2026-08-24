@@ -736,10 +736,40 @@ export class TopicGeneratorRunStore {
           diagnostics.push(`Deliverable ${deliverable.name} failed integrity validation.`);
         }
       }
+      let retainedVisualPreview: {
+        sourceRunId: string;
+        pageGeneration: unknown;
+      } | undefined;
+      let ancestorRunId = run.manifest.parentRunId;
+      const visitedRunIds = new Set([run.manifest.runId]);
+      while (!stageResults["page-generation"] && ancestorRunId &&
+          !visitedRunIds.has(ancestorRunId)) {
+        visitedRunIds.add(ancestorRunId);
+        try {
+          const ancestor = await this.read(ancestorRunId);
+          const pageStage = ancestor.state.stages.find(({ id }) => id === "page-generation");
+          if (pageStage?.status === "completed" && pageStage.attempts > 0) {
+            const envelope = await this.readStageEnvelope(ancestorRunId, "page-generation");
+            if (envelope?.status === "completed") {
+              retainedVisualPreview = {
+                sourceRunId: ancestorRunId,
+                pageGeneration: envelope.output,
+              };
+              break;
+            }
+          }
+          ancestorRunId = ancestor.manifest.parentRunId;
+        } catch (error) {
+          if (!(error instanceof TopicGeneratorRunNotFoundError) &&
+              !(error instanceof TopicGeneratorRunValidationError)) throw error;
+          break;
+        }
+      }
       return {
         schemaVersion: "topic-generator-run-detail/v1",
         ...run,
         stageResults,
+        ...(retainedVisualPreview ? { retainedVisualPreview } : {}),
         diagnostics,
       };
     } catch (error) {

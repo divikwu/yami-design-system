@@ -13,10 +13,11 @@ import type {
   YamiProduct,
   YamiSearchSnapshot,
 } from "./types.js";
-import { buildSearchFallbackIntent, weeklySalesLowerBound } from "./yami-catalog.js";
+import { buildSearchFallbackIntent } from "./yami-catalog.js";
 import { getProductSelectionStrategyConfig } from "./product-selection/config.js";
 import type { ProductSelectionResult } from "./product-selection/contracts.js";
 import { advanceProductSelectionRun } from "./product-selection/run.js";
+import { rankDistinctEditorialProducts } from "./product-selection/editorial-ranking.js";
 
 /** Compile verified intent evidence into reviewable page-plan variants. */
 
@@ -222,16 +223,13 @@ function popularPickGroups(
   language: ContentLanguage,
 ) {
   const productsById = new Map(products.map((product) => [product.id, product]));
-  const rankedProducts = (productIds: string[]) => productIds
-    .flatMap((id) => {
+  const rankedProducts = (productIds: string[]) => rankDistinctEditorialProducts(
+    productIds.flatMap((id) => {
       const product = productsById.get(id);
       return product ? [product] : [];
-    })
-    .sort((left, right) =>
-      weeklySalesLowerBound(right) - weeklySalesLowerBound(left) ||
-      left.sourceRank - right.sourceRank
-    )
-    .slice(0, POPULAR_PICKS_MAXIMUM_PRODUCTS);
+    }),
+    POPULAR_PICKS_MAXIMUM_PRODUCTS,
+  );
   const allProducts = rankedProducts(products.map(({ id }) => id));
   if (allProducts.length < POPULAR_PICKS_MINIMUM_PRODUCTS) return [];
 

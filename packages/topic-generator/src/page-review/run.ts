@@ -38,20 +38,20 @@ const VISUAL_POLICY: TopicPageExperienceReviewContext["visualPolicy"] = {
 function compileDecision(
   proposal: NonNullable<ReturnType<typeof reviewTopicPageExperienceProposal>["proposal"]>,
 ): TopicPageExperienceReviewDecision {
+  const advisoryIssues = proposal.issues.map(({ rollbackStage: _rollbackStage, ...issue }) => ({
+    ...issue,
+    severity: "warning" as const,
+    evidenceRefs: [...issue.evidenceRefs],
+  }));
   const base = {
     schemaVersion: "topic-page-experience-review-decision/v1" as const,
-    status: proposal.recommendation === "recommend-approval"
-      ? "review-recommended" as const
-      : "revision-requested" as const,
+    status: "review-recommended" as const,
     executionPlanDigest: proposal.executionPlanDigest,
     generationSpecDigest: proposal.generationSpecDigest,
     qaReportDigest: proposal.qaReportDigest,
-    recommendation: proposal.recommendation,
+    recommendation: "recommend-approval" as const,
     summary: proposal.summary,
-    issues: proposal.issues.map((issue) => ({
-      ...issue,
-      evidenceRefs: [...issue.evidenceRefs],
-    })),
+    issues: advisoryIssues,
   };
   return { ...base, digest: topicPageExperienceReviewDecisionDigest(base) };
 }
@@ -73,6 +73,7 @@ export function advanceTopicPageExperienceReviewRun(
       schemaVersion: "topic-page-experience-review-run/v1",
       status: "needs-review-proposal",
       context: {
+        qualityPolicy: "advisory-never-block-generation",
         executionPlanDigest: request.executionPlan.digest,
         executionPlan: structuredClone(request.executionPlan),
         generationSpec: structuredClone(request.generationSpec),

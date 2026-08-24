@@ -57,7 +57,7 @@ function ThemeProductListContentPanel({
       <div className={styles.overlay} data-slot="theme-product-list-overlay">
         <AdaptiveImageScrim data-slot="theme-product-list-scrim" />
         <h3 className={styles.title}>{title}</h3>
-        <p className={styles.description}>{description}</p>
+        {description ? <p className={styles.description}>{description}</p> : null}
       </div>
     </div>
   );

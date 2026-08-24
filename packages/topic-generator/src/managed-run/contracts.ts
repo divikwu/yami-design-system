@@ -183,6 +183,10 @@ export interface TopicGeneratorManagedRun {
 export interface TopicGeneratorRunDetail extends TopicGeneratorManagedRun {
   schemaVersion: "topic-generator-run-detail/v1";
   stageResults: Partial<Record<TopicGeneratorRunStageId, unknown>>;
+  retainedVisualPreview?: {
+    sourceRunId: string;
+    pageGeneration: unknown;
+  };
   diagnostics: string[];
 }
 

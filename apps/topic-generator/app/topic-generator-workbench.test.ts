@@ -110,6 +110,160 @@ describe("Topic Generator Workbench preview", () => {
     }))).toContain('data-generation-spec="sha256:generation"');
   });
 
+  it("renders current copy with retained visuals from the previous page version", () => {
+    const plan = {
+      generationMode: "selection",
+      keyword: "ANUA",
+      site: "us",
+      language: "zh",
+      content: {
+        eyebrow: "",
+        headline: "",
+        description: "",
+        tags: [],
+        copyMode: "not-generated",
+      },
+      selectedCategories: [],
+      products: [{
+        id: "1",
+        title: "ANUA Cleanser",
+        brand: "ANUA",
+        price: "$12.00",
+        imageUrl: "/products/1.webp",
+        productUrl: "/products/1",
+        sourceRank: 1,
+      }],
+      modules: [{
+        id: "hero",
+        label: "Hero",
+        heading: "",
+        description: "",
+        required: true,
+        visible: true,
+        productIds: ["1"],
+        reason: "Hero product",
+      }, {
+        id: "shortcuts",
+        label: "Shortcuts",
+        heading: "",
+        description: "",
+        required: true,
+        visible: true,
+        productIds: ["1"],
+        groups: [{ id: "cleanser", label: "清洁", role: "core", productIds: ["1"] }],
+        reason: "Shortcut product",
+      }, {
+        id: "start-here",
+        label: "Start here",
+        heading: "",
+        description: "",
+        required: true,
+        visible: true,
+        productIds: ["1"],
+        groups: [{ id: "daily", label: "日常护理", role: "core", productIds: ["1"] }],
+        reason: "Daily scene",
+      }],
+      generatedAt: "2026-08-24T01:00:00.000Z",
+    } as unknown as Extract<TopicPagePreviewRendererProps, { mode: "selection" }>["plan"];
+    const contentSpec = {
+      tasks: [{
+        moduleId: "hero",
+        copy: {
+          title: { text: "ANUA 温和有效的韩系护肤", evidenceRefs: [] },
+          description: { text: "这是重新生成的文案。", evidenceRefs: [] },
+        },
+      }, {
+        moduleId: "shortcuts",
+        copy: {
+          title: { text: "按品类探索", evidenceRefs: [] },
+          items: [{ label: { text: "温和清洁", evidenceRefs: [] } }],
+        },
+      }, {
+        moduleId: "start-here",
+        copy: {
+          title: { text: "建立你的 ANUA 护理路径", evidenceRefs: [] },
+          scenes: [{
+            sceneId: "daily",
+            label: { text: "每日基础", evidenceRefs: [] },
+            title: { text: "搭好每日基础", evidenceRefs: [] },
+            description: { text: "这是重新生成的主题专辑文案。", evidenceRefs: [] },
+          }],
+        },
+      }],
+    } as unknown as Extract<TopicPagePreviewRendererProps, { mode: "content" }>["contentSpec"];
+    const retainedVisualSpec = {
+      language: "zh",
+      modules: [{
+        id: "hero",
+        assets: [{
+          url: "/assets/retained-hero.webp",
+          width: 1600,
+          height: 900,
+          focalPoint: { x: 0.5, y: 0.45 },
+          backgroundColor: "#b69e7d",
+          altText: { text: "ANUA 护肤场景" },
+        }],
+      }, {
+        id: "shortcuts",
+        assets: [{
+          url: "/assets/retained-shortcut.webp",
+          focalPoint: { x: 0.5, y: 0.5 },
+          altText: null,
+        }],
+      }, {
+        id: "start-here",
+        scenes: [{ id: "daily" }],
+        assets: [{
+          url: "/assets/retained-daily.webp",
+          focalPoint: { x: 0.25, y: 0.4 },
+          backgroundColor: "#e8e1d5",
+          altText: { text: "每日护理场景" },
+        }],
+      }],
+      digest: "sha256:retained-visual",
+    } as unknown as GenerationSpec;
+
+    const props = contentPrototypeProps(
+      "landing-page/topic@2",
+      plan,
+      contentSpec,
+      retainedVisualSpec,
+    );
+
+    expect(props.hero).toMatchObject({
+      title: "ANUA 温和有效的韩系护肤",
+      description: "这是重新生成的文案。",
+      image: { src: "/assets/retained-hero.webp" },
+      backgroundImageSrc: "/assets/retained-hero.webp",
+    });
+    expect(props.shortcutRail.items[0]).toMatchObject({
+      label: "温和清洁",
+      iconSrc: "/assets/retained-shortcut.webp",
+      imagePresentation: "full-bleed",
+    });
+    expect(props.standardRail?.themes?.[0]).toMatchObject({
+      value: "daily",
+      label: "每日基础",
+      content: {
+        title: "搭好每日基础",
+        description: "这是重新生成的主题专辑文案。",
+        image: {
+          src: "/assets/retained-daily.webp",
+          objectPosition: "25% 40%",
+        },
+      },
+    });
+    const markup = renderToStaticMarkup(createElement(RealTopicPagePreview, {
+      mode: "content",
+      pageTypeRef: "landing-page/topic@2",
+      plan,
+      contentSpec,
+      retainedVisualSpec,
+    }));
+    expect(markup).toContain("ANUA 温和有效的韩系护肤");
+    expect(markup).toContain("/assets/retained-hero.webp");
+  });
+
   it("does not restore template descriptions when generated modules omit them", () => {
     const generationSpec = {
       schemaVersion: "topic-page-generation-spec/v1",
@@ -177,6 +331,54 @@ describe("Topic Generator Workbench preview", () => {
     expect(props.standardRail?.content.description).toBeUndefined();
   });
 
+  it("links generated category shortcuts to the matching recommendation tab", () => {
+    const generationSpec = {
+      keyword: "ANUA",
+      language: "en",
+      modules: [{
+        id: "shortcuts",
+        copy: {
+          title: { text: "Featured categories" },
+          items: [{ label: { text: "Cleansers" } }, { label: { text: "Serums" } }],
+        },
+        products: ["1", "2"].map((id) => ({
+          id,
+          title: `ANUA ${id}`,
+          brand: "ANUA",
+          price: "$10.00",
+          imageUrl: `/products/${id}.webp`,
+          productUrl: `/products/${id}`,
+        })),
+        groups: [{ id: "cleansers", label: "Cleansers", productIds: ["1"] }, {
+          id: "serums",
+          label: "Serums",
+          productIds: ["2"],
+        }],
+        assets: [
+          { url: "/assets/generated-cleanser-lifestyle.webp" },
+          { url: "/assets/generated-serum-lifestyle.webp" },
+        ],
+      }],
+    } as unknown as GenerationSpec;
+
+    const props = generatedPrototypeProps("landing-page/brand@2", generationSpec);
+
+    expect(props.shortcutRail.items.map(({ href }) => href)).toEqual([
+      "#explore-more-cleansers",
+      "#explore-more-serums",
+    ]);
+    expect(props.shortcutRail.items).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        iconSrc: "/assets/generated-cleanser-lifestyle.webp",
+        imagePresentation: "full-bleed",
+      }),
+      expect.objectContaining({
+        iconSrc: "/assets/generated-serum-lifestyle.webp",
+        imagePresentation: "full-bleed",
+      }),
+    ]));
+  });
+
   it("preserves generated Popular Picks and Explore More product groups as tabs", () => {
     const generationSpec = {
       schemaVersion: "topic-page-generation-spec/v1",
@@ -229,10 +431,10 @@ describe("Topic Generator Workbench preview", () => {
         },
         products: Array.from({ length: 14 }, (_, index) => String(index + 1)).map((id, index) => ({
           id,
-          title: `ANUA ${id}`,
+          title: index < 2 ? "ANUA Heartleaf Cleanser" : `ANUA ${id}`,
           brand: "ANUA",
           price: "$10.00",
-          imageUrl: `/products/${id}.webp`,
+          imageUrl: index < 2 ? "https://cdn.example.com/shared.webp" : `/products/${id}.webp`,
           productUrl: `/products/${id}`,
           sourceRank: index + 1,
           pool: "primary" as const,
@@ -257,11 +459,17 @@ describe("Topic Generator Workbench preview", () => {
     ]);
     expect(props.productRail.productsByTab?.cleanser.map(({ id }) => id)).toEqual(["1"]);
     expect(props.waterfall.tabs).toEqual([
+      { value: "explore-more-all", label: "全部" },
       { value: "treatment", label: "护理" },
       { value: "all-treatments", label: "全部护理" },
     ]);
     expect(props.waterfall.productsByTab?.treatment.map(({ id }) => id)).toEqual(["2"]);
-    expect(props.waterfall.defaultValue).toBe("all-treatments");
+    expect(props.waterfall.defaultValue).toBe("explore-more-all");
+    expect(props.waterfall.productsByTab?.["explore-more-all"]).toHaveLength(12);
+    expect(props.waterfall.productsByTab?.["explore-more-all"].map(({ id }) => id))
+      .not.toContain("2");
+    expect(props.waterfall.productsByTab?.["explore-more-all"].map(({ id }) => id))
+      .toContain("13");
     expect(props.waterfall.productsByTab?.["all-treatments"]).toHaveLength(12);
   });
 
@@ -359,11 +567,16 @@ describe("Topic Generator Workbench preview", () => {
     ]);
     expect(props.productRail.productsByTab?.cleansers.map(({ id }) => id)).toEqual(["1"]);
     expect(props.waterfall.tabs).toEqual([
+      { value: "explore-more-all", label: "全部" },
       { value: "cleansers", label: "清洁" },
       { value: "treatments", label: "护理" },
     ]);
+    expect(props.waterfall.productsByTab?.["explore-more-all"].map(({ id }) => id)).toEqual([
+      "1",
+      "2",
+    ]);
     expect(props.waterfall.productsByTab?.treatments.map(({ id }) => id)).toEqual(["2", "1"]);
-    expect(props.waterfall.defaultValue).toBe("treatments");
+    expect(props.waterfall.defaultValue).toBe("explore-more-all");
     expect(props.reviewList).toBeUndefined();
     expect(props.hiddenModules).toContain("reviews");
     const markup = renderToStaticMarkup(createElement(RealTopicPagePreview, {
@@ -419,6 +632,17 @@ describe("Topic Generator Workbench preview", () => {
         required: true,
         visible: true,
         productIds: ["1", "2"],
+        groups: [{
+          id: "tea",
+          label: "茶饮",
+          role: "core",
+          productIds: ["1"],
+        }, {
+          id: "snacks",
+          label: "零食",
+          role: "core",
+          productIds: ["2"],
+        }],
         reason: "Reviewed category shortcuts.",
       }, {
         id: "start-here",
@@ -497,6 +721,10 @@ describe("Topic Generator Workbench preview", () => {
     );
     expect(props.hero.tags).toEqual(["茶饮", "零食"]);
     expect(props.shortcutRail.title).toBe("按品类浏览 Matcha");
+    expect(props.shortcutRail.items.map(({ href }) => href)).toEqual([
+      "#explore-more-tea",
+      "#explore-more-snacks",
+    ]);
     expect(props.standardRail?.title).toBe("按选购场景开始浏览");
     expect(props.standardRail?.content.title).toBe("日常选择");
     expect(props.standardRail?.content.description).toBe(
@@ -592,6 +820,7 @@ describe("Topic Generator Workbench preview", () => {
       { value: "pure-matcha", label: "Pure Matcha Powder" },
     ]);
     expect(generatedCopyProps.waterfall.tabs).toEqual([
+      { value: "explore-more-all", label: "全部" },
       { value: "matcha-tools", label: "Matcha Tools and More" },
     ]);
   });

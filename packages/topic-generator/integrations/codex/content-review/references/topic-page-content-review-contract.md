@@ -46,9 +46,33 @@ language when the cited evidence establishes category presence but not a care or
 Use every entry in `selectionPolicy.advisoryCriteria` to prefer the strongest available copy, and
 compare every candidate with its `direction.objective`. For Brand briefs, prefer a supported brand
 position, idea, or other point of distinction over generic identity plus instructions for browsing
-the page. Meta-navigation and repetition are weaknesses, not hard gates. Always return one base
+the page. Apply `topic-anchor-visibility` as a non-blocking preference: among comparably supported,
+natural, and useful Brand packages, prefer the headline that includes the canonical brand keyword
+once. Meta-navigation, repetition, and a missing headline anchor are advisory weaknesses, not hard gates. Always return one base
 selection per target; the Host falls back to the first structurally valid package if the selection
 payload is invalid, and ignores only invalid optional scene picks.
+
+For an unfamiliar Brand audience, prefer a supported, natural brand-positioning capsule that uses
+the Hero pair to explain what the brand is through category or identity context, what distinguishes
+it, and why it matters to the shopper. Rank it above a comparably supported but abstract concept,
+without automatically selecting the `brand-position` direction or requiring a colon. Among equally
+strong positioning packages, prefer one whose headline itself states the brand, category or
+identity, and distinction over abstract wrapper labels such as brand promise, concept, approach,
+“主张,” “构思,” or “视角.” For Chinese, prefer a colon when it prevents stacked analytical nouns,
+and prefer a description that connects the distinction to two or three supported shopper needs or
+choice benefits instead of a category inventory. Prefer Brand
+tags that contribute distinct supported axes such as signature ingredient or concept, formulation
+or position, and shopper need or category. Treat `effective` / “有效” as evidence-bound efficacy
+language; absent support, prefer neutral targeted or need-led wording. All of these remain advisory
+selection preferences and never permit omitting a required selection.
+
+Apply `brand-category-orientation` as another non-blocking preference. When one precise category
+clearly represents the brand and is supported, prefer it in the headline. For a multi-category
+brand, prefer the narrowest accurate supported umbrella category or identity instead of falsely
+narrowing the brand or enumerating its taxonomy. When no umbrella identity is supported, prefer a
+brand-and-distinction headline and leave a few representative categories to the description, tags,
+and category navigation. Missing or imperfect category orientation never permits omitting a
+required selection and is not a structural error.
 
 ## Final ContentSpec review
 
@@ -95,7 +119,9 @@ Evaluate
 the Hero headline and description as a pair. Positioning lines, statements, actions, emotions,
 questions, general verbs, definitions, or selection spans are all allowed when they form a natural,
 useful, topic-specific proposition. Do not block on grammar, sentence count, literal keyword use, or
-personal style alone. Treat empty interchangeable navigation, needless repetition, unnatural
+personal style alone. For Brand briefs, prefer the canonical brand keyword once in the headline
+when natural, and prefer the most precise truthful category orientation, but treat either absence
+alone as a warning rather than `revision-required`. Treat empty interchangeable navigation, needless repetition, unnatural
 localization, or unsupported sensory / quality / efficacy / outcome / origin claims as blocking
 `language-quality` or `evidence-claim-alignment` issues. Request a clearer evidence-supported pair
 without supplying replacement copy. The Hero and Start Here module objectives may also return

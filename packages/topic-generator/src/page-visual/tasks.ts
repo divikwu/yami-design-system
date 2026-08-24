@@ -67,7 +67,31 @@ const SCENE_FIRST_REQUIREMENTS = [
   "Depict a coherent, naturalistic scene that expresses this module's shopping goal.",
   "Treat assigned products as visual references only; they do not need to appear.",
   "Do not use isolated product packshots, tiled product grids, or product montages as the primary visual.",
+  "Do not depict bottles, jars, tubes, pumps, droppers, sachets, or product boxes, even when blank or unbranded.",
   "Do not generate or alter packaging, labels, logos, or product claims.",
+] as const;
+
+const PRODUCT_FIRST_SHORTCUT_REQUIREMENTS = [
+  "Use the assigned representative product as the single primary visual subject.",
+  "Use the verified source product image as a strict visual reference for shape, color, proportions, and packaging identity.",
+  "Place the product near the center with enough clear margin for a circular crop.",
+  "Build a natural lifestyle setting around the product; props and environment remain secondary.",
+  "Do not add another product, duplicate the product, crop it, or invent or rewrite packaging details.",
+] as const;
+
+const HERO_COMPOSITE_REQUIREMENTS = [
+  "Let the visual Agent derive the setting and supporting elements from the accepted Hero copy and assigned product mix.",
+  "Aim to feature 3 to 5 representative assigned products when available; treat this count as guidance rather than a generation blocker.",
+  "Generate the scene background without product containers, then add the assigned products as separate source-backed layers.",
+  "Compose the verified source product images as locked real-product layers; do not ask the image model to redraw their packaging.",
+  "Let the Agent choose the camera, support surface, depth pattern, materials, and light while preserving natural environmental shadows in the central placement area.",
+  "Avoid steep or internally inconsistent perspective, missing credible product footholds, a placement zone that forces a single flat row, and conflicting light or shadow directions.",
+  "Do not pre-render empty product silhouettes, empty product-shaped shadows, or other placeholders for products that are not yet present.",
+  "After inspecting the background, return non-blocking x/y/scale/depth placement guidance for each assigned product when credible footholds can be identified; each contact point must lie on an upward-facing support surface, never a vertical face, wall, or open air.",
+  "Visually verify every placement point against the actual generated pixels before returning it; omission falls back safely and never blocks generation.",
+  "During Host composition, keep the central representative product unobscured in front, stagger secondary products across middle and rear depths, and add restrained same-direction contact shadows.",
+  "Keep the combined product group at the visual center and keep the bottom quarter free of principal products or scene elements.",
+  "Do not prescribe category-specific props or environments; let the Agent choose them from the theme and cross-category product evidence.",
 ] as const;
 
 const KIND_REQUIREMENT: Record<TopicPageVisualAssetKind, string> = {
@@ -116,9 +140,9 @@ function sceneBrief(options: {
     ...(options.scene ? [`scene:${options.scene.id}`] : []),
     `content-task:${options.contentTask.taskId}`,
   ];
-  return {
-    priority: "scene-first",
-    productRole: "reference-only",
+  const productFirst = options.kind === "shortcut-image";
+  const heroComposite = options.kind === "hero-image";
+  const brief = {
     theme: {
       shoppingGoal: options.intent.shoppingGoal,
       needs: [...options.intent.needs],
@@ -143,8 +167,27 @@ function sceneBrief(options: {
       texts: contentTexts(options.contentTask, options.scene?.id),
     },
     evidenceRefs: [...new Set(evidenceRefs)],
-    requirements: [...SCENE_FIRST_REQUIREMENTS, KIND_REQUIREMENT[options.kind]],
   };
+  return heroComposite
+    ? {
+        priority: "scene-composite",
+        productRole: "locked-source-products",
+        ...brief,
+        requirements: [...HERO_COMPOSITE_REQUIREMENTS, KIND_REQUIREMENT[options.kind]],
+      }
+    : productFirst
+    ? {
+        priority: "product-first",
+        productRole: "primary-subject",
+        ...brief,
+        requirements: [...PRODUCT_FIRST_SHORTCUT_REQUIREMENTS, KIND_REQUIREMENT[options.kind]],
+      }
+    : {
+        priority: "scene-first",
+        productRole: "reference-only",
+        ...brief,
+        requirements: [...SCENE_FIRST_REQUIREMENTS, KIND_REQUIREMENT[options.kind]],
+      };
 }
 
 function brandGroups(
@@ -221,21 +264,33 @@ export function deriveTopicPageVisualTasks(
   return plan.modules.flatMap((module): TopicPageVisualTaskContext[] => {
     if (!module.visible) return [];
     if (module.component === "ThemeHero") {
-      return [task(intent, module, contentSpec, selection, `asset-${module.id}`, RULES.hero, module.assignments)];
+      return [task(
+        intent,
+        module,
+        contentSpec,
+        selection,
+        `asset-${module.id}`,
+        RULES.hero,
+        module.assignments.slice(0, 5),
+      )];
     }
     if (module.component === "ShortcutRail") {
-      return module.assignments.map((assignment, index) =>
-        task(
-          intent,
-          module,
-          contentSpec,
-          selection,
-          `asset-${module.id}-${index + 1}`,
-          RULES.shortcut,
-          [assignment],
-          { slotId: assignment.slotId },
-        )
-      );
+      const assetTaskIds = new Set(module.assetTaskIds);
+      return module.assignments.flatMap((assignment, index) => {
+        const taskId = `asset-${module.id}-${index + 1}`;
+        return assetTaskIds.has(taskId)
+          ? [task(
+              intent,
+              module,
+              contentSpec,
+              selection,
+              taskId,
+              RULES.shortcut,
+              [assignment],
+              { slotId: assignment.slotId },
+            )]
+          : [];
+      });
     }
     if (module.component === "ThemeProductList") {
       return module.scenes.map((scene) =>

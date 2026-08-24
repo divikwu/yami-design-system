@@ -19,7 +19,10 @@ export type TopicPageContentReviewCriterion =
   | "module-differentiation"
   | "evidence-claim-alignment"
   | "language-quality"
+  | "locale-naturalness"
+  | "topic-anchor-visibility"
   | "brand-distinctiveness"
+  | "brand-category-orientation"
   | "consumer-relevance"
   | "editorial-quality"
   | "meta-navigation-avoidance"
@@ -108,6 +111,8 @@ const CRITERIA: readonly TopicPageContentReviewCriterion[] = [
   "module-differentiation",
   "evidence-claim-alignment",
   "language-quality",
+  "locale-naturalness",
+  "topic-anchor-visibility",
   "consumer-relevance",
   "editorial-quality",
   "meta-navigation-avoidance",
@@ -359,7 +364,7 @@ export function advanceTopicPageContentReviewRun(
   if (request.proposal === undefined) {
     const brandCriteria = request.copyBrief.schemaVersion === "topic-page-copy-brief/v3" &&
         request.copyBrief.heroStrategy.kind === "brand"
-      ? (["brand-distinctiveness"] as const)
+      ? (["brand-distinctiveness", "brand-category-orientation"] as const)
       : [];
     return {
       schemaVersion: "topic-page-content-review-run/v1",

@@ -83,7 +83,28 @@ a single `topic-page-content-proposal/v1`. Return one complete
   and editorial discovery. Do not collapse them back into five versions of category browsing,
   routine navigation, or “find your entry point.” When eligible evidence contains a supported
   brand-defined idea or meaning, use it in the position or signature-concept package instead of
-  defaulting to identity plus assortment navigation.
+  defaulting to identity plus assortment navigation. In each Brand Hero candidate, normally include
+  the canonical brand name once in the headline when it reads naturally and remains concise. This
+  is a high-priority candidate preference, not a structural requirement or validity gate; never
+  force awkward repetition merely to satisfy it.
+- For the Brand `brand-position` direction, create a compact brand-positioning capsule for a
+  newcomer. Across the headline-description pair, orient the shopper with the canonical brand name,
+  supported category or identity context, one evidence-backed distinction, and a useful shopper
+  value. A colon is optional and this is not a sentence template. Prefer this positioning package
+  over a comparably supported but abstract concept when the audience is unfamiliar and the more
+  concrete pair reads naturally. When natural, let the headline itself state the brand, category or
+  identity, and distinction; do not hide the distinction behind abstract wrapper labels such as
+  “brand promise,” “concept,” “approach,” “主张,” “构思,” or “视角.” A `signature-concept` package may instead lead with an explicitly
+  supported signature ingredient or brand term. For Chinese, prefer a colon when it prevents a
+  stacked analytical noun phrase, but never require it. Use the description for two or three
+  supported shopper needs or choice benefits rather than a category inventory.
+- Orient Brand headlines with the most precise truthful category level the evidence supports. When
+  one precise category clearly represents the brand, prefer that category in the headline. For a
+  multi-category brand, do not falsely narrow it to one category; prefer the narrowest accurate
+  supported umbrella category or identity. When no umbrella identity is supported, keep the brand
+  and distinction in the headline and use the description, tags, and category navigation for a few
+  representative categories. Never enumerate the full taxonomy in the headline. Category
+  orientation is a high-priority candidate preference, not a validity gate.
 - Keep Hero copy customer-facing. Interface architecture is not a proposition: do not use the
   headline or tags to explain a “browse entry,” “start by category,” “start by need,” “view
   formats,” “浏览入口,” “从类别开始,” “从需求开始,” or “查看代表形态.” General verbs such as find,
@@ -119,7 +140,8 @@ fields unless another field must change to keep the module coherent; preserve un
 task order, evidence references, products, scenes, language, and every digest. Do not reinterpret
 the theme or broaden the page plan. Before returning, compare every field named by an error with
 its previous value. If an error requests a wording change and that field is unchanged, the revision
-is not complete; rewrite it before submission.
+is not complete; rewrite it before submission. Do not spend the bounded revision rewriting an
+uncited module while any cited wording remains unchanged.
 
 When `revision.localizationReference` is present, use the reference ContentSpec as the semantic
 anchor for the other locale. Match module IDs and scene IDs, preserving the same shopper need,
@@ -154,6 +176,14 @@ Before writing, use the returned digest-bound `copyBrief`:
    `skincare`, `routine`, `serum`, or `toner` unless that exact value appears in the list. For
    `zh`, after mentally removing the listed values, no Latin letters may remain; for `en`, no CJK
    or Korean characters may remain.
+   Accidental translationese lowers candidate preference even when grammar is valid. For English,
+   replace internal taxonomy or planning compounds such as “localized care,” “care formats,”
+   “browse entry,” “brand-defined idea,” or “brand-defined concept” with ordinary shopper language
+   that names the actual idea, choice, or use. State a supported brand concept directly instead of
+   explaining that it is brand-defined. For Chinese,
+   rewrite stacked analytical nouns into a direct shopper-facing phrase. This naturalness check is
+   advisory: it may guide candidate selection or one best-effort rewrite, but it never invalidates an
+   otherwise structurally valid ContentSpec.
 6. Keep implementation language out of the page. Do not mention Agent, PagePlan, evidence,
    validation, catalog internals, frozen pools, or phrases such as "已验证的商品池" in customer copy.
 7. Use multiple relevant evidence inputs when the slot warrants it: the Hero proposition should
@@ -171,7 +201,16 @@ Before writing, use the returned digest-bound `copyBrief`:
    origin, or a brand position into product efficacy.
 10. Give the Hero one clear, user-facing proposition. A headline may be a positioning line,
     statement, action, emotion, or question; it may use find, discover, choose, or no verb at all.
-    Do not force the keyword or a particular grammar when the page context makes the topic clear.
+    For a Brand Hero, normally include the canonical brand name once in the headline when natural;
+    if the title already carries it, do not mechanically begin the description with the same name.
+    Use one precise supported category when it clearly represents the brand. For a multi-category
+    brand, use the narrowest accurate supported umbrella category or identity instead of falsely
+    narrowing the brand or listing every category. When no umbrella identity is supported, leave
+    the category range to the description, tags, and category navigation rather than inventing one.
+    For Topic and Campaign pages, keep the keyword or a natural locale-specific topic anchor visible
+    across the headline-description pair when it helps orientation. These are high-weight editorial
+    preferences, never structural requirements: do not force an awkward keyword or a particular
+    grammar when the page context already makes the topic clear.
     Definitions, history, and shopping breadth usually work better in the description, but may
     appear in the headline when they form a natural, useful proposition rather than a taxonomy
     label. Judge the result, not the construction. Never turn the Hero into instructions for using
@@ -188,6 +227,12 @@ Before writing, use the returned digest-bound `copyBrief`:
     as well as raw count; the Unicode `maxCharacters` value remains advisory. Do not repeat the
     complete ShortcutRail or Start Here taxonomy in the Hero description; use at most the few range
     examples needed to connect the proposition to the visible assortment.
+    For Brand Heroes, prefer tags that add distinct supported axes—for example one signature
+    ingredient or concept, one formulation or positioning direction, and one shopper need or
+    category—rather than three paraphrases of the headline. Keep mixed-language terms out unless
+    they are exact `languagePolicy.immutableProperNouns`. Treat `effective` / “有效” and similar
+    quality or efficacy language as claims that need explicit evidence; otherwise use neutral,
+    targeted, or need-led wording. These tag and wording checks guide selection and polish only.
 
 Before returning, run a decision-usefulness check:
 
@@ -196,7 +241,13 @@ Before returning, run a decision-usefulness check:
   it unchanged. If it remains empty navigation such as “explore more” or “find your choice,” add an
   evidence-supported position, experience, occasion, identity, or shopping frame. Do not rewrite a
   useful title merely because it uses a general verb, a colon, a question, or omits the literal
-  keyword when context is unambiguous.
+  keyword when context is unambiguous. For a Brand brief, still prefer an equally strong natural
+  candidate that includes the canonical brand name in the headline. For an unfamiliar Brand
+  audience, prefer an equally supported brand-positioning capsule that clarifies what the brand is,
+  what distinguishes it, and why it matters over a more abstract brand idea. Check category
+  orientation without turning it into a gate: prefer one precise supported category for a clearly
+  single-category brand, or the narrowest accurate supported umbrella identity for a multi-category
+  brand; otherwise keep category breadth outside the headline.
 - Ask whether the Hero explains why the topic or brand matters to the shopper, or merely explains
   how this page is organized. Rewrite page-navigation instructions and any Hero that restates the
   ShortcutRail's category list instead of adding a distinct proposition.

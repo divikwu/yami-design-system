@@ -25,12 +25,13 @@
 ```
 
 Use lowercase kebab-case issue IDs. Cite at least one allowed evidence reference per issue.
-Require `rollbackStage` for every blocking issue.
 
 ## Recommendations
 
-- `recommend-approval`: allow warnings, forbid blocking issues.
-- `request-revision`: require at least one blocking issue.
+- `recommend-approval`: use for the configured `advisory-never-block-generation` quality policy;
+  include any experience findings as warnings.
+- `request-revision`: retained for proposal compatibility. The deterministic runtime downgrades its
+  quality findings to warnings and continues to human review.
 
 The compiled decision uses `review-recommended` or `revision-requested` and adds a digest. A
 review recommendation never grants user approval or publication authority.
@@ -48,7 +49,7 @@ Reject any evidence reference absent from the task context.
 
 ## Visual policy
 
-The context includes `visualPolicy`. Treat each listed condition as blocking:
+The context includes `visualPolicy`. Treat each listed condition as an advisory review finding:
 
 - an isolated product packshot used as a semantic scene;
 - a product grid or montage used as a semantic scene;
@@ -56,4 +57,5 @@ The context includes `visualPolicy`. Treat each listed condition as blocking:
 - generated or altered visible product packaging.
 
 Products may inform scene direction but are references only. Review the environment, activity,
-composition, and module-theme fit first. Bind failures to `visual-generation`.
+composition, and module-theme fit first. Preserve the finding for human review without blocking
+generation.

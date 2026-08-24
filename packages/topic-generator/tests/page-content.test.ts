@@ -737,6 +737,34 @@ describe("TopicPageContent", () => {
         },
       },
     });
+    if (brandRun.status !== "needs-content-proposal" ||
+        brandRun.context.copyBrief.schemaVersion !== "topic-page-copy-brief/v3") {
+      throw new Error("Expected the current brand CopyBrief.");
+    }
+    expect(brandRun.context.copyBrief.heroStrategy.titleFocus).toContain(
+      "品牌名或主题关键词",
+    );
+    expect(brandRun.context.copyBrief.heroStrategy.titleFocus).toContain(
+      "品牌身份或品类",
+    );
+    expect(brandRun.context.copyBrief.heroStrategy.titleFocus).toContain(
+      "差异化定位",
+    );
+    expect(brandRun.context.copyBrief.heroStrategy.titleFocus).toContain(
+      "品牌名：差异点 + 品类身份",
+    );
+    expect(brandRun.context.copyBrief.heroStrategy.titleFocus).toContain(
+      "单一主品类",
+    );
+    expect(brandRun.context.copyBrief.heroStrategy.titleFocus).toContain(
+      "最窄且准确的上位品类",
+    );
+    expect(brandRun.context.copyBrief.heroStrategy.descriptionFocus).toContain(
+      "2–3 个",
+    );
+    expect(brandRun.context.copyBrief.heroStrategy.descriptionFocus).toContain(
+      "代表性品类",
+    );
     expect(campaignRun).toMatchObject({
       status: "needs-content-proposal",
       context: {
@@ -778,6 +806,36 @@ describe("TopicPageContent", () => {
       "editorial-discovery",
     ]);
     expect(generation?.directions.every(({ objective }) => objective.length > 20)).toBe(true);
+    expect(generation?.directions.every(({ objective }) =>
+      objective.includes("canonical brand name")
+    )).toBe(true);
+    expect(generation?.directions[0]?.objective).toContain(
+      "compact brand-positioning capsule",
+    );
+    expect(generation?.directions[0]?.objective).toContain(
+      "category or identity",
+    );
+    expect(generation?.directions[0]?.objective).toContain(
+      "shopper value",
+    );
+    expect(generation?.directions[0]?.objective).toContain(
+      "headline itself",
+    );
+    expect(generation?.directions[0]?.objective).toContain(
+      "abstract wrapper labels",
+    );
+    expect(generation?.directions[0]?.objective).toContain(
+      "rather than a category inventory",
+    );
+    expect(generation?.directions[0]?.objective).toContain(
+      "one precise category clearly represents the brand",
+    );
+    expect(generation?.directions[0]?.objective).toContain(
+      "narrowest accurate supported umbrella category or identity",
+    );
+    expect(generation?.directions[0]?.objective).toContain(
+      "description, tags, and category navigation",
+    );
   });
 
   it("anchors a brand brief in distinctive evidence instead of raw browse instructions", () => {
@@ -1844,13 +1902,19 @@ describe("TopicPageContent", () => {
     const selectionContext = selectPageContentCandidates.mock.calls[0]?.[0].context;
     expect(selectionContext?.criteria).toEqual(expect.arrayContaining([
       "brand-distinctiveness",
+      "brand-category-orientation",
       "consumer-relevance",
+      "locale-naturalness",
+      "topic-anchor-visibility",
       "meta-navigation-avoidance",
       "module-redundancy-avoidance",
     ]));
     expect(selectionContext?.selectionPolicy.advisoryCriteria).toEqual(expect.arrayContaining([
       "brand-distinctiveness",
+      "brand-category-orientation",
       "consumer-relevance",
+      "locale-naturalness",
+      "topic-anchor-visibility",
       "meta-navigation-avoidance",
       "module-redundancy-avoidance",
       "evidence-claim-alignment",

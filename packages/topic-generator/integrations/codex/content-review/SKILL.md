@@ -25,7 +25,8 @@ and selection policy. Return exactly one
   complete scene with the same `sceneId` from another candidate; never splice fields within Hero,
   a scene, or any other module.
 - Compare all five candidates against newcomer orientation, theme and scene specificity, shopping
-  usefulness, module differentiation, evidence alignment, requested-language quality, and
+  usefulness, module differentiation, evidence alignment, requested-language quality,
+  locale-naturalness, and
   cross-module coherence. Use every `selectionPolicy.advisoryCriteria` entry to prefer the best
   available package, but always return a selection even when every candidate has weaknesses.
   Compare each candidate with its supplied `direction.objective`; semantic convergence is a
@@ -35,12 +36,36 @@ and selection policy. Return exactly one
   Hero package that mainly explains how to use the page through phrases such as “browse entry,”
   “start by category,” “start by need,” “view formats,” “浏览入口,” “从类别开始,” “从需求开始,” or
   “查看代表形态.” General verbs remain acceptable when they lead to a brand-specific proposition.
+  When two packages are comparably supported, natural, and useful, prefer the one whose headline
+  includes the canonical brand keyword once. Missing it is an advisory weakness, never a reason to
+  omit a selection or block generation.
+  For an unfamiliar audience, prefer a compact brand-positioning capsule when it is supported and
+  natural: the Hero pair should clarify what the brand is through category or identity context,
+  what distinguishes it, and why that matters to the shopper. Rank it above a comparably supported
+  but more abstract concept; do not automatically select the `brand-position` direction when its
+  actual copy is weaker. Among equally strong positioning packages, prefer one whose headline itself
+  states the brand, category or identity, and distinction over one that hides the distinction behind
+  abstract wrapper labels such as “brand promise,” “concept,” “approach,” “主张,” “构思,” or “视角.”
+  For Chinese, prefer a colon when it prevents stacked analytical nouns, and prefer descriptions
+  that connect the distinction to two or three supported shopper needs or choice benefits instead
+  of a category inventory. A colon or any exact sentence pattern is optional.
+  Apply `brand-category-orientation` as a non-blocking preference. When one precise category clearly
+  represents the brand and is supported, prefer it in the headline. For a multi-category brand,
+  prefer the narrowest accurate supported umbrella category or identity instead of falsely
+  narrowing the brand or enumerating the taxonomy. If no umbrella identity is supported, prefer a
+  brand-and-distinction headline that leaves representative categories to the description, tags,
+  and category navigation. Never omit a selection because no candidate executes this perfectly.
 - Prefer away from a Hero package that repeats the ShortcutRail or Start Here category inventory instead of
   adding a new proposition. Treat title, description, and tags as one package: tags cannot merely
   restate the same browsing mechanic in shorter labels.
 - Treat Hero tags as evidence-bound browsing labels. Do not select a package whose tags use first,
   next, then, last, “先”, “再”, “最后”, or “补充” to imply a care order that the cited evidence does
   not establish.
+  For Brand packages, prefer distinct supported tag axes such as signature ingredient or concept,
+  formulation or position, and shopper need or category. Reject mixed-language tag wording unless
+  the non-target-language term is an exact immutable proper noun. Treat `effective` / “有效” as an
+  efficacy claim rather than harmless tone; without explicit support, rank safer targeted or
+  need-led wording above it.
 - When Start Here packages are otherwise equally useful and supported, prefer the one whose scene
   titles and descriptions best meet their returned `preferredLength` without exhaustive category
   lists. Concision must preserve the scene's actual decision or next step.
@@ -58,10 +83,20 @@ separate request.
 1. **Newcomer orientation** — a user unfamiliar with the brand, product, festival, or culture can
    understand what the topic is and where to begin without assumed background knowledge.
 2. **Theme specificity and strategy fit** — the Hero pair points to this topic and its supported
-   context instead of interchangeable labels such as “selected products” or “explore more.” For a
-   v3 CopyBrief, evaluate it against `heroStrategy`: Brand may use a position or routine, Topic an
-   experience or use, and Campaign an occasion, emotion, ritual, or task. These are directions, not
-   required sentence templates.
+  context instead of interchangeable labels such as “selected products” or “explore more.” For a
+  v3 CopyBrief, evaluate it against `heroStrategy`: Brand may use a position or routine, Topic an
+  experience or use, and Campaign an occasion, emotion, ritual, or task. These are directions, not
+  required sentence templates. Apply `topic-anchor-visibility` as an editorial preference: Brand
+  headlines normally include the canonical brand keyword once, while Topic and Campaign pages may
+  carry a natural topic anchor across the headline-description pair. Absence alone is never a
+  structural or semantic generation gate.
+  For an unfamiliar Brand audience, use the brand-positioning capsule as an advisory clarity test:
+  a strong pair explains the brand's supported category or identity, distinction, and shopper value.
+  A more abstract pair remains valid when it is genuinely clearer or better supported. Apply
+  `brand-category-orientation` at the most precise truthful level: one supported category for a
+  clearly single-category brand, or the narrowest accurate supported umbrella identity for a
+  multi-category brand. A broader headline or omitted category is a warning-level weakness at most,
+  not a generation gate.
 3. **Scene specificity** — scene copy explains the scene's shopping job and differs from other
    scenes; it does not merely list products.
 4. **Shopping-decision usefulness** — Hero and each start-here scene tell the newcomer what
@@ -82,7 +117,12 @@ separate request.
    customer-facing text. When `localizationReference` is present, compare matching module IDs and
    scene IDs across locales. Preserve the same shopper need, proposition, and decision through
    locale-native writing rather than literal translation; category terms may adapt naturally, but
-   must not change the scenario meaning. The headline and description do
+   must not change the scenario meaning. Prefer ordinary shopper language over internal taxonomy,
+   planning compounds, or translationese such as “localized care,” “care formats,” “browse entry,”
+   “brand-defined idea,” and “brand-defined concept.” When an equally supported candidate states
+   the actual brand concept directly, rank it above one that explains the copy strategy. Treat this
+   as an advisory selection and rewrite signal, never a structural blocker. The
+   headline and description do
    not repeat the same idea; prefer one description sentence and allow two when clarity needs them.
    Read the Hero and Start Here module objectives' locale-specific `copyRules`:
    `preferredLength` is a polish target, while `maxCharacters` is a recommended layout ceiling.
@@ -111,7 +151,9 @@ Apply an interchangeability test before approving. Request revision when any of 
 - The Hero pair does not communicate a supported brand position, topic experience or use, campaign
   occasion, identity, or concrete shopping frame. Do not reject a headline solely because it uses a
   colon, question, process, definition, category range, or omits the literal keyword when the page
-  context remains unambiguous and the proposition is natural and useful.
+  context remains unambiguous and the proposition is natural and useful. For a Brand brief, record
+  the missing headline anchor as a warning when a natural brand-name treatment would improve
+  orientation; do not make that omission an error by itself.
 - The Hero title adds a sensory, quality, efficacy, or customer-outcome promise that the supplied
   evidence does not explicitly support for the proposition.
 - The Hero description merely repeats the title, becomes needlessly long enough to harm clarity,

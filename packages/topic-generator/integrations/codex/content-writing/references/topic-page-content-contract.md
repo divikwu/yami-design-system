@@ -109,7 +109,10 @@ Within the returned limits, Hero copy targets one clear, user-facing proposition
 position, idea, distinction, or routine; Topic may use an experience, use, way to enjoy, or shopping
 inspiration; Campaign may use an occasion's atmosphere, emotion, ritual, or concrete task. A title
 may be a positioning line, statement, action, emotion, or question and may use a general verb when
-the complete Hero remains specific. Definitions, history, and shopping breadth usually work better
+the complete Hero remains specific. Brand headlines normally include the canonical brand name once
+when that treatment is natural and concise; Topic and Campaign Heroes keep a natural keyword or
+locale-specific topic anchor visible across the headline-description pair when useful. These are
+candidate-selection preferences, not deterministic rejection rules. Definitions, history, and shopping breadth usually work better
 in the description, but may enter a natural, useful headline. Use the description to add identity,
 context, use value, and supported shopping range without simple repetition; prefer one sentence and
 allow two when clarity needs them. A fourth tag is allowed when it adds a distinct supported
@@ -117,6 +120,30 @@ direction. Sensory, quality, efficacy, outcome, origin, and cultural claims rema
 Hero tags are browsing directions or category labels, not an inferred routine order. Do not use
 first, next, then, last, “先”, “再”, “最后”, or “补充” to imply a sequence unless the cited evidence
 explicitly establishes it.
+
+For Brand category orientation, prefer the most precise truthful level supported by the bound
+evidence. When one precise category clearly represents the brand, prefer it in the headline. For a
+multi-category brand, do not falsely narrow it to one category; use the narrowest accurate supported
+umbrella category or identity. If no umbrella identity is supported, keep the brand and distinction
+in the headline and use the description, tags, and category navigation for a few representative
+categories. Never turn the headline into a full taxonomy. This preference guides candidate
+generation and selection only; omission or a broader natural treatment is never a structural gate.
+
+For an unfamiliar Brand audience, the `brand-position` candidate should form a compact
+brand-positioning capsule across the Hero pair: canonical brand name, supported category or identity
+context, one evidence-backed distinction, and useful shopper value. This is a preferred execution,
+not a required colon construction or deterministic gate. A comparably supported positioning pair
+should rank above a more abstract concept when it orients the newcomer more clearly. The
+brand-position candidate should normally let the headline itself name the brand, category or identity, and distinction when
+that reads naturally; do not substitute abstract wrapper labels such as brand promise, concept,
+approach, “主张,” “构思,” or “视角” for the actual distinction. Chinese positioning headlines may
+prefer a colon when it prevents stacked analytical nouns, but the punctuation remains optional.
+Use the description for two or three supported shopper needs or choice benefits rather than a
+category inventory. Brand tags
+prefer distinct supported axes such as signature ingredient or concept, formulation or position,
+and shopper need or category. `Effective` / “有效” and similar quality or efficacy language requires
+explicit evidence; absent that evidence, use neutral targeted or need-led wording rather than
+blocking generation.
 
 Structural headings stay generic by default. `shortcuts`, `popular-picks`, and `brand-spotlight`
 titles remain template-owned. Only `explore-more.title`, which appears near the end of the page,
@@ -204,7 +231,11 @@ advisory warning and weaker selection preference.
 Every returned direction includes a machine-readable `focus` and a plain-language `objective`.
 Execute both. Brand directions intentionally cover five different frames: brand position,
 signature concept, routine role, need-led choice, and editorial discovery. Do not turn those into
-five synonymous versions of category browsing. Hero copy must remain customer-facing rather than
+five synonymous versions of category browsing. When natural and concise, each Brand candidate
+normally includes the canonical brand name once in its Hero headline; omission remains advisory
+and never invalidates a structurally sound package. The Brand position direction should execute the
+brand-positioning capsule described above, while signature concept may use an explicitly supported
+signature ingredient or brand term. Hero copy must remain customer-facing rather than
 describing page entry points or information architecture, and it must not repeat the complete
 ShortcutRail or Start Here inventory.
 

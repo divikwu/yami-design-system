@@ -26,15 +26,15 @@
   visibility: hidden;
 }
 
-.prototypePreview[data-page-preview-state="content"]
+.prototypePreview[data-page-preview-state="content"]:not([data-retained-generation-spec])
   :global([data-slot="theme-hero-atmosphere"] img),
-.prototypePreview[data-page-preview-state="content"]
+.prototypePreview[data-page-preview-state="content"]:not([data-retained-generation-spec])
   :global([data-slot="theme-hero-media"] img),
-.prototypePreview[data-page-preview-state="content"]
+.prototypePreview[data-page-preview-state="content"]:not([data-retained-generation-spec])
   :global([data-slot="shortcut-rail-link"] img),
-.prototypePreview[data-page-preview-state="content"]
+.prototypePreview[data-page-preview-state="content"]:not([data-retained-generation-spec])
   :global([data-slot="theme-product-list-content"] img),
-.prototypePreview[data-page-preview-state="content"]
+.prototypePreview[data-page-preview-state="content"]:not([data-retained-generation-spec])
   :global([data-slot="brand-product-rail"] [data-slot="product-list-banner"] img) {
   visibility: hidden;
 }
@@ -53,15 +53,15 @@
   background-image: none;
 }
 
-.prototypePreview[data-page-preview-state="content"]
+.prototypePreview[data-page-preview-state="content"]:not([data-retained-generation-spec])
   :global([data-slot="theme-hero-atmosphere"]),
-.prototypePreview[data-page-preview-state="content"]
+.prototypePreview[data-page-preview-state="content"]:not([data-retained-generation-spec])
   :global([data-slot="theme-hero-media"]),
-.prototypePreview[data-page-preview-state="content"]
+.prototypePreview[data-page-preview-state="content"]:not([data-retained-generation-spec])
   :global([data-slot="shortcut-rail-link"] > span:first-child),
-.prototypePreview[data-page-preview-state="content"]
+.prototypePreview[data-page-preview-state="content"]:not([data-retained-generation-spec])
   :global([data-slot="theme-product-list-content"]),
-.prototypePreview[data-page-preview-state="content"]
+.prototypePreview[data-page-preview-state="content"]:not([data-retained-generation-spec])
   :global([data-slot="brand-product-rail"] [data-slot="product-list-banner"]) {
   background-color: var(--fill-tertiary);
   background-image: none;

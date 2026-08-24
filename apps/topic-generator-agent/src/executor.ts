@@ -1,14 +1,20 @@
 import { spawn } from "node:child_process";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
+import sharp from "sharp";
+
 import { parseAgentJson } from "./json.ts";
 import {
+  composeLockedHeroProducts,
+  composeSourceProductLifestyleFallback,
   compileGeneratedImageVisualResponse,
+  createHeroBackgroundFallback,
   parseNativeImageTaskResult,
 } from "./generated-image-visual.ts";
 import type { AgentRoute } from "./registry.ts";
+import { fetchApprovedSourceImage } from "./source-image-compositor.ts";
 
 export interface AgentExecutionRequest {
   route: AgentRoute;
@@ -233,8 +239,8 @@ export function createCodexExecutor(
   const limits = executionLimits(environment);
   const imageConcurrency = positiveInteger(
     environment.TOPIC_AGENT_RUNNER_IMAGE_CONCURRENCY,
-    2,
-    4,
+    8,
+    8,
   );
   const maxImageBytes = positiveInteger(
     environment.TOPIC_AGENT_RUNNER_MAX_IMAGE_BYTES,
@@ -292,16 +298,45 @@ export function createCodexExecutor(
     },
     ...(imageGenerationProbe.available
       ? {
-          generateVisuals: async (request: AgentExecutionRequest) =>
-            await compileGeneratedImageVisualResponse(
+          generateVisuals: async (request: AgentExecutionRequest) => {
+            const sourceImageCache = new Map<string, Promise<Buffer>>();
+            const sourceImage = async (referenceImageUrl: string) => {
+              const sourceRequest = sourceImageCache.get(referenceImageUrl) ??
+                fetchApprovedSourceImage(referenceImageUrl);
+              sourceImageCache.set(referenceImageUrl, sourceRequest);
+              try {
+                return await sourceRequest;
+              } catch (error) {
+                sourceImageCache.delete(referenceImageUrl);
+                throw error;
+              }
+            };
+            return await compileGeneratedImageVisualResponse(
               request.run,
-              async ({ task, prompt: taskPrompt, outputFilename }) => {
+              async ({
+                task,
+                prompt: taskPrompt,
+                outputFilename,
+                referenceImageUrl,
+                lockedProductImageUrls,
+              }) => {
                 const executionRoot = await mkdtemp(
                   join(tmpdir(), `yami-topic-image-${task.taskId.replace(/[^a-z0-9_-]/gi, "-")}-`),
                 );
                 const outputPath = join(executionRoot, "response.json");
                 const imagePath = join(executionRoot, outputFilename);
                 try {
+                  let referenceImagePath: string | undefined;
+                  if (referenceImageUrl) {
+                    referenceImagePath = join(executionRoot, "representative-product.png");
+                    await writeFile(
+                      referenceImagePath,
+                      await sharp(await sourceImage(referenceImageUrl), { failOn: "error" })
+                        .rotate()
+                        .png()
+                        .toBuffer(),
+                    );
+                  }
                   const args = [
                     "exec",
                     "--enable",
@@ -319,6 +354,7 @@ export function createCodexExecutor(
                     outputPath,
                   ];
                   if (model) args.push("--model", model);
+                  if (referenceImagePath) args.push("--image", referenceImagePath);
                   args.push("-");
                   await runCommand({
                     command,
@@ -327,24 +363,59 @@ export function createCodexExecutor(
                     stdin: taskPrompt,
                     ...limits,
                   });
-                  parseNativeImageTaskResult(
+                  const nativeResult = parseNativeImageTaskResult(
                     parseAgentJson(await readFile(outputPath, "utf8")),
                     task.taskId,
                     outputFilename,
                   );
-                  const bytes = await readFile(imagePath);
+                  let bytes = await readFile(imagePath);
+                  if (task.kind === "hero-image") {
+                    const sources = await Promise.all(
+                      (lockedProductImageUrls ?? []).map(sourceImage),
+                    );
+                    bytes = await composeLockedHeroProducts(
+                      bytes,
+                      sources,
+                      task,
+                      nativeResult.placementPlan,
+                    );
+                  }
                   if (bytes.byteLength > maxImageBytes) {
                     throw new Error(
                       `Generated image ${task.taskId} exceeds the ${maxImageBytes}-byte limit.`,
                     );
                   }
-                  return bytes;
+                  return {
+                    bytes,
+                    ...(nativeResult.scenePrompt
+                      ? { scenePrompt: nativeResult.scenePrompt }
+                      : {}),
+                  };
                 } finally {
                   await rm(executionRoot, { recursive: true, force: true });
                 }
               },
-              { concurrency: imageConcurrency },
-            ),
+              {
+                concurrency: imageConcurrency,
+                fallback: async ({ task, referenceImageUrl, lockedProductImageUrls }, error) => {
+                  if (referenceImageUrl && task.kind === "shortcut-image") {
+                    return await composeSourceProductLifestyleFallback(
+                      await sourceImage(referenceImageUrl),
+                      task,
+                    );
+                  }
+                  if (task.kind === "hero-image" && lockedProductImageUrls?.length) {
+                    return await composeLockedHeroProducts(
+                      await createHeroBackgroundFallback(task),
+                      await Promise.all(lockedProductImageUrls.map(sourceImage)),
+                      task,
+                    );
+                  }
+                  throw error;
+                },
+              },
+            );
+          },
         }
       : {}),
   };

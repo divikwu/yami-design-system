@@ -28,25 +28,52 @@ draft-only reference fallback and final visual QA rejects it. Scene tasks may in
 
 Every task includes a deterministic `sceneBrief` with:
 
-- `priority: scene-first` and `productRole: reference-only`;
+- a paired subject mode: `scene-first` / `reference-only`, ShortcutRail-only
+  `product-first` / `primary-subject`, or ThemeHero-only `scene-composite` /
+  `locked-source-products`;
 - the ThemeIntent shopping goal, needs, and conditions;
 - the module shopping goal and reason;
 - relevant selected categories and, when applicable, the exact PagePlan scene;
 - the accepted content task ID and localized copy text;
 - mandatory semantic evidence references and visual requirements.
 
-The generated environment and its match to the module theme are primary. Assigned products are
-references and need not be visible. A direction is rejected when it omits any `sceneBrief.evidenceRefs`.
-Isolated packshots, tiled product grids, or product montages cannot be used as the primary visual in
-any maintained semantic image slot. If recognizable packaging must be visible, preserve verified
-source pixels through supported compositing; do not generate or alter packaging, labels, or logos.
+For scene-first tasks, the generated environment and module theme are primary; assigned products are
+references and need not be visible. Those scenes exclude bottles, jars, tubes, pumps, droppers,
+sachets, and product boxes. Each ShortcutRail task instead has exactly one representative product:
+the Host attaches its verified source image, the generator keeps it as the single primary subject near
+the center with circular-crop margin, and category-relevant lifestyle context stays secondary. It must
+preserve source identity and must not invent, rewrite, or add packaging, labels, logos, or claims.
+A ThemeHero instead asks the Agent to derive a scene prompt from accepted Hero copy plus its assigned
+product mix and generate only that background. The Host then composites the verified catalog product
+images as locked source layers, preferring three to five products when available without blocking on
+the count. The Agent chooses the camera, support surface, depth pattern, materials, and light from the
+evidence while preserving natural environmental shadows. The background is rejected for steep or
+internally inconsistent perspective, missing credible product footholds, a placement zone that forces
+one flat row, or conflicting light and shadow directions. The Host keeps the central representative
+product unobscured in front, staggers secondary products through middle and rear depths, and adds
+restrained same-direction photographic contact shadows. Empty product silhouettes and empty
+product-shaped shadows remain disallowed, but natural scene shadows do not. After inspecting the
+background, the Agent may return a non-blocking placement plan with normalized x/y contact points,
+scale, depth, primary index, and shadow direction. The Host uses valid guidance to follow the actual
+generated surfaces. Every contact point is visually verified against the generated pixels and must
+lie on an upward-facing supporting surface, never a vertical face, wall, or open air. Missing or
+invalid guidance falls back safely and never blocks generation.
+The combined group is centered and no principal element enters the bottom quarter. Scene elements
+are Agent-selected from the evidence, so multi-category topics do not inherit a fixed skincare,
+grocery, or other category prop template.
+A Shortcut that exhausts native generation retries may use a source-backed lifestyle fallback with
+the same one-product, centered-subject, circular-crop, identity-preservation, and secondary-context
+rules; this task-level fallback must not discard other completed assets or block the page.
+A Hero may likewise fall back to a neutral background plus the same locked real-product layers rather
+than dropping the products or blocking the entire visual stage.
+A direction is rejected when it omits any `sceneBrief.evidenceRefs`.
 
 ## Maintained image slots
 
 | Component | Asset kind | Task granularity | Ratio | Minimum | Alt text | Background color |
 | --- | --- | --- | --- | --- | --- | --- |
 | `ThemeHero` | `hero-image` | one visible Hero | `16:9` | 1200×675 | required | required |
-| `ShortcutRail` | `shortcut-image` | one per assigned shortcut | `1:1` | 512×512 | `null` (decorative) | optional |
+| `ShortcutRail` | `shortcut-image` | one source-backed product lifestyle image per assigned shortcut | `1:1` | 512×512 | `null` (decorative) | optional |
 | `ThemeProductList` | `scene-image` | one per PagePlan scene | `1:1` | 1024×1024 | required | required |
 | `BrandProductRail` | `brand-banner` | one per unique assigned brand | `111:40` | 888×320 | required | optional |
 

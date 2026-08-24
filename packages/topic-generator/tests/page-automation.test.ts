@@ -381,6 +381,16 @@ describe("Topic page automation workflow", () => {
     });
     expect(data.put).toHaveBeenCalledTimes(2);
     expect(data.persisted.size).toBe(2);
+    expect(result.generationSpec?.modules.find(({ id }) => id === "shortcuts")).toMatchObject({
+      assets: [expect.objectContaining({
+        url: expect.stringContaining("assets%2Fshortcut.png"),
+        focalPoint: { x: 0.5, y: 0.5 },
+      })],
+      products: [expect.objectContaining({
+        id: "matcha-1",
+        imageUrl: "https://example.com/matcha-1.webp",
+      })],
+    });
     expect(result.generationSpec?.modules.find(({ id }) => id === "start-here")).toBeUndefined();
   });
 

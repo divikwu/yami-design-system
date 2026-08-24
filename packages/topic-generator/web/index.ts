@@ -1,5 +1,11 @@
 export { TopicAnalysisView } from "./topic-analysis-view";
-export { selectionDefaultCopy, TopicGenerator } from "./topic-generator-client";
+export { distinctEditorialProducts } from "../src/product-selection/editorial-ranking";
+export {
+  exploreGroupsWithAll,
+  managedGenerationProgressSteps,
+  selectionDefaultCopy,
+  TopicGenerator,
+} from "./topic-generator-client";
 export type {
   TopicGeneratorProps,
   TopicPagePreviewRendererProps,

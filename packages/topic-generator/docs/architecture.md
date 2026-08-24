@@ -263,6 +263,14 @@ assigned products, relevant scene, accepted content task, and scoped evidence na
 The context freezes `generated-images` or `source-product-images`; accepted proposals and manifests
 preserve that mode. Scene tasks also expose non-blocking composition guidance for layouts whose copy
 overlays the lower image area.
+Shortcut tasks use a `product-first` / `primary-subject` brief with exactly one representative product;
+the native Runner attaches its approved source image and requests a centered product-led lifestyle
+composition. ThemeHero uses `scene-composite` / `locked-source-products`: the Agent first derives a
+background scene prompt from accepted Hero copy and the assigned product mix, the native generator
+renders that background without products, and the Runner composites verified catalog images as
+centered locked layers while preserving the bottom quarter. Three to five products is preferred when
+available but is not a hard gate. Theme-scene and brand tasks remain `scene-first` /
+`reference-only`.
 
 An accepted `topic-page-visual-proposal/v1` must preserve task order and all upstream digests. The
 Module rejects undeclared tasks, component/product drift, out-of-scope evidence, unsafe paths,
@@ -292,11 +300,11 @@ content presence, and alt-text structure.
 
 Only after hard QA passes may `runTopicPageReviewAgentWorkflow(...)` invoke the read-only Review
 Agent. The `page-review` Module binds its proposal to the execution-plan, generation-spec, and QA
-digests; restricts evidence to generated modules, products, assets, QA, and preview refs; and requires
-every blocking issue to name one allowed rollback stage. `request-revision` blocks automation and
-returns the findings. Only a validated `recommend-approval` decision can compile a
-`topic-page-review-package/v1`. User approval and publishing remain outside automation and require
-separate authority.
+digests and restricts evidence to generated modules, products, assets, QA, and preview refs. Its
+`advisory-never-block-generation` policy normalizes experience quality findings to warnings, so a
+valid review continues to a `topic-page-review-package/v1`; missing evidence, invalid bindings, and
+hard-QA drift still stop the workflow. User approval and publishing remain outside automation and
+require separate authority.
 
 ### RunArtifact and Evaluation Modules
 

@@ -11,6 +11,7 @@ import type {
   ProductSemanticProposalReview,
 } from "./contracts.js";
 import type { RelevanceStrategyConfig } from "./config.js";
+import { rankDistinctEditorialProducts } from "./editorial-ranking.js";
 
 const RELATED_LIMIT = 6;
 const SCENARIO_FALLBACK_PRIMARY_LIMIT = 20;
@@ -150,17 +151,13 @@ function relevanceCommerceModules(
   modules: ProductSelectionModuleResult[],
 ): ProductSelectionModuleResult[] {
   const productsById = new Map(products.map((product) => [product.id, product]));
-  const rankedProductIds = (productIds: string[]) => productIds
-    .flatMap((id) => {
+  const rankedProductIds = (productIds: string[]) => rankDistinctEditorialProducts(
+    productIds.flatMap((id) => {
       const product = productsById.get(id);
       return product ? [product] : [];
-    })
-    .sort((left, right) =>
-      weeklySalesLowerBound(right) - weeklySalesLowerBound(left) ||
-      left.sourceRank - right.sourceRank
-    )
-    .slice(0, POPULAR_PICKS_MAXIMUM_PRODUCTS)
-    .map(({ id }) => id);
+    }),
+    POPULAR_PICKS_MAXIMUM_PRODUCTS,
+  ).map(({ id }) => id);
   const allProductIds = rankedProductIds(products.map(({ id }) => id));
   const shortcutGroups = modules.find(({ id }) => id === "shortcuts")?.groups ?? [];
   const popularGroups: ProductSelectionModuleGroup[] = allProductIds.length <
