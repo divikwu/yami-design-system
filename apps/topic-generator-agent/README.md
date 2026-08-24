@@ -44,8 +44,9 @@ http://127.0.0.1:4400/topic-page
 
 For native `generated-images`, Codex must report `image_generation` as enabled and be logged in
 with ChatGPT. The Runner invokes the built-in ImageGen capability explicitly; it does not require,
-read, or expose `OPENAI_API_KEY`. `GET /health` reports the non-secret provider, model, and auth mode
-only after that startup probe succeeds.
+read, or expose `OPENAI_API_KEY`. `GET /health` reports the non-secret provider, auth mode, and
+whether the runtime actually reported a model name. The feature probe does not infer or hard-code an
+image model; current Codex CLI capability output leaves it `unreported`.
 
 To run only the service:
 
@@ -78,19 +79,35 @@ If `TOPIC_AGENT_RUNNER_TOKEN` is set, use the same value for
 - Only registered protocol stages can select an Agent or Skill. Request data cannot choose a file.
 - Requests, subprocess output, and execution time are bounded.
 - The default local execution budget is five minutes per Codex task. Native image tasks run with a
-  bounded concurrency of eight by default and retry one transient task failure once, so a
+  bounded concurrency of two by default and retry one transient task failure once, so a
   multi-module visual stage remains within the Host deadline while preserving proposal order.
 - CLI processes are invoked without a shell. Semantic stages run in a read-only sandbox.
 - Live web search is enabled only for `background-evidence`; all other text stages keep the existing
   bounded tool set. Brand research prioritizes the official site and treats Wikipedia as secondary
   context.
 - In `generated-images` mode, every visual task must return real image bytes for its module-specific
-  scene brief. Codex invokes the built-in GPT Image 2 capability once per task, inspects the result,
+  scene brief. Codex invokes the enabled native image-generation capability once per attempt,
+  consumes the checked-in Visual Agent and Skill instructions, inspects the result,
   and copies the accepted source into a task-scoped temporary directory. The Runner then reads the
   actual file, crops it to the maintained slot, converts it to WebP, and derives dimensions, MIME,
   background color, and SHA-256 from the resulting bytes. A proposal or artifact path without
   matching image bytes is rejected. An executor without image-generation capability fails before
   execution instead of returning a placeholder.
+- Hero background generation receives structured theme, copy, and product-category evidence but no
+  product image pixels. The Host then uses the exact catalog main images as locked layers: existing
+  alpha is preserved, verified white-background images receive only a deterministic canvas-removal
+  mask that protects the complete product silhouette, and uncertain sources move to a deliberate
+  studio tile on the safe-neutral fallback. No product is generatively redrawn. The
+  Agent must return a light-neutral horizontal support region and contact points. Host geometry
+  checks reject overlap, unsafe bounds, or contacts outside that region. Missing or invalid placement
+  first receives one read-only recovery pass over the same background; a separate read-only vision
+  pass compares the completed Hero with the catalog sources and rejects floating products, vertical
+  landings, altered packaging, ghost-product shadows, and bottom-safe-area intrusion. A failed pass
+  consumes the one Host retry, then uses the known-safe neutral Hero background and records a bounded
+  rejection reason in the asset direction.
+- Successful per-task outputs are reused in memory. Set an absolute
+  `TOPIC_AGENT_RUNNER_IMAGE_CACHE_ROOT` to persist them across Runner restarts; cache keys include
+  Skill/Agent prompts, generator identity, task data, and source-image SHA-256 digests.
 - ShortcutRail tasks attach their one approved representative product image to Codex, generate a
   product-led lifestyle scene, and keep the complete product near the center for circular cropping.
   If one Shortcut exhausts native retries, the Runner creates a source-backed centered lifestyle
@@ -105,7 +122,8 @@ If `TOPIC_AGENT_RUNNER_TOKEN` is set, use the same value for
   groups; the Runner retains the higher-selling listing, falling back to source rank, while
   preserving distinct sizes, formulas, and multipacks.
 - `experience-review` opens the generation-bound desktop and mobile previews, verifies their
-  digest marker, captures both viewports, and supplies the screenshots to an image-capable CLI.
+  digest marker, captures both full pages plus dedicated Hero crops, and supplies the screenshots to
+  an image-capable CLI using per-asset Hero, Shortcut, Scene, and Brand review policies.
 - The existing Host validates the returned proposal and all visual bytes. A successful Runner
   response is never equivalent to accepted selection, QA, approval, or publication.
 

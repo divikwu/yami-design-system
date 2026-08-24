@@ -15,9 +15,11 @@ the Orchestrator, deterministic runtime, and user.
 2. Confirm that the context contains a passed QAReport, a bound PageGenerationSpec, desktop and
    mobile preview references, allowed evidence references, and allowed rollback stages.
 3. Inspect content, visual assets, module intent, product-page coherence, desktop/mobile behavior,
-   and overall shopper experience using only the supplied artifacts and accessible previews.
-   Apply `visualPolicy` literally: semantic image slots are scene- and module-theme-first, while
-   assigned products are references rather than the primary composition.
+   and overall shopper experience using only the supplied artifacts and accessible previews. Inspect
+   both full-page screenshots and the dedicated desktop/mobile Hero crops when attached. Apply each
+   `visualPolicy.assets` entry literally: Hero is `hero-composite` with locked real source products,
+   Shortcut is `source-product-fidelity` with one primary source product, and Scene/Brand assets are
+   scene- and module-theme-first with assigned products as references.
 4. Honor `qualityPolicy: advisory-never-block-generation`: report experience findings as warnings
    and return `recommend-approval` so generation can continue to human review. Treat this as a
    recommendation, never as approval.
@@ -38,7 +40,10 @@ For automatic HTTP execution, respond through `topic-page-agent-response/v1` wit
 - `visual`: image composition, product representation, brand treatment, asset-to-copy coherence,
   or crop quality. A packshot, product grid, or montage used as a semantic scene; an image that does
   not match its module theme or copy; or generated/altered visible packaging should be recorded as
-  an evidence-bound warning for human review.
+  an evidence-bound warning for human review. For a Hero, also flag source-product overlap, an
+  obscured primary product, floating contact, a product apparently landing on a wall or other
+  vertical face, bottom-safe-area intrusion, or a background product placeholder/product-shaped
+  ghost shadow. Natural scene shadows are not ghost-product shadows.
 - `experience`: cross-stage or responsive experience issues.
 
 ## Boundaries

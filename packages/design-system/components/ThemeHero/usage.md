@@ -20,7 +20,9 @@ remains real DOM text so it can be translated, selected and indexed.
   they render with the shared `Badge`. `tagSize` selects the preferred desktop
   `sm` or `md` geometry, while `tagTone` selects the background-polarity
   treatment. ThemeHero compacts tags to the `sm` geometry below 1024px.
-- Supply intrinsic image dimensions and meaningful foreground alt text.
+- Supply intrinsic image dimensions and meaningful foreground alt text. When an asset pipeline
+  provides a focal point, map it to `image.objectPosition` so desktop and mobile crops preserve the
+  intended product group rather than forcing a generic centered crop.
 - Configure `cta` with destination-specific copy for the primary path.
 - Add `secondaryCta` only when a distinct lower-emphasis destination exists.
 - Actions use content-driven widths and the shared full-radius token.

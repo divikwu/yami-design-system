@@ -82,13 +82,13 @@ const PRODUCT_FIRST_SHORTCUT_REQUIREMENTS = [
 const HERO_COMPOSITE_REQUIREMENTS = [
   "Let the visual Agent derive the setting and supporting elements from the accepted Hero copy and assigned product mix.",
   "Aim to feature 3 to 5 representative assigned products when available; treat this count as guidance rather than a generation blocker.",
-  "Generate the scene background without product containers, then add the assigned products as separate source-backed layers.",
+  "Generate the scene background without receiving product image pixels and without product containers, then add the assigned catalog main images as separate source-backed layers.",
   "Compose the verified source product images as locked real-product layers; do not ask the image model to redraw their packaging.",
-  "Let the Agent choose the camera, support surface, depth pattern, materials, and light while preserving natural environmental shadows in the central placement area.",
+  "Let the Agent choose the camera, depth pattern, materials, and light while providing one continuous, upward-facing, light-neutral support region for the product group.",
   "Avoid steep or internally inconsistent perspective, missing credible product footholds, a placement zone that forces a single flat row, and conflicting light or shadow directions.",
   "Do not pre-render empty product silhouettes, empty product-shaped shadows, or other placeholders for products that are not yet present.",
-  "After inspecting the background, return non-blocking x/y/scale/depth placement guidance for each assigned product when credible footholds can be identified; each contact point must lie on an upward-facing support surface, never a vertical face, wall, or open air.",
-  "Visually verify every placement point against the actual generated pixels before returning it; omission falls back safely and never blocks generation.",
+  "After inspecting the background, return the normalized support region plus x/y/scale/depth guidance for each assigned product; every contact point must lie inside that support region, never on a vertical face, wall, or open air.",
+  "Visually verify every placement point against the actual generated pixels before returning it; missing or invalid guidance triggers one read-only visual recovery pass, then the Host uses its known-safe neutral Hero background if recovery fails.",
   "During Host composition, keep the central representative product unobscured in front, stagger secondary products across middle and rear depths, and add restrained same-direction contact shadows.",
   "Keep the combined product group at the visual center and keep the bottom quarter free of principal products or scene elements.",
   "Do not prescribe category-specific props or environments; let the Agent choose them from the theme and cross-category product evidence.",
@@ -104,8 +104,13 @@ const KIND_REQUIREMENT: Record<TopicPageVisualAssetKind, string> = {
 function contentTexts(
   contentTask: TopicPageVisualTaskContext["contentTask"],
   sceneId?: string,
+  kind?: TopicPageVisualAssetKind,
 ) {
   const copy = contentTask.copy;
+  if (kind === "hero-image") {
+    return [copy.title.text, copy.description?.text]
+      .filter((text): text is string => Boolean(text?.trim()));
+  }
   const texts = [
     copy.title.text,
     copy.description?.text,
@@ -164,7 +169,7 @@ function sceneBrief(options: {
       : {}),
     content: {
       taskId: options.contentTask.taskId,
-      texts: contentTexts(options.contentTask, options.scene?.id),
+      texts: contentTexts(options.contentTask, options.scene?.id, options.kind),
     },
     evidenceRefs: [...new Set(evidenceRefs)],
   };

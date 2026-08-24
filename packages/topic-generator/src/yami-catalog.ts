@@ -476,7 +476,9 @@ function flattenCategories(
 }
 
 function absoluteImageUrl(value: string) {
-  return new URL(value, "https://cdn.yamibuy.net").toString();
+  const url = new URL(value, "https://cdn.yamibuy.net");
+  url.pathname = url.pathname.replace(/_300x300(?=\.[a-z]+$)/i, "_750x750");
+  return url.toString();
 }
 
 function productUrl(item: CatalogItem) {

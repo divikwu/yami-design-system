@@ -158,6 +158,12 @@ function serialized(value: unknown) {
   return `${JSON.stringify(value, null, 2)}\n`;
 }
 
+function recordValue(value: unknown): Record<string, unknown> | undefined {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : undefined;
+}
+
 function valueDigest(value: unknown) {
   return sha256(serialized(value));
 }
@@ -751,6 +757,42 @@ export class TopicGeneratorRunStore {
           if (pageStage?.status === "completed" && pageStage.attempts > 0) {
             const envelope = await this.readStageEnvelope(ancestorRunId, "page-generation");
             if (envelope?.status === "completed") {
+              const assetEnvelope = await this.readStageEnvelope(
+                ancestorRunId,
+                "asset-persistence",
+              );
+              const assetOutput = recordValue(assetEnvelope?.output);
+              const assetManifest = recordValue(assetOutput?.assetManifest);
+              const assets = assetManifest?.assets;
+              if (assetEnvelope?.status !== "completed" || !Array.isArray(assets) ||
+                  assets.length === 0) {
+                diagnostics.push(
+                  `Retained visual assets for ${ancestorRunId} are unavailable or undeclared.`,
+                );
+                ancestorRunId = ancestor.manifest.parentRunId;
+                continue;
+              }
+              const assetStore = this.assetStore(ancestorRunId);
+              const assetsAreValid = await Promise.all(assets.map(async (value) => {
+                const asset = recordValue(value);
+                const artifact = recordValue(asset?.artifact);
+                const ref = artifact?.ref;
+                const digest = artifact?.digest;
+                if (typeof ref !== "string" || typeof digest !== "string" ||
+                    !/^sha256:[a-f0-9]{64}$/.test(digest)) return false;
+                try {
+                  return `sha256:${sha256(await assetStore.get(ref))}` === digest;
+                } catch {
+                  return false;
+                }
+              }));
+              if (assetsAreValid.some((valid) => !valid)) {
+                diagnostics.push(
+                  `Retained visual assets for ${ancestorRunId} failed integrity validation.`,
+                );
+                ancestorRunId = ancestor.manifest.parentRunId;
+                continue;
+              }
               retainedVisualPreview = {
                 sourceRunId: ancestorRunId,
                 pageGeneration: envelope.output,
@@ -901,6 +943,32 @@ export class TopicGeneratorRunStore {
         return `/api/topic-generator/runs/${encodeURIComponent(runId)}/assets?ref=${encodeURIComponent(ref)}`;
       },
     };
+  }
+
+  async readPersistedAsset(runId: string, ref: string) {
+    const envelope = await this.readStageEnvelope(runId, "asset-persistence");
+    const output = recordValue(envelope?.output);
+    const manifest = recordValue(output?.assetManifest);
+    const asset = Array.isArray(manifest?.assets)
+      ? manifest.assets
+        .map(recordValue)
+        .find((value) => recordValue(value?.artifact)?.ref === ref)
+      : undefined;
+    const artifact = recordValue(asset?.artifact);
+    const digest = artifact?.digest;
+    if (typeof digest !== "string" || !/^sha256:[a-f0-9]{64}$/.test(digest)) {
+      throw new TopicGeneratorRunValidationError("Asset is not declared by the persisted manifest.");
+    }
+    let bytes: Uint8Array;
+    try {
+      bytes = await this.assetStore(runId).get(ref);
+    } catch {
+      throw new TopicGeneratorRunValidationError("Persisted asset could not be read.");
+    }
+    if (`sha256:${sha256(bytes)}` !== digest) {
+      throw new TopicGeneratorRunValidationError("Persisted asset digest is invalid.");
+    }
+    return bytes;
   }
 
   private async acquireLock(runId: string) {

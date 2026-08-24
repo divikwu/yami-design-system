@@ -16,6 +16,8 @@ export interface ThemeHeroImage {
   width: number;
   /** Intrinsic height used to reserve the foreground image ratio. */
   height: number;
+  /** CSS object-position derived from the asset focal point. */
+  objectPosition?: string;
 }
 
 export interface ThemeHeroCta {

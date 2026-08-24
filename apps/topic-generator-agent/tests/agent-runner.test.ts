@@ -568,7 +568,7 @@ describe("TOPIC GENERATOR Agent Runner", () => {
     )).toEqual({
       available: true,
       provider: "codex-native",
-      model: "gpt-image-2",
+      modelSource: "unreported",
       authMode: "chatgpt",
     });
     expect(parseCodexImageGenerationProbe(

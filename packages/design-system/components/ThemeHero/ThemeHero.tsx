@@ -311,6 +311,7 @@ export function ThemeHero({
             alt={image.alt}
             width={image.width}
             height={image.height}
+            style={image.objectPosition ? { objectPosition: image.objectPosition } : undefined}
             loading={imageLoading}
             decoding="async"
             fetchPriority={imageLoading === "eager" ? "high" : undefined}

@@ -103,6 +103,7 @@ function withRetainedVisuals(
             alt: heroAsset.altText?.text ?? props.hero.image.alt,
             width: heroAsset.width,
             height: heroAsset.height,
+            objectPosition: focalPointObjectPosition(heroAsset.focalPoint),
           },
           backgroundImageSrc: heroAsset.url,
           ...(heroAsset.backgroundColor ? { backgroundColor: heroAsset.backgroundColor } : {}),
@@ -367,6 +368,9 @@ export function generatedPrototypeProps(
             alt: heroAsset?.altText?.text ?? hero.copy.title.text,
             width: heroAsset?.width ?? base.hero.image.width,
             height: heroAsset?.height ?? base.hero.image.height,
+            ...(heroAsset
+              ? { objectPosition: focalPointObjectPosition(heroAsset.focalPoint) }
+              : {}),
           },
           backgroundImageSrc: heroAsset?.url ?? hero.products[0]?.imageUrl ?? NEUTRAL_IMAGE,
           ...(heroAsset?.backgroundColor

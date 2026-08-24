@@ -135,14 +135,19 @@ describe("Topic page experience review", () => {
       context: {
         qualityPolicy: "advisory-never-block-generation",
         visualPolicy: {
-          priority: "scene-and-module-theme",
-          productRole: "reference-only",
-          blockingConditions: [
-            "isolated-product-packshot-used-as-semantic-scene",
-            "product-grid-or-montage-used-as-semantic-scene",
-            "asset-does-not-match-module-theme-or-copy",
-            "visible-product-packaging-is-generated-or-altered",
-          ],
+          assets: [{
+            taskId: "asset-hero",
+            moduleId: "hero",
+            kind: "hero-image",
+            priority: "hero-composite",
+            productRole: "locked-source-products",
+            blockingConditions: expect.arrayContaining([
+              "source-products-overlap-or-obscure-primary-product",
+              "source-product-is-floating-or-lands-on-vertical-surface",
+              "hero-principal-content-enters-bottom-safe-area",
+              "background-contains-product-placeholder-or-product-shaped-shadow",
+            ]),
+          }],
         },
       },
     });

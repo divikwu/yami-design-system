@@ -1,13 +1,21 @@
 import { createHash } from "node:crypto";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 import sharp from "sharp";
 import { describe, expect, it } from "vitest";
 
 import {
+  createSuccessfulVisualTaskCache,
   composeLockedHeroProducts,
   composeSourceProductLifestyleFallback,
   compileGeneratedImageVisualResponse,
   generatedImageTaskPrompt,
+  heroCompositionVerificationPrompt,
+  heroPlacementRecoveryPrompt,
+  parseHeroCompositionVerificationResult,
+  parseHeroPlacementRecoveryResult,
   parseNativeImageTaskResult,
   type GeneratedVisualContext,
   type GeneratedVisualTask,
@@ -127,6 +135,14 @@ function visualRun() {
   };
 }
 
+const safeSupportRegion = {
+  left: 0.08,
+  right: 0.92,
+  top: 0.5,
+  bottom: 0.74,
+  surface: "horizontal-light-neutral" as const,
+};
+
 describe("Codex-native generated Topic visuals", () => {
   it("composites real source-product layers in the Hero center and preserves the bottom quarter", async () => {
     const run = visualRun();
@@ -149,7 +165,7 @@ describe("Codex-native generated Topic visuals", () => {
         width: 1600,
         height: 900,
         channels: 3,
-        background: { r: 18, g: 24, b: 30 },
+        background: { r: 232, g: 226, b: 216 },
       },
     }).png().toBuffer();
     const colors = ["#d63034", "#2f9e44", "#1971c2", "#f08c00"];
@@ -174,60 +190,38 @@ describe("Codex-native generated Topic visuals", () => {
       background,
       sources,
       task as unknown as GeneratedVisualTask,
+      undefined,
+      { backgroundMode: "safe-neutral" },
     );
     const metadata = await sharp(result).metadata();
     const raw = await sharp(result).raw().toBuffer({ resolveWithObject: true });
+    const primaryX = Math.round(
+      result.placement.plan.anchors[result.placement.plan.primaryIndex]!.x * raw.info.width,
+    );
     const bottomCenter = (800 * raw.info.width + 800) * raw.info.channels;
     const rgb = [...raw.data.subarray(bottomCenter, bottomCenter + 3)];
-    const contactShadow = (656 * raw.info.width + 800) * raw.info.channels;
+    const contactShadow = (650 * raw.info.width + primaryX) * raw.info.channels;
     const contactShadowRgb = [...raw.data.subarray(contactShadow, contactShadow + 3)];
-    const centralOverlap = (400 * raw.info.width + 800) * raw.info.channels;
+    const centralOverlap = (400 * raw.info.width + primaryX) * raw.info.channels;
     const centralOverlapRgb = [...raw.data.subarray(centralOverlap, centralOverlap + 3)];
-    const colorMaxY = new Map(colors.map((color) => [color, -1]));
-    const colorTargets = new Map(colors.map((color) => [color, Buffer.from(color.slice(1), "hex")]));
-    let minX = raw.info.width;
-    let maxX = -1;
-    let minY = raw.info.height;
-    let maxY = -1;
-    for (let y = 0; y < raw.info.height; y += 1) {
-      for (let x = 0; x < raw.info.width; x += 1) {
-        const offset = (y * raw.info.width + x) * raw.info.channels;
-        const isBackground = raw.data[offset] === 18 &&
-          raw.data[offset + 1] === 24 && raw.data[offset + 2] === 30;
-        if (isBackground) continue;
-        colors.forEach((color) => {
-          const target = colorTargets.get(color)!;
-          if (raw.data[offset] === target[0] && raw.data[offset + 1] === target[1] &&
-              raw.data[offset + 2] === target[2]) {
-            colorMaxY.set(color, Math.max(colorMaxY.get(color)!, y));
-          }
-        });
-        minX = Math.min(minX, x);
-        maxX = Math.max(maxX, x);
-        minY = Math.min(minY, y);
-        maxY = Math.max(maxY, y);
-      }
-    }
-    const subjectWidth = maxX - minX + 1;
-    const subjectHeight = maxY - minY + 1;
-    const subjectCenterX = (minX + maxX) / 2;
+    const bounds = result.compositionAudit.products.map(({ bounds }) => bounds);
+    const subjectLeft = Math.min(...bounds.map(({ left }) => left));
+    const subjectRight = Math.max(...bounds.map(({ right }) => right));
+    const subjectTop = Math.min(...bounds.map(({ top }) => top));
+    const subjectBottom = Math.max(...bounds.map(({ bottom }) => bottom));
 
     expect(metadata).toMatchObject({ format: "png", width: 1600, height: 900 });
-    expect(rgb).toEqual([18, 24, 30]);
-    expect(contactShadowRgb.reduce((sum, channel) => sum + channel, 0)).toBeLessThan(66);
-    expect(centralOverlapRgb).toEqual([47, 158, 68]);
-    expect(colorMaxY.get("#2f9e44")! - colorMaxY.get("#1971c2")!).toBeGreaterThanOrEqual(35);
-    expect(colorMaxY.get("#2f9e44")! - colorMaxY.get("#d63034")!).toBeGreaterThanOrEqual(20);
-    expect(subjectWidth).toBeGreaterThanOrEqual(1_120);
-    expect(subjectWidth).toBeLessThanOrEqual(1_180);
-    expect(subjectHeight).toBeGreaterThanOrEqual(410);
-    expect(subjectCenterX).toBeGreaterThanOrEqual(780);
-    expect(subjectCenterX).toBeLessThanOrEqual(820);
-    expect(maxY).toBeLessThan(675);
-    colors.forEach((hex) => {
-      const target = Buffer.from(hex.slice(1), "hex");
-      expect(raw.data.includes(target)).toBe(true);
-    });
+    expect(rgb).toEqual([232, 226, 216]);
+    expect(contactShadowRgb.reduce((sum, channel) => sum + channel, 0)).toBeLessThan(674);
+    expect(centralOverlapRgb[1]).toBeGreaterThan(centralOverlapRgb[0]! * 2);
+    expect(bounds[1]!.bottom - bounds[2]!.bottom).toBeGreaterThanOrEqual(0.035);
+    expect(bounds[1]!.bottom - bounds[0]!.bottom).toBeGreaterThanOrEqual(0.02);
+    expect(subjectRight - subjectLeft).toBeGreaterThanOrEqual(0.78);
+    expect(subjectRight - subjectLeft).toBeLessThanOrEqual(0.88);
+    expect(subjectBottom - subjectTop).toBeGreaterThanOrEqual(0.43);
+    expect((subjectLeft + subjectRight) / 2).toBeGreaterThanOrEqual(0.48);
+    expect((subjectLeft + subjectRight) / 2).toBeLessThanOrEqual(0.52);
+    expect(subjectBottom).toBeLessThan(0.75);
   });
 
   it("builds a centered square source-product lifestyle fallback", async () => {
@@ -301,27 +295,83 @@ describe("Codex-native generated Topic visuals", () => {
           { x: 0.7, y: 0.58, scale: 0.75, depth: 0 },
         ],
         shadowDirection: { x: -0.5, y: 0.5 },
+        supportRegion: safeSupportRegion,
       },
     );
-    const raw = await sharp(result).raw().toBuffer({ resolveWithObject: true });
-    const maxY = new Map(colors.map((color) => [color, -1]));
-    const targets = new Map(colors.map((color) => [color, Buffer.from(color.slice(1), "hex")]));
-    for (let y = 0; y < raw.info.height; y += 1) {
-      for (let x = 0; x < raw.info.width; x += 1) {
-        const offset = (y * raw.info.width + x) * raw.info.channels;
-        colors.forEach((color) => {
-          const target = targets.get(color)!;
-          if (raw.data[offset] === target[0] && raw.data[offset + 1] === target[1] &&
-              raw.data[offset + 2] === target[2]) {
-            maxY.set(color, y);
-          }
-        });
-      }
-    }
+    expect(result.compositionAudit.products.map(({ bounds }) => bounds.bottom)).toEqual([
+      0.62,
+      0.7,
+      0.58,
+    ]);
+    expect(result.compositionAudit.products.map(({ contactPoint }) => contactPoint)).toEqual([
+      { x: 0.3, y: 0.62 },
+      { x: 0.5, y: 0.7 },
+      { x: 0.7, y: 0.58 },
+    ]);
+  });
 
-    expect(maxY.get("#d63034")).toBe(557);
-    expect(maxY.get("#2f9e44")).toBe(629);
-    expect(maxY.get("#1971c2")).toBe(521);
+  it("rejects overlapping Agent placement anchors instead of applying fixed anchors to the scene", async () => {
+    const run = visualRun();
+    const heroTask = run.context.tasks[0]!;
+    const colors = ["#d63034", "#2f9e44", "#1971c2"];
+    const background = await sharp({
+      create: { width: 1600, height: 900, channels: 3, background: "#e8e2d8" },
+    }).png().toBuffer();
+    const sources = await Promise.all(colors.map(async (color) => await sharp({
+      create: { width: 500, height: 500, channels: 3, background: "#ffffff" },
+    }).composite([{
+      input: Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="220" height="380"><rect width="220" height="380" rx="24" fill="${color}"/></svg>`),
+      left: 140,
+      top: 60,
+    }]).png().toBuffer()));
+
+    await expect(composeLockedHeroProducts(
+      background,
+      sources,
+      heroTask as unknown as GeneratedVisualTask,
+      {
+        primaryIndex: 0,
+        anchors: [
+          { x: 0.5, y: 0.7, scale: 1.2, depth: 2 },
+          { x: 0.5, y: 0.7, scale: 1.2, depth: 1 },
+          { x: 0.5, y: 0.7, scale: 1.2, depth: 0 },
+        ],
+        shadowDirection: { x: 0.5, y: 0.5 },
+        supportRegion: safeSupportRegion,
+      },
+    )).rejects.toThrow("agent-placement-overlap");
+  });
+
+  it("preserves a pale product body behind a deterministic white-background silhouette mask", async () => {
+    const run = visualRun();
+    const task = run.context.tasks[0]!;
+    const source = await sharp({
+      create: { width: 500, height: 500, channels: 3, background: "#ffffff" },
+    }).composite([{
+      input: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="220" height="390"><rect x="10" y="10" width="200" height="370" rx="36" fill="#f3f3ef" stroke="#b8c4bd" stroke-width="8"/><rect x="45" y="170" width="130" height="70" fill="#dfe9e2"/></svg>'),
+      left: 140,
+      top: 55,
+    }]).png().toBuffer();
+    const background = await sharp({
+      create: { width: 1600, height: 900, channels: 3, background: "#e8e2d8" },
+    }).png().toBuffer();
+
+    const result = await composeLockedHeroProducts(
+      background,
+      [source],
+      { ...task, products: [task.products[0]!] } as unknown as GeneratedVisualTask,
+      undefined,
+      { backgroundMode: "safe-neutral" },
+    );
+    const raw = await sharp(result.bytes).raw().toBuffer({ resolveWithObject: true });
+    const centerOffset = (390 * raw.info.width + 800) * raw.info.channels;
+    const center = [...raw.data.subarray(centerOffset, centerOffset + 3)];
+
+    expect(center.reduce((sum, channel) => sum + channel, 0)).toBeGreaterThan(580);
+    expect(result.compositionAudit.products[0]).toMatchObject({
+      preparationMethod: "white-background-direct",
+      preparationConfidence: expect.any(Number),
+    });
   });
 
   it("asks the Agent to plan a product-aware Hero background before locked-layer composition", () => {
@@ -331,29 +381,28 @@ describe("Codex-native generated Topic visuals", () => {
       run.context as unknown as GeneratedVisualContext,
       task as unknown as GeneratedVisualTask,
       "generated.png",
+      {
+        skillInstructions: "SKILL CONTRACT: do not attach Hero product pixels.",
+        agentInstructions: "AGENT CONFIG: visual-generation only.",
+      },
     );
 
-    expect(prompt).toContain("First derive a concise scene prompt");
-    expect(prompt).toContain("theme copy and the assigned product mix");
-    expect(prompt).toContain("locked real-source layers");
+    expect(prompt).toContain("SKILL CONTRACT: do not attach Hero product pixels");
+    expect(prompt).toContain("AGENT CONFIG: visual-generation only");
+    expect(prompt).toContain("No product source image is attached");
+    expect(prompt).toContain("locked catalog product layers");
     expect(prompt).toContain("central visual focus");
-    expect(prompt).toContain("credible central supporting plane");
-    expect(prompt).toContain("consistent camera perspective and light direction");
-    expect(prompt).toContain("Choose the camera");
-    expect(prompt).toContain("Avoid steep or internally inconsistent perspective");
-    expect(prompt).toContain("placement zone that forces a single flat row");
-    expect(prompt).toContain("conflicting light or shadow directions");
-    expect(prompt).toContain("preserve natural environmental shadows");
-    expect(prompt).toContain("empty product-shaped shadows");
-    expect(prompt).not.toContain("do not pre-render product silhouettes or shadows");
+    expect(prompt).toContain("continuous upward-facing light-neutral support region");
+    expect(prompt).toContain("Natural environmental shadows");
+    expect(prompt).toContain("product-shaped shadows");
     expect(prompt).toContain("placementPlan");
-    expect(prompt).toContain("x, y, scale, and depth");
-    expect(prompt).toContain("same order as the assigned products");
-    expect(prompt).toContain("upward-facing supporting surface");
-    expect(prompt).toContain("not on a vertical face, wall, or open air");
-    expect(prompt).toContain("temporary annotated copy");
-    expect(prompt).toContain("bottom 25 percent");
-    expect(prompt).toContain("UNTRUSTED PRODUCT TITLE");
+    expect(prompt).toContain("supportRegion");
+    expect(prompt).toContain("inside supportRegion");
+    expect(prompt).toContain("Host owns the single bounded retry");
+    expect(prompt).not.toContain("make exactly one targeted retry");
+    expect(prompt).not.toContain("UNTRUSTED PRODUCT TITLE");
+    expect(prompt).not.toContain("Matcha House");
+    expect(prompt).toContain("product 1: Matcha");
     expect(prompt).toContain("generated.png");
     expect(prompt).not.toContain("washbasin");
     expect(prompt).not.toContain("skincare plants");
@@ -372,7 +421,8 @@ describe("Codex-native generated Topic visuals", () => {
     expect(prompt).toContain("single primary subject");
     expect(prompt).toContain("near the exact center");
     expect(prompt).toContain("circular crop");
-    expect(prompt).toContain("Daily Matcha Powder");
+    expect(prompt).toContain("Product category: Matcha");
+    expect(prompt).not.toContain("Daily Matcha Powder");
     expect(prompt).not.toContain("Show no bottles, jars, tubes");
 
     const source = await sharp({
@@ -475,7 +525,7 @@ describe("Codex-native generated Topic visuals", () => {
     }
   });
 
-  it("uses eight workers by default so a full visual stage stays within the Host timeout", async () => {
+  it("uses two workers by default to bound native image-generation load", async () => {
     const source = await sharp({
       create: {
         width: 768,
@@ -501,7 +551,7 @@ describe("Codex-native generated Topic visuals", () => {
       return source;
     });
 
-    expect(peak).toBe(8);
+    expect(peak).toBe(2);
   });
 
   it("retries each transient image task once without restarting completed tasks", async () => {
@@ -569,6 +619,101 @@ describe("Codex-native generated Topic visuals", () => {
     ]);
   });
 
+  it("records fallback provenance instead of reporting the requested scene as generated", async () => {
+    const source = await sharp({
+      create: { width: 768, height: 768, channels: 3, background: "#d3dcca" },
+    }).png().toBuffer();
+    const response = await compileGeneratedImageVisualResponse(
+      visualRun(),
+      async () => { throw new Error("native generation unavailable"); },
+      {
+        attempts: 1,
+        fallback: async () => ({
+          bytes: source,
+          scenePrompt: "Deterministic neutral source-layer fallback.",
+          fallbackUsed: true,
+        }),
+      },
+    );
+
+    expect(response.proposal.assets[0]?.direction).toMatchObject({
+      prompt: "Deterministic neutral source-layer fallback.",
+      fallbackUsed: true,
+      fallbackReason: "native generation unavailable",
+    });
+  });
+
+  it("reuses successful task results while evicting failures", async () => {
+    const source = await sharp({
+      create: { width: 32, height: 32, channels: 3, background: "#d3dcca" },
+    }).png().toBuffer();
+    let calls = 0;
+    const cached = createSuccessfulVisualTaskCache(async () => {
+      calls += 1;
+      return source;
+    });
+    const request = {
+      task: visualRun().context.tasks[0] as unknown as GeneratedVisualTask,
+      prompt: "stable prompt",
+      outputFilename: "generated.png",
+      lockedProductImageUrls: ["https://cdn.yamibuy.net/item/product-1.webp"],
+    };
+
+    await cached(request);
+    await cached(request);
+    expect(calls).toBe(1);
+
+    let failures = 0;
+    const retryable = createSuccessfulVisualTaskCache(async () => {
+      failures += 1;
+      if (failures === 1) throw new Error("transient");
+      return source;
+    });
+    await expect(retryable(request)).rejects.toThrow("transient");
+    await expect(retryable(request)).resolves.toEqual(source);
+    expect(failures).toBe(2);
+  });
+
+  it("reuses a successful task from the persistent cache after a Runner restart", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "topic-visual-cache-test-"));
+    try {
+      const source = await sharp({
+        create: { width: 32, height: 32, channels: 3, background: "#d3dcca" },
+      }).png().toBuffer();
+      const request = {
+        task: visualRun().context.tasks[0] as unknown as GeneratedVisualTask,
+        prompt: "stable prompt",
+        outputFilename: "generated.png",
+        lockedProductImageUrls: ["https://cdn.yamibuy.net/item/product-1.webp"],
+      };
+      let calls = 0;
+      const firstRunner = createSuccessfulVisualTaskCache(async () => {
+        calls += 1;
+        return { bytes: source, scenePrompt: "cached scene" };
+      }, { directory });
+      await firstRunner(request);
+
+      const restartedRunner = createSuccessfulVisualTaskCache(async () => {
+        calls += 1;
+        return source;
+      }, { directory });
+      await expect(restartedRunner(request)).resolves.toMatchObject({
+        bytes: source,
+        scenePrompt: "cached scene",
+        cacheHit: true,
+      });
+      expect(calls).toBe(1);
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+
+  it("rejects a relative persistent visual cache root", () => {
+    expect(() => createSuccessfulVisualTaskCache(async () => Buffer.from("image"), {
+      directory: "relative/cache",
+    })).toThrow("must be absolute");
+  });
+
   it("requires a native task to report accepted inspection and the fixed output file", () => {
     expect(parseNativeImageTaskResult({
       schemaVersion: "topic-page-native-image-task-result/v1",
@@ -594,6 +739,7 @@ describe("Codex-native generated Topic visuals", () => {
           { x: 0.5, y: 0.7, scale: 1, depth: 2 },
         ],
         shadowDirection: { x: -0.5, y: 0.5 },
+        supportRegion: safeSupportRegion,
       },
       issues: [],
     }, "asset-hero", "generated.png")).toEqual({
@@ -606,6 +752,7 @@ describe("Codex-native generated Topic visuals", () => {
           { x: 0.5, y: 0.7, scale: 1, depth: 2 },
         ],
         shadowDirection: { x: -0.5, y: 0.5 },
+        supportRegion: safeSupportRegion,
       },
       issues: [],
     });
@@ -617,5 +764,74 @@ describe("Codex-native generated Topic visuals", () => {
       relativePath: "generated.png",
       issues: ["product-grid composition"],
     }, "asset-hero", "generated.png")).toThrow("product-grid composition");
+  });
+
+  it("runs a separate read-only Hero verifier for support contact and source fidelity", () => {
+    const task = visualRun().context.tasks[0] as unknown as GeneratedVisualTask;
+    const prompt = heroCompositionVerificationPrompt(
+      task,
+      "SKILL: locked source products",
+      "AGENT: visual only",
+    );
+    expect(prompt).toContain("first attached image is the final Hero composite");
+    expect(prompt).toContain("next 3 attached images are the exact catalog source images");
+    expect(prompt).toContain("upward-facing horizontal support surface");
+    expect(prompt).toContain("wall, vertical face, or open air");
+    expect(prompt).toContain("SKILL: locked source products");
+    expect(prompt).toContain("AGENT: visual only");
+    expect(parseHeroCompositionVerificationResult({
+      schemaVersion: "topic-page-hero-composition-verification/v1",
+      taskId: "asset-hero",
+      status: "accepted",
+      issues: [],
+    }, "asset-hero")).toEqual({ status: "accepted", issues: [] });
+    expect(() => parseHeroCompositionVerificationResult({
+      schemaVersion: "topic-page-hero-composition-verification/v1",
+      taskId: "asset-hero",
+      status: "rejected",
+      issues: ["product floats above the support plane"],
+    }, "asset-hero")).toThrow("product floats above the support plane");
+  });
+
+  it("recovers missing Hero placement from the existing background without generating another image", () => {
+    const task = visualRun().context.tasks[0] as unknown as GeneratedVisualTask;
+    const prompt = heroPlacementRecoveryPrompt(
+      task,
+      "SKILL: recover only a horizontal support surface",
+      "AGENT: visual only",
+    );
+    expect(prompt).toContain("Do not generate or edit an image");
+    expect(prompt).toContain("3 catalog products");
+    expect(prompt).toContain("wall, vertical face, step riser, object, or open air");
+    expect(prompt).toContain("SKILL: recover only a horizontal support surface");
+    const placementPlan = {
+      primaryIndex: 1,
+      anchors: [
+        { x: 0.3, y: 0.64, scale: 0.8, depth: 1 },
+        { x: 0.5, y: 0.68, scale: 1, depth: 2 },
+        { x: 0.7, y: 0.62, scale: 0.78, depth: 0 },
+      ],
+      shadowDirection: { x: 0.6, y: 0.5 },
+      supportRegion: {
+        left: 0.08,
+        right: 0.92,
+        top: 0.5,
+        bottom: 0.72,
+        surface: "horizontal-light-neutral",
+      },
+    } as const;
+    expect(parseHeroPlacementRecoveryResult({
+      schemaVersion: "topic-page-hero-placement-recovery/v1",
+      taskId: "asset-hero",
+      status: "accepted",
+      placementPlan,
+      issues: [],
+    }, task)).toEqual(placementPlan);
+    expect(() => parseHeroPlacementRecoveryResult({
+      schemaVersion: "topic-page-hero-placement-recovery/v1",
+      taskId: "asset-hero",
+      status: "rejected",
+      issues: ["no horizontal support region"],
+    }, task)).toThrow("no horizontal support region");
   });
 });

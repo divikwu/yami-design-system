@@ -24,16 +24,58 @@ export interface TopicPageExperienceReviewRequest {
   proposal?: unknown;
 }
 
-const VISUAL_POLICY: TopicPageExperienceReviewContext["visualPolicy"] = {
-  priority: "scene-and-module-theme",
-  productRole: "reference-only",
-  blockingConditions: [
-    "isolated-product-packshot-used-as-semantic-scene",
-    "product-grid-or-montage-used-as-semantic-scene",
-    "asset-does-not-match-module-theme-or-copy",
-    "visible-product-packaging-is-generated-or-altered",
-  ],
-};
+function visualPolicy(
+  generationSpec: TopicPageGenerationSpec,
+): TopicPageExperienceReviewContext["visualPolicy"] {
+  return {
+    assets: generationSpec.modules.flatMap((module) => module.assets.map((asset) => {
+      if (asset.kind === "hero-image") {
+        return {
+          taskId: asset.taskId,
+          moduleId: module.id,
+          kind: asset.kind,
+          priority: "hero-composite" as const,
+          productRole: "locked-source-products" as const,
+          blockingConditions: [
+            "asset-does-not-match-module-theme-or-copy",
+            "visible-product-packaging-is-generated-or-altered",
+            "source-products-overlap-or-obscure-primary-product",
+            "source-product-is-floating-or-lands-on-vertical-surface",
+            "hero-principal-content-enters-bottom-safe-area",
+            "background-contains-product-placeholder-or-product-shaped-shadow",
+          ],
+        };
+      }
+      if (asset.kind === "shortcut-image") {
+        return {
+          taskId: asset.taskId,
+          moduleId: module.id,
+          kind: asset.kind,
+          priority: "source-product-fidelity" as const,
+          productRole: "primary-subject" as const,
+          blockingConditions: [
+            "representative-product-missing-cropped-duplicated-or-altered",
+            "representative-product-is-not-the-primary-subject",
+            "asset-does-not-match-module-theme-or-copy",
+          ],
+        };
+      }
+      return {
+        taskId: asset.taskId,
+        moduleId: module.id,
+        kind: asset.kind,
+        priority: "scene-and-module-theme" as const,
+        productRole: "reference-only" as const,
+        blockingConditions: [
+          "isolated-product-packshot-used-as-semantic-scene",
+          "product-grid-or-montage-used-as-semantic-scene",
+          "asset-does-not-match-module-theme-or-copy",
+          "visible-product-packaging-is-generated-or-altered",
+        ],
+      };
+    })),
+  };
+}
 
 function compileDecision(
   proposal: NonNullable<ReturnType<typeof reviewTopicPageExperienceProposal>["proposal"]>,
@@ -84,7 +126,7 @@ export function advanceTopicPageExperienceReviewRun(
           qaReport,
         }),
         allowedRollbackStages: [...request.executionPlan.allowedReviewRollbackStages],
-        visualPolicy: structuredClone(VISUAL_POLICY),
+        visualPolicy: visualPolicy(request.generationSpec),
       },
     };
   }

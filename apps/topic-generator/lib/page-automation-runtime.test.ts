@@ -39,7 +39,7 @@ describe("Topic Generator page automation runtime", () => {
     );
   });
 
-  it("leaves a thirty-second client grace period around the local Runner budget", async () => {
+  it("allows a complete concurrent visual batch to finish bounded retries", async () => {
     const timeout = vi.spyOn(AbortSignal, "timeout")
       .mockReturnValue(new AbortController().signal);
     const runtime = await loadTopicGeneratorPageAutomationRuntime({
@@ -55,7 +55,7 @@ describe("Topic Generator page automation runtime", () => {
 
     await runtime.topicPageAgent?.proposeExecutionPlan({} as never);
 
-    expect(timeout).toHaveBeenCalledWith(330_000);
+    expect(timeout).toHaveBeenCalledWith(900_000);
   });
 
   it("uses dedicated background and content review identities by default", async () => {

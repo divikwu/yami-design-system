@@ -780,6 +780,78 @@ describe("TopicPageVisual", () => {
     });
   });
 
+  it("persists a bounded Hero placement audit and rejects incomplete geometry", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const contentSpec = contentSpecFixture(intent, selection, plan);
+    const proposal = visualProposalFixture(intent, selection, plan, contentSpec);
+    proposal.assets[0]!.direction.placementPlan = {
+      primaryIndex: 0,
+      anchors: [{ x: 0.5, y: 0.66, scale: 1, depth: 1 }],
+      shadowDirection: { x: 0.4, y: 0.6 },
+      supportRegion: {
+        left: 0.08,
+        right: 0.92,
+        top: 0.5,
+        bottom: 0.74,
+        surface: "horizontal-light-neutral",
+      },
+    };
+    proposal.assets[0]!.direction.placementSource = "agent";
+    proposal.assets[0]!.direction.compositionAudit = {
+      verification: "host-geometry-v1",
+      semanticVerification: "agent-vision-v1",
+      supportSurfaceLightness: 0.82,
+      maximumOverlapRatio: 0,
+      bottomSafeAreaStart: 0.75,
+      products: [{
+        productId: proposal.assets[0]!.direction.referenceProductIds[0]!,
+        sourceDigest: `sha256:${"7".repeat(64)}`,
+        preparationMethod: "white-background-direct",
+        preparationConfidence: 0.98,
+        bounds: { left: 0.4, top: 0.28, right: 0.6, bottom: 0.66 },
+        contactPoint: { x: 0.5, y: 0.66 },
+      }],
+    };
+    proposal.assets[0]!.direction.generationProvenance = {
+      provider: "codex-native",
+      modelSource: "unreported",
+      attempts: 1,
+      cacheHit: false,
+    };
+
+    const accepted = advanceTopicPageVisualRun({ intent, selection, plan, contentSpec, proposal });
+    expect(accepted.status).toBe("ready");
+    if (accepted.status !== "ready") throw new Error("Expected a ready visual manifest.");
+    expect(accepted.manifest.assets[0]!.direction).toMatchObject({
+      placementSource: "agent",
+      placementPlan: { anchors: [{ x: 0.5, y: 0.66 }] },
+      compositionAudit: {
+        verification: "host-geometry-v1",
+        semanticVerification: "agent-vision-v1",
+        products: [{ preparationMethod: "white-background-direct" }],
+      },
+      generationProvenance: { modelSource: "unreported", attempts: 1 },
+    });
+
+    proposal.assets[0]!.direction.placementSource = "agent-recovered";
+    const recovered = advanceTopicPageVisualRun({ intent, selection, plan, contentSpec, proposal });
+    expect(recovered.status).toBe("ready");
+    if (recovered.status !== "ready") throw new Error("Expected recovered placement to be ready.");
+    expect(recovered.manifest.assets[0]!.direction.placementSource).toBe("agent-recovered");
+
+    proposal.assets[0]!.direction.placementPlan!.anchors = [];
+    const rejected = advanceTopicPageVisualRun({ intent, selection, plan, contentSpec, proposal });
+    expect(rejected).toMatchObject({
+      status: "blocked",
+      issues: expect.arrayContaining([
+        "Hero asset asset-hero placementPlan must contain one anchor per product.",
+        "Asset asset-hero placementPlan and placementSource must be provided together.",
+      ]),
+    });
+  });
+
   it("rejects unsafe artifact refs, wrong crops, invalid hashes, and alt-text mode drift", () => {
     const intent = themeIntentFixture();
     const selection = selectionFixture();
@@ -813,6 +885,45 @@ describe("TopicPageVisual", () => {
         "Asset asset-hero artifact digest must be a SHA-256 digest.",
         "Decorative asset asset-shortcuts-1 must use null altText.",
         "Asset asset-start-here-page-scene-1 requires backgroundColor.",
+      ]),
+    });
+  });
+
+  it("rejects deterministic fallback provenance for scene-first assets", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const contentSpec = contentSpecFixture(intent, selection, plan);
+    const proposal = visualProposalFixture(intent, selection, plan, contentSpec);
+    const sceneAsset = proposal.assets.find(({ kind }) => kind === "scene-image")!;
+    sceneAsset.direction.fallbackUsed = true;
+    sceneAsset.direction.fallbackReason = "native generation unavailable";
+
+    const run = advanceTopicPageVisualRun({ intent, selection, plan, contentSpec, proposal });
+
+    expect(run).toMatchObject({
+      status: "blocked",
+      issues: expect.arrayContaining([
+        `Asset ${sceneAsset.taskId} may not use a fallback for a scene-first visual task.`,
+      ]),
+    });
+  });
+
+  it("rejects a fallback without an observable reason", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const contentSpec = contentSpecFixture(intent, selection, plan);
+    const proposal = visualProposalFixture(intent, selection, plan, contentSpec);
+    const shortcutAsset = proposal.assets.find(({ kind }) => kind === "shortcut-image")!;
+    shortcutAsset.direction.fallbackUsed = true;
+
+    const run = advanceTopicPageVisualRun({ intent, selection, plan, contentSpec, proposal });
+
+    expect(run).toMatchObject({
+      status: "blocked",
+      issues: expect.arrayContaining([
+        `Fallback asset ${shortcutAsset.taskId} requires a fallbackReason.`,
       ]),
     });
   });

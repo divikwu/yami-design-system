@@ -14,6 +14,7 @@ interface PageLike {
     first(): {
       waitFor(options: { state: "visible"; timeout: number }): Promise<unknown>;
       getAttribute(name: string): Promise<string | null>;
+      screenshot(options: { path: string; type: "png" }): Promise<unknown>;
     };
   };
   evaluate(pageFunction: () => Promise<void>): Promise<unknown>;
@@ -34,7 +35,11 @@ interface BrowserLike {
 
 export interface PreviewInspectionAttachment {
   path: string;
-  label: "experience-review-desktop" | "experience-review-mobile";
+  label:
+    | "experience-review-desktop"
+    | "experience-review-mobile"
+    | "experience-review-hero-desktop"
+    | "experience-review-hero-mobile";
 }
 
 export interface PreviewInspectionResult {
@@ -136,6 +141,8 @@ export async function inspectExperienceReviewPreviews(
   const attachments: PreviewInspectionAttachment[] = [
     { path: join(directory, `desktop-${suffix}.png`), label: "experience-review-desktop" },
     { path: join(directory, `mobile-${suffix}.png`), label: "experience-review-mobile" },
+    { path: join(directory, `hero-desktop-${suffix}.png`), label: "experience-review-hero-desktop" },
+    { path: join(directory, `hero-mobile-${suffix}.png`), label: "experience-review-hero-mobile" },
   ];
   const cleanup = async () => {
     if (ownsDirectory) {
@@ -148,8 +155,18 @@ export async function inspectExperienceReviewPreviews(
   try {
     browser = await (options.launchBrowser?.() ?? chromium.launch({ headless: true }));
     const targets = [
-      { url: previews.desktop, viewport: { width: 1440, height: 1000 }, attachment: attachments[0]! },
-      { url: previews.mobile, viewport: { width: 390, height: 844 }, attachment: attachments[1]! },
+      {
+        url: previews.desktop,
+        viewport: { width: 1440, height: 1000 },
+        attachment: attachments[0]!,
+        heroAttachment: attachments[2]!,
+      },
+      {
+        url: previews.mobile,
+        viewport: { width: 390, height: 844 },
+        attachment: attachments[1]!,
+        heroAttachment: attachments[3]!,
+      },
     ];
     for (const target of targets) {
       const context = await browser.newContext({ viewport: target.viewport });
@@ -186,6 +203,9 @@ export async function inspectExperienceReviewPreviews(
           ));
         });
         await page.screenshot({ path: target.attachment.path, fullPage: true, type: "png" });
+        const hero = page.locator('[data-slot="theme-hero"]').first();
+        await hero.waitFor({ state: "visible", timeout: timeoutMs });
+        await hero.screenshot({ path: target.heroAttachment.path, type: "png" });
       } finally {
         await context.close();
       }

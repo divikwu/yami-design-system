@@ -443,15 +443,37 @@ describe("TopicGeneratorRunStore", () => {
     const store = new TopicGeneratorRunStore({ root });
     try {
       const parent = await store.create(request());
+      const bytes = new TextEncoder().encode("retained-visual");
+      const digest = createHash("sha256").update(bytes).digest("hex");
       for (let index = 0; index < 9; index += 1) {
         await store.advanceRun(parent.manifest.runId, {
           requestId: `completed-stage-${index}`,
-          execute: async ({ stageId }) => ({
-            status: "completed",
-            output: stageId === "page-generation"
-              ? { generationSpec: { digest: "sha256:retained-page" } }
-              : { stageId },
-          }),
+          execute: async ({ stageId, assetStore }) => {
+            if (stageId === "asset-persistence") {
+              await assetStore.put("assets/generated/hero.webp", bytes);
+              return {
+                status: "completed",
+                output: {
+                  assetManifest: {
+                    assets: [{
+                      taskId: "asset-hero",
+                      artifact: {
+                        ref: "assets/generated/hero.webp",
+                        digest: `sha256:${digest}`,
+                      },
+                    }],
+                  },
+                  persistedRefs: ["assets/generated/hero.webp"],
+                },
+              };
+            }
+            return {
+              status: "completed",
+              output: stageId === "page-generation"
+                ? { generationSpec: { digest: "sha256:retained-page" } }
+                : { stageId },
+            };
+          },
         });
       }
       const child = await store.derive(parent.manifest.runId, {
@@ -474,6 +496,104 @@ describe("TopicGeneratorRunStore", () => {
         },
       });
       expect(detail.stageResults).not.toHaveProperty("page-generation");
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it("does not retain an ancestor preview without a declared persisted asset manifest", async () => {
+    const root = await mkdtemp(join(tmpdir(), "topic-generator-managed-retained-missing-"));
+    const store = new TopicGeneratorRunStore({ root });
+    try {
+      const parent = await store.create(request());
+      for (let index = 0; index < 9; index += 1) {
+        await store.advanceRun(parent.manifest.runId, {
+          requestId: `completed-stage-${index}`,
+          execute: async ({ stageId }) => ({
+            status: "completed",
+            output: stageId === "page-generation"
+              ? { generationSpec: { digest: "sha256:retained-page" } }
+              : { stageId },
+          }),
+        });
+      }
+      const child = await store.derive(parent.manifest.runId, {
+        origin: "derived",
+        rollbackStage: "content-writing",
+      });
+
+      const detail = await store.detail(child.manifest.runId);
+      if (detail.schemaVersion !== "topic-generator-run-detail/v1") {
+        throw new Error("Expected a managed v2 run detail.");
+      }
+      expect(detail).not.toHaveProperty("retainedVisualPreview");
+      expect(detail.diagnostics).toContain(
+        `Retained visual assets for ${parent.manifest.runId} are unavailable or undeclared.`,
+      );
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it("does not retain an ancestor preview when its persisted visual asset has drifted", async () => {
+    const root = await mkdtemp(join(tmpdir(), "topic-generator-managed-retained-asset-"));
+    const store = new TopicGeneratorRunStore({ root });
+    try {
+      const parent = await store.create(request());
+      const bytes = new TextEncoder().encode("original-visual");
+      const digest = createHash("sha256").update(bytes).digest("hex");
+      for (let index = 0; index < 9; index += 1) {
+        await store.advanceRun(parent.manifest.runId, {
+          requestId: `completed-stage-${index}`,
+          execute: async ({ stageId, assetStore }) => {
+            if (stageId === "asset-persistence") {
+              await assetStore.put("assets/generated/hero.webp", bytes);
+              return {
+                status: "completed",
+                output: {
+                  assetManifest: {
+                    assets: [{
+                      taskId: "asset-hero",
+                      artifact: {
+                        ref: "assets/generated/hero.webp",
+                        digest: `sha256:${digest}`,
+                      },
+                    }],
+                  },
+                  persistedRefs: ["assets/generated/hero.webp"],
+                },
+              };
+            }
+            return {
+              status: "completed",
+              output: stageId === "page-generation"
+                ? { generationSpec: { digest: "sha256:retained-page" } }
+                : { stageId },
+            };
+          },
+        });
+      }
+      const child = await store.derive(parent.manifest.runId, {
+        origin: "derived",
+        rollbackStage: "content-writing",
+      });
+      await writeFile(
+        join(root, parent.manifest.runId, "assets", "assets", "generated", "hero.webp"),
+        "tampered-visual",
+      );
+      await expect(store.readPersistedAsset(
+        parent.manifest.runId,
+        "assets/generated/hero.webp",
+      )).rejects.toThrow("Persisted asset digest is invalid.");
+
+      const detail = await store.detail(child.manifest.runId);
+      if (detail.schemaVersion !== "topic-generator-run-detail/v1") {
+        throw new Error("Expected a managed v2 run detail.");
+      }
+      expect(detail).not.toHaveProperty("retainedVisualPreview");
+      expect(detail.diagnostics).toContain(
+        `Retained visual assets for ${parent.manifest.runId} failed integrity validation.`,
+      );
     } finally {
       await rm(root, { recursive: true, force: true });
     }
