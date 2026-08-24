@@ -183,6 +183,8 @@ describe("TopicPageContentReview", () => {
           "module-differentiation",
           "evidence-claim-alignment",
           "language-quality",
+          "locale-naturalness",
+          "topic-anchor-visibility",
           "consumer-relevance",
           "editorial-quality",
           "meta-navigation-avoidance",
@@ -192,7 +194,7 @@ describe("TopicPageContentReview", () => {
     });
   });
 
-  it("adds brand distinctiveness to the final review criteria", () => {
+  it("adds brand distinctiveness and category orientation to the final review criteria", () => {
     const backgroundEvidence = backgroundEvidenceFixture();
     const copyBrief = brandCopyBriefFixture(backgroundEvidence);
     const contentSpec = contentSpecFixture(backgroundEvidence, copyBrief);
@@ -205,7 +207,11 @@ describe("TopicPageContentReview", () => {
     expect(run).toMatchObject({
       status: "needs-content-review-proposal",
       context: {
-        criteria: expect.arrayContaining(["brand-distinctiveness"]),
+        criteria: expect.arrayContaining([
+          "brand-distinctiveness",
+          "brand-category-orientation",
+          "topic-anchor-visibility",
+        ]),
       },
     });
   });

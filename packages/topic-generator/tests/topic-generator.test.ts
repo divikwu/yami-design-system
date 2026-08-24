@@ -1575,6 +1575,53 @@ describe("Topic page planner", () => {
     expect(popular.groups?.some(({ label }) => label === "防晒护理")).toBe(false);
   });
 
+  it("keeps one canonical product per identical catalog image in Popular Picks", () => {
+    const duplicateImage = "https://cdn.yamibuy.net/item/anua-pdrn_750x750.webp";
+    const rankedProducts = Array.from({ length: 13 }, (_, index): YamiProduct => ({
+      ...product(`ranked-${index + 1}`, `ANUA ranked ${index + 1}`, index + 1),
+      imageUrl: index < 2
+        ? duplicateImage
+        : `https://cdn.yamibuy.net/item/ranked-${index + 1}_750x750.webp`,
+      weeklySalesLabel: `${1300 - index * 100}+ Sold`,
+    }));
+
+    const plan = buildTopicPagePlan(snapshot(rankedProducts), "relevance", "en", "selection");
+    const allProducts = plan.modules
+      .find(({ id }) => id === "popular-picks")
+      ?.groups?.find(({ id }) => id === "popular-picks-all")
+      ?.productIds;
+
+    expect(allProducts).toHaveLength(12);
+    expect(allProducts).toContain("ranked-1");
+    expect(allProducts).not.toContain("ranked-2");
+    expect(allProducts).toContain("ranked-13");
+  });
+
+  it("keeps one canonical product per exact catalog URL in Popular Picks", () => {
+    const rankedProducts = Array.from({ length: 13 }, (_, index): YamiProduct => ({
+      ...product(
+        `titled-${index + 1}`,
+        index < 2 ? "ANUA PDRN Hyaluronic Acid Cream 60ml" : `ANUA product ${index + 1}`,
+        index + 1,
+      ),
+      productUrl: index < 2
+        ? `https://www.yami.com/en/p/anua-pdrn-cream${index === 1 ? "?tracking=duplicate" : ""}`
+        : `https://www.yami.com/en/p/anua-product-${index + 1}`,
+      weeklySalesLabel: `${1300 - index * 100}+ Sold`,
+    }));
+
+    const plan = buildTopicPagePlan(snapshot(rankedProducts), "relevance", "en", "selection");
+    const allProducts = plan.modules
+      .find(({ id }) => id === "popular-picks")
+      ?.groups?.find(({ id }) => id === "popular-picks-all")
+      ?.productIds;
+
+    expect(allProducts).toHaveLength(12);
+    expect(allProducts).toContain("titled-1");
+    expect(allProducts).not.toContain("titled-2");
+    expect(allProducts).toContain("titled-13");
+  });
+
   it("hides Brand Spotlight when the keyword is the brand", () => {
     const plan = buildTopicPagePlan(snapshot(products), "relevance");
     const brandModule = plan.modules.find((module) => module.id === "brand-spotlight");

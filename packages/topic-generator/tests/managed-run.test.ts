@@ -438,6 +438,47 @@ describe("TopicGeneratorRunStore", () => {
     }
   });
 
+  it("retains the nearest ancestor page generation for a scoped regeneration preview", async () => {
+    const root = await mkdtemp(join(tmpdir(), "topic-generator-managed-retained-visual-"));
+    const store = new TopicGeneratorRunStore({ root });
+    try {
+      const parent = await store.create(request());
+      for (let index = 0; index < 9; index += 1) {
+        await store.advanceRun(parent.manifest.runId, {
+          requestId: `completed-stage-${index}`,
+          execute: async ({ stageId }) => ({
+            status: "completed",
+            output: stageId === "page-generation"
+              ? { generationSpec: { digest: "sha256:retained-page" } }
+              : { stageId },
+          }),
+        });
+      }
+      const child = await store.derive(parent.manifest.runId, {
+        origin: "derived",
+        rollbackStage: "content-writing",
+      });
+
+      const detail = await store.detail(child.manifest.runId);
+      if (detail.schemaVersion !== "topic-generator-run-detail/v1") {
+        throw new Error("Expected a managed v2 run detail.");
+      }
+
+      expect(detail).toMatchObject({
+        schemaVersion: "topic-generator-run-detail/v1",
+        retainedVisualPreview: {
+          sourceRunId: parent.manifest.runId,
+          pageGeneration: {
+            generationSpec: { digest: "sha256:retained-page" },
+          },
+        },
+      });
+      expect(detail.stageResults).not.toHaveProperty("page-generation");
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
   it("reuses topic evidence when only the selection strategy changes", async () => {
     const root = await mkdtemp(join(tmpdir(), "topic-generator-managed-strategy-"));
     const store = new TopicGeneratorRunStore({ root });

@@ -510,9 +510,31 @@ describe("TopicPageVisual", () => {
       },
     });
     if (run.status !== "needs-visual-proposal") throw new Error("Expected visual tasks.");
+    expect(run.context.tasks[0]!.sceneBrief).toMatchObject({
+      priority: "scene-composite",
+      productRole: "locked-source-products",
+      requirements: expect.arrayContaining([
+        "Let the visual Agent derive the setting and supporting elements from the accepted Hero copy and assigned product mix.",
+        "Compose the verified source product images as locked real-product layers; do not ask the image model to redraw their packaging.",
+        "Keep the combined product group at the visual center and keep the bottom quarter free of principal products or scene elements.",
+      ]),
+    });
     expect(run.context.tasks[1]!.products).toEqual([
-      expect.objectContaining({ id: "core-2" }),
+      expect.objectContaining({
+        id: "core-2",
+        title: "Daily Matcha",
+        imageUrl: "https://example.com/core-2.webp",
+      }),
     ]);
+    expect(run.context.tasks[1]!.sceneBrief).toMatchObject({
+      priority: "product-first",
+      productRole: "primary-subject",
+      requirements: expect.arrayContaining([
+        "Use the assigned representative product as the single primary visual subject.",
+        "Place the product near the center with enough clear margin for a circular crop.",
+        "Build a natural lifestyle setting around the product; props and environment remain secondary.",
+      ]),
+    });
     expect(run.context.tasks[2]!.contentTask).toMatchObject({
       taskId: "content-start-here",
     });

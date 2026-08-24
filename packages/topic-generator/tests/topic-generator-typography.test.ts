@@ -54,12 +54,15 @@ describe("Topic Generator typography", () => {
     );
   });
 
-  it("shares one divider and spacing contract for generator actions", () => {
+  it("keeps localized generator actions readable without wrapping", () => {
     expect(generatorCss).toMatch(
       /\.generatorActions\s*\{[^}]*padding-top:\s*16px;[^}]*border-top:\s*1px solid var\(--divider-default\);[^}]*gap:\s*8px;/s,
     );
     expect(generatorCss).toMatch(
-      /\.capabilityActions\s*\{[^}]*gap:\s*8px;/s,
+      /\.capabilityActions\s*\{[^}]*grid-template-columns:\s*1fr;[^}]*gap:\s*8px;/s,
+    );
+    expect(generatorCss).toMatch(
+      /\.capabilityActions button\s*\{[^}]*width:\s*100%;[^}]*white-space:\s*nowrap;/s,
     );
   });
 

@@ -12,9 +12,11 @@ import {
   type TopicGeneratorRunSummary,
 } from "../src/index";
 import {
+  exploreGroupsWithAll,
+  managedGenerationProgressSteps,
   TopicGenerator,
   type TopicPagePreviewRendererProps,
-} from "../web/topic-generator-client";
+} from "../web";
 
 ;(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean })
   .IS_REACT_ACT_ENVIRONMENT = true;
@@ -61,6 +63,110 @@ const summary: TopicGeneratorRunSummary = {
   diagnostics: [],
   origin: { type: "imported", sourceDigest: "b".repeat(64) },
 };
+
+describe("Topic Generator Explore More groups", () => {
+  it("prepends one localized All group with the complete product set", () => {
+    const groups = [{ id: "cleanser", label: "清洁", productIds: ["1"] }, {
+      id: "serum",
+      label: "精华",
+      productIds: ["2"],
+    }];
+
+    expect(exploreGroupsWithAll(groups, ["1", "2"], "zh")).toEqual([
+      { id: "explore-more-all", label: "全部", productIds: ["1", "2"] },
+      ...groups,
+    ]);
+    expect(exploreGroupsWithAll(groups, ["1", "2"], "en")[0]).toEqual({
+      id: "explore-more-all",
+      label: "All",
+      productIds: ["1", "2"],
+    });
+  });
+
+  it("replaces imported All aliases, resolves the reserved id, and normalizes memberships", () => {
+    const groups = [{
+      id: "explore-more-all",
+      label: "All Products",
+      productIds: ["2", "1", "2"],
+    }, {
+      id: "legacy-all",
+      label: "全部商品",
+      productIds: ["1", "2"],
+    }, {
+      id: "all-treatments",
+      label: "全部护理",
+      productIds: ["2", "1", "2"],
+    }, {
+      id: "cleanser",
+      label: "清洁",
+      productIds: ["1", "1", "unknown"],
+    }, {
+      id: "orphaned",
+      label: "无可用商品",
+      productIds: ["unknown"],
+    }];
+
+    expect(exploreGroupsWithAll(groups, ["1", "2", "1"], "zh")).toEqual([
+      { id: "explore-more-all", label: "全部", productIds: ["1", "2"] },
+      { id: "all-treatments", label: "全部护理", productIds: ["2", "1"] },
+      { id: "cleanser", label: "清洁", productIds: ["1"] },
+    ]);
+  });
+
+  it("returns no recommendation tabs when the module has no products", () => {
+    expect(exploreGroupsWithAll([
+      { id: "explore-more-all", label: "All", productIds: [] },
+    ], [], "en")).toEqual([]);
+  });
+});
+
+describe("Topic Generator managed generation progress", () => {
+  it("describes bilingual candidate generation and advisory review truthfully", () => {
+    expect(managedGenerationProgressSteps("content-writing", "zh")).toEqual([
+      "并行生成中文和英文各 5 套 Hero 与主题专辑候选",
+      "分别评选每个模块与场景的最佳候选",
+      "汇总双语 ContentSpec，长度仅作优化建议",
+    ]);
+    expect(managedGenerationProgressSteps("content-review", "en")).toEqual([
+      "Review topic, scene, and evidence expression in the primary locale",
+      "Review the other locale for the same shopper meaning and natural phrasing",
+      "Keep structurally valid copy moving; quality findings remain advisory",
+    ]);
+  });
+
+  it("describes the active visual, assembly, QA, and experience-review stage", () => {
+    expect(managedGenerationProgressSteps("visual-generation", "zh")).toEqual([
+      "读取已通过审核的双语文案与视觉任务",
+      "并行生成 Hero、分类入口与主题专辑场景图",
+      "检查场景构图、真实图片与无障碍元数据",
+    ]);
+    expect(managedGenerationProgressSteps("asset-persistence", "en")).toEqual([
+      "Validate image bytes, formats, and task bindings",
+      "Persist every validated visual asset",
+      "Create stable asset URLs for page rendering",
+    ]);
+    expect(managedGenerationProgressSteps("page-generation", "zh")).toEqual([
+      "编译双语文案、商品与视觉资产",
+      "组装 Hero、主题专辑与商品模块",
+      "生成可交互的双语页面预览",
+    ]);
+    expect(managedGenerationProgressSteps("automatic-qa", "en")).toEqual([
+      "Verify image bytes, formats, dimensions, and bindings",
+      "Validate modules, copy, products, and accessibility structure",
+      "Compile the deterministic QA report",
+    ]);
+    expect(managedGenerationProgressSteps("experience-review", "zh")).toEqual([
+      "检查桌面端与移动端真实页面预览",
+      "复核层级、可读性与购物决策",
+      "保留质量建议并继续进入用户审核",
+    ]);
+    expect(managedGenerationProgressSteps("user-approval", "zh")).toEqual([
+      "校验当前评审包与确认摘要",
+      "渲染可离线打开的最终页面",
+      "写入确认记录与可下载产物",
+    ]);
+  });
+});
 
 function v2Detail(
   runId: string,
@@ -849,6 +955,124 @@ describe("Topic Generator managed run loading", () => {
     expect(fetchMock).toHaveBeenCalledTimes(requestCount);
   });
 
+  it("passes retained ancestor visuals into a scoped content preview", async () => {
+    const parentRunId = "matcha-20260824010000000-visual-parent";
+    const childRunId = "matcha-20260824010100000-content-child";
+    const plans = buildTopicPagePlanMatrix({
+      keyword: "matcha",
+      site: "us",
+      sourceUrl: "https://example.com/search?q=matcha",
+      fetchedAt: "2026-08-24T01:00:00.000Z",
+      products: [],
+    }, "selection");
+    const base = v2Detail(childRunId, {
+      status: "paused",
+      nextStage: "visual-generation",
+      completedThrough: "content-review",
+      parentRunId,
+    });
+    const deliverables = base.state.deliverables.map((deliverable) =>
+      deliverable.name === "page-draft.html"
+        ? {
+            ...deliverable,
+            status: "ready" as const,
+            sha256: "e".repeat(64),
+            bytes: 200,
+            generatedAt: "2026-08-24T01:00:00.000Z",
+          }
+        : deliverable
+    );
+    const contentSpec = {
+      language: "zh",
+      digest: "sha256:new-content",
+      tasks: [],
+    };
+    const detail: TopicGeneratorRunDetail = {
+      ...base,
+      state: { ...base.state, deliverables },
+      summary: { ...base.summary, deliverables },
+      stageResults: {
+        "topic-intent": { analysis: { intent: { id: "intent" } }, plans },
+        "product-selection": {
+          executionPlan: { pageTypeRef: "landing-page/topic@2" },
+          selection: { id: "selection" },
+          selectionRun: { status: "ready" },
+          plans,
+        },
+        "module-merchandising": {
+          plan: { schemaVersion: "topic-page-plan/v2", digest: "sha256:plan" },
+          plans,
+        },
+        "content-review": {
+          contentSpec,
+          copyBrief: { digest: "sha256:brief" },
+          contentReview: { verdict: "approved", digest: "sha256:review" },
+        },
+      },
+      retainedVisualPreview: {
+        sourceRunId: parentRunId,
+        pageGeneration: {
+          generationSpec: { digest: "sha256:retained-visual" },
+        },
+      },
+    } as never;
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
+      const url = String(input);
+      if (url.endsWith("/runs?limit=100") && init?.method === undefined) {
+        return Response.json({
+          schemaVersion: "topic-generator-run-list/v1",
+          items: [detail.summary],
+          nextCursor: null,
+        });
+      }
+      if (url.endsWith(`/runs/${childRunId}`) && init?.method === undefined) {
+        return Response.json(detail);
+      }
+      throw new Error(`Unexpected ${init?.method ?? "GET"} ${url}`);
+    });
+    const Preview = (preview: TopicPagePreviewRendererProps) => {
+      return (
+        <div data-testid="retained-visual-preview">
+          {preview.mode}:{preview.mode === "content" ? preview.contentSpec.digest : "none"}:
+          {preview.mode === "content" ? preview.retainedVisualSpec?.digest ?? "none" : "none"}
+        </div>
+      );
+    };
+
+    await act(async () => {
+      root.render(
+        <TopicGenerator
+          PagePreviewRenderer={Preview}
+          managedRunApiBase="/api/topic-generator"
+        />,
+      );
+      await Promise.resolve();
+    });
+    await act(async () => {
+      container.querySelector<HTMLInputElement>(
+        'input[name="topic-source"][value="load"]',
+      )!.click();
+    });
+    const loadTopic = [...container.querySelectorAll<HTMLButtonElement>("button")]
+      .find((button) => button.textContent === "加载主题")!;
+    await act(async () => {
+      loadTopic.click();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    const dialog = container.querySelector<HTMLDialogElement>(
+      "#topic-generator-managed-run-picker",
+    )!;
+    const load = [...dialog.querySelectorAll<HTMLButtonElement>("button")]
+      .find((button) => button.textContent === "加载")!;
+    await act(async () => {
+      load.click();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(container.querySelector('[data-testid="retained-visual-preview"]')?.textContent)
+      .toBe("content:sha256:new-content:sha256:retained-visual");
+  });
+
   it.each([
     ["生成页面", "topic-intent"],
     ["选品", "product-selection"],
@@ -859,11 +1083,27 @@ describe("Topic Generator managed run loading", () => {
     async (actionLabel, rollbackStage) => {
       const completedRunId = "matcha-20260821010000000-complete";
       const childRunId = `matcha-20260821010100000-${rollbackStage}`;
-      const completed = v2Detail(completedRunId, {
+      const completedBase = v2Detail(completedRunId, {
         status: "completed",
         nextStage: null,
         completedThrough: "user-approval",
       });
+      const completedDeliverables = completedBase.state.deliverables.map((deliverable) =>
+        deliverable.name === "page-final.html"
+          ? {
+              ...deliverable,
+              status: "ready" as const,
+              sha256: "f".repeat(64),
+              bytes: 1024,
+              generatedAt: "2026-08-21T01:00:00.000Z",
+            }
+          : deliverable
+      );
+      const completed = {
+        ...completedBase,
+        state: { ...completedBase.state, deliverables: completedDeliverables },
+        summary: { ...completedBase.summary, deliverables: completedDeliverables },
+      };
       const rollbackIndex = TOPIC_GENERATOR_RUN_STAGE_IDS.indexOf(rollbackStage);
       const completedBeforeRollback = rollbackIndex > 0
         ? TOPIC_GENERATOR_RUN_STAGE_IDS[rollbackIndex - 1]!
@@ -932,6 +1172,13 @@ describe("Topic Generator managed run loading", () => {
         load.click();
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
+
+      const finalPageDownload = container.querySelector<HTMLAnchorElement>(
+        `a[download="${completedRunId}-page-final.html"]`,
+      );
+      expect(finalPageDownload?.getAttribute("href")).toBe(
+        `/api/topic-generator/runs/${completedRunId}/deliverables/page-final.html`,
+      );
 
       const action = [...container.querySelectorAll<HTMLButtonElement>("button")]
         .find((button) => button.textContent === actionLabel)!;

@@ -25,8 +25,8 @@ interface SourceProduct {
 }
 
 interface SourceVisualSceneBrief {
-  priority: "scene-first";
-  productRole: "reference-only";
+  priority: "scene-first" | "product-first" | "scene-composite";
+  productRole: "reference-only" | "primary-subject" | "locked-source-products";
   theme: {
     shoppingGoal: string;
     needs: string[];
@@ -150,16 +150,20 @@ function parseSceneBrief(value: unknown, path: string): SourceVisualSceneBrief {
       `${path}.categories must be an array.`,
     );
   }
+  const hasValidSubjectMode =
+    (brief?.priority === "scene-first" && brief.productRole === "reference-only") ||
+    (brief?.priority === "product-first" && brief.productRole === "primary-subject") ||
+    (brief?.priority === "scene-composite" && brief.productRole === "locked-source-products");
   if (!brief || !theme || !module || !content || (brief.scene !== undefined && !scene) ||
-      brief.priority !== "scene-first" || brief.productRole !== "reference-only") {
+      !hasValidSubjectMode) {
     throw new SourceImageCompositorError(
       "invalid_visual_run",
-      `${path} must be a scene-first, reference-only brief.`,
+      `${path} must use a supported visual subject brief.`,
     );
   }
   return {
-    priority: "scene-first",
-    productRole: "reference-only",
+    priority: brief.priority as SourceVisualSceneBrief["priority"],
+    productRole: brief.productRole as SourceVisualSceneBrief["productRole"],
     theme: {
       shoppingGoal: requiredString(theme.shoppingGoal, `${path}.theme.shoppingGoal`),
       needs: stringArray(theme.needs, `${path}.theme.needs`),

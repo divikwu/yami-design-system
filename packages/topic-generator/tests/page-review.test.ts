@@ -133,6 +133,7 @@ describe("Topic page experience review", () => {
       schemaVersion: "topic-page-experience-review-run/v1",
       status: "needs-review-proposal",
       context: {
+        qualityPolicy: "advisory-never-block-generation",
         visualPolicy: {
           priority: "scene-and-module-theme",
           productRole: "reference-only",
@@ -171,7 +172,7 @@ describe("Topic page experience review", () => {
     });
   });
 
-  it("preserves blocking review findings and an explicit rollback stage", () => {
+  it("keeps experience-review quality findings advisory so generation can continue", () => {
     const fixture = reviewFixture();
     const result = advanceTopicPageExperienceReviewRun({
       ...fixture,
@@ -197,11 +198,13 @@ describe("Topic page experience review", () => {
     expect(result).toMatchObject({
       status: "ready",
       decision: {
-        status: "revision-requested",
-        recommendation: "request-revision",
-        issues: [{ rollbackStage: "content-writing" }],
+        status: "review-recommended",
+        recommendation: "recommend-approval",
+        issues: [{ severity: "warning" }],
       },
     });
+    if (result.status !== "ready") throw new Error("Expected an advisory review decision.");
+    expect(result.decision.issues[0]).not.toHaveProperty("rollbackStage");
   });
 
   it("rejects unsupported evidence and invokes the Review Agent only after hard QA", async () => {

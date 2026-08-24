@@ -132,6 +132,40 @@ describe("Topic Generator offline export", () => {
     expect(html).not.toMatch(/localhost|127\.0\.0\.1|\/_next|\/api\/topic-generator/i);
   });
 
+  it("compacts a large draft to products reachable in the offline preview", async () => {
+    const products = Array.from({ length: 160 }, (_, index) => ({
+      id: `matcha-${index + 1}`,
+      title: `Matcha ${index + 1}`,
+      brand: "Yami",
+      price: "$12.99",
+      imageUrl: `https://media.example.com/matcha-${index + 1}.webp`,
+      productUrl: `https://www.yamibuy.com/en/p/matcha-${index + 1}`,
+      sourceRank: index + 1,
+    }));
+    const plans = buildTopicPagePlanMatrix({ ...snapshot, products }, "selection");
+    const fetchMedia = vi.fn(async () => new Response(new Uint8Array([1, 2, 3]), {
+      status: 200,
+      headers: { "content-type": "image/webp" },
+    }));
+    const renderer = createTopicGeneratorOfflineRenderer({ fetch: fetchMedia });
+
+    const html = await renderer.render(request("page-draft.html", {
+      "product-selection": {
+        executionPlan: { pageTypeRef: "landing-page/topic@2" },
+        selection: { strategyRef: "relevance/intent-themes@5" },
+        plans,
+      },
+      "module-merchandising": {
+        plan: { digest: "sha256:page-plan" },
+        plans,
+      },
+    } as never));
+
+    expect(fetchMedia.mock.calls.length).toBeLessThanOrEqual(128);
+    expect(html).not.toContain("Image unavailable for");
+    expect(html).not.toContain('"id":"matcha-160"');
+  });
+
   it("uses a neutral warning placeholder when draft product media is unavailable", async () => {
     const plans = buildTopicPagePlanMatrix(snapshot, "selection");
     const renderer = createTopicGeneratorOfflineRenderer({

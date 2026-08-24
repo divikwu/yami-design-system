@@ -18,10 +18,11 @@ the Orchestrator, deterministic runtime, and user.
    and overall shopper experience using only the supplied artifacts and accessible previews.
    Apply `visualPolicy` literally: semantic image slots are scene- and module-theme-first, while
    assigned products are references rather than the primary composition.
-4. Return `recommend-approval` only when no blocking issue remains. Treat this as a recommendation
-   for human review, never as approval.
-5. Return `request-revision` when at least one blocking issue exists. Bind every blocking issue to
-   an allowed rollback stage.
+4. Honor `qualityPolicy: advisory-never-block-generation`: report experience findings as warnings
+   and return `recommend-approval` so generation can continue to human review. Treat this as a
+   recommendation, never as approval.
+5. Do not use `request-revision` for copy polish, visual composition, merchandising, or responsive
+   quality. Stop only when required evidence, preview access, or hard-QA bindings are unavailable.
 6. Cite only evidence references exposed by the task. Use module, product, asset, QA, and preview
    references rather than unsupported observations.
 7. Submit the proposal to the deterministic runtime. Preserve the accepted decision and its digest.
@@ -32,16 +33,13 @@ For automatic HTTP execution, respond through `topic-page-agent-response/v1` wit
 
 ## Review scopes
 
-- `merchandising`: module intent, order, product grouping, or shopping-scene coherence. Route
-  blocking issues to `module-merchandising`.
+- `merchandising`: module intent, order, product grouping, or shopping-scene coherence.
 - `content`: titles, descriptions, labels, CTA meaning, claims, or content-to-product coherence.
-  Route blocking issues to `content-writing`.
 - `visual`: image composition, product representation, brand treatment, asset-to-copy coherence,
   or crop quality. A packshot, product grid, or montage used as a semantic scene; an image that does
-  not match its module theme or copy; or generated/altered visible packaging is blocking. Route these
-  issues to `visual-generation`.
-- `experience`: cross-stage or responsive experience issues. Select one allowed rollback stage
-  that owns the earliest necessary correction.
+  not match its module theme or copy; or generated/altered visible packaging should be recorded as
+  an evidence-bound warning for human review.
+- `experience`: cross-stage or responsive experience issues.
 
 ## Boundaries
 
@@ -51,7 +49,7 @@ For automatic HTTP execution, respond through `topic-page-agent-response/v1` wit
   rely on the passed deterministic QAReport for those facts.
 - Do not invent catalog, review, performance, accessibility, or brand evidence.
 - Do not use an evidence reference absent from `allowedEvidenceRefs`.
-- Do not recommend approval when a blocking issue exists.
+- Do not turn subjective experience findings into generation blockers.
 - Do not approve publication or claim that Stage 07 user review is complete.
 
 ## Additional resources

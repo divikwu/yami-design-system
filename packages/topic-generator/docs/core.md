@@ -144,6 +144,12 @@ ContentSpec，只返回 `assetTaskIds` 声明的 Hero、快捷入口、场景和
 `TopicPageVisualProposal` 后，校验任务、证据作用域、安全路径、MIME、尺寸比例、SHA-256、
 焦点、背景色、alt text 模式及冻结的视觉生产模式，并生成 `topic-page-asset-manifest/v1`。
 场景图任务可携带非阻断的构图建议，用于避让底部叠加文案。
+快捷入口图采用 `product-first` / `primary-subject`：每个分类只绑定一个代表商品，宿主把其已批准的
+商品原图作为图片输入，生成商品居中、环境辅助且适合圆形裁切的 lifestyle 图。Hero、主题专辑与品牌图
+不再共用一种处理：主题专辑与品牌图保持 `scene-first` / `reference-only`；Hero 使用
+`scene-composite` / `locked-source-products`，由 Agent 先依据已审核 Hero 文案与已分配商品组合生成
+无商品场景背景，再由宿主把真实商品图作为锁定图层居中合成。3～5 个是可用时的编辑建议而非阻断门槛，
+底部四分之一不放主要商品或场景元素，场景道具由 Agent 根据主题证据判断，不写死品类模板。
 
 `runTopicVisualAgentWorkflow` 可注入独立 `TopicVisualAgent`。Agent 按 `generated-images` 或
 `source-product-images` 使用宿主媒体能力生成真实媒体与 Proposal；任务派生、元数据校验、证据范围与 Asset Manifest digest 仍由核心
@@ -151,13 +157,14 @@ Module 拥有。`asset-manifest-ready` 不等于资产文件和页面渲染硬 Q
 
 `runTopicPageAutomationWorkflow` 必须消费已校验的 `LandingPageExecutionPlan`。它按注册顺序
 执行选品完成确认、模块陈列、文案、独立文案审核、视觉、资产持久化、页面规范编译、硬 QA 与体验 Review；
-任何拒绝、图片字节不匹配、QA 失败或 Review 修订请求都会停在明确 stage，不会静默回退。
+提案结构拒绝、图片字节不匹配或硬 QA 失败会停在明确 stage，不会静默回退；体验质量发现作为建议保留，
+不会阻止页面进入用户审核。
 
 `advanceTopicPageExperienceReviewRun` 只接受硬 QA 已通过的 GenerationSpec。它把 Review Agent
 提案绑定到 execution plan、generation spec 与 QA 三个 digest，只允许引用生成模块、商品、
-资产、QA 和 preview 证据；blocking issue 必须指向 `module-merchandising`、`content-writing`
-或 `visual-generation`。Review Agent 只读且不能修复或发布。只有
-`review-recommended` 决策才能编译 `topic-page-review-package/v1`。
+资产、QA 和 preview 证据；`advisory-never-block-generation` 策略会把体验质量问题标准化为 warning。
+Review Agent 只读且不能修复或发布；有效评审会生成 `review-recommended` 决策并编译
+`topic-page-review-package/v1`。
 
 ## CLI
 

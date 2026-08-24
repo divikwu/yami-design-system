@@ -127,9 +127,7 @@ export type TopicPageVisualTaskProduct = Pick<
   | "role"
 >;
 
-export interface TopicPageVisualSceneBrief {
-  priority: "scene-first";
-  productRole: "reference-only";
+interface TopicPageVisualSceneBriefBase {
   theme: Pick<ThemeIntent, "shoppingGoal" | "needs" | "conditions">;
   module: {
     shoppingGoal: string;
@@ -144,6 +142,21 @@ export interface TopicPageVisualSceneBrief {
   evidenceRefs: string[];
   requirements: string[];
 }
+
+export type TopicPageVisualSceneBrief = TopicPageVisualSceneBriefBase & (
+  | {
+      priority: "scene-first";
+      productRole: "reference-only";
+    }
+  | {
+      priority: "product-first";
+      productRole: "primary-subject";
+    }
+  | {
+      priority: "scene-composite";
+      productRole: "locked-source-products";
+    }
+);
 
 export interface TopicPageVisualTaskContext {
   taskId: string;

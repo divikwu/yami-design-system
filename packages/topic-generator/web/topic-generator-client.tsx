@@ -312,6 +312,7 @@ export type TopicPagePreviewRendererProps =
       pageTypeRef: LandingPageTypeRef;
       plan: TopicPagePlan;
       contentSpec: TopicPageContentSpec;
+      retainedVisualSpec?: TopicPageGenerationSpec;
     }
   | {
       mode: "visual";
@@ -323,6 +324,39 @@ export interface TopicGeneratorProps {
   PagePreviewRenderer?: ComponentType<TopicPagePreviewRendererProps>;
   /** Enables the standalone host's managed run, import, and resume APIs. */
   managedRunApiBase?: string;
+}
+
+type ExploreProductGroup = {
+  id: string;
+  label: string;
+  productIds: readonly string[];
+};
+
+export function exploreGroupsWithAll(
+  groups: readonly ExploreProductGroup[],
+  productIds: readonly string[],
+  language: ContentLanguage,
+) {
+  const allLabel = language === "zh" ? "全部" : "All";
+  const allProductIds = [...new Set(productIds)];
+  if (allProductIds.length === 0) return [];
+  const allProductIdSet = new Set(allProductIds);
+  const allAliases = new Set(["all", "all products", "全部", "全部商品"]);
+  const categoryGroups = groups.flatMap((group) => {
+    if (group.id === "explore-more-all") return [];
+    const normalizedProductIds = [...new Set(group.productIds)]
+      .filter((productId) => allProductIdSet.has(productId));
+    if (normalizedProductIds.length === 0) return [];
+    const representsAll = normalizedProductIds.length === allProductIds.length &&
+      normalizedProductIds.every((productId) => allProductIdSet.has(productId));
+    if (representsAll && allAliases.has(group.label.trim().toLocaleLowerCase())) return [];
+    return [{ ...group, productIds: normalizedProductIds }];
+  });
+  return [{
+    id: "explore-more-all",
+    label: allLabel,
+    productIds: allProductIds,
+  }, ...categoryGroups];
 }
 
 export function selectionDefaultCopy(keyword: string, language: ContentLanguage) {
@@ -829,11 +863,13 @@ function LoadingState({
   language,
   mode,
   strategy,
+  managedStage,
 }: {
   keyword: string;
   language: ContentLanguage;
   mode: CapabilityMode;
   strategy: ProductSelectionStrategy;
+  managedStage?: TopicGeneratorRunStageId | null;
 }) {
   const copy = PREVIEW_COPY[language];
   const categoryRoleSteps = language === "zh"
@@ -863,11 +899,12 @@ function LoadingState({
         content: ["Read the frozen PagePlan and product evidence", "Generate and validate ContentSpec with the Content Agent"],
         visual: ["Read the validated ContentSpec", "Generate imagery and assemble the preview with the Visual Agent"],
       };
-  const visibleSteps = mode === "content" || mode === "visual"
+  const managedSteps = managedGenerationProgressSteps(managedStage, language);
+  const visibleSteps = managedSteps ?? (mode === "content" || mode === "visual"
     ? capabilitySteps[mode]
     : mode === "selection"
       ? strategy === "category-role" ? categoryRoleSteps : copy.loadingSteps.slice(0, 4)
-      : steps;
+      : steps);
   const heading = mode === "selection"
     ? copy.selecting(keyword)
     : mode === "content"
@@ -890,6 +927,117 @@ function LoadingState({
       </ol>
     </section>
   );
+}
+
+export function managedGenerationProgressSteps(
+  stage: TopicGeneratorRunStageId | null | undefined,
+  language: ContentLanguage,
+) {
+  if (stage === "content-writing") {
+    return language === "zh"
+      ? [
+          "并行生成中文和英文各 5 套 Hero 与主题专辑候选",
+          "分别评选每个模块与场景的最佳候选",
+          "汇总双语 ContentSpec，长度仅作优化建议",
+        ]
+      : [
+          "Generate five Hero and collection candidates in English and Chinese in parallel",
+          "Select the strongest candidate for each module and scene",
+          "Assemble both ContentSpecs with length kept as advisory guidance",
+        ];
+  }
+  if (stage === "content-review") {
+    return language === "zh"
+      ? [
+          "审核主语言的主题、场景与证据表达",
+          "按同一购物语义审阅另一语言的自然度",
+          "结构有效文案继续生成，质量问题仅作优化建议",
+        ]
+      : [
+          "Review topic, scene, and evidence expression in the primary locale",
+          "Review the other locale for the same shopper meaning and natural phrasing",
+          "Keep structurally valid copy moving; quality findings remain advisory",
+        ];
+  }
+  if (stage === "visual-generation") {
+    return language === "zh"
+      ? [
+          "读取已通过审核的双语文案与视觉任务",
+          "并行生成 Hero、分类入口与主题专辑场景图",
+          "检查场景构图、真实图片与无障碍元数据",
+        ]
+      : [
+          "Read the approved bilingual copy and visual tasks",
+          "Generate Hero, shortcut, and collection-scene imagery in parallel",
+          "Inspect scene composition, real images, and accessibility metadata",
+        ];
+  }
+  if (stage === "asset-persistence") {
+    return language === "zh"
+      ? [
+          "校验图片字节、格式与任务绑定",
+          "保存全部通过校验的视觉资产",
+          "生成页面渲染所需的稳定资源地址",
+        ]
+      : [
+          "Validate image bytes, formats, and task bindings",
+          "Persist every validated visual asset",
+          "Create stable asset URLs for page rendering",
+        ];
+  }
+  if (stage === "page-generation") {
+    return language === "zh"
+      ? [
+          "编译双语文案、商品与视觉资产",
+          "组装 Hero、主题专辑与商品模块",
+          "生成可交互的双语页面预览",
+        ]
+      : [
+          "Compile bilingual copy, products, and visual assets",
+          "Assemble Hero, collection, and product modules",
+          "Render the interactive bilingual page preview",
+        ];
+  }
+  if (stage === "automatic-qa") {
+    return language === "zh"
+      ? [
+          "校验图片字节、格式、尺寸与绑定关系",
+          "检查模块、文案、商品与无障碍结构",
+          "汇总确定性的自动 QA 报告",
+        ]
+      : [
+          "Verify image bytes, formats, dimensions, and bindings",
+          "Validate modules, copy, products, and accessibility structure",
+          "Compile the deterministic QA report",
+        ];
+  }
+  if (stage === "experience-review") {
+    return language === "zh"
+      ? [
+          "检查桌面端与移动端真实页面预览",
+          "复核层级、可读性与购物决策",
+          "保留质量建议并继续进入用户审核",
+        ]
+      : [
+          "Inspect the rendered desktop and mobile previews",
+          "Review hierarchy, readability, and shopping decisions",
+          "Keep quality findings advisory and continue to user review",
+        ];
+  }
+  if (stage === "user-approval") {
+    return language === "zh"
+      ? [
+          "校验当前评审包与确认摘要",
+          "渲染可离线打开的最终页面",
+          "写入确认记录与可下载产物",
+        ]
+      : [
+          "Validate the current review package and approval summary",
+          "Render the final offline-ready page",
+          "Write the approval receipt and downloadable artifact",
+        ];
+  }
+  return null;
 }
 
 const CATEGORY_RUNTIME_STAGE_LABELS = {
@@ -1160,10 +1308,15 @@ function PreviewView({
   const activePopularGroupId = popularGroups.some(({ id }) => id === requestedPopularGroupId)
     ? requestedPopularGroupId
     : popularGroups[0]?.id ?? null;
-  const exploreGroups = exploreModule?.groups ?? plan.groups.flatMap((group) => {
+  const rawExploreGroups = exploreModule?.groups ?? plan.groups.flatMap((group) => {
     const productIds = group.productIds.filter((id) => exploreProductIds.has(id));
     return productIds.length > 0 ? [{ ...group, productIds }] : [];
   });
+  const exploreGroups = exploreGroupsWithAll(
+    rawExploreGroups,
+    exploreModule?.productIds ?? [],
+    plan.language,
+  );
   const activeExploreGroupId = exploreGroups.some(({ id }) => id === requestedExploreGroupId)
     ? requestedExploreGroupId
     : exploreGroups[0]?.id ?? null;
@@ -3129,6 +3282,8 @@ export function TopicGenerator({
     useState<TopicPageContentReviewDecision | null>(null);
   const [visualGenerationSpec, setVisualGenerationSpec] =
     useState<TopicPageGenerationSpec | null>(null);
+  const [retainedVisualSpec, setRetainedVisualSpec] =
+    useState<TopicPageGenerationSpec | null>(null);
   const [view, setView] = useState<ResultView>("preview");
   const [previewMode, setPreviewMode] = useState<PreviewMode>("page");
   const [activeMode, setActiveMode] = useState<CapabilityMode>("page");
@@ -3257,6 +3412,7 @@ export function TopicGenerator({
       setContentSpec(null);
       setCapabilityContentReview(null);
       setVisualGenerationSpec(null);
+      setRetainedVisualSpec(null);
       if (!options.preserveResultView) {
         setView(legacyPlans?.plans ? "preview" : "analysis");
       }
@@ -3276,6 +3432,8 @@ export function TopicGenerator({
       ModuleMerchandisingStageOutput | undefined;
     const content = detail.stageResults["content-review"] as ContentReviewStageOutput | undefined;
     const page = detail.stageResults["page-generation"] as PageGenerationStageOutput | undefined;
+    const retainedPage = detail.retainedVisualPreview?.pageGeneration as
+      PageGenerationStageOutput | undefined;
     const nextPlans = merchandising?.plans ?? selection?.plans ?? intent?.plans ?? null;
     setPlans(nextPlans);
     setSelectionRuns(selection
@@ -3295,6 +3453,7 @@ export function TopicGenerator({
     setContentSpec(content?.contentSpec ?? null);
     setCapabilityContentReview(content?.contentReview ?? null);
     setVisualGenerationSpec(page?.generationSpec ?? null);
+    setRetainedVisualSpec(page ? null : retainedPage?.generationSpec ?? null);
     const nextAutomation = managedAutomation(detail);
     setAutomation(nextAutomation);
     setLocalizedAutomationCache(nextAutomation
@@ -3335,6 +3494,7 @@ export function TopicGenerator({
     setContentSpec(null);
     setCapabilityContentReview(null);
     setVisualGenerationSpec(null);
+    setRetainedVisualSpec(null);
     setView("preview");
     setPreviewMode("page");
     setActiveMode("page");
@@ -3730,6 +3890,7 @@ export function TopicGenerator({
     setContentSpec(null);
     setCapabilityContentReview(null);
     setVisualGenerationSpec(null);
+    setRetainedVisualSpec(null);
     if (!options.preserveLocalizedCache) setLocalizedAutomationCache(null);
     setView("preview");
     setPreviewMode("distribution");
@@ -4406,6 +4567,25 @@ export function TopicGenerator({
                 )}
                 {currentRun.deliverables.some(({ status }) => status === "ready") && (
                   <div className={styles.deliverableLinks}>
+                    {currentRun.deliverables.some(
+                      ({ name, status }) => name === "page-final.html" && status === "ready",
+                    ) && (
+                      <a
+                        className={styles.topicPackageDownload}
+                        href={`${managedRunsUrl}/${encodeURIComponent(currentRun.runId)}/deliverables/page-final.html`}
+                        download={`${currentRun.runId}-page-final.html`}
+                      >
+                        <HugeiconsIcon
+                          icon={ArchiveArrowDownIcon}
+                          size={16}
+                          strokeWidth={1.5}
+                          aria-hidden="true"
+                        />
+                        <span>
+                          {uiLanguage === "zh" ? "下载最终页面" : "Download final page"}
+                        </span>
+                      </a>
+                    )}
                     <a
                       className={styles.topicPackageDownload}
                       href={`${managedRunsUrl}/${encodeURIComponent(currentRun.runId)}/archive`}
@@ -4441,7 +4621,7 @@ export function TopicGenerator({
                   disabled:
                     (tab !== "workflow" && tab !== "preview" && !plan) ||
                     (tab !== "workflow" && tab !== "preview" && loading) ||
-                    (plan?.generationMode === "selection" && tab === "rules"),
+                    (plan?.generationMode === "selection" && tab === "rules" && !automation),
                 }))}
               value={view}
               onValueChange={setView}
@@ -4481,6 +4661,9 @@ export function TopicGenerator({
                     language={uiLanguage}
                     mode={activeMode}
                     strategy={strategy}
+                    managedStage={currentDetail && isManagedV2Detail(currentDetail)
+                      ? currentDetail.state.nextStage
+                      : null}
                   />
                 ) : error || runError ? (
                   <ErrorState
@@ -4652,6 +4835,7 @@ export function TopicGenerator({
                                       pageTypeRef={capabilityArtifacts.pageTypeRef}
                                       plan={plan}
                                       contentSpec={contentSpec}
+                                      {...(retainedVisualSpec ? { retainedVisualSpec } : {})}
                                     />
                                   )
                             : PagePreviewRenderer && pagePreviewTypeRef

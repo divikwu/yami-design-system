@@ -315,6 +315,9 @@ describe("PageMerchandising", () => {
         minimumProducts: 3,
         maximumProducts: 5,
       });
+      expect(template.modules.find(({ id }) => id === "shortcuts")).toMatchObject({
+        assetTaskMode: "assignment",
+      });
       expect(template.modules.find(({ id }) => id === "start-here")).toMatchObject({
         required: false,
         minimumProducts: 8,

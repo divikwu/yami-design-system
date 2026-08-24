@@ -807,11 +807,13 @@ describe("TopicGenerator result navigation", () => {
     const recommendationTabs = container.querySelectorAll<HTMLButtonElement>(
       '#explore-more [role="tab"]',
     );
-    expect(recommendationTabs).toHaveLength(7);
+    expect(recommendationTabs).toHaveLength(8);
+    expect(recommendationTabs[0]?.textContent).toContain("全部");
+    expect(recommendationTabs[0]?.getAttribute("aria-selected")).toBe("true");
 
     await act(async () => shortcutLinks[6]!.click());
 
-    expect(recommendationTabs[6]?.getAttribute("aria-selected")).toBe("true");
+    expect(recommendationTabs[7]?.getAttribute("aria-selected")).toBe("true");
     expect(container.querySelector('#explore-more [role="tabpanel"]')?.textContent)
       .toContain("ANUA Product 13");
   });

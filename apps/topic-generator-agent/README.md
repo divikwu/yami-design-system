@@ -78,8 +78,8 @@ If `TOPIC_AGENT_RUNNER_TOKEN` is set, use the same value for
 - Only registered protocol stages can select an Agent or Skill. Request data cannot choose a file.
 - Requests, subprocess output, and execution time are bounded.
 - The default local execution budget is five minutes per Codex task. Native image tasks run with a
-  bounded concurrency of two by default so a multi-module visual stage remains within the Host
-  deadline while preserving proposal order.
+  bounded concurrency of eight by default and retry one transient task failure once, so a
+  multi-module visual stage remains within the Host deadline while preserving proposal order.
 - CLI processes are invoked without a shell. Semantic stages run in a read-only sandbox.
 - Live web search is enabled only for `background-evidence`; all other text stages keep the existing
   bounded tool set. Brand research prioritizes the official site and treats Wikipedia as secondary
@@ -91,6 +91,11 @@ If `TOPIC_AGENT_RUNNER_TOKEN` is set, use the same value for
   background color, and SHA-256 from the resulting bytes. A proposal or artifact path without
   matching image bytes is rejected. An executor without image-generation capability fails before
   execution instead of returning a placeholder.
+- ShortcutRail tasks attach their one approved representative product image to Codex, generate a
+  product-led lifestyle scene, and keep the complete product near the center for circular cropping.
+  If one Shortcut exhausts native retries, the Runner creates a source-backed centered lifestyle
+  fallback for that task instead of discarding the other generated assets or blocking the page.
+  Other maintained image slots remain scene-first and treat assigned products as references only.
 - In `source-product-images` mode, `visual-generation` creates deterministic WebP reference
   compositions from approved Yami CDN images. This is a draft-only catalog fallback, not semantic
   scene generation, and final visual QA rejects it.

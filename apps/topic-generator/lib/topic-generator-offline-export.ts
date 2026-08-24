@@ -18,6 +18,7 @@ import {
 
 const MAX_MEDIA_FILES = 128;
 const MAX_MEDIA_BYTES = 64 * 1024 * 1024;
+const OFFLINE_GROUP_PRODUCT_LIMIT = 12;
 const NEUTRAL_IMAGE =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='800' viewBox='0 0 1200 800'%3E%3Crect width='1200' height='800' fill='%23f3f3f3'/%3E%3C/svg%3E";
 
@@ -147,6 +148,48 @@ async function inlineDraftPlan(
   fetchMedia: typeof fetch,
 ) {
   const plan = structuredClone(source);
+  for (const module of plan.modules) {
+    if (module.id !== "explore-more") continue;
+    module.groups = module.groups?.map((group) => ({
+      ...group,
+      productIds: group.productIds.slice(0, OFFLINE_GROUP_PRODUCT_LIMIT),
+    }));
+    const visibleProductIds = new Set([
+      ...module.productIds.slice(0, OFFLINE_GROUP_PRODUCT_LIMIT),
+      ...(module.groups ?? []).flatMap(({ productIds }) => productIds),
+    ]);
+    module.productIds = module.productIds.filter((id) => visibleProductIds.has(id));
+  }
+  const keptProductIds = new Set<string>();
+  for (const module of plan.modules) {
+    if (!module.visible) continue;
+    const reachableIds = [
+      ...module.productIds,
+      ...(["start-here", "popular-picks", "brand-spotlight", "explore-more"]
+          .includes(module.id)
+        ? (module.groups ?? []).flatMap(({ productIds }) => productIds)
+        : []),
+    ];
+    for (const id of reachableIds) {
+      if (keptProductIds.size >= MAX_MEDIA_FILES) break;
+      keptProductIds.add(id);
+    }
+  }
+  plan.products = plan.products.filter(({ id }) => keptProductIds.has(id));
+  plan.pools.primaryIds = plan.pools.primaryIds.filter((id) => keptProductIds.has(id));
+  plan.pools.relatedIds = plan.pools.relatedIds.filter((id) => keptProductIds.has(id));
+  plan.modules = plan.modules.map((module) => ({
+    ...module,
+    productIds: module.productIds.filter((id) => keptProductIds.has(id)),
+    ...(module.groups
+      ? {
+          groups: module.groups.flatMap((group) => {
+            const productIds = group.productIds.filter((id) => keptProductIds.has(id));
+            return productIds.length > 0 ? [{ ...group, productIds }] : [];
+          }),
+        }
+      : {}),
+  }));
   const warnings: string[] = [];
   const cache = new Map<string, string>();
   const budget = { files: 0, bytes: 0 };
@@ -170,10 +213,10 @@ async function inlineFinalSpec(
   for (const module of generationSpec.modules) {
     if (module.id !== "explore-more") continue;
     const visibleProductIds = new Set(
-      module.products.slice(0, 12).map(({ id }) => id),
+      module.products.slice(0, OFFLINE_GROUP_PRODUCT_LIMIT).map(({ id }) => id),
     );
     module.groups = module.groups?.map((group) => {
-      const productIds = group.productIds.slice(0, 12);
+      const productIds = group.productIds.slice(0, OFFLINE_GROUP_PRODUCT_LIMIT);
       productIds.forEach((id) => visibleProductIds.add(id));
       return { ...group, productIds };
     });
@@ -243,7 +286,7 @@ function documentHtml(options: {
 <style>${options.bundle.css}
 html,body,#topic-generator-offline-root{margin:0;min-height:100%}
 [data-offline-page] [data-slot="topic-landing-global-header"],[data-offline-page] [data-slot="topic-landing-activity-header"]{display:none}
-.topic-generator-offline-warning{margin:16px;padding:12px 16px;border:1px solid var(--border-secondary);border-radius:var(--radius-md);background:var(--background-secondary);font:14px/1.5 var(--font-family-ios)}
+.topic-generator-offline-warning{margin:16px;padding:12px 16px;border:1px solid var(--border-default);border-radius:var(--radius-component-default);background:var(--background-secondary);font:14px/1.5 var(--font-family-ios)}
 .topic-generator-offline-warning ul{margin:6px 0 0;padding-left:20px}
 </style>
 </head>

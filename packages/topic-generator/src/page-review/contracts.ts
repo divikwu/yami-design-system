@@ -59,6 +59,7 @@ export interface TopicPageExperienceReviewDecision {
 }
 
 export interface TopicPageExperienceReviewContext {
+  qualityPolicy: "advisory-never-block-generation";
   executionPlanDigest: string;
   executionPlan: LandingPageExecutionPlan;
   generationSpec: TopicPageGenerationSpec;

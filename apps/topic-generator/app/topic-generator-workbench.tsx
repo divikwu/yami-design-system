@@ -15,6 +15,8 @@ import {
   type TopicLandingPageProps,
 } from "@yami/prototypes/topic-landing-page";
 import {
+  distinctEditorialProducts,
+  exploreGroupsWithAll,
   selectionDefaultCopy,
   TopicGenerator,
   type TopicPagePreviewRendererProps,
@@ -56,6 +58,104 @@ function focalPointObjectPosition(focalPoint: { x: number; y: number }) {
   return `${focalPoint.x * 100}% ${focalPoint.y * 100}%`;
 }
 
+function withRetainedVisuals(
+  props: TopicLandingPageProps,
+  spec: GenerationSpec,
+): TopicLandingPageProps {
+  const heroAsset = moduleById(spec, "hero")?.assets[0];
+  const shortcutAssets = moduleById(spec, "shortcuts")?.assets ?? [];
+  const startHere = moduleById(spec, "start-here");
+  const startHereAssetsByScene = new Map(
+    startHere?.scenes.map((scene, index) => [scene.id, startHere.assets[index]]) ?? [],
+  );
+  const retainedThemes = props.standardRail?.themes?.map((theme, index) => {
+    const asset = startHereAssetsByScene.get(theme.value) ?? startHere?.assets[index];
+    if (!asset) return theme;
+    return {
+      ...theme,
+      content: {
+        ...theme.content,
+        image: {
+          ...theme.content.image,
+          src: asset.url,
+          alt: asset.altText?.text ?? theme.content.image.alt,
+          objectPosition: focalPointObjectPosition(asset.focalPoint),
+        },
+        ...(asset.backgroundColor ? { backgroundColor: asset.backgroundColor } : {}),
+      },
+    };
+  });
+  const retainedDefaultTheme = retainedThemes?.find(
+    ({ value }) => value === props.standardRail?.defaultValue,
+  ) ?? retainedThemes?.[0];
+  const startHereAsset = startHere?.assets[0];
+  const brandAssets = moduleById(spec, "brand-spotlight")?.assets ?? [];
+
+  return {
+    ...props,
+    hero: heroAsset
+      ? {
+          ...props.hero,
+          className: [props.hero.className, styles.generatedHero].filter(Boolean).join(" "),
+          image: {
+            ...props.hero.image,
+            src: heroAsset.url,
+            alt: heroAsset.altText?.text ?? props.hero.image.alt,
+            width: heroAsset.width,
+            height: heroAsset.height,
+          },
+          backgroundImageSrc: heroAsset.url,
+          ...(heroAsset.backgroundColor ? { backgroundColor: heroAsset.backgroundColor } : {}),
+        }
+      : props.hero,
+    shortcutRail: {
+      ...props.shortcutRail,
+      items: props.shortcutRail.items.map((item, index) => shortcutAssets[index]
+        ? {
+            ...item,
+            iconSrc: shortcutAssets[index]!.url,
+            imagePresentation: "full-bleed" as const,
+          }
+        : item),
+    },
+    standardRail: props.standardRail
+      ? {
+          ...props.standardRail,
+          content: retainedDefaultTheme?.content ?? (startHereAsset
+            ? {
+                ...props.standardRail.content,
+                image: {
+                  ...props.standardRail.content.image,
+                  src: startHereAsset.url,
+                  alt: startHereAsset.altText?.text ?? props.standardRail.content.image.alt,
+                  objectPosition: focalPointObjectPosition(startHereAsset.focalPoint),
+                },
+                ...(startHereAsset.backgroundColor
+                  ? { backgroundColor: startHereAsset.backgroundColor }
+                  : {}),
+              }
+            : props.standardRail.content),
+          ...(retainedThemes ? { themes: retainedThemes } : {}),
+        }
+      : props.standardRail,
+    brandRail: props.brandRail
+      ? {
+          ...props.brandRail,
+          campaigns: props.brandRail.campaigns.map((campaign, index) => ({
+            ...campaign,
+            banner: brandAssets[index]
+              ? {
+                  ...campaign.banner,
+                  src: brandAssets[index]!.url,
+                  alt: brandAssets[index]!.altText?.text ?? campaign.banner.alt,
+                }
+              : campaign.banner,
+          })),
+        }
+      : props.brandRail,
+  };
+}
+
 function productListItem(
   product: GenerationModule["products"][number],
 ): ProductListItem {
@@ -75,20 +175,26 @@ function generatedGroupedProductsFor(
   module: GenerationModule,
   defaultMode: "first" | "largest" = "first",
   maxProducts = Number.POSITIVE_INFINITY,
+  allLanguage?: GenerationSpec["language"],
 ) {
-  const groups = module.groups ?? [];
-  const productsById = new Map(
-    module.products.map((product) => [product.id, productListItem(product)]),
-  );
+  const rawGroups = module.groups ?? [];
+  const groups = allLanguage
+    ? exploreGroupsWithAll(
+        rawGroups,
+        module.products.map(({ id }) => id),
+        allLanguage,
+      )
+    : rawGroups;
+  const productsById = new Map(module.products.map((product) => [product.id, product]));
   return {
     tabs: groups.map(({ id, label }) => ({ value: id, label })),
     productsByTab: Object.fromEntries(
       groups.map((group) => [
         group.id,
-        group.productIds.slice(0, maxProducts).flatMap((productId) => {
+        distinctEditorialProducts(group.productIds.flatMap((productId) => {
           const product = productsById.get(productId);
           return product ? [product] : [];
-        }),
+        })).slice(0, maxProducts).map(productListItem),
       ]),
     ),
     defaultValue: (defaultMode === "largest"
@@ -195,6 +301,13 @@ export function generatedPrototypeProps(
   const explore = moduleById(spec, "explore-more");
   const heroAsset = hero?.assets[0];
   const fallbackImage = heroAsset?.url ?? hero?.products[0]?.imageUrl ?? NEUTRAL_IMAGE;
+  const groupedShortcutProducts = shortcuts?.groups?.flatMap((group) => {
+    const product = shortcuts.products.find(({ id }) => id === group.productIds[0]);
+    return product ? [product] : [];
+  }) ?? [];
+  const shortcutProducts = groupedShortcutProducts.length > 0
+    ? groupedShortcutProducts
+    : shortcuts?.products ?? [];
   const startHereThemes = startHere && base.standardRail
     ? sceneThemes(startHere, NEUTRAL_IMAGE)
     : [];
@@ -270,12 +383,14 @@ export function generatedPrototypeProps(
       ? {
           ...base.shortcutRail,
           title: shortcuts.copy.title.text,
-          items: shortcuts.products.map((product, index) => ({
+          items: shortcutProducts.map((product, index) => ({
             id: `generated-shortcut-${product.id}`,
             label: shortcuts.copy.items?.[index]?.label.text ?? product.title,
             iconSrc: shortcuts.assets[index]?.url ?? product.imageUrl,
-            imagePresentation: "full-bleed" as const,
-            href: product.productUrl,
+            imagePresentation: shortcuts.assets[index] ? "full-bleed" as const : "icon" as const,
+            href: shortcuts.groups?.[index]?.id
+              ? `#explore-more-${shortcuts.groups[index]!.id}`
+              : product.productUrl,
           })),
         }
       : base.shortcutRail,
@@ -331,7 +446,7 @@ export function generatedPrototypeProps(
           title: explore.copy.title.text,
           description: explore.copy.description?.text,
           products: explore.products.slice(0, 12).map(productListItem),
-          ...generatedGroupedProductsFor(explore, "largest", 12),
+          ...generatedGroupedProductsFor(explore, "first", 12, spec.language),
           value: undefined,
           onValueChange: undefined,
         }
@@ -355,17 +470,21 @@ export function selectionPrototypeProps(
     module: SelectionModule | undefined,
     defaultMode: "first" | "largest" = "first",
     maxProducts = Number.POSITIVE_INFINITY,
+    includeAll = false,
   ) => {
-    const groups = module?.groups ?? [];
+    const rawGroups = module?.groups ?? [];
+    const groups = includeAll
+      ? exploreGroupsWithAll(rawGroups, module?.productIds ?? [], plan.language)
+      : rawGroups;
     return {
       tabs: groups.map(({ id, label }) => ({ value: id, label })),
       productsByTab: Object.fromEntries(
         groups.map((group) => [
           group.id,
-          group.productIds.slice(0, maxProducts).flatMap((productId) => {
+          distinctEditorialProducts(group.productIds.flatMap((productId) => {
             const product = productsById.get(productId);
-            return product ? [selectionProductListItem(product)] : [];
-          }),
+            return product ? [product] : [];
+          })).slice(0, maxProducts).map(selectionProductListItem),
         ]),
       ),
       defaultValue: (defaultMode === "largest"
@@ -381,10 +500,16 @@ export function selectionPrototypeProps(
   const popular = selectionModuleById(plan, "popular-picks");
   const brands = selectionModuleById(plan, "brand-spotlight");
   const explore = selectionModuleById(plan, "explore-more");
-  const shortcutProducts = shortcuts?.productIds.flatMap((productId) => {
-    const product = productsById.get(productId);
+  const groupedShortcutProducts = (shortcuts?.groups ?? []).flatMap((group) => {
+    const product = productsById.get(group.productIds[0] ?? "");
     return product ? [product] : [];
-  }) ?? [];
+  });
+  const shortcutProducts = groupedShortcutProducts.length > 0
+    ? groupedShortcutProducts
+    : shortcuts?.productIds.flatMap((productId) => {
+        const product = productsById.get(productId);
+        return product ? [product] : [];
+      }) ?? [];
   const heroProducts = productsFor(hero);
   const imageFor = (productIds: readonly string[] | undefined) =>
     (productIds ?? []).map((id) => productsById.get(id)?.imageUrl).find(Boolean) ??
@@ -479,8 +604,10 @@ export function selectionPrototypeProps(
             id: `selection-shortcut-${product.id}`,
             label: selectionText(shortcuts.groups?.[index]?.label, product.title),
             iconSrc: product.imageUrl,
-            imagePresentation: "full-bleed" as const,
-            href: product.productUrl,
+            imagePresentation: "icon" as const,
+            href: shortcuts.groups?.[index]?.id
+              ? `#explore-more-${shortcuts.groups[index]!.id}`
+              : product.productUrl,
           })),
         }
       : base.shortcutRail,
@@ -534,7 +661,7 @@ export function selectionPrototypeProps(
           title: selectionText(explore.heading, defaultCopy.exploreTitle),
           description: selectionText(explore.description, defaultCopy.exploreDescription),
           products: productsFor(explore).slice(0, 12),
-          ...groupedProductsFor(explore, "largest", 12),
+          ...groupedProductsFor(explore, "first", 12, true),
           value: undefined,
           onValueChange: undefined,
         }
@@ -546,6 +673,7 @@ export function contentPrototypeProps(
   pageTypeRef: ContentPreviewProps["pageTypeRef"],
   plan: ContentPreviewProps["plan"],
   contentSpec: ContentPreviewProps["contentSpec"],
+  retainedVisualSpec?: ContentPreviewProps["retainedVisualSpec"],
 ): TopicLandingPageProps {
   const props = selectionPrototypeProps(pageTypeRef, plan);
   const copyByModule = new Map(
@@ -577,7 +705,7 @@ export function contentPrototypeProps(
       label: labelsByGroupId.get(tab.value) ?? tab.label,
     }));
   };
-  return {
+  const contentProps: TopicLandingPageProps = {
     ...props,
     hero: hero
       ? {
@@ -650,13 +778,21 @@ export function contentPrototypeProps(
         }
       : props.waterfall,
   };
+  return retainedVisualSpec
+    ? withRetainedVisuals(contentProps, retainedVisualSpec)
+    : contentProps;
 }
 
 export function RealTopicPagePreview(preview: TopicPagePreviewRendererProps) {
   const props = preview.mode === "selection"
     ? selectionPrototypeProps(preview.pageTypeRef, preview.plan)
     : preview.mode === "content"
-      ? contentPrototypeProps(preview.pageTypeRef, preview.plan, preview.contentSpec)
+      ? contentPrototypeProps(
+          preview.pageTypeRef,
+          preview.plan,
+          preview.contentSpec,
+          preview.retainedVisualSpec,
+        )
       : generatedPrototypeProps(preview.pageTypeRef, preview.generationSpec);
   return (
     <div
@@ -668,12 +804,15 @@ export function RealTopicPagePreview(preview: TopicPagePreviewRendererProps) {
       {...(preview.mode === "generated" || preview.mode === "visual"
         ? { "data-generation-spec": preview.generationSpec.digest }
         : {})}
+      {...(preview.mode === "content" && preview.retainedVisualSpec
+        ? { "data-retained-generation-spec": preview.retainedVisualSpec.digest }
+        : {})}
     >
       <TopicLandingPage
         key={preview.mode === "generated" || preview.mode === "visual"
           ? preview.generationSpec.digest
           : preview.mode === "content"
-            ? preview.contentSpec.digest
+            ? `${preview.contentSpec.digest}:${preview.retainedVisualSpec?.digest ?? ""}`
             : preview.plan.generatedAt}
         {...props}
       />
