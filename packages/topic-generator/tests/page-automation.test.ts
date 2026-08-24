@@ -249,6 +249,12 @@ function workflowFixture(options: {
       const assets = run.context.tasks.map((task) => {
         const bytes = task.kind === "hero-image" ? heroBytes : shortcutBytes;
         const ref = task.kind === "hero-image" ? "assets/hero.png" : "assets/shortcut.png";
+        const heroAnchors = task.products.map((_, index) => ({
+          x: task.products.length === 1 ? 0.5 : 0.2 + index * (0.6 / (task.products.length - 1)),
+          y: 0.68,
+          scale: 1,
+          depth: index === Math.floor((task.products.length - 1) / 2) ? 2 : 1,
+        }));
         return {
           taskId: task.taskId,
           moduleId: task.moduleId,
@@ -261,6 +267,49 @@ function workflowFixture(options: {
               ...task.products.map(({ id }) => `product:${id}`),
             ],
             referenceProductIds: task.products.map(({ id }) => id),
+            generationProvenance: {
+              provider: "fixture-native",
+              modelSource: "unreported" as const,
+              attempts: 1,
+              cacheHit: false,
+            },
+            ...(task.kind === "hero-image"
+              ? {
+                  placementPlan: {
+                    primaryIndex: Math.floor((task.products.length - 1) / 2),
+                    anchors: heroAnchors,
+                    shadowDirection: { x: 0.7, y: 0.5 },
+                    supportRegion: {
+                      left: 0.08,
+                      right: 0.92,
+                      top: 0.5,
+                      bottom: 0.74,
+                      surface: "horizontal-light-neutral" as const,
+                    },
+                  },
+                  placementSource: "agent" as const,
+                  compositionAudit: {
+                    verification: "host-geometry-v1" as const,
+                    semanticVerification: "agent-vision-v1" as const,
+                    supportSurfaceLightness: 0.82,
+                    maximumOverlapRatio: 0.1,
+                    bottomSafeAreaStart: 0.75 as const,
+                    products: task.products.map((product, index) => ({
+                      productId: product.id,
+                      sourceDigest: `sha256:${String(index + 1).padStart(64, "0")}`,
+                      preparationMethod: "white-background-direct" as const,
+                      preparationConfidence: 0.98,
+                      bounds: {
+                        left: Math.max(0, heroAnchors[index]!.x - 0.08),
+                        top: 0.28,
+                        right: Math.min(1, heroAnchors[index]!.x + 0.08),
+                        bottom: 0.68,
+                      },
+                      contactPoint: { x: heroAnchors[index]!.x, y: 0.68 },
+                    })),
+                  },
+                }
+              : {}),
           },
           altText: task.altTextMode === "decorative"
             ? null

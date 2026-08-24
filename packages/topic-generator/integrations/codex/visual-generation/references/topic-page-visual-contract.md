@@ -43,9 +43,10 @@ sachets, and product boxes. Each ShortcutRail task instead has exactly one repre
 the Host attaches its verified source image, the generator keeps it as the single primary subject near
 the center with circular-crop margin, and category-relevant lifestyle context stays secondary. It must
 preserve source identity and must not invent, rewrite, or add packaging, labels, logos, or claims.
-A ThemeHero instead asks the Agent to derive a scene prompt from accepted Hero copy plus its assigned
-product mix and generate only that background. The Host then composites the verified catalog product
-images as locked source layers, preferring three to five products when available without blocking on
+A ThemeHero instead asks the Agent to derive a scene prompt from accepted Hero copy plus structured
+assigned-category evidence and generate only that background. Product pixels are not attached to the
+background generator. The Host then composites the verified catalog main images as locked source
+layers, preferring three to five products when available without blocking on
 the count. The Agent chooses the camera, support surface, depth pattern, materials, and light from the
 evidence while preserving natural environmental shadows. The background is rejected for steep or
 internally inconsistent perspective, missing credible product footholds, a placement zone that forces
@@ -53,11 +54,21 @@ one flat row, or conflicting light and shadow directions. The Host keeps the cen
 product unobscured in front, staggers secondary products through middle and rear depths, and adds
 restrained same-direction photographic contact shadows. Empty product silhouettes and empty
 product-shaped shadows remain disallowed, but natural scene shadows do not. After inspecting the
-background, the Agent may return a non-blocking placement plan with normalized x/y contact points,
-scale, depth, primary index, and shadow direction. The Host uses valid guidance to follow the actual
-generated surfaces. Every contact point is visually verified against the generated pixels and must
-lie on an upward-facing supporting surface, never a vertical face, wall, or open air. Missing or
-invalid guidance falls back safely and never blocks generation.
+background, the Agent returns a placement plan with a continuous upward-facing light-neutral support
+region, normalized x/y contact points, scale, depth, primary index, and shadow direction. The Host
+uses valid guidance to follow the actual generated surfaces. Every contact point is visually verified
+against the generated pixels, must lie inside that support region, and must never land on a vertical
+face, wall, or open air. Missing or invalid guidance triggers one read-only visual recovery pass over
+the same background. Recovered guidance is labeled `agent-recovered` and still faces the same Host
+geometry and final semantic checks. Failed recovery discards that background and uses the known-safe
+neutral Hero background; fixed anchors are never applied to an arbitrary generated scene.
+The Host preserves real alpha when present. For a verified uniform white-background main image, it
+derives only a deterministic mask for the edge-connected white canvas, protects the complete product
+silhouette, removes redundant outer whitespace, and preserves every product pixel. Other sources use
+a deliberate studio tile only on the neutral fallback. The
+composition records source digests,
+preparation methods, product bounds, support-region lightness, overlap, bottom-safe-area compliance,
+attempts, cache reuse, provider, and only a runtime-reported model identity.
 The combined group is centered and no principal element enters the bottom quarter. Scene elements
 are Agent-selected from the evidence, so multi-category topics do not inherit a fixed skincare,
 grocery, or other category prop template.
@@ -107,7 +118,42 @@ continue to use catalog image identities.
           "product:matcha-1",
           "content-task:content-hero"
         ],
-        "referenceProductIds": ["matcha-1"]
+        "referenceProductIds": ["matcha-1"],
+        "placementPlan": {
+          "primaryIndex": 0,
+          "anchors": [{ "x": 0.5, "y": 0.7, "scale": 1, "depth": 2 }],
+          "shadowDirection": { "x": 0.7, "y": 0.5 },
+          "supportRegion": {
+            "left": 0.08,
+            "right": 0.92,
+            "top": 0.5,
+            "bottom": 0.74,
+            "surface": "horizontal-light-neutral"
+          }
+        },
+        "placementSource": "agent",
+        "compositionAudit": {
+          "verification": "host-geometry-v1",
+          "semanticVerification": "agent-vision-v1",
+          "supportSurfaceLightness": 0.82,
+          "maximumOverlapRatio": 0,
+          "bottomSafeAreaStart": 0.75,
+          "products": [{
+            "productId": "matcha-1",
+            "sourceDigest": "sha256:...",
+            "preparationMethod": "white-background-direct",
+            "preparationConfidence": 0.98,
+            "bounds": { "left": 0.4, "top": 0.28, "right": 0.6, "bottom": 0.7 },
+            "contactPoint": { "x": 0.5, "y": 0.7 }
+          }]
+        },
+        "generationProvenance": {
+          "provider": "codex-native",
+          "modelSource": "unreported",
+          "attempts": 1,
+          "cacheHit": false
+        },
+        "fallbackUsed": false
       },
       "altText": {
         "language": "zh",

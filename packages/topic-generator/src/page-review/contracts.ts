@@ -8,6 +8,7 @@ import type {
   TopicPageQaReport,
   TopicPageReviewPackage,
 } from "../page-generation/contracts.js";
+import type { TopicPageVisualAssetKind } from "../page-visual/contracts.js";
 
 export type TopicPageExperienceReviewRecommendation =
   | "recommend-approval"
@@ -68,14 +69,14 @@ export interface TopicPageExperienceReviewContext {
   allowedEvidenceRefs: string[];
   allowedRollbackStages: LandingPageReviewRollbackStage[];
   visualPolicy: {
-    priority: "scene-and-module-theme";
-    productRole: "reference-only";
-    blockingConditions: readonly [
-      "isolated-product-packshot-used-as-semantic-scene",
-      "product-grid-or-montage-used-as-semantic-scene",
-      "asset-does-not-match-module-theme-or-copy",
-      "visible-product-packaging-is-generated-or-altered",
-    ];
+    assets: Array<{
+      taskId: string;
+      moduleId: TopicModuleId;
+      kind: TopicPageVisualAssetKind;
+      priority: "scene-and-module-theme" | "source-product-fidelity" | "hero-composite";
+      productRole: "reference-only" | "primary-subject" | "locked-source-products";
+      blockingConditions: string[];
+    }>;
   };
 }
 

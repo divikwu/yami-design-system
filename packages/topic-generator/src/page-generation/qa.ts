@@ -154,6 +154,67 @@ export async function runTopicPageQa(options: RunTopicPageQaOptions): Promise<To
     } else if (!asset.altText?.text.trim()) {
       add("accessibility-structure", `Asset ${asset.taskId} requires non-empty alt text.`);
     }
+    if (manifest.productionMode === "generated-images") {
+      const provenance = asset.direction.generationProvenance;
+      if (!provenance) {
+        add("visual-policy", `Generated asset ${asset.taskId} has no generation provenance.`);
+      }
+      if (asset.direction.fallbackUsed === true &&
+          asset.kind !== "hero-image" && asset.kind !== "shortcut-image") {
+        add(
+          "visual-policy",
+          `Scene-first asset ${asset.taskId} may not pass with a deterministic fallback.`,
+        );
+      }
+      if (asset.kind === "hero-image") {
+        const placement = asset.direction.placementPlan;
+        const audit = asset.direction.compositionAudit;
+        if (!placement || !audit) {
+          add(
+            "visual-policy",
+            `Hero asset ${asset.taskId} requires a verified support region and composition audit.`,
+          );
+        } else {
+          const expectedProductIds = asset.direction.referenceProductIds;
+          if (!exactOrder(audit.products.map(({ productId }) => productId), expectedProductIds)) {
+            add(
+              "visual-policy",
+              `Hero asset ${asset.taskId} composition audit does not match its source products.`,
+            );
+          }
+          if (audit.supportSurfaceLightness < 0.68 || audit.maximumOverlapRatio > 0.32 ||
+              audit.bottomSafeAreaStart !== 0.75 || audit.products.some(({ bounds }) =>
+                bounds.bottom >= 0.75
+              )) {
+            add(
+              "visual-policy",
+              `Hero asset ${asset.taskId} violates support, overlap, or bottom-safe-area limits.`,
+            );
+          }
+          if (audit.semanticVerification === "host-geometry-only") {
+            add(
+              "visual-policy",
+              `Hero asset ${asset.taskId} has no semantic surface/contact verification.`,
+            );
+          }
+          if (audit.products.some(({ preparationMethod }) =>
+            preparationMethod === "source-studio-tile"
+          ) && asset.direction.placementSource !== "safe-fallback") {
+            add(
+              "visual-policy",
+              `Hero asset ${asset.taskId} may use a studio-tile source only on the safe neutral fallback.`,
+            );
+          }
+          if (asset.direction.fallbackUsed === true &&
+              asset.direction.placementSource !== "safe-fallback") {
+            add(
+              "visual-policy",
+              `Hero fallback ${asset.taskId} must use the verified safe-neutral placement plan.`,
+            );
+          }
+        }
+      }
+    }
   }
 
   const checks: TopicPageQaCheck[] = [...issuesByCheck].map(([id, checkIssues]) => ({

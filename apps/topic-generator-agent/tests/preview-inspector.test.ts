@@ -45,6 +45,13 @@ function browserFixture(options: {
             first: vi.fn(() => ({
               waitFor: vi.fn(async () => undefined),
               getAttribute: vi.fn(async () => options.marker ?? digest),
+              screenshot: vi.fn(async ({ path }: { path: string }) => {
+                screenshotCount += 1;
+                if (screenshotCount === options.failScreenshotAt) {
+                  throw new Error("screenshot failed");
+                }
+                await import("node:fs/promises").then(({ writeFile }) => writeFile(path, "png"));
+              }),
             })),
           })),
           evaluate: vi.fn(async () => undefined),
@@ -80,6 +87,8 @@ describe("experience review preview inspector", () => {
     expect(result.attachments.map(({ label }) => label)).toEqual([
       "experience-review-desktop",
       "experience-review-mobile",
+      "experience-review-hero-desktop",
+      "experience-review-hero-mobile",
     ]);
     await Promise.all(result.attachments.map(async ({ path }) => {
       await access(path);

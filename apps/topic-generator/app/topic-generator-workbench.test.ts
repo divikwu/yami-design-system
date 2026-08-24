@@ -233,7 +233,10 @@ describe("Topic Generator Workbench preview", () => {
     expect(props.hero).toMatchObject({
       title: "ANUA 温和有效的韩系护肤",
       description: "这是重新生成的文案。",
-      image: { src: "/assets/retained-hero.webp" },
+      image: {
+        src: "/assets/retained-hero.webp",
+        objectPosition: "50% 45%",
+      },
       backgroundImageSrc: "/assets/retained-hero.webp",
     });
     expect(props.shortcutRail.items[0]).toMatchObject({

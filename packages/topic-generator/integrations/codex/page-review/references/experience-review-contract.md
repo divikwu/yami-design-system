@@ -49,7 +49,10 @@ Reject any evidence reference absent from the task context.
 
 ## Visual policy
 
-The context includes `visualPolicy`. Treat each listed condition as an advisory review finding:
+The context includes per-asset `visualPolicy.assets`. Apply the matching entry to each task. Hero
+entries use locked-source-product composite rules, Shortcut entries use source-product-fidelity
+rules, and Scene/Brand entries use scene-first rules. Treat each listed condition as an advisory
+review finding:
 
 - an isolated product packshot used as a semantic scene;
 - a product grid or montage used as a semantic scene;

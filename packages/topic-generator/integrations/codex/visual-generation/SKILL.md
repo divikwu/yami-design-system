@@ -74,11 +74,15 @@ For each task:
    directions. During Host composition, keep the central representative product unobscured in front,
    stagger secondary products through middle and rear depths, and use restrained same-direction
    photographic contact shadows. After inspecting the generated background, return non-blocking
-   normalized x/y contact points plus scale and depth for each assigned product when credible
-   footholds can be identified. Each bottom contact point must lie on an upward-facing supporting
-   surface, never a vertical face, wall, or open air; verify all points against the actual generated
+   normalized support-region bounds plus x/y contact points, scale, and depth for each assigned
+   product when credible footholds can be identified. The support region must be one continuous,
+   upward-facing, light-neutral plane. Each bottom contact point must lie inside it on that surface,
+   never a vertical face, wall, or open air; verify all points against the actual generated
    pixels before returning them. The Host uses this placement plan to follow the Agent-chosen surfaces
-   and perspective; missing or invalid guidance falls back safely and never blocks generation. Keep
+   and perspective. Missing or invalid guidance triggers one read-only visual recovery pass over the
+   same background; recovered guidance is labeled `agent-recovered` and still faces all Host geometry
+   and final semantic checks. If recovery fails, the Host discards that background and uses its known-safe
+   neutral Hero background, never fixed anchors on an arbitrary scene. Keep
    the group visually centered and keep the bottom quarter free of principal elements. Never use
    tiled grids, product montages, lineups, or unreferenced products.
 3. Build art direction only from its ThemeIntent evidence, selected categories, assigned products,
@@ -91,8 +95,12 @@ For each task:
    brand, scene, module, component, crop, or text field.
 5. Follow the selected production mode. Generate a new scene only for `generated-images`. For a Hero,
    use product metadata to plan the background but do not attach the product sources to the background
-   generator or ask it to redraw packaging; compose the verified catalog images afterward as locked
-   source layers. Attach the
+   generator or ask it to redraw packaging; compose the verified catalog main images afterward as
+   locked source layers. Preserve an existing alpha channel. For a verified uniform white-background
+   main image, derive only a deterministic mask for the edge-connected white canvas, protect the
+   complete product silhouette, crop redundant outer whitespace, and preserve every product pixel;
+   do not run a generative redraw. If neither source condition
+   is reliable, use a deliberate studio tile only with the known-safe neutral Hero fallback. Attach the
    verified source product image to every product-first Shortcut task and preserve its silhouette,
    proportions, colors, orientation, and visible packaging identity. Do not invent, rewrite, or add
    labels, logos, packaging, or claims. For `source-product-images`, preserve the assigned Yami
@@ -106,8 +114,16 @@ For each task:
    directions, or a principal element in the bottom quarter. Natural environmental shadows are
    allowed; reject only empty product silhouettes, empty product-shaped shadows, and other product
    placeholders. After source-layer composition, verify that the assigned
-   real products remain visible and centered, the primary product is not obscured, and every contact
-   shadow follows the same supporting plane and light direction.
+   real products remain visible and centered, the primary product is not obscured, every contact
+   point remains inside the declared support region, overlap and bottom-safe-area limits pass Host
+   geometry verification, and every contact shadow follows the same supporting plane and light
+   direction. Run that semantic contact/source-fidelity check as a separate read-only vision pass
+   over the completed composite and exact catalog sources; a rejected pass consumes the Host-owned
+   bounded retry and then uses the known-safe neutral Hero fallback. Record source digests,
+   preparation methods, verified bounds, overlap, support-region
+   lightness, attempt count, cache reuse, bounded fallback reason, provider, and only runtime-reported
+   model identity. Never
+   infer the image model name from feature availability.
    For scene-first tasks, reject a packshot, product
    grid, montage, conflicting environment, or packaging-like object. For product-first Shortcuts,
    reject a missing, duplicated, cropped, off-center, tiny, or materially altered representative

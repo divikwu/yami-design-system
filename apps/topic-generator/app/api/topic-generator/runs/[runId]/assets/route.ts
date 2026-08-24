@@ -24,8 +24,7 @@ export async function GET(
       return Response.json({ error: "Asset type is not supported." }, { status: 415 });
     }
     const { store } = await getTopicGeneratorManagedRunRuntime();
-    await store.read(runId);
-    const bytes = await store.assetStore(runId).get(ref);
+    const bytes = await store.readPersistedAsset(runId, ref);
     return new Response(Buffer.from(bytes), {
       headers: {
         "content-type": contentType,

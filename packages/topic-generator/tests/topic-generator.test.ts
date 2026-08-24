@@ -106,7 +106,7 @@ describe("TOPIC GENERATOR Yami search provider", () => {
               item_number: "1001",
               goods_ename: "ANUA Heartleaf Toner",
               brand_ename: "ANUA",
-              image_url: "/item/anua.webp",
+              image_url: "/item/anua_300x300.webp",
               slug: "anua-heartleaf-toner",
               status: "A",
               goods_number: 1,
@@ -129,6 +129,9 @@ describe("TOPIC GENERATOR Yami search provider", () => {
     try {
       const result = await searchYamiCatalog("ANUA");
       expect(result.snapshot.products.map(({ id }) => id)).toEqual(["1001"]);
+      expect(result.snapshot.products[0]?.imageUrl).toBe(
+        "https://cdn.yamibuy.net/item/anua_750x750.webp",
+      );
       expect(result.snapshot.quality).toMatchObject({
         observedProductCount: 2,
         acceptedProductCount: 1,
