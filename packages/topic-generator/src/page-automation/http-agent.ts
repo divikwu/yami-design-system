@@ -1,6 +1,7 @@
 import type { TopicContentAgent } from "../page-content/workflow.js";
 import type { TopicBackgroundEvidenceAgent } from "../background-evidence/workflow.js";
 import type { TopicPageContentReviewAgent } from "../page-content/content-review.js";
+import type { TopicPageContentCandidateSelectorAgent } from "../page-content/candidates.js";
 import type { LandingPageOrchestratorAgent } from "../page-orchestration/workflow.js";
 import type { PageMerchandisingAgent } from "../page-merchandising/workflow.js";
 import type { TopicPageReviewAgent } from "../page-review/workflow.js";
@@ -24,8 +25,10 @@ export type HttpTopicPageAgentStage =
 
 export type HttpTopicPageAgent = TopicIntentAgent & TopicBackgroundEvidenceAgent &
   LandingPageOrchestratorAgent & PageMerchandisingAgent & TopicContentAgent &
-  TopicPageContentReviewAgent & TopicVisualAgent & TopicPageReviewAgent & {
+  TopicPageContentCandidateSelectorAgent & TopicPageContentReviewAgent &
+  TopicVisualAgent & TopicPageReviewAgent & {
     reviewerAgentId: string;
+    selectorAgentId: string;
   };
 
 export interface CreateHttpTopicPageAgentOptions {
@@ -245,11 +248,13 @@ export function createHttpTopicPageAgent(
   return {
     id: options.id,
     reviewerAgentId: agentIdFor("content-review"),
+    selectorAgentId: agentIdFor("content-review"),
     proposeSemanticIntent: (run) => requestProposal("topic-intent", run),
     proposeBackgroundEvidence: (run) => requestProposal("background-evidence", run),
     proposeExecutionPlan: (run) => requestProposal("workflow-planning", run),
     proposeModuleMerchandising: (run) => requestProposal("module-merchandising", run),
     proposePageContent: (run) => requestProposal("content-writing", run),
+    selectPageContentCandidates: (run) => requestProposal("content-review", run),
     reviewPageContent: (run) => requestProposal("content-review", run),
     generatePageVisuals: (run) => requestProposal("visual-generation", run),
     reviewPageExperience: (run) => requestProposal("experience-review", run),

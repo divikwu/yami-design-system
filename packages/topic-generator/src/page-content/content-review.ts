@@ -2,6 +2,7 @@ import type { TopicModuleId } from "../types.js";
 import type { TopicBackgroundEvidenceBundle } from "../background-evidence/contracts.js";
 import { sha256Digest } from "../product-selection/digest.js";
 import type {
+  TopicPageContentLocalizationReference,
   TopicPageContentSpec,
   TopicPageCopyBrief,
 } from "./contracts.js";
@@ -17,7 +18,13 @@ export type TopicPageContentReviewCriterion =
   | "shopping-decision-usefulness"
   | "module-differentiation"
   | "evidence-claim-alignment"
-  | "language-quality";
+  | "language-quality"
+  | "brand-distinctiveness"
+  | "consumer-relevance"
+  | "editorial-quality"
+  | "meta-navigation-avoidance"
+  | "module-redundancy-avoidance"
+  | "cross-locale-semantic-alignment";
 
 export interface TopicPageContentReviewIssue {
   code: string;
@@ -51,6 +58,9 @@ export interface TopicPageContentReviewContext {
   backgroundEvidence: TopicBackgroundEvidenceBundle | null;
   criteria: readonly TopicPageContentReviewCriterion[];
   reviewBoundary: "copy-only-no-upstream-mutation";
+  qualityPolicy: "advisory-optimize-never-block";
+  advisoryWarnings: TopicPageContentReviewIssue[];
+  localizationReference: TopicPageContentLocalizationReference | null;
 }
 
 export type TopicPageContentReviewRun =
@@ -67,7 +77,7 @@ export type TopicPageContentReviewRun =
   | {
       schemaVersion: "topic-page-content-review-run/v1";
       status: "blocked";
-      faultKind: "content-quality" | "review-invalid" | "agent-failed";
+      faultKind: "content-quality" | "review-invalid" | "structural-invalid" | "agent-failed";
       rollbackStage: "content-writing";
       issues: string[];
       decision?: TopicPageContentReviewDecision;
@@ -77,6 +87,7 @@ export interface TopicPageContentReviewRequest {
   contentSpec: TopicPageContentSpec;
   copyBrief: TopicPageCopyBrief;
   backgroundEvidence?: TopicBackgroundEvidenceBundle;
+  localizationReference?: TopicPageContentLocalizationReference;
   proposal?: unknown;
   reviewerAgentId?: string;
 }
@@ -97,6 +108,10 @@ const CRITERIA: readonly TopicPageContentReviewCriterion[] = [
   "module-differentiation",
   "evidence-claim-alignment",
   "language-quality",
+  "consumer-relevance",
+  "editorial-quality",
+  "meta-navigation-avoidance",
+  "module-redundancy-avoidance",
 ];
 
 const MODULE_IDS = new Set<TopicModuleId>([
@@ -137,7 +152,7 @@ function segmentReferences(value: unknown): string[] {
   return Object.values(value).flatMap(segmentReferences);
 }
 
-function deterministicIssues(request: TopicPageContentReviewRequest) {
+function structuralIssues(request: TopicPageContentReviewRequest) {
   const issues: string[] = [];
   if (request.contentSpec.digest !== topicPageContentSpecDigest(request.contentSpec)) {
     issues.push("TopicPageContentSpec digest is invalid.");
@@ -154,6 +169,13 @@ function deterministicIssues(request: TopicPageContentReviewRequest) {
       request.copyBrief.backgroundEvidenceDigest !== (backgroundDigest ?? null)) {
     issues.push("Content review background evidence bindings do not match.");
   }
+  return issues;
+}
+
+function advisoryDeterministicIssues(
+  request: TopicPageContentReviewRequest,
+): TopicPageContentReviewIssue[] {
+  const issues: TopicPageContentReviewIssue[] = [];
   const eligibleBackgroundRefs = new Set(
     request.backgroundEvidence?.claims.map(({ id }) => `background:${id}`) ?? [],
   );
@@ -164,14 +186,24 @@ function deterministicIssues(request: TopicPageContentReviewRequest) {
       description: hero.copy.description,
     }) : [];
     if (!heroRefs.some((ref) => eligibleBackgroundRefs.has(ref))) {
-      issues.push("Hero copy must cite at least one eligible background claim for newcomer orientation.");
+      issues.push({
+        code: "hero-background-context-missing",
+        severity: "warning",
+        moduleId: "hero",
+        message: "Hero copy should cite at least one eligible background claim for newcomer orientation.",
+      });
     }
   }
   const seenTitles = new Set<string>();
   for (const task of request.contentSpec.tasks) {
     const key = titleKey(task.copy.title.text);
     if (seenTitles.has(key)) {
-      issues.push("Visible module titles must be distinct and support different shopper decisions.");
+      issues.push({
+        code: "duplicate-module-title",
+        severity: "warning",
+        moduleId: task.moduleId,
+        message: "Visible module titles should be distinct and support different shopper decisions.",
+      });
       break;
     }
     seenTitles.add(key);
@@ -182,7 +214,12 @@ function deterministicIssues(request: TopicPageContentReviewRequest) {
         ...scene.description.evidenceRefs,
       ];
       if (!refs.includes(sceneRef)) {
-        issues.push(`Scene ${scene.sceneId} title or description must cite its scene evidence.`);
+        issues.push({
+          code: "scene-evidence-reference-missing",
+          severity: "warning",
+          moduleId: task.moduleId,
+          message: `Scene ${scene.sceneId} title or description should cite its scene evidence.`,
+        });
       }
     });
   }
@@ -268,7 +305,7 @@ export function reviewTopicPageContentReviewDecision(
   request: Omit<TopicPageContentReviewRequest, "proposal" | "reviewerAgentId">,
   value: unknown,
 ) {
-  const issues = deterministicIssues(request);
+  const issues = structuralIssues(request);
   const decision = objectValue(value);
   if (!decision) {
     return [...issues, "TopicPageContentReviewDecision must be a JSON object."];
@@ -309,17 +346,21 @@ function issueMessage(issue: TopicPageContentReviewIssue) {
 export function advanceTopicPageContentReviewRun(
   request: TopicPageContentReviewRequest,
 ): TopicPageContentReviewRun {
-  const hardIssues = deterministicIssues(request);
+  const hardIssues = structuralIssues(request);
   if (hardIssues.length > 0) {
     return {
       schemaVersion: "topic-page-content-review-run/v1",
       status: "blocked",
-      faultKind: "content-quality",
+      faultKind: "structural-invalid",
       rollbackStage: "content-writing",
       issues: hardIssues,
     };
   }
   if (request.proposal === undefined) {
+    const brandCriteria = request.copyBrief.schemaVersion === "topic-page-copy-brief/v3" &&
+        request.copyBrief.heroStrategy.kind === "brand"
+      ? (["brand-distinctiveness"] as const)
+      : [];
     return {
       schemaVersion: "topic-page-content-review-run/v1",
       status: "needs-content-review-proposal",
@@ -332,8 +373,19 @@ export function advanceTopicPageContentReviewRun(
         backgroundEvidence: request.backgroundEvidence
           ? structuredClone(request.backgroundEvidence)
           : null,
-        criteria: CRITERIA,
+        criteria: [
+          ...CRITERIA,
+          ...brandCriteria,
+          ...(request.localizationReference
+            ? (["cross-locale-semantic-alignment"] as const)
+            : []),
+        ],
         reviewBoundary: "copy-only-no-upstream-mutation",
+        qualityPolicy: "advisory-optimize-never-block",
+        advisoryWarnings: advisoryDeterministicIssues(request),
+        localizationReference: request.localizationReference
+          ? structuredClone(request.localizationReference)
+          : null,
       },
     };
   }
@@ -353,7 +405,10 @@ export function advanceTopicPageContentReviewRun(
     copyBriefDigest: review.proposal.copyBriefDigest,
     backgroundEvidenceDigest: review.proposal.backgroundEvidenceDigest,
     verdict: review.proposal.verdict,
-    issues: review.proposal.issues,
+    issues: [
+      ...advisoryDeterministicIssues(request),
+      ...review.proposal.issues,
+    ],
     reviewerAgentId: request.reviewerAgentId ?? "unknown-review-agent",
   };
   const compiledDecision = {

@@ -231,7 +231,24 @@ function applyPagePlanV2ToLegacyPlans(
         assignment.selectionReason ?? assignment.reuseReason ?? reviewedModule.reason,
       ]));
       module.reason = reviewedModule.reason;
-      if (module.id === "brand-spotlight" && module.groups) {
+      if (module.id === "start-here") {
+        const sourceGroups = new Map(
+          (module.groups ?? []).map((group) => [group.id, group]),
+        );
+        module.groups = reviewedModule.scenes.map((scene) => {
+          const sourceGroup = sourceGroups.get(scene.sourceSceneId);
+          return {
+            ...sourceGroup,
+            id: scene.id,
+            label: sourceGroup?.label ?? scene.shoppingGoal,
+            role: sourceGroup?.role ?? "core",
+            productIds: [...scene.productIds],
+            shoppingGoal: scene.shoppingGoal,
+            scenarioReason: scene.reason,
+            semanticSource: "agent-reviewed",
+          };
+        });
+      } else if (module.id === "brand-spotlight" && module.groups) {
         module.groups = module.groups.flatMap((group) => {
           const productIds = reviewedModule.assignments
             .filter(({ groupId }) => groupId === group.id)
@@ -614,6 +631,7 @@ async function contentWritingStage(
         audienceContext: topicAudienceContext(language),
         backgroundEvidence: backgroundOutput.backgroundEvidenceByLanguage[language],
         agent: options.topicPageAgent!,
+        selectorAgent: options.topicPageAgent!,
       }),
     }),
   ));
@@ -687,8 +705,19 @@ async function contentReviewStage(
     await readStageResult("content-writing"),
     "Content writing stage",
   );
-  const localized = await Promise.all(contentLanguages(manifest.request.language).map(
-    async (language) => ({
+  const languages = contentLanguages(manifest.request.language);
+  const localized: Array<{
+    language: ContentLanguage;
+    workflow: Awaited<ReturnType<typeof runTopicPageContentApprovalWorkflow>>;
+  }> = [];
+  for (const language of languages) {
+    const primary = localized.find(({ language: reviewedLanguage }) =>
+      reviewedLanguage === manifest.request.language
+    );
+    const primaryReady = primary?.workflow.status === "ready"
+      ? primary.workflow
+      : null;
+    localized.push({
       language,
       workflow: await runTopicPageContentApprovalWorkflow({
         intent: intentOutput.analysis.intent,
@@ -700,9 +729,18 @@ async function contentReviewStage(
         contentSpec: contentOutput.contentByLanguage[language].contentSpec,
         contentAgent: options.topicPageAgent!,
         reviewAgent: options.topicPageAgent!,
+        ...(primaryReady
+          ? {
+              localizationReference: {
+                language: manifest.request.language,
+                contentSpec: primaryReady.contentSpec,
+                alignmentPolicy: "same-shopper-meaning-locale-native",
+              } as const,
+            }
+          : {}),
       }),
-    }),
-  ));
+    });
+  }
   const failed = localized.filter(({ workflow }) => workflow.status !== "ready");
   if (failed.length > 0) {
     return blocked(

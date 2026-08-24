@@ -11,10 +11,19 @@ import {
 } from "../page-merchandising/review.js";
 import type {
   TopicPageContentAttemptArtifact,
+  TopicPageContentCandidateSelectionDecision,
+  TopicPageContentCandidateSet,
   TopicPageContentProposal,
+  TopicPageContentProposalRevisionContext,
   TopicPageContentRevisionContext,
   TopicPageContentRun,
 } from "./contracts.js";
+import {
+  reviewTopicPageContentCandidateSet,
+  runTopicPageContentCandidateSelectorWorkflow,
+  topicPageContentCandidateGeneration,
+  type TopicPageContentCandidateSelectorAgent,
+} from "./candidates.js";
 import { advanceTopicPageContentRun } from "./run.js";
 import { topicPageContentSpecDigest } from "./review.js";
 
@@ -38,6 +47,7 @@ export interface TopicContentAgentWorkflowRequest {
   agent: TopicContentAgent;
   proposal?: unknown;
   revision?: TopicPageContentRevisionContext;
+  selectorAgent?: TopicPageContentCandidateSelectorAgent;
   resume?: {
     attempt: TopicPageContentAttemptArtifact;
     proposal: unknown;
@@ -69,6 +79,9 @@ function attemptArtifact(
   proposal?: TopicPageContentProposal | unknown,
   run?: TopicPageContentRun,
   agentId = request.agent.id,
+  proposalRevision?: TopicPageContentProposalRevisionContext,
+  candidateSet?: TopicPageContentCandidateSet,
+  candidateSelection?: TopicPageContentCandidateSelectionDecision,
 ): TopicPageContentAttemptArtifact {
   return {
     schemaVersion: "topic-page-content-attempt/v1",
@@ -84,6 +97,13 @@ function attemptArtifact(
           copyBriefDigest: request.revision.review.copyBriefDigest,
           revision: structuredClone(request.revision),
         }
+      : {}),
+    ...(proposalRevision
+      ? { proposalRevision: structuredClone(proposalRevision) }
+      : {}),
+    ...(candidateSet ? { candidateSet: structuredClone(candidateSet) } : {}),
+    ...(candidateSelection
+      ? { candidateSelection: structuredClone(candidateSelection) }
       : {}),
     language: request.language,
     ...(proposal === undefined ? {} : { proposal }),
@@ -183,6 +203,9 @@ export async function runTopicContentAgentWorkflow(
     };
   }
   let proposal = request.resume?.proposal ?? request.proposal;
+  let proposalRevision: TopicPageContentProposalRevisionContext | undefined;
+  let candidateSet: TopicPageContentCandidateSet | undefined;
+  let candidateSelection: TopicPageContentCandidateSelectionDecision | undefined;
   let run = advanceTopicPageContentRun({
     intent: request.intent,
     selection: request.selection,
@@ -209,7 +232,158 @@ export async function runTopicContentAgentWorkflow(
         },
       };
     }
-    if (request.revision) {
+    const selectorAgent = request.selectorAgent;
+    const candidateGeneration = selectorAgent && !request.revision &&
+        !request.resume && request.proposal === undefined
+      ? topicPageContentCandidateGeneration(run.context)
+      : null;
+    if (candidateGeneration && selectorAgent) {
+      const candidateRun: NeedsContentProposalRun = {
+        ...run,
+        context: {
+          ...run.context,
+          candidateGeneration,
+        },
+      };
+      let candidateSetProposal: unknown;
+      try {
+        candidateSetProposal = await request.agent.proposePageContent(candidateRun);
+      } catch (error) {
+        throw new TopicContentAgentWorkflowError(
+          "Content Agent failed while preparing candidate packages.",
+          attemptArtifact(request),
+          error,
+        );
+      }
+      if (candidateSetProposal === undefined) {
+        throw new TopicContentAgentWorkflowError(
+          "Content Agent returned no candidate packages.",
+          attemptArtifact(request),
+        );
+      }
+      let candidateSetReview = reviewTopicPageContentCandidateSet({
+        intent: request.intent,
+        selection: request.selection,
+        plan: request.plan,
+        language: request.language,
+        audienceContext: request.audienceContext,
+        backgroundEvidence: request.backgroundEvidence,
+        generation: candidateGeneration,
+        value: candidateSetProposal,
+      });
+      if (!candidateSetReview.candidateSet) {
+        proposalRevision = {
+          schemaVersion: "topic-page-content-proposal-revision/v1",
+          attempt: 2,
+          previousProposal: structuredClone(candidateSetProposal),
+          issues: [...candidateSetReview.issues],
+        };
+        const repairRun: NeedsContentProposalRun = {
+          ...candidateRun,
+          context: {
+            ...candidateRun.context,
+            proposalRevision: structuredClone(proposalRevision),
+          },
+        };
+        try {
+          candidateSetProposal = await request.agent.proposePageContent(repairRun);
+        } catch (error) {
+          throw new TopicContentAgentWorkflowError(
+            "Content Agent failed while repairing invalid candidate packages.",
+            attemptArtifact(
+              request,
+              proposalRevision.previousProposal,
+              undefined,
+              request.agent.id,
+              proposalRevision,
+            ),
+            error,
+          );
+        }
+        if (candidateSetProposal === undefined) {
+          throw new TopicContentAgentWorkflowError(
+            "Content Agent returned no repaired candidate packages.",
+            attemptArtifact(
+              request,
+              proposalRevision.previousProposal,
+              undefined,
+              request.agent.id,
+              proposalRevision,
+            ),
+          );
+        }
+        candidateSetReview = reviewTopicPageContentCandidateSet({
+          intent: request.intent,
+          selection: request.selection,
+          plan: request.plan,
+          language: request.language,
+          audienceContext: request.audienceContext,
+          backgroundEvidence: request.backgroundEvidence,
+          generation: candidateGeneration,
+          value: candidateSetProposal,
+        });
+      }
+      if (!candidateSetReview.candidateSet) {
+        const issues = candidateSetReview.issues;
+        const blockedRun: TopicPageContentRun = {
+          schemaVersion: "topic-page-content-run/v1",
+          status: "blocked",
+          faultKind: "proposal-invalid",
+          rollbackStage: "content-writing",
+          issues,
+          proposalReview: { status: "rejected", issues },
+        };
+        return {
+          run: blockedRun,
+          artifacts: attemptArtifact(
+            request,
+            candidateSetProposal,
+            blockedRun,
+            request.agent.id,
+            proposalRevision,
+          ),
+        };
+      }
+      candidateSet = candidateSetReview.candidateSet;
+      const selected = await runTopicPageContentCandidateSelectorWorkflow({
+        candidateSet,
+        contentContext: run.context,
+        agent: selectorAgent,
+      });
+      if (selected.status !== "ready") {
+        const issues = selected.issues;
+        const blockedRun: TopicPageContentRun = {
+          schemaVersion: "topic-page-content-run/v1",
+          status: "blocked",
+          faultKind: "proposal-invalid",
+          rollbackStage: "content-writing",
+          issues,
+          proposalReview: { status: "rejected", issues },
+        };
+        return {
+          run: blockedRun,
+          artifacts: attemptArtifact(
+            request,
+            candidateSetProposal,
+            blockedRun,
+            request.agent.id,
+            proposalRevision,
+            candidateSet,
+          ),
+        };
+      }
+      candidateSelection = selected.decision;
+      proposal = selected.proposal;
+      run = advanceTopicPageContentRun({
+        intent: request.intent,
+        selection: request.selection,
+        plan: request.plan,
+        language: request.language,
+        audienceContext: request.audienceContext,
+        backgroundEvidence: request.backgroundEvidence,
+        proposal,
+      });
+    } else if (request.revision) {
       run = {
         ...run,
         context: {
@@ -218,30 +392,99 @@ export async function runTopicContentAgentWorkflow(
         },
       };
     }
-    try {
-      proposal = await request.agent.proposePageContent(run);
-    } catch (error) {
-      throw new TopicContentAgentWorkflowError(
-        "Content Agent failed while preparing a proposal.",
-        attemptArtifact(request),
-        error,
-      );
+    if (!candidateGeneration && run.status === "needs-content-proposal") {
+      try {
+        proposal = await request.agent.proposePageContent(run);
+      } catch (error) {
+        throw new TopicContentAgentWorkflowError(
+          "Content Agent failed while preparing a proposal.",
+          attemptArtifact(request),
+          error,
+        );
+      }
+      if (proposal === undefined) {
+        throw new TopicContentAgentWorkflowError(
+          "Content Agent returned no proposal.",
+          attemptArtifact(request),
+        );
+      }
+      run = advanceTopicPageContentRun({
+        intent: request.intent,
+        selection: request.selection,
+        plan: request.plan,
+        language: request.language,
+        audienceContext: request.audienceContext,
+        backgroundEvidence: request.backgroundEvidence,
+        proposal,
+      });
     }
-    if (proposal === undefined) {
-      throw new TopicContentAgentWorkflowError(
-        "Content Agent returned no proposal.",
-        attemptArtifact(request),
-      );
-    }
-    run = advanceTopicPageContentRun({
+  }
+  if (run.status === "blocked" &&
+      run.faultKind === "proposal-invalid" &&
+      request.proposal === undefined &&
+      request.resume === undefined &&
+      request.revision === undefined &&
+      candidateSet === undefined &&
+      proposal !== undefined) {
+    const pending = advanceTopicPageContentRun({
       intent: request.intent,
       selection: request.selection,
       plan: request.plan,
       language: request.language,
       audienceContext: request.audienceContext,
       backgroundEvidence: request.backgroundEvidence,
-      proposal,
     });
+    if (pending.status === "needs-content-proposal") {
+      proposalRevision = {
+        schemaVersion: "topic-page-content-proposal-revision/v1",
+        attempt: 2,
+        previousProposal: structuredClone(proposal),
+        issues: [...run.issues],
+      };
+      const repairRun: NeedsContentProposalRun = {
+        ...pending,
+        context: {
+          ...pending.context,
+          proposalRevision: structuredClone(proposalRevision),
+        },
+      };
+      try {
+        proposal = await request.agent.proposePageContent(repairRun);
+      } catch (error) {
+        throw new TopicContentAgentWorkflowError(
+          "Content Agent failed while repairing an invalid proposal.",
+          attemptArtifact(
+            request,
+            proposalRevision.previousProposal,
+            run,
+            request.agent.id,
+            proposalRevision,
+          ),
+          error,
+        );
+      }
+      if (proposal === undefined) {
+        throw new TopicContentAgentWorkflowError(
+          "Content Agent returned no repaired proposal.",
+          attemptArtifact(
+            request,
+            proposalRevision.previousProposal,
+            run,
+            request.agent.id,
+            proposalRevision,
+          ),
+        );
+      }
+      run = advanceTopicPageContentRun({
+        intent: request.intent,
+        selection: request.selection,
+        plan: request.plan,
+        language: request.language,
+        audienceContext: request.audienceContext,
+        backgroundEvidence: request.backgroundEvidence,
+        proposal,
+      });
+    }
   }
   return {
     run,
@@ -253,6 +496,9 @@ export async function runTopicContentAgentWorkflow(
             proposal,
             run,
             request.resume?.attempt.agentId,
+            proposalRevision,
+            candidateSet,
+            candidateSelection,
           ),
         }),
   };

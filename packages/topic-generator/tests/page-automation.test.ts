@@ -534,7 +534,7 @@ describe("Topic page automation workflow", () => {
     expect(generatePageVisuals).toHaveBeenCalledOnce();
   });
 
-  it("blocks visual generation when the bounded content rewrite still fails review", async () => {
+  it("continues with advisory warnings when the bounded content rewrite still needs improvement", async () => {
     const data = workflowFixture();
     const proposePageContent = vi.fn(data.agents.content.proposePageContent);
     data.agents.content = { ...data.agents.content, proposePageContent };
@@ -567,20 +567,56 @@ describe("Topic page automation workflow", () => {
     });
 
     expect(result).toMatchObject({
-      status: "blocked",
-      stage: "content-review",
-      rollbackStage: "content-writing",
-      issues: ["Hero: Explain what makes this topic distinct for a first-time shopper."],
+      status: "ready",
+      stage: "review-ready",
       contentReview: {
-        status: "blocked",
-        faultKind: "content-quality",
-        decision: { verdict: "revision-required" },
+        verdict: "approved",
+        issues: [{
+          code: "generic-theme-copy",
+          severity: "warning",
+          moduleId: "hero",
+        }],
       },
     });
     expect(proposePageContent).toHaveBeenCalledTimes(2);
     expect(reviewPageContent).toHaveBeenCalledTimes(2);
-    expect(generatePageVisuals).not.toHaveBeenCalled();
-    expect(data.put).not.toHaveBeenCalled();
+    expect(generatePageVisuals).toHaveBeenCalledOnce();
+    expect(data.put).toHaveBeenCalled();
+  });
+
+  it("continues with the valid ContentSpec when semantic review is unavailable", async () => {
+    const data = workflowFixture();
+    const proposePageContent = vi.fn(data.agents.content.proposePageContent);
+    data.agents.content = { ...data.agents.content, proposePageContent };
+    const generatePageVisuals = vi.fn(data.agents.visual.generatePageVisuals);
+    data.agents.visual = { ...data.agents.visual, generatePageVisuals };
+    data.agents.contentReview = {
+      id: "fixture-content-review-agent",
+      reviewPageContent: async () => {
+        throw new Error("Review service unavailable.");
+      },
+    };
+
+    const result = await runTopicPageAutomationWorkflow({
+      ...data,
+      language: "zh",
+      previewRefs: { desktop: "/", mobile: "/" },
+    });
+
+    expect(result).toMatchObject({
+      status: "ready",
+      stage: "review-ready",
+      contentReview: {
+        verdict: "approved",
+        issues: [{
+          code: "content-review-advisory-1",
+          severity: "warning",
+          message: "Review service unavailable.",
+        }],
+      },
+    });
+    expect(proposePageContent).toHaveBeenCalledOnce();
+    expect(generatePageVisuals).toHaveBeenCalledOnce();
   });
 
   it("carries the requested visual production mode through the full automation workflow", async () => {

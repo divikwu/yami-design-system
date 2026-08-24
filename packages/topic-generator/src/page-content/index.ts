@@ -1,6 +1,7 @@
 export * from "./contracts.js";
 export * from "./approval-workflow.js";
 export * from "./brief.js";
+export * from "./candidates.js";
 export * from "./content-review.js";
 export * from "./review.js";
 export * from "./run.js";

@@ -91,6 +91,9 @@ export interface TopicPageContentAttemptArtifact {
   copyBriefDigest?: string;
   language: ContentLanguage;
   revision?: TopicPageContentRevisionContext;
+  proposalRevision?: TopicPageContentProposalRevisionContext;
+  candidateSet?: TopicPageContentCandidateSet;
+  candidateSelection?: TopicPageContentCandidateSelectionDecision;
   proposal?: unknown;
   proposalReview?: TopicPageContentProposalReview;
 }
@@ -113,6 +116,12 @@ export interface TopicPageContentSpec {
   digest: string;
 }
 
+export interface TopicPageContentLocalizationReference {
+  language: ContentLanguage;
+  contentSpec: TopicPageContentSpec;
+  alignmentPolicy: "same-shopper-meaning-locale-native";
+}
+
 export interface TopicPageContentRevisionIssue {
   code: string;
   severity: "warning" | "error";
@@ -124,6 +133,7 @@ export interface TopicPageContentRevisionContext {
   schemaVersion: "topic-page-content-revision/v1";
   attempt: 2;
   previousContentSpec: TopicPageContentSpec;
+  localizationReference?: TopicPageContentLocalizationReference;
   review: {
     source: "deterministic-review" | "review-agent";
     contentSpecDigest: string;
@@ -134,6 +144,145 @@ export interface TopicPageContentRevisionContext {
     issues: TopicPageContentRevisionIssue[];
   };
 }
+
+export interface TopicPageContentProposalRevisionContext {
+  schemaVersion: "topic-page-content-proposal-revision/v1";
+  attempt: 2;
+  previousProposal: unknown;
+  issues: string[];
+}
+
+export type TopicPageContentCandidateModuleId = Extract<
+  TopicModuleId,
+  "hero" | "start-here"
+>;
+
+export interface TopicPageContentCandidateDirection {
+  id: `candidate-${1 | 2 | 3 | 4 | 5}`;
+  focus:
+    | "topic-proposition"
+    | "routine-entry"
+    | "shopping-decision"
+    | "scene-journey"
+    | "guided-discovery"
+    | "brand-position"
+    | "signature-concept"
+    | "routine-role"
+    | "need-led-choice"
+    | "editorial-discovery";
+  objective: string;
+}
+
+export interface TopicPageContentCandidateGenerationContext {
+  schemaVersion: "topic-page-content-candidate-generation/v1";
+  candidateCount: 5;
+  targetModuleIds: TopicPageContentCandidateModuleId[];
+  directions: TopicPageContentCandidateDirection[];
+  selectionUnit: "module-package-with-optional-scene-picks";
+  sharedTaskPolicy: "generate-once-preserve-exactly";
+}
+
+export interface TopicPageContentCandidate {
+  id: TopicPageContentCandidateDirection["id"];
+  directionId: TopicPageContentCandidateDirection["id"];
+  direction?: TopicPageContentCandidateDirection;
+  tasks: TopicPageContentTaskProposal[];
+}
+
+export interface TopicPageContentCandidateSetProposal {
+  schemaVersion: "topic-page-content-candidate-set-proposal/v1";
+  keyword: string;
+  site: YamiSite;
+  language: ContentLanguage;
+  topicPagePlanDigest: string;
+  themeIntentDigest: string;
+  productSelectionDigest: string;
+  targetModuleIds: TopicPageContentCandidateModuleId[];
+  sharedTasks: TopicPageContentTaskProposal[];
+  candidates: TopicPageContentCandidate[];
+}
+
+export interface TopicPageContentCandidateSet
+  extends Omit<TopicPageContentCandidateSetProposal, "schemaVersion"> {
+  schemaVersion: "topic-page-content-candidate-set/v1";
+  taskOrder: string[];
+  advisoryWarnings: string[];
+  digest: string;
+}
+
+export interface TopicPageContentCandidateSelection {
+  moduleId: TopicPageContentCandidateModuleId;
+  candidateId: TopicPageContentCandidateDirection["id"];
+  reason: string;
+  sceneSelections?: Array<{
+    sceneId: string;
+    candidateId: TopicPageContentCandidateDirection["id"];
+    reason: string;
+  }>;
+}
+
+export interface TopicPageContentCandidateSelectionProposal {
+  schemaVersion: "topic-page-content-candidate-selection-proposal/v1";
+  candidateSetDigest: string;
+  selections: TopicPageContentCandidateSelection[];
+}
+
+export type TopicPageContentCandidateSelectionCriterion =
+  | "newcomer-orientation"
+  | "theme-specificity"
+  | "scene-specificity"
+  | "shopping-decision-usefulness"
+  | "module-differentiation"
+  | "evidence-claim-alignment"
+  | "language-quality"
+  | "cross-module-coherence"
+  | "brand-distinctiveness"
+  | "consumer-relevance"
+  | "editorial-quality"
+  | "meta-navigation-avoidance"
+  | "module-redundancy-avoidance";
+
+export interface TopicPageContentCandidateSelectionDecision
+  extends Omit<TopicPageContentCandidateSelectionProposal, "schemaVersion"> {
+  schemaVersion: "topic-page-content-candidate-selection/v1";
+  selectorAgentId: string;
+  advisoryWarnings: string[];
+  digest: string;
+}
+
+export interface TopicPageContentCandidateSelectionContext {
+  candidateSet: TopicPageContentCandidateSet;
+  copyBrief: TopicPageCopyBrief;
+  backgroundEvidence: TopicBackgroundEvidenceBundle | null;
+  taskContexts: TopicPageContentTaskContext[];
+  criteria: readonly TopicPageContentCandidateSelectionCriterion[];
+  selectionPolicy: {
+    unit: "module-package-with-optional-scene-picks";
+    requireEveryTargetModule: true;
+    finalContentReviewRequired: true;
+    qualityEnforcement: "advisory-never-block-generation";
+    sceneSelection: "optional-per-scene-with-module-fallback";
+    advisoryCriteria: readonly TopicPageContentCandidateSelectionCriterion[];
+  };
+}
+
+export type TopicPageContentCandidateSelectionRun =
+  | {
+      schemaVersion: "topic-page-content-candidate-selection-run/v1";
+      status: "needs-candidate-selection-proposal";
+      context: TopicPageContentCandidateSelectionContext;
+    }
+  | {
+      schemaVersion: "topic-page-content-candidate-selection-run/v1";
+      status: "ready";
+      decision: TopicPageContentCandidateSelectionDecision;
+      proposal: TopicPageContentProposal;
+    }
+  | {
+      schemaVersion: "topic-page-content-candidate-selection-run/v1";
+      status: "blocked";
+      issues: string[];
+    };
 
 export type TopicPageContentCopySlot =
   | "title"
@@ -147,6 +296,7 @@ export type TopicPageContentCopySlot =
 
 export interface TopicPageContentCopyRule {
   slot: TopicPageContentCopySlot;
+  /** Advisory layout ceiling for generation and review; never a deterministic rejection. */
   maxCharacters: number;
   preferredLength?: {
     minCharacters?: number;
@@ -296,6 +446,8 @@ export interface TopicPageContentContext {
   evidenceNamespaces: readonly string[];
   tasks: TopicPageContentTaskContext[];
   revision?: TopicPageContentRevisionContext;
+  proposalRevision?: TopicPageContentProposalRevisionContext;
+  candidateGeneration?: TopicPageContentCandidateGenerationContext;
 }
 
 export type TopicPageContentFaultKind = "upstream-invalid" | "proposal-invalid";

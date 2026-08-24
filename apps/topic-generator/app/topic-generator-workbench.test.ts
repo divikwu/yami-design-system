@@ -517,7 +517,18 @@ describe("Topic Generator Workbench preview", () => {
         copy: { title: { text: "生成后的精选分类", evidenceRefs: [] }, items: [] },
       }, {
         moduleId: "start-here",
-        copy: { title: { text: "生成后的场景模块", evidenceRefs: [] }, scenes: [] },
+        copy: {
+          title: { text: "Build Your Matcha Routine", evidenceRefs: [] },
+          scenes: [{
+            sceneId: "daily",
+            label: { text: "Daily Routine", evidenceRefs: [] },
+            title: { text: "Choose Your Daily Matcha", evidenceRefs: [] },
+            description: {
+              text: "Compare the selected matcha products for a daily routine.",
+              evidenceRefs: [],
+            },
+          }],
+        },
       }, {
         moduleId: "popular-picks",
         copy: {
@@ -547,11 +558,25 @@ describe("Topic Generator Workbench preview", () => {
       contentSpec,
     );
     expect(generatedCopyProps.hero.description).toBeUndefined();
-    expect(generatedCopyProps.standardRail?.content.description).toBeUndefined();
+    expect(generatedCopyProps.standardRail).toMatchObject({
+      title: "Build Your Matcha Routine",
+      content: {
+        title: "Choose Your Daily Matcha",
+        description: "Compare the selected matcha products for a daily routine.",
+      },
+      themes: [{
+        value: "daily",
+        label: "Daily Routine",
+        content: {
+          title: "Choose Your Daily Matcha",
+          description: "Compare the selected matcha products for a daily routine.",
+        },
+      }],
+    });
     expect(generatedCopyProps.waterfall.description).toBeUndefined();
     expect(generatedCopyProps.primaryTabs.items.map(({ label }) => label)).toEqual([
       "生成后的精选分类",
-      "生成后的场景模块",
+      "Build Your Matcha Routine",
       "生成后的热门精选",
       "生成后的精选品牌",
       "生成后的更多商品",

@@ -35,5 +35,10 @@ types are `identity`, `origin`, `meaning`, `tradition`, and `terminology`. IDs m
 every claim needs at least one known source ID. Use 1–8 opened HTTPS sources and 1–12 concise
 claims. The runtime validates identity, source-type boundaries, references, counts, and digests.
 
+For Brand topics, use `meaning` for an explicitly supported brand position, philosophy, or product
+concept. Use `terminology` for named expressions and stable assortment-navigation vocabulary. When
+both exist, order the distinctive brand meaning before generic shopping-navigation claims; claim
+order is an intentional downstream content signal.
+
 `context-only` means the claim can orient a newcomer. It does not authorize product ingredient,
 benefit, efficacy, popularity, inventory, price, discount, rating, or customer-outcome language.

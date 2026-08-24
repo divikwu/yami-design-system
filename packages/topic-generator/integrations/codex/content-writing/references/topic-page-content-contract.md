@@ -14,6 +14,24 @@ ThemeIntent + BackgroundEvidence + AudienceContext + ready ProductSelectionResul
   -> approved | one bounded rewrite -> independent Content Review
 ```
 
+For an automatic first content pass that includes Hero or Start Here, the Host uses this bounded
+variant before ContentSpec compilation:
+
+```text
+TopicPageContentContext + candidateGeneration(count=5, targets=[hero,start-here])
+  -> one CandidateSetProposal (shared non-target tasks + five target-module packages)
+  -> deterministic validation of every complete candidate
+  -> independent module-package selection
+  -> one TopicPageContentProposal
+  -> TopicPageContentSpec
+```
+
+Candidate generation does not create five pages or change PagePlan. One Agent response contains
+five alternative packages only for the declared target modules. Non-target tasks are generated
+once and preserved. The selector may choose Hero and Start Here from different candidates and may
+replace a complete Start Here scene with the same `sceneId` from another candidate. It may not
+splice fields inside Hero, a scene, or any other module package.
+
 The context contains only visible PagePlan content tasks, the assigned products needed by each
 task, PagePlan scenes, eligible ThemeIntent and BackgroundEvidence IDs, selected categories, the
 novice audience contract, a digest-bound CopyBrief, and the applicable copy policy. Current v3
@@ -26,11 +44,24 @@ Some tasks also contain localized `templateCopy`. Those values are stable module
 the Topic template. The Content Agent must copy them verbatim into the matching slots; it generates
 only the remaining task copy.
 
+When an automatic Host receives an invalid first proposal, the same frozen context adds
+`proposalRevision: topic-page-content-proposal-revision/v1`. It contains that proposal and the
+exact deterministic validation issues. The Content Agent gets one final proposal attempt and must
+replace only invalid values with IDs and copy allowed by the returned context. A second invalid
+proposal remains blocked. In candidate-generation mode the previous proposal and replacement are
+both complete candidate-set proposals, and all five candidates are validated again before
+selection.
+
 On the automatic Host's second and final content attempt, the same context adds
 `revision: topic-page-content-revision/v1`. It contains the previous digest-valid ContentSpec and
 the exact blocking review issues. The Content Agent must return a complete replacement proposal,
 but should change only the cited copy fields and preserve unaffected copy. Product selection,
 PagePlan, BackgroundEvidence, CopyBrief, language, and all input digests remain frozen.
+
+When `revision.localizationReference` is present, it contains the already-reviewed primary-locale
+ContentSpec. Matching module IDs and scene IDs must preserve the same shopper need, proposition,
+and decision in natural target-locale writing. This is semantic alignment rather than literal
+translation.
 
 The context also carries a machine-readable `claimPolicy`. It states that every claim must be
 explicit in the cited artifact, evidence references authorize scope only, and planning goals do
@@ -83,6 +114,9 @@ in the description, but may enter a natural, useful headline. Use the descriptio
 context, use value, and supported shopping range without simple repetition; prefer one sentence and
 allow two when clarity needs them. A fourth tag is allowed when it adds a distinct supported
 direction. Sensory, quality, efficacy, outcome, origin, and cultural claims remain evidence-bound.
+Hero tags are browsing directions or category labels, not an inferred routine order. Do not use
+first, next, then, last, “先”, “再”, “最后”, or “补充” to imply a sequence unless the cited evidence
+explicitly establishes it.
 
 Structural headings stay generic by default. `shortcuts`, `popular-picks`, and `brand-spotlight`
 titles remain template-owned. Only `explore-more.title`, which appears near the end of the page,
@@ -96,28 +130,83 @@ product's origin, performance, or positioning.
 
 The active policy returns locale-specific Hero guidance in the Hero task's `copyRules`:
 
-| Locale | Slot | Preferred length | Hard `maxCharacters` |
+| Locale | Slot | Preferred length | Recommended `maxCharacters` ceiling |
 | --- | --- | --- | --- |
 | `zh` | title | 8–18 characters | 24 |
 | `zh` | description | 28–50 characters | 80 |
 | `en` | title | 4–8 words and preferably no more than 48 characters | 60 |
 | `en` | description | 14–24 words and preferably no more than 140 characters | 180 |
 
-`preferredLength` guides concise generation and review but is not a deterministic rejection by
-itself. `maxCharacters` is the hard boundary and counts Unicode characters, not encoded bytes.
-When Chinese copy includes an immutable Latin brand name, judge the preferred range by rendered
-footprint as well as raw count, while still obeying the hard maximum. The generated Explore More
-title targets 4–12 Chinese characters with a hard maximum of 20, or 2–5 English words and
-preferably no more than 40 characters with a hard maximum of 48. Other module titles remain at 64;
-non-Hero descriptions at 180; Hero tags, shortcut labels, and scene labels at 32; scene titles at
-72. The runtime returns these rules with the task and binds them into the CopyBrief so Agents do
-not need a private copy of this table.
+`preferredLength` and `maxCharacters` guide concise generation and review but are not deterministic
+rejection rules. `maxCharacters` is a recommended layout ceiling and counts Unicode characters,
+not encoded bytes. When Chinese copy includes an immutable Latin brand name, judge the preferred
+range by rendered footprint as well as raw count. The generated Explore More title targets 4–12
+Chinese characters with a recommended ceiling of 20, or 2–5 English words and preferably no more
+than 40 characters with a recommended ceiling of 48.
+
+The active policy also returns card-fit Start Here scene guidance:
+
+| Locale | Slot | Preferred length | Recommended `maxCharacters` ceiling |
+| --- | --- | --- | --- |
+| `zh` | scene title | 4–10 characters | 12 |
+| `zh` | scene description | 14–28 characters | 40 |
+| `en` | scene title | 3–4 words and preferably no more than 26 characters | 30 |
+| `en` | scene description | 8–12 words and preferably no more than 72 characters | 84 |
+
+Use the scene title for one compact decision phrase and the description for one short sentence
+that adds the key comparison or next step. Do not enumerate every category already visible in the
+product row merely because the recommended ceiling has room. Other module titles remain at 64;
+other generic descriptions at 180; Hero tags, shortcut labels, and scene labels at 32. The runtime
+returns these rules with the task and binds them into the CopyBrief so Agents do not need a private
+copy of this table.
 
 These slots map to the maintained Topic Landing Page component props. Product titles and brand
 names are catalog identities, not generated copy. Hero and scene image alt text belongs to the
 independent Visual Agent contract rather than this proposal.
 
 ## Proposal shape
+
+When `context.candidateGeneration` is present, return this outer shape instead of the single
+proposal shown below. The abbreviated `tasks` arrays must contain complete task proposals:
+
+```json
+{
+  "schemaVersion": "topic-page-content-candidate-set-proposal/v1",
+  "keyword": "Matcha",
+  "site": "us",
+  "language": "zh",
+  "topicPagePlanDigest": "sha256:...",
+  "themeIntentDigest": "sha256:...",
+  "productSelectionDigest": "sha256:...",
+  "targetModuleIds": ["hero", "start-here"],
+  "sharedTasks": [
+    { "taskId": "content-shortcuts", "moduleId": "shortcuts", "component": "ShortcutRail", "copy": {} }
+  ],
+  "candidates": [
+    {
+      "id": "candidate-1",
+      "directionId": "candidate-1",
+      "tasks": [
+        { "taskId": "content-hero", "moduleId": "hero", "component": "ThemeHero", "copy": {} },
+        { "taskId": "content-start-here", "moduleId": "start-here", "component": "ThemeProductList", "copy": {} }
+      ]
+    }
+  ]
+}
+```
+
+Return exactly the five requested candidate IDs and directions in order. Each candidate contains
+every target module exactly once; `sharedTasks` contains every non-target task exactly once. The
+Host rejects missing, extra, misordered, digest-drifted, mixed-language, or evidence-invalid
+packages before the selector sees them. Exact duplicate packages remain usable but receive an
+advisory warning and weaker selection preference.
+
+Every returned direction includes a machine-readable `focus` and a plain-language `objective`.
+Execute both. Brand directions intentionally cover five different frames: brand position,
+signature concept, routine role, need-led choice, and editorial discovery. Do not turn those into
+five synonymous versions of category browsing. Hero copy must remain customer-facing rather than
+describing page entry points or information architecture, and it must not repeat the complete
+ShortcutRail or Start Here inventory.
 
 ```json
 {
@@ -257,8 +346,10 @@ The automatic Host may spend exactly one additional Content Agent attempt when t
 review returns `content-quality` / `revision-required`. It passes the previous ContentSpec and
 structured review issues through `context.revision`, then reviews the replacement once more. It
 does not rerun ThemeIntent, BackgroundEvidence, product selection, PageMerchandising, or visual
-generation. Agent transport failures, invalid review output, binding drift, or a second failed
-review remain blocked and are reported with their owning stage.
+generation. A failed optional rewrite, invalid semantic review output, Agent review transport
+failure, or a second failed review is downgraded to advisory warnings and the latest structurally
+valid ContentSpec continues. Digest or immutable binding drift remains blocked because the Host can
+no longer prove which upstream artifacts the content belongs to.
 
 ## Ready output
 
