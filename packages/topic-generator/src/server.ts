@@ -624,6 +624,7 @@ async function handleTopicGeneratorCapability(
       audienceContext,
       backgroundEvidence,
       agent: options.topicPageAgent,
+      selectorAgent: options.topicPageAgent,
     });
     if (content.run.status !== "ready") {
       return errorResponse(
@@ -1190,6 +1191,7 @@ export async function handleTopicGeneratorPost(
             agents: {
               merchandising: options.topicPageAgent,
               content: options.topicPageAgent,
+              contentSelector: options.topicPageAgent,
               contentReview: options.topicPageAgent,
               visual: options.topicPageAgent,
               review: options.topicPageAgent,

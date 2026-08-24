@@ -4,6 +4,7 @@ import type { ProductSelectionResult } from "../product-selection/contracts.js";
 import type { PageMerchandisingAgent } from "../page-merchandising/workflow.js";
 import type { TopicPagePlanV2 } from "../page-merchandising/contracts.js";
 import type { TopicContentAgent } from "../page-content/workflow.js";
+import type { TopicPageContentCandidateSelectorAgent } from "../page-content/candidates.js";
 import type {
   TopicAudienceContext,
   TopicBackgroundEvidenceBundle,
@@ -75,6 +76,7 @@ export interface TopicPageAutomationWorkflowOptions {
   agents: {
     merchandising: PageMerchandisingAgent;
     content: TopicContentAgent;
+    contentSelector?: TopicPageContentCandidateSelectorAgent;
     contentReview: TopicPageContentReviewAgent;
     visual: TopicVisualAgent;
     review: TopicPageReviewAgent;

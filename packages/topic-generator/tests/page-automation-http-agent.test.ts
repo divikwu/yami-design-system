@@ -36,6 +36,11 @@ const runs = {
     status: "needs-content-review-proposal",
     context: { contentSpecDigest: "sha256:content" },
   },
+  candidateSelection: {
+    schemaVersion: "topic-page-content-candidate-selection-run/v1",
+    status: "needs-candidate-selection-proposal",
+    context: { candidateSet: { digest: "sha256:candidates" } },
+  },
   visual: {
     schemaVersion: "topic-page-visual-run/v1",
     status: "needs-visual-proposal",
@@ -95,6 +100,8 @@ describe("Topic Page Agent HTTP contract", () => {
       .resolves.toEqual({ stage: "module-merchandising" });
     await expect(agent.proposePageContent(runs.content as never))
       .resolves.toEqual({ stage: "content-writing" });
+    await expect(agent.selectPageContentCandidates(runs.candidateSelection as never))
+      .resolves.toEqual({ stage: "content-review" });
     await expect(agent.reviewPageContent(runs.contentReview as never))
       .resolves.toEqual({ stage: "content-review" });
     await expect(agent.generatePageVisuals(runs.visual as never)).resolves.toEqual({
@@ -111,8 +118,9 @@ describe("Topic Page Agent HTTP contract", () => {
       .resolves.toEqual({ stage: "experience-review" });
 
     expect(agent.reviewerAgentId).toBe("topic-content-review");
+    expect(agent.selectorAgentId).toBe("topic-content-review");
 
-    expect(fetchMock).toHaveBeenCalledTimes(8);
+    expect(fetchMock).toHaveBeenCalledTimes(9);
     const requests = fetchMock.mock.calls.map(([, init]) => ({
       headers: init?.headers,
       body: JSON.parse(String(init?.body)),
@@ -124,6 +132,7 @@ describe("Topic Page Agent HTTP contract", () => {
       "module-merchandising",
       "content-writing",
       "content-review",
+      "content-review",
       "visual-generation",
       "experience-review",
     ]);
@@ -133,6 +142,7 @@ describe("Topic Page Agent HTTP contract", () => {
       "topic-page-orchestrator",
       "topic-strategy",
       "topic-content",
+      "topic-content-review",
       "topic-content-review",
       "topic-visual",
       "topic-review",

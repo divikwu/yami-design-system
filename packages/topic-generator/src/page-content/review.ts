@@ -25,7 +25,6 @@ import {
   eligibleThemeIntentEvidenceIds,
   pageCopyProperNouns,
   pageCopyUsesRequestedLanguage,
-  topicPageCopyMaxCharacters,
   topicPageTemplateCopy,
   usesStrictPageCopyPolicy,
 } from "./config.js";
@@ -211,15 +210,6 @@ function reviewCopySegment(
     issues.push(
       `Copy field ${path} must use ${scope.language} copy except immutable proper nouns.`,
     );
-  }
-  const maxCharacters = topicPageCopyMaxCharacters(
-    moduleId,
-    slot,
-    scope.language,
-  );
-  if (text && scope.strictPolicy && maxCharacters !== undefined &&
-      [...text].length > maxCharacters) {
-    issues.push(`Copy field ${path} exceeds ${maxCharacters} characters.`);
   }
   const rawEvidenceRefs = Array.isArray(segment?.evidenceRefs)
     ? segment.evidenceRefs
@@ -441,13 +431,16 @@ function reviewTaskCopy(
   const rawCopy = objectValue(value) ?? {};
   if (!objectValue(value)) issues.push(`Task ${module.contentTaskId} copy must be an object.`);
   const assignedProductIds = new Set(module.assignments.map(({ productId }) => productId));
+  const assignedCategoryIds = selection.products
+    .filter(({ id }) => assignedProductIds.has(id))
+    .flatMap(({ categoryL3Id }) => categoryL3Id === undefined ? [] : [String(categoryL3Id)]);
+  const groupedCategoryIds = eligibleGroups(module, selection)
+    .flatMap(({ sourceCategoryIds }) => sourceCategoryIds?.map(String) ?? []);
   const scope: EvidenceScope = {
     intentEvidenceIds: new Set(intent.evidenceRefs.map(({ id }) => id)),
     eligibleIntentEvidenceIds: new Set(eligibleThemeIntentEvidenceIds(intent)),
     categoryIds: new Set(selection.selectedCategories.map(({ id }) => id)),
-    eligibleCategoryIds: new Set(selection.products
-      .filter(({ id }) => assignedProductIds.has(id))
-      .flatMap(({ categoryL3Id }) => categoryL3Id === undefined ? [] : [String(categoryL3Id)])),
+    eligibleCategoryIds: new Set([...assignedCategoryIds, ...groupedCategoryIds]),
     productIds: new Set(module.assignments.map(({ productId }) => productId)),
     sceneIds: new Set(module.scenes.map(({ id }) => id)),
     backgroundClaimIds: new Set(backgroundEvidence?.claims.map(({ id }) => id) ?? []),

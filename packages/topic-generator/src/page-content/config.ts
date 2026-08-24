@@ -2,7 +2,6 @@ import type { ContentLanguage, ThemeIntent, TopicModuleId } from "../types.js";
 import type { ProductSelectionResult } from "../product-selection/contracts.js";
 import type {
   TopicPageContentCopyRule,
-  TopicPageContentCopySlot,
   TopicPageContentTemplateCopy,
 } from "./contracts.js";
 
@@ -86,6 +85,47 @@ const HERO_COPY_RULES: Readonly<
   ],
 };
 
+const START_HERE_COPY_RULES: Readonly<
+  Record<ContentLanguage, readonly TopicPageContentCopyRule[]>
+> = {
+  zh: [
+    { slot: "title", maxCharacters: 64 },
+    { slot: "scenes[].label", maxCharacters: 32 },
+    {
+      slot: "scenes[].title",
+      maxCharacters: 12,
+      preferredLength: { minCharacters: 4, maxCharacters: 10 },
+    },
+    {
+      slot: "scenes[].description",
+      maxCharacters: 40,
+      preferredLength: { minCharacters: 14, maxCharacters: 28 },
+    },
+  ],
+  en: [
+    { slot: "title", maxCharacters: 64 },
+    { slot: "scenes[].label", maxCharacters: 32 },
+    {
+      slot: "scenes[].title",
+      maxCharacters: 30,
+      preferredLength: {
+        minWords: 3,
+        maxWords: 4,
+        maxCharacters: 26,
+      },
+    },
+    {
+      slot: "scenes[].description",
+      maxCharacters: 84,
+      preferredLength: {
+        minWords: 8,
+        maxWords: 12,
+        maxCharacters: 72,
+      },
+    },
+  ],
+};
+
 const EXPLORE_COPY_RULES: Readonly<
   Record<ContentLanguage, readonly TopicPageContentCopyRule[]>
 > = {
@@ -143,6 +183,7 @@ export function topicPageCopyRules(
   language?: ContentLanguage,
 ) {
   if (language && moduleId === "hero") return HERO_COPY_RULES[language];
+  if (language && moduleId === "start-here") return START_HERE_COPY_RULES[language];
   if (language && moduleId === "explore-more") return EXPLORE_COPY_RULES[language];
   return COPY_RULES[moduleId];
 }
@@ -153,15 +194,6 @@ export function topicPageTemplateCopy(
 ) {
   const copy = TEMPLATE_COPY[language][moduleId];
   return copy ? { ...copy } : undefined;
-}
-
-export function topicPageCopyMaxCharacters(
-  moduleId: TopicModuleId,
-  slot: TopicPageContentCopySlot,
-  language?: ContentLanguage,
-) {
-  return topicPageCopyRules(moduleId, language)
-    .find((rule) => rule.slot === slot)?.maxCharacters;
 }
 
 export function usesStrictPageCopyPolicy(templateRef: string) {

@@ -58,20 +58,74 @@ Expect `pageContent.status` to be `needs-content-proposal`. Read the complete re
 then read [the content proposal contract](references/topic-page-content-contract.md). Process only
 the returned tasks and `copySlots`, and obey the returned `claimPolicy`. For the newcomer flow,
 require `copyPolicyRef: topic-page-copy/novice-guided@3`; treat every returned
-`copyRules[].preferredLength` as a concise writing target and every `maxCharacters` as a hard
-limit. Going outside a preferred range is not invalid by itself; exceeding the hard limit is. Cite
+`copyRules[].preferredLength` as a concise writing target and every `maxCharacters` as a
+recommended layout ceiling. Both are advisory: copy outside either target remains valid and must
+not be blocked or truncated by length alone. Cite
 only IDs listed by `eligibleThemeIntentEvidenceIds` and
 `eligibleBackgroundEvidenceClaimIds`. Older replay contexts may still use
 `topic-page-copy/novice-guided@2` or `topic-page-copy/evidence-bound@1`.
 
+When `context.candidateGeneration` is present, use candidate-generation mode instead of returning
+a single `topic-page-content-proposal/v1`. Return one complete
+`topic-page-content-candidate-set-proposal/v1` for the requested language:
+
+- Copy every non-target task exactly once into `sharedTasks` in PagePlan task order.
+- Copy `candidateGeneration.targetModuleIds` exactly into `targetModuleIds`.
+- Return exactly five `candidates`, in the exact order of `candidateGeneration.directions`. Each
+  candidate must copy its requested `id` into both `id` and `directionId`, and contain one complete
+  task package for every target module in target-module order. Do not include shared tasks inside a
+  candidate.
+- Make each Hero plus Start Here package a genuinely different execution of its supplied `focus`;
+  varying punctuation or synonyms is not a distinct candidate. Keep every package within the same
+  frozen PagePlan, CopyBrief, language, evidence scope, copy rules, and immutable template values.
+- Read both `focus` and `objective` for every direction. For a Brand brief, the five requested
+  frames deliberately separate brand position, signature concept, routine role, need-led choice,
+  and editorial discovery. Do not collapse them back into five versions of category browsing,
+  routine navigation, or “find your entry point.” When eligible evidence contains a supported
+  brand-defined idea or meaning, use it in the position or signature-concept package instead of
+  defaulting to identity plus assortment navigation.
+- Keep Hero copy customer-facing. Interface architecture is not a proposition: do not use the
+  headline or tags to explain a “browse entry,” “start by category,” “start by need,” “view
+  formats,” “浏览入口,” “从类别开始,” “从需求开始,” or “查看代表形态.” General verbs such as find,
+  choose, and discover remain valid when their object is a supported brand idea, experience, use,
+  or decision rather than the page itself.
+- Within each Start Here package, make scene titles compact decision phrases and descriptions one
+  short sentence. Do not consume the recommended ceiling by enumerating every category already
+  visible in the product row; aim for the returned scene `preferredLength` before submission.
+- Treat each candidate as if it will be compiled independently. Every required copy slot and
+  evidence reference must therefore be complete and valid; never leave selection placeholders.
+
+The Host deterministically validates all five packages, then sends the accepted set to the
+independent Content Review Agent. That Agent selects one base package for each target module and
+may choose complete Start Here scenes from other candidates by matching `sceneId`. The Host
+assembles those selections with `sharedTasks` and exposes only one final ContentSpec; do not choose
+or rank your own candidates in the response. Exact duplicate or semantically convergent candidates
+produce advisory warnings and weaker selection preference, not generation failure.
+
 ## Compose customer-facing copy
+
+When `context.proposalRevision` is present, the first proposal failed deterministic validation and
+this is the automatic Host's second and final proposal attempt. Start from
+`proposalRevision.previousProposal`, address every item in `proposalRevision.issues`, and return one
+complete replacement proposal. Preserve every valid task, field, binding, and evidence reference;
+replace only the invalid values with IDs and copy allowed by the returned context. Never remove or
+invent evidence merely to silence validation. If `context.candidateGeneration` is also present,
+the replacement must remain one complete five-candidate set proposal—not a single content proposal.
 
 When `context.revision` is present, this is the automatic Host's second and final Content Agent
 attempt. Start from `revision.previousContentSpec`, address every error in
 `revision.review.issues`, and return one complete replacement proposal. Change only the cited copy
 fields unless another field must change to keep the module coherent; preserve unaffected copy,
 task order, evidence references, products, scenes, language, and every digest. Do not reinterpret
-the theme or broaden the page plan.
+the theme or broaden the page plan. Before returning, compare every field named by an error with
+its previous value. If an error requests a wording change and that field is unchanged, the revision
+is not complete; rewrite it before submission.
+
+When `revision.localizationReference` is present, use the reference ContentSpec as the semantic
+anchor for the other locale. Match module IDs and scene IDs, preserving the same shopper need,
+brand proposition, and decision while writing natural target-locale copy. Do not translate
+literally, but do not replace a specific concern such as blemish care or hydration and brightening
+with a broader or different scenario.
 
 Before writing, use the returned digest-bound `copyBrief`:
 
@@ -120,14 +174,20 @@ Before writing, use the returned digest-bound `copyBrief`:
     Do not force the keyword or a particular grammar when the page context makes the topic clear.
     Definitions, history, and shopping breadth usually work better in the description, but may
     appear in the headline when they form a natural, useful proposition rather than a taxonomy
-    label. Judge the result, not the construction.
+    label. Judge the result, not the construction. Never turn the Hero into instructions for using
+    the page or name the page's information architecture. A Brand Hero should answer what is worth
+    understanding about this brand before it explains where to browse.
 11. Use the Hero description to add useful identity, context, use value, and supported shopping
     range that the headline leaves unsaid. Prefer one sentence and allow two when clarity requires
     it; avoid simple repetition. Prefer 2–3 short tags and use a fourth when it adds a genuinely
-    distinct evidence-supported direction. Use the Hero task's locale-specific `copyRules` to aim
-    for its preferred title and description range before returning. For Chinese copy containing an
-    immutable Latin brand name, judge the preferred range by rendered footprint as well as raw
-    count; the Unicode `maxCharacters` value remains the hard boundary.
+    distinct evidence-supported direction. Keep Hero tags as browsing directions or category
+    labels; do not use first, next, then, last, “先”, “再”, “最后”, or “补充” to imply a care order
+    unless the cited evidence explicitly establishes that order. Use the Hero task's locale-specific
+    `copyRules` to aim for its preferred title and description range before returning. For Chinese
+    copy containing an immutable Latin brand name, judge the preferred range by rendered footprint
+    as well as raw count; the Unicode `maxCharacters` value remains advisory. Do not repeat the
+    complete ShortcutRail or Start Here taxonomy in the Hero description; use at most the few range
+    examples needed to connect the proposition to the visible assortment.
 
 Before returning, run a decision-usefulness check:
 
@@ -137,9 +197,14 @@ Before returning, run a decision-usefulness check:
   evidence-supported position, experience, occasion, identity, or shopping frame. Do not rewrite a
   useful title merely because it uses a general verb, a colon, a question, or omits the literal
   keyword when context is unambiguous.
+- Ask whether the Hero explains why the topic or brand matters to the shopper, or merely explains
+  how this page is organized. Rewrite page-navigation instructions and any Hero that restates the
+  ShortcutRail's category list instead of adding a distinct proposition.
 - For `start-here`, make the module title describe the whole topic journey, routine, or entry path
   instead of one scenario. Make every scene answer a specific shopper situation, comparison
-  sequence, or choice. “View the products in this scene” is not a scene proposition.
+  sequence, or choice. Keep each scene title compact and let one short description sentence add
+  only the key comparison or next step. “View the products in this scene” is not a scene
+  proposition, and a list of every visible category is not a concise substitute for one.
 - Treat `shortcuts`, `popular-picks`, and `brand-spotlight` titles, plus the `explore-more`
   description, as template-owned copy. Their assigned products and group identities carry the
   module-specific merchandising logic; do not rewrite those stable structures into analysis prose.
@@ -155,10 +220,12 @@ Before returning, run a decision-usefulness check:
 Planning goals guide tone and structure but never authorize ingredient, benefit, efficacy,
 popularity, inventory, discount, rating, or customer-outcome claims.
 
-## Create one proposal
+## Create the requested proposal
 
-Create exactly one `topic-page-content-proposal/v1` bound to the returned keyword, site, language,
-`topicPagePlanDigest`, `themeIntentDigest`, and `productSelectionDigest`.
+Without `context.candidateGeneration`, create exactly one `topic-page-content-proposal/v1`. With
+candidate-generation mode, create exactly one `topic-page-content-candidate-set-proposal/v1` using
+the shared-task and five-package rules above. Bind either response to the returned keyword, site,
+language, `topicPagePlanDigest`, `themeIntentDigest`, and `productSelectionDigest`.
 
 - Preserve task order and repeat each `taskId`, `moduleId`, and `component` exactly.
 - For `shortcuts`, preserve assignment order and copy each exact `assignments[].slotId` into the
@@ -182,8 +249,8 @@ Create exactly one `topic-page-content-proposal/v1` bound to the returned keywor
   analysis. Keep the dynamic Explore More title to one light topic anchor at most.
 - Keep every segment in the requested language except immutable keyword, brand, product, and
   category names. Aim for any matching `copyRules[].preferredLength`, but do not pad, truncate, or
-  distort natural copy merely to enter that range. Keep its Unicode character count at or below
-  `maxCharacters`.
+  distort natural copy merely to enter that range. Treat `maxCharacters` as a recommended ceiling,
+  never as a validity gate.
 - Keep review copy absent when verified review records are unavailable. Do not paraphrase or invent
   reviews.
 - Exclude image prompts, art direction, alt text, and asset decisions. Hand the ready ContentSpec
@@ -207,9 +274,12 @@ and follow `rollbackStage`: revise only the content proposal for `content-writin
 PageMerchandising for `module-merchandising`. When a `topic-page-content-attempt/v1` is available,
 preserve it with the rejected proposal; a resume must reuse its PagePlan, ThemeIntent,
 ProductSelection, and language bindings. Caller-managed resume supplies its revised proposal and
-does not invoke the Agent. Automatic Host mode may invoke one bounded second Content Agent attempt
-only for `content-quality` / `revision-required`, using `context.revision`; a second failed review,
-binding drift, invalid review, or transport failure remains blocked.
+does not invoke the Agent. Automatic Host mode may invoke one bounded issue-guided proposal repair
+using `context.proposalRevision`, or one bounded content-quality rewrite using `context.revision`.
+If that optional rewrite or semantic review remains imperfect or unavailable, the Host keeps the
+latest structurally valid ContentSpec, records advisory warnings, and continues. Digest drift and
+missing immutable structure remain invalid because no trustworthy ContentSpec can be compiled from
+them.
 
 In automatic Host mode, accept only a `topic-page-agent-request/v1` whose stage is
 `content-writing`, and return the proposal inside `topic-page-agent-response/v1` with the same

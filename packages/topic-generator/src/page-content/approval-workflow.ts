@@ -8,6 +8,7 @@ import type {
 import type {
   TopicPageContentAttemptArtifact,
   TopicPageContentFaultKind,
+  TopicPageContentLocalizationReference,
   TopicPageContentRevisionContext,
   TopicPageContentRun,
   TopicPageContentSpec,
@@ -18,6 +19,7 @@ import {
   type TopicPageContentReviewAgent,
   type TopicPageContentReviewDecision,
   type TopicPageContentReviewRun,
+  topicPageContentReviewDecisionDigest,
 } from "./content-review.js";
 import { advanceTopicPageContentRun } from "./run.js";
 import {
@@ -33,6 +35,7 @@ export interface TopicPageContentApprovalWorkflowRequest {
   language: ContentLanguage;
   audienceContext?: TopicAudienceContext;
   backgroundEvidence?: TopicBackgroundEvidenceBundle;
+  localizationReference?: TopicPageContentLocalizationReference;
   contentSpec: TopicPageContentSpec;
   contentAgent: TopicContentAgent;
   reviewAgent: TopicPageContentReviewAgent;
@@ -69,12 +72,16 @@ function revisionContext(
   copyBrief: TopicPageCopyBrief,
   backgroundEvidence: TopicBackgroundEvidenceBundle | undefined,
   review: Extract<TopicPageContentReviewRun, { status: "blocked" }>,
+  localizationReference?: TopicPageContentLocalizationReference,
 ): TopicPageContentRevisionContext {
   const decision = review.decision;
   return {
     schemaVersion: "topic-page-content-revision/v1",
     attempt: 2,
     previousContentSpec: structuredClone(contentSpec),
+    ...(localizationReference
+      ? { localizationReference: structuredClone(localizationReference) }
+      : {}),
     review: {
       source: decision ? "review-agent" : "deterministic-review",
       contentSpecDigest: contentSpec.digest,
@@ -94,6 +101,58 @@ function revisionContext(
             })),
           }),
     },
+  };
+}
+
+function advisoryApprovalDecision(
+  contentSpec: TopicPageContentSpec,
+  copyBrief: TopicPageCopyBrief,
+  backgroundEvidence: TopicBackgroundEvidenceBundle | undefined,
+  reviewAgent: TopicPageContentReviewAgent,
+  review: Extract<TopicPageContentReviewRun, { status: "blocked" }>,
+  additionalWarnings: readonly string[] = [],
+): TopicPageContentReviewDecision & { verdict: "approved" } {
+  const reviewIssues = review.decision?.issues ?? review.issues.map((issue, index) => ({
+    code: `content-review-advisory-${index + 1}`,
+    severity: "warning" as const,
+    message: issue,
+  }));
+  const issues = [
+    ...reviewIssues.map((issue) => ({ ...issue, severity: "warning" as const })),
+    ...additionalWarnings.map((warning, index) => ({
+      code: `content-rewrite-advisory-${index + 1}`,
+      severity: "warning" as const,
+      message: warning,
+    })),
+  ].slice(0, 20).map((issue) => ({
+    ...issue,
+    message: issue.message.slice(0, 300),
+  }));
+  const decision = {
+    schemaVersion: "topic-page-content-review/v1" as const,
+    contentSpecDigest: contentSpec.digest,
+    copyBriefDigest: copyBrief.digest,
+    backgroundEvidenceDigest: backgroundEvidence?.digest ?? null,
+    verdict: "approved" as const,
+    issues,
+    reviewerAgentId: review.decision?.reviewerAgentId ??
+      reviewAgent.reviewerAgentId ?? reviewAgent.id,
+  };
+  return {
+    ...decision,
+    digest: topicPageContentReviewDecisionDigest(decision),
+  };
+}
+
+function advisoryReviewFailure(
+  issues: string[],
+): Extract<TopicPageContentReviewRun, { status: "blocked" }> {
+  return {
+    schemaVersion: "topic-page-content-review-run/v1",
+    status: "blocked",
+    faultKind: "review-invalid",
+    rollbackStage: "content-writing",
+    issues,
   };
 }
 
@@ -131,6 +190,7 @@ export async function runTopicPageContentApprovalWorkflow(
       contentSpec,
       copyBrief,
       backgroundEvidence: request.backgroundEvidence,
+      localizationReference: request.localizationReference,
       agent: request.reviewAgent,
     });
     if (reviewed.run.status === "ready") {
@@ -144,31 +204,47 @@ export async function runTopicPageContentApprovalWorkflow(
     }
     if (reviewed.run.status === "needs-content-review-proposal") {
       return {
+        status: "ready",
+        contentSpec,
+        copyBrief,
+        contentReview: advisoryApprovalDecision(
+          contentSpec,
+          copyBrief,
+          request.backgroundEvidence,
+          request.reviewAgent,
+          advisoryReviewFailure(["Content Review Agent returned no proposal."]),
+        ),
+        ...(revisionAttempt ? { revisionAttempt } : {}),
+      };
+    }
+    if (reviewed.run.faultKind === "structural-invalid") {
+      return {
         status: "blocked",
         stage: "content-review",
-        issues: ["Content Review Agent returned no proposal."],
+        issues: reviewed.run.issues,
         faultKind: "proposal-invalid",
         rollbackStage: "content-writing",
         contentSpec,
         copyBrief,
         contentReview: reviewed.run,
+        ...(revisionAttempt ? { contentAttempt: revisionAttempt } : {}),
       };
     }
     const canRewrite = reviewed.run.faultKind === "content-quality" &&
       attempt < (request.maxContentAttempts ?? 2);
     if (!canRewrite) {
       return {
-        status: "blocked",
-        stage: "content-review",
-        issues: reviewed.run.issues,
-        faultKind: reviewed.run.faultKind === "agent-failed"
-          ? "agent-failed"
-          : "proposal-invalid",
-        rollbackStage: "content-writing",
+        status: "ready",
         contentSpec,
         copyBrief,
-        contentReview: reviewed.run,
-        ...(revisionAttempt ? { contentAttempt: revisionAttempt } : {}),
+        contentReview: advisoryApprovalDecision(
+          contentSpec,
+          copyBrief,
+          request.backgroundEvidence,
+          request.reviewAgent,
+          reviewed.run,
+        ),
+        ...(revisionAttempt ? { revisionAttempt } : {}),
       };
     }
 
@@ -187,48 +263,43 @@ export async function runTopicPageContentApprovalWorkflow(
           copyBrief,
           request.backgroundEvidence,
           reviewed.run,
+          request.localizationReference,
         ),
       });
     } catch (error) {
-      return error instanceof TopicContentAgentWorkflowError
-        ? {
-            status: "blocked",
-            stage: "content-writing",
-            issues: [message(error)],
-            faultKind: error.faultKind,
-            rollbackStage: error.rollbackStage,
-            contentSpec,
-            copyBrief,
-            contentReview: reviewed.run,
-            contentAttempt: error.attempt,
-          }
-        : {
-            status: "blocked",
-            stage: "content-writing",
-            issues: [message(error)],
-            faultKind: "agent-failed",
-            rollbackStage: "content-writing",
-            contentSpec,
-            copyBrief,
-            contentReview: reviewed.run,
-          };
+      return {
+        status: "ready",
+        contentSpec,
+        copyBrief,
+        contentReview: advisoryApprovalDecision(
+          contentSpec,
+          copyBrief,
+          request.backgroundEvidence,
+          request.reviewAgent,
+          reviewed.run,
+          [`Best-effort content rewrite was unavailable: ${message(error)}`],
+        ),
+        ...(error instanceof TopicContentAgentWorkflowError
+          ? { revisionAttempt: error.attempt }
+          : {}),
+      };
     }
     if (revised.run.status !== "ready") {
       return {
-        status: "blocked",
-        stage: "content-writing",
-        issues: revised.run.status === "blocked"
-          ? revised.run.issues
-          : ["Content Agent did not return a revised proposal."],
-        faultKind: revised.run.status === "blocked"
-          ? revised.run.faultKind
-          : "proposal-invalid",
-        rollbackStage: "content-writing",
+        status: "ready",
         contentSpec,
         copyBrief,
-        contentReview: reviewed.run,
-        contentRun: revised.run,
-        ...(revised.artifacts ? { contentAttempt: revised.artifacts } : {}),
+        contentReview: advisoryApprovalDecision(
+          contentSpec,
+          copyBrief,
+          request.backgroundEvidence,
+          request.reviewAgent,
+          reviewed.run,
+          revised.run.status === "blocked"
+            ? revised.run.issues
+            : ["Content Agent did not return a revised proposal."],
+        ),
+        ...(revised.artifacts ? { revisionAttempt: revised.artifacts } : {}),
       };
     }
     contentSpec = revised.run.spec;
@@ -236,13 +307,16 @@ export async function runTopicPageContentApprovalWorkflow(
   }
 
   return {
-    status: "blocked",
-    stage: "content-review",
-    issues: ["Content optimization exhausted its bounded attempts."],
-    faultKind: "proposal-invalid",
-    rollbackStage: "content-writing",
+    status: "ready",
     contentSpec,
     copyBrief,
-    ...(revisionAttempt ? { contentAttempt: revisionAttempt } : {}),
+    contentReview: advisoryApprovalDecision(
+      contentSpec,
+      copyBrief,
+      request.backgroundEvidence,
+      request.reviewAgent,
+      advisoryReviewFailure(["Content optimization exhausted its bounded attempts."]),
+    ),
+    ...(revisionAttempt ? { revisionAttempt } : {}),
   };
 }

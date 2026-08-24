@@ -212,6 +212,7 @@ export async function runTopicPageAutomationWorkflow(
       audienceContext: options.audienceContext,
       backgroundEvidence: options.backgroundEvidence,
       agent: options.agents.content,
+      selectorAgent: options.agents.contentSelector,
       ...(options.contentResume
         ? {
             resume: {

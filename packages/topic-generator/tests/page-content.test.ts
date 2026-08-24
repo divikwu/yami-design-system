@@ -8,11 +8,13 @@ import {
   themeIntentDigest,
   topicAudienceContext,
   topicBackgroundEvidenceDigest,
+  topicPageContentCandidateGeneration,
   topicPagePlanDigest,
   type ProductSelectionResult,
   type ThemeIntent,
   type TopicBackgroundEvidenceBundle,
   type TopicContentAgent,
+  type TopicPageContentCandidateSelectorAgent,
   type TopicPageContentProposal,
   type TopicPagePlanV2,
 } from "../src/index.js";
@@ -359,6 +361,43 @@ function proposalFixture(
         },
       },
     ],
+  };
+}
+
+function candidateSetProposalFixture(
+  directions: readonly { id: string }[],
+  intent = themeIntentFixture(),
+  selection = selectionFixture(),
+  plan = planFixture(intent, selection),
+) {
+  const baseProposal = proposalFixture(intent, selection, plan);
+  const targetModuleIds = ["hero", "start-here"] as const;
+  return {
+    schemaVersion: "topic-page-content-candidate-set-proposal/v1" as const,
+    keyword: plan.keyword,
+    site: plan.site,
+    language: "zh" as const,
+    topicPagePlanDigest: plan.digest,
+    themeIntentDigest: plan.themeIntentDigest,
+    productSelectionDigest: plan.productSelectionDigest,
+    targetModuleIds: [...targetModuleIds],
+    sharedTasks: baseProposal.tasks.filter(({ moduleId }) =>
+      !targetModuleIds.includes(moduleId as (typeof targetModuleIds)[number])
+    ),
+    candidates: directions.map((direction, index) => {
+      const tasks = structuredClone(baseProposal.tasks.filter(({ moduleId }) =>
+        targetModuleIds.includes(moduleId as (typeof targetModuleIds)[number])
+      ));
+      const hero = tasks.find(({ moduleId }) => moduleId === "hero")!;
+      const startHere = tasks.find(({ moduleId }) => moduleId === "start-here")!;
+      hero.copy.title.text = `候选${index + 1}的抹茶主题`;
+      startHere.copy.title.text = `候选${index + 1}的抹茶搭配`;
+      return {
+        id: direction.id,
+        directionId: direction.id,
+        tasks,
+      };
+    }),
   };
 }
 
@@ -711,6 +750,97 @@ describe("TopicPageContent", () => {
     });
   });
 
+  it("gives brand pages five genuinely different creative directions", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const basePlan = planFixture(intent, selection);
+    const brandPlan = {
+      ...basePlan,
+      templateRef: "topic-landing/brand@2" as const,
+    };
+    const run = advanceTopicPageContentRun({
+      intent,
+      selection,
+      plan: { ...brandPlan, digest: topicPagePlanDigest(brandPlan) },
+      language: "zh",
+      audienceContext: topicAudienceContext("zh"),
+      backgroundEvidence: backgroundEvidenceFixture(intent),
+    });
+    if (run.status !== "needs-content-proposal") throw new Error("Expected content task.");
+
+    const generation = topicPageContentCandidateGeneration(run.context);
+
+    expect(generation?.directions.map(({ focus }) => focus)).toEqual([
+      "brand-position",
+      "signature-concept",
+      "routine-role",
+      "need-led-choice",
+      "editorial-discovery",
+    ]);
+    expect(generation?.directions.every(({ objective }) => objective.length > 20)).toBe(true);
+  });
+
+  it("anchors a brand brief in distinctive evidence instead of raw browse instructions", () => {
+    const intent = {
+      ...themeIntentFixture(),
+      shoppingGoal: "Browse and compare ANUA products available on Yami.",
+    };
+    const selection = selectionFixture();
+    const baseEvidence = backgroundEvidenceFixture(intent);
+    const claims = [
+      {
+        id: "claim:anua-identity",
+        type: "identity" as const,
+        text: "ANUA is a Korean skincare brand.",
+      },
+      {
+        id: "claim:anua-shopping-navigation",
+        type: "terminology" as const,
+        text: "ANUA organizes products by concern and category.",
+      },
+      {
+        id: "claim:anua-active-nature",
+        type: "meaning" as const,
+        text: "ANUA describes its product idea as combining active and natural ingredients.",
+      },
+    ].map((claim) => ({
+      ...claim,
+      sourceIds: ["source:matcha-wikipedia"],
+      usage: "context-only" as const,
+    }));
+    const evidence = { ...baseEvidence, claims };
+    const backgroundEvidence = {
+      ...evidence,
+      digest: topicBackgroundEvidenceDigest(evidence),
+    };
+    const basePlan = planFixture(intent, selection);
+    const brandPlan = {
+      ...basePlan,
+      templateRef: "topic-landing/brand@2" as const,
+    };
+    const run = advanceTopicPageContentRun({
+      intent,
+      selection,
+      plan: { ...brandPlan, digest: topicPagePlanDigest(brandPlan) },
+      language: "zh",
+      audienceContext: topicAudienceContext("zh"),
+      backgroundEvidence,
+    });
+    if (run.status !== "needs-content-proposal") throw new Error("Expected content task.");
+    if (run.context.copyBrief.schemaVersion !== "topic-page-copy-brief/v3") {
+      throw new Error("Expected the current CopyBrief contract.");
+    }
+
+    expect(run.context.copyBrief).toMatchObject({
+      pageProposition: expect.stringContaining("品牌特色"),
+      topicSignature: {
+        primaryClaimId: "claim:anua-active-nature",
+        supportingClaimIds: ["claim:anua-identity"],
+      },
+    });
+    expect(run.context.copyBrief.pageProposition).not.toBe(intent.shoppingGoal);
+  });
+
   it("prioritizes background signals by page type without widening their scope", () => {
     const intent = themeIntentFixture();
     const selection = selectionFixture();
@@ -752,8 +882,8 @@ describe("TopicPageContent", () => {
     };
 
     expect(signatureFor("topic-landing/brand@2")).toEqual({
-      primaryClaimId: "claim:identity",
-      supportingClaimIds: ["claim:origin"],
+      primaryClaimId: "claim:meaning",
+      supportingClaimIds: ["claim:identity"],
       usage: "preferred-topic-context-only",
     });
     expect(signatureFor("topic-landing/topic@2")).toEqual({
@@ -805,9 +935,11 @@ describe("TopicPageContent", () => {
     });
     expect(heroObjective(zh)).toContain("不要求固定动词或句式");
     expect(heroObjective(zh)).toContain("优先一句，必要时两句");
+    expect(heroObjective(zh)).toContain("不使用“先、再、最后、补充”");
     expect(heroObjective(zh)).not.toContain("说明只写一句");
     expect(heroObjective(en)).toContain("does not require a fixed verb or construction");
     expect(heroObjective(en)).toContain("prefer one sentence and allow two when needed");
+    expect(heroObjective(en)).toContain("do not use first, next, then, last, or add");
     expect(zh.digest).not.toBe(en.digest);
   });
 
@@ -874,6 +1006,63 @@ describe("TopicPageContent", () => {
           },
         },
         { slot: "tags", maxCharacters: 32 },
+      ]);
+  });
+
+  it("returns card-fit Start Here scene length guidance for Chinese and English", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const runFor = (language: "zh" | "en") => advanceTopicPageContentRun({
+      intent,
+      selection,
+      plan,
+      language,
+      audienceContext: topicAudienceContext(language),
+    });
+    const zh = runFor("zh");
+    const en = runFor("en");
+
+    if (zh.status !== "needs-content-proposal" || en.status !== "needs-content-proposal") {
+      throw new Error("Expected content tasks.");
+    }
+    expect(zh.context.tasks.find(({ moduleId }) => moduleId === "start-here")?.copyRules)
+      .toEqual([
+        { slot: "title", maxCharacters: 64 },
+        { slot: "scenes[].label", maxCharacters: 32 },
+        {
+          slot: "scenes[].title",
+          maxCharacters: 12,
+          preferredLength: { minCharacters: 4, maxCharacters: 10 },
+        },
+        {
+          slot: "scenes[].description",
+          maxCharacters: 40,
+          preferredLength: { minCharacters: 14, maxCharacters: 28 },
+        },
+      ]);
+    expect(en.context.tasks.find(({ moduleId }) => moduleId === "start-here")?.copyRules)
+      .toEqual([
+        { slot: "title", maxCharacters: 64 },
+        { slot: "scenes[].label", maxCharacters: 32 },
+        {
+          slot: "scenes[].title",
+          maxCharacters: 30,
+          preferredLength: {
+            minWords: 3,
+            maxWords: 4,
+            maxCharacters: 26,
+          },
+        },
+        {
+          slot: "scenes[].description",
+          maxCharacters: 84,
+          preferredLength: {
+            minWords: 8,
+            maxWords: 12,
+            maxCharacters: 72,
+          },
+        },
       ]);
   });
 
@@ -1209,7 +1398,7 @@ describe("TopicPageContent", () => {
     });
   });
 
-  it("rejects copy that exceeds the active template text limit", () => {
+  it("keeps active-template character limits advisory", () => {
     const intent = themeIntentFixture();
     const selection = selectionFixture();
     const plan = planFixture(intent, selection);
@@ -1224,21 +1413,16 @@ describe("TopicPageContent", () => {
       proposal,
     });
 
-    expect(run).toMatchObject({
-      status: "blocked",
-      issues: expect.arrayContaining([
-        "Copy field hero.description exceeds 80 characters.",
-      ]),
-    });
+    expect(run).toMatchObject({ status: "ready" });
   });
 
-  it("keeps preferred Chinese Hero length non-blocking below the hard limit", () => {
+  it("keeps preferred Chinese Hero length non-blocking", () => {
     const intent = themeIntentFixture();
     const selection = selectionFixture();
     const plan = planFixture(intent, selection);
     const proposal = proposalFixture(intent, selection, plan);
-    proposal.tasks[0]!.copy.title.text = "这是一条超过推荐范围但仍在硬上限内的抹茶标题";
-    proposal.tasks[0]!.copy.description!.text = "这是一段超过推荐范围但仍在硬上限以内的抹茶说明，用来证明推荐长度只负责引导精简，不会单独阻断合法且有证据支持的文案。";
+    proposal.tasks[0]!.copy.title.text = "这是一条超过建议范围但仍然自然完整的抹茶标题";
+    proposal.tasks[0]!.copy.description!.text = "这是一段超过建议范围但保持自然完整的抹茶说明，用来证明长度只负责引导精简，不会单独阻断合法且有证据支持的文案。";
 
     expect(advanceTopicPageContentRun({
       intent,
@@ -1249,7 +1433,7 @@ describe("TopicPageContent", () => {
     })).toMatchObject({ status: "ready" });
   });
 
-  it("rejects a Chinese Hero title above its locale hard limit", () => {
+  it("keeps the Chinese Hero character ceiling advisory", () => {
     const intent = themeIntentFixture();
     const selection = selectionFixture();
     const plan = planFixture(intent, selection);
@@ -1262,12 +1446,7 @@ describe("TopicPageContent", () => {
       plan,
       language: "zh",
       proposal,
-    })).toMatchObject({
-      status: "blocked",
-      issues: expect.arrayContaining([
-        "Copy field hero.title exceeds 24 characters.",
-      ]),
-    });
+    })).toMatchObject({ status: "ready" });
   });
 
   it("rejects ThemeIntent evidence that is present but not eligible for content claims", () => {
@@ -1319,6 +1498,32 @@ describe("TopicPageContent", () => {
         "Evidence reference selected-category:1002 is outside module shortcuts.",
       ]),
     });
+  });
+
+  it("accepts selected-category evidence from an active module group", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    selection.modules.push({
+      id: "shortcuts",
+      productIds: ["core-2"],
+      groups: [{
+        id: "core-categories",
+        label: "核心分类",
+        productIds: ["core-2"],
+        sourceCategoryIds: ["1000", "1001"],
+      }],
+    });
+    const plan = planFixture(intent, selection);
+    const proposal = proposalFixture(intent, selection, plan);
+    proposal.tasks[1]!.copy.title.evidenceRefs = ["selected-category:1001"];
+
+    expect(advanceTopicPageContentRun({
+      intent,
+      selection,
+      plan,
+      language: "zh",
+      proposal,
+    })).toMatchObject({ status: "ready" });
   });
 
   it("keeps legacy template proposals replayable without the active copy policy", () => {
@@ -1401,7 +1606,7 @@ describe("TopicPageContent", () => {
     });
   });
 
-  it("rejects an English Hero title above its locale hard limit", () => {
+  it("keeps the English Hero character ceiling advisory", () => {
     const intent = themeIntentFixture();
     const selection = selectionFixture();
     const plan = planFixture(intent, selection);
@@ -1418,12 +1623,30 @@ describe("TopicPageContent", () => {
       plan,
       language: "en",
       proposal,
-    })).toMatchObject({
-      status: "blocked",
-      issues: expect.arrayContaining([
-        "Copy field hero.title exceeds 60 characters.",
-      ]),
+    })).toMatchObject({ status: "ready" });
+  });
+
+  it("keeps English Start Here scene character ceilings advisory", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const proposal = proposalFixture(intent, selection, plan);
+    proposal.language = "en";
+    evidencedSegments(proposal.tasks).forEach((segment) => {
+      segment.text = `Shop ${plan.keyword}`;
     });
+    const startHere = proposal.tasks.find(({ moduleId }) => moduleId === "start-here")!;
+    startHere.copy.scenes![0]!.title.text = "Compare a Complete Daily Sequence";
+    startHere.copy.scenes![0]!.description.text =
+      "Review choices across makeup removal, cleansing, toner, moisturizer, and sunscreen to assemble your sequence.";
+
+    expect(advanceTopicPageContentRun({
+      intent,
+      selection,
+      plan,
+      language: "en",
+      proposal,
+    })).toMatchObject({ status: "ready" });
   });
 
   it("keeps the independent Content Agent behind the same deterministic review", async () => {
@@ -1459,6 +1682,413 @@ describe("TopicPageContent", () => {
       proposal,
       proposalReview: result.run.status === "ready" ? result.run.proposalReview : undefined,
     });
+  });
+
+  it("selects the best Hero and Start Here packages from five validated candidates", async () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const baseProposal = proposalFixture(intent, selection, plan);
+    const targetModuleIds = ["hero", "start-here"] as const;
+    const proposePageContent = vi.fn(async (
+      run: Parameters<TopicContentAgent["proposePageContent"]>[0],
+    ) => ({
+      schemaVersion: "topic-page-content-candidate-set-proposal/v1",
+      keyword: plan.keyword,
+      site: plan.site,
+      language: "zh",
+      topicPagePlanDigest: plan.digest,
+      themeIntentDigest: plan.themeIntentDigest,
+      productSelectionDigest: plan.productSelectionDigest,
+      targetModuleIds: [...targetModuleIds],
+      sharedTasks: baseProposal.tasks.filter(({ moduleId }) =>
+        !targetModuleIds.includes(moduleId as (typeof targetModuleIds)[number])
+      ),
+      candidates: run.context.candidateGeneration!.directions.map((direction, index) => {
+        const tasks = structuredClone(baseProposal.tasks.filter(({ moduleId }) =>
+          targetModuleIds.includes(moduleId as (typeof targetModuleIds)[number])
+        ));
+        const hero = tasks.find(({ moduleId }) => moduleId === "hero")!;
+        const startHere = tasks.find(({ moduleId }) => moduleId === "start-here")!;
+        hero.copy.title.text = `候选${index + 1}的抹茶主题`;
+        startHere.copy.title.text = `候选${index + 1}的抹茶搭配`;
+        return {
+          id: direction.id,
+          directionId: direction.id,
+          tasks,
+        };
+      }),
+    }));
+    const selectPageContentCandidates = vi.fn(async (
+      run: Parameters<TopicPageContentCandidateSelectorAgent["selectPageContentCandidates"]>[0],
+    ) => ({
+      schemaVersion: "topic-page-content-candidate-selection-proposal/v1",
+      candidateSetDigest: run.context.candidateSet.digest,
+      selections: [
+        {
+          moduleId: "hero",
+          candidateId: "candidate-2",
+          reason: "The clearest topic proposition for a newcomer.",
+        },
+        {
+          moduleId: "start-here",
+          candidateId: "candidate-4",
+          reason: "The most useful shopping sequence across all scenes.",
+        },
+      ],
+    }));
+    const agent: TopicContentAgent = {
+      id: "topic-content-agent",
+      proposePageContent,
+    };
+    const selectorAgent: TopicPageContentCandidateSelectorAgent = {
+      id: "topic-content-review-agent",
+      selectPageContentCandidates,
+    };
+
+    const result = await runTopicContentAgentWorkflow({
+      intent,
+      selection,
+      plan,
+      language: "zh",
+      agent,
+      selectorAgent,
+    });
+
+    expect(result.run).toMatchObject({
+      status: "ready",
+      spec: {
+        tasks: expect.arrayContaining([
+          expect.objectContaining({
+            moduleId: "hero",
+            copy: expect.objectContaining({ title: expect.objectContaining({ text: "候选2的抹茶主题" }) }),
+          }),
+          expect.objectContaining({
+            moduleId: "start-here",
+            copy: expect.objectContaining({ title: expect.objectContaining({ text: "候选4的抹茶搭配" }) }),
+          }),
+          expect.objectContaining({
+            moduleId: "popular-picks",
+            copy: expect.objectContaining({ title: expect.objectContaining({ text: "热门精选" }) }),
+          }),
+        ]),
+      },
+    });
+    expect(proposePageContent).toHaveBeenCalledOnce();
+    const generation = proposePageContent.mock.calls[0]?.[0].context.candidateGeneration;
+    expect(generation).toMatchObject({
+      candidateCount: 5,
+      targetModuleIds: ["hero", "start-here"],
+    });
+    expect(generation?.directions).toHaveLength(5);
+    expect(generation?.directions[0]).toMatchObject({ id: "candidate-1" });
+    expect(generation?.directions[4]).toMatchObject({ id: "candidate-5" });
+    expect(selectPageContentCandidates).toHaveBeenCalledOnce();
+    expect(result.artifacts).toMatchObject({
+      candidateSet: { candidates: expect.any(Array) },
+      candidateSelection: {
+        selectorAgentId: "topic-content-review-agent",
+        selections: [
+          { moduleId: "hero", candidateId: "candidate-2" },
+          { moduleId: "start-here", candidateId: "candidate-4" },
+        ],
+      },
+    });
+    expect(result.artifacts?.candidateSet?.candidates).toHaveLength(5);
+  });
+
+  it("requires brand distinctiveness and consumer value during candidate selection", async () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const basePlan = planFixture(intent, selection);
+    const planWithoutDigest = {
+      ...basePlan,
+      templateRef: "topic-landing/brand@2" as const,
+    };
+    const plan = {
+      ...planWithoutDigest,
+      digest: topicPagePlanDigest(planWithoutDigest),
+    };
+    const selectPageContentCandidates = vi.fn(async (
+      run: Parameters<TopicPageContentCandidateSelectorAgent["selectPageContentCandidates"]>[0],
+    ) => ({
+      schemaVersion: "topic-page-content-candidate-selection-proposal/v1",
+      candidateSetDigest: run.context.candidateSet.digest,
+      selections: [
+        { moduleId: "hero", candidateId: "candidate-1", reason: "Best brand proposition." },
+        { moduleId: "start-here", candidateId: "candidate-3", reason: "Best scene decisions." },
+      ],
+    }));
+
+    const result = await runTopicContentAgentWorkflow({
+      intent,
+      selection,
+      plan,
+      language: "zh",
+      agent: {
+        id: "topic-content-agent",
+        proposePageContent: async (run) => candidateSetProposalFixture(
+          run.context.candidateGeneration!.directions,
+          intent,
+          selection,
+          plan,
+        ),
+      },
+      selectorAgent: {
+        id: "topic-content-review-agent",
+        selectPageContentCandidates,
+      },
+    });
+
+    expect(result.run).toMatchObject({ status: "ready" });
+    const selectionContext = selectPageContentCandidates.mock.calls[0]?.[0].context;
+    expect(selectionContext?.criteria).toEqual(expect.arrayContaining([
+      "brand-distinctiveness",
+      "consumer-relevance",
+      "meta-navigation-avoidance",
+      "module-redundancy-avoidance",
+    ]));
+    expect(selectionContext?.selectionPolicy.advisoryCriteria).toEqual(expect.arrayContaining([
+      "brand-distinctiveness",
+      "consumer-relevance",
+      "meta-navigation-avoidance",
+      "module-redundancy-avoidance",
+      "evidence-claim-alignment",
+    ]));
+    expect(selectionContext?.selectionPolicy).toMatchObject({
+      unit: "module-package-with-optional-scene-picks",
+      qualityEnforcement: "advisory-never-block-generation",
+      sceneSelection: "optional-per-scene-with-module-fallback",
+    });
+    expect(selectionContext?.candidateSet.candidates[0]?.direction).toMatchObject({
+      focus: "brand-position",
+    });
+  });
+
+  it("uses optional per-scene picks and falls back to the selected Start Here package", async () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const proposePageContent = vi.fn(async (
+      run: Parameters<TopicContentAgent["proposePageContent"]>[0],
+    ) => {
+      const proposal = candidateSetProposalFixture(
+        run.context.candidateGeneration!.directions,
+        intent,
+        selection,
+        plan,
+      );
+      proposal.candidates.forEach((candidate, index) => {
+        const startHere = candidate.tasks.find(({ moduleId }) => moduleId === "start-here")!;
+        startHere.copy.scenes![0]!.title.text = `候选${index + 1}的场景标题`;
+      });
+      return proposal;
+    });
+    const selectPageContentCandidates = vi.fn(async (
+      run: Parameters<TopicPageContentCandidateSelectorAgent["selectPageContentCandidates"]>[0],
+    ) => ({
+      schemaVersion: "topic-page-content-candidate-selection-proposal/v1",
+      candidateSetDigest: run.context.candidateSet.digest,
+      selections: [
+        { moduleId: "hero", candidateId: "candidate-1", reason: "Best Hero." },
+        {
+          moduleId: "start-here",
+          candidateId: "candidate-3",
+          reason: "Best overall Start Here package.",
+          sceneSelections: [{
+            sceneId: "page-scene-1",
+            candidateId: "candidate-5",
+            reason: "Best scene-specific decision copy.",
+          }],
+        },
+      ],
+    }));
+
+    const result = await runTopicContentAgentWorkflow({
+      intent,
+      selection,
+      plan,
+      language: "zh",
+      agent: { id: "topic-content-agent", proposePageContent },
+      selectorAgent: { id: "topic-content-review-agent", selectPageContentCandidates },
+    });
+
+    expect(result.run).toMatchObject({
+      status: "ready",
+      spec: {
+        tasks: expect.arrayContaining([expect.objectContaining({
+          moduleId: "start-here",
+          copy: expect.objectContaining({
+            title: expect.objectContaining({ text: "候选3的抹茶搭配" }),
+            scenes: [expect.objectContaining({
+              title: expect.objectContaining({ text: "候选5的场景标题" }),
+            })],
+          }),
+        })]),
+      },
+    });
+  });
+
+  it("gives an invalid first candidate set one issue-guided repair before selection", async () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const proposePageContent = vi.fn(async (
+      run: Parameters<TopicContentAgent["proposePageContent"]>[0],
+    ) => {
+      const proposal = candidateSetProposalFixture(
+        run.context.candidateGeneration!.directions,
+        intent,
+        selection,
+        plan,
+      );
+      if (!run.context.proposalRevision) {
+        proposal.candidates[0]!.tasks[0]!.copy.title.evidenceRefs = [
+          "product:not-in-this-module",
+        ];
+      }
+      return proposal;
+    });
+    const selectPageContentCandidates = vi.fn(async (
+      run: Parameters<TopicPageContentCandidateSelectorAgent["selectPageContentCandidates"]>[0],
+    ) => ({
+      schemaVersion: "topic-page-content-candidate-selection-proposal/v1",
+      candidateSetDigest: run.context.candidateSet.digest,
+      selections: [
+        { moduleId: "hero", candidateId: "candidate-1", reason: "Best Hero package." },
+        { moduleId: "start-here", candidateId: "candidate-1", reason: "Best scene package." },
+      ],
+    }));
+
+    const result = await runTopicContentAgentWorkflow({
+      intent,
+      selection,
+      plan,
+      language: "zh",
+      agent: { id: "topic-content-agent", proposePageContent },
+      selectorAgent: {
+        id: "topic-content-review-agent",
+        selectPageContentCandidates,
+      },
+    });
+
+    expect(result.run).toMatchObject({ status: "ready" });
+    expect(proposePageContent).toHaveBeenCalledTimes(2);
+    expect(proposePageContent.mock.calls[1]?.[0].context).toMatchObject({
+      candidateGeneration: { candidateCount: 5 },
+      proposalRevision: {
+        schemaVersion: "topic-page-content-proposal-revision/v1",
+        attempt: 2,
+        issues: expect.arrayContaining([
+          "Candidate candidate-1: Evidence reference product:not-in-this-module is outside module hero.",
+        ]),
+      },
+    });
+    expect(selectPageContentCandidates).toHaveBeenCalledOnce();
+    expect(result.artifacts).toMatchObject({
+      candidateSet: { candidates: expect.any(Array) },
+      proposalRevision: { attempt: 2 },
+      candidateSelection: { selectorAgentId: "topic-content-review-agent" },
+    });
+    expect(result.artifacts?.candidateSet?.candidates).toHaveLength(5);
+  });
+
+  it("uses the first valid packages when the selector response is incomplete", async () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const proposePageContent = vi.fn(async (
+      run: Parameters<TopicContentAgent["proposePageContent"]>[0],
+    ) => candidateSetProposalFixture(
+      run.context.candidateGeneration!.directions,
+      intent,
+      selection,
+      plan,
+    ));
+    const selectPageContentCandidates = vi.fn(async (
+      run: Parameters<TopicPageContentCandidateSelectorAgent["selectPageContentCandidates"]>[0],
+    ) => ({
+      schemaVersion: "topic-page-content-candidate-selection-proposal/v1",
+      candidateSetDigest: run.context.candidateSet.digest,
+      selections: [
+        { moduleId: "hero", candidateId: "candidate-1", reason: "Only one choice returned." },
+      ],
+    }));
+
+    const result = await runTopicContentAgentWorkflow({
+      intent,
+      selection,
+      plan,
+      language: "zh",
+      agent: { id: "topic-content-agent", proposePageContent },
+      selectorAgent: {
+        id: "topic-content-review-agent",
+        selectPageContentCandidates,
+      },
+    });
+
+    expect(result.run).toMatchObject({ status: "ready" });
+    expect(result.artifacts?.candidateSelection).toMatchObject({
+      selections: [
+        { moduleId: "hero", candidateId: "candidate-1" },
+        { moduleId: "start-here", candidateId: "candidate-1" },
+      ],
+      advisoryWarnings: expect.arrayContaining([
+        "Candidate selection must choose exactly one package for every target module.",
+      ]),
+    });
+    expect(proposePageContent).toHaveBeenCalledOnce();
+    expect(selectPageContentCandidates).toHaveBeenCalledOnce();
+    expect(result.artifacts?.candidateSet?.candidates).toHaveLength(5);
+  });
+
+  it("keeps duplicate candidate packages as advisory input instead of blocking generation", async () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const proposePageContent = vi.fn(async (
+      run: Parameters<TopicContentAgent["proposePageContent"]>[0],
+    ) => {
+      const proposal = candidateSetProposalFixture(
+        run.context.candidateGeneration!.directions,
+        intent,
+        selection,
+        plan,
+      );
+      proposal.candidates[1]!.tasks = structuredClone(proposal.candidates[0]!.tasks);
+      return proposal;
+    });
+    const selectPageContentCandidates = vi.fn(async (
+      run: Parameters<TopicPageContentCandidateSelectorAgent["selectPageContentCandidates"]>[0],
+    ) => ({
+      schemaVersion: "topic-page-content-candidate-selection-proposal/v1",
+      candidateSetDigest: run.context.candidateSet.digest,
+      selections: [
+        { moduleId: "hero", candidateId: "candidate-1", reason: "Best available Hero." },
+        { moduleId: "start-here", candidateId: "candidate-1", reason: "Best available scenes." },
+      ],
+    }));
+
+    const result = await runTopicContentAgentWorkflow({
+      intent,
+      selection,
+      plan,
+      language: "zh",
+      agent: { id: "topic-content-agent", proposePageContent },
+      selectorAgent: {
+        id: "topic-content-review-agent",
+        selectPageContentCandidates,
+      },
+    });
+
+    expect(result.run).toMatchObject({ status: "ready" });
+    expect(result.artifacts?.candidateSet).toMatchObject({
+      advisoryWarnings: expect.arrayContaining([
+        "Candidate candidate-2 duplicates an earlier target-module package.",
+      ]),
+    });
+    expect(proposePageContent).toHaveBeenCalledOnce();
+    expect(selectPageContentCandidates).toHaveBeenCalledOnce();
   });
 
   it("gives a bounded rewrite the previous ContentSpec and structured review issues", async () => {
@@ -1531,7 +2161,50 @@ describe("TopicPageContent", () => {
     });
   });
 
-  it("rechecks a revised proposal against the same content task digests without another Agent call", async () => {
+  it("gives an invalid first proposal one issue-guided repair attempt", async () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const invalidProposal = proposalFixture(intent, selection, plan);
+    invalidProposal.tasks[0]!.copy.title.evidenceRefs = ["product:not-in-this-module"];
+    const repairedProposal = proposalFixture(intent, selection, plan);
+    const proposePageContent = vi.fn(async (
+      run: Parameters<TopicContentAgent["proposePageContent"]>[0],
+    ) => run.context.proposalRevision ? repairedProposal : invalidProposal);
+    const agent: TopicContentAgent = {
+      id: "topic-content-agent",
+      proposePageContent,
+    };
+
+    const result = await runTopicContentAgentWorkflow({
+      intent,
+      selection,
+      plan,
+      language: "zh",
+      agent,
+    });
+
+    expect(result.run).toMatchObject({ status: "ready" });
+    expect(proposePageContent).toHaveBeenCalledTimes(2);
+    expect(proposePageContent.mock.calls[1]?.[0].context.proposalRevision).toMatchObject({
+      schemaVersion: "topic-page-content-proposal-revision/v1",
+      attempt: 2,
+      previousProposal: invalidProposal,
+      issues: expect.arrayContaining([
+        "Evidence reference product:not-in-this-module is outside module hero.",
+      ]),
+    });
+    expect(result.artifacts).toMatchObject({
+      proposal: repairedProposal,
+      proposalRevision: {
+        schemaVersion: "topic-page-content-proposal-revision/v1",
+        attempt: 2,
+      },
+      proposalReview: { status: "accepted" },
+    });
+  });
+
+  it("keeps a second invalid Agent proposal blocked and accepts a caller-supplied correction", async () => {
     const intent = themeIntentFixture();
     const selection = selectionFixture();
     const plan = planFixture(intent, selection);
@@ -1563,6 +2236,11 @@ describe("TopicPageContent", () => {
         productSelectionDigest: productSelectionDigest(selection),
         language: "zh",
         proposal: rejectedProposal,
+        proposalRevision: {
+          schemaVersion: "topic-page-content-proposal-revision/v1",
+          attempt: 2,
+          previousProposal: rejectedProposal,
+        },
         proposalReview: { status: "rejected" },
       },
     });
@@ -1588,7 +2266,7 @@ describe("TopicPageContent", () => {
       },
       artifacts: { agentId: "topic-content-agent", proposal: revisedProposal },
     });
-    expect(proposePageContent).toHaveBeenCalledOnce();
+    expect(proposePageContent).toHaveBeenCalledTimes(2);
   });
 
   it("classifies Content Agent failures without losing the bound attempt", async () => {

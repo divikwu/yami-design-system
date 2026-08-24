@@ -4,6 +4,7 @@ const mocks = vi.hoisted(() => ({
   runTopicBackgroundEvidenceAgentWorkflow: vi.fn(),
   runTopicContentAgentWorkflow: vi.fn(),
   runTopicPageContentApprovalWorkflow: vi.fn(),
+  runPageMerchandisingAgentWorkflow: vi.fn(),
 }));
 
 vi.mock("../src/background-evidence/index.js", async (importOriginal) => ({
@@ -17,9 +18,103 @@ vi.mock("../src/page-content/index.js", async (importOriginal) => ({
   runTopicPageContentApprovalWorkflow: mocks.runTopicPageContentApprovalWorkflow,
 }));
 
+vi.mock("../src/page-merchandising/index.js", async (importOriginal) => ({
+  ...await importOriginal<typeof import("../src/page-merchandising/index.js")>(),
+  runPageMerchandisingAgentWorkflow: mocks.runPageMerchandisingAgentWorkflow,
+}));
+
 import { createTopicGeneratorManagedStageExecutor } from "../src/managed-run/workflow.js";
 
 describe("Topic Generator managed stage executor", () => {
+  it("projects reviewed Start Here scenes and assignments into both preview languages", async () => {
+    const startHereModule = {
+      id: "start-here",
+      visible: true,
+      productIds: ["product-1", "product-2"],
+      productReasons: {},
+      groups: [{
+        id: "scenario-hypothesis-1",
+        label: "基础日常护肤",
+        role: "core",
+        productIds: ["product-1", "product-2"],
+        sourceCategoryIds: ["129"],
+        shoppingGoal: "Build a daily routine.",
+        scenarioReason: "The source products cover the routine.",
+      }],
+    };
+    const plans = {
+      en: { relevance: { modules: [structuredClone(startHereModule)] } },
+      zh: { relevance: { modules: [structuredClone(startHereModule)] } },
+    };
+    const reviewedPlan = {
+      digest: "sha256:plan",
+      modules: [{
+        id: "start-here",
+        visible: true,
+        reason: "Use the reviewed daily routine.",
+        assignments: [{
+          slotId: "start-here-1",
+          productId: "product-1",
+          pool: "primary",
+          role: "core",
+          sceneId: "daily-routine",
+        }],
+        scenes: [{
+          id: "daily-routine",
+          sourceSceneId: "scenario-hypothesis-1",
+          shoppingGoal: "Build a reviewed daily routine.",
+          reason: "One product is assigned to the reviewed scene.",
+          productIds: ["product-1"],
+        }],
+      }],
+    };
+    mocks.runPageMerchandisingAgentWorkflow.mockResolvedValue({
+      run: { status: "ready", plan: reviewedPlan },
+      artifacts: {},
+    });
+    const outputs = {
+      "topic-intent": { analysis: { intent: { id: "intent" } } },
+      "product-selection": {
+        executionPlan: {
+          digest: "sha256:execution",
+          selectionStrategyRef: "relevance/intent-themes@3",
+          templateRef: "topic-landing/brand-relevance@2",
+        },
+        selection: { strategyRef: "relevance/intent-themes@3" },
+        plans,
+      },
+    } as const;
+    const execute = createTopicGeneratorManagedStageExecutor({
+      topicPageAgent: { id: "topic-page-agent" },
+      deliverableRenderer: { render: async () => "" },
+    } as never);
+
+    const result = await execute({
+      manifest: { request: { language: "zh" } },
+      state: {},
+      stageId: "module-merchandising",
+      attempt: 1,
+      readStageResult: async (stageId: keyof typeof outputs) => outputs[stageId],
+      assetStore: {},
+    } as never);
+
+    expect(result).toMatchObject({
+      status: "completed",
+      output: {
+        plans: {
+          en: { relevance: { modules: [{ groups: [{
+            id: "daily-routine",
+            productIds: ["product-1"],
+          }] }] } },
+          zh: { relevance: { modules: [{ groups: [{
+            id: "daily-routine",
+            productIds: ["product-1"],
+          }] }] } },
+        },
+      },
+    });
+  });
+
   it("collects localized background evidence for both content languages", async () => {
     mocks.runTopicBackgroundEvidenceAgentWorkflow.mockImplementation(async ({ language }) => ({
       bundle: { language, digest: `sha256:${language}-background`, issues: [] },
@@ -81,8 +176,9 @@ describe("Topic Generator managed stage executor", () => {
       "product-selection": { selection: { id: "selection" } },
       "module-merchandising": { plan: { digest: "sha256:plan" } },
     } as const;
+    const topicPageAgent = { id: "topic-page-agent" };
     const execute = createTopicGeneratorManagedStageExecutor({
-      topicPageAgent: { id: "topic-page-agent" },
+      topicPageAgent,
       deliverableRenderer: { render: async () => "" },
     } as never);
 
@@ -97,6 +193,8 @@ describe("Topic Generator managed stage executor", () => {
 
     expect(mocks.runTopicContentAgentWorkflow.mock.calls.map(([input]) => input.language))
       .toEqual(["zh", "en"]);
+    expect(mocks.runTopicContentAgentWorkflow.mock.calls.map(([input]) => input.selectorAgent))
+      .toEqual([topicPageAgent, topicPageAgent]);
     expect(result).toMatchObject({
       status: "completed",
       output: {
@@ -192,6 +290,17 @@ describe("Topic Generator managed stage executor", () => {
       readStageResult: async (stageId: keyof typeof outputs) => outputs[stageId],
       assetStore: {},
     } as never);
+
+    expect(mocks.runTopicPageContentApprovalWorkflow.mock.calls[0]?.[0])
+      .not.toHaveProperty("localizationReference");
+    expect(mocks.runTopicPageContentApprovalWorkflow.mock.calls[1]?.[0])
+      .toMatchObject({
+        language: "en",
+        localizationReference: {
+          language: "zh",
+          contentSpec: revisedContentSpec,
+        },
+      });
 
     expect(result).toMatchObject({
       status: "completed",

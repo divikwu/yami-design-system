@@ -576,7 +576,7 @@ describe("Topic Generator managed run loading", () => {
     }
   });
 
-  it("keeps a new topic editable, then exposes generated files through the loaded result", async () => {
+  it("keeps a new topic in input mode and exposes its generated files", async () => {
     const generatedRunId = "matcha-20260821003000000-generated";
     const generatedBase = v2Detail(generatedRunId, {
       status: "paused",
@@ -633,14 +633,14 @@ describe("Topic Generator managed run loading", () => {
 
     expect(createBody).toMatchObject({ request: { keyword: "ANUA", goal: "page" } });
     expect(container.querySelector<HTMLInputElement>(
-      'input[name="topic-source"][value="load"]',
+      'input[name="topic-source"][value="input"]',
     )?.checked).toBe(true);
-    const loadedKeyword = container.querySelector<HTMLInputElement>(
-      '#topic-source-load-panel input:disabled',
-    )!;
-    expect(loadedKeyword.value).toBe("matcha");
-    expect(loadedKeyword.readOnly).toBe(false);
-    expect(loadedKeyword.disabled).toBe(true);
+    expect(container.querySelector<HTMLInputElement>(
+      'input[name="topic-source"][value="load"]',
+    )?.checked).toBe(false);
+    expect(editableKeyword.value).toBe("matcha");
+    expect(editableKeyword.readOnly).toBe(false);
+    expect(editableKeyword.disabled).toBe(false);
     const generatedDownload = container.querySelector<HTMLAnchorElement>(
       `a[download="${generatedRunId}.zip"]`,
     )!;
@@ -651,6 +651,70 @@ describe("Topic Generator managed run loading", () => {
     expect(container.querySelector('section[aria-label="生成内容"]')?.textContent)
       .not.toContain("下载内容");
     expect(container.querySelector('a[download$=".html"]')).toBeNull();
+  });
+
+  it("keeps input and page preview selected while selecting products for a new topic", async () => {
+    const selectionRunId = "anua-20260823130536358-selection";
+    const pendingSelection = v2Detail(selectionRunId, {
+      status: "paused",
+      nextStage: "product-selection",
+      completedThrough: "background-evidence",
+    });
+    const blockedSelection = v2Detail(selectionRunId, {
+      status: "blocked",
+      nextStage: "product-selection",
+      completedThrough: "background-evidence",
+    });
+    let resolveAdvance!: (response: Response) => void;
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
+      const url = String(input);
+      if (url.endsWith("/runs") && init?.method === "POST") {
+        return Response.json({ manifest: { runId: selectionRunId } }, { status: 201 });
+      }
+      if (url.endsWith(`/runs/${selectionRunId}`) && init?.method === undefined) {
+        return Response.json(pendingSelection);
+      }
+      if (url.endsWith(`/runs/${selectionRunId}/advance`) && init?.method === "POST") {
+        return new Promise((resolve) => {
+          resolveAdvance = resolve;
+        });
+      }
+      throw new Error(`Unexpected ${init?.method ?? "GET"} ${url}`);
+    });
+
+    await act(async () => {
+      root.render(<TopicGenerator managedRunApiBase="/api/topic-generator" />);
+      await Promise.resolve();
+    });
+
+    const selectProducts = [...container.querySelectorAll<HTMLButtonElement>("button")]
+      .find((button) => button.textContent === "选品")!;
+    await act(async () => {
+      selectProducts.click();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(container.querySelector<HTMLInputElement>(
+      'input[name="topic-source"][value="input"]',
+    )?.checked).toBe(true);
+    expect(container.querySelector<HTMLInputElement>(
+      'input[name="topic-source"][value="load"]',
+    )?.checked).toBe(false);
+    const resultTabs = container.querySelector<HTMLElement>(
+      '[role="tablist"][aria-label="生成结果视图"]',
+    )!;
+    const pagePreview = [...resultTabs.querySelectorAll<HTMLButtonElement>("button")]
+      .find((button) => button.textContent === "页面预览")!;
+    const topicAnalysis = [...resultTabs.querySelectorAll<HTMLButtonElement>("button")]
+      .find((button) => button.textContent === "主题词分析")!;
+    expect(pagePreview.getAttribute("aria-selected")).toBe("true");
+    expect(topicAnalysis.getAttribute("aria-selected")).toBe("false");
+    expect(container.textContent).toContain("正在为“matcha”选品");
+
+    await act(async () => {
+      resolveAdvance(Response.json({ detail: blockedSelection }));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
   });
 
   it("switches a newly generated managed run to its saved English content without a fallback request", async () => {

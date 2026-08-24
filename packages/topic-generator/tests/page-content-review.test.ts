@@ -72,6 +72,36 @@ function copyBriefFixture(backgroundEvidence: TopicBackgroundEvidenceBundle): To
   return { ...brief, digest: topicPageCopyBriefDigest(brief) };
 }
 
+function brandCopyBriefFixture(
+  backgroundEvidence: TopicBackgroundEvidenceBundle,
+): TopicPageCopyBrief {
+  const base = copyBriefFixture(backgroundEvidence);
+  const { schemaVersion: _schemaVersion, digest: _digest, ...shared } = base;
+  void _schemaVersion;
+  void _digest;
+  const brief = {
+    ...shared,
+    schemaVersion: "topic-page-copy-brief/v3" as const,
+    heroStrategy: {
+      kind: "brand" as const,
+      titleFocus: "Express an evidence-supported brand position.",
+      descriptionFocus: "Connect the brand idea to available choices.",
+    },
+    topicSignature: {
+      primaryClaimId: "claim:matcha-definition",
+      supportingClaimIds: [],
+      usage: "preferred-topic-context-only" as const,
+    },
+    localizationStrategy: {
+      requestedLanguage: "zh" as const,
+      supportedLanguages: ["zh", "en"] as const,
+      generationMode: "separate-proposals" as const,
+      adaptation: "locale-native-not-literal" as const,
+    },
+  };
+  return { ...brief, digest: topicPageCopyBriefDigest(brief) };
+}
+
 function contentSpecFixture(
   backgroundEvidence: TopicBackgroundEvidenceBundle,
   copyBrief: TopicPageCopyBrief,
@@ -144,6 +174,7 @@ describe("TopicPageContentReview", () => {
       status: "needs-content-review-proposal",
       context: {
         contentSpecDigest: contentSpec.digest,
+        qualityPolicy: "advisory-optimize-never-block",
         criteria: [
           "newcomer-orientation",
           "theme-specificity",
@@ -152,12 +183,83 @@ describe("TopicPageContentReview", () => {
           "module-differentiation",
           "evidence-claim-alignment",
           "language-quality",
+          "consumer-relevance",
+          "editorial-quality",
+          "meta-navigation-avoidance",
+          "module-redundancy-avoidance",
         ],
       },
     });
   });
 
-  it("fails deterministic quality checks before invoking the Review Agent", async () => {
+  it("adds brand distinctiveness to the final review criteria", () => {
+    const backgroundEvidence = backgroundEvidenceFixture();
+    const copyBrief = brandCopyBriefFixture(backgroundEvidence);
+    const contentSpec = contentSpecFixture(backgroundEvidence, copyBrief);
+    const run = advanceTopicPageContentReviewRun({
+      contentSpec,
+      copyBrief,
+      backgroundEvidence,
+    });
+
+    expect(run).toMatchObject({
+      status: "needs-content-review-proposal",
+      context: {
+        criteria: expect.arrayContaining(["brand-distinctiveness"]),
+      },
+    });
+  });
+
+  it("exposes the reviewed primary locale as a semantic alignment reference", () => {
+    const backgroundEvidence = backgroundEvidenceFixture();
+    const copyBrief = brandCopyBriefFixture(backgroundEvidence);
+    const contentSpec = contentSpecFixture(backgroundEvidence, copyBrief);
+    const run = advanceTopicPageContentReviewRun({
+      contentSpec,
+      copyBrief,
+      backgroundEvidence,
+      localizationReference: {
+        language: "en",
+        contentSpec: structuredClone(contentSpec),
+        alignmentPolicy: "same-shopper-meaning-locale-native",
+      },
+    });
+
+    expect(run).toMatchObject({
+      status: "needs-content-review-proposal",
+      context: {
+        criteria: expect.arrayContaining(["cross-locale-semantic-alignment"]),
+        localizationReference: {
+          language: "en",
+          alignmentPolicy: "same-shopper-meaning-locale-native",
+          contentSpec: { digest: contentSpec.digest },
+        },
+      },
+    });
+  });
+
+  it("keeps invalid content bindings structural instead of treating them as copy quality", async () => {
+    const backgroundEvidence = backgroundEvidenceFixture();
+    const copyBrief = copyBriefFixture(backgroundEvidence);
+    const contentSpec = contentSpecFixture(backgroundEvidence, copyBrief);
+    contentSpec.digest = "sha256:stale";
+    const reviewPageContent = vi.fn();
+    const result = await runTopicPageContentReviewAgentWorkflow({
+      contentSpec,
+      copyBrief,
+      backgroundEvidence,
+      agent: { id: "content-review", reviewPageContent },
+    });
+
+    expect(reviewPageContent).not.toHaveBeenCalled();
+    expect(result.run).toMatchObject({
+      status: "blocked",
+      faultKind: "structural-invalid",
+      issues: ["TopicPageContentSpec digest is invalid."],
+    });
+  });
+
+  it("passes deterministic copy-quality findings to the Review Agent as advisory warnings", async () => {
     const backgroundEvidence = backgroundEvidenceFixture();
     const copyBrief = copyBriefFixture(backgroundEvidence);
     const contentSpec = contentSpecFixture(backgroundEvidence, copyBrief);
@@ -165,7 +267,16 @@ describe("TopicPageContentReview", () => {
     contentSpec.tasks[0]!.copy.description!.evidenceRefs = ["theme-intent:scenario:matcha"];
     contentSpec.tasks[1]!.copy.title.text = contentSpec.tasks[0]!.copy.title.text;
     contentSpec.digest = topicPageContentSpecDigest(contentSpec);
-    const reviewPageContent = vi.fn();
+    const reviewPageContent = vi.fn<TopicPageContentReviewAgent["reviewPageContent"]>(
+      async (run) => ({
+        schemaVersion: "topic-page-content-review-proposal/v1",
+        contentSpecDigest: run.context.contentSpecDigest,
+        copyBriefDigest: run.context.copyBriefDigest,
+        backgroundEvidenceDigest: run.context.backgroundEvidenceDigest,
+        verdict: "approved",
+        issues: [],
+      }),
+    );
     const result = await runTopicPageContentReviewAgentWorkflow({
       contentSpec,
       copyBrief,
@@ -177,14 +288,25 @@ describe("TopicPageContentReview", () => {
       },
     });
 
-    expect(reviewPageContent).not.toHaveBeenCalled();
-    expect(result.run).toMatchObject({
-      status: "blocked",
-      rollbackStage: "content-writing",
-      issues: expect.arrayContaining([
-        expect.stringContaining("Hero copy must cite at least one eligible background claim"),
-        expect.stringContaining("Visible module titles must be distinct"),
+    expect(reviewPageContent).toHaveBeenCalledOnce();
+    expect(reviewPageContent.mock.calls[0]?.[0].context.advisoryWarnings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: "hero-background-context-missing" }),
+        expect.objectContaining({ code: "duplicate-module-title" }),
       ]),
+    );
+    expect(result.run).toMatchObject({
+      status: "ready",
+      decision: {
+        verdict: "approved",
+        issues: expect.arrayContaining([
+          expect.objectContaining({
+            code: "hero-background-context-missing",
+            severity: "warning",
+          }),
+          expect.objectContaining({ code: "duplicate-module-title", severity: "warning" }),
+        ]),
+      },
     });
   });
 

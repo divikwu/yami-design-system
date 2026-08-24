@@ -15,9 +15,11 @@ to understand the resolved brand, product topic, festival, or cultural occasion.
   when the official navigation exposes relevant About, Brand Story, Collections, By Concern,
   By Routine, or comparable context pages, open the smallest useful set of those exact pages.
   Aim for two to four non-overlapping newcomer claims when they are explicitly supported: brand
-  identity or origin, the official way the assortment is organized, and brand-defined terminology.
-  Return fewer claims when the site supports fewer facts. Wikipedia may add neutral encyclopedic
-  context but cannot replace an available official source.
+  identity or origin, a brand-defined position, philosophy, or product idea, the official way the
+  assortment is organized, and useful brand terminology. Return fewer claims when the site supports
+  fewer facts. Place a supported distinctive brand idea before generic shopping-navigation claims
+  so downstream copy can use it as the proposition. Wikipedia may add neutral encyclopedic context
+  but cannot replace an available official source.
 - For a cultural activity or festival, use a named authoritative cultural institution or
   Wikipedia. Do not treat commerce blogs, marketplaces, social posts, search snippets, or product
   pages as cultural authority.
@@ -32,7 +34,9 @@ to understand the resolved brand, product topic, festival, or cultural occasion.
 Return only short `identity`, `origin`, `meaning`, `tradition`, or `terminology` claims useful for
 orientation. For a brand, an official site's stable navigation vocabulary may support a
 `terminology` claim about how the brand organizes its assortment; it does not support a product
-benefit. These claims are `context-only`: they may explain what the topic is, but never prove
+benefit. Classify an explicitly stated brand position, philosophy, or product concept as `meaning`;
+reserve `terminology` for named terms and stable navigation vocabulary. These claims are
+`context-only`: they may explain what the topic is, but never prove
 an ingredient, benefit, efficacy, popularity, inventory, discount, rating, or customer outcome.
 Do not repeat promotional superlatives or turn a brand's marketing language into a neutral fact.
 

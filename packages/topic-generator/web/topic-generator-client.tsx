@@ -3231,7 +3231,10 @@ export function TopicGenerator({
     return payload;
   }
 
-  function applyManagedDetail(detail: TopicGeneratorAnyRunDetail) {
+  function applyManagedDetail(
+    detail: TopicGeneratorAnyRunDetail,
+    options: { preserveResultView?: boolean } = {},
+  ) {
     setCurrentDetail(detail);
     setCurrentRun(detail.summary);
     setKeyword(detail.summary.keyword);
@@ -3254,7 +3257,9 @@ export function TopicGenerator({
       setContentSpec(null);
       setCapabilityContentReview(null);
       setVisualGenerationSpec(null);
-      setView(legacyPlans?.plans ? "preview" : "analysis");
+      if (!options.preserveResultView) {
+        setView(legacyPlans?.plans ? "preview" : "analysis");
+      }
       setPreviewMode("distribution");
       setActiveMode("selection");
       setError(detail.diagnostics.length > 0
@@ -3304,7 +3309,9 @@ export function TopicGenerator({
     const hasDraft = detail.state.deliverables.some(
       ({ name, status }) => name === "page-draft.html" && status === "ready",
     );
-    setView(hasDraft || page ? "preview" : nextPlans ? "analysis" : "workflow");
+    if (!options.preserveResultView) {
+      setView(hasDraft || page ? "preview" : nextPlans ? "analysis" : "workflow");
+    }
     setPreviewMode(hasDraft || page ? "page" : "distribution");
     setActiveMode(nextAutomation ? "page" : page ? "visual" : content ? "content" : "selection");
     const issues = [...detail.diagnostics, ...detail.state.issues];
@@ -3465,6 +3472,7 @@ export function TopicGenerator({
   async function advanceManaged(goal: TopicGeneratorRunGoal) {
     if (keyword.trim().length < 2) return;
     setActiveMode(goal);
+    setView("preview");
     setLoading(true);
     setError(null);
     try {
@@ -3506,8 +3514,7 @@ export function TopicGenerator({
           schemaVersion: "topic-generator-run-detail/v1";
         }>>(`${managedRunsUrl}/${encodeURIComponent(runId)}`);
       }
-      applyManagedDetail(detail);
-      setSourceMode("load");
+      applyManagedDetail(detail, { preserveResultView: true });
       setActiveMode(goal);
       const targetIndex = MANAGED_STAGE_ORDER.indexOf(targetStage);
       let advanced = false;
@@ -3528,7 +3535,7 @@ export function TopicGenerator({
         });
         detail = response.detail;
         advanced = true;
-        applyManagedDetail(detail);
+        applyManagedDetail(detail, { preserveResultView: true });
         setActiveMode(goal);
         if (detail.state.status === "blocked") break;
       }
@@ -3876,7 +3883,7 @@ export function TopicGenerator({
   function changeLanguage(value: string) {
     const requestedLanguage = value as ContentLanguage;
     if (requestedLanguage === uiLanguage) return;
-    if (sourceMode === "load" && currentDetail && isManagedV2Detail(currentDetail)) {
+    if (currentDetail && isManagedV2Detail(currentDetail)) {
       const content = currentDetail.stageResults["content-review"] as
         ContentReviewStageOutput | undefined;
       const localizedContent = managedContentForLanguage(content, requestedLanguage);
@@ -3897,9 +3904,8 @@ export function TopicGenerator({
         return;
       }
     }
-    if (sourceMode === "load" && currentDetail &&
-        requestedLanguage === currentDetail.summary.language) {
-      applyManagedDetail(currentDetail);
+    if (currentDetail && requestedLanguage === currentDetail.summary.language) {
+      applyManagedDetail(currentDetail, { preserveResultView: true });
       return;
     }
 
