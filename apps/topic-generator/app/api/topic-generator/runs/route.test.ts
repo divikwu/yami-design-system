@@ -9,6 +9,7 @@ import {
 } from "@yami/topic-generator";
 
 const runtime = vi.hoisted(() => ({ current: undefined as unknown as {
+  root: string;
   store: TopicGeneratorRunStore;
   execute: Parameters<TopicGeneratorRunStore["advanceRun"]>[1]["execute"];
   renderer: TopicGeneratorDeliverableRenderer;
@@ -51,6 +52,7 @@ describe("managed run API routes", () => {
     const root = await mkdtemp(join(tmpdir(), "topic-generator-routes-"));
     roots.push(root);
     runtime.current = {
+      root,
       store: new TopicGeneratorRunStore({ root }),
       execute: async ({ stageId }) => ({
         status: "completed",
@@ -85,6 +87,11 @@ describe("managed run API routes", () => {
     await expect(listResponse.json()).resolves.toMatchObject({
       items: [{ runId: created.manifest.runId }],
       nextCursor: null,
+      storage: {
+        status: "ready",
+        runCount: 1,
+        root: runtime.current.root,
+      },
     });
 
     const advanced = await advanceRun(

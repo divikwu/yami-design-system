@@ -26,16 +26,38 @@ describe("TopicGenerator result navigation", () => {
     root = createRoot(container);
   });
 
+  async function enterTopic(value = "ANUA") {
+    const topicInput = container.querySelector<HTMLInputElement>("input[minlength='2']")!;
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set?.call(
+        topicInput,
+        value,
+      );
+      topicInput.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+  }
+
   afterEach(async () => {
     await act(async () => root.unmount());
     container.remove();
     vi.restoreAllMocks();
   });
 
+  it("starts with an empty topic input", async () => {
+    await act(async () => {
+      root.render(<TopicGenerator />);
+    });
+
+    const topicInput = container.querySelector<HTMLInputElement>("input[minlength='2']");
+    expect(topicInput?.value).toBe("");
+    expect(topicInput?.placeholder).toBe("例如 ANUA、ramen");
+  });
+
   it("returns to the empty page preview after viewing the workflow", async () => {
     await act(async () => {
       root.render(<TopicGenerator />);
     });
+    await enterTopic();
 
     const button = (label: string) =>
       [...container.querySelectorAll<HTMLButtonElement>("button")]
@@ -58,6 +80,7 @@ describe("TopicGenerator result navigation", () => {
     await act(async () => {
       root.render(<TopicGenerator />);
     });
+    await enterTopic();
 
     const button = (label: string) =>
       [...container.querySelectorAll<HTMLButtonElement>("button")]
@@ -82,6 +105,7 @@ describe("TopicGenerator result navigation", () => {
     await act(async () => {
       root.render(<TopicGenerator />);
     });
+    await enterTopic();
     const button = (label: string) =>
       [...container.querySelectorAll<HTMLButtonElement>("button")]
         .find((candidate) => candidate.textContent === label)!;
@@ -179,6 +203,7 @@ describe("TopicGenerator result navigation", () => {
     await act(async () => root.render(
       <TopicGenerator PagePreviewRenderer={CapabilityPreview} />,
     ));
+    await enterTopic();
     const button = (label: string) => [...container.querySelectorAll<HTMLButtonElement>("button")]
       .find((candidate) => candidate.textContent === label)!;
 
@@ -249,6 +274,7 @@ describe("TopicGenerator result navigation", () => {
       }, { status: 422 }));
 
     await act(async () => root.render(<TopicGenerator />));
+    await enterTopic();
     const button = (label: string) => [...container.querySelectorAll<HTMLButtonElement>("button")]
       .find((candidate) => candidate.textContent === label)!;
 
@@ -262,6 +288,7 @@ describe("TopicGenerator result navigation", () => {
 
   it("keeps the topic-intent explanation entry while showing the current stage 02 contract", async () => {
     await act(async () => root.render(<TopicGenerator />));
+    await enterTopic();
     const button = (label: string) =>
       [...container.querySelectorAll<HTMLButtonElement>("button")]
         .find((candidate) => candidate.textContent === label)!;
@@ -339,6 +366,7 @@ describe("TopicGenerator result navigation", () => {
     await act(async () => root.render(
       <TopicGenerator PagePreviewRenderer={FinalPagePreview} />,
     ));
+    await enterTopic();
     const button = (label: string) => [...container.querySelectorAll<HTMLButtonElement>("button")]
       .find((candidate) => candidate.textContent === label)!;
 
@@ -467,6 +495,7 @@ describe("TopicGenerator result navigation", () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({ plans }));
 
     await act(async () => root.render(<TopicGenerator />));
+    await enterTopic();
     const select = [...container.querySelectorAll<HTMLButtonElement>("button")]
       .find((candidate) => candidate.textContent === "选品")!;
     await act(async () => select.click());
@@ -627,6 +656,7 @@ describe("TopicGenerator result navigation", () => {
     }));
 
     await act(async () => root.render(<TopicGenerator />));
+    await enterTopic();
     const select = [...container.querySelectorAll<HTMLButtonElement>("button")]
       .find((candidate) => candidate.textContent === "选品")!;
     await act(async () => select.click());
@@ -689,6 +719,7 @@ describe("TopicGenerator result navigation", () => {
     }));
 
     await act(async () => root.render(<TopicGenerator />));
+    await enterTopic();
     const select = [...container.querySelectorAll<HTMLButtonElement>("button")]
       .find((candidate) => candidate.textContent === "选品")!;
     await act(async () => select.click());
@@ -759,6 +790,7 @@ describe("TopicGenerator result navigation", () => {
     }));
 
     await act(async () => root.render(<TopicGenerator />));
+    await enterTopic();
     const select = [...container.querySelectorAll<HTMLButtonElement>("button")]
       .find((candidate) => candidate.textContent === "选品")!;
     await act(async () => select.click());
@@ -818,6 +850,7 @@ describe("TopicGenerator result navigation", () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({ plans }));
 
     await act(async () => root.render(<TopicGenerator />));
+    await enterTopic();
     const select = [...container.querySelectorAll<HTMLButtonElement>("button")]
       .find((candidate) => candidate.textContent === "选品")!;
     await act(async () => select.click());
@@ -844,6 +877,7 @@ describe("TopicGenerator result navigation", () => {
     await act(async () => {
       root.render(<TopicGenerator />);
     });
+    await enterTopic();
 
     const button = (label: string) =>
       [...container.querySelectorAll<HTMLButtonElement>("button")]
@@ -954,6 +988,7 @@ describe("TopicGenerator result navigation", () => {
     await act(async () => {
       root.render(<TopicGenerator />);
     });
+    await enterTopic();
 
     const button = (label: string) =>
       [...container.querySelectorAll<HTMLButtonElement>("button")]
@@ -1027,6 +1062,7 @@ describe("TopicGenerator result navigation", () => {
     }));
 
     await act(async () => root.render(<TopicGenerator />));
+    await enterTopic();
     const button = (label: string) =>
       [...container.querySelectorAll<HTMLButtonElement>("button")]
         .find((candidate) => candidate.textContent === label)!;
@@ -1122,6 +1158,7 @@ describe("TopicGenerator result navigation", () => {
     }));
 
     await act(async () => root.render(<TopicGenerator />));
+    await enterTopic();
     const strategyTrigger = container.querySelector<HTMLButtonElement>(
       '[data-slot="workbench-select-trigger"]',
     )!;
@@ -1266,6 +1303,7 @@ describe("TopicGenerator result navigation", () => {
     await act(async () => root.render(
       <TopicGenerator PagePreviewRenderer={PagePreviewRenderer} />,
     ));
+    await enterTopic();
     const button = (label: string) => [...container.querySelectorAll<HTMLButtonElement>("button")]
       .find((candidate) => candidate.textContent === label)!;
     await act(async () => button("生成页面").click());
@@ -1421,6 +1459,7 @@ describe("TopicGenerator result navigation", () => {
     await act(async () => root.render(
       <TopicGenerator PagePreviewRenderer={LocalizedPreview} />,
     ));
+    await enterTopic();
     const button = (label: string) => [...container.querySelectorAll<HTMLButtonElement>("button")]
       .find((candidate) => candidate.textContent === label)!;
 
@@ -1517,6 +1556,7 @@ describe("TopicGenerator result navigation", () => {
     await act(async () => root.render(
       <TopicGenerator PagePreviewRenderer={SelectionPreview} />,
     ));
+    await enterTopic();
     const button = (label: string) => [...container.querySelectorAll<HTMLButtonElement>("button")]
       .find((candidate) => candidate.textContent === label)!;
 
@@ -1574,6 +1614,7 @@ describe("TopicGenerator result navigation", () => {
     await act(async () => {
       root.render(<TopicGenerator />);
     });
+    await enterTopic();
 
     const strategyTrigger = container.querySelector<HTMLButtonElement>(
       '[data-slot="workbench-select-trigger"]',
@@ -1634,6 +1675,7 @@ describe("TopicGenerator result navigation", () => {
     await act(async () => root.render(
       <TopicGenerator PagePreviewRenderer={SelectionPageRenderer} />,
     ));
+    await enterTopic();
     const generateButton = [...container.querySelectorAll<HTMLButtonElement>("button")]
       .find((button) => button.textContent === "生成页面")!;
     await act(async () => generateButton.click());
@@ -1735,6 +1777,7 @@ describe("TopicGenerator result navigation", () => {
     }), { status: 200, headers: { "content-type": "application/json" } }));
 
     await act(async () => root.render(<TopicGenerator />));
+    await enterTopic();
     const strategyTrigger = container.querySelector<HTMLButtonElement>(
       '[data-slot="workbench-select-trigger"]',
     )!;
@@ -1805,6 +1848,7 @@ describe("TopicGenerator result navigation", () => {
     );
 
     await act(async () => root.render(<TopicGenerator />));
+    await enterTopic();
     const strategyTrigger = container.querySelector<HTMLButtonElement>(
       '[data-slot="workbench-select-trigger"]',
     )!;

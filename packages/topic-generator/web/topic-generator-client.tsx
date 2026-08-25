@@ -3300,7 +3300,7 @@ export function TopicGenerator({
   PagePreviewRenderer,
   managedRunApiBase,
 }: TopicGeneratorProps = {}) {
-  const [keyword, setKeyword] = useState("ANUA");
+  const [keyword, setKeyword] = useState("");
   const [examplesOpen, setExamplesOpen] = useState(false);
   const [uiLanguage, setUiLanguage] = useState<ContentLanguage>("zh");
   const [strategy, setStrategy] = useState<ProductSelectionStrategy>("relevance");

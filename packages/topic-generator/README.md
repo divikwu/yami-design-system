@@ -74,7 +74,9 @@ ProductSelection 和 Page Agent endpoint。仅调试无 Agent 的确定性降级
 
 ### 可恢复运行与离线交付
 
-独立 Workbench 默认把 v2 运行保存到仓库根目录的 `.topic-generator/runs`。每次
+独立 Workbench 默认把 v2 运行保存到稳定、可见的用户目录
+`~/Yami Topic Generator/runs`。该目录不使用点号隐藏，也不依赖仓库或 worktree，因此切换
+隔离工作树不会让历史记录看似消失。每次
 `POST /api/topic-generator/runs/:runId/advance` 只执行一个阶段；浏览器负责按当前里程碑逐次
 调用，因此关闭页面不会继续调度后续阶段。重新打开后，从左侧“历史运行”加载记录并手动点击
 “继续生成”，Host 会先校验不可变输入、事件合同、已完成结果及其上游摘要，再从第一个缺失或
@@ -86,16 +88,27 @@ ProductSelection 和 Page Agent endpoint。仅调试无 Agent 的确定性降级
 产物；运行请求中的 `language` 表示 Workbench 操作与文案查看语言，主语言继续驱动视觉与硬 QA，
 语言切换直接读取同一运行内已审核的另一份文案，不再调用通用占位模板。
 
-生产环境必须显式配置持久磁盘：
+生产环境必须显式配置统一的持久磁盘根目录：
 
 ```bash
-TOPIC_GENERATOR_RUN_ROOT=/absolute/persistent/path/topic-generator-runs
+TOPIC_GENERATOR_STORAGE_ROOT=/absolute/persistent/path/topic-generator
 ```
 
-该路径必须为绝对路径；当前运行库面向单机或挂载文件系统，不提供多实例数据库或对象存储
+运行与资产会分别保存在该目录下的 `runs` 与 `assets`。兼容配置
+`TOPIC_GENERATOR_RUN_ROOT` 和 `TOPIC_GENERATOR_ASSET_ROOT` 仍可分别覆盖对应目录；所有路径都必须
+为绝对路径。当前运行库面向单机或挂载文件系统，不提供多实例数据库或对象存储
 抽象。外部目录通过 Workbench 的“导入目录…”分块上传，经相对路径、大小、逐文件 SHA-256、
 schema 和运行摘要校验后复制到受管目录；源目录不会被修改。v1 运行可查看，继续时会创建 v2
 子运行，旧 PagePlan 不计为新版阶段完成。
+
+旧的仓库内运行目录可用只复制迁移命令转入稳定目录。命令不会覆盖已有文件或删除源目录，完成后
+逐文件校验 SHA-256；再次运行只会复制缺失文件：
+
+```bash
+pnpm topic-generator:migrate-storage -- \
+  --source /absolute/old/.topic-generator/runs \
+  --target "/absolute/application-data/Yami Topic Generator/runs"
+```
 
 运行会按成熟度生成三个内部离线 HTML：背景分析后的 `topic-brief.html`、会随文案与图片阶段持续
 刷新的 `page-draft.html`，以及硬 QA、体验审查和用户批准后的 `page-final.html`。Workbench
