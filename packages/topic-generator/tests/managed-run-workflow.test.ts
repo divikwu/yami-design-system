@@ -1,10 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
+  compileTopicPageGenerationSpec: vi.fn(),
   runTopicBackgroundEvidenceAgentWorkflow: vi.fn(),
   runTopicContentAgentWorkflow: vi.fn(),
   runTopicPageContentApprovalWorkflow: vi.fn(),
   runPageMerchandisingAgentWorkflow: vi.fn(),
+}));
+
+vi.mock("../src/page-generation/index.js", async (importOriginal) => ({
+  ...await importOriginal<typeof import("../src/page-generation/index.js")>(),
+  compileTopicPageGenerationSpec: mocks.compileTopicPageGenerationSpec,
 }));
 
 vi.mock("../src/background-evidence/index.js", async (importOriginal) => ({
@@ -277,9 +283,10 @@ describe("Topic Generator managed stage executor", () => {
         },
       },
     } as const;
+    const render = vi.fn(async () => "<!doctype html><title>Content preview</title>");
     const execute = createTopicGeneratorManagedStageExecutor({
       topicPageAgent: { id: "topic-page-agent" },
-      deliverableRenderer: { render: async () => "" },
+      deliverableRenderer: { render },
     } as never);
 
     const result = await execute({
@@ -304,6 +311,9 @@ describe("Topic Generator managed stage executor", () => {
 
     expect(result).toMatchObject({
       status: "completed",
+      deliverables: {
+        "page-draft.html": "<!doctype html><title>Content preview</title>",
+      },
       output: {
         contentSpec: revisedContentSpec,
         copyBrief,
@@ -324,5 +334,54 @@ describe("Topic Generator managed stage executor", () => {
         },
       },
     });
+    expect(render).toHaveBeenCalledWith(expect.objectContaining({
+      name: "page-draft.html",
+      stages: expect.objectContaining({
+        "content-review": expect.objectContaining({ contentSpec: revisedContentSpec }),
+      }),
+    }));
+  });
+
+  it("refreshes the downloadable preview after page generation", async () => {
+    const generationSpec = {
+      language: "zh",
+      digest: "sha256:latest-page",
+    };
+    mocks.compileTopicPageGenerationSpec.mockReturnValue(generationSpec);
+    const outputs = {
+      "topic-intent": { analysis: { intent: { id: "intent" } } },
+      "background-evidence": { backgroundEvidence: { digest: "sha256:background" } },
+      "product-selection": { selection: { id: "selection" } },
+      "module-merchandising": { plan: { digest: "sha256:plan" } },
+      "content-review": { contentSpec: { digest: "sha256:content" } },
+      "asset-persistence": { assetManifest: { digest: "sha256:assets" } },
+    } as const;
+    const render = vi.fn(async () => "<!doctype html><title>Latest page preview</title>");
+    const execute = createTopicGeneratorManagedStageExecutor({
+      deliverableRenderer: { render },
+    } as never);
+
+    const result = await execute({
+      manifest: { request: { language: "zh" } },
+      state: {},
+      stageId: "page-generation",
+      attempt: 1,
+      readStageResult: async (stageId: keyof typeof outputs) => outputs[stageId],
+      assetStore: { publicUrl: (ref: string) => `/assets/${ref}` },
+    } as never);
+
+    expect(result).toMatchObject({
+      status: "completed",
+      output: { generationSpec },
+      deliverables: {
+        "page-draft.html": "<!doctype html><title>Latest page preview</title>",
+      },
+    });
+    expect(render).toHaveBeenCalledWith(expect.objectContaining({
+      name: "page-draft.html",
+      stages: expect.objectContaining({
+        "page-generation": { generationSpec },
+      }),
+    }));
   });
 });

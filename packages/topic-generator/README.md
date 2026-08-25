@@ -98,7 +98,8 @@ schema 和运行摘要校验后复制到受管目录；源目录不会被修改�
 子运行，旧 PagePlan 不计为新版阶段完成。
 
 运行会按成熟度生成三个离线单文件 HTML：背景分析后的 `topic-brief.html`、新版 PagePlan
-完成后的 `page-draft.html`，以及硬 QA、体验审查和用户批准后的 `page-final.html`。页面所需
+完成后即可使用且会随文案与图片阶段持续刷新的预览页（内部名 `page-draft.html`，主题包导出名
+`page-preview.html`），以及硬 QA、体验审查和用户批准后的 `page-final.html`。页面所需
 CSS、字体、运行时代码和可见媒体全部内联；离线文件不会启动 localhost、Next.js、内部 API
 或远程媒体请求，商品详情链接只在用户点击后访问网络。
 

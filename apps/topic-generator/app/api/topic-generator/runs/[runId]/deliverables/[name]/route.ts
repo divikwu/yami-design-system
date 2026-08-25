@@ -21,7 +21,9 @@ export async function GET(
       return Response.json({ error: "Deliverable is not allowed." }, { status: 404 });
     }
     const { store } = await getTopicGeneratorManagedRunRuntime();
-    const contents = await store.readDeliverable(runId, name as TopicGeneratorDeliverableName);
+    const contents = new TextDecoder().decode(
+      await store.readDeliverable(runId, name as TopicGeneratorDeliverableName),
+    );
     const inline = new URL(request.url).searchParams.get("view") === "1";
     return new Response(contents, {
       headers: {

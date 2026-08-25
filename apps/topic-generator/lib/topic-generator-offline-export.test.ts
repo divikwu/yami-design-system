@@ -127,8 +127,21 @@ describe("Topic Generator offline export", () => {
 
     expect(html.startsWith("<!doctype html>")).toBe(true);
     expect(html).toContain("topic-generator-delivery-manifest/v1");
+    expect(html).toContain('<html lang="en"');
+    expect(html).toContain('<meta name="topic-generator-offline-format" content="5">');
+    expect(html).toContain('"showChrome":true');
+    expect(html).not.toContain(
+      '[data-offline-page] [data-slot="topic-landing-global-header"]',
+    );
     expect(html).toContain("data:image/webp;base64,AQID");
+    expect(html).toContain("data:image/svg+xml;base64,");
+    expect(html).toContain("data:image/png;base64,");
+    expect(html.match(/data:image\/webp;base64,AQID/g)).toHaveLength(1);
+    expect(html).toContain('id="topic-generator-offline-media"');
+    expect(html).toContain("topic-generator-media://0");
     expect(html).not.toContain("https://media.example.com/matcha.webp");
+    expect(html).not.toMatch(/new URL\(["']\.\.\/\.\.\/assets\//);
+    expect(html).not.toMatch(/new URL\(["']\.\/assets\//);
     expect(html).not.toMatch(/localhost|127\.0\.0\.1|\/_next|\/api\/topic-generator/i);
   });
 
@@ -186,6 +199,101 @@ describe("Topic Generator offline export", () => {
     expect(html).toContain("Image unavailable for Matcha powder");
     expect(html).toContain("data:image/svg+xml");
     expect(html).not.toContain("https://media.example.com/matcha.webp");
+  });
+
+  it("renders the latest generated page as the downloadable preview before QA", async () => {
+    const plans = buildTopicPagePlanMatrix(snapshot, "selection");
+    const renderer = createTopicGeneratorOfflineRenderer();
+    const generationSpec = {
+      schemaVersion: "topic-page-generation-spec/v1",
+      status: "generation-ready",
+      keyword: "Matcha",
+      site: "us",
+      language: "en",
+      strategyRef: "relevance/intent-themes@5",
+      templateRef: "topic-landing/topic@2",
+      bindings: {},
+      moduleOrder: [],
+      modules: [],
+      digest: "sha256:latest-preview",
+    };
+    const html = await renderer.render(request("page-draft.html", {
+      "product-selection": {
+        executionPlan: { pageTypeRef: "landing-page/topic@2" },
+        selection: { strategyRef: "relevance/intent-themes@5" },
+        plans,
+      },
+      "module-merchandising": {
+        plan: { digest: "sha256:page-plan" },
+        plans,
+      },
+      "page-generation": { generationSpec },
+      "visual-generation": { assetBodies: [] },
+    } as never));
+
+    expect(html).toContain("Matcha · Preview");
+    expect(html).toContain('"mode":"generated"');
+    expect(html).toContain("sha256:latest-preview");
+    expect(html).not.toContain('"mode":"selection"');
+  });
+
+  it("renders approved content in the downloadable preview before images are generated", async () => {
+    const plans = buildTopicPagePlanMatrix(snapshot, "selection");
+    const renderer = createTopicGeneratorOfflineRenderer({
+      fetch: vi.fn(async () => new Response(new Uint8Array([1, 2, 3]), {
+        status: 200,
+        headers: { "content-type": "image/webp" },
+      })),
+    });
+    const contentSpec = {
+      language: "en",
+      digest: "sha256:latest-content",
+      tasks: [{
+        moduleId: "hero",
+        copy: {
+          title: { text: "Latest approved preview copy", evidenceRefs: [] },
+        },
+      }],
+    };
+    const generationSpec = {
+      schemaVersion: "topic-page-generation-spec/v1",
+      status: "generation-ready",
+      keyword: "Matcha",
+      site: "us",
+      language: "zh",
+      strategyRef: "relevance/intent-themes@5",
+      templateRef: "topic-landing/topic@2",
+      bindings: {},
+      moduleOrder: [],
+      modules: [],
+      digest: "sha256:retained-visuals",
+    };
+    const html = await renderer.render(request("page-draft.html", {
+      "product-selection": {
+        executionPlan: { pageTypeRef: "landing-page/topic@2" },
+        selection: { strategyRef: "relevance/intent-themes@5" },
+        plans,
+      },
+      "module-merchandising": {
+        plan: { digest: "sha256:page-plan" },
+        plans,
+      },
+      "content-review": {
+        contentSpec: { ...contentSpec, language: "zh", digest: "sha256:zh-content" },
+        contentByLanguage: { en: { contentSpec } },
+      },
+      "page-generation": { generationSpec },
+      "visual-generation": { assetBodies: [] },
+    } as never));
+
+    expect(html).toContain('<html lang="en"');
+    expect(html).toContain("Matcha · Preview");
+    expect(html).toContain('"mode":"content"');
+    expect(html).toContain("Latest approved preview copy");
+    expect(html).toContain('"retainedVisualSpec"');
+    expect(html).toContain("sha256:retained-visuals");
+    expect(html).not.toContain("sha256:zh-content");
+    expect(html).not.toContain('"mode":"selection"');
   });
 
   it("refuses a final page when a visible generated asset cannot be inlined", async () => {

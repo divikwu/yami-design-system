@@ -754,9 +754,13 @@ describe("Topic Generator managed run loading", () => {
       `/api/topic-generator/runs/${generatedRunId}/archive`,
     );
     expect(generatedDownload.querySelector("svg")).not.toBeNull();
+    expect(container.querySelector(
+      `a[download="${generatedRunId}-page-preview.html"]`,
+    )).toBeNull();
+    expect(container.querySelector('section[aria-label="生成内容"]')
+      ?.querySelectorAll("a")).toHaveLength(1);
     expect(container.querySelector('section[aria-label="生成内容"]')?.textContent)
       .not.toContain("下载内容");
-    expect(container.querySelector('a[download$=".html"]')).toBeNull();
   });
 
   it("keeps input and page preview selected while selecting products for a new topic", async () => {
@@ -906,6 +910,12 @@ describe("Topic Generator managed run loading", () => {
             },
           },
         },
+        "page-generation": {
+          generationSpec: {
+            language: "zh",
+            digest: "sha256:zh-visual",
+          },
+        },
       },
     } as never;
     const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
@@ -918,11 +928,14 @@ describe("Topic Generator managed run loading", () => {
       }
       throw new Error(`Unexpected ${init?.method ?? "GET"} ${url}`);
     });
-    const Preview = (preview: TopicPagePreviewRendererProps) => (
-      <div data-testid="localized-preview">
-        {preview.mode}:{preview.mode === "content" ? preview.contentSpec.language : "other"}
-      </div>
-    );
+    const Preview = (preview: TopicPagePreviewRendererProps) => {
+      const state = preview.mode === "visual"
+        ? `visual:${preview.generationSpec.language}:${preview.generationSpec.digest}`
+        : preview.mode === "content"
+        ? `content:${preview.contentSpec.language}:${preview.retainedVisualSpec?.digest ?? "none"}`
+        : preview.mode;
+      return <div data-testid="localized-preview">{state}</div>;
+    };
 
     await act(async () => {
       root.render(
@@ -941,7 +954,7 @@ describe("Topic Generator managed run loading", () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
     expect(container.querySelector('[data-testid="localized-preview"]')?.textContent)
-      .toBe("content:zh");
+      .toBe("visual:zh:sha256:zh-visual");
 
     const requestCount = fetchMock.mock.calls.length;
     await act(async () => {
@@ -951,7 +964,17 @@ describe("Topic Generator managed run loading", () => {
     });
 
     expect(container.querySelector('[data-testid="localized-preview"]')?.textContent)
-      .toBe("content:en");
+      .toBe("content:en:sha256:zh-visual");
+    expect(fetchMock).toHaveBeenCalledTimes(requestCount);
+
+    await act(async () => {
+      container.querySelector<HTMLInputElement>(
+        'input[name="ui-language"][value="zh"]',
+      )!.click();
+    });
+
+    expect(container.querySelector('[data-testid="localized-preview"]')?.textContent)
+      .toBe("visual:zh:sha256:zh-visual");
     expect(fetchMock).toHaveBeenCalledTimes(requestCount);
   });
 

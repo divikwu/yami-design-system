@@ -148,6 +148,7 @@ function sourcePathInsideCandidate(path: string, candidate: ImportCandidate) {
 }
 
 export function isTopicGeneratorV2RunFilePath(path: string) {
+  path = normalizeTopicGeneratorV2RunFilePath(path);
   if (path === "run.json" || path === "state.json" || path === "events.jsonl") return true;
   const parts = path.split("/");
   if (parts[0] === "assets") return parts.length > 1;
@@ -158,6 +159,14 @@ export function isTopicGeneratorV2RunFilePath(path: string) {
     /^attempt-[0-9]{4}$/.test(parts[2]!) &&
     (parts[3] === "request.json" || parts[3] === "proposal.json" ||
       parts[3] === "result.json");
+}
+
+export function normalizeTopicGeneratorV2RunFilePath(path: string) {
+  const parts = path.split("/");
+  if (parts.at(-2) === "deliverables" && parts.at(-1) === "page-preview.html") {
+    parts[parts.length - 1] = "page-draft.html";
+  }
+  return parts.join("/");
 }
 
 export class TopicGeneratorImportService {
@@ -228,9 +237,12 @@ export class TopicGeneratorImportService {
       throw new TopicGeneratorRunValidationError("Import file count is invalid.");
     }
     const seen = new Set<string>();
+    const normalized = new Set<string>();
     let totalBytes = 0;
     const descriptors = input.files.map((descriptor) => {
+      const normalizedPath = normalizeTopicGeneratorV2RunFilePath(descriptor.path);
       if (!safePath(descriptor.path) || seen.has(descriptor.path) ||
+          normalized.has(normalizedPath) ||
           !Number.isInteger(descriptor.size) || descriptor.size < 0 ||
           descriptor.size > MAX_FILE_BYTES || !DIGEST_PATTERN.test(descriptor.sha256)) {
         throw new TopicGeneratorRunValidationError(
@@ -238,6 +250,7 @@ export class TopicGeneratorImportService {
         );
       }
       seen.add(descriptor.path);
+      normalized.add(normalizedPath);
       totalBytes += descriptor.size;
       return { ...descriptor };
     });
@@ -303,7 +316,9 @@ export class TopicGeneratorImportService {
     if (!candidate) {
       throw new TopicGeneratorRunValidationError("File is outside an import candidate.");
     }
-    const relativePath = sourcePathInsideCandidate(path, candidate)!;
+    const relativePath = normalizeTopicGeneratorV2RunFilePath(
+      sourcePathInsideCandidate(path, candidate)!,
+    );
     if (!safePath(relativePath)) {
       throw new TopicGeneratorRunValidationError("Imported relative path is invalid.");
     }
@@ -367,7 +382,7 @@ export class TopicGeneratorImportService {
         sourcePathInsideCandidate(path, candidate) !== null
       );
       const relativeFiles = files.map(({ path }) =>
-        sourcePathInsideCandidate(path, candidate)!
+        normalizeTopicGeneratorV2RunFilePath(sourcePathInsideCandidate(path, candidate)!)
       );
       if (candidate.schemaVersion === "topic-generator-run/v2" &&
           (relativeFiles.some((path) => !isTopicGeneratorV2RunFilePath(path)) ||
@@ -393,7 +408,11 @@ export class TopicGeneratorImportService {
         root: join(this.sessionDirectory(sessionId), "candidates"),
       });
       let sourceDigest = sha256(files
-        .map(({ path, sha256: digest }) => `${sourcePathInsideCandidate(path, candidate)}:${digest}`)
+        .map(({ path, sha256: digest }) =>
+          `${normalizeTopicGeneratorV2RunFilePath(
+            sourcePathInsideCandidate(path, candidate)!,
+          )}:${digest}`
+        )
         .sort()
         .join("\n"));
       let legacyValidation: Awaited<ReturnType<TopicGeneratorRunStore["validateLegacy"]>> |
@@ -419,7 +438,9 @@ export class TopicGeneratorImportService {
       let sameRunBytes = false;
       if (sameRun) {
         sameRunBytes = (await Promise.all(files.map(async ({ path, sha256: digest }) => {
-          const relativePath = sourcePathInsideCandidate(path, candidate)!;
+          const relativePath = normalizeTopicGeneratorV2RunFilePath(
+            sourcePathInsideCandidate(path, candidate)!,
+          );
           try {
             const target = join(this.managedRoot, candidate.runId, relativePath);
             const file = await lstat(target);

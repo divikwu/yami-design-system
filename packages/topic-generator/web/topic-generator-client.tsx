@@ -4052,15 +4052,18 @@ export function TopicGenerator({
         const nextAutomation = managedAutomation(currentDetail);
         const page = currentDetail.stageResults["page-generation"] as
           PageGenerationStageOutput | undefined;
-        const hasGeneratedPage = nextAutomation?.generationSpec.language === requestedLanguage;
+        const generationSpec = page?.generationSpec ?? null;
+        const hasGeneratedPage = generationSpec?.language === requestedLanguage;
+        const hasAutomatedPage = nextAutomation?.generationSpec.language === requestedLanguage;
         setUiLanguage(requestedLanguage);
         setContentSpec(localizedContent.contentSpec);
         setCapabilityContentReview(localizedContent.contentReview);
-        setAutomation(hasGeneratedPage ? nextAutomation : null);
-        setVisualGenerationSpec(hasGeneratedPage ? page?.generationSpec ?? null : null);
+        setAutomation(hasAutomatedPage ? nextAutomation : null);
+        setVisualGenerationSpec(hasGeneratedPage && !hasAutomatedPage ? generationSpec : null);
+        setRetainedVisualSpec(hasGeneratedPage ? null : generationSpec);
         setView("preview");
         setPreviewMode("page");
-        setActiveMode(hasGeneratedPage ? "page" : "content");
+        setActiveMode(hasAutomatedPage ? "page" : hasGeneratedPage ? "visual" : "content");
         setError(null);
         return;
       }

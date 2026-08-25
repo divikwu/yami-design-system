@@ -205,7 +205,23 @@ describe("Topic Generator directory import", () => {
       strategy: "relevance",
       goal: "selection",
     });
-    const sourceFiles = await filesBelow(sourceRoot);
+    await sourceStore.advanceRun(sourceRun.manifest.runId, {
+      requestId: "import-preview-name",
+      execute: async () => ({
+        status: "completed",
+        output: { ok: true },
+        deliverables: {
+          "page-draft.html": "<!doctype html><title>Portable preview</title>",
+        },
+      }),
+    });
+    const sourceFiles = (await filesBelow(sourceRoot)).map((file) => ({
+      ...file,
+      path: file.path.replace(
+        "/deliverables/page-draft.html",
+        "/deliverables/page-preview.html",
+      ),
+    }));
     const sourceManifestPath = join(sourceRoot, sourceRun.manifest.runId, "run.json");
     const sourceManifestBefore = await readFile(sourceManifestPath);
     const service = new TopicGeneratorImportService(managedRoot);
@@ -252,5 +268,9 @@ describe("Topic Generator directory import", () => {
         origin: { type: "imported", sourceLabel: sourceRun.manifest.runId },
       },
     });
+    await expect(new TopicGeneratorRunStore({ root: managedRoot }).readDeliverable(
+      sourceRun.manifest.runId,
+      "page-draft.html",
+    )).resolves.toEqual(expect.any(Uint8Array));
   });
 });

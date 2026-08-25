@@ -20,7 +20,7 @@ import { POST as advanceRun } from "./[runId]/advance/route";
 import { GET as downloadRunArchive } from "./[runId]/archive/route";
 import { GET as downloadDeliverable } from "./[runId]/deliverables/[name]/route";
 import { POST as reviewRun } from "./[runId]/review/route";
-import { DELETE as deleteRun } from "./[runId]/route";
+import { DELETE as deleteRun, GET as getRun } from "./[runId]/route";
 import { GET as listRuns, POST as createRun } from "./route";
 
 const roots: string[] = [];
@@ -188,7 +188,10 @@ describe("managed run API routes", () => {
       execute: async () => ({
         status: "completed",
         output: { ok: true },
-        deliverables: { "topic-brief.html": "<!doctype html><title>Matcha</title>" },
+        deliverables: {
+          "topic-brief.html": "<!doctype html><title>Matcha</title>",
+          "page-draft.html": "<!doctype html><title>Stored preview</title>",
+        },
       }),
     });
     const inline = await downloadDeliverable(
@@ -202,6 +205,22 @@ describe("managed run API routes", () => {
     expect(inline.headers.get("content-disposition")).toBe(
       'inline; filename="topic-brief.html"',
     );
+
+    const render = vi.fn(async () =>
+      '<!doctype html><meta name="topic-generator-offline-format" content="5">' +
+      "<title>Latest preview</title>"
+    );
+    runtime.current.renderer = { render };
+    const preview = await downloadDeliverable(
+      new Request("http://localhost/deliverable"),
+      { params: Promise.resolve({
+        runId: run.manifest.runId,
+        name: "page-draft.html",
+      }) },
+    );
+    expect(preview.status).toBe(200);
+    expect(await preview.text()).toContain("Stored preview");
+    expect(render).not.toHaveBeenCalled();
 
     const rejected = await downloadDeliverable(
       new Request("http://localhost/deliverable"),
@@ -230,6 +249,8 @@ describe("managed run API routes", () => {
         },
       }),
     });
+    const render = vi.fn(async () => "<!doctype html><title>Latest preview</title>");
+    runtime.current.renderer = { render };
     await writeFile(
       join(runtime.current.store.root, run.manifest.runId, "server-debug.tmp"),
       "must not be exported",
@@ -256,12 +277,70 @@ describe("managed run API routes", () => {
       `${directory}stages/topic-intent/attempt-0001/result.json`,
       `${directory}assets/products/matcha.png`,
       `${directory}deliverables/topic-brief.html`,
-      `${directory}deliverables/page-draft.html`,
+      `${directory}deliverables/page-preview.html`,
       `${directory}deliverables/page-final.html`,
     ]));
     expect(strFromU8(files[`${directory}run.json`]!)).toContain(run.manifest.runId);
+    expect(strFromU8(files[`${directory}deliverables/page-preview.html`]!))
+      .toContain("Draft");
+    expect(files[`${directory}deliverables/page-draft.html`]).toBeUndefined();
     expect(strFromU8(files[`${directory}deliverables/page-final.html`]!)).toContain("Final");
     expect(Array.from(files[`${directory}assets/products/matcha.png`]!)).toEqual([1, 2, 3, 4]);
     expect(files[`${directory}server-debug.tmp`]).toBeUndefined();
+    expect(render).not.toHaveBeenCalled();
+  });
+
+  it("refreshes and persists a stale preview once when the historical run is loaded", async () => {
+    const run = await runtime.current.store.create(runRequest());
+    for (let index = 0; index <= 8; index += 1) {
+      await runtime.current.store.advanceRun(run.manifest.runId, {
+        requestId: `archive-stale-${index}`,
+        execute: async ({ stageId }) => ({
+          status: "completed",
+          output: { stageId },
+          ...(index === 0
+            ? { deliverables: { "page-draft.html": "<!doctype html><title>Old</title>" } }
+            : {}),
+        }),
+      });
+    }
+    const stale = await runtime.current.store.read(run.manifest.runId);
+    stale.state.deliverables.find(({ name }) => name === "page-draft.html")!.generatedAt =
+      "2020-01-01T00:00:00.000Z";
+    await runtime.current.store.writeState(stale.manifest, stale.state);
+
+    const render = vi.fn(async () =>
+      '<!doctype html><meta name="topic-generator-offline-format" content="5">' +
+      "<title>Latest preview</title>"
+    );
+    runtime.current.renderer = { render };
+
+    const first = await getRun(
+      new Request("http://localhost/run"),
+      { params: Promise.resolve({ runId: run.manifest.runId }) },
+    );
+    expect(first.status).toBe(200);
+    expect(new TextDecoder().decode(await runtime.current.store.readDeliverable(
+      run.manifest.runId,
+      "page-draft.html",
+    ))).toContain("Latest preview");
+
+    const second = await getRun(
+      new Request("http://localhost/run"),
+      { params: Promise.resolve({ runId: run.manifest.runId }) },
+    );
+    expect(second.status).toBe(200);
+    expect(render).toHaveBeenCalledTimes(1);
+
+    render.mockClear();
+    const archive = await downloadRunArchive(
+      new Request("http://localhost/archive"),
+      { params: Promise.resolve({ runId: run.manifest.runId }) },
+    );
+    const files = unzipSync(new Uint8Array(await archive.arrayBuffer()));
+    expect(strFromU8(files[
+      `${run.manifest.runId}/deliverables/page-preview.html`
+    ]!)).toContain("Latest preview");
+    expect(render).not.toHaveBeenCalled();
   });
 });

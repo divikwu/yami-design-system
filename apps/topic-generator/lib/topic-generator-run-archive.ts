@@ -37,6 +37,12 @@ function shouldCompress(path: string) {
   return path.endsWith(".json") || path.endsWith(".jsonl") || path.endsWith(".html");
 }
 
+function archiveRelativePath(path: string) {
+  return path === "deliverables/page-draft.html"
+    ? "deliverables/page-preview.html"
+    : path;
+}
+
 export async function createTopicGeneratorRunArchive(
   store: TopicGeneratorRunStore,
   runId: string,
@@ -62,7 +68,7 @@ export async function createTopicGeneratorRunArchive(
         try {
           for (const file of files) {
             if (cancelled) return;
-            const archivePath = `${run.manifest.runId}/${file.relativePath}`;
+            const archivePath = `${run.manifest.runId}/${archiveRelativePath(file.relativePath)}`;
             const target = shouldCompress(file.relativePath)
               ? new ZipDeflate(archivePath, { level: 6 })
               : new ZipPassThrough(archivePath);
