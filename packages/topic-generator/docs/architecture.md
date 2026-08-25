@@ -265,12 +265,11 @@ preserve that mode. Scene tasks also expose non-blocking composition guidance fo
 overlays the lower image area.
 Shortcut tasks use a `product-first` / `primary-subject` brief with exactly one representative product;
 the native Runner attaches its approved source image and requests a centered product-led lifestyle
-composition. ThemeHero uses `scene-composite` / `locked-source-products`: the Agent first derives a
-background scene prompt from accepted Hero copy and the assigned product mix, the native generator
-renders that background without products, and the Runner composites verified catalog images as
-centered locked layers while preserving the bottom quarter. Three to five products is preferred when
-available but is not a hard gate. Theme-scene and brand tasks remain `scene-first` /
-`reference-only`.
+composition. ThemeHero uses `scene-first` / `reference-only`: the Runner attaches all available
+assigned product images as flexible references and asks the Agent to regenerate one complete 16:9
+multi-product lifestyle scene. Products and environment are generated together; referenced products
+may appear as a natural subset, and any packaging shown should follow the source as faithfully as the
+model allows. Theme-scene and brand tasks also use `scene-first` / `reference-only`.
 
 An accepted `topic-page-visual-proposal/v1` must preserve task order and all upstream digests. The
 Module rejects undeclared tasks, component/product drift, out-of-scope evidence, unsafe paths,

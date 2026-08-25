@@ -73,8 +73,8 @@ export interface TopicPageExperienceReviewContext {
       taskId: string;
       moduleId: TopicModuleId;
       kind: TopicPageVisualAssetKind;
-      priority: "scene-and-module-theme" | "source-product-fidelity" | "hero-composite";
-      productRole: "reference-only" | "primary-subject" | "locked-source-products";
+      priority: "scene-and-module-theme" | "source-product-fidelity";
+      productRole: "reference-only" | "primary-subject";
       blockingConditions: string[];
     }>;
   };

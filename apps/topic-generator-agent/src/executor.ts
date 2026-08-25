@@ -8,20 +8,18 @@ import sharp from "sharp";
 
 import { parseAgentJson } from "./json.ts";
 import {
-  composeLockedHeroProducts,
   composeSourceProductLifestyleFallback,
   compileGeneratedImageVisualResponse,
-  createHeroBackgroundFallback,
   createSuccessfulVisualTaskCache,
-  heroCompositionVerificationPrompt,
-  heroPlacementRecoveryPrompt,
-  parseHeroCompositionVerificationResult,
-  parseHeroPlacementRecoveryResult,
   parseNativeImageTaskResult,
   type GenerateVisualTask,
 } from "./generated-image-visual.ts";
 import type { AgentRoute } from "./registry.ts";
 import { fetchApprovedSourceImage } from "./source-image-compositor.ts";
+
+const HERO_GENERATIVE_PIPELINE_VERSION = "hero-generative-v3";
+const SHORTCUT_GENERATIVE_PIPELINE_VERSION = "shortcut-generative-v3";
+const SCENE_GENERATIVE_PIPELINE_VERSION = "scene-generative-v4";
 
 export interface AgentExecutionRequest {
   route: AgentRoute;
@@ -247,7 +245,7 @@ export function createCodexExecutor(
   const limits = executionLimits(environment);
   const imageConcurrency = positiveInteger(
     environment.TOPIC_AGENT_RUNNER_IMAGE_CONCURRENCY,
-    2,
+    3,
     4,
   );
   const maxImageBytes = positiveInteger(
@@ -331,7 +329,7 @@ export function createCodexExecutor(
                 prompt: taskPrompt,
                 outputFilename,
                 referenceImageUrl,
-                lockedProductImageUrls,
+                referenceImageUrls,
               }) => {
                 const executionRoot = await mkdtemp(
                   join(tmpdir(), `yami-topic-image-${task.taskId.replace(/[^a-z0-9_-]/gi, "-")}-`),
@@ -350,6 +348,20 @@ export function createCodexExecutor(
                         .toBuffer(),
                     );
                   }
+                  const nativeReferenceImageUrls = referenceImageUrls ?? [];
+                  const referenceImagePaths = await Promise.all(
+                    nativeReferenceImageUrls.map(async (url, index) => {
+                      const path = join(executionRoot, `product-reference-${index + 1}.png`);
+                      await writeFile(
+                        path,
+                        await sharp(await sourceImage(url), { failOn: "error" })
+                          .rotate()
+                          .png()
+                          .toBuffer(),
+                      );
+                      return path;
+                    }),
+                  );
                   const args = [
                     "exec",
                     "--enable",
@@ -368,6 +380,7 @@ export function createCodexExecutor(
                   ];
                   if (model) args.push("--model", model);
                   if (referenceImagePath) args.push("--image", referenceImagePath);
+                  referenceImagePaths.forEach((path) => args.push("--image", path));
                   args.push("-");
                   await runCommand({
                     command,
@@ -381,118 +394,12 @@ export function createCodexExecutor(
                     parseAgentJson(await readFile(outputPath, "utf8")),
                     task.taskId,
                     outputFilename,
+                    {
+                      acceptRejected: task.kind === "hero-image" || task.kind === "shortcut-image" ||
+                        task.kind === "scene-image",
+                    },
                   );
-                  let bytes = await readFile(imagePath);
-                  let placementPlan;
-                  let placementSource;
-                  let placementIssues;
-                  let compositionAudit;
-                  if (task.kind === "hero-image") {
-                    let placementPlanForComposition = nativeResult.placementPlan;
-                    let recoveredPlacement = false;
-                    if (!placementPlanForComposition) {
-                      const recoveryOutputPath = join(executionRoot, "placement-recovery.json");
-                      const recoveryArgs = [
-                        "exec",
-                        "--ephemeral",
-                        "--ignore-user-config",
-                        "--skip-git-repo-check",
-                        "--sandbox",
-                        "read-only",
-                        "--cd",
-                        executionRoot,
-                        "--color",
-                        "never",
-                        "--output-last-message",
-                        recoveryOutputPath,
-                      ];
-                      if (model) recoveryArgs.push("--model", model);
-                      recoveryArgs.push("--image", imagePath, "-");
-                      await runCommand({
-                        command,
-                        args: recoveryArgs,
-                        cwd: request.repositoryRoot,
-                        stdin: heroPlacementRecoveryPrompt(
-                          task,
-                          request.skillInstructions,
-                          request.agentInstructions,
-                        ),
-                        ...limits,
-                        timeoutMs: imageAttemptTimeoutMs,
-                      });
-                      placementPlanForComposition = parseHeroPlacementRecoveryResult(
-                        parseAgentJson(await readFile(recoveryOutputPath, "utf8")),
-                        task,
-                      );
-                      recoveredPlacement = true;
-                    }
-                    const sources = await Promise.all(
-                      (lockedProductImageUrls ?? []).map(sourceImage),
-                    );
-                    const composed = await composeLockedHeroProducts(
-                      bytes,
-                      sources,
-                      task,
-                      placementPlanForComposition,
-                      {
-                        placementSource: recoveredPlacement ? "agent-recovered" : "agent",
-                      },
-                    );
-                    bytes = composed.bytes;
-                    placementPlan = composed.placement.plan;
-                    placementSource = composed.placement.source;
-                    placementIssues = composed.placement.issues;
-                    const compositePath = join(executionRoot, "hero-composite.png");
-                    await writeFile(compositePath, composed.bytes, { flag: "wx" });
-                    const verificationSourcePaths = await Promise.all(sources.map(async (source, index) => {
-                      const path = join(executionRoot, `verification-source-${index + 1}.png`);
-                      await writeFile(
-                        path,
-                        await sharp(source, { failOn: "error" }).rotate().png().toBuffer(),
-                        { flag: "wx" },
-                      );
-                      return path;
-                    }));
-                    const verificationOutputPath = join(executionRoot, "verification.json");
-                    const verificationArgs = [
-                      "exec",
-                      "--ephemeral",
-                      "--ignore-user-config",
-                      "--skip-git-repo-check",
-                      "--sandbox",
-                      "read-only",
-                      "--cd",
-                      executionRoot,
-                      "--color",
-                      "never",
-                      "--output-last-message",
-                      verificationOutputPath,
-                    ];
-                    if (model) verificationArgs.push("--model", model);
-                    verificationArgs.push("--image", compositePath);
-                    verificationSourcePaths.forEach((path) => verificationArgs.push("--image", path));
-                    verificationArgs.push("-");
-                    await runCommand({
-                      command,
-                      args: verificationArgs,
-                      cwd: request.repositoryRoot,
-                      stdin: heroCompositionVerificationPrompt(
-                        task,
-                        request.skillInstructions,
-                        request.agentInstructions,
-                      ),
-                      ...limits,
-                      timeoutMs: imageAttemptTimeoutMs,
-                    });
-                    parseHeroCompositionVerificationResult(
-                      parseAgentJson(await readFile(verificationOutputPath, "utf8")),
-                      task.taskId,
-                    );
-                    compositionAudit = {
-                      ...composed.compositionAudit,
-                      semanticVerification: "agent-vision-v1" as const,
-                    };
-                  }
+                  const bytes = await readFile(imagePath);
                   if (bytes.byteLength > maxImageBytes) {
                     throw new Error(
                       `Generated image ${task.taskId} exceeds the ${maxImageBytes}-byte limit.`,
@@ -503,9 +410,6 @@ export function createCodexExecutor(
                     ...(nativeResult.scenePrompt
                       ? { scenePrompt: nativeResult.scenePrompt }
                       : {}),
-                    ...(placementPlan
-                      ? { placementPlan, placementSource, placementIssues, compositionAudit }
-                      : {}),
                   };
                 } finally {
                   await rm(executionRoot, { recursive: true, force: true });
@@ -514,16 +418,21 @@ export function createCodexExecutor(
               {
                 maximumEntries: 64,
                 cache: visualTaskCache,
-                ...(environment.TOPIC_AGENT_RUNNER_IMAGE_CACHE_ROOT?.trim()
-                  ? { directory: environment.TOPIC_AGENT_RUNNER_IMAGE_CACHE_ROOT.trim() }
-                  : {}),
+                directory: resolveVisualTaskCacheRoot(environment, request.repositoryRoot),
                 keyMaterial: async (taskRequest) => ({
                   ...taskRequest,
+                    ...(taskRequest.task.kind === "hero-image"
+                      ? { visualPipelineVersion: HERO_GENERATIVE_PIPELINE_VERSION }
+                      : taskRequest.task.kind === "shortcut-image"
+                      ? { visualPipelineVersion: SHORTCUT_GENERATIVE_PIPELINE_VERSION }
+                      : taskRequest.task.kind === "scene-image"
+                    ? { visualPipelineVersion: SCENE_GENERATIVE_PIPELINE_VERSION }
+                    : {}),
                   generator: imageGenerationProbe,
                   codexAgentModel: model ?? null,
                   sourceDigests: await Promise.all([
                     ...(taskRequest.referenceImageUrl ? [taskRequest.referenceImageUrl] : []),
-                    ...(taskRequest.lockedProductImageUrls ?? []),
+                    ...(taskRequest.referenceImageUrls ?? []),
                   ].map(async (url) => createHash("sha256")
                     .update(await sourceImage(url))
                     .digest("hex"))),
@@ -535,7 +444,7 @@ export function createCodexExecutor(
               generateTask,
               {
                 concurrency: imageConcurrency,
-                fallback: async ({ task, referenceImageUrl, lockedProductImageUrls }, error) => {
+                fallback: async ({ task, referenceImageUrl }, error) => {
                   if (referenceImageUrl && task.kind === "shortcut-image") {
                     return {
                       bytes: await composeSourceProductLifestyleFallback(
@@ -543,24 +452,6 @@ export function createCodexExecutor(
                         task,
                       ),
                       scenePrompt: "Deterministic source-product lifestyle fallback.",
-                      fallbackUsed: true,
-                    };
-                  }
-                  if (task.kind === "hero-image" && lockedProductImageUrls?.length) {
-                    const composed = await composeLockedHeroProducts(
-                      await createHeroBackgroundFallback(task),
-                      await Promise.all(lockedProductImageUrls.map(sourceImage)),
-                      task,
-                      undefined,
-                      { backgroundMode: "safe-neutral" },
-                    );
-                    return {
-                      bytes: composed.bytes,
-                      scenePrompt: "Deterministic neutral Hero background with locked source-product layers.",
-                      placementPlan: composed.placement.plan,
-                      placementSource: composed.placement.source,
-                      placementIssues: composed.placement.issues,
-                      compositionAudit: composed.compositionAudit,
                       fallbackUsed: true,
                     };
                   }
@@ -580,6 +471,14 @@ export function createCodexExecutor(
         }
       : {}),
   };
+}
+
+export function resolveVisualTaskCacheRoot(
+  environment: NodeJS.ProcessEnv,
+  repositoryRoot: string,
+) {
+  return environment.TOPIC_AGENT_RUNNER_IMAGE_CACHE_ROOT?.trim() ||
+    join(repositoryRoot, ".topic-generator", "image-cache");
 }
 
 export function createKiroExecutor(

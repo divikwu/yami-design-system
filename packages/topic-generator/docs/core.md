@@ -146,10 +146,9 @@ ContentSpec，只返回 `assetTaskIds` 声明的 Hero、快捷入口、场景和
 场景图任务可携带非阻断的构图建议，用于避让底部叠加文案。
 快捷入口图采用 `product-first` / `primary-subject`：每个分类只绑定一个代表商品，宿主把其已批准的
 商品原图作为图片输入，生成商品居中、环境辅助且适合圆形裁切的 lifestyle 图。Hero、主题专辑与品牌图
-不再共用一种处理：主题专辑与品牌图保持 `scene-first` / `reference-only`；Hero 使用
-`scene-composite` / `locked-source-products`，由 Agent 先依据已审核 Hero 文案与已分配商品组合生成
-无商品场景背景，再由宿主把真实商品图作为锁定图层居中合成。3～5 个是可用时的编辑建议而非阻断门槛，
-底部四分之一不放主要商品或场景元素，场景道具由 Agent 根据主题证据判断，不写死品类模板。
+采用 `scene-first` / `reference-only`；Hero 会把全部有效的已分配商品图作为灵活参考，由 Agent 依据
+已审核 Hero 文案与商品组合重新生成完整的 16:9 多品 lifestyle 场景。商品与环境在同一次生成中统一光影、
+深度与材质，不要求参考商品逐一出现；若出现，则尽量保持原商品的可见包装文字、品牌、版式、颜色与造型。
 
 `runTopicVisualAgentWorkflow` 可注入独立 `TopicVisualAgent`。Agent 按 `generated-images` 或
 `source-product-images` 使用宿主媒体能力生成真实媒体与 Proposal；任务派生、元数据校验、证据范围与 Asset Manifest digest 仍由核心

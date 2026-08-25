@@ -25,8 +25,8 @@ interface SourceProduct {
 }
 
 interface SourceVisualSceneBrief {
-  priority: "scene-first" | "product-first" | "scene-composite";
-  productRole: "reference-only" | "primary-subject" | "locked-source-products";
+  priority: "scene-first" | "product-first";
+  productRole: "reference-only" | "primary-subject";
   theme: {
     shoppingGoal: string;
     needs: string[];
@@ -152,8 +152,7 @@ function parseSceneBrief(value: unknown, path: string): SourceVisualSceneBrief {
   }
   const hasValidSubjectMode =
     (brief?.priority === "scene-first" && brief.productRole === "reference-only") ||
-    (brief?.priority === "product-first" && brief.productRole === "primary-subject") ||
-    (brief?.priority === "scene-composite" && brief.productRole === "locked-source-products");
+    (brief?.priority === "product-first" && brief.productRole === "primary-subject");
   if (!brief || !theme || !module || !content || (brief.scene !== undefined && !scene) ||
       !hasValidSubjectMode) {
     throw new SourceImageCompositorError(

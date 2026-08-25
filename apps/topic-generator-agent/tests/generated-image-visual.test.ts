@@ -8,14 +8,9 @@ import { describe, expect, it } from "vitest";
 
 import {
   createSuccessfulVisualTaskCache,
-  composeLockedHeroProducts,
   composeSourceProductLifestyleFallback,
   compileGeneratedImageVisualResponse,
   generatedImageTaskPrompt,
-  heroCompositionVerificationPrompt,
-  heroPlacementRecoveryPrompt,
-  parseHeroCompositionVerificationResult,
-  parseHeroPlacementRecoveryResult,
   parseNativeImageTaskResult,
   type GeneratedVisualContext,
   type GeneratedVisualTask,
@@ -91,8 +86,8 @@ function visualRun() {
           }],
           sceneBrief: {
             ...sharedBrief,
-            priority: "scene-composite",
-            productRole: "locked-source-products",
+            priority: "scene-first",
+            productRole: "reference-only",
           },
         },
         {
@@ -135,95 +130,7 @@ function visualRun() {
   };
 }
 
-const safeSupportRegion = {
-  left: 0.08,
-  right: 0.92,
-  top: 0.5,
-  bottom: 0.74,
-  surface: "horizontal-light-neutral" as const,
-};
-
 describe("Codex-native generated Topic visuals", () => {
-  it("composites real source-product layers in the Hero center and preserves the bottom quarter", async () => {
-    const run = visualRun();
-    const heroTask = run.context.tasks[0]!;
-    const task = {
-      ...heroTask,
-      products: [
-        ...heroTask.products,
-        {
-          id: "product-5",
-          title: "Matcha Face Mask",
-          brand: "Matcha House",
-          imageUrl: "https://cdn.yamibuy.net/item/product-5.webp",
-          categoryL3Name: "Face masks",
-        },
-      ],
-    };
-    const background = await sharp({
-      create: {
-        width: 1600,
-        height: 900,
-        channels: 3,
-        background: { r: 232, g: 226, b: 216 },
-      },
-    }).png().toBuffer();
-    const colors = ["#d63034", "#2f9e44", "#1971c2", "#f08c00"];
-    const sources = await Promise.all(colors.map(async (color) =>
-      await sharp({
-        create: {
-          width: 500,
-          height: 500,
-          channels: 3,
-          background: { r: 255, g: 255, b: 255 },
-        },
-      }).composite([{
-        input: Buffer.from(
-          `<svg xmlns="http://www.w3.org/2000/svg" width="360" height="360"><rect width="360" height="360" rx="22" fill="${color}"/></svg>`,
-        ),
-        left: 70,
-        top: 70,
-      }]).png().toBuffer()
-    ));
-
-    const result = await composeLockedHeroProducts(
-      background,
-      sources,
-      task as unknown as GeneratedVisualTask,
-      undefined,
-      { backgroundMode: "safe-neutral" },
-    );
-    const metadata = await sharp(result).metadata();
-    const raw = await sharp(result).raw().toBuffer({ resolveWithObject: true });
-    const primaryX = Math.round(
-      result.placement.plan.anchors[result.placement.plan.primaryIndex]!.x * raw.info.width,
-    );
-    const bottomCenter = (800 * raw.info.width + 800) * raw.info.channels;
-    const rgb = [...raw.data.subarray(bottomCenter, bottomCenter + 3)];
-    const contactShadow = (650 * raw.info.width + primaryX) * raw.info.channels;
-    const contactShadowRgb = [...raw.data.subarray(contactShadow, contactShadow + 3)];
-    const centralOverlap = (400 * raw.info.width + primaryX) * raw.info.channels;
-    const centralOverlapRgb = [...raw.data.subarray(centralOverlap, centralOverlap + 3)];
-    const bounds = result.compositionAudit.products.map(({ bounds }) => bounds);
-    const subjectLeft = Math.min(...bounds.map(({ left }) => left));
-    const subjectRight = Math.max(...bounds.map(({ right }) => right));
-    const subjectTop = Math.min(...bounds.map(({ top }) => top));
-    const subjectBottom = Math.max(...bounds.map(({ bottom }) => bottom));
-
-    expect(metadata).toMatchObject({ format: "png", width: 1600, height: 900 });
-    expect(rgb).toEqual([232, 226, 216]);
-    expect(contactShadowRgb.reduce((sum, channel) => sum + channel, 0)).toBeLessThan(674);
-    expect(centralOverlapRgb[1]).toBeGreaterThan(centralOverlapRgb[0]! * 2);
-    expect(bounds[1]!.bottom - bounds[2]!.bottom).toBeGreaterThanOrEqual(0.035);
-    expect(bounds[1]!.bottom - bounds[0]!.bottom).toBeGreaterThanOrEqual(0.02);
-    expect(subjectRight - subjectLeft).toBeGreaterThanOrEqual(0.78);
-    expect(subjectRight - subjectLeft).toBeLessThanOrEqual(0.88);
-    expect(subjectBottom - subjectTop).toBeGreaterThanOrEqual(0.43);
-    expect((subjectLeft + subjectRight) / 2).toBeGreaterThanOrEqual(0.48);
-    expect((subjectLeft + subjectRight) / 2).toBeLessThanOrEqual(0.52);
-    expect(subjectBottom).toBeLessThan(0.75);
-  });
-
   it("builds a centered square source-product lifestyle fallback", async () => {
     const run = visualRun();
     const task = run.context.tasks[1]!;
@@ -255,126 +162,7 @@ describe("Codex-native generated Topic visuals", () => {
     expect(centerPixel).toEqual([214, 48, 52]);
   });
 
-  it("uses optional Agent placement anchors without making them a generation blocker", async () => {
-    const run = visualRun();
-    const heroTask = run.context.tasks[0]!;
-    const colors = ["#d63034", "#2f9e44", "#1971c2"];
-    const background = await sharp({
-      create: {
-        width: 1600,
-        height: 900,
-        channels: 3,
-        background: { r: 232, g: 226, b: 216 },
-      },
-    }).png().toBuffer();
-    const sources = await Promise.all(colors.map(async (color) =>
-      await sharp({
-        create: {
-          width: 500,
-          height: 500,
-          channels: 3,
-          background: { r: 255, g: 255, b: 255 },
-        },
-      }).composite([{
-        input: Buffer.from(
-          `<svg xmlns="http://www.w3.org/2000/svg" width="360" height="360"><rect width="360" height="360" rx="22" fill="${color}"/></svg>`,
-        ),
-        left: 70,
-        top: 70,
-      }]).png().toBuffer()
-    ));
-    const result = await composeLockedHeroProducts(
-      background,
-      sources,
-      heroTask as unknown as GeneratedVisualTask,
-      {
-        primaryIndex: 1,
-        anchors: [
-          { x: 0.3, y: 0.62, scale: 0.8, depth: 1 },
-          { x: 0.5, y: 0.7, scale: 1, depth: 2 },
-          { x: 0.7, y: 0.58, scale: 0.75, depth: 0 },
-        ],
-        shadowDirection: { x: -0.5, y: 0.5 },
-        supportRegion: safeSupportRegion,
-      },
-    );
-    expect(result.compositionAudit.products.map(({ bounds }) => bounds.bottom)).toEqual([
-      0.62,
-      0.7,
-      0.58,
-    ]);
-    expect(result.compositionAudit.products.map(({ contactPoint }) => contactPoint)).toEqual([
-      { x: 0.3, y: 0.62 },
-      { x: 0.5, y: 0.7 },
-      { x: 0.7, y: 0.58 },
-    ]);
-  });
-
-  it("rejects overlapping Agent placement anchors instead of applying fixed anchors to the scene", async () => {
-    const run = visualRun();
-    const heroTask = run.context.tasks[0]!;
-    const colors = ["#d63034", "#2f9e44", "#1971c2"];
-    const background = await sharp({
-      create: { width: 1600, height: 900, channels: 3, background: "#e8e2d8" },
-    }).png().toBuffer();
-    const sources = await Promise.all(colors.map(async (color) => await sharp({
-      create: { width: 500, height: 500, channels: 3, background: "#ffffff" },
-    }).composite([{
-      input: Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="220" height="380"><rect width="220" height="380" rx="24" fill="${color}"/></svg>`),
-      left: 140,
-      top: 60,
-    }]).png().toBuffer()));
-
-    await expect(composeLockedHeroProducts(
-      background,
-      sources,
-      heroTask as unknown as GeneratedVisualTask,
-      {
-        primaryIndex: 0,
-        anchors: [
-          { x: 0.5, y: 0.7, scale: 1.2, depth: 2 },
-          { x: 0.5, y: 0.7, scale: 1.2, depth: 1 },
-          { x: 0.5, y: 0.7, scale: 1.2, depth: 0 },
-        ],
-        shadowDirection: { x: 0.5, y: 0.5 },
-        supportRegion: safeSupportRegion,
-      },
-    )).rejects.toThrow("agent-placement-overlap");
-  });
-
-  it("preserves a pale product body behind a deterministic white-background silhouette mask", async () => {
-    const run = visualRun();
-    const task = run.context.tasks[0]!;
-    const source = await sharp({
-      create: { width: 500, height: 500, channels: 3, background: "#ffffff" },
-    }).composite([{
-      input: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="220" height="390"><rect x="10" y="10" width="200" height="370" rx="36" fill="#f3f3ef" stroke="#b8c4bd" stroke-width="8"/><rect x="45" y="170" width="130" height="70" fill="#dfe9e2"/></svg>'),
-      left: 140,
-      top: 55,
-    }]).png().toBuffer();
-    const background = await sharp({
-      create: { width: 1600, height: 900, channels: 3, background: "#e8e2d8" },
-    }).png().toBuffer();
-
-    const result = await composeLockedHeroProducts(
-      background,
-      [source],
-      { ...task, products: [task.products[0]!] } as unknown as GeneratedVisualTask,
-      undefined,
-      { backgroundMode: "safe-neutral" },
-    );
-    const raw = await sharp(result.bytes).raw().toBuffer({ resolveWithObject: true });
-    const centerOffset = (390 * raw.info.width + 800) * raw.info.channels;
-    const center = [...raw.data.subarray(centerOffset, centerOffset + 3)];
-
-    expect(center.reduce((sum, channel) => sum + channel, 0)).toBeGreaterThan(580);
-    expect(result.compositionAudit.products[0]).toMatchObject({
-      preparationMethod: "white-background-direct",
-      preparationConfidence: expect.any(Number),
-    });
-  });
-
-  it("asks the Agent to plan a product-aware Hero background before locked-layer composition", () => {
+  it("asks the Agent to regenerate one complete Hero from flexible product references", () => {
     const run = visualRun();
     const task = run.context.tasks[0]!;
     const prompt = generatedImageTaskPrompt(
@@ -382,23 +170,25 @@ describe("Codex-native generated Topic visuals", () => {
       task as unknown as GeneratedVisualTask,
       "generated.png",
       {
-        skillInstructions: "SKILL CONTRACT: do not attach Hero product pixels.",
+        skillInstructions: "SKILL CONTRACT: generate the complete Hero from attached references.",
         agentInstructions: "AGENT CONFIG: visual-generation only.",
       },
     );
 
-    expect(prompt).toContain("SKILL CONTRACT: do not attach Hero product pixels");
+    expect(prompt).toContain("SKILL CONTRACT: generate the complete Hero from attached references");
     expect(prompt).toContain("AGENT CONFIG: visual-generation only");
-    expect(prompt).toContain("No product source image is attached");
-    expect(prompt).toContain("locked catalog product layers");
-    expect(prompt).toContain("central visual focus");
-    expect(prompt).toContain("continuous upward-facing light-neutral support region");
-    expect(prompt).toContain("Natural environmental shadows");
-    expect(prompt).toContain("product-shaped shadows");
-    expect(prompt).toContain("placementPlan");
-    expect(prompt).toContain("supportRegion");
-    expect(prompt).toContain("inside supportRegion");
-    expect(prompt).toContain("Host owns the single bounded retry");
+    expect(prompt).toContain("attached product images");
+    expect(prompt).toContain("complete Hero scene");
+    expect(prompt).toContain("not a count checklist");
+    expect(prompt).toContain("do not enforce exact quantity");
+    expect(prompt).toContain("For every referenced product that appears, reproduce its source packaging as faithfully as the image model allows");
+    expect(prompt).toContain("visible brand name and logo, key label text");
+    expect(prompt).toContain("never replace it with blank or generic packaging");
+    expect(prompt).toContain("missing label text");
+    expect(prompt).toContain("Do not perform visual rejection");
+    expect(prompt).toContain("return status accepted");
+    expect(prompt).not.toContain("supportRegion");
+    expect(prompt).not.toContain("locked catalog product layers");
     expect(prompt).not.toContain("make exactly one targeted retry");
     expect(prompt).not.toContain("UNTRUSTED PRODUCT TITLE");
     expect(prompt).not.toContain("Matcha House");
@@ -408,8 +198,15 @@ describe("Codex-native generated Topic visuals", () => {
     expect(prompt).not.toContain("skincare plants");
   });
 
-  it("builds a product-led lifestyle prompt and carries the exact shortcut reference image", async () => {
+  it("builds a product-led lifestyle prompt and carries one shortcut reference image", async () => {
     const run = visualRun();
+    run.context.tasks[0]!.products.push({
+      id: "product-5",
+      title: "Tea Cup",
+      brand: "Tea Lab",
+      imageUrl: "https://cdn.yamibuy.net/item/product-5.webp",
+      categoryL3Name: "Tea cups",
+    });
     const task = run.context.tasks[1]!;
     const prompt = generatedImageTaskPrompt(
       run.context as unknown as GeneratedVisualContext,
@@ -418,9 +215,13 @@ describe("Codex-native generated Topic visuals", () => {
     );
 
     expect(prompt).toContain("attached representative product image");
-    expect(prompt).toContain("single primary subject");
-    expect(prompt).toContain("near the exact center");
+    expect(prompt).toContain("one product-led lifestyle scene");
+    expect(prompt).toContain("near the center");
     expect(prompt).toContain("circular crop");
+    expect(prompt).toContain("Reproduce its source packaging as faithfully as the image model allows");
+    expect(prompt).toContain("visible brand name and logo, key label text");
+    expect(prompt).toContain("never replace it with blank or generic packaging");
+    expect(prompt).toContain("Do not perform semantic visual rejection for the Shortcut");
     expect(prompt).toContain("Product category: Matcha");
     expect(prompt).not.toContain("Daily Matcha Powder");
     expect(prompt).not.toContain("Show no bottles, jars, tubes");
@@ -435,7 +236,7 @@ describe("Codex-native generated Topic visuals", () => {
     }).png().toBuffer();
     const requests: Array<{
       referenceImageUrl?: string;
-      lockedProductImageUrls?: string[];
+      referenceImageUrls?: string[];
     }> = [];
     await compileGeneratedImageVisualResponse(run, async (request) => {
       requests.push(request);
@@ -443,16 +244,116 @@ describe("Codex-native generated Topic visuals", () => {
     });
 
     expect(requests[0]).toEqual(expect.objectContaining({
-      lockedProductImageUrls: [
+      referenceImageUrls: [
         "https://cdn.yamibuy.net/item/product-1.webp",
         "https://cdn.yamibuy.net/item/product-3.webp",
         "https://cdn.yamibuy.net/item/product-4.webp",
+        "https://cdn.yamibuy.net/item/product-5.webp",
       ],
     }));
     expect(requests[0]).not.toHaveProperty("referenceImageUrl");
     expect(requests[1]).toEqual(expect.objectContaining({
       referenceImageUrl: "https://cdn.yamibuy.net/item/product-2.webp",
     }));
+  });
+
+  it("uses current-scene products as flexible references for a responsive editorial scene", async () => {
+    const run = visualRun();
+    const sceneTask = {
+      taskId: "asset-start-here-daily-ritual",
+      moduleId: "start-here",
+      component: "ThemeProductList",
+      kind: "scene-image",
+      targetAspectRatio: "1:1",
+      minimumWidth: 1024,
+      minimumHeight: 1024,
+      altTextMode: "required",
+      requiresBackgroundColor: true,
+      products: [
+        run.context.tasks[0]!.products[0]!,
+        run.context.tasks[0]!.products[1]!,
+        run.context.tasks[0]!.products[2]!,
+        {
+          id: "product-5",
+          imageUrl: "https://cdn.yamibuy.net/item/product-5.webp",
+          categoryL3Name: "Tea cups",
+        },
+      ],
+      sceneBrief: {
+        ...run.context.tasks[0]!.sceneBrief,
+        priority: "scene-first",
+        productRole: "reference-only",
+        scene: {
+          shoppingGoal: "Build a calm daily matcha ritual",
+          reason: "Help shoppers compare a complete routine",
+        },
+        content: {
+          taskId: "content-start-here",
+          texts: ["按日常冲泡方式选择", "组合抹茶、茶具与搭配"],
+        },
+        evidenceRefs: [
+          "theme-intent:evidence-1",
+          "scene:daily-ritual",
+          "content-task:content-start-here",
+        ],
+      },
+    };
+    const sceneRun = {
+      ...run,
+      context: {
+        ...run.context,
+        tasks: [sceneTask],
+      },
+    };
+    const prompt = generatedImageTaskPrompt(
+      sceneRun.context as unknown as GeneratedVisualContext,
+      sceneTask as unknown as GeneratedVisualTask,
+      "generated.png",
+    );
+
+    expect(prompt).toContain("attached current-scene product images are optional visual references");
+    expect(prompt).toContain("a product-free result is valid");
+    expect(prompt).toContain("For every referenced product that appears, reproduce its source packaging as faithfully as the image model allows");
+    expect(prompt).toContain("visible brand name and logo, key label text");
+    expect(prompt).toContain("never replace it with blank or generic packaging");
+    expect(prompt).toContain("Do not enforce exact product quantity or one-to-one placement");
+    expect(prompt).toContain("Regenerate products and environment together");
+    expect(prompt).toContain("generic unlabeled product container");
+    expect(prompt).not.toContain("invented readable packaging text");
+    expect(prompt).toContain("Do not copy source backdrops, swatches, discs, badges, white canvases");
+    expect(prompt).toContain("upper-right");
+    expect(prompt).toContain("lower-left copy-safe area");
+    expect(prompt).toContain("centered wide and card crops");
+    expect(prompt).toContain("Do not bake text, a gradient, a text panel, or a scrim into the image");
+    expect(prompt).toContain("could not credibly illustrate a sibling scene after only swapping the title");
+    expect(prompt).not.toContain("Show no bottles, jars, tubes");
+
+    const source = await sharp({
+      create: {
+        width: 1024,
+        height: 1024,
+        channels: 3,
+        background: { r: 229, g: 222, b: 211 },
+      },
+    }).png().toBuffer();
+    const requests: Array<{ referenceImageUrls?: string[] }> = [];
+    await compileGeneratedImageVisualResponse(sceneRun, async (request) => {
+      requests.push(request);
+      return source;
+    });
+
+    expect(requests[0]).toEqual(expect.objectContaining({
+      referenceImageUrls: [
+        "https://cdn.yamibuy.net/item/product-1.webp",
+        "https://cdn.yamibuy.net/item/product-3.webp",
+        "https://cdn.yamibuy.net/item/product-4.webp",
+      ],
+    }));
+    const response = await compileGeneratedImageVisualResponse(sceneRun, async () => source);
+    expect(response.proposal.assets[0]?.direction).toMatchObject({
+      referenceProductIds: ["product-1", "product-3", "product-4", "product-5"],
+      attachedReferenceProductIds: ["product-1", "product-3", "product-4"],
+    });
   });
 
   it("normalizes real image bytes, preserves task order, and derives trusted metadata", async () => {
@@ -525,7 +426,7 @@ describe("Codex-native generated Topic visuals", () => {
     }
   });
 
-  it("uses two workers by default to bound native image-generation load", async () => {
+  it("uses three workers by default to reduce native image-generation queue time", async () => {
     const source = await sharp({
       create: {
         width: 768,
@@ -551,10 +452,10 @@ describe("Codex-native generated Topic visuals", () => {
       return source;
     });
 
-    expect(peak).toBe(2);
+    expect(peak).toBe(3);
   });
 
-  it("retries each transient image task once without restarting completed tasks", async () => {
+  it("uses the same bounded technical retry for Hero and Shortcut", async () => {
     const source = await sharp({
       create: {
         width: 768,
@@ -565,17 +466,28 @@ describe("Codex-native generated Topic visuals", () => {
     }).png().toBuffer();
     const attempts = new Map<string, number>();
 
-    const response = await compileGeneratedImageVisualResponse(visualRun(), async ({ task }) => {
-      const attempt = (attempts.get(task.taskId) ?? 0) + 1;
-      attempts.set(task.taskId, attempt);
-      if (attempt === 1) throw new Error("Transient image request failed.");
-      return source;
-    });
+    const fallbackTasks: string[] = [];
+    const response = await compileGeneratedImageVisualResponse(
+      visualRun(),
+      async ({ task }) => {
+        const attempt = (attempts.get(task.taskId) ?? 0) + 1;
+        attempts.set(task.taskId, attempt);
+        if (attempt === 1) throw new Error("Transient image request failed.");
+        return source;
+      },
+      {
+        fallback: async ({ task }) => {
+          fallbackTasks.push(task.taskId);
+          return source;
+        },
+      },
+    );
 
     expect(Object.fromEntries(attempts)).toEqual({
       "asset-hero": 2,
       "asset-shortcuts-1": 2,
     });
+    expect(fallbackTasks).toEqual([]);
     expect(response.assets).toHaveLength(2);
   });
 
@@ -619,6 +531,42 @@ describe("Codex-native generated Topic visuals", () => {
     ]);
   });
 
+  it("records queue, task, and attempt timings with bounded retry reasons", async () => {
+    const source = await sharp({
+      create: { width: 768, height: 768, channels: 3, background: "#d3dcca" },
+    }).png().toBuffer();
+    let heroAttempts = 0;
+    const response = await compileGeneratedImageVisualResponse(
+      visualRun(),
+      async ({ task }) => {
+        if (task.kind === "hero-image" && ++heroAttempts === 1) {
+          throw new Error("temporary provider delay");
+        }
+        return source;
+      },
+      {
+        generationProvenance: {
+          provider: "codex-native",
+          modelSource: "unreported",
+        },
+      },
+    );
+
+    expect(response.proposal.assets[0]?.direction.generationProvenance).toMatchObject({
+      attempts: 2,
+      cacheHit: false,
+      queueDurationMs: expect.any(Number),
+      taskDurationMs: expect.any(Number),
+      attemptDurationsMs: [expect.any(Number), expect.any(Number)],
+      attemptIssues: ["temporary provider delay"],
+    });
+    expect(response.proposal.assets[1]?.direction.generationProvenance).toMatchObject({
+      attempts: 1,
+      attemptDurationsMs: [expect.any(Number)],
+      attemptIssues: [],
+    });
+  });
+
   it("records fallback provenance instead of reporting the requested scene as generated", async () => {
     const source = await sharp({
       create: { width: 768, height: 768, channels: 3, background: "#d3dcca" },
@@ -656,7 +604,7 @@ describe("Codex-native generated Topic visuals", () => {
       task: visualRun().context.tasks[0] as unknown as GeneratedVisualTask,
       prompt: "stable prompt",
       outputFilename: "generated.png",
-      lockedProductImageUrls: ["https://cdn.yamibuy.net/item/product-1.webp"],
+      referenceImageUrls: ["https://cdn.yamibuy.net/item/product-1.webp"],
     };
 
     await cached(request);
@@ -684,7 +632,7 @@ describe("Codex-native generated Topic visuals", () => {
         task: visualRun().context.tasks[0] as unknown as GeneratedVisualTask,
         prompt: "stable prompt",
         outputFilename: "generated.png",
-        lockedProductImageUrls: ["https://cdn.yamibuy.net/item/product-1.webp"],
+        referenceImageUrls: ["https://cdn.yamibuy.net/item/product-1.webp"],
       };
       let calls = 0;
       const firstRunner = createSuccessfulVisualTaskCache(async () => {
@@ -714,7 +662,7 @@ describe("Codex-native generated Topic visuals", () => {
     })).toThrow("must be absolute");
   });
 
-  it("requires a native task to report accepted inspection and the fixed output file", () => {
+  it("requires the fixed output file while allowing generated-scene visual rejection to pass through", () => {
     expect(parseNativeImageTaskResult({
       schemaVersion: "topic-page-native-image-task-result/v1",
       taskId: "asset-hero",
@@ -732,28 +680,10 @@ describe("Codex-native generated Topic visuals", () => {
       status: "accepted",
       relativePath: "generated.png",
       scenePrompt: "A flexible scene.",
-      placementPlan: {
-        primaryIndex: 1,
-        anchors: [
-          { x: 0.3, y: 0.62, scale: 0.8, depth: 1 },
-          { x: 0.5, y: 0.7, scale: 1, depth: 2 },
-        ],
-        shadowDirection: { x: -0.5, y: 0.5 },
-        supportRegion: safeSupportRegion,
-      },
       issues: [],
     }, "asset-hero", "generated.png")).toEqual({
       relativePath: "generated.png",
       scenePrompt: "A flexible scene.",
-      placementPlan: {
-        primaryIndex: 1,
-        anchors: [
-          { x: 0.3, y: 0.62, scale: 0.8, depth: 1 },
-          { x: 0.5, y: 0.7, scale: 1, depth: 2 },
-        ],
-        shadowDirection: { x: -0.5, y: 0.5 },
-        supportRegion: safeSupportRegion,
-      },
       issues: [],
     });
 
@@ -764,74 +694,28 @@ describe("Codex-native generated Topic visuals", () => {
       relativePath: "generated.png",
       issues: ["product-grid composition"],
     }, "asset-hero", "generated.png")).toThrow("product-grid composition");
-  });
 
-  it("runs a separate read-only Hero verifier for support contact and source fidelity", () => {
-    const task = visualRun().context.tasks[0] as unknown as GeneratedVisualTask;
-    const prompt = heroCompositionVerificationPrompt(
-      task,
-      "SKILL: locked source products",
-      "AGENT: visual only",
-    );
-    expect(prompt).toContain("first attached image is the final Hero composite");
-    expect(prompt).toContain("next 3 attached images are the exact catalog source images");
-    expect(prompt).toContain("upward-facing horizontal support surface");
-    expect(prompt).toContain("wall, vertical face, or open air");
-    expect(prompt).toContain("SKILL: locked source products");
-    expect(prompt).toContain("AGENT: visual only");
-    expect(parseHeroCompositionVerificationResult({
-      schemaVersion: "topic-page-hero-composition-verification/v1",
-      taskId: "asset-hero",
-      status: "accepted",
-      issues: [],
-    }, "asset-hero")).toEqual({ status: "accepted", issues: [] });
-    expect(() => parseHeroCompositionVerificationResult({
-      schemaVersion: "topic-page-hero-composition-verification/v1",
+    expect(parseNativeImageTaskResult({
+      schemaVersion: "topic-page-native-image-task-result/v1",
       taskId: "asset-hero",
       status: "rejected",
-      issues: ["product floats above the support plane"],
-    }, "asset-hero")).toThrow("product floats above the support plane");
+      relativePath: "generated.png",
+      issues: ["product-grid composition"],
+    }, "asset-hero", "generated.png", { acceptRejected: true })).toEqual({
+      relativePath: "generated.png",
+      issues: ["product-grid composition"],
+    });
+
+    expect(parseNativeImageTaskResult({
+      schemaVersion: "topic-page-native-image-task-result/v1",
+      taskId: "asset-shortcuts-1",
+      status: "rejected",
+      relativePath: "generated.png",
+      issues: ["approximate packaging"],
+    }, "asset-shortcuts-1", "generated.png", { acceptRejected: true })).toEqual({
+      relativePath: "generated.png",
+      issues: ["approximate packaging"],
+    });
   });
 
-  it("recovers missing Hero placement from the existing background without generating another image", () => {
-    const task = visualRun().context.tasks[0] as unknown as GeneratedVisualTask;
-    const prompt = heroPlacementRecoveryPrompt(
-      task,
-      "SKILL: recover only a horizontal support surface",
-      "AGENT: visual only",
-    );
-    expect(prompt).toContain("Do not generate or edit an image");
-    expect(prompt).toContain("3 catalog products");
-    expect(prompt).toContain("wall, vertical face, step riser, object, or open air");
-    expect(prompt).toContain("SKILL: recover only a horizontal support surface");
-    const placementPlan = {
-      primaryIndex: 1,
-      anchors: [
-        { x: 0.3, y: 0.64, scale: 0.8, depth: 1 },
-        { x: 0.5, y: 0.68, scale: 1, depth: 2 },
-        { x: 0.7, y: 0.62, scale: 0.78, depth: 0 },
-      ],
-      shadowDirection: { x: 0.6, y: 0.5 },
-      supportRegion: {
-        left: 0.08,
-        right: 0.92,
-        top: 0.5,
-        bottom: 0.72,
-        surface: "horizontal-light-neutral",
-      },
-    } as const;
-    expect(parseHeroPlacementRecoveryResult({
-      schemaVersion: "topic-page-hero-placement-recovery/v1",
-      taskId: "asset-hero",
-      status: "accepted",
-      placementPlan,
-      issues: [],
-    }, task)).toEqual(placementPlan);
-    expect(() => parseHeroPlacementRecoveryResult({
-      schemaVersion: "topic-page-hero-placement-recovery/v1",
-      taskId: "asset-hero",
-      status: "rejected",
-      issues: ["no horizontal support region"],
-    }, task)).toThrow("no horizontal support region");
-  });
 });

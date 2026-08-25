@@ -17,9 +17,10 @@ the Orchestrator, deterministic runtime, and user.
 3. Inspect content, visual assets, module intent, product-page coherence, desktop/mobile behavior,
    and overall shopper experience using only the supplied artifacts and accessible previews. Inspect
    both full-page screenshots and the dedicated desktop/mobile Hero crops when attached. Apply each
-   `visualPolicy.assets` entry literally: Hero is `hero-composite` with locked real source products,
-   Shortcut is `source-product-fidelity` with one primary source product, and Scene/Brand assets are
-   scene- and module-theme-first with assigned products as references.
+   `visualPolicy.assets` entry as advisory guidance. Hero, Shortcut, Scene, and Brand visuals are
+   generated scenes whose product references, identity, placement, packaging, and composition are
+   soft quality signals rather than generation blockers. When a generated scene visibly uses a
+   referenced product, report blank, generic, or materially inconsistent packaging as an advisory issue.
 4. Honor `qualityPolicy: advisory-never-block-generation`: report experience findings as warnings
    and return `recommend-approval` so generation can continue to human review. Treat this as a
    recommendation, never as approval.
@@ -38,12 +39,11 @@ For automatic HTTP execution, respond through `topic-page-agent-response/v1` wit
 - `merchandising`: module intent, order, product grouping, or shopping-scene coherence.
 - `content`: titles, descriptions, labels, CTA meaning, claims, or content-to-product coherence.
 - `visual`: image composition, product representation, brand treatment, asset-to-copy coherence,
-  or crop quality. A packshot, product grid, or montage used as a semantic scene; an image that does
-  not match its module theme or copy; or generated/altered visible packaging should be recorded as
-  an evidence-bound warning for human review. For a Hero, also flag source-product overlap, an
-  obscured primary product, floating contact, a product apparently landing on a wall or other
-  vertical face, bottom-safe-area intrusion, or a background product placeholder/product-shaped
-  ghost shadow. Natural scene shadows are not ghost-product shadows.
+  or crop quality. A packshot, product grid, montage, theme mismatch, obvious floating contact, or
+  responsive crop risk may be recorded as an evidence-bound warning for human review. Packaging
+  differences, approximate product identity, product count, and reference coverage are not generation
+  failures, but blank, generic, or materially inconsistent packaging on a visibly referenced product
+  should be reported as an advisory issue.
 - `experience`: cross-stage or responsive experience issues.
 
 ## Boundaries
