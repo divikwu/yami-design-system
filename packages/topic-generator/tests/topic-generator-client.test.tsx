@@ -44,12 +44,34 @@ describe("TopicGenerator result navigation", () => {
     await act(async () => button("自动化流程").click());
 
     expect(button("页面预览").disabled).toBe(false);
+    expect(container.textContent).not.toContain("阶段门控、局部回退");
+    expect(container.textContent).not.toContain("下方流程状态来自本次真实运行");
 
     await act(async () => button("页面预览").click());
 
     expect(container.textContent).toContain("从主题词到");
     expect(container.textContent).toContain("从这里开始");
     expect(button("页面预览").getAttribute("aria-selected")).toBe("true");
+  });
+
+  it("keeps the agent architecture introduction focused without duplicate metrics", async () => {
+    await act(async () => {
+      root.render(<TopicGenerator />);
+    });
+
+    const button = (label: string) =>
+      [...container.querySelectorAll<HTMLButtonElement>("button")]
+        .find((candidate) => candidate.textContent === label)!;
+
+    await act(async () => button("自动化流程").click());
+    await act(async () => button("Agent 与 Skills").click());
+
+    const panel = container.querySelector("#workflow-agents-panel")!;
+    expect(panel.textContent).toContain("1 个薄编排 Agent + 6 个执行与审核 Agent");
+    expect(panel.querySelector(":scope > section:first-child > dl")).toBeNull();
+    expect(panel.textContent).not.toContain("核心才是最终规则权威");
+    expect(panel.textContent).not.toContain("ExecutionPlan → ProductSelectionResult");
+    expect(panel.querySelector(":scope > aside")).toBeNull();
   });
 
   it("returns to the selection loading preview after viewing the workflow", async () => {
@@ -840,7 +862,7 @@ describe("TopicGenerator result navigation", () => {
     expect(agentsTab.getAttribute("aria-selected")).toBe("true");
     expect(agentsPanel?.hidden).toBe(false);
     expect(container.querySelector<HTMLDivElement>("#workflow-diagram-panel")?.hidden).toBe(true);
-    expect(agentsPanel?.textContent).toContain("1 个薄编排 Agent + 6 个专业 Agent");
+    expect(agentsPanel?.textContent).toContain("1 个薄编排 Agent + 6 个执行与审核 Agent");
     expect(agentsPanel?.textContent).toContain("topic-page-orchestrator");
     expect(agentsPanel?.textContent).toContain("topic-strategy");
     expect(agentsPanel?.textContent).toContain("topic-background-evidence");
@@ -850,7 +872,15 @@ describe("TopicGenerator result navigation", () => {
     expect(agentsPanel?.textContent).toContain("topic-review");
     expect(agentsPanel?.textContent).toContain("page-orchestration");
     expect(agentsPanel?.textContent).toContain("page-review");
-    expect(agentsPanel?.textContent).toContain("核心才是最终规则权威");
+    expect(agentsPanel?.textContent).toContain("选品阶段内 · 路由规划");
+    expect(agentsPanel?.textContent).toContain("主题意图 / 选品语义 / 模块编排");
+    expect(agentsPanel?.textContent).toContain("页面路由提案（LandingPageExecutionPlanProposal）");
+    expect(agentsPanel?.textContent).toContain("单一文案提案或五候选提案");
+    expect(agentsPanel?.textContent).toContain("文案审核提案（TopicPageContentReviewProposal）");
+    expect(agentsPanel?.textContent).not.toContain("TopicPageContentReviewDecision");
+    expect(agentsPanel?.textContent).toContain("不把主观体验问题变成生成阻断");
+    expect(agentsPanel?.textContent).not.toContain("核心才是最终规则权威");
+    expect(agentsPanel?.querySelector(":scope > aside")).toBeNull();
 
     const agentCards = [
       ...agentsPanel!.querySelectorAll<HTMLDetailsElement>("details"),
@@ -861,19 +891,44 @@ describe("TopicGenerator result navigation", () => {
     await act(async () => agentCards[0].querySelector("summary")!.click());
     expect(agentCards[0].open).toBe(true);
     expect(agentCards.slice(1).every((card) => !card.open)).toBe(true);
+    expect([...agentCards[0].querySelectorAll("dt")].map((item) => item.textContent)).toEqual([
+      "职责",
+      "Skills",
+      "输入",
+      "提案输出",
+      "职责边界",
+    ]);
+    const workflowDetailsClass = container
+      .querySelector<HTMLDListElement>("#workflow-details-panel dl")!
+      .className;
+    expect(agentCards[0].querySelector("dl")?.classList.contains(workflowDetailsClass)).toBe(true);
 
     await act(async () => agentCards[1].querySelector("summary")!.click());
     expect(agentCards[0].open).toBe(true);
     expect(agentCards[1].open).toBe(true);
 
-    const agentFlow = agentsPanel?.querySelector('[aria-label="Agent 执行关系"]');
-    expect(agentFlow?.querySelectorAll("[data-agent-flow-node]")).toHaveLength(7);
-    const parallelAgents = agentFlow?.querySelector('[data-agent-flow="parallel"]');
-    expect(parallelAgents?.textContent).toContain("页面文案 Agent");
-    expect(parallelAgents?.textContent).toContain("文案审核 Agent");
-    expect(parallelAgents?.textContent).toContain("场景视觉 Agent");
-    expect(agentFlow?.textContent).toContain("Proposal 汇合");
-    expect(agentFlow?.textContent).toContain("确定性核心验证 · 自动 QA");
+    const agentFlow = agentsPanel?.querySelector('[aria-label="当前实现依赖顺序"]');
+    const flowNodes = [...agentFlow!.querySelectorAll<HTMLElement>("[data-agent-flow-node]")];
+    expect(flowNodes).toHaveLength(8);
+    expect(flowNodes.map((node) => node.dataset.agentFlowNode)).toEqual([
+      "topic-strategy",
+      "topic-background-evidence",
+      "topic-page-orchestrator",
+      "topic-strategy",
+      "topic-content",
+      "topic-content-review",
+      "topic-visual",
+      "topic-review",
+    ]);
+    expect(agentFlow?.querySelector('[data-agent-flow="parallel"]')).toBeNull();
+    expect(agentFlow?.textContent).toContain("主题意图");
+    expect(agentFlow?.textContent).toContain("选品阶段内 · 路由规划");
+    expect(agentFlow?.textContent).toContain("选品 · 模块编排");
+    expect(agentFlow?.textContent).toContain("文案生成 → 文案审核 → 视觉生成");
+    expect(agentFlow?.textContent).toContain("资产落盘 → 页面生成 → 自动 QA");
+    expect(agentFlow?.textContent).toContain("体验审核");
+    expect(agentFlow?.textContent).toContain("用户批准");
+    expect(agentFlow?.textContent).not.toContain("Proposal 汇合");
   });
 
   it("shows the selection rationale in the pool heading instead of every product card", async () => {

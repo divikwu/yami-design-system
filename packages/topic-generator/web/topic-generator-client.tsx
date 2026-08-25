@@ -2352,136 +2352,152 @@ function WorkflowView({
       icon: WORKFLOW_ICONS.route,
       name: isChinese ? "Topic Page 编排 Agent" : "Topic Page Orchestrator",
       role: isChinese ? "薄编排" : "Thin orchestration",
-      stage: "02",
+      stage: isChinese ? "选品阶段内 · 路由规划" : "Inside selection · Route planning",
       skills: ["page-orchestration"],
       responsibility: isChinese
-        ? "从注册表选择页面类型、选品策略与模板路线，不执行具体业务阶段。"
-        : "Select a registered page type, selection strategy, and template route without executing business stages.",
-      input: "ThemeIntent + caller constraints + registries",
-      output: "LandingPageExecutionPlanProposal",
+        ? "在 ThemeIntent 和调用方约束下，从注册表选择唯一合法的页面类型、选品策略与模板路由，并交由确定性运行时编译。"
+        : "Select the single valid page type, selection strategy, and template route from registries under the ThemeIntent and caller constraints, then submit it to the deterministic runtime for compilation.",
+      input: isChinese
+        ? "ThemeIntent + 调用方约束 + 已注册的页面类型、选品策略与模板"
+        : "ThemeIntent + caller constraints + registered page types, selection strategies, and templates",
+      output: isChinese
+        ? "页面路由提案（LandingPageExecutionPlanProposal）"
+        : "Page route proposal (LandingPageExecutionPlanProposal)",
       boundary: isChinese
-        ? "不重新理解主题，不选商品，不写文案，不生成图片，也不发布。"
-        : "Does not reinterpret the topic, select products, write copy, generate imagery, or publish.",
+        ? "不重新解释主题，不检索或选择商品，不编排模块，不写文案或生成图片；不修改阶段图、重试和回退规则。"
+        : "Does not reinterpret the topic, retrieve or select products, plan modules, write copy, or generate imagery; never changes the stage graph, retries, or rollback rules.",
     },
     {
       index: "02",
       id: "topic-strategy",
       icon: WORKFLOW_ICONS.pool,
       name: isChinese ? "主题策略 Agent" : "Topic Strategy Agent",
-      role: isChinese ? "专业 Agent" : "Specialist Agent",
-      stage: "02–04",
+      role: isChinese ? "策略 Agent" : "Strategy Agent",
+      stage: isChinese ? "主题意图 / 选品语义 / 模块编排" : "Topic intent / Selection semantics / Module merchandising",
       skills: ["topic-intent", "product-selection", "page-merchandising"],
       responsibility: isChinese
-        ? "理解主题与分类场景语义，在冻结商品池内提出模块主题、场景和商品分配。"
-        : "Interpret topic, category, and scene semantics, then propose modules, scenes, and assignments within frozen pools.",
-      input: "CatalogSnapshot + ThemeIntent + ProductSelectionRun",
-      output: "Semantic · CategoryRole · Scene · Merchandising Proposals",
+        ? "在目录证据约束下解释主题，提出商品语义、分类角色和购物场景，并在冻结选品结果内规划模块与商品分配。"
+        : "Interpret the topic under catalog-evidence constraints, propose product semantics, category roles, and shopping scenes, then plan modules and assignments inside the frozen selection result.",
+      input: isChinese
+        ? "按阶段读取 CatalogSnapshot / ThemeIntent / 冻结的 ProductSelectionResult / 模板规则"
+        : "By stage: CatalogSnapshot / ThemeIntent / frozen ProductSelectionResult / template rules",
+      output: isChinese
+        ? "主题、商品语义、分类角色、场景与模块编排提案"
+        : "Topic, product-semantic, category-role, scene, and module-merchandising proposals",
       boundary: isChinese
-        ? "不声明目录事实，不越过冻结商品池，不撰写最终文案或生成图片。"
-        : "Does not declare catalog facts, escape frozen pools, write final copy, or generate imagery.",
+        ? "不发明或覆盖目录事实，不检索或替换冻结商品，不修改模板组件与确定性校验，不写文案或生成图片。"
+        : "Does not invent or override catalog facts, retrieve or replace frozen products, change template components or deterministic validation, write copy, or generate imagery.",
     },
     {
       index: "03",
       id: "topic-background-evidence",
       icon: WORKFLOW_ICONS.search,
       name: isChinese ? "背景证据 Agent" : "Background Evidence Agent",
-      role: isChinese ? "只读研究 Agent" : "Read-only research Agent",
-      stage: isChinese ? "ThemeIntent 后、选品前" : "After ThemeIntent, before selection",
+      role: isChinese ? "只读研究" : "Read-only research",
+      stage: isChinese ? "主题意图后 · 选品前" : "After topic intent · Before selection",
       skills: ["background-evidence"],
       responsibility: isChinese
-        ? "为不熟悉主题的用户检索品牌官网、Wikipedia 或具名文化机构，形成可审计的背景事实。"
-        : "Research official brand, Wikipedia, or named cultural sources into auditable context for unfamiliar shoppers.",
-      input: "Resolved ThemeIntent + AudienceContext + Host research capability",
-      output: "TopicBackgroundEvidenceProposal",
+        ? "品牌主题优先检索官网，Wikipedia 仅作二级背景，文化主题使用具名权威来源，形成仅用于上下文的可审计事实。"
+        : "Prioritize official sites for brand topics, use Wikipedia only as secondary background, and use named authoritative sources for cultural topics to produce auditable context-only facts.",
+      input: isChinese
+        ? "已解析的 ThemeIntent + AudienceContext + Host 研究能力"
+        : "Resolved ThemeIntent + AudienceContext + Host research capability",
+      output: isChinese
+        ? "背景证据提案（TopicBackgroundEvidenceProposal）"
+        : "Background evidence proposal (TopicBackgroundEvidenceProposal)",
       boundary: isChinese
-        ? "不使用模型记忆补事实，不证明商品功效或流行度，不改变主题、选品、模块或文案。"
-        : "Does not fill facts from model memory, prove product efficacy or popularity, or change intent, selection, modules, or copy.",
+        ? "不使用模型记忆补事实，不产出成分、功效、流行度、库存、折扣、评分或用户效果主张；不改变主题、选品、模块或文案。"
+        : "Does not fill facts from model memory or make ingredient, efficacy, popularity, inventory, discount, rating, or customer-outcome claims; never changes intent, selection, modules, or copy.",
     },
     {
       index: "04",
       id: "topic-content",
       icon: TextIcon,
       name: isChinese ? "页面文案 Agent" : "Topic Content Agent",
-      role: isChinese ? "专业 Agent" : "Specialist Agent",
-      stage: "05",
+      role: isChinese ? "文案生成" : "Content generation",
+      stage: isChinese ? "文案生成" : "Content writing",
       skills: ["content-writing"],
       responsibility: isChinese
-        ? "根据冻结 PagePlan、语言与可引用证据生成模块标题、说明、标签和 CTA。"
-        : "Generate module titles, descriptions, labels, and CTAs from the frozen PagePlan and scoped evidence.",
-      input: "PagePlan + CopyBrief + BackgroundEvidence + scoped catalog evidence",
-      output: "TopicPageContentProposal",
+        ? "仅为 PagePlan 声明的内容槽位生成单语本地化文案，绑定允许的目录与背景证据，并保留模板文案和页面结构。"
+        : "Generate single-locale copy only for content slots declared by PagePlan, bind allowed catalog and background evidence, and preserve template copy and page structure.",
+      input: isChinese
+        ? "PagePlan + CopyBrief + BackgroundEvidence + 允许的证据引用 + 目标语言"
+        : "PagePlan + CopyBrief + BackgroundEvidence + eligible evidence references + target language",
+      output: isChinese
+        ? "单一文案提案或五候选提案（TopicPageContentProposal / TopicPageContentCandidateSetProposal）"
+        : "Single content proposal or five-candidate proposal (TopicPageContentProposal / TopicPageContentCandidateSetProposal)",
       boundary: isChinese
-        ? "不换商品，不改变模块显隐或顺序，不创造商品事实。"
-        : "Does not swap products, change module visibility or order, or invent product facts.",
+        ? "不更换商品，不改变模块显隐、顺序、场景或任务 ID，不改写模板自有文案，不创造商品事实或图像指令。"
+        : "Does not swap products, change module visibility, order, scenes, or task IDs, rewrite template-owned copy, invent product facts, or create image direction.",
     },
     {
       index: "05",
       id: "topic-content-review",
       icon: WORKFLOW_ICONS.qa,
       name: isChinese ? "文案审核 Agent" : "Topic Content Review Agent",
-      role: isChinese ? "只读专业 Agent" : "Read-only specialist",
-      stage: isChinese ? "文案后、图片前" : "After copy, before imagery",
+      role: isChinese ? "只读文案审核" : "Read-only content review",
+      stage: isChinese ? "文案生成后 · 视觉生成前" : "After content writing · Before visual generation",
       skills: ["content-review"],
       responsibility: isChinese
-        ? "独立检查陌生用户可理解性、主题与场景感、模块差异、证据边界和语言质量。"
-        : "Independently review newcomer clarity, topic and scene specificity, module differentiation, evidence boundaries, and language quality.",
-      input: "ContentSpec + CopyBrief + BackgroundEvidence",
-      output: "TopicPageContentReviewDecision",
+        ? "对 ContentSpec 做独立只读审查，检查陌生用户理解、主题与场景特异性、模块差异、证据对齐和语言自然度，返回批准或修改建议。"
+        : "Independently review ContentSpec for newcomer clarity, topic and scene specificity, module differentiation, evidence alignment, and locale naturalness, then return approval or revision guidance.",
+      input: isChinese
+        ? "ContentSpec + CopyBrief + BackgroundEvidence + 审核标准 + 可选跨语言参考"
+        : "ContentSpec + CopyBrief + BackgroundEvidence + review criteria + optional localization reference",
+      output: isChinese
+        ? "文案审核提案（TopicPageContentReviewProposal）"
+        : "Content review proposal (TopicPageContentReviewProposal)",
       boundary: isChinese
-        ? "不改写文案，不搜索新事实，不检查布局或图片；失败时只返回可执行的文案修改问题。"
-        : "Does not rewrite copy, research new facts, or review layout and imagery; returns actionable copy issues only.",
+        ? "不直接改写文案，不搜索新事实，不检查布局或图片；不把主观文案质量当成硬 QA，结构和绑定仍由确定性运行时校验。"
+        : "Does not rewrite copy directly, research new facts, or review layout and imagery; never turns subjective copy quality into hard QA, while structure and bindings remain deterministic-runtime checks.",
     },
     {
       index: "06",
       id: "topic-visual",
       icon: WORKFLOW_ICONS.content,
       name: isChinese ? "场景视觉 Agent" : "Topic Visual Agent",
-      role: isChinese ? "专业 Agent" : "Specialist Agent",
-      stage: "05",
+      role: isChinese ? "视觉生成" : "Visual generation",
+      stage: isChinese ? "视觉生成" : "Visual generation",
       skills: ["visual-generation"],
       responsibility: isChinese
-        ? "根据视觉任务、ContentSpec 与商品引用生成场景媒体和受约束的资产元数据。"
-        : "Generate scene media and constrained asset metadata from visual tasks, ContentSpec, and product references.",
-      input: "PagePlan + approved ContentReviewDecision + ContentSpec + asset tasks",
-      output: "Image media + TopicPageVisualProposal",
+        ? "只处理 PagePlan 声明的资产任务，依据 sceneBrief、已审核 ContentSpec 和商品引用生成图像及真实资产元数据。"
+        : "Process only asset tasks declared by PagePlan, using sceneBrief, the reviewed ContentSpec, and product references to generate imagery and truthful asset metadata.",
+      input: isChinese
+        ? "PagePlan + 已审核 ContentSpec + sceneBrief + asset tasks + productionMode"
+        : "PagePlan + reviewed ContentSpec + sceneBrief + asset tasks + productionMode",
+      output: isChinese
+        ? "图像资产与视觉提案（Image assets + TopicPageVisualProposal）"
+        : "Image assets and visual proposal (Image assets + TopicPageVisualProposal)",
       boundary: isChinese
-        ? "不改商品分配或场景定义，不伪造图片字节、品牌标识和元数据。"
-        : "Does not change assignments or scenes, or fabricate image bytes, brand marks, or metadata.",
+        ? "不新增未分配商品，不改变场景、文案或任务绑定；不伪造文件、尺寸、摘要、模型身份和资产元数据。"
+        : "Does not introduce unassigned products or change scenes, copy, or task bindings; never fabricates files, dimensions, digests, model identity, or asset metadata.",
     },
     {
       index: "07",
       id: "topic-review",
       icon: WORKFLOW_ICONS.qa,
       name: isChinese ? "体验审核 Agent" : "Topic Review Agent",
-      role: isChinese ? "只读专业 Agent" : "Read-only specialist",
-      stage: isChinese ? "硬 QA 后" : "After hard QA",
+      role: isChinese ? "只读体验审核" : "Read-only experience review",
+      stage: isChinese ? "自动 QA 后 · 用户批准前" : "After automatic QA · Before user approval",
       skills: ["page-review"],
       responsibility: isChinese
-        ? "独立检查选品、文案、视觉和跨阶段一致性，建议通过或返回允许的修改阶段。"
-        : "Independently inspect merchandising, copy, visual quality, and cross-stage coherence, then recommend approval or revision.",
-      input: "ExecutionPlan + GenerationSpec + passed QA + previews",
-      output: "TopicPageExperienceReviewProposal",
+        ? "硬 QA 通过后，只读检查桌面与移动预览中的选品、文案、视觉和跨阶段一致性，记录证据化警告并向用户审核提供建议。"
+        : "After hard QA passes, read-only review desktop and mobile previews for merchandising, copy, visual, and cross-stage coherence, recording evidence-bound warnings for human review.",
+      input: isChinese
+        ? "ExecutionPlan + GenerationSpec + 已通过的 QAReport + 桌面/移动预览 + 允许的证据引用"
+        : "ExecutionPlan + GenerationSpec + passed QAReport + desktop/mobile previews + allowed evidence references",
+      output: isChinese
+        ? "体验审核建议与警告（TopicPageExperienceReviewProposal）"
+        : "Experience-review recommendation and warnings (TopicPageExperienceReviewProposal)",
       boundary: isChinese
-        ? "不直接修复结果，不重复硬 QA，不批准发布，也不代替用户 Review。"
-        : "Does not repair output, repeat hard QA, approve publishing, or replace user review.",
+        ? "不直接修复或重跑，不执行硬 QA，不把主观体验问题变成生成阻断，不批准发布，也不代替用户审核。"
+        : "Does not repair or rerun work, perform hard QA, turn subjective experience findings into generation blockers, approve publication, or replace human review.",
     },
   ];
-  const coreResponsibilities = isChinese
-    ? [
-        "页面类型、选品策略与模板注册表",
-        "状态机、执行顺序、尝试次数与回退边界",
-        "目录 / 背景证据、CopyBrief、任务成员和全部 SHA-256 摘要校验",
-        "文案审核通过后才开放视觉生成",
-        "资产落盘、确定性装配、硬 QA 与发布门禁",
-      ]
-    : [
-        "Page-type, selection-strategy, and template registries",
-        "Workflow state, execution order, attempts, and rollback boundaries",
-        "Catalog and background evidence, CopyBrief, task membership, and every SHA-256 binding",
-        "Visual generation only after content-review approval",
-        "Asset persistence, deterministic assembly, hard QA, and publish gate",
-      ];
-  const renderAgentFlowNode = (agent: (typeof agentArchitecture)[number]) => (
+  const renderAgentFlowNode = (
+    agent: (typeof agentArchitecture)[number],
+    stage = agent.stage,
+  ) => (
     <article
       className={`${styles.workflowDiagramNode} ${styles.agentArchitectureFlowNode}`}
       data-agent-flow-node={agent.id}
@@ -2495,8 +2511,10 @@ function WorkflowView({
         />
       </span>
       <span className={styles.workflowDiagramIndex}>{agent.index}</span>
-      <strong>{agent.name}</strong>
-      <small>{isChinese ? "阶段" : "Stage"} {agent.stage}</small>
+      <span className={styles.agentArchitectureFlowCopy}>
+        <strong>{agent.name}</strong>
+        <small>{isChinese ? "阶段" : "Stage"} {stage}</small>
+      </span>
     </article>
   );
 
@@ -2507,15 +2525,6 @@ function WorkflowView({
           <span>01–08 · Target automation workflow</span>
           <h3>{isChinese ? "理想的 Topic 页面生成流程" : "Ideal Topic page generation workflow"}</h3>
         </div>
-        <p>
-          {automation
-            ? isChinese
-              ? "下方流程状态来自本次真实运行；07 用户 Review 与 08 发布仍是人工门控。"
-              : "The status below comes from this run; 07 user review and 08 publishing remain manual gates."
-            : isChinese
-              ? "阶段门控、局部回退；生成页面后将显示本次真实执行证据。"
-              : "Stage-gated with local rollback; generate a page to see runtime evidence."}
-        </p>
       </div>
       {automation && <AutomationRuntimePanel automation={automation} language={uiLanguage} />}
       {categoryRoleRuntime && (
@@ -2741,72 +2750,94 @@ function WorkflowView({
             <span>AGENT SYSTEM MAP · 1 + 6</span>
             <h4>
               {isChinese
-                ? "1 个薄编排 Agent + 6 个专业 Agent"
-                : "1 thin orchestrator + 6 specialist Agents"}
+                ? "1 个薄编排 Agent + 6 个执行与审核 Agent"
+                : "1 thin orchestrator + 6 execution and review Agents"}
             </h4>
             <p>
               {isChinese
-                ? "按能力拆 Agent，按阶段拆 Skill。Agent 只提交 Proposal；确定性核心验证并编译所有可执行 Artifact。"
-                : "Split Agents by capability and Skills by stage. Agents submit proposals; the deterministic core validates and compiles every executable artifact."}
+                ? "按能力拆 Agent，按阶段拆 Skill。Agent 只提出语义、创作与审核判断；确定性运行时验证并编译所有可执行 Artifact。"
+                : "Split Agents by capability and Skills by stage. Agents propose semantic, creative, and review judgment; the deterministic runtime validates and compiles every executable artifact."}
             </p>
           </div>
-          <dl className={styles.agentArchitectureMetrics}>
-            <div><dt>Agents</dt><dd>1 + 6</dd></div>
-            <div><dt>Skills</dt><dd>9</dd></div>
-            <div><dt>{isChinese ? "运行阶段" : "Runtime stages"}</dt><dd>11</dd></div>
-            <div><dt>{isChinese ? "规则权威" : "Rule authority"}</dt><dd>TypeScript</dd></div>
-          </dl>
         </section>
 
         <ol
           className={styles.agentArchitectureFlow}
-          aria-label={isChinese ? "Agent 执行关系" : "Agent execution relationship"}
+          aria-label={isChinese ? "当前实现依赖顺序" : "Current implementation dependency order"}
         >
           <li className={styles.agentArchitectureFlowStep}>
-            {renderAgentFlowNode(agentArchitecture[0])}
+            {renderAgentFlowNode(agentArchitecture[1], isChinese ? "主题意图" : "Theme intent")}
             <span className={styles.agentArchitectureFlowConnector} aria-hidden="true">
               <HugeiconsIcon icon={ArrowDown01Icon} size={20} strokeWidth={1.5} />
             </span>
           </li>
           <li className={styles.agentArchitectureFlowStep}>
-            {renderAgentFlowNode(agentArchitecture[1])}
+            {renderAgentFlowNode(agentArchitecture[2], isChinese ? "背景证据" : "Background evidence")}
             <span className={styles.agentArchitectureFlowConnector} aria-hidden="true">
               <HugeiconsIcon icon={ArrowDown01Icon} size={20} strokeWidth={1.5} />
             </span>
           </li>
           <li className={styles.agentArchitectureFlowStep}>
-            {renderAgentFlowNode(agentArchitecture[2])}
+            {renderAgentFlowNode(agentArchitecture[0], isChinese ? "选品阶段内 · 路由规划" : "Inside selection · Route planning")}
             <span className={styles.agentArchitectureFlowConnector} aria-hidden="true">
               <HugeiconsIcon icon={ArrowDown01Icon} size={20} strokeWidth={1.5} />
             </span>
           </li>
-          <li className={styles.agentArchitectureParallelStep}>
-            <span className={styles.agentArchitectureParallelLabel}>
-              {isChinese ? "阶段 05 · 按依赖顺序执行" : "Stage 05 · Run in dependency order"}
+          <li className={styles.agentArchitectureFlowStep}>
+            {renderAgentFlowNode(agentArchitecture[1], isChinese ? "选品 · 模块编排" : "Selection · Module merchandising")}
+            <span className={styles.agentArchitectureFlowConnector} aria-hidden="true">
+              <HugeiconsIcon icon={ArrowDown01Icon} size={20} strokeWidth={1.5} />
             </span>
-            <ol
-              className={styles.agentArchitectureParallelNodes}
-              data-agent-flow="parallel"
-              aria-label={isChinese ? "文案生成、独立审核、视觉生成按依赖顺序执行" : "Content generation, independent review, and visual generation run in dependency order"}
-            >
-              {[agentArchitecture[3], agentArchitecture[4], agentArchitecture[5]].map((agent) => (
-                <li key={agent.id}>{renderAgentFlowNode(agent)}</li>
-              ))}
-            </ol>
-            <div className={styles.agentArchitectureMerge}>
-              <strong>{isChinese ? "Proposal 汇合" : "Merge proposals"}</strong>
-              <span>
+          </li>
+          <li className={styles.agentArchitectureFlowStep}>
+            <span className={styles.agentArchitectureSequenceLabel}>
+              {isChinese
+                ? "文案生成 → 文案审核 → 视觉生成"
+                : "Content writing → Content review → Visual generation"}
+            </span>
+            {renderAgentFlowNode(agentArchitecture[3], isChinese ? "文案生成" : "Content writing")}
+            <span className={styles.agentArchitectureFlowConnector} aria-hidden="true">
+              <HugeiconsIcon icon={ArrowDown01Icon} size={20} strokeWidth={1.5} />
+            </span>
+          </li>
+          <li className={styles.agentArchitectureFlowStep}>
+            {renderAgentFlowNode(agentArchitecture[4], isChinese ? "文案审核" : "Content review")}
+            <span className={styles.agentArchitectureFlowConnector} aria-hidden="true">
+              <HugeiconsIcon icon={ArrowDown01Icon} size={20} strokeWidth={1.5} />
+            </span>
+          </li>
+          <li className={styles.agentArchitectureFlowStep}>
+            {renderAgentFlowNode(agentArchitecture[5], isChinese ? "视觉生成" : "Visual generation")}
+            <span className={styles.agentArchitectureFlowConnector} aria-hidden="true">
+              <HugeiconsIcon icon={ArrowDown01Icon} size={20} strokeWidth={1.5} />
+            </span>
+          </li>
+          <li className={styles.agentArchitectureFlowStep}>
+            <article className={styles.agentArchitectureRuntimeNode} data-system-flow-node="deterministic-runtime">
+              <span>08–10 · SYSTEM</span>
+              <strong>{isChinese ? "确定性系统阶段" : "Deterministic system stages"}</strong>
+              <small>
                 {isChinese
-                  ? "确定性核心验证 · 自动 QA"
-                  : "Deterministic core validation · automatic QA"}
-              </span>
-            </div>
+                  ? "资产落盘 → 页面生成 → 自动 QA"
+                  : "Asset persistence → Page generation → Automatic QA"}
+              </small>
+            </article>
             <span className={styles.agentArchitectureFlowConnector} aria-hidden="true">
               <HugeiconsIcon icon={ArrowDown01Icon} size={20} strokeWidth={1.5} />
             </span>
           </li>
           <li className={styles.agentArchitectureFlowStep}>
-            {renderAgentFlowNode(agentArchitecture[6])}
+            {renderAgentFlowNode(agentArchitecture[6], isChinese ? "体验审核" : "Experience review")}
+            <span className={styles.agentArchitectureFlowConnector} aria-hidden="true">
+              <HugeiconsIcon icon={ArrowDown01Icon} size={20} strokeWidth={1.5} />
+            </span>
+          </li>
+          <li className={styles.agentArchitectureFlowStep}>
+            <article className={styles.agentArchitectureRuntimeNode} data-manual-gate="user-approval">
+              <span>12 · HUMAN GATE</span>
+              <strong>{isChinese ? "用户批准" : "User approval"}</strong>
+              <small>{isChinese ? "批准后才可发布" : "Publishing remains blocked until approval"}</small>
+            </article>
           </li>
         </ol>
 
@@ -2840,37 +2871,21 @@ function WorkflowView({
                 />
               </summary>
               <div className={styles.agentArchitectureBody}>
-                <p>{agent.responsibility}</p>
-                <div className={styles.agentSkillList}>
-                  <span>Skills</span>
-                  <div>{agent.skills.map((skill) => <code key={skill}>{skill}</code>)}</div>
-                </div>
-                <dl className={styles.agentArchitectureDetails}>
+                <dl className={`${styles.workflowDetails} ${styles.agentArchitectureDetails}`}>
+                  <div><dt>{isChinese ? "职责" : "Responsibility"}</dt><dd>{agent.responsibility}</dd></div>
+                  <div>
+                    <dt>Skills</dt>
+                    <dd><span className={styles.agentSkillList}>{agent.skills.map((skill) => <code key={skill}>{skill}</code>)}</span></dd>
+                  </div>
                   <div><dt>{isChinese ? "输入" : "Input"}</dt><dd>{agent.input}</dd></div>
-                  <div><dt>Proposal</dt><dd>{agent.output}</dd></div>
-                  <div><dt>{isChinese ? "不允许做什么" : "Must not"}</dt><dd>{agent.boundary}</dd></div>
+                  <div><dt>{isChinese ? "提案输出" : "Proposal output"}</dt><dd>{agent.output}</dd></div>
+                  <div><dt>{isChinese ? "职责边界" : "Responsibility boundary"}</dt><dd>{agent.boundary}</dd></div>
                 </dl>
               </div>
             </details>
           ))}
         </section>
 
-        <aside className={styles.agentCoreAuthority}>
-          <header>
-            <span>DETERMINISTIC TYPESCRIPT CORE</span>
-            <h4>{isChinese ? "核心才是最终规则权威" : "The core is the final rule authority"}</h4>
-            <p>
-              {isChinese
-                ? "Agent 的 Proposal 不能直接成为页面结果；每一步都必须回到同一个核心状态机验证。"
-                : "An Agent proposal never becomes page output directly; every step returns to the same core state machine for validation."}
-            </p>
-          </header>
-          <ul>{coreResponsibilities.map((item) => <li key={item}>{item}</li>)}</ul>
-          <footer>
-            <span>{isChinese ? "编译产物" : "Compiled artifacts"}</span>
-            <code>ExecutionPlan → ProductSelectionResult → PagePlan → ContentSpec → AssetManifest → GenerationSpec → QAReport → ReviewPackage</code>
-          </footer>
-        </aside>
       </div>
       <dialog
         ref={intentHelpDialog}
