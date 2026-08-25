@@ -4,6 +4,91 @@ import { userEvent } from "storybook/test";
 import { ProductDetailPage } from "./ProductDetailPage";
 import { createProductDetailPageFixture } from "./fixtures";
 
+async function verifyDetailDisclosures(details: HTMLElement) {
+  const modules = Array.from(
+    details.querySelectorAll<HTMLElement>("[data-pdp-detail-module]")
+  );
+  const triggers = Array.from(
+    details.querySelectorAll<HTMLButtonElement>(
+      '[data-slot="product-detail-disclosure-trigger"]'
+    )
+  );
+  const contents = Array.from(
+    details.querySelectorAll<HTMLElement>(
+      '[data-slot="product-detail-disclosure-content"]'
+    )
+  );
+  const arrows = Array.from(
+    details.querySelectorAll<HTMLElement>(
+      '[data-slot="product-detail-disclosure-arrow"]'
+    )
+  );
+  const collapsedArrowMasks = arrows.map(
+    (arrow) => getComputedStyle(arrow).maskImage
+  );
+
+  if (
+    modules.length !== 3 ||
+    triggers.length !== 3 ||
+    contents.length !== 3 ||
+    arrows.length !== 3 ||
+    triggers.some(
+      (trigger, index) =>
+        trigger.getAttribute("aria-expanded") !== "false" ||
+        trigger.getAttribute("aria-controls") !== contents[index]?.id ||
+        !contents[index]?.hidden ||
+        modules[index]?.dataset.expanded !== "false" ||
+        Math.round(trigger.getBoundingClientRect().height) < 44 ||
+        Math.abs(
+          trigger.getBoundingClientRect().right -
+            arrows[index]!.getBoundingClientRect().right
+        ) > 1 ||
+        Math.round(arrows[index]!.getBoundingClientRect().width) !== 16 ||
+        Math.round(arrows[index]!.getBoundingClientRect().height) !== 16 ||
+        arrows[index]!.dataset.direction !== "down" ||
+        collapsedArrowMasks[index] === "none"
+    )
+  ) {
+    throw new Error(
+      "PDP detail modules must render as three collapsed, full-row disclosure buttons with right-side arrows"
+    );
+  }
+
+  for (const [index, trigger] of triggers.entries()) {
+    await userEvent.click(trigger);
+    if (
+      trigger.getAttribute("aria-expanded") !== "true" ||
+      contents[index]?.hidden ||
+      modules[index]?.dataset.expanded !== "true" ||
+      arrows[index]!.dataset.direction !== "up" ||
+      getComputedStyle(arrows[index]!).maskImage ===
+        collapsedArrowMasks[index] ||
+      triggers.some(
+        (otherTrigger, otherIndex) =>
+          otherIndex !== index &&
+          (otherTrigger.getAttribute("aria-expanded") !== "false" ||
+            !contents[otherIndex]?.hidden)
+      )
+    ) {
+      throw new Error(
+        "Each PDP detail disclosure must expand independently when its title row is clicked"
+      );
+    }
+
+    trigger.focus();
+    await userEvent.keyboard("{Enter}");
+    if (
+      trigger.getAttribute("aria-expanded") !== "false" ||
+      !contents[index]?.hidden ||
+      modules[index]?.dataset.expanded !== "false"
+    ) {
+      throw new Error(
+        "PDP detail disclosure buttons must support keyboard collapse"
+      );
+    }
+  }
+}
+
 const meta = {
   title: "YAMI/Pages/Product Detail",
   component: ProductDetailPage,
@@ -26,18 +111,36 @@ const meta = {
     },
   },
   globals: {
-    locale: "en",
     theme: "light",
-    viewport: { value: "yamiDesktopXl", isRotated: false },
   },
   args: createProductDetailPageFixture(),
+  render: (args, { globals }) => {
+    const locale = globals.locale === "zh" ? "zh" : "en";
+    const localizedArgs = createProductDetailPageFixture(locale);
+
+    return (
+      <ProductDetailPage
+        {...localizedArgs}
+        contentMaxWidth={args.contentMaxWidth}
+      />
+    );
+  },
 } satisfies Meta<typeof ProductDetailPage>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const PDP: Story = {
-  name: "Gallery PDP",
+  name: "PC",
+};
+
+export const DesktopRegression: Story = {
+  name: "Desktop regression",
+  tags: ["!dev", "!autodocs"],
+  globals: {
+    locale: "en",
+    viewport: { value: "yamiDesktopXl", isRotated: false },
+  },
   play: async ({ canvasElement, args }) => {
     const viewportWidth = canvasElement.ownerDocument.defaultView?.innerWidth ?? 0;
     if (viewportWidth < 1024) {
@@ -174,6 +277,12 @@ export const PDP: Story = {
     );
     const shippingLocation = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-detail-shipping-location"]'
+    );
+    const shippingDivider = sellerShippingSection?.querySelector<HTMLElement>(
+      ':scope > [data-slot="divider"]'
+    );
+    const fulfillmentDivider = purchaseFulfillment?.querySelector<HTMLElement>(
+      ':scope > [data-slot="divider"]'
     );
     const purchaseDetails = canvasElement.querySelector<HTMLAnchorElement>(
       '[data-slot="product-detail-purchase-details"]'
@@ -423,7 +532,7 @@ export const PDP: Story = {
           getComputedStyle(section).paddingBottom !== "16px" ||
           getComputedStyle(section).paddingLeft !== "12px" ||
           getComputedStyle(section).borderTopWidth !==
-            (index === 0 ? "0px" : "1px")
+            (index === 2 ? "1px" : "0px")
       ) ||
       getComputedStyle(sellerShippingSection).rowGap !== "12px" ||
       getComputedStyle(sellerShippingSection).columnGap !== "12px" ||
@@ -444,6 +553,26 @@ export const PDP: Story = {
       !deliveryEstimate ||
       !deliveryTimes ||
       !shippingLocation ||
+      !shippingDivider ||
+      Math.round(shippingDivider.getBoundingClientRect().height) !== 1 ||
+      shippingDivider.getBoundingClientRect().top <
+        purchaseSeller.getBoundingClientRect().bottom ||
+      shippingDivider.getBoundingClientRect().bottom >
+        shippingBlock.getBoundingClientRect().top ||
+      !fulfillmentDivider ||
+      Math.round(fulfillmentDivider.getBoundingClientRect().height) !== 1 ||
+      Math.abs(
+        fulfillmentDivider.getBoundingClientRect().left -
+          shippingDivider.getBoundingClientRect().left
+      ) > 1 ||
+      Math.abs(
+        fulfillmentDivider.getBoundingClientRect().right -
+          shippingDivider.getBoundingClientRect().right
+      ) > 1 ||
+      fulfillmentDivider.getBoundingClientRect().top <
+        sellerShippingSection.getBoundingClientRect().bottom ||
+      fulfillmentDivider.getBoundingClientRect().bottom >
+        guaranteeSection.getBoundingClientRect().top ||
       getComputedStyle(shippingBlock).fontSize !== "14px" ||
       getComputedStyle(deliveryEstimate).color !== "rgba(0, 0, 0, 0.87)" ||
       deliveryTimes.length !== 4 ||
@@ -596,7 +725,7 @@ export const PDP: Story = {
           module.parentElement !== details ||
           getComputedStyle(module).display !== "flex" ||
           getComputedStyle(module).flexDirection !== "column" ||
-          getComputedStyle(module).rowGap !== "12px" ||
+          getComputedStyle(module).rowGap !== "normal" ||
           getComputedStyle(module).paddingTop !== "16px" ||
           getComputedStyle(module).paddingBottom !== "16px" ||
           getComputedStyle(module).borderTopWidth !==
@@ -618,7 +747,7 @@ export const PDP: Story = {
       getComputedStyle(detailSubheading).fontSize !== "16px" ||
       getComputedStyle(detailSubheading).fontWeight !== "500" ||
       getComputedStyle(detailSubheading).marginBottom !== "0px" ||
-      getComputedStyle(detailSubheading.parentElement!).rowGap !== "12px" ||
+      getComputedStyle(detailSubheading.parentElement!).rowGap !== "normal" ||
       !highlightList ||
       getComputedStyle(highlightList).rowGap !== "8px" ||
       Math.abs(
@@ -786,6 +915,7 @@ export const PDP: Story = {
         "Product Detail page did not render its complete purchase state"
       );
     }
+    await verifyDetailDisclosures(details);
     await userEvent.click(purchaseTagToggle);
     if (
       purchaseTagToggle.getAttribute("aria-expanded") !== "true" ||
@@ -916,7 +1046,43 @@ export const PDP: Story = {
 };
 
 export const Mobile: Story = {
+  name: "Mobile",
+};
+
+export const ChineseRegression: Story = {
+  name: "Chinese regression",
+  tags: ["!dev", "!autodocs"],
   globals: {
+    locale: "zh",
+    viewport: { value: "yamiMobile", isRotated: false },
+  },
+  play: async ({ canvasElement }) => {
+    const page = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-detail-page"]'
+    );
+    const title = canvasElement.querySelector<HTMLElement>("#product-title");
+    const addToCart = canvasElement.querySelector<HTMLButtonElement>(
+      '[data-pdp-add-to-cart="true"]'
+    );
+
+    if (
+      page?.lang !== "zh" ||
+      title?.textContent?.trim() !==
+        "Torriden DIVE IN 低分子玻尿酸补水面膜 10片" ||
+      addToCart?.textContent?.trim() !== "加入购物车"
+    ) {
+      throw new Error(
+        "PDP Chinese locale must update the document language and visible purchase content"
+      );
+    }
+  },
+};
+
+export const MobileRegression: Story = {
+  name: "Mobile regression",
+  tags: ["!dev", "!autodocs"],
+  globals: {
+    locale: "en",
     viewport: { value: "yamiMobile", isRotated: false },
   },
   play: async ({ canvasElement }) => {
@@ -1030,6 +1196,25 @@ export const Mobile: Story = {
     const purchaseSellerLabel = purchaseSeller?.querySelector<HTMLElement>(
       '[data-slot="product-detail-seller-label"]'
     );
+    const mobileSellerShippingSection =
+      purchaseFulfillment?.querySelector<HTMLElement>(
+        '[data-slot="product-detail-seller-shipping-section"]'
+      );
+    const mobileShippingBlock = purchaseFulfillment?.querySelector<HTMLElement>(
+      '[data-slot="product-detail-shipping"]'
+    );
+    const mobileShippingDivider =
+      mobileSellerShippingSection?.querySelector<HTMLElement>(
+        ':scope > [data-slot="divider"]'
+      );
+    const mobileFulfillmentDivider =
+      purchaseFulfillment?.querySelector<HTMLElement>(
+        ':scope > [data-slot="divider"]'
+      );
+    const mobileGuaranteeSection =
+      purchaseFulfillment?.querySelector<HTMLElement>(
+        '[data-slot="product-detail-guarantee-section"]'
+      );
     const mobileGuaranteeItems = purchaseFulfillment?.querySelectorAll<HTMLElement>(
       '[data-slot="product-detail-guarantees"] li'
     );
@@ -1253,6 +1438,28 @@ export const Mobile: Story = {
       !purchaseSellerLogo ||
       !purchaseSeller ||
       !purchaseSellerLabel ||
+      !mobileShippingBlock ||
+      !mobileShippingDivider ||
+      Math.round(mobileShippingDivider.getBoundingClientRect().height) !== 1 ||
+      mobileShippingDivider.getBoundingClientRect().top <
+        purchaseSeller.getBoundingClientRect().bottom ||
+      mobileShippingDivider.getBoundingClientRect().bottom >
+        mobileShippingBlock.getBoundingClientRect().top ||
+      !mobileFulfillmentDivider ||
+      !mobileGuaranteeSection ||
+      Math.round(mobileFulfillmentDivider.getBoundingClientRect().height) !== 1 ||
+      Math.abs(
+        mobileFulfillmentDivider.getBoundingClientRect().left -
+          mobileShippingDivider.getBoundingClientRect().left
+      ) > 1 ||
+      Math.abs(
+        mobileFulfillmentDivider.getBoundingClientRect().right -
+          mobileShippingDivider.getBoundingClientRect().right
+      ) > 1 ||
+      mobileFulfillmentDivider.getBoundingClientRect().top <
+        mobileSellerShippingSection.getBoundingClientRect().bottom ||
+      mobileFulfillmentDivider.getBoundingClientRect().bottom >
+        mobileGuaranteeSection.getBoundingClientRect().top ||
       purchaseSellerLabel.textContent?.trim() !== "Sold & Shipped by Yami" ||
       getComputedStyle(purchaseSeller).flexDirection !== "row" ||
       getComputedStyle(purchaseSeller).alignItems !== "center" ||
@@ -1305,12 +1512,16 @@ export const Mobile: Story = {
       !details ||
       !detailModules ||
       detailModules.length !== 3 ||
-      getComputedStyle(details).rowGap !== "16px" ||
+      getComputedStyle(details).rowGap !== "4px" ||
+      getComputedStyle(details).paddingTop !== "4px" ||
+      getComputedStyle(details).paddingBottom !== "4px" ||
+      getComputedStyle(details).paddingLeft !== "12px" ||
+      getComputedStyle(details).paddingRight !== "12px" ||
       Array.from(detailModules).some(
         (module, index) =>
-          getComputedStyle(module).rowGap !== "8px" ||
+          getComputedStyle(module).rowGap !== "normal" ||
           getComputedStyle(module).paddingTop !==
-            (index === 0 ? "0px" : "12px") ||
+            (index === 0 ? "0px" : "4px") ||
           getComputedStyle(module).paddingBottom !== "0px"
       ) ||
       overview.parentElement !== leftContent ||
@@ -1456,6 +1667,8 @@ export const Mobile: Story = {
       );
     }
 
+    await verifyDetailDisclosures(details);
+
     const cicaOption = Array.from(
       canvasElement.querySelectorAll<HTMLButtonElement>(
         '[data-pdp-option-group="mask-type"] button'
@@ -1471,6 +1684,7 @@ export const Mobile: Story = {
 
 export const Tablet: Story = {
   name: "Tablet aligned mobile layout",
+  tags: ["!dev", "!autodocs"],
   globals: {
     viewport: { value: "yamiTablet", isRotated: false },
   },
@@ -1502,11 +1716,26 @@ export const Tablet: Story = {
     const mobileHeaderBar = canvasElement.querySelector<HTMLElement>(
       '[data-slot="header-mobile-bar"]'
     );
+    const mobileHeader = mobileHeaderBar?.closest<HTMLElement>(
+      '[data-slot="header"]'
+    );
+    const mobileHeaderBand = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="header-mobile"]'
+    );
+    const mobileHeaderPdpActions = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="header-mobile-pdp-actions"]'
+    );
+    const mobileHeaderSearchRow = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="header-mobile-search-row"]'
+    );
     const thumbnails = gallery?.querySelector<HTMLElement>(
       '[data-slot="product-media-gallery-thumbnails"]'
     );
     const stage = gallery?.querySelector<HTMLElement>(
       '[data-slot="product-media-gallery-stage"]'
+    );
+    const galleryNavigationButtons = gallery?.querySelectorAll<HTMLElement>(
+      '[data-rail-navigation-button="true"]'
     );
 
     if (
@@ -1518,7 +1747,17 @@ export const Tablet: Story = {
       !purchaseFulfillment ||
       !details ||
       !utilityRow ||
+      !mobileHeader ||
+      getComputedStyle(mobileHeader).position !== "sticky" ||
+      getComputedStyle(mobileHeader).top !== "0px" ||
+      !mobileHeaderBand ||
+      mobileHeaderBand.dataset.mobileVariant !== "pdp" ||
       !mobileHeaderBar ||
+      Math.round(mobileHeaderBar.getBoundingClientRect().height) !== 56 ||
+      !mobileHeaderPdpActions ||
+      getComputedStyle(mobileHeaderPdpActions).display !== "flex" ||
+      !mobileHeaderSearchRow ||
+      getComputedStyle(mobileHeaderSearchRow).display !== "none" ||
       !thumbnails ||
       !stage ||
       getComputedStyle(mobileHeaderBar).display === "none" ||
@@ -1527,6 +1766,10 @@ export const Tablet: Story = {
       getComputedStyle(productInfoColumn).display !== "contents" ||
       getComputedStyle(gallery).position !== "static" ||
       getComputedStyle(thumbnails).display !== "none" ||
+      galleryNavigationButtons?.length !== 2 ||
+      Array.from(galleryNavigationButtons).some(
+        (button) => getComputedStyle(button).display !== "none"
+      ) ||
       purchaseFulfillment.getBoundingClientRect().top <=
         options.getBoundingClientRect().bottom ||
       details.getBoundingClientRect().top <=
@@ -1543,6 +1786,7 @@ export const Tablet: Story = {
 
 export const DesktopMdBoundary: Story = {
   name: "Desktop-md boundary",
+  tags: ["!dev", "!autodocs"],
   globals: {
     viewport: { value: "yamiDesktopMd", isRotated: false },
   },
@@ -1585,6 +1829,7 @@ export const DesktopMdBoundary: Story = {
 
 export const NarrowDesktop: Story = {
   name: "Narrow desktop stable layout",
+  tags: ["!dev", "!autodocs"],
   globals: {
     viewport: { value: "yamiDesktop", isRotated: false },
   },
@@ -1645,6 +1890,7 @@ export const NarrowDesktop: Story = {
 
 export const CustomContentWidth: Story = {
   name: "Custom content width",
+  tags: ["!dev", "!autodocs"],
   args: {
     contentMaxWidth: 1200,
   },

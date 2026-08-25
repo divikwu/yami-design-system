@@ -1,11 +1,12 @@
 "use client";
 
-import { type CSSProperties, useState } from "react";
+import { type CSSProperties, type ReactNode, useState } from "react";
 
 import {
   Badge,
   Button,
   Card,
+  Divider,
   FilterChip,
   FilterChipGroup,
   Footer,
@@ -77,7 +78,7 @@ function cx(...classes: Array<string | false | null | undefined>) {
 }
 
 const deliveryTimePattern =
-  /(\btomorrow\b|\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{1,2}\b|\b\d{1,2}:\d{2} (?:AM|PM)\b)/gi;
+  /(\btomorrow\b|\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{1,2}\b|\b\d{1,2}:\d{2} (?:AM|PM)\b|明天|\d{1,2}月\d{1,2}日|(?:凌晨|上午|下午|晚上)\s*\d{1,2}:\d{2})/gi;
 
 function DeliveryEstimate({ children }: { children: string }) {
   return (
@@ -113,6 +114,58 @@ function RatingStar() {
         fill="currentColor"
       />
     </svg>
+  );
+}
+
+function DetailDisclosure({
+  id,
+  label,
+  headingLevel = 2,
+  children,
+}: {
+  id: "highlights" | "specifications" | "disclaimer";
+  label: string;
+  headingLevel?: 2 | 3;
+  children: ReactNode;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const headingId = `product-${id}`;
+  const contentId = `${headingId}-content`;
+  const Heading = headingLevel === 3 ? "h3" : "h2";
+
+  return (
+    <div
+      className={styles.detailModule}
+      data-expanded={expanded}
+      data-pdp-detail-module={id}
+    >
+      <Heading id={headingId}>
+        <button
+          className={styles.detailToggle}
+          type="button"
+          aria-controls={contentId}
+          aria-expanded={expanded}
+          data-slot="product-detail-disclosure-trigger"
+          onClick={() => setExpanded((current) => !current)}
+        >
+          <span>{label}</span>
+          <span
+            className={styles.detailArrow}
+            aria-hidden="true"
+            data-direction={expanded ? "up" : "down"}
+            data-slot="product-detail-disclosure-arrow"
+          />
+        </button>
+      </Heading>
+      <div
+        className={styles.detailContent}
+        id={contentId}
+        data-slot="product-detail-disclosure-content"
+        hidden={!expanded}
+      >
+        {children}
+      </div>
+    </div>
   );
 }
 
@@ -432,23 +485,21 @@ export function ProductDetailPage({
                     aria-labelledby="product-highlights"
                     data-slot="product-detail-details"
                   >
-                    <div
-                      className={styles.detailModule}
-                      data-pdp-detail-module="highlights"
+                    <DetailDisclosure
+                      id="highlights"
+                      label={copy.productHighlights}
                     >
-                      <h2 id="product-highlights">{copy.productHighlights}</h2>
                       <ul className={styles.highlightList}>
                         {highlights.map((highlight) => (
                           <li key={highlight}>{highlight}</li>
                         ))}
                       </ul>
-                    </div>
+                    </DetailDisclosure>
 
-                    <div
-                      className={styles.detailModule}
-                      data-pdp-detail-module="specifications"
+                    <DetailDisclosure
+                      id="specifications"
+                      label={copy.specifications}
                     >
-                      <h2>{copy.specifications}</h2>
                       <dl className={styles.specificationList}>
                         {specifications.map((specification) => (
                           <div key={specification.label}>
@@ -457,15 +508,15 @@ export function ProductDetailPage({
                           </div>
                         ))}
                       </dl>
-                    </div>
+                    </DetailDisclosure>
 
-                    <div
-                      className={styles.detailModule}
-                      data-pdp-detail-module="disclaimer"
+                    <DetailDisclosure
+                      id="disclaimer"
+                      label={copy.disclaimer}
+                      headingLevel={3}
                     >
-                      <h3>{copy.disclaimer}</h3>
                       <p className={styles.disclaimer}>{copy.disclaimerBody}</p>
-                    </div>
+                    </DetailDisclosure>
                   </section>
                 </div>
               </div>
@@ -605,6 +656,7 @@ export function ProductDetailPage({
                             </picture>
                           </div>
                         </div>
+                        <Divider />
                         <div
                           className={styles.shippingBlock}
                           data-slot="product-detail-shipping"
@@ -626,6 +678,7 @@ export function ProductDetailPage({
                           <DeliveryEstimate>{copy.deliveryEstimate}</DeliveryEstimate>
                         </div>
                       </div>
+                      <Divider className={styles.purchaseFulfillmentDivider} />
                       <div
                         className={styles.purchaseGuaranteeSection}
                         data-slot="product-detail-guarantee-section"

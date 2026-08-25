@@ -99,7 +99,7 @@
       "sourceSha256": "3b2f5b6f4971c5e6849952bc489d67f852ec61629a2cf3c5ae58edf9570e3458",
       "disposition": "migrated",
       "destination": "packages/design-system/assets/icons/README.md",
-      "destinationSha256": "11a7f6b6ab060d4e6ebcdb87f5c791b377a6a6e0944a228677a21e3a3f0f7f64"
+      "destinationSha256": "cadbff30b092245d753af9b891900a88cfe214af39d292dfb12c1868fce43ac4"
     },
     {
       "source": "assets/icons/action/arrow-left.svg",
@@ -680,7 +680,7 @@
       "sourceSha256": "5b66c99a250c9e188e3b9f330ecb172c08db3a9dcc103f4eabbde14bebfed502",
       "disposition": "migrated",
       "destination": "packages/design-system/assets/icons/icons.meta.json",
-      "destinationSha256": "300b57f39a0ea1192ba1570e6ea66170adf41e5e6c9778ecc6019a1c4bc783b8"
+      "destinationSha256": "8221714952cade45f2324c314db98a702f7f5c3fb24f03f1cde42015d7f7e5ef"
     },
     {
       "source": "assets/icons/social-monochrome/facebook.svg",
@@ -1044,14 +1044,14 @@
       "sourceSha256": "9b6806fc353b6b3da5f56a233c56ef4d871fb9cafe30870237f51a2c0e51860d",
       "disposition": "regenerated",
       "destination": "packages/design-system/generated/catalog.json",
-      "destinationSha256": "a367c5a0244c2dc3e98d25addb0c1c8f0885b29831e904fcd922e312b57a3219"
+      "destinationSha256": "484ba457b99bf920273ce3fb7d0e54117ea8fd50c800ffed4db84662a3f9f9cb"
     },
     {
       "source": "catalog.json",
       "sourceSha256": "3333682325d00194fb646874f8453e3545a46813986fbac22e9e0bf18f87b5fa",
       "disposition": "regenerated",
       "destination": "packages/design-system/generated/catalog.json",
-      "destinationSha256": "a367c5a0244c2dc3e98d25addb0c1c8f0885b29831e904fcd922e312b57a3219"
+      "destinationSha256": "484ba457b99bf920273ce3fb7d0e54117ea8fd50c800ffed4db84662a3f9f9cb"
     },
     {
       "source": "color-primitives.stories.tsx",
@@ -1891,7 +1891,7 @@
       "sourceSha256": "a68f5c1b9b819e8bb9f6abdce659ca731f621546e03e84c0204d3bf4d1e5497e",
       "disposition": "migrated",
       "destination": "packages/design-system/components/Header/Header.module.css",
-      "destinationSha256": "0269aec462605f331ebc6f6977941f64b840f930714bc1b3be781d41c1ec9da8"
+      "destinationSha256": "79b68d2a27f73de393f3c4a228f3d48dc62618f8cefff45d98c4d31caf1511a5"
     },
     {
       "source": "components/Header/Header.stories.module.css",
@@ -1919,7 +1919,7 @@
       "sourceSha256": "bce934ca3920e9cff07a9430d4f83656c9cb28ae5ad923fcccc1748cfbdd5787",
       "disposition": "migrated",
       "destination": "packages/design-system/components/Header/Header.types.ts",
-      "destinationSha256": "66446bfcb8217659467794172c6fafa0f45f7c15fdfe9f66253534e3b67dd425"
+      "destinationSha256": "689598489f59883be1e9502ef48eff19cebfbaaf6006086109ce033b0be74124"
     },
     {
       "source": "components/Header/HeaderCategoryRail.tsx",
@@ -2150,14 +2150,14 @@
       "sourceSha256": "975ff4584223b981ca2576d95e5286e7060126318d4ee61b1367724a51259760",
       "disposition": "migrated",
       "destination": "packages/design-system/components/Header/meta.json",
-      "destinationSha256": "3a06b17600bb4dc93cc0bfe037ce48d3a98bd10412acf5a9faf7caddc331a9b8"
+      "destinationSha256": "893c9ae19e591fabd2f7b2faa9a68887cdc58e75778054f7568b47274505ed38"
     },
     {
       "source": "components/Header/usage.md",
       "sourceSha256": "6be002ddd249abe23ca95a83c4eb6e6848eafc0111a82677fe6b0115f0c15689",
       "disposition": "migrated",
       "destination": "packages/design-system/components/Header/usage.md",
-      "destinationSha256": "0403a78cd227c1a0bbcee6109681881d2dff8228e576df7bb369af323d59912f"
+      "destinationSha256": "7aef0aa34d165e5f8e71af39765bc1dc154cc5ca7063d56018ca1462c54f5fee"
     },
     {
       "source": "components/HeroBanner/HeroBanner.figma.tsx",

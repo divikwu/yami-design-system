@@ -337,7 +337,6 @@
   padding: var(--space-200) var(--space-150);
 }
 
-.purchaseFulfillmentGroup > div + div,
 .purchaseTagsBlock {
   border-block-start: var(--stroke-default) solid var(--divider-default);
 }
@@ -345,6 +344,11 @@
 .purchaseFulfillmentGroup {
   display: flex;
   flex-direction: column;
+}
+
+.purchaseFulfillmentDivider {
+  width: auto;
+  margin-inline: var(--space-150);
 }
 
 .purchaseSellerShippingSection,
@@ -587,7 +591,6 @@
 .detailModule {
   display: flex;
   flex-direction: column;
-  gap: var(--space-150);
   padding-block: var(--space-200);
 }
 
@@ -599,6 +602,47 @@
 .detailModule h3,
 .detailModule p {
   margin: 0;
+}
+
+.detailToggle {
+  display: flex;
+  width: 100%;
+  min-height: calc(var(--space-600) - var(--space-050));
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-150);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.detailToggle:focus-visible {
+  outline: var(--stroke-thick) solid var(--border-focus);
+  outline-offset: var(--space-050);
+}
+
+.detailArrow {
+  width: var(--space-200);
+  height: var(--space-200);
+  flex: 0 0 auto;
+  background: currentColor;
+  mask: url("../../../design-system/assets/icons/action/arrow-down.svg") center / contain no-repeat;
+}
+
+.detailArrow[data-direction="up"] {
+  mask-image: url("../../../design-system/assets/icons/action/arrow-up.svg");
+}
+
+.detailContent {
+  padding-block-start: var(--space-150);
+}
+
+.detailContent[hidden] {
+  display: none;
 }
 
 .details h2 {
@@ -789,21 +833,26 @@
   }
 
   .details {
+    box-sizing: border-box;
+    width: calc(100% - var(--space-200));
     order: 2;
-    gap: var(--space-200);
-    margin-inline: var(--space-100);
-    padding: var(--space-150);
+    gap: var(--space-050);
+    margin-inline: auto;
+    padding: var(--space-050) var(--space-150);
     border-radius: var(--radius-surface-default);
     background: var(--surface-primary);
   }
 
   .detailModule {
-    gap: var(--space-100);
     padding-block: 0;
   }
 
   .detailModule + .detailModule {
-    padding-block-start: var(--space-150);
+    padding-block-start: var(--space-050);
+  }
+
+  .detailContent {
+    padding-block-start: var(--space-100);
   }
 
   .productInfo {

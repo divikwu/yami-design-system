@@ -122,6 +122,10 @@
 }
 
 @media (max-width: 1023.98px) {
+  .navigationButton {
+    display: none;
+  }
+
   .thumbnailButton {
     width: var(--space-800);
     height: var(--space-800);
@@ -133,12 +137,5 @@
 
   .nextButton {
     right: var(--space-100);
-  }
-
-}
-
-@media (max-width: 767.98px) {
-  .navigationButton {
-    display: none;
   }
 }

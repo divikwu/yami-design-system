@@ -7,6 +7,7 @@ arrow-down, arrow-left, arrow-right, arrow-up, asterisk, book, cancel, file, fol
 
 ## Figma imports
 
+- arrow-down → `action/arrow-down.svg` (`action / arrow-down`, node `7815:28956`)
 - social → `social/*.svg` (`Social` component set, node `7534:62742`): apple, facebook, google, google-play, instagram, moments, pinterest, redbook, wechat, weibo, youtube
 - social-monochrome → `social-monochrome/*.svg` (`Social` component set, node `4600:73430`): email, facebook, instagram, reddit, twitter, wechat, weibo, youtube. Email is a user-supplied asset normalized to the shared 24px `currentColor` contract.
 - camera → `action/camera.svg` (`action / camera`, node `6579:12967`) — the mobile header's visual-search entry. Distinct from `action/scan.svg`, which is the barcode glyph.

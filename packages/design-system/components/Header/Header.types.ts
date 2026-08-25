@@ -113,7 +113,7 @@ export interface HeaderSearchPanel {
 }
 
 export interface HeaderProps extends Omit<ComponentProps<'header'>, 'children'> {
-  /** Mobile chrome anatomy. `pdp` uses the single-row H5 PDP navigation below 768px. */
+  /** Mobile chrome anatomy. `pdp` uses the single-row H5 PDP navigation below 1024px. */
   mobileVariant?: 'default' | 'pdp'
   /** Brand lockup — `assets/logos/yami-ui-<lang>-pc-fill.svg`, 52px tall at PC. */
   logo: HeaderImage
