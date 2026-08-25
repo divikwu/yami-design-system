@@ -25,7 +25,7 @@ export type ProductCardSurface = "card" | "plain";
 interface ProductCardBaseProps {
   /** Visual anatomy. rich preserves the full card, minimal is media-only, compact is a horizontal list row. */
   presentation?: ProductCardPresentation;
-  /** Outer spacing context. card uses 4px padding over a background; plain removes outer padding. */
+  /** Outer spacing context. Plain is the default; card adds 2px padding over a visual background. */
   surface?: ProductCardSurface;
   /** Product title. Clamped to 2 lines with ellipsis. */
   title: ReactNode;

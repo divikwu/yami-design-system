@@ -33,6 +33,9 @@ presentations inside a list.
 Each product must have a stable `id`; all remaining fields are standard
 `ProductCard` data. The list passes the clicked product ID to
 `onAddToCart` while preserving ProductCard's independent navigation links.
+Standard lists render `plain` product cards without outer padding. Themed and
+atmospheric lists render `card` product cards with 2px outer padding so cards
+remain separated from the collection's background color or artwork.
 
 Use `introContent` for full-width editorial context that belongs between the
 heading controls and the product collection, such as a single-brand overview.

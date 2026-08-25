@@ -59,7 +59,7 @@ ProductList chooses these presentations from its layout. Pass
 
 Use `surface="card"` when the product card sits on a visible background; it
 keeps 2px outer padding. Use `surface="plain"` for a background-free list; it
-removes the outer padding. `card` remains the default for standalone cards.
+removes the outer padding and is the default for standalone cards.
 
 ## Props
 

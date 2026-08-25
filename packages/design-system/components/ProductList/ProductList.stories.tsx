@@ -126,9 +126,18 @@ export const Showcase: Story = {
     const container = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-list-container"]',
     );
-    if (!container) throw new Error("Product List container did not render");
+    const firstCard = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-card"]',
+    );
+    if (!container || !firstCard) throw new Error("Product List did not render");
     if (getComputedStyle(container).rowGap !== "12px") {
       throw new Error("Desktop Product List must use a 12px vertical gap");
+    }
+    if (
+      firstCard.dataset.surface !== "plain" ||
+      getComputedStyle(firstCard).padding !== "0px"
+    ) {
+      throw new Error("Standard Product List cards must default to the plain surface");
     }
   },
 };
@@ -426,6 +435,9 @@ export const MobilePlainVariantContract: Story = {
         '[data-slot="product-list-items"]',
       );
       const firstItem = list?.firstElementChild as HTMLElement | null;
+      const firstCard = list?.querySelector<HTMLElement>(
+        '[data-slot="product-card"]',
+      );
       if (!list || !firstItem) {
         throw new Error("Mobile plain rail did not render items");
       }
@@ -449,6 +461,17 @@ export const MobilePlainVariantContract: Story = {
       ) {
         throw new Error(
           `${root.dataset.appearance} mobile plain rail must share the default 8px geometry`,
+        );
+      }
+      if (
+        firstCard &&
+        (firstCard.dataset.surface !==
+          (root.dataset.appearance === "standard" ? "plain" : "card") ||
+          getComputedStyle(firstCard).padding !==
+            (root.dataset.appearance === "standard" ? "0px" : "2px"))
+      ) {
+        throw new Error(
+          "Product cards must use card spacing only when the list has a visual background",
         );
       }
     }

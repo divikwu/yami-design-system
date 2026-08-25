@@ -15,14 +15,10 @@
 }
 
 .heading {
-  margin: 0 0 var(--space-200);
-  font-size: var(--font-size-heading-xl);
-  font-weight: var(--font-weight-emphasize);
-  line-height: var(--line-height-heading-xl);
-  text-wrap: balance;
+  margin-bottom: var(--space-200);
 }
 
-.heading span {
+.headingCount {
   color: var(--text-secondary);
   font-weight: var(--font-weight-normal);
 }
@@ -477,23 +473,21 @@
   }
 }
 
-@media (max-width: 767.98px) {
+@media (max-width: 1023.98px) {
   .container {
     width: calc(100% - var(--space-200));
     margin-inline: var(--space-100);
-    padding: var(--space-300) var(--space-200) var(--space-200);
+    padding: var(--space-100);
     overflow: hidden;
     border-radius: var(--radius-surface-default);
     background: var(--surface-primary);
   }
 
   .heading {
-    margin-bottom: var(--space-300);
-    font-size: var(--font-size-heading-xl);
-    line-height: var(--line-height-heading-xl);
+    margin-bottom: var(--space-025);
   }
 
-  .heading span {
+  .headingCount {
     display: none;
   }
 
@@ -551,7 +545,7 @@
 
   .referenceNotice {
     display: block;
-    margin: var(--space-300) 0 var(--space-200);
+    margin: var(--space-100) 0;
     padding: var(--space-150);
     border-radius: var(--radius-component-default);
     background: var(--surface-secondary);
@@ -606,7 +600,7 @@
   }
 
   .viewMoreRow {
-    padding-top: var(--space-200);
+    padding-top: var(--space-100);
   }
 
   .viewMoreButton,

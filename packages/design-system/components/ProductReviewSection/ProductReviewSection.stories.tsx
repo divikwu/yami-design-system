@@ -415,8 +415,13 @@ export const Mobile: Story = {
     const toolbar = root?.querySelector<HTMLElement>(
       '[data-slot="product-review-toolbar"]',
     );
-    const heading = root?.querySelector<HTMLElement>("h2");
-    const headingCount = heading?.querySelector<HTMLElement>("span");
+    const heading = root?.querySelector<HTMLElement>(
+      '[data-slot="product-review-section-heading"]',
+    );
+    const headingTitle = heading?.querySelector<HTMLElement>(
+      '[data-slot="product-review-section-title"]',
+    );
+    const headingCount = headingTitle?.querySelector<HTMLElement>("span");
     const writeReview = root?.querySelector<HTMLElement>(
       '[data-product-review-action="write-review"]',
     );
@@ -440,6 +445,7 @@ export const Mobile: Story = {
       !notice ||
       !toolbar ||
       !heading ||
+      !headingTitle ||
       !headingCount ||
       !writeReview ||
       !grid ||
@@ -459,11 +465,13 @@ export const Mobile: Story = {
       Math.abs(container.getBoundingClientRect().width - (viewportWidth - 16)) > 1 ||
       containerStyle.marginLeft !== "8px" ||
       containerStyle.marginRight !== "8px" ||
-      containerStyle.paddingLeft !== "16px" ||
-      containerStyle.paddingRight !== "16px" ||
+      containerStyle.padding !== "8px" ||
       containerStyle.backgroundColor !== "rgb(255, 255, 255)" ||
       containerStyle.borderRadius !== "12px" ||
       !heading.textContent?.includes("Customer Reviews") ||
+      getComputedStyle(headingTitle).fontSize !== "20px" ||
+      getComputedStyle(headingTitle).fontWeight !== "400" ||
+      getComputedStyle(headingTitle).lineHeight !== "28px" ||
       getComputedStyle(headingCount).display !== "none" ||
       summaryStyle.padding !== "0px" ||
       summaryStyle.backgroundColor !== "rgba(0, 0, 0, 0)" ||
@@ -474,6 +482,11 @@ export const Mobile: Story = {
       getComputedStyle(toolbar).display !== "none" ||
       getComputedStyle(notice).display !== "block" ||
       !notice.textContent?.includes("other options") ||
+      summary.getBoundingClientRect().top - heading.getBoundingClientRect().bottom !== 2 ||
+      notice.getBoundingClientRect().top - summary.getBoundingClientRect().bottom !== 8 ||
+      grid.getBoundingClientRect().top - notice.getBoundingClientRect().bottom !== 8 ||
+      viewMore.getBoundingClientRect().top - grid.getBoundingClientRect().bottom !== 8 ||
+      container.getBoundingClientRect().bottom - viewMore.getBoundingClientRect().bottom !== 8 ||
       cards.length !== 6 ||
       cardRows.size !== 1 ||
       gridStyle.gridAutoFlow !== "column" ||
@@ -499,13 +512,56 @@ export const Mobile: Story = {
 };
 
 export const Tablet: Story = {
+  name: "Tablet aligned mobile layout",
   globals: { viewport: { value: "yamiTablet", isRotated: false } },
   play: async ({ canvasElement }) => {
+    const viewportWidth = canvasElement.ownerDocument.defaultView?.innerWidth;
+    const container = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-review-section-container"]',
+    );
+    const summaryContent = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-review-summary-content"]',
+    );
+    const score = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-review-score-summary"]',
+    )?.parentElement;
+    const distribution = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-review-distribution"]',
+    );
+    const toolbar = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-review-toolbar"]',
+    );
     const grid = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-review-grid"]',
     );
-    if (!grid) throw new Error("Tablet review grid did not render");
-    assertReviewGrid(grid, 2, 3);
+    const firstCard = grid?.querySelector<HTMLElement>(
+      '[data-slot="product-review-card"]',
+    );
+
+    if (
+      !viewportWidth ||
+      !container ||
+      !summaryContent ||
+      !score ||
+      !distribution ||
+      !toolbar ||
+      !grid ||
+      !firstCard ||
+      Math.abs(container.getBoundingClientRect().width - (viewportWidth - 16)) > 1 ||
+      getComputedStyle(summaryContent).gridTemplateColumns.split(" ").length !== 1 ||
+      getComputedStyle(score).flexDirection !== "row" ||
+      getComputedStyle(distribution).display !== "none" ||
+      getComputedStyle(toolbar).display !== "none" ||
+      getComputedStyle(grid).gridAutoFlow !== "column" ||
+      getComputedStyle(grid).overflowX !== "auto" ||
+      grid.scrollWidth <= grid.clientWidth ||
+      Math.round(firstCard.getBoundingClientRect().height) !== 200 ||
+      document.documentElement.scrollWidth > document.documentElement.clientWidth
+    ) {
+      throw new Error(
+        "Tablet ProductReviewSection must align with the mobile PDP review layout",
+      );
+    }
   },
 };
 

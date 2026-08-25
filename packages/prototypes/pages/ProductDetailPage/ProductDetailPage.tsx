@@ -51,10 +51,6 @@ const minusIcon = new URL(
   "../../../design-system/assets/icons/system/minus.svg",
   import.meta.url
 ).href;
-const optionArrowIcon = new URL(
-  "../../../design-system/assets/icons/system/arrow-right.svg",
-  import.meta.url
-).href;
 const sameDayIcon = new URL(
   "../../../design-system/assets/icons/base/same-day.svg",
   import.meta.url
@@ -69,6 +65,10 @@ const zipcodeIcon = new URL(
 ).href;
 const yamiSellerLogo = new URL(
   "../../../design-system/assets/logos/yami-ui-en-pc-fill.svg",
+  import.meta.url
+).href;
+const yamiSellerMobileLogo = new URL(
+  "../../../design-system/assets/logos/yami-ui-en-mobile-fill.svg",
   import.meta.url
 ).href;
 
@@ -353,8 +353,13 @@ export function ProductDetailPage({
                       className={styles.optionStack}
                       data-slot="product-detail-options"
                     >
-                      {optionGroups.map((group) => (
-                        <fieldset key={group.id} className={styles.optionGroup}>
+                      {optionGroups.map((group) => {
+                        const selectedOption = group.options.find(
+                          (option) => option.value === selectedOptions[group.id]
+                        );
+
+                        return (
+                          <fieldset key={group.id} className={styles.optionGroup}>
                           <legend className={styles.optionGroupLegend}>
                             {group.label}
                           </legend>
@@ -363,16 +368,20 @@ export function ProductDetailPage({
                             data-slot="product-detail-option-group-heading"
                             aria-hidden="true"
                           >
-                            <span>{group.label}</span>
+                            <span>
+                              {group.label}: {selectedOption ? (
+                                <strong className={styles.optionGroupSelection}>
+                                  {selectedOption.label}
+                                </strong>
+                              ) : null}
+                            </span>
                             <div
                               className={styles.optionGroupArrow}
                               data-slot="product-detail-option-group-arrow"
                             >
-                              <img
-                                src={optionArrowIcon}
-                                alt=""
-                                width={16}
-                                height={16}
+                              <span
+                                className={styles.optionGroupArrowIcon}
+                                aria-hidden="true"
                               />
                             </div>
                           </div>
@@ -404,8 +413,9 @@ export function ProductDetailPage({
                               </FilterChip>
                             ))}
                           </FilterChipGroup>
-                        </fieldset>
-                      ))}
+                          </fieldset>
+                        );
+                      })}
                     </div>
 
                     <p
@@ -579,14 +589,20 @@ export function ProductDetailPage({
                             {copy.seller}
                           </span>
                           <div className={styles.sellerIdentity}>
-                            <img
-                              className={styles.sellerLogo}
-                              src={yamiSellerLogo}
-                              alt="YAMI"
-                              width={95}
-                              height={40}
-                              data-slot="product-detail-seller-logo"
-                            />
+                            <picture className={styles.sellerLogoPicture}>
+                              <source
+                                media="(max-width: 1023.98px)"
+                                srcSet={yamiSellerMobileLogo}
+                              />
+                              <img
+                                className={styles.sellerLogo}
+                                src={yamiSellerLogo}
+                                alt="YAMI"
+                                width={95}
+                                height={40}
+                                data-slot="product-detail-seller-logo"
+                              />
+                            </picture>
                           </div>
                         </div>
                         <div
@@ -621,13 +637,13 @@ export function ProductDetailPage({
                           {copy.serviceGuarantees.map((guarantee, index) => {
                             const icons = [
                               sameDayIcon,
-                              returnsIcon,
                               zipcodeIcon,
+                              returnsIcon,
                             ];
                             const iconNames = [
                               "same-day",
-                              "returns",
                               "zipcode",
+                              "returns",
                             ];
                             return (
                               <li key={guarantee}>

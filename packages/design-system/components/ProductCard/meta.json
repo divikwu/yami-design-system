@@ -32,8 +32,8 @@
     "surface": {
       "type": "\"card\" | \"plain\"",
       "required": false,
-      "default": "card",
-      "description": "Outer spacing context. Card uses 4px padding when placed over a background; plain removes outer padding."
+      "default": "plain",
+      "description": "Outer spacing context. Plain is the default and removes outer padding; card adds 2px padding when placed over a visual background."
     },
     "image": {
       "type": "string",
