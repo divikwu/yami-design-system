@@ -11,8 +11,67 @@ describe("Topic Generator typography", () => {
     expect(generatorCss).toMatch(
       /\.generatorShell :where\(strong, b\)\s*\{[^}]*font-weight:\s*var\(--font-weight-emphasize\)/s,
     );
+    expect(generatorCss).toMatch(
+      /\.agentArchitectureCard h5\s*\{[^}]*font-size:\s*var\(--font-size-heading-xs\);[^}]*font-weight:\s*var\(--font-weight-emphasize\);[^}]*line-height:\s*var\(--line-height-heading-xs\);/s,
+    );
     expect(generatorCss).not.toMatch(
       /font-weight:\s*(?:600|700|var\(--font-weight-semibold\))\s*;/,
+    );
+  });
+
+  it("reserves serif typography for editorial preview headings", () => {
+    expect(generatorCss).toMatch(
+      /\.analysisHeader h2\s*\{[^}]*font-size:\s*var\(--font-size-heading-xl\);[^}]*font-weight:\s*var\(--font-weight-emphasize\);[^}]*letter-spacing:\s*var\(--letter-spacing-normal\);[^}]*line-height:\s*var\(--line-height-heading-xl\);/s,
+    );
+    expect(generatorCss).toMatch(
+      /\.viewHeading h3\s*\{[^}]*font-size:\s*var\(--font-size-heading-xl\);[^}]*font-weight:\s*var\(--font-weight-emphasize\);[^}]*letter-spacing:\s*var\(--letter-spacing-normal\);[^}]*line-height:\s*var\(--line-height-heading-xl\);/s,
+    );
+    expect(generatorCss).not.toMatch(
+      /\.moduleHeading h3,\s*\.viewHeading h3\s*\{/s,
+    );
+    for (const selector of ["moduleHeading h3", "heroCopy h1", "generatedScene h4"]) {
+      expect(generatorCss).toMatch(
+        new RegExp(`\\.${selector.replace(" ", "\\s+")}\\s*\\{[^}]*font-family:\\s*var\\(--font-family-serif\\);`, "s"),
+      );
+    }
+  });
+
+  it("wraps agent stage metadata only when the row cannot fit", () => {
+    expect(generatorCss).toMatch(
+      /\.workflowDiagramNode\.agentArchitectureFlowNode\s*\{[^}]*grid-template-columns:\s*24px 28px minmax\(0, 1fr\);/s,
+    );
+    expect(generatorCss).toMatch(
+      /\.agentArchitectureFlowCopy\s*\{[^}]*display:\s*flex;[^}]*min-width:\s*0;[^}]*flex-wrap:\s*wrap;[^}]*column-gap:\s*var\(--space-150\);[^}]*row-gap:\s*var\(--space-050\);/s,
+    );
+    expect(generatorCss).toMatch(
+      /\.agentArchitectureFlowCopy > strong\s*\{[^}]*min-width:\s*max-content;/s,
+    );
+    expect(generatorCss).toMatch(
+      /\.agentArchitectureFlowCopy > small\s*\{[^}]*box-sizing:\s*border-box;[^}]*width:\s*max-content;[^}]*max-width:\s*100%;[^}]*white-space:\s*normal;/s,
+    );
+  });
+
+  it("uses matching gray caption typography and spacing around agent card titles", () => {
+    expect(generatorCss).toMatch(
+      /\.agentArchitectureSummary > div\s*\{[^}]*display:\s*grid;[^}]*gap:\s*4px;/s,
+    );
+    expect(generatorCss).toMatch(
+      /\.agentArchitectureSummary code\s*\{[^}]*color:\s*var\(--text-secondary\);[^}]*font-family:\s*var\(--font-mono\);[^}]*font-size:\s*var\(--font-size-caption-sm\);[^}]*line-height:\s*var\(--line-height-caption-sm\);[^}]*letter-spacing:\s*\.06em;/s,
+    );
+  });
+
+  it("aligns agent detail tables with their summary titles", () => {
+    expect(generatorCss).toMatch(
+      /\.agentArchitectureBody\s*\{[^}]*display:\s*grid;[^}]*padding:\s*16px 18px 18px;[^}]*column-gap:\s*14px;[^}]*grid-template-columns:\s*42px minmax\(0, 1fr\);/s,
+    );
+    expect(generatorCss).toMatch(
+      /\.agentArchitectureBody \.agentArchitectureDetails\s*\{[^}]*margin:\s*0;[^}]*grid-column:\s*2;/s,
+    );
+  });
+
+  it("uses the small caption token for every agent Skill tag", () => {
+    expect(generatorCss).toMatch(
+      /\.agentSkillList code\s*\{[^}]*font-size:\s*var\(--font-size-caption-sm\);/s,
     );
   });
 

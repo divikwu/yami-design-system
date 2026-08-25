@@ -970,11 +970,10 @@
 
 .analysisHeader h2 {
   margin: 8px 0;
-  font-family: var(--font-family-serif);
-  font-size: var(--font-size-display-md);
-  font-weight: var(--font-weight-normal);
-  letter-spacing: -.04em;
-  line-height: var(--line-height-display-md);
+  font-size: var(--font-size-heading-xl);
+  font-weight: var(--font-weight-emphasize);
+  letter-spacing: var(--letter-spacing-normal);
+  line-height: var(--line-height-heading-xl);
 }
 
 .analysisHeader p {
@@ -1663,14 +1662,21 @@
   margin-bottom: 24px;
 }
 
-.moduleHeading h3,
-.viewHeading h3 {
+.moduleHeading h3 {
   margin: 6px 0 0;
   font-family: var(--font-family-serif);
   font-size: var(--font-size-display-md);
   font-weight: var(--font-weight-normal);
   letter-spacing: -.04em;
   line-height: var(--line-height-display-md);
+}
+
+.viewHeading h3 {
+  margin: 6px 0 0;
+  font-size: var(--font-size-heading-xl);
+  font-weight: var(--font-weight-emphasize);
+  letter-spacing: var(--letter-spacing-normal);
+  line-height: var(--line-height-heading-xl);
 }
 
 .moduleHeading p,
@@ -2481,12 +2487,8 @@
 }
 
 .agentArchitectureIntro {
-  display: grid;
-  align-items: end;
-  gap: 40px;
   padding-bottom: 28px;
   border-bottom: 1px solid var(--border-default);
-  grid-template-columns: minmax(0, 1.35fr) minmax(340px, .65fr);
 }
 
 .agentArchitectureIntro > div:first-child {
@@ -2496,10 +2498,7 @@
 
 .agentArchitectureIntro > div:first-child > span,
 .agentArchitectureSummary > div > span,
-.agentArchitectureSummary > small,
-.agentSkillList > span,
-.agentCoreAuthority header > span,
-.agentCoreAuthority footer > span {
+.agentArchitectureSummary > small {
   color: var(--text-secondary);
   font-family: var(--font-mono);
   font-size: var(--font-size-caption-sm);
@@ -2523,38 +2522,6 @@
   line-height: var(--line-height-body-md);
 }
 
-.agentArchitectureMetrics {
-  display: grid;
-  margin: 0;
-  border: 1px solid var(--border-default);
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.agentArchitectureMetrics > div {
-  display: grid;
-  min-height: 76px;
-  align-content: space-between;
-  gap: 8px;
-  padding: 12px;
-}
-
-.agentArchitectureMetrics > div:nth-child(even) { border-left: 1px solid var(--border-default); }
-.agentArchitectureMetrics > div:nth-child(n+3) { border-top: 1px solid var(--border-default); }
-
-.agentArchitectureMetrics dt {
-  color: var(--text-secondary);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-caption-sm);
-  line-height: var(--line-height-caption-sm);
-}
-
-.agentArchitectureMetrics dd {
-  margin: 0;
-  font-size: var(--font-size-heading-sm);
-  font-weight: var(--font-weight-emphasize);
-  line-height: var(--line-height-heading-sm);
-}
-
 .agentArchitectureFlow {
   display: grid;
   width: 100%;
@@ -2564,21 +2531,39 @@
   list-style: none;
 }
 
-.agentArchitectureFlowStep,
-.agentArchitectureParallelStep {
+.agentArchitectureFlowStep {
   display: grid;
   justify-items: center;
 }
 
-.agentArchitectureFlowNode {
+.workflowDiagramNode.agentArchitectureFlowNode {
   width: min(100%, 480px);
+  grid-template-columns: 24px 28px minmax(0, 1fr);
 }
 
-.agentArchitectureFlowNode > small {
+.agentArchitectureFlowCopy {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  column-gap: var(--space-150);
+  row-gap: var(--space-050);
+}
+
+.agentArchitectureFlowCopy > strong {
+  min-width: max-content;
+}
+
+.agentArchitectureFlowCopy > small {
+  box-sizing: border-box;
   width: max-content;
+  max-width: 100%;
+  flex: 0 1 auto;
   padding: 3px 5px;
   border: 1px solid var(--border-default);
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .agentArchitectureFlowConnector {
@@ -2590,90 +2575,51 @@
   justify-content: center;
 }
 
-.agentArchitectureParallelLabel {
-  margin-bottom: 8px;
-  padding: 4px 7px;
+.agentArchitectureSequenceLabel {
+  width: min(100%, 480px);
+  box-sizing: border-box;
+  margin: 0 0 var(--space-150);
+  padding: var(--space-050) var(--space-100);
   border: 1px solid var(--border-default);
   background: var(--surface-secondary);
   color: var(--text-secondary);
   font-family: var(--font-mono);
   font-size: var(--font-size-caption-sm);
+  justify-self: center;
   line-height: var(--line-height-caption-sm);
   letter-spacing: .06em;
+  text-align: center;
   text-transform: uppercase;
 }
 
-.agentArchitectureParallelNodes {
-  position: relative;
+.agentArchitectureFlowStep > .agentArchitectureSequenceLabel {
+  margin-top: var(--space-100);
+}
+
+.agentArchitectureRuntimeNode {
   display: grid;
-  width: min(100%, 760px);
-  margin: 0;
-  padding: 20px 0 0;
-  gap: 24px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  list-style: none;
+  width: min(100%, 480px);
+  box-sizing: border-box;
+  padding: var(--space-150) var(--space-200);
+  border: 1px solid var(--border-default);
+  background: var(--surface-primary);
+  gap: var(--space-050);
 }
 
-.agentArchitectureParallelNodes::before,
-.agentArchitectureMerge::before {
-  position: absolute;
-  top: 0;
-  right: 25%;
-  left: 25%;
-  height: 1px;
-  background: var(--border-default);
-  content: "";
+.agentArchitectureRuntimeNode > span {
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-caption-sm);
+  line-height: var(--line-height-caption-sm);
+  letter-spacing: .06em;
 }
 
-.agentArchitectureParallelNodes > li {
-  position: relative;
+.agentArchitectureRuntimeNode > strong {
+  font-size: var(--font-size-heading-xs);
+  line-height: var(--line-height-heading-xs);
 }
 
-.agentArchitectureParallelNodes > li::before,
-.agentArchitectureParallelNodes > li::after,
-.agentArchitectureMerge::after {
-  position: absolute;
-  left: 50%;
-  width: 1px;
-  background: var(--border-default);
-  content: "";
-}
-
-.agentArchitectureParallelNodes > li::before {
-  top: -20px;
-  height: 20px;
-}
-
-.agentArchitectureParallelNodes > li::after {
-  bottom: -20px;
-  height: 20px;
-}
-
-.agentArchitectureParallelNodes .agentArchitectureFlowNode {
-  width: 100%;
-}
-
-.agentArchitectureMerge {
-  position: relative;
-  display: grid;
-  width: min(100%, 760px);
-  margin-top: 20px;
-  padding-top: 22px;
-  justify-items: center;
-  gap: 4px;
-}
-
-.agentArchitectureMerge::after {
-  top: 0;
-  height: 16px;
-}
-
-.agentArchitectureMerge strong {
-  font-size: var(--font-size-body-md);
-  line-height: var(--line-height-body-md);
-}
-
-.agentArchitectureMerge span {
+.agentArchitectureRuntimeNode > small {
   color: var(--text-secondary);
   font-size: var(--font-size-caption-md);
   line-height: var(--line-height-caption-md);
@@ -2743,15 +2689,18 @@
 
 .agentArchitectureCard h5 {
   margin: 0;
-  font-size: var(--font-size-heading-sm);
-  line-height: var(--line-height-heading-sm);
+  font-size: var(--font-size-heading-xs);
+  font-weight: var(--font-weight-emphasize);
+  line-height: var(--line-height-heading-xs);
 }
 
 .agentArchitectureSummary code {
   overflow: hidden;
   color: var(--text-secondary);
-  font-size: var(--font-size-caption-md);
-  line-height: var(--line-height-caption-md);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-caption-sm);
+  line-height: var(--line-height-caption-sm);
+  letter-spacing: .06em;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -2776,28 +2725,17 @@
 
 .agentArchitectureBody {
   display: grid;
-  gap: 18px;
-  padding: 18px 18px 18px 74px;
+  padding: 16px 18px 18px;
   border-top: 1px solid var(--border-default);
+  column-gap: 14px;
+  grid-template-columns: 42px minmax(0, 1fr);
 }
 
 .agentArchitectureCard:not([open]) .agentArchitectureBody {
   display: none;
 }
 
-.agentArchitectureBody > p {
-  margin: 0;
-  color: var(--text-secondary);
-  font-size: var(--font-size-body-md);
-  line-height: var(--line-height-body-md);
-}
-
 .agentSkillList {
-  display: grid;
-  gap: 8px;
-}
-
-.agentSkillList > div {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
@@ -2807,105 +2745,21 @@
   padding: 4px 7px;
   border: 1px solid var(--border-default);
   background: var(--surface-secondary);
-  font-size: var(--font-size-caption-md);
+  font-size: var(--font-size-caption-sm);
   line-height: var(--line-height-caption-md);
 }
 
 .agentArchitectureDetails {
-  display: grid;
+  overflow: hidden;
+}
+
+.agentArchitectureBody .agentArchitectureDetails {
   margin: 0;
-  border-top: 1px solid var(--border-default);
-}
-
-.agentArchitectureDetails > div {
-  display: grid;
-  gap: 14px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--border-default);
-  grid-template-columns: 112px minmax(0, 1fr);
-}
-
-.agentArchitectureDetails dt {
-  color: var(--text-secondary);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-caption-sm);
-  line-height: var(--line-height-caption-sm);
-  text-transform: uppercase;
-}
-
-.agentArchitectureDetails dd {
-  min-width: 0;
-  margin: 0;
-  overflow-wrap: anywhere;
-  font-size: var(--font-size-caption-md);
-  line-height: var(--line-height-caption-md);
+  grid-column: 2;
 }
 
 .agentArchitectureDetails > div:last-child dd {
   color: var(--text-secondary);
-}
-
-.agentCoreAuthority {
-  display: grid;
-  gap: 24px;
-  padding: 24px;
-  background: #191919;
-  color: #fff;
-}
-
-.agentCoreAuthority header {
-  display: grid;
-  max-width: 760px;
-  gap: 8px;
-}
-
-.agentCoreAuthority header > span,
-.agentCoreAuthority footer > span {
-  color: #aaa;
-}
-
-.agentCoreAuthority h4 {
-  margin: 0;
-  font-size: var(--font-size-heading-md);
-  line-height: var(--line-height-heading-md);
-}
-
-.agentCoreAuthority p {
-  margin: 0;
-  color: #c8c8c8;
-  font-size: var(--font-size-body-md);
-  line-height: var(--line-height-body-md);
-}
-
-.agentCoreAuthority ul {
-  display: grid;
-  margin: 0;
-  padding: 0;
-  gap: 0 24px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  list-style: none;
-}
-
-.agentCoreAuthority li {
-  padding: 12px 0;
-  border-top: 1px solid #3b3b3b;
-  color: #d6d6d6;
-  font-size: var(--font-size-caption-md);
-  line-height: var(--line-height-caption-md);
-}
-
-.agentCoreAuthority footer {
-  display: grid;
-  gap: 8px;
-  padding-top: 16px;
-  border-top: 1px solid #3b3b3b;
-}
-
-.agentCoreAuthority footer code {
-  color: #fff;
-  font-size: var(--font-size-caption-md);
-  line-height: var(--line-height-body-md);
-  overflow-wrap: anywhere;
 }
 
 .workflowDiagramPanel {
@@ -2953,7 +2807,8 @@
 }
 
 .workflowDiagramIndex,
-.workflowDiagramNode > strong {
+.workflowDiagramNode > strong,
+.agentArchitectureFlowCopy > strong {
   color: var(--text-primary);
   font-size: var(--font-size-heading-xs);
   font-weight: var(--font-weight-emphasize);
@@ -3704,7 +3559,6 @@
     border-bottom: 1px solid var(--canvas-line);
   }
   .generatorFrame { height: 720px; }
-  .agentArchitectureIntro { grid-template-columns: 1fr; }
   .shortcutGrid { grid-template-columns: 1fr 1fr; }
   .startHereThemeProducts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .productGrid,
@@ -3780,31 +3634,11 @@
   .workflowModeTabs { padding: 0 18px; }
   .agentArchitecturePanel { padding: 24px 18px 32px; }
   .agentArchitectureMetrics { grid-template-columns: 1fr 1fr; }
-  .agentArchitectureParallelNodes {
-    width: min(100%, 480px);
-    padding-top: 0;
-    gap: 12px;
-    grid-template-columns: 1fr;
-  }
-  .agentArchitectureParallelNodes::before,
-  .agentArchitectureParallelNodes > li::before,
-  .agentArchitectureParallelNodes > li::after,
-  .agentArchitectureMerge::before,
-  .agentArchitectureMerge::after { display: none; }
-  .agentArchitectureMerge {
-    width: min(100%, 480px);
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border-default);
-  }
   .agentArchitectureSummary {
     grid-template-columns: 42px minmax(0, 1fr) 12px;
   }
   .agentArchitectureSummary > small { grid-column: 2; justify-self: start; }
   .agentArchitectureChevron { grid-column: 3; grid-row: 1; }
-  .agentArchitectureBody { padding: 16px; }
-  .agentArchitectureDetails > div { grid-template-columns: 1fr; }
-  .agentCoreAuthority ul { grid-template-columns: 1fr; }
   .workflowDiagramPanel { padding: 24px 18px 32px; }
   .workflowDiagramNode {
     grid-template-columns: 24px 28px minmax(0, 1fr);
