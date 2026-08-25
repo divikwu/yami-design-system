@@ -903,6 +903,24 @@ export class TopicGeneratorRunStore {
     deliverable.issues = [];
   }
 
+  async refreshDeliverable(
+    runId: string,
+    name: TopicGeneratorDeliverableName,
+    render: (run: TopicGeneratorManagedRun) => Promise<string | undefined>,
+  ) {
+    const release = await this.acquireLock(runId);
+    try {
+      const run = await this.read(runId);
+      const html = await render(run);
+      if (html === undefined) return run;
+      await this.writeDeliverable(run.manifest, run.state, name, html);
+      await this.writeState(run.manifest, run.state);
+      return this.read(runId);
+    } finally {
+      await release();
+    }
+  }
+
   async readDeliverable(runId: string, name: TopicGeneratorDeliverableName) {
     if (!DELIVERABLE_NAMES.includes(name)) {
       throw new TopicGeneratorRunValidationError("Deliverable name is not allowed.");

@@ -7,37 +7,80 @@ import { createRoot } from "react-dom/client";
 import { TopicLandingPage } from "@yami/prototypes/topic-landing-page";
 import type { TopicPagePreviewRendererProps } from "@yami/topic-generator/web";
 import {
+  contentPrototypeProps,
   generatedPrototypeProps,
   selectionPrototypeProps,
 } from "../app/topic-generator-workbench";
 
 type SelectionPreview = Extract<TopicPagePreviewRendererProps, { mode: "selection" }>;
+type ContentPreview = Extract<TopicPagePreviewRendererProps, { mode: "content" }>;
 type GeneratedPreview = Extract<TopicPagePreviewRendererProps, { mode: "generated" }>;
 
 type OfflinePayload =
   | {
       mode: "selection";
+      showChrome: boolean;
       pageTypeRef: SelectionPreview["pageTypeRef"];
       plan: SelectionPreview["plan"];
       warnings: string[];
     }
   | {
+      mode: "content";
+      showChrome: boolean;
+      pageTypeRef: ContentPreview["pageTypeRef"];
+      plan: ContentPreview["plan"];
+      contentSpec: ContentPreview["contentSpec"];
+      retainedVisualSpec?: ContentPreview["retainedVisualSpec"];
+      warnings: string[];
+    }
+  | {
       mode: "generated";
+      showChrome: boolean;
       pageTypeRef: GeneratedPreview["pageTypeRef"];
       generationSpec: GeneratedPreview["generationSpec"];
       warnings: string[];
     };
 
+const OFFLINE_MEDIA_REF_PREFIX = "topic-generator-media://";
+
+function hydrateOfflineMedia(value: unknown, media: string[]): unknown {
+  if (typeof value === "string" && value.startsWith(OFFLINE_MEDIA_REF_PREFIX)) {
+    const index = Number(value.slice(OFFLINE_MEDIA_REF_PREFIX.length));
+    if (!Number.isInteger(index) || index < 0 || index >= media.length) {
+      throw new Error("Offline page media reference is invalid.");
+    }
+    return media[index];
+  }
+  if (Array.isArray(value)) return value.map((item) => hydrateOfflineMedia(item, media));
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [key, hydrateOfflineMedia(item, media)]),
+    );
+  }
+  return value;
+}
+
 function readPayload(): OfflinePayload {
   const element = document.getElementById("topic-generator-offline-payload");
   if (!element?.textContent) throw new Error("Offline page payload is missing.");
-  return JSON.parse(element.textContent) as OfflinePayload;
+  const mediaElement = document.getElementById("topic-generator-offline-media");
+  const media = mediaElement?.textContent
+    ? JSON.parse(mediaElement.textContent) as string[]
+    : [];
+  return hydrateOfflineMedia(JSON.parse(element.textContent), media) as OfflinePayload;
 }
 
 function OfflinePage({ payload }: { payload: OfflinePayload }) {
   const props = payload.mode === "generated"
     ? generatedPrototypeProps(payload.pageTypeRef, payload.generationSpec)
-    : selectionPrototypeProps(payload.pageTypeRef, payload.plan);
+    : payload.mode === "content"
+      ? contentPrototypeProps(
+          payload.pageTypeRef,
+          payload.plan,
+          payload.contentSpec,
+          payload.retainedVisualSpec,
+        )
+      : selectionPrototypeProps(payload.pageTypeRef, payload.plan);
   return (
     <div data-offline-page data-offline-mode={payload.mode}>
       {payload.warnings.length > 0 && (
@@ -46,7 +89,7 @@ function OfflinePage({ payload }: { payload: OfflinePayload }) {
           <ul>{payload.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul>
         </aside>
       )}
-      <TopicLandingPage {...props} showChrome={false} />
+      <TopicLandingPage {...props} showChrome={payload.showChrome} />
     </div>
   );
 }

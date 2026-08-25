@@ -771,6 +771,11 @@ async function contentReviewStage(
     ...(primary.revisionAttempt ? { revisionAttempt: primary.revisionAttempt } : {}),
     contentByLanguage,
   };
+  const html = await options.deliverableRenderer.render({
+    name: "page-draft.html",
+    manifest,
+    stages: await stageOutputs(readStageResult, "content-review", output),
+  });
   return {
     status: "completed",
     request: {
@@ -784,6 +789,7 @@ async function contentReviewStage(
       contentByLanguage[language].contentReview,
     ])),
     output,
+    deliverables: { "page-draft.html": html },
   };
 }
 
@@ -879,8 +885,10 @@ async function assetPersistenceStage(
 }
 
 async function pageGenerationStage(
+  manifest: TopicGeneratorRunManifestV2,
   readStageResult: (stageId: TopicGeneratorRunStageId) => Promise<unknown | undefined>,
   assetStore: Parameters<AdvanceTopicGeneratorRunOptions["execute"]>[0]["assetStore"],
+  options: TopicGeneratorManagedRuntimeOptions,
 ): Promise<TopicGeneratorStageExecutionResult> {
   const intentOutput = required<TopicIntentStageOutput>(
     await readStageResult("topic-intent"),
@@ -916,6 +924,11 @@ async function pageGenerationStage(
     assetUrl: assetStore.publicUrl,
   });
   const output: PageGenerationStageOutput = { generationSpec };
+  const html = await options.deliverableRenderer.render({
+    name: "page-draft.html",
+    manifest,
+    stages: await stageOutputs(readStageResult, "page-generation", output),
+  });
   return {
     status: "completed",
     request: {
@@ -924,6 +937,7 @@ async function pageGenerationStage(
       topicPageAssetManifestDigest: assetsOutput.assetManifest.digest,
     },
     output,
+    deliverables: { "page-draft.html": html },
   };
 }
 
@@ -1075,7 +1089,7 @@ export function createTopicGeneratorManagedStageExecutor(
       case "asset-persistence":
         return assetPersistenceStage(readStageResult, assetStore, options);
       case "page-generation":
-        return pageGenerationStage(readStageResult, assetStore);
+        return pageGenerationStage(manifest, readStageResult, assetStore, options);
       case "automatic-qa":
         return automaticQaStage(readStageResult, assetStore, options);
       case "experience-review":

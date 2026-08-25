@@ -1,5 +1,6 @@
 import { getTopicGeneratorManagedRunRuntime } from "@/lib/managed-run-runtime";
 import { managedRunErrorResponse } from "@/lib/managed-run-api";
+import { refreshStaleTopicGeneratorPreview } from "@/lib/topic-generator-preview-refresh";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -10,7 +11,8 @@ export async function GET(
 ) {
   try {
     const { runId } = await params;
-    const { store } = await getTopicGeneratorManagedRunRuntime();
+    const { store, renderer } = await getTopicGeneratorManagedRunRuntime();
+    await refreshStaleTopicGeneratorPreview({ store, renderer, runId });
     return Response.json(await store.detail(runId));
   } catch (error) {
     return managedRunErrorResponse(error);

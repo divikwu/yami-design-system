@@ -1,12 +1,13 @@
 import "server-only";
 
-import { access } from "node:fs/promises";
-import { resolve } from "node:path";
+import { access, readFile } from "node:fs/promises";
+import { dirname, extname, resolve } from "node:path";
 import { build } from "esbuild";
 import {
   getProductSelectionStrategyConfig,
   type AutomaticQaStageOutput,
   type BackgroundEvidenceStageOutput,
+  type ContentReviewStageOutput,
   type ExperienceReviewStageOutput,
   type ModuleMerchandisingStageOutput,
   type PageGenerationStageOutput,
@@ -19,6 +20,8 @@ import {
 const MAX_MEDIA_FILES = 128;
 const MAX_MEDIA_BYTES = 64 * 1024 * 1024;
 const OFFLINE_GROUP_PRODUCT_LIMIT = 12;
+const OFFLINE_MEDIA_REF_PREFIX = "topic-generator-media://";
+const OFFLINE_PREVIEW_LANGUAGE = "en" as const;
 const NEUTRAL_IMAGE =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='800' viewBox='0 0 1200 800'%3E%3Crect width='1200' height='800' fill='%23f3f3f3'/%3E%3C/svg%3E";
 
@@ -28,9 +31,12 @@ interface OfflineBundle {
 }
 
 interface OfflinePayload {
-  mode: "selection" | "generated";
+  mode: "selection" | "content" | "generated";
+  showChrome?: boolean;
   pageTypeRef: string;
   plan?: unknown;
+  contentSpec?: unknown;
+  retainedVisualSpec?: unknown;
   generationSpec?: unknown;
   warnings: string[];
 }
@@ -49,6 +55,61 @@ function scriptJson(value: unknown) {
     .replaceAll("<", "\\u003c")
     .replaceAll("\u2028", "\\u2028")
     .replaceAll("\u2029", "\\u2029");
+}
+
+function extractOfflineMedia(payload: OfflinePayload) {
+  const media: string[] = [];
+  const indexes = new Map<string, number>();
+  const visit = (value: unknown): unknown => {
+    if (typeof value === "string" && value.startsWith("data:image/")) {
+      let index = indexes.get(value);
+      if (index === undefined) {
+        index = media.length;
+        indexes.set(value, index);
+        media.push(value);
+      }
+      return `${OFFLINE_MEDIA_REF_PREFIX}${index}`;
+    }
+    if (Array.isArray(value)) return value.map(visit);
+    if (value && typeof value === "object") {
+      return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, visit(item)]));
+    }
+    return value;
+  };
+  return { payload: visit(payload) as OfflinePayload, media };
+}
+
+const OFFLINE_ASSET_MEDIA_TYPES: Record<string, string> = {
+  ".avif": "image/avif",
+  ".gif": "image/gif",
+  ".jpeg": "image/jpeg",
+  ".jpg": "image/jpeg",
+  ".png": "image/png",
+  ".svg": "image/svg+xml",
+  ".webp": "image/webp",
+};
+
+async function inlineStaticAssetUrls(path: string, source: string) {
+  const pattern = /new URL\(\s*(["'])([^"']+\.(?:avif|gif|jpe?g|png|svg|webp))\1\s*,\s*import\.meta\.url\s*,?\s*\)\s*\.href/g;
+  const replacements = await Promise.all([...source.matchAll(pattern)].map(async (match) => {
+    const assetPath = resolve(dirname(path), match[2]!);
+    const mediaType = OFFLINE_ASSET_MEDIA_TYPES[extname(assetPath).toLowerCase()];
+    if (!mediaType) throw new Error(`Offline asset type is unsupported: ${assetPath}`);
+    const bytes = await readFile(assetPath);
+    const start = match.index;
+    return {
+      end: start + match[0].length,
+      start,
+      value: JSON.stringify(`data:${mediaType};base64,${bytes.toString("base64")}`),
+    };
+  }));
+  if (replacements.length === 0) return source;
+  let cursor = 0;
+  return replacements.map(({ start, end, value }) => {
+    const chunk = `${source.slice(cursor, start)}${value}`;
+    cursor = end;
+    return chunk;
+  }).join("") + source.slice(cursor);
 }
 
 async function offlineEntryPath() {
@@ -82,6 +143,23 @@ async function buildOfflineBundle(): Promise<OfflineBundle> {
     charset: "utf8",
     legalComments: "none",
     define: { "process.env.NODE_ENV": '"production"' },
+    plugins: [{
+      name: "inline-static-asset-urls",
+      setup(context) {
+        context.onLoad({ filter: /\.[cm]?[jt]sx?$/ }, async ({ path }) => {
+          const source = await readFile(path, "utf8");
+          if (!source.includes("import.meta.url")) return undefined;
+          const contents = await inlineStaticAssetUrls(path, source);
+          if (contents === source) return undefined;
+          const extension = extname(path);
+          const loader = extension === ".tsx" ? "tsx"
+            : extension === ".ts" || extension === ".mts" || extension === ".cts" ? "ts"
+            : extension === ".jsx" ? "jsx"
+            : "js";
+          return { contents, loader, resolveDir: dirname(path) };
+        });
+      },
+    }],
     loader: {
       ".png": "dataurl",
       ".jpg": "dataurl",
@@ -276,16 +354,20 @@ function documentHtml(options: {
   manifest: unknown;
   bundle: OfflineBundle;
 }) {
+  const { payload, media } = extractOfflineMedia({
+    ...options.payload,
+    showChrome: true,
+  });
   const html = `<!doctype html>
 <html lang="${options.language}" data-theme="light">
 <head>
 <meta charset="utf-8">
+<meta name="topic-generator-offline-format" content="5">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light">
 <title>${escapeHtml(options.title)}</title>
 <style>${options.bundle.css}
 html,body,#topic-generator-offline-root{margin:0;min-height:100%}
-[data-offline-page] [data-slot="topic-landing-global-header"],[data-offline-page] [data-slot="topic-landing-activity-header"]{display:none}
 .topic-generator-offline-warning{margin:16px;padding:12px 16px;border:1px solid var(--border-default);border-radius:var(--radius-component-default);background:var(--background-secondary);font:14px/1.5 var(--font-family-ios)}
 .topic-generator-offline-warning ul{margin:6px 0 0;padding-left:20px}
 </style>
@@ -293,7 +375,8 @@ html,body,#topic-generator-offline-root{margin:0;min-height:100%}
 <body>
 <div id="topic-generator-offline-root"></div>
 <script id="topic-generator-delivery-manifest" type="application/json">${scriptJson(options.manifest)}</script>
-<script id="topic-generator-offline-payload" type="application/json">${scriptJson(options.payload)}</script>
+<script id="topic-generator-offline-media" type="application/json">${scriptJson(media)}</script>
+<script id="topic-generator-offline-payload" type="application/json">${scriptJson(payload)}</script>
 <script type="module">${options.bundle.javascript}</script>
 </body>
 </html>`;
@@ -342,16 +425,56 @@ export function createTopicGeneratorOfflineRenderer(options: {
       if (!selection) throw new Error("Offline page requires product selection.");
       const bundle = await offlineBundle();
       if (request.name === "page-draft.html") {
+        const page = request.stages["page-generation"] as PageGenerationStageOutput | undefined;
+        if (page?.generationSpec.language === OFFLINE_PREVIEW_LANGUAGE) {
+          const generationSpec = await inlineFinalSpec(page.generationSpec, request, fetchMedia);
+          return documentHtml({
+            title: `${request.manifest.request.keyword} · Preview`,
+            language: OFFLINE_PREVIEW_LANGUAGE,
+            payload: {
+              mode: "generated",
+              pageTypeRef: selection.executionPlan.pageTypeRef,
+              generationSpec,
+              warnings: [],
+            },
+            manifest: deliveryManifest(request, page.generationSpec.digest),
+            bundle,
+          });
+        }
         const merchandising = request.stages["module-merchandising"] as
           ModuleMerchandisingStageOutput | undefined;
         if (!merchandising) throw new Error("Draft page requires a compiled PagePlan.");
         const strategy = getProductSelectionStrategyConfig(selection.selection.strategyRef).engine;
-        const sourcePlan = merchandising.plans[request.manifest.request.language][strategy] ??
-          merchandising.plans[request.manifest.request.language].relevance;
+        const sourcePlan = merchandising.plans[OFFLINE_PREVIEW_LANGUAGE][strategy] ??
+          merchandising.plans[OFFLINE_PREVIEW_LANGUAGE].relevance;
         const { plan, warnings } = await inlineDraftPlan(sourcePlan, fetchMedia);
+        const content = request.stages["content-review"] as ContentReviewStageOutput | undefined;
+        const localizedContent = content?.contentByLanguage?.[OFFLINE_PREVIEW_LANGUAGE] ??
+          (content?.contentSpec.language === OFFLINE_PREVIEW_LANGUAGE
+            ? { contentSpec: content.contentSpec }
+            : undefined);
+        if (localizedContent) {
+          const retainedVisualSpec = page
+            ? await inlineFinalSpec(page.generationSpec, request, fetchMedia)
+            : undefined;
+          return documentHtml({
+            title: `${request.manifest.request.keyword} · Preview`,
+            language: OFFLINE_PREVIEW_LANGUAGE,
+            payload: {
+              mode: "content",
+              pageTypeRef: selection.executionPlan.pageTypeRef,
+              plan,
+              contentSpec: localizedContent.contentSpec,
+              ...(retainedVisualSpec ? { retainedVisualSpec } : {}),
+              warnings,
+            },
+            manifest: deliveryManifest(request, localizedContent.contentSpec.digest),
+            bundle,
+          });
+        }
         return documentHtml({
           title: `${request.manifest.request.keyword} · Draft`,
-          language: request.manifest.request.language,
+          language: OFFLINE_PREVIEW_LANGUAGE,
           payload: {
             mode: "selection",
             pageTypeRef: selection.executionPlan.pageTypeRef,
