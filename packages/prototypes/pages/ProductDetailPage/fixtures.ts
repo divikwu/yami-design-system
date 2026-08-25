@@ -12,6 +12,8 @@ import { createStorefrontHeader } from "../storefront-header.fixture";
 
 import type { ProductDetailPageProps } from "./ProductDetailPage.types";
 
+export type ProductDetailPageLocale = "zh" | "en";
+
 const productImages = [
   ["front", "22f1eabda8bc0200d050ebcb1ebdb469", "Torriden Dive In Low Molecule Hyaluronic Acid Mask box, front view"],
   ["packaging", "c635ba73e529d262e7b2e25d3a7fb89c", "Torriden Dive In mask packaging and individual sheet"],
@@ -193,12 +195,12 @@ const recentlyViewedProducts: ProductListItem[] = [
   },
 ];
 
-function createFooter(): FooterProps {
-  const copy = footerCopy.en;
+function createFooter(locale: ProductDetailPageLocale): FooterProps {
+  const copy = footerCopy[locale];
   return {
     ariaLabel: copy.ariaLabel,
-    columns: createFooterColumns("en"),
-    socialLinks: createFooterSocialLinks("en"),
+    columns: createFooterColumns(locale),
+    socialLinks: createFooterSocialLinks(locale),
     subscribe: {
       title: copy.subscribeTitle,
       label: copy.subscribeLabel,
@@ -208,14 +210,14 @@ function createFooter(): FooterProps {
     appTitle: copy.appTitle,
     appLinks: createFooterAppLinks(),
     copyright: copy.copyright,
-    legalLinks: createFooterLegalLinks("en"),
+    legalLinks: createFooterLegalLinks(locale),
     paymentMarks: createFooterPaymentMarks(),
     imageLoading: "lazy",
   };
 }
 
-function createProductDetailHeader() {
-  const header = createStorefrontHeader("en");
+function createProductDetailHeader(locale: ProductDetailPageLocale) {
+  const header = createStorefrontHeader(locale);
   return {
     ...header,
     mobileVariant: "pdp" as const,
@@ -223,11 +225,14 @@ function createProductDetailHeader() {
   };
 }
 
-export function createProductDetailPageFixture(): ProductDetailPageProps {
-  return {
+export function createProductDetailPageFixture(
+  locale: ProductDetailPageLocale = "en",
+): ProductDetailPageProps {
+  const fixture: ProductDetailPageProps = {
+    lang: locale,
     contentMaxWidth: 1920,
-    header: createProductDetailHeader(),
-    footer: createFooter(),
+    header: createProductDetailHeader(locale),
+    footer: createFooter(locale),
     breadcrumb: [
       { label: "Beauty", href: "#beauty" },
       { label: "Masks", href: "#masks" },
@@ -541,6 +546,176 @@ export function createProductDetailPageFixture(): ProductDetailPageProps {
       recommendations: "Recommendations based on this item",
       recentlyViewed: "You've Recently Viewed",
       viewAll: "View all",
+    },
+  };
+
+  if (locale === "en") return fixture;
+
+  const reviewSection = fixture.reviewSection!;
+  const reviewBodies = [
+    "补水效果很好，使用感也很舒适。",
+    "深层保湿，使用后肌肤感觉柔软水润。",
+    "保湿感很明显，敷起来也很舒服。",
+    "使用后皮肤更水润了，我会再次购买。",
+    "步骤简单，补水效果很不错。",
+    "适合干燥敏感肌，质地轻盈又保湿。",
+    "膜布柔软，精华使用感舒适。",
+    "膜布厚实，保湿但不会觉得厚重。",
+    "方便加入日常护理，保湿且不黏腻。",
+    "柔软舒缓，很适合每周补水护理。",
+  ];
+  const localizeProducts = (products: readonly ProductListItem[]) =>
+    products.map((product) => ({
+      ...product,
+      soldCount:
+        typeof product.soldCount === "string"
+          ? product.soldCount.replace(/(\d+\+)\s+sold/i, "周销 $1")
+          : product.soldCount,
+      addButtonAriaLabel: `将 ${product.title} 加入购物车`,
+    }));
+
+  return {
+    ...fixture,
+    breadcrumb: [
+      { label: "美妆护肤", href: "#beauty" },
+      { label: "面膜", href: "#masks" },
+      { label: "贴片面膜" },
+    ],
+    images: fixture.images.map((item, index) => ({
+      ...item,
+      alt: [
+        "Torriden 低分子玻尿酸补水面膜正面包装",
+        "Torriden 补水面膜包装与独立膜片",
+        "Torriden 面膜膜布质地细节",
+        "Torriden 面膜补水功效说明",
+        "Torriden 面膜精华与上脸效果",
+        "Torriden 面膜护肤步骤说明",
+      ][index] ?? item.alt,
+    })),
+    title: "Torriden DIVE IN 低分子玻尿酸补水面膜 10片",
+    ranking: "面膜人气榜第 3 名",
+    soldCount: "已售 400+",
+    discountLabel: "立省 22%",
+    optionGroups: [
+      {
+        ...fixture.optionGroups[0],
+        label: "面膜类型",
+        options: [
+          { label: "粉色紧致款", value: "firming", unavailable: true },
+          { label: "玻尿酸补水款", value: "hyaluronic" },
+          { label: "积雪草舒缓款", value: "cica" },
+        ],
+      },
+      {
+        ...fixture.optionGroups[1],
+        label: "包装规格",
+        options: [
+          { label: "4片/盒", value: "4-sheets" },
+          { label: "5片装", value: "5-sheets" },
+          { label: "10片装", value: "10-sheets" },
+          { label: "20片装", value: "20-sheets" },
+          { label: "3盒装", value: "3-packs" },
+        ],
+      },
+    ],
+    bestBefore: "2028年9月15日",
+    highlights: [
+      "蕴含 5D 玻尿酸复合成分，帮助多层补水。",
+      "柔软纯素纤维膜布承载充足精华，贴合肌肤。",
+      "轻盈精华易吸收，使用后清爽不黏腻。",
+      "舒缓成分适合敏感肌，并帮助减轻紧绷感。",
+      "敷用 15 分钟，肌肤水润柔软、富有光泽。",
+    ],
+    specifications: [
+      { label: "品牌", value: "Torriden" },
+      { label: "品牌产地", value: "韩国" },
+      { label: "净含量", value: "1盒" },
+      { label: "面膜类型", value: "玻尿酸补水" },
+      { label: "包装规格", value: "10片" },
+    ],
+    purchaseTags: ["热销商品", "新品", "干燥", "油性肌", "干性肌"],
+    recommendations: localizeProducts(fixture.recommendations),
+    recentlyViewed: localizeProducts(fixture.recentlyViewed ?? []),
+    reviewSection: {
+      ...reviewSection,
+      title: "顾客评价",
+      reviews: reviewSection.reviews.map((review, index) => ({
+        ...review,
+        locale: "评论于美国",
+        verifiedPurchase: true,
+        currentItem: true,
+        variant: "面膜类型：玻尿酸补水款 · 包装规格：10片装",
+        body: reviewBodies[index] ?? review.body,
+      })),
+      copy: {
+        reviewsLabel: "条评价",
+        referenceNotice: "部分评价来自其他规格，仅供参考。",
+        writeReview: "写评价",
+        all: "全部",
+        purchased: "已购买",
+        photos: "带图",
+        sortBy: "排序",
+        viewMore: "查看全部评价",
+        verifiedPurchase: "已验证购买",
+        currentItem: "当前商品",
+        showOriginal: "查看原文",
+        helpful: "有帮助",
+        comments: "评论",
+        noReviews: "没有符合当前筛选条件的评价。",
+        stars: "星",
+        resetFilter: "查看全部评价",
+      },
+      sortOptions: reviewSection.sortOptions.map((option) => ({
+        ...option,
+        label: option.value === "recent" ? "最新评价" : "默认排序",
+      })),
+    },
+    brandSection: fixture.brandSection
+      ? {
+          ...fixture.brandSection,
+          aboutLabel: "品牌介绍",
+          description:
+            "Torriden 专注于清洁、纯素且无动物实验的高效补水配方。其代表性的 5D 低分子玻尿酸复合成分可提供分层保湿，同时保持清爽不黏腻。",
+          viewAllLabel: "查看全部",
+          previousLabel: "上一组 Torriden 商品",
+          nextLabel: "下一组 Torriden 商品",
+          products: localizeProducts(fixture.brandSection.products),
+        }
+      : undefined,
+    copy: {
+      galleryLabel: "商品图片",
+      thumbnailsLabel: "选择商品图片",
+      previousImage: "上一张商品图片",
+      nextImage: "下一张商品图片",
+      ratingLabel: "评分",
+      writeReview: "写评价",
+      bestBefore: "保质期至",
+      productHighlights: "商品亮点",
+      specifications: "商品规格",
+      disclaimer: "免责声明",
+      disclaimerBody:
+        "商品包装、规格和价格可能随时调整。使用前请仔细阅读商品标签、警示和使用说明。",
+      addToFavorites: "加入收藏",
+      share: "分享商品",
+      shareWeibo: "分享到微博",
+      shareFacebook: "分享到 Facebook",
+      shareEmail: "通过邮件分享",
+      shareWechat: "分享到微信",
+      quantity: "数量",
+      decreaseQuantity: "减少数量",
+      increaseQuantity: "增加数量",
+      addToCart: "加入购物车",
+      seller: "由亚米销售并发货",
+      shipTo: "配送至",
+      deliveryEstimate: "明天下单，预计 8月21日 送达；请在凌晨 1:30 前完成订单。",
+      serviceGuarantees: ["满 $49 免运费", "美国境内发货", "轻松退货"],
+      viewDetails: "查看详情",
+      tags: "标签",
+      showAllTags: "展开全部",
+      showFewerTags: "收起",
+      recommendations: "基于此商品的推荐",
+      recentlyViewed: "最近浏览",
+      viewAll: "查看全部",
     },
   };
 }

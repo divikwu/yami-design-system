@@ -8,7 +8,7 @@
   ],
   "categories": {
     "action": {
-      "count": 19,
+      "count": 20,
       "canvas": 24
     },
     "area": {
@@ -45,6 +45,14 @@
     }
   },
   "icons": [
+    {
+      "name": "arrow-down",
+      "category": "action",
+      "path": "assets/icons/action/arrow-down.svg",
+      "width": 24,
+      "height": 24,
+      "sha1": "8dc4ea1b2d"
+    },
     {
       "name": "arrow-left",
       "category": "action",

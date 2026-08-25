@@ -2165,7 +2165,7 @@
         ],
         "status": "beta",
         "version": "0.2.0",
-        "description": "YAMI global navigation band. At and above 1024px: brand lockup, storefront hall switcher, locale, deliver-to, search, account / cart, and a category rail whose entries are campaign artwork rather than icon components. Below 1024px it swaps to mobile chrome. The default variant uses a 56px brand bar over a 36px search field; the PDP variant uses a single 56px H5 row below 768px with lockup, deliver-to, search, and cart.",
+        "description": "YAMI global navigation band. At and above 1024px: brand lockup, storefront hall switcher, locale, deliver-to, search, account / cart, and a category rail whose entries are campaign artwork rather than icon components. Below 1024px it swaps to mobile chrome. The default variant uses a 56px brand bar over a 36px search field; the PDP variant uses a single 56px H5 row with lockup, deliver-to, search, and cart.",
         "figma": {
           "fileKey": "6oOAy72DBff4P6NzJYc2hi",
           "nodeId": "5777:562353",
@@ -2197,7 +2197,7 @@
             "type": "'default' | 'pdp'",
             "required": false,
             "default": "default",
-            "description": "Mobile navigation anatomy. pdp renders the single-row, top-sticky H5 PDP header below 768px; widths from 768px through 1023px retain the default two-row mobile header."
+            "description": "Mobile navigation anatomy. pdp renders the single-row, top-sticky H5 PDP header throughout the mobile range below 1024px."
           },
           "logo": {
             "type": "HeaderImage",

@@ -15,6 +15,9 @@ horizontally when it exceeds the available width. The component consumes
 YAMI surface, border, focus, radius, typography, and spacing tokens; callers
 control only the image data and localized labels.
 
+Previous and next buttons are PC controls and appear from 1024px. Below that
+breakpoint, keep the buttons hidden and use swipe or thumbnail selection.
+
 Do not use this component for editorial carousels, campaign banners, video
 playlists, or ProductCard media. ProductCard retains its own fixed media
 contract.

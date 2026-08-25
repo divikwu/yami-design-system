@@ -14,11 +14,10 @@ at `--breakpoints-desktop` (1024px).
 1. **Brand bar** (56px) — Mobile lockup · deliver-to · inbox, on an 8px page inset
 2. **Search row** (36px field + 8px) — full-width field with visual search
 
-For Product Detail, pass `mobileVariant="pdp"`. Below 768px it uses the H5 PDP
+For Product Detail, pass `mobileVariant="pdp"`. Below 1024px it uses the H5 PDP
 navigation from Figma `2786:18423`: one 56px row with the 84 × 32 English
 mobile lockup, deliver-to, search, and cart. The separate search row is hidden.
-The row stays pinned to the top of the viewport while the PDP scrolls. From
-768px through 1023px the default two-row mobile header remains in place.
+The row stays pinned to the top of the viewport while the PDP scrolls.
 
 ## The two bands are not a reflow of each other
 
