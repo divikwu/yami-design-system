@@ -7,7 +7,7 @@ export const runtime = "nodejs";
 
 export async function GET(request: Request) {
   try {
-    const { store } = await getTopicGeneratorManagedRunRuntime();
+    const { root, store } = await getTopicGeneratorManagedRunRuntime();
     const url = new URL(request.url);
     const parsedLimit = Number(url.searchParams.get("limit") ?? "25");
     const limit = Number.isInteger(parsedLimit) && parsedLimit > 0
@@ -21,6 +21,11 @@ export async function GET(request: Request) {
       schemaVersion: "topic-generator-run-list/v1",
       items,
       nextCursor: start + limit < runs.length ? items.at(-1)?.runId ?? null : null,
+      storage: {
+        status: "ready",
+        runCount: runs.length,
+        ...(process.env.NODE_ENV === "production" ? {} : { root }),
+      },
     });
   } catch (error) {
     return managedRunErrorResponse(error);

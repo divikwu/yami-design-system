@@ -250,6 +250,17 @@ describe("Topic Generator managed run loading", () => {
     root = createRoot(container);
   });
 
+  async function enterTopic(value: string) {
+    const topicInput = container.querySelector<HTMLInputElement>("input[minlength='2']")!;
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set?.call(
+        topicInput,
+        value,
+      );
+      topicInput.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+  }
+
   afterEach(async () => {
     await act(async () => root.unmount());
     container.remove();
@@ -851,6 +862,7 @@ describe("Topic Generator managed run loading", () => {
       root.render(<TopicGenerator managedRunApiBase="/api/topic-generator" />);
       await Promise.resolve();
     });
+    await enterTopic("ANUA");
 
     const editableKeyword = container.querySelector<HTMLInputElement>(
       'input[placeholder="例如 ANUA、ramen"]',
@@ -921,6 +933,7 @@ describe("Topic Generator managed run loading", () => {
       root.render(<TopicGenerator managedRunApiBase="/api/topic-generator" />);
       await Promise.resolve();
     });
+    await enterTopic("matcha");
 
     const selectProducts = [...container.querySelectorAll<HTMLButtonElement>("button")]
       .find((button) => button.textContent === "选品")!;
@@ -1071,6 +1084,7 @@ describe("Topic Generator managed run loading", () => {
       );
       await Promise.resolve();
     });
+    await enterTopic("matcha");
     const generateContent = [...container.querySelectorAll<HTMLButtonElement>("button")]
       .find((button) => button.textContent === "生成页面")!;
     await act(async () => {

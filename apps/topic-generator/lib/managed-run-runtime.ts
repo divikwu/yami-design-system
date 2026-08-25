@@ -1,7 +1,5 @@
 import "server-only";
 
-import { access } from "node:fs/promises";
-import { isAbsolute, join, resolve } from "node:path";
 import {
   TopicGeneratorRunStore,
   createTopicGeneratorManagedStageExecutor,
@@ -10,42 +8,16 @@ import { loadTopicGeneratorPageAutomationRuntime } from "./page-automation-runti
 import { loadTopicGeneratorProductSelectionRuntime } from "./product-selection-runtime";
 import { createManagedTopicPageReviewPreviewRegistry } from "./topic-page-review-preview-registry";
 import { createTopicGeneratorOfflineRenderer } from "./topic-generator-offline-export";
+import { resolveTopicGeneratorRunStorageRoot } from "./topic-generator-storage";
 
 type RuntimeEnvironment = Record<string, string | undefined>;
-
-async function workspaceRoot(cwd: string) {
-  let current = resolve(cwd);
-  for (let depth = 0; depth < 6; depth += 1) {
-    try {
-      await access(join(current, "pnpm-workspace.yaml"));
-      return current;
-    } catch {
-      const parent = resolve(current, "..");
-      if (parent === current) break;
-      current = parent;
-    }
-  }
-  throw new Error("TOPIC GENERATOR workspace root could not be resolved.");
-}
 
 export async function resolveTopicGeneratorRunRoot(options: {
   environment?: RuntimeEnvironment;
   cwd?: string;
+  homeDirectory?: string;
 } = {}) {
-  const environment = options.environment ?? process.env;
-  const configured = environment.TOPIC_GENERATOR_RUN_ROOT?.trim();
-  if (configured) {
-    if (!isAbsolute(configured)) {
-      throw new Error("TOPIC_GENERATOR_RUN_ROOT must be an absolute path.");
-    }
-    return resolve(configured);
-  }
-  if (environment.NODE_ENV === "production") {
-    throw new Error(
-      "TOPIC_GENERATOR_RUN_ROOT is required in production and must point to persistent storage.",
-    );
-  }
-  return join(await workspaceRoot(options.cwd ?? process.cwd()), ".topic-generator", "runs");
+  return resolveTopicGeneratorRunStorageRoot(options);
 }
 
 export async function loadTopicGeneratorManagedRunRuntime(options: {

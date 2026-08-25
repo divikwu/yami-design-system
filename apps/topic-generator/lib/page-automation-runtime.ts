@@ -13,6 +13,7 @@ import {
 } from "@yami/topic-generator";
 import { topicPageImageDecoder } from "./topic-page-image-decoder";
 import { createConfiguredTopicPageReviewPreviewRegistry } from "./topic-page-review-preview-registry";
+import { resolveTopicGeneratorAssetStorageRoot } from "./topic-generator-storage";
 
 type RuntimeEnvironment = Record<string, string | undefined>;
 
@@ -170,23 +171,23 @@ export async function loadTopicGeneratorPageAutomationRuntime(options: {
 
   let topicPageAssetStore: TopicPageAssetStore | undefined;
   let topicPagePreviewResolver: TopicPageReviewPreviewResolver | undefined;
-  const assetRoot = environment.TOPIC_GENERATOR_ASSET_ROOT?.trim();
-  if (!assetRoot) {
-    issues.push("TOPIC_GENERATOR_ASSET_ROOT is not configured.");
-  } else {
-    try {
-      topicPageAssetStore = createFileSystemAssetStore(assetRoot);
-    } catch (error) {
-      issues.push(
-        error instanceof Error
-          ? `Configured Topic Page asset store is invalid: ${error.message}`
-          : "Configured Topic Page asset store is invalid.",
-      );
-    }
+  let assetRoot: string | undefined;
+  try {
+    assetRoot = resolveTopicGeneratorAssetStorageRoot({ environment });
+    topicPageAssetStore = createFileSystemAssetStore(assetRoot);
+  } catch (error) {
+    issues.push(
+      error instanceof Error
+        ? `Configured Topic Page asset store is invalid: ${error.message}`
+        : "Configured Topic Page asset store is invalid.",
+    );
   }
   if (topicPageAssetStore) {
     try {
-      const previewRegistry = createConfiguredTopicPageReviewPreviewRegistry(environment);
+      const previewRegistry = createConfiguredTopicPageReviewPreviewRegistry({
+        ...environment,
+        TOPIC_GENERATOR_ASSET_ROOT: assetRoot,
+      });
       topicPagePreviewResolver = ({ executionPlan, generationSpec }) =>
         previewRegistry.publish({
           pageTypeRef: executionPlan.pageTypeRef,
