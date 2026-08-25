@@ -22,7 +22,7 @@ const SESSION_PATTERN = /^[a-f0-9-]{36}$/;
 const DIGEST_PATTERN = /^[a-f0-9]{64}$/;
 const MAX_FILES = 2_000;
 const MAX_TOTAL_BYTES = 256 * 1024 * 1024;
-const MAX_FILE_BYTES = 32 * 1024 * 1024;
+const MAX_FILE_BYTES = 64 * 1024 * 1024;
 const MAX_CHUNK_BYTES = 5 * 1024 * 1024;
 const MAX_MANIFEST_BYTES = 1024 * 1024;
 const SESSION_MAX_AGE_MS = 60 * 60 * 1_000;
@@ -149,7 +149,8 @@ function sourcePathInsideCandidate(path: string, candidate: ImportCandidate) {
 
 export function isTopicGeneratorV2RunFilePath(path: string) {
   path = normalizeTopicGeneratorV2RunFilePath(path);
-  if (path === "run.json" || path === "state.json" || path === "events.jsonl") return true;
+  if (path === "run.json" || path === "state.json" || path === "events.jsonl" ||
+      path === "archive-manifest.json") return true;
   const parts = path.split("/");
   if (parts[0] === "assets") return parts.length > 1;
   if (parts[0] === "deliverables") {

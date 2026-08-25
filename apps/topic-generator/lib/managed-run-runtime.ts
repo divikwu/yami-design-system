@@ -63,7 +63,7 @@ export async function loadTopicGeneratorManagedRunRuntime(options: {
     loadTopicGeneratorPageAutomationRuntime({ environment, fetch: options.fetch }),
   ]);
   const store = new TopicGeneratorRunStore({ root });
-  const renderer = createTopicGeneratorOfflineRenderer({ fetch: options.fetch });
+  const renderer = createTopicGeneratorOfflineRenderer();
   const previewRegistry = createManagedTopicPageReviewPreviewRegistry({
     runRoot: root,
     environment,

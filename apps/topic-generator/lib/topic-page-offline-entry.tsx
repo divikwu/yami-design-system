@@ -42,6 +42,20 @@ type OfflinePayload =
     };
 
 const OFFLINE_MEDIA_REF_PREFIX = "topic-generator-media://";
+const REMOTE_IMAGE_FALLBACK =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='800' viewBox='0 0 1200 800'%3E%3Crect width='1200' height='800' fill='%23f3f3f3'/%3E%3C/svg%3E";
+
+function installRemoteImageFallback() {
+  document.addEventListener("error", (event) => {
+    const image = event.target;
+    if (!(image instanceof HTMLImageElement) || image.dataset.remoteImageFallback) return;
+    const source = image.currentSrc || image.src;
+    if (!source.startsWith("https://")) return;
+    image.dataset.remoteImageFallback = "true";
+    image.removeAttribute("srcset");
+    image.src = REMOTE_IMAGE_FALLBACK;
+  }, true);
+}
 
 function hydrateOfflineMedia(value: unknown, media: string[]): unknown {
   if (typeof value === "string" && value.startsWith(OFFLINE_MEDIA_REF_PREFIX)) {
@@ -96,6 +110,7 @@ function OfflinePage({ payload }: { payload: OfflinePayload }) {
 
 const root = document.getElementById("topic-generator-offline-root");
 if (!root) throw new Error("Offline page root is missing.");
+installRemoteImageFallback();
 const payload = readPayload();
 createRoot(root).render(
   <StrictMode>

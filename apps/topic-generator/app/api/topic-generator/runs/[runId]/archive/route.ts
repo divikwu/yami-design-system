@@ -1,18 +1,23 @@
 import { getTopicGeneratorManagedRunRuntime } from "@/lib/managed-run-runtime";
 import { managedRunErrorResponse } from "@/lib/managed-run-api";
-import { createTopicGeneratorRunArchive } from "@/lib/topic-generator-run-archive";
+import {
+  createTopicGeneratorPreviewArchive,
+  createTopicGeneratorRunArchive,
+} from "@/lib/topic-generator-run-archive";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ runId: string }> },
 ) {
   try {
     const { runId } = await params;
-    const { store } = await getTopicGeneratorManagedRunRuntime();
-    const archive = await createTopicGeneratorRunArchive(store, runId);
+    const { store, renderer } = await getTopicGeneratorManagedRunRuntime();
+    const archive = new URL(request.url).searchParams.get("type") === "run"
+      ? await createTopicGeneratorRunArchive(store, runId)
+      : await createTopicGeneratorPreviewArchive(store, renderer, runId);
     return new Response(archive.stream, {
       headers: {
         "content-type": "application/zip",

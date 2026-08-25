@@ -54,6 +54,21 @@ function request(
   return { name, manifest, stages };
 }
 
+function offlinePayload(html: string) {
+  const match = html.match(
+    /<script id="topic-generator-offline-payload" type="application\/json">([\s\S]*?)<\/script>/,
+  );
+  if (!match?.[1]) throw new Error("Offline payload is missing.");
+  return JSON.parse(match[1]) as {
+    plan?: {
+      modules: Array<{
+        id: string;
+        groups?: Array<{ id: string; productIds: string[] }>;
+      }>;
+    };
+  };
+}
+
 function approvedExperienceReview() {
   return {
     experienceReview: {
@@ -73,12 +88,14 @@ describe("Topic Generator offline export", () => {
     const renderer = createTopicGeneratorOfflineRenderer();
     const html = await renderer.render(request("topic-brief.html", {
       "topic-intent": {
-        analysis: { intent: plan.intent },
+        analysis: { intent: plan.intent, snapshot },
       },
       "background-evidence": {
         backgroundEvidence: {
           status: "partial",
+          language: "zh",
           themeIntentDigest: "sha256:intent",
+          digest: "sha256:background",
           sources: [{
             id: "source-1",
             type: "authoritative-cultural",
@@ -98,21 +115,27 @@ describe("Topic Generator offline export", () => {
       },
     } as never));
 
-    expect(html).toContain('<html lang="zh">');
+    expect(html).toContain('<html lang="en">');
+    expect(html).toContain('<meta name="topic-generator-brief-format" content="2">');
+    expect(html).toContain("Yami catalog categories");
+    expect(html).toContain("Suggested shopping scenarios");
+    expect(html).toContain("Workbench language</dt><dd>zh");
+    expect(html).toContain("Copy preview languages</dt><dd>English (en), Chinese (zh)");
+    expect(html).toContain("Output page language</dt><dd>English (en)");
+    expect(html).toContain("background evidence only");
+    expect(html).toContain('"outputPageLanguage":"en"');
+    expect(html).toContain('"pageDigest":null');
+    expect(html).toContain('"topicIntentDigest":"sha256:intent"');
+    expect(html).toContain('"backgroundEvidenceDigest":"sha256:background"');
     expect(html).toContain("Tea reference");
     expect(html).toContain("Matcha is a powdered tea.");
     expect(html).toContain("An official primary source is still required.");
     expect(html).toContain("topic-generator-delivery-manifest/v1");
   });
 
-  it("inlines draft product media and emits no internal runtime URLs", async () => {
+  it("keeps draft product media remote and emits no internal runtime URLs", async () => {
     const plans = buildTopicPagePlanMatrix(snapshot, "selection");
-    const renderer = createTopicGeneratorOfflineRenderer({
-      fetch: vi.fn(async () => new Response(new Uint8Array([1, 2, 3]), {
-        status: 200,
-        headers: { "content-type": "image/webp" },
-      })),
-    });
+    const renderer = createTopicGeneratorOfflineRenderer();
     const html = await renderer.render(request("page-draft.html", {
       "product-selection": {
         executionPlan: { pageTypeRef: "landing-page/topic@2" },
@@ -133,13 +156,13 @@ describe("Topic Generator offline export", () => {
     expect(html).not.toContain(
       '[data-offline-page] [data-slot="topic-landing-global-header"]',
     );
-    expect(html).toContain("data:image/webp;base64,AQID");
+    expect(html).toContain("https://media.example.com/matcha.webp");
     expect(html).toContain("data:image/svg+xml;base64,");
     expect(html).toContain("data:image/png;base64,");
-    expect(html.match(/data:image\/webp;base64,AQID/g)).toHaveLength(1);
     expect(html).toContain('id="topic-generator-offline-media"');
-    expect(html).toContain("topic-generator-media://0");
-    expect(html).not.toContain("https://media.example.com/matcha.webp");
+    expect(html).toContain(
+      '<script id="topic-generator-offline-media" type="application/json">[]</script>',
+    );
     expect(html).not.toMatch(/new URL\(["']\.\.\/\.\.\/assets\//);
     expect(html).not.toMatch(/new URL\(["']\.\/assets\//);
     expect(html).not.toMatch(/localhost|127\.0\.0\.1|\/_next|\/api\/topic-generator/i);
@@ -156,11 +179,7 @@ describe("Topic Generator offline export", () => {
       sourceRank: index + 1,
     }));
     const plans = buildTopicPagePlanMatrix({ ...snapshot, products }, "selection");
-    const fetchMedia = vi.fn(async () => new Response(new Uint8Array([1, 2, 3]), {
-      status: 200,
-      headers: { "content-type": "image/webp" },
-    }));
-    const renderer = createTopicGeneratorOfflineRenderer({ fetch: fetchMedia });
+    const renderer = createTopicGeneratorOfflineRenderer();
 
     const html = await renderer.render(request("page-draft.html", {
       "product-selection": {
@@ -174,16 +193,64 @@ describe("Topic Generator offline export", () => {
       },
     } as never));
 
-    expect(fetchMedia.mock.calls.length).toBeLessThanOrEqual(128);
-    expect(html).not.toContain("Image unavailable for");
+    expect(html).toContain("https://media.example.com/matcha-1.webp");
     expect(html).not.toContain('"id":"matcha-160"');
   });
 
-  it("uses a neutral warning placeholder when draft product media is unavailable", async () => {
-    const plans = buildTopicPagePlanMatrix(snapshot, "selection");
-    const renderer = createTopicGeneratorOfflineRenderer({
-      fetch: vi.fn(async () => new Response(null, { status: 404 })),
-    });
+  it("keeps one representative from every shortcut group when compacting a draft", async () => {
+    const products = Array.from({ length: 64 }, (_, index) => ({
+      id: `matcha-${index + 1}`,
+      title: `Matcha ${index + 1}`,
+      brand: "Yami",
+      price: "$12.99",
+      imageUrl: `https://media.example.com/matcha-${index + 1}.webp`,
+      productUrl: `https://www.yamibuy.com/en/p/matcha-${index + 1}`,
+      sourceRank: index + 1,
+    }));
+    const plans = buildTopicPagePlanMatrix({ ...snapshot, products }, "selection");
+    const shortcuts = plans.en.relevance.modules.find(({ id }) => id === "shortcuts");
+    if (!shortcuts) throw new Error("Shortcut module is missing from the fixture.");
+    const planProductIds = plans.en.relevance.products.map(({ id }) => id);
+    shortcuts.groups = Array.from({ length: 8 }, (_, index) => ({
+      id: `category-${index + 1}`,
+      label: `Category ${index + 1}`,
+      role: "core",
+      productIds: Array.from(
+        { length: 8 },
+        (_, offset) => planProductIds[(index + offset) % planProductIds.length]!,
+      ),
+    }));
+    shortcuts.productIds = planProductIds.slice(0, 8);
+    const renderer = createTopicGeneratorOfflineRenderer();
+
+    const html = await renderer.render(request("page-draft.html", {
+      "product-selection": {
+        executionPlan: { pageTypeRef: "landing-page/topic@2" },
+        selection: { strategyRef: "relevance/intent-themes@5" },
+        plans,
+      },
+      "module-merchandising": {
+        plan: { digest: "sha256:page-plan" },
+        plans,
+      },
+    } as never));
+    const payload = offlinePayload(html);
+    const exportedShortcuts = payload.plan?.modules.find(({ id }) => id === "shortcuts");
+
+    expect(exportedShortcuts?.groups).toHaveLength(8);
+    expect(exportedShortcuts?.groups?.map(({ id }) => id)).toEqual(
+      Array.from({ length: 8 }, (_, index) => `category-${index + 1}`),
+    );
+    expect(exportedShortcuts?.groups?.every(({ productIds }) => productIds.length === 1))
+      .toBe(true);
+  });
+
+  it("uses a neutral warning placeholder for an unsafe product media URL", async () => {
+    const plans = buildTopicPagePlanMatrix({
+      ...snapshot,
+      products: [{ ...snapshot.products[0]!, imageUrl: "javascript:alert(1)" }],
+    }, "selection");
+    const renderer = createTopicGeneratorOfflineRenderer();
     const html = await renderer.render(request("page-draft.html", {
       "product-selection": {
         executionPlan: { pageTypeRef: "landing-page/topic@2" },
@@ -198,7 +265,7 @@ describe("Topic Generator offline export", () => {
 
     expect(html).toContain("Image unavailable for Matcha powder");
     expect(html).toContain("data:image/svg+xml");
-    expect(html).not.toContain("https://media.example.com/matcha.webp");
+    expect(html).not.toContain("javascript:alert(1)");
   });
 
   it("renders the latest generated page as the downloadable preview before QA", async () => {
@@ -213,8 +280,12 @@ describe("Topic Generator offline export", () => {
       strategyRef: "relevance/intent-themes@5",
       templateRef: "topic-landing/topic@2",
       bindings: {},
-      moduleOrder: [],
-      modules: [],
+      moduleOrder: ["hero"],
+      modules: [{
+        id: "hero",
+        products: [],
+        assets: [{ ref: "hero.webp", mimeType: "image/webp" }],
+      }],
       digest: "sha256:latest-preview",
     };
     const html = await renderer.render(request("page-draft.html", {
@@ -228,23 +299,26 @@ describe("Topic Generator offline export", () => {
         plans,
       },
       "page-generation": { generationSpec },
-      "visual-generation": { assetBodies: [] },
+      "visual-generation": {
+        assetBodies: [{
+          ref: "hero.webp",
+          mimeType: "image/webp",
+          dataBase64: "AQID",
+        }],
+      },
     } as never));
 
     expect(html).toContain("Matcha · Preview");
     expect(html).toContain('"mode":"generated"');
     expect(html).toContain("sha256:latest-preview");
+    expect(html).toContain("data:image/webp;base64,AQID");
+    expect(html).toContain("topic-generator-media://0");
     expect(html).not.toContain('"mode":"selection"');
   });
 
   it("renders approved content in the downloadable preview before images are generated", async () => {
     const plans = buildTopicPagePlanMatrix(snapshot, "selection");
-    const renderer = createTopicGeneratorOfflineRenderer({
-      fetch: vi.fn(async () => new Response(new Uint8Array([1, 2, 3]), {
-        status: 200,
-        headers: { "content-type": "image/webp" },
-      })),
-    });
+    const renderer = createTopicGeneratorOfflineRenderer();
     const contentSpec = {
       language: "en",
       digest: "sha256:latest-content",
@@ -353,12 +427,8 @@ describe("Topic Generator offline export", () => {
     expect(html).not.toMatch(/localhost|127\.0\.0\.1|\/_next|\/api\/topic-generator/i);
   });
 
-  it("inlines only the Explore products reachable in the capped offline view", async () => {
-    const fetchMedia = vi.fn(async () => new Response(new Uint8Array([1, 2, 3]), {
-      status: 200,
-      headers: { "content-type": "image/webp" },
-    }));
-    const renderer = createTopicGeneratorOfflineRenderer({ fetch: fetchMedia });
+  it("keeps only the remote Explore products reachable in the capped preview", async () => {
+    const renderer = createTopicGeneratorOfflineRenderer();
     const products = Array.from({ length: 130 }, (_, index) => ({
       id: `matcha-${index + 1}`,
       title: `Matcha ${index + 1}`,
@@ -400,7 +470,7 @@ describe("Topic Generator offline export", () => {
       "visual-generation": { assetBodies: [] },
     } as never));
 
-    expect(fetchMedia).toHaveBeenCalledTimes(12);
-    expect(html).not.toContain("https://media.example.com/matcha-13.webp");
+    expect(html).toContain("https://media.example.com/matcha-36.webp");
+    expect(html).not.toContain("https://media.example.com/matcha-37.webp");
   });
 });
