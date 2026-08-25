@@ -257,6 +257,75 @@ describe("Topic Generator managed run loading", () => {
     vi.restoreAllMocks();
   });
 
+  it("shows saved topics by their highest completed user milestone", async () => {
+    const items = [
+      v2Detail("matcha-selection", {
+        status: "paused",
+        nextStage: "content-writing",
+        completedThrough: "module-merchandising",
+      }).summary,
+      v2Detail("matcha-content", {
+        status: "blocked",
+        nextStage: "visual-generation",
+        completedThrough: "content-review",
+      }).summary,
+      v2Detail("matcha-visual", {
+        status: "interrupted",
+        nextStage: "page-generation",
+        completedThrough: "asset-persistence",
+      }).summary,
+      v2Detail("matcha-page", {
+        status: "paused",
+        nextStage: "automatic-qa",
+        completedThrough: "page-generation",
+      }).summary,
+    ];
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({
+      schemaVersion: "topic-generator-run-list/v1",
+      items,
+      nextCursor: null,
+    }));
+
+    await act(async () => {
+      root.render(<TopicGenerator managedRunApiBase="/api/topic-generator" />);
+      await Promise.resolve();
+    });
+    await act(async () => {
+      container.querySelector<HTMLInputElement>(
+        'input[name="topic-source"][value="load"]',
+      )!.click();
+      await Promise.resolve();
+    });
+    await act(async () => {
+      [...container.querySelectorAll<HTMLButtonElement>("button")]
+        .find((button) => button.textContent === "加载主题")!.click();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect([...container.querySelectorAll<HTMLElement>(
+      '[class*="managedRunOptionStatus"]',
+    )].map(({ textContent }) => textContent)).toEqual([
+      "选品完成",
+      "文案生成完成",
+      "图片生成完成",
+      "页面已生成",
+    ]);
+
+    await act(async () => {
+      container.querySelector<HTMLInputElement>(
+        'input[name="ui-language"][value="en"]',
+      )!.click();
+    });
+    expect([...container.querySelectorAll<HTMLElement>(
+      '[class*="managedRunOptionStatus"]',
+    )].map(({ textContent }) => textContent)).toEqual([
+      "Product selection complete",
+      "Copy generation complete",
+      "Image generation complete",
+      "Page generated",
+    ]);
+  });
+
   it("lists, loads, and safely deletes one selected managed topic", async () => {
     const plans = buildTopicPagePlanMatrix({
       keyword: "matcha",
@@ -271,6 +340,10 @@ describe("Topic Generator managed run loading", () => {
       keyword: "ramen",
       updatedAt: "2026-08-20T00:00:00.000Z",
     };
+    let resolveArchive: ((response: Response) => void) | undefined;
+    const archiveResponse = new Promise<Response>((resolve) => {
+      resolveArchive = resolve;
+    });
     const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
       const url = String(input);
       if (url.endsWith("/runs?limit=100") && init?.method === undefined) {
@@ -306,6 +379,12 @@ describe("Topic Generator managed run loading", () => {
           recoverable: true,
         });
       }
+      if (
+        url.endsWith(`/runs/${runId}/archive?type=preview`) &&
+        init?.method === undefined
+      ) {
+        return archiveResponse;
+      }
       throw new Error(`Unexpected ${init?.method ?? "GET"} ${url}`);
     });
 
@@ -321,6 +400,7 @@ describe("Topic Generator managed run loading", () => {
     await act(async () => loadSourceTab.click());
     const loadButton = [...container.querySelectorAll<HTMLButtonElement>("button")]
       .find((button) => button.textContent === "加载主题")!;
+    expect(loadButton.className).toContain("default");
     await act(async () => {
       loadButton.click();
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -399,7 +479,9 @@ describe("Topic Generator managed run loading", () => {
     )].some((label) => label.textContent === "选品策略")).toBe(true);
     const changeTopic = [...container.querySelectorAll<HTMLButtonElement>("button")]
       .find((button) => button.textContent === "更换主题")!;
-    expect(changeTopic.parentElement).toBe(loadedKeyword.parentElement?.parentElement);
+    expect(changeTopic.parentElement?.parentElement)
+      .toBe(loadedKeyword.parentElement?.parentElement);
+    expect(changeTopic.parentElement?.textContent).toBe("更换主题重置");
     const generatedContent = container.querySelector<HTMLElement>(
       'section[aria-label="生成内容"]',
     )!;
@@ -408,16 +490,46 @@ describe("Topic Generator managed run loading", () => {
       .find((element) => element.className.includes("generatorActions"))!;
     expect(generatorActions.compareDocumentPosition(generatedContent) &
       Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0);
-    const topicPackageDownload = generatedContent.querySelector<HTMLAnchorElement>(
-      `a[download="${runId}.zip"]`,
-    )!;
+    const topicPackageDownload = [...generatedContent.querySelectorAll<HTMLButtonElement>(
+      "button",
+    )].find((button) => button.textContent === "下载主题包")!;
     expect(topicPackageDownload.textContent).toBe("下载主题包");
-    expect(topicPackageDownload.getAttribute("href")).toBe(
-      `/api/topic-generator/runs/${runId}/archive`,
-    );
     expect(topicPackageDownload.querySelector("svg")).not.toBeNull();
+    expect(generatedContent.querySelector(
+      `a[download="${runId}-run-archive.zip"]`,
+    )).toBeNull();
     expect(generatedContent.textContent).not.toContain("下载内容");
     expect(generatedContent.querySelector('a[download$=".html"]')).toBeNull();
+
+    const createObjectUrl = vi.spyOn(URL, "createObjectURL")
+      .mockReturnValue("blob:topic-package");
+    const revokeObjectUrl = vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
+    const downloadClick = vi.spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(() => {});
+    await act(async () => {
+      topicPackageDownload.click();
+      await Promise.resolve();
+    });
+    expect(topicPackageDownload.textContent).toBe("正在打包…");
+    expect(topicPackageDownload.disabled).toBe(true);
+    expect(fetchMock).toHaveBeenCalledWith(
+      `/api/topic-generator/runs/${runId}/archive?type=preview`,
+    );
+
+    await act(async () => {
+      resolveArchive?.(new Response(new Blob(["zip"]), {
+        headers: { "content-type": "application/zip" },
+      }));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(topicPackageDownload.textContent).toBe("下载主题包");
+    expect(topicPackageDownload.disabled).toBe(false);
+    expect(createObjectUrl).toHaveBeenCalledOnce();
+    expect(downloadClick).toHaveBeenCalledOnce();
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(revokeObjectUrl).toHaveBeenCalledWith("blob:topic-package");
     for (const label of ["生成页面", "选品", "生成文案", "生成图片"]) {
       const action = [...container.querySelectorAll<HTMLButtonElement>("button")]
         .find((button) => button.textContent === label)!;
@@ -437,7 +549,23 @@ describe("Topic Generator managed run loading", () => {
     });
 
     await act(async () => {
-      loadButton.click();
+      container.querySelector<HTMLInputElement>(
+        'input[name="topic-source"][value="input"]',
+      )!.click();
+    });
+    expect([...generatedContent.querySelectorAll<HTMLButtonElement>("button")]
+      .some((button) => button.textContent === "下载主题包")).toBe(true);
+    expect([...container.querySelectorAll<HTMLButtonElement>("button")]
+      .some((button) => button.textContent === "重置")).toBe(true);
+    await act(async () => {
+      container.querySelector<HTMLInputElement>(
+        'input[name="topic-source"][value="load"]',
+      )!.click();
+    });
+
+    await act(async () => {
+      [...container.querySelectorAll<HTMLButtonElement>("button")]
+        .find((button) => button.textContent === "更换主题")!.click();
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
     const selectedCurrent = [...dialog.querySelectorAll<HTMLInputElement>(
@@ -672,6 +800,7 @@ describe("Topic Generator managed run loading", () => {
     expect(importedKeyword.readOnly).toBe(false);
     expect(importedKeyword.disabled).toBe(true);
     expect(container.textContent).toContain("下载主题包");
+    expect(container.textContent).not.toContain("导出完整运行归档");
     expect(container.textContent).not.toContain("继续生成");
     expect(container.textContent).not.toContain("派生新运行");
     expect(container.textContent).not.toContain("刷新数据");
@@ -747,18 +876,14 @@ describe("Topic Generator managed run loading", () => {
     expect(editableKeyword.value).toBe("matcha");
     expect(editableKeyword.readOnly).toBe(false);
     expect(editableKeyword.disabled).toBe(false);
-    const generatedDownload = container.querySelector<HTMLAnchorElement>(
-      `a[download="${generatedRunId}.zip"]`,
-    )!;
-    expect(generatedDownload.getAttribute("href")).toBe(
-      `/api/topic-generator/runs/${generatedRunId}/archive`,
-    );
+    const generatedDownload = [...container.querySelectorAll<HTMLButtonElement>("button")]
+      .find((button) => button.textContent === "下载主题包")!;
     expect(generatedDownload.querySelector("svg")).not.toBeNull();
     expect(container.querySelector(
       `a[download="${generatedRunId}-page-preview.html"]`,
     )).toBeNull();
     expect(container.querySelector('section[aria-label="生成内容"]')
-      ?.querySelectorAll("a")).toHaveLength(1);
+      ?.querySelectorAll("a")).toHaveLength(0);
     expect(container.querySelector('section[aria-label="生成内容"]')?.textContent)
       .not.toContain("下载内容");
   });

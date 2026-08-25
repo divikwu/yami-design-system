@@ -142,6 +142,33 @@ const MANAGED_RUN_STATUS_LABELS: Record<
   },
 };
 
+const MANAGED_RUN_MILESTONE_LABELS: ReadonlyArray<{
+  stage: TopicGeneratorRunStageId;
+  labels: Record<ContentLanguage, string>;
+}> = [{
+  stage: "page-generation",
+  labels: { en: "Page generated", zh: "页面已生成" },
+}, {
+  stage: "asset-persistence",
+  labels: { en: "Image generation complete", zh: "图片生成完成" },
+}, {
+  stage: "content-review",
+  labels: { en: "Copy generation complete", zh: "文案生成完成" },
+}, {
+  stage: "module-merchandising",
+  labels: { en: "Product selection complete", zh: "选品完成" },
+}];
+
+function managedRunStatusLabel(
+  run: TopicGeneratorRunSummary,
+  language: ContentLanguage,
+) {
+  const milestone = MANAGED_RUN_MILESTONE_LABELS.find(({ stage }) =>
+    run.completedStageCount > MANAGED_STAGE_ORDER.indexOf(stage)
+  );
+  return milestone?.labels[language] ?? MANAGED_RUN_STATUS_LABELS[language][run.status];
+}
+
 interface ImportBrowserFile {
   file: File;
   path: string;
@@ -3290,6 +3317,7 @@ export function TopicGenerator({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<GeneratorError | null>(null);
   const [sourceMode, setSourceMode] = useState<TopicSourceMode>("input");
+  const [currentRunSourceMode, setCurrentRunSourceMode] = useState<TopicSourceMode | null>(null);
   const [currentRun, setCurrentRun] = useState<TopicGeneratorRunSummary | null>(null);
   const [currentDetail, setCurrentDetail] = useState<TopicGeneratorAnyRunDetail | null>(null);
   const [managedRunPickerOpen, setManagedRunPickerOpen] = useState(false);
@@ -3302,6 +3330,8 @@ export function TopicGenerator({
   const [runDeleteBusy, setRunDeleteBusy] = useState(false);
   const [pendingImport, setPendingImport] = useState<PendingImport | null>(null);
   const [importBusy, setImportBusy] = useState(false);
+  const [topicPackageDownloadBusy, setTopicPackageDownloadBusy] = useState(false);
+  const [topicPackageDownloadError, setTopicPackageDownloadError] = useState<string | null>(null);
   const directoryInputRef = useRef<HTMLInputElement>(null);
   const managedRunDialogRef = useRef<HTMLDialogElement>(null);
   const managedRunTriggerRef = useRef<HTMLButtonElement>(null);
@@ -3310,10 +3340,11 @@ export function TopicGenerator({
   const selectedManagedRun = managedRunOptions.find(
     ({ runId }) => runId === selectedManagedRunId,
   ) ?? null;
-  const managedHistoryReady = Boolean(managedRunApiBase && currentRun?.continuable);
+  const selectedSourceRun = currentRunSourceMode === sourceMode ? currentRun : null;
+  const managedHistoryReady = Boolean(managedRunApiBase && selectedSourceRun?.continuable);
   const managedActionUnavailable = Boolean(managedRunApiBase && (
-    (sourceMode === "load" && currentRun === null) ||
-    (currentRun !== null && !currentRun.continuable)
+    (sourceMode === "load" && selectedSourceRun === null) ||
+    (selectedSourceRun !== null && !selectedSourceRun.continuable)
   ));
   const plan = plans?.[uiLanguage]?.[strategy] ?? null;
   const resolvedHeroSelection = heroSelection ?? heroSelectionFromAutomation(
@@ -3386,10 +3417,54 @@ export function TopicGenerator({
     return payload;
   }
 
+  async function downloadTopicPackage() {
+    if (!managedRunsUrl || !currentRun || topicPackageDownloadBusy) return;
+    const runId = currentRun.runId;
+    setTopicPackageDownloadBusy(true);
+    setTopicPackageDownloadError(null);
+    try {
+      const response = await fetch(
+        `${managedRunsUrl}/${encodeURIComponent(runId)}/archive?type=preview`,
+      );
+      if (!response.ok) {
+        let message = uiLanguage === "zh"
+          ? "主题包生成失败，请重试。"
+          : "The topic package could not be generated. Try again.";
+        try {
+          const payload = await response.json() as { error?: string; message?: string };
+          message = payload.error ?? payload.message ?? message;
+        } catch {
+          // Keep the localized fallback when the response is not JSON.
+        }
+        throw new Error(message);
+      }
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = objectUrl;
+      anchor.download = `${runId}-topic-package.zip`;
+      document.body.append(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
+    } catch (caught) {
+      setTopicPackageDownloadError(
+        caught instanceof Error
+          ? caught.message
+          : uiLanguage === "zh"
+            ? "主题包生成失败，请重试。"
+            : "The topic package could not be generated. Try again.",
+      );
+    } finally {
+      setTopicPackageDownloadBusy(false);
+    }
+  }
+
   function applyManagedDetail(
     detail: TopicGeneratorAnyRunDetail,
     options: { preserveResultView?: boolean } = {},
   ) {
+    setTopicPackageDownloadError(null);
     setCurrentDetail(detail);
     setCurrentRun(detail.summary);
     setKeyword(detail.summary.keyword);
@@ -3478,6 +3553,7 @@ export function TopicGenerator({
   }
 
   function clearManagedRunState() {
+    setCurrentRunSourceMode(null);
     setCurrentRun(null);
     setCurrentDetail(null);
     setPlans(null);
@@ -3499,6 +3575,7 @@ export function TopicGenerator({
     setPreviewMode("page");
     setActiveMode("page");
     setError(null);
+    setTopicPackageDownloadError(null);
   }
 
   async function loadManagedRun(runId: string) {
@@ -3510,6 +3587,7 @@ export function TopicGenerator({
         `${managedRunsUrl}/${encodeURIComponent(runId)}`,
       );
       applyManagedDetail(detail);
+      setCurrentRunSourceMode("load");
       setSourceMode("load");
       return true;
     } catch (caught) {
@@ -3636,7 +3714,7 @@ export function TopicGenerator({
     setLoading(true);
     setError(null);
     try {
-      const sourceRunId = currentRun?.runId ?? null;
+      const sourceRunId = selectedSourceRun?.runId ?? null;
       let runId = sourceRunId ?? await createManagedRun(goal);
       let detail = await ensureV2Run(runId);
       runId = detail.manifest.runId;
@@ -3675,6 +3753,7 @@ export function TopicGenerator({
         }>>(`${managedRunsUrl}/${encodeURIComponent(runId)}`);
       }
       applyManagedDetail(detail, { preserveResultView: true });
+      setCurrentRunSourceMode(sourceMode);
       setActiveMode(goal);
       const targetIndex = MANAGED_STAGE_ORDER.indexOf(targetStage);
       let advanced = false;
@@ -4157,11 +4236,7 @@ export function TopicGenerator({
               name="topic-source"
               disabled={loading}
               onValueChange={(nextMode) => {
-                const mode = nextMode as TopicSourceMode;
-                if (mode === "input" && sourceMode !== "input") {
-                  clearManagedRunState();
-                }
-                setSourceMode(mode);
+                setSourceMode(nextMode as TopicSourceMode);
               }}
             />
             {sourceMode === "load" && (
@@ -4180,27 +4255,58 @@ export function TopicGenerator({
                       disabled
                     />
                   )}
-                  <WorkbenchButton
-                    type="button"
-                    variant="secondary"
-                    className={currentRun ? styles.changeTopicButton : undefined}
-                    onClick={(event) => {
-                      managedRunTriggerRef.current = event.currentTarget;
-                      void openManagedRunPicker();
-                    }}
-                    disabled={loading || importBusy || managedRunPickerBusy}
-                    aria-expanded={managedRunPickerOpen}
-                    aria-controls="topic-generator-managed-run-picker"
-                    aria-haspopup="dialog"
-                  >
-                    {managedRunPickerBusy
-                      ? uiLanguage === "zh" ? "正在读取…" : "Reading…"
-                      : importBusy
-                        ? uiLanguage === "zh" ? "正在导入…" : "Importing…"
-                        : currentRun
-                          ? uiLanguage === "zh" ? "更换主题" : "Change topic"
+                  {currentRun ? (
+                    <div className={styles.topicFieldActions}>
+                      <WorkbenchButton
+                        type="button"
+                        variant="secondary"
+                        size="default"
+                        onClick={(event) => {
+                          managedRunTriggerRef.current = event.currentTarget;
+                          void openManagedRunPicker();
+                        }}
+                        disabled={loading || importBusy || managedRunPickerBusy}
+                        aria-expanded={managedRunPickerOpen}
+                        aria-controls="topic-generator-managed-run-picker"
+                        aria-haspopup="dialog"
+                      >
+                        {managedRunPickerBusy
+                          ? uiLanguage === "zh" ? "正在读取…" : "Reading…"
+                          : importBusy
+                            ? uiLanguage === "zh" ? "正在导入…" : "Importing…"
+                            : uiLanguage === "zh" ? "更换主题" : "Change topic"}
+                      </WorkbenchButton>
+                      <WorkbenchButton
+                        type="button"
+                        variant="secondary"
+                        size="default"
+                        onClick={clearManagedRunState}
+                        disabled={loading || importBusy || managedRunPickerBusy}
+                      >
+                        {uiLanguage === "zh" ? "重置" : "Reset"}
+                      </WorkbenchButton>
+                    </div>
+                  ) : (
+                    <WorkbenchButton
+                      type="button"
+                      variant="secondary"
+                      size="default"
+                      onClick={(event) => {
+                        managedRunTriggerRef.current = event.currentTarget;
+                        void openManagedRunPicker();
+                      }}
+                      disabled={loading || importBusy || managedRunPickerBusy}
+                      aria-expanded={managedRunPickerOpen}
+                      aria-controls="topic-generator-managed-run-picker"
+                      aria-haspopup="dialog"
+                    >
+                      {managedRunPickerBusy
+                        ? uiLanguage === "zh" ? "正在读取…" : "Reading…"
+                        : importBusy
+                          ? uiLanguage === "zh" ? "正在导入…" : "Importing…"
                           : uiLanguage === "zh" ? "加载主题" : "Load topic"}
-                  </WorkbenchButton>
+                    </WorkbenchButton>
+                  )}
                 </div>
                 {currentRun && (
                   <WorkbenchSelect
@@ -4349,7 +4455,7 @@ export function TopicGenerator({
                               </small>
                             </span>
                             <small className={styles.managedRunOptionStatus}>
-                              {MANAGED_RUN_STATUS_LABELS[uiLanguage][run.status]}
+                              {managedRunStatusLabel(run, uiLanguage)}
                             </small>
                           </label>
                         ))}
@@ -4460,6 +4566,19 @@ export function TopicGenerator({
                 aria-expanded={examplesOpen}
                 aria-controls="topic-keyword-examples"
               />
+              {currentRun && (
+                <div className={styles.topicFieldActions}>
+                  <WorkbenchButton
+                    type="button"
+                    variant="secondary"
+                    size="default"
+                    onClick={clearManagedRunState}
+                    disabled={loading}
+                  >
+                    {uiLanguage === "zh" ? "重置" : "Reset"}
+                  </WorkbenchButton>
+                </div>
+              )}
               {examplesOpen ? (
                 <div
                   id="topic-keyword-examples"
@@ -4589,10 +4708,12 @@ export function TopicGenerator({
                         </span>
                       </a>
                     )}
-                    <a
+                    <button
+                      type="button"
                       className={styles.topicPackageDownload}
-                      href={`${managedRunsUrl}/${encodeURIComponent(currentRun.runId)}/archive`}
-                      download={`${currentRun.runId}.zip`}
+                      onClick={() => void downloadTopicPackage()}
+                      disabled={topicPackageDownloadBusy}
+                      aria-busy={topicPackageDownloadBusy}
                     >
                       <HugeiconsIcon
                         icon={ArchiveArrowDownIcon}
@@ -4600,10 +4721,17 @@ export function TopicGenerator({
                         strokeWidth={1.5}
                         aria-hidden="true"
                       />
-                      <span>
-                        {uiLanguage === "zh" ? "下载主题包" : "Download topic package"}
+                      <span aria-live="polite">
+                        {topicPackageDownloadBusy
+                          ? uiLanguage === "zh" ? "正在打包…" : "Preparing package…"
+                          : uiLanguage === "zh" ? "下载主题包" : "Download topic package"}
                       </span>
-                    </a>
+                    </button>
+                    {topicPackageDownloadError && (
+                      <small className={styles.topicPackageDownloadError} role="alert">
+                        {topicPackageDownloadError}
+                      </small>
+                    )}
                   </div>
                 )}
               </section>

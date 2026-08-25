@@ -155,6 +155,7 @@ export interface TopicGeneratorDeliverableRenderRequest {
   name: TopicGeneratorDeliverableName;
   manifest: TopicGeneratorRunManifestV2;
   stages: Partial<Record<TopicGeneratorRunStageId, unknown>>;
+  outputLanguage?: ContentLanguage;
 }
 
 export interface TopicGeneratorDeliverableRenderer {

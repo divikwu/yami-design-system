@@ -142,11 +142,19 @@
   min-width: 0;
 }
 
-.loadedTopicField > .changeTopicButton {
+.loadedTopicField > .topicFieldActions,
+.keywordControl > .topicFieldActions {
   position: absolute;
   top: 0;
   right: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.topicFieldActions > button {
   width: auto;
+  min-width: 0;
   height: 14px;
   padding: 0;
   border: 0;
@@ -160,19 +168,18 @@
   text-underline-offset: 3px;
 }
 
-.loadedTopicField > .changeTopicButton:hover:not(:disabled),
-.loadedTopicField > .changeTopicButton:active:not(:disabled) {
+.topicFieldActions > button:hover:not(:disabled),
+.topicFieldActions > button:active:not(:disabled) {
   background: transparent;
   color: var(--text-primary);
 }
 
-.loadedTopicField > .changeTopicButton:focus-visible {
-  position: absolute;
+.topicFieldActions > button:focus-visible {
   outline: 2px solid var(--border-focus);
   outline-offset: 3px;
 }
 
-.loadedTopicField > .changeTopicButton:disabled {
+.topicFieldActions > button:disabled {
   border-color: transparent;
   background: transparent;
   color: var(--text-disabled);
@@ -471,17 +478,23 @@
 .importCandidates > label > span { display: grid; gap: 2px; }
 
 .deliverableLinks {
-  display: flex;
+  display: grid;
   margin-top: auto;
-  align-items: center;
+  gap: 4px;
 }
 
 .topicPackageDownload {
   display: inline-flex;
   min-height: 44px;
+  width: fit-content;
   align-items: center;
   gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
   color: var(--text-primary);
+  cursor: pointer;
+  font-family: inherit;
   font-size: 14px;
   font-weight: var(--font-weight-normal);
   line-height: 20px;
@@ -492,15 +505,26 @@
   flex: none;
 }
 
-.topicPackageDownload:hover {
+.topicPackageDownload:hover:not(:disabled) {
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
 }
 
+.topicPackageDownload:disabled {
+  color: var(--text-disabled);
+  cursor: wait;
+}
+
 .topicPackageDownload:focus-visible {
   outline: 2px solid var(--border-focus);
   outline-offset: 2px;
+}
+
+.topicPackageDownloadError {
+  color: var(--text-error);
+  font-size: 12px;
+  line-height: 16px;
 }
 
 .generatorControls [data-slot="workbench-field-label"] {

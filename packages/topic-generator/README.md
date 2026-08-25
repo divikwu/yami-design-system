@@ -83,8 +83,8 @@ ProductSelection 和 Page Agent endpoint。仅调试无 Agent 的确定性降级
 新版受管运行在 `background-evidence`、`content-writing` 与 `content-review` 阶段同时处理
 简体中文和英文：两种语言复用同一份冻结 ThemeIntent、ProductSelectionResult 与 PagePlan，
 但分别生成、校验并审核各自的 ContentSpec。阶段输出通过 `contentByLanguage.zh/en` 保存两份
-产物；运行请求中的 `language` 仅表示主预览语言，主语言继续驱动视觉与硬 QA，语言切换直接读取
-同一运行内已审核的另一份文案，不再调用通用占位模板。
+产物；运行请求中的 `language` 表示 Workbench 操作与文案查看语言，主语言继续驱动视觉与硬 QA，
+语言切换直接读取同一运行内已审核的另一份文案，不再调用通用占位模板。
 
 生产环境必须显式配置持久磁盘：
 
@@ -97,11 +97,14 @@ TOPIC_GENERATOR_RUN_ROOT=/absolute/persistent/path/topic-generator-runs
 schema 和运行摘要校验后复制到受管目录；源目录不会被修改。v1 运行可查看，继续时会创建 v2
 子运行，旧 PagePlan 不计为新版阶段完成。
 
-运行会按成熟度生成三个离线单文件 HTML：背景分析后的 `topic-brief.html`、新版 PagePlan
-完成后即可使用且会随文案与图片阶段持续刷新的预览页（内部名 `page-draft.html`，主题包导出名
-`page-preview.html`），以及硬 QA、体验审查和用户批准后的 `page-final.html`。页面所需
-CSS、字体、运行时代码和可见媒体全部内联；离线文件不会启动 localhost、Next.js、内部 API
-或远程媒体请求，商品详情链接只在用户点击后访问网络。
+运行会按成熟度生成三个内部离线 HTML：背景分析后的 `topic-brief.html`、会随文案与图片阶段持续
+刷新的 `page-draft.html`，以及硬 QA、体验审查和用户批准后的 `page-final.html`。Workbench
+提供一个用户可见的“下载主题包”入口，包含 `README.html`、英中两份独立预览、Topic Brief、
+共享运行时与按摘要去重的媒体；主题包不会包含阶段内部数据，也不会重复内嵌同一媒体。完整运行
+归档 API 仍保留 `run.json`、`state.json`、阶段结果、原始 deliverable 路径、资产和校验清单，
+仅供回导与恢复使用，不在普通 Workbench 中展示。主题包不会启动 localhost、Next.js 或内部 API；
+生成视觉随包内置并可离线显示，商品图使用原始 Yami HTTPS 地址并需要网络连接。商品详情链接只在
+用户点击后访问网络。
 
 ## 实现原则
 
