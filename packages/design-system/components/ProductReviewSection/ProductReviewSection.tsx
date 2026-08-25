@@ -4,6 +4,7 @@ import { useId, useMemo, useState, type ReactNode } from "react";
 
 import { Button } from "../Button";
 import { FilterChip, FilterChipGroup, FilterChipMenu } from "../FilterChip";
+import { SectionHeading } from "../SectionHeading";
 
 import styles from "./ProductReviewSection.module.css";
 import type {
@@ -261,9 +262,16 @@ export function ProductReviewSection({
       aria-labelledby={titleId}
     >
       <div className={styles.container} data-slot="product-review-section-container">
-        <h2 id={titleId} className={styles.heading}>
-          {title} <span>({reviewCount})</span>
-        </h2>
+        <SectionHeading
+          id={titleId}
+          title={
+            <>
+              {title} <span className={styles.headingCount}>({reviewCount})</span>
+            </>
+          }
+          slot="product-review-section"
+          className={styles.heading}
+        />
 
         <div className={styles.summary} data-slot="product-review-summary">
           <div className={styles.summaryContent} data-slot="product-review-summary-content">

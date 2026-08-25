@@ -50,7 +50,7 @@
       "type": "\"standard\" | \"themed\" | \"atmospheric\"",
       "required": false,
       "default": "standard",
-      "description": "Collection surface treatment."
+      "description": "Collection surface treatment. Standard uses plain product cards; themed and atmospheric backgrounds use card product surfaces."
     },
     "layout": {
       "type": "\"rail\" | \"waterfall\"",

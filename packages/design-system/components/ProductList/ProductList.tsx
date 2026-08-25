@@ -128,7 +128,7 @@ export function ProductList(props: ProductListProps) {
       ? "card"
       : "plain";
   const productCardSurface =
-    mobileSurface === "plain" || isThemeProductList ? "plain" : "card";
+    appearance === "standard" || isThemeProductList ? "plain" : "card";
   const titleId = useId();
   const listId = `${titleId}-products`;
   const {

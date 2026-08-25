@@ -18,7 +18,7 @@ export type {
 
 export function ProductCard({
   presentation = "rich",
-  surface = "card",
+  surface = "plain",
   image,
   imageAlt,
   imageLoading = "lazy",

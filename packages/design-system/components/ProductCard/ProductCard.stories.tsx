@@ -20,7 +20,7 @@ const meta = {
     },
   },
   args: {
-    surface: "card",
+    surface: "plain",
     image:
       "https://cdn.yamibuy.net/item/3ccf61fd74fd43320d647a1b8779a978_757x757.webp",
     imageAlt:
@@ -43,7 +43,7 @@ const meta = {
       options: ["card", "plain"],
       control: { type: "inline-radio" },
       description:
-        "Card uses 2px outer padding for background surfaces; plain removes outer padding.",
+        "Plain is the default and removes outer padding; card adds 2px padding over a visual background.",
     },
   },
 } satisfies Meta<typeof ProductCard>;
@@ -107,12 +107,10 @@ export const Showcase: Story = {
     if (!root || !content) throw new Error("ProductCard content did not render");
     const rootStyle = getComputedStyle(root);
     if (
-      rootStyle.paddingTop !== "2px" ||
-      rootStyle.paddingRight !== "2px" ||
-      rootStyle.paddingBottom !== "2px" ||
-      rootStyle.paddingLeft !== "2px"
+      root.dataset.surface !== "plain" ||
+      rootStyle.padding !== "0px"
     ) {
-      throw new Error("Standard ProductCard outer padding must be 2px");
+      throw new Error("ProductCard must default to the plain surface without outer padding");
     }
     const contentStyle = getComputedStyle(content);
     if (

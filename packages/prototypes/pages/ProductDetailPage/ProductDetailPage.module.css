@@ -441,6 +441,10 @@
   gap: var(--space-100);
 }
 
+.sellerLogoPicture {
+  display: flex;
+}
+
 .sellerLogo {
   width: 95.4px;
   height: 40px;
@@ -716,7 +720,7 @@
   text-wrap: pretty;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   .gallery {
     position: sticky;
     top: var(--space-300);
@@ -724,7 +728,18 @@
   }
 }
 
-@media (max-width: 767.98px) {
+@media (max-width: 1023.98px) {
+  .main :global([data-slot="product-list-heading"]),
+  .main :global([data-slot="product-review-section-heading"]) {
+    padding-inline-start: var(--space-050);
+  }
+
+  .brandIntro {
+    gap: var(--space-050);
+    margin-block-end: var(--space-100);
+    padding-inline: var(--space-050);
+  }
+
   .main {
     display: flex;
     flex-direction: column;
@@ -747,9 +762,8 @@
   }
 
   .product {
-    grid-template-areas:
-      "overview"
-      "purchase";
+    display: flex;
+    flex-direction: column;
     gap: var(--space-100);
   }
 
@@ -758,8 +772,7 @@
   }
 
   .productOverview {
-    grid-area: overview;
-    gap: 0;
+    display: contents;
   }
 
   .gallery :global([data-slot="product-media-gallery-thumbnails"]) {
@@ -772,12 +785,11 @@
   }
 
   .productInfoColumn {
-    gap: var(--space-100);
-    padding-block-start: var(--space-100);
-    background: var(--background-secondary);
+    display: contents;
   }
 
   .details {
+    order: 2;
     gap: var(--space-200);
     margin-inline: var(--space-100);
     padding: var(--space-150);
@@ -800,7 +812,10 @@
 
   .productSummary,
   .productOptionsModule {
-    margin-inline: var(--space-100);
+    box-sizing: border-box;
+    width: calc(100% - var(--space-200));
+    min-width: 0;
+    margin-inline: auto;
     border-radius: var(--radius-surface-default);
     background: var(--surface-primary);
   }
@@ -827,6 +842,7 @@
     height: var(--line-height-body-md);
     flex: 0 0 auto;
     align-items: center;
+    color: var(--text-secondary);
     justify-content: center;
   }
 
@@ -848,16 +864,23 @@
     align-items: center;
     justify-content: space-between;
     margin-block-end: var(--space-100);
-    color: var(--text-secondary);
+    color: var(--text-primary);
     font-size: var(--font-size-body-md);
     font-weight: var(--font-weight-normal);
     line-height: var(--line-height-body-md);
   }
 
-  .optionGroupArrow img {
+  .optionGroupSelection {
+    font-weight: var(--font-weight-emphasize);
+  }
+
+  .optionGroupArrowIcon {
     display: block;
     width: var(--space-200);
     height: var(--space-200);
+    background-color: currentColor;
+    -webkit-mask: url("../../../design-system/assets/icons/system/arrow-right.svg") center / contain no-repeat;
+    mask: url("../../../design-system/assets/icons/system/arrow-right.svg") center / contain no-repeat;
   }
 
   .productOptionsModule .bestBefore {
@@ -912,9 +935,32 @@
 
   .purchasePanel {
     position: static;
+    order: 1;
     grid-area: purchase;
     padding-inline: var(--space-100);
     background: var(--background-secondary);
+  }
+
+  .sellerLogo {
+    width: 84px;
+    height: 32px;
+  }
+
+  .sellerBlock {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .sellerBlock > .purchaseLabel {
+    min-width: 0;
+    flex: 1 1 auto;
+    color: var(--text-primary);
+    font-size: var(--font-size-body-md);
+    font-weight: var(--font-weight-emphasize);
+  }
+
+  .sellerLogoPicture {
+    flex: 0 0 auto;
   }
 
   .purchaseActions {

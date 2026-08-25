@@ -1044,14 +1044,14 @@
       "sourceSha256": "9b6806fc353b6b3da5f56a233c56ef4d871fb9cafe30870237f51a2c0e51860d",
       "disposition": "regenerated",
       "destination": "packages/design-system/generated/catalog.json",
-      "destinationSha256": "07cdb4adb79f9100c5f5967da1f3e8171461e226b828c032b020e388201d5b66"
+      "destinationSha256": "a367c5a0244c2dc3e98d25addb0c1c8f0885b29831e904fcd922e312b57a3219"
     },
     {
       "source": "catalog.json",
       "sourceSha256": "3333682325d00194fb646874f8453e3545a46813986fbac22e9e0bf18f87b5fa",
       "disposition": "regenerated",
       "destination": "packages/design-system/generated/catalog.json",
-      "destinationSha256": "07cdb4adb79f9100c5f5967da1f3e8171461e226b828c032b020e388201d5b66"
+      "destinationSha256": "a367c5a0244c2dc3e98d25addb0c1c8f0885b29831e904fcd922e312b57a3219"
     },
     {
       "source": "color-primitives.stories.tsx",
@@ -2500,21 +2500,21 @@
       "sourceSha256": "a2b4faa9dcbb2bd6c10a979bd14aa4ac59607acfdc7e30bca6900fe156b67d82",
       "disposition": "migrated",
       "destination": "packages/design-system/components/ProductCard/ProductCard.stories.tsx",
-      "destinationSha256": "286fa1d126879f3b8dfdb608edec24b1a0ca86bba8efd57aa3bd62b8ae6d6b96"
+      "destinationSha256": "2b564542ad1e2d6443ef9235d620e7f7da3da1a6e0a72874554306b264a55bb9"
     },
     {
       "source": "components/ProductCard/ProductCard.tsx",
       "sourceSha256": "3baf99f4ed8272f1c55a5357087c1b20a05219948679db78d4c48ddeef268f70",
       "disposition": "migrated",
       "destination": "packages/design-system/components/ProductCard/ProductCard.tsx",
-      "destinationSha256": "a8e35b9a735444b6162a36b424388c543afd7d06335279ce3fdf47ce12f5a006"
+      "destinationSha256": "139a61a5f46dde7aea00cb9e3d141d746421e2f9d61c6b313612e1dce263e889"
     },
     {
       "source": "components/ProductCard/ProductCard.types.ts",
       "sourceSha256": "d0ae41591a7b9aa19b835734fcc5e3a03ccecf7352c03be2a1cc34543660e97a",
       "disposition": "migrated",
       "destination": "packages/design-system/components/ProductCard/ProductCard.types.ts",
-      "destinationSha256": "e67063d18b0c61e8fd670448ecb28788fdefafe2b731dfce5e20e27dde492ecd"
+      "destinationSha256": "9966147d815f3d878d27075bfa900de036de3d747e3921edbc7d860c19eb2ed6"
     },
     {
       "source": "components/ProductCard/ProductCardAddButton.module.css",
@@ -2570,14 +2570,14 @@
       "sourceSha256": "4e932ecc9da76f69b913616ad0d7e4b16a50b6ff059992d0f33102260fcc3b69",
       "disposition": "migrated",
       "destination": "packages/design-system/components/ProductCard/meta.json",
-      "destinationSha256": "1173963dd9811b7ac51b1edaa6d6f4c57a4456ffabd83b17bcf777664e50600e"
+      "destinationSha256": "bf89da1a1015864443822932036eb84e5b59d68827350e20a559a69319abc62b"
     },
     {
       "source": "components/ProductCard/usage.md",
       "sourceSha256": "32d4a29dc60401ff629bc0cd9b7f1f96e2a2fbfb52eb1c11eeb7463d59c1042d",
       "disposition": "migrated",
       "destination": "packages/design-system/components/ProductCard/usage.md",
-      "destinationSha256": "02188756582dd0b05a1ad191b5ea91353aea457fb1891bfb867b21d803bdc4bc"
+      "destinationSha256": "87ed5806e1d91179db80fa4e1381a5dd50c521cdde41a0ee30d647e57251dfd2"
     },
     {
       "source": "components/ProductList/ProductList.figma.tsx",
@@ -2605,14 +2605,14 @@
       "sourceSha256": "c4d8cf26855f313e2eab39487b5920d32c73819efd92bf1e89c165d2a0dd0d85",
       "disposition": "migrated",
       "destination": "packages/design-system/components/ProductList/ProductList.stories.tsx",
-      "destinationSha256": "39fac269b58690b118c452de66a8b2f1d7074ab39c78f3ed2a8ff8c8452d9e4c"
+      "destinationSha256": "dc9ed2e209ee159c9b2132713b6d9e4ec6ed51d94e0e65b9aef2caead1cbfa77"
     },
     {
       "source": "components/ProductList/ProductList.tsx",
       "sourceSha256": "cd8f31170e9c2b339b83e482bd40c09f2d2c1eb464679bbecdd60ca6371942b6",
       "disposition": "migrated",
       "destination": "packages/design-system/components/ProductList/ProductList.tsx",
-      "destinationSha256": "93819bed47e98c0633ae0f0e091b3c14664f48f27bbe56c4061c7e647fffb2e5"
+      "destinationSha256": "fe71a48c0605fae26f663947113a7ff920d9affd9a73ee82342f912b5f10859c"
     },
     {
       "source": "components/ProductList/ProductList.types.ts",
@@ -2675,14 +2675,14 @@
       "sourceSha256": "8e9c9038a633c737c5cd658632c1759d3f1e97a512dfd5dcbce299f7510c756d",
       "disposition": "migrated",
       "destination": "packages/design-system/components/ProductList/meta.json",
-      "destinationSha256": "ae6464c445def3138d3e925d4487ae2984e31f5194b4778e90aa81d7facad8ec"
+      "destinationSha256": "b1a37ad0a4f050206ca949bded5a8c2d9934d1e2aff9a92ef0608e4e93667e4b"
     },
     {
       "source": "components/ProductList/usage.md",
       "sourceSha256": "cdc199696897125e780d0b525d703db8f263c54d2d92ae730ecca772cbb468e3",
       "disposition": "migrated",
       "destination": "packages/design-system/components/ProductList/usage.md",
-      "destinationSha256": "9a7cd4a7cf39d0654b257e7034541f55ac7c2e3ec6ee52a6331cc6260807409a"
+      "destinationSha256": "30ee10452a296a1124ae26e4d64eccd9934db6e53fbe7ab583918c0f06c3a736"
     },
     {
       "source": "components/RadioGroup/RadioGroup.figma.tsx",
