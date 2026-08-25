@@ -57,34 +57,29 @@ For each task:
 1. Read the complete `sceneBrief` first. It is the deterministic module-level art-direction brief:
    its theme goal, module goal, relevant categories, optional PagePlan scene, accepted copy, required
    evidence, and visual constraints are all mandatory.
-2. Follow the returned subject mode. For `scene-first` / `reference-only` tasks, make the scene and
-   module theme primary; assigned products need not appear, and generated scenes exclude bottles,
-   jars, tubes, pumps, droppers, sachets, and product boxes. For a ShortcutRail
-   `product-first` / `primary-subject` task, use its one assigned representative product image as a
-   mandatory visual reference, keep that product fully visible near the center, and generate a
-   category-relevant lifestyle environment around it. For a ThemeHero `scene-composite` /
-   `locked-source-products` task, first derive a concise scene prompt from the accepted Hero copy and
-   assigned product mix, then generate only that background. Choose the scene elements from the task
-   evidence rather than a category-specific prop template. The Host subsequently composites up to
-   five assigned verified source product images as real locked layers; three to five is the preferred
-   editorial range when available, not a generation threshold. Let the Agent choose the camera,
-   support surface, depth pattern, materials, and light from the evidence while preserving natural
-   environmental shadows. Reject steep or internally inconsistent perspective, missing credible
-   product footholds, a placement zone that forces one flat row, and conflicting light or shadow
-   directions. During Host composition, keep the central representative product unobscured in front,
-   stagger secondary products through middle and rear depths, and use restrained same-direction
-   photographic contact shadows. After inspecting the generated background, return non-blocking
-   normalized support-region bounds plus x/y contact points, scale, and depth for each assigned
-   product when credible footholds can be identified. The support region must be one continuous,
-   upward-facing, light-neutral plane. Each bottom contact point must lie inside it on that surface,
-   never a vertical face, wall, or open air; verify all points against the actual generated
-   pixels before returning them. The Host uses this placement plan to follow the Agent-chosen surfaces
-   and perspective. Missing or invalid guidance triggers one read-only visual recovery pass over the
-   same background; recovered guidance is labeled `agent-recovered` and still faces all Host geometry
-   and final semantic checks. If recovery fails, the Host discards that background and uses its known-safe
-   neutral Hero background, never fixed anchors on an arbitrary scene. Keep
-   the group visually centered and keep the bottom quarter free of principal elements. Never use
-   tiled grids, product montages, lineups, or unreferenced products.
+2. Follow the returned subject mode. For a ThemeProductList `scene-first` / `reference-only` task,
+   make the scene and module theme primary. Attach the available products assigned to the current
+   scene as optional visual references and regenerate one complete lifestyle image. A product-free
+   scene is valid. For every referenced product that appears, reproduce the source packaging as faithfully
+   as the image model allows: preserve the visible brand name and logo, key label text, typography hierarchy,
+   layout, primary colors, silhouette, closure, and material character. Never simplify it into blank or generic
+   packaging; copy only visible source text and do not invent claims. Do not require exact product count or
+   one-to-one coverage. Packaging fidelity is a strong generation priority rather than a rejection gate.
+   Other scene-first tasks continue to exclude bottles, jars, tubes, pumps, droppers,
+   sachets, and product boxes. For a ShortcutRail
+   `product-first` / `primary-subject` task, use its one representative product image as a visual
+   reference for a single-product, category-relevant lifestyle scene. Favor a clear centered subject
+   and circular-crop margin, and reproduce its visible packaging text, brand identity, layout, colors,
+   silhouette, closure, and material as faithfully as the image model allows. Packaging fidelity is strong
+   generation guidance rather than an acceptance gate. For a ThemeHero `scene-first` /
+   `reference-only` task, attach the assigned product images as visual references and generate
+   one complete 16:9 multi-product lifestyle scene. Products and environment are regenerated together
+   so light, depth, contact shadows, and materials belong to one image. The references are a flexible
+   product family, not a quantity checklist: the model may use a natural subset or grouping. For every
+   referenced product that appears, reproduce visible packaging text, brand identity, layout, colors,
+   silhouette, closure, and material as faithfully as the image model allows. Never simplify it into blank
+   or generic packaging. Do not require one-to-one placement, and do not copy source-image
+   backdrops, discs, white canvases, or studio props as part of a product.
 3. Build art direction only from its ThemeIntent evidence, selected categories, assigned products,
    scene, and accepted content task. Product image URLs are visual references, not permission to
    infer ingredients, benefits, popularity, ratings, inventory, discounts, or customer outcomes.
@@ -94,52 +89,43 @@ For each task:
 4. Preserve every returned `referenceProductId`. Do not introduce unassigned products or change a
    brand, scene, module, component, crop, or text field.
 5. Follow the selected production mode. Generate a new scene only for `generated-images`. For a Hero,
-   use product metadata to plan the background but do not attach the product sources to the background
-   generator or ask it to redraw packaging; compose the verified catalog main images afterward as
-   locked source layers. Preserve an existing alpha channel. For a verified uniform white-background
-   main image, derive only a deterministic mask for the edge-connected white canvas, protect the
-   complete product silhouette, crop redundant outer whitespace, and preserve every product pixel;
-   do not run a generative redraw. If neither source condition
-   is reliable, use a deliberate studio tile only with the known-safe neutral Hero fallback. Attach the
-   verified source product image to every product-first Shortcut task and preserve its silhouette,
-   proportions, colors, orientation, and visible packaging identity. Do not invent, rewrite, or add
-   labels, logos, packaging, or claims. For `source-product-images`, preserve the assigned Yami
+   attach the available assigned product sources to the same generation request and generate the
+   complete scene directly. Do not request a placement plan, extract product pixels, composite locked
+   layers, or substitute a deterministic Hero fallback. For a ThemeProductList scene, attach up to
+   three available products assigned to the current scene to the same generation request and regenerate
+   the complete scene directly. Products remain optional; if products appear, aim for at least one to
+   visibly reflect a current-scene reference rather than only generic unlabeled containers. Do not
+   extract product pixels, composite source layers, enforce product count, or fall back to source-image compositing. Attach the
+   representative product image to every product-first Shortcut task and generate one product-led
+   lifestyle scene from it. Exact SKU identity and packaging reproduction are not acceptance
+   requirements. For `source-product-images`, preserve the assigned Yami
    product images and return only the explicit draft reference composition.
 6. Treat `compositionGuidance` as a preference, not a hard crop. When present, favor its subject
    area and lower-area usage unless the scene clearly benefits from a different composition.
-7. Inspect the produced image before accepting it. For a scene-composite Hero background, reject a
-   generated product or packaging-like placeholder, a scene that conflicts with the accepted copy or
-   assigned product mix, a missing central landing area or credible footholds, steep or internally
-   inconsistent perspective, a placement zone that forces one flat row, conflicting light or shadow
-   directions, or a principal element in the bottom quarter. Natural environmental shadows are
-   allowed; reject only empty product silhouettes, empty product-shaped shadows, and other product
-   placeholders. After source-layer composition, verify that the assigned
-   real products remain visible and centered, the primary product is not obscured, every contact
-   point remains inside the declared support region, overlap and bottom-safe-area limits pass Host
-   geometry verification, and every contact shadow follows the same supporting plane and light
-   direction. Run that semantic contact/source-fidelity check as a separate read-only vision pass
-   over the completed composite and exact catalog sources; a rejected pass consumes the Host-owned
-   bounded retry and then uses the known-safe neutral Hero fallback. Record source digests,
-   preparation methods, verified bounds, overlap, support-region
-   lightness, attempt count, cache reuse, bounded fallback reason, provider, and only runtime-reported
-   model identity. Never
-   infer the image model name from feature availability.
-   For scene-first tasks, reject a packshot, product
-   grid, montage, conflicting environment, or packaging-like object. For product-first Shortcuts,
-   reject a missing, duplicated, cropped, off-center, tiny, or materially altered representative
-   product; also reject an environment that becomes the primary subject. Preserve clear margin for
-   the component's circular crop.
+7. Inspect the produced image before accepting it. For a Hero, do not perform semantic visual
+   rejection: when the requested image file exists, return it as accepted. Do not reject for product
+   count, which references were used, composition, label differences, or packaging fidelity. The Host
+   still validates that bytes exist, decode, match the required slot ratio and minimum size, and records
+   attempt count, cache reuse, provider, and only runtime-reported model identity. Never infer the image
+   model name from feature availability.
+   For ThemeProductList scenes, treat product-reference usage, packaging fidelity, packshot avoidance, scene fidelity,
+   responsive composition, the upper-right action area, and the quiet lower-left copy-safe area as soft
+   guidance. When a decodable image exists, accept it without semantic rejection; do not reject it for
+   missing products, product count, packaging differences, or which references were used. Packaging fidelity is strong
+   generation guidance even though it is not a rejection gate. Other scene-first tasks still reject
+   packaging-like objects. For product-first Shortcuts, likewise accept any saved decodable image;
+   product identity, placement, packaging, and circular-crop safety remain review signals; packaging fidelity is strong
+   generation guidance even though a saved decodable image is accepted.
    Save the actual bytes to a new safe relative
    path and record their true MIME type, pixel dimensions, SHA-256 digest, focal point, and any
    required background color.
 8. Use `null` alt text for decorative shortcut images. Write concise localized alt text for Hero,
    scene, and brand-banner images, grounded only in the task evidence.
 
-If native generation still fails after its bounded retries, do not discard completed tasks. A Hero
-may use the neutral source-layer fallback background while preserving the same real assigned product
-composition and bottom-quarter safety. A
-product-first Shortcut may use a source-backed lifestyle fallback that preserves its exact assigned
-product, centers it with circular-crop margin, and adds only a restrained secondary environment.
+If native generation still fails after its bounded technical retries, do not discard completed tasks. A Hero
+must report the technical failure because there is no generated artifact; it must not substitute a
+source-layer composition. A product-first Shortcut may use a source-backed lifestyle fallback only
+after its bounded technical retries fail; semantic or visual differences never trigger fallback.
 Other scene-first tasks still stop with the task ID and generator error. Never emit a complete proposal
 with a missing or invented artifact.
 

@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   createCodexExecutor,
   parseCodexImageGenerationProbe,
+  resolveVisualTaskCacheRoot,
   type AgentExecutor,
 } from "../src/executor.ts";
 import { createAgentRunnerHandler } from "../src/handler.ts";
@@ -559,6 +560,15 @@ describe("TOPIC GENERATOR Agent Runner", () => {
     expect(() => createCodexExecutor({
       TOPIC_AGENT_RUNNER_TIMEOUT_MS: "300001",
     })).toThrow("Expected an integer between 1 and 300000.");
+  });
+
+  it("uses a persistent repository-local image cache unless an absolute override is configured", () => {
+    expect(resolveVisualTaskCacheRoot({}, "/tmp/yami-design-system")).toBe(
+      "/tmp/yami-design-system/.topic-generator/image-cache",
+    );
+    expect(resolveVisualTaskCacheRoot({
+      TOPIC_AGENT_RUNNER_IMAGE_CACHE_ROOT: "/tmp/shared-topic-image-cache",
+    }, "/tmp/yami-design-system")).toBe("/tmp/shared-topic-image-cache");
   });
 
   it("enables native image generation only for the Codex feature and ChatGPT login", () => {

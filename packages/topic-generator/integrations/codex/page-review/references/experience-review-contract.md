@@ -49,16 +49,19 @@ Reject any evidence reference absent from the task context.
 
 ## Visual policy
 
-The context includes per-asset `visualPolicy.assets`. Apply the matching entry to each task. Hero
-entries use locked-source-product composite rules, Shortcut entries use source-product-fidelity
-rules, and Scene/Brand entries use scene-first rules. Treat each listed condition as an advisory
-review finding:
+The context includes per-asset `visualPolicy.assets`. Apply the matching entry to each task as
+advisory guidance. Hero, Shortcut, Scene, and Brand images are reviewed for module-theme fit,
+composition, responsive usability, and whether visibly referenced products retain recognizable source
+packaging. Treat each
+listed condition as an advisory review finding:
 
 - an isolated product packshot used as a semantic scene;
 - a product grid or montage used as a semantic scene;
 - an asset that does not match the module theme or accepted copy;
-- generated or altered visible product packaging.
+- obvious floating contact or responsive crop risk.
 
-Products may inform scene direction but are references only. Review the environment, activity,
-composition, and module-theme fit first. Preserve the finding for human review without blocking
-generation.
+Products inform scene direction as references. Do not flag product count, reference coverage,
+approximate identity, or packaging differences as generation failures. Report blank, generic, or materially
+inconsistent packaging on a visibly referenced product as an advisory quality issue. Review the environment,
+activity, composition, and module-theme fit first, and preserve findings for human review without
+blocking generation.

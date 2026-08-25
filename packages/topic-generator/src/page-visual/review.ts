@@ -18,8 +18,6 @@ import type {
   TopicPageVisualArtifact,
   TopicPageVisualAssetProposal,
   TopicPageVisualDirection,
-  TopicPageHeroCompositionAudit,
-  TopicPageHeroPlacementPlan,
   TopicPageVisualGenerationProvenance,
   TopicPageVisualMimeType,
   TopicPageVisualProposalReview,
@@ -48,144 +46,6 @@ function numberInRange(value: unknown, minimum: number, maximum: number) {
     : undefined;
 }
 
-function reviewHeroPlacementPlan(
-  value: unknown,
-  task: TopicPageVisualTaskContext,
-  issues: string[],
-): TopicPageHeroPlacementPlan | undefined {
-  if (value === undefined) return undefined;
-  if (task.kind !== "hero-image") {
-    issues.push(`Only Hero asset ${task.taskId} may define a placementPlan.`);
-    return undefined;
-  }
-  const plan = objectValue(value);
-  const rawAnchors = Array.isArray(plan?.anchors) ? plan.anchors : [];
-  if (!plan || rawAnchors.length !== task.products.length) {
-    issues.push(`Hero asset ${task.taskId} placementPlan must contain one anchor per product.`);
-    return undefined;
-  }
-  const anchors = rawAnchors.map((rawAnchor) => {
-    const anchor = objectValue(rawAnchor);
-    const x = numberInRange(anchor?.x, 0.1, 0.9);
-    const y = numberInRange(anchor?.y, 0.25, 0.74);
-    const scale = numberInRange(anchor?.scale, 0.5, 1.35);
-    const depth = numberInRange(anchor?.depth, 0, 2);
-    return x === undefined || y === undefined || scale === undefined || depth === undefined
-      ? undefined
-      : { x, y, scale, depth };
-  });
-  const primaryIndex = plan.primaryIndex;
-  const shadowDirection = objectValue(plan.shadowDirection);
-  const shadowX = numberInRange(shadowDirection?.x, -1, 1);
-  const shadowY = numberInRange(shadowDirection?.y, -1, 1);
-  const supportRegion = objectValue(plan.supportRegion);
-  const supportLeft = numberInRange(supportRegion?.left, 0.05, 0.45);
-  const supportRight = numberInRange(supportRegion?.right, 0.55, 0.95);
-  const supportTop = numberInRange(supportRegion?.top, 0.25, 0.68);
-  const supportBottom = numberInRange(supportRegion?.bottom, 0.5, 0.74);
-  if (anchors.some((anchor) => !anchor) || !Number.isInteger(primaryIndex) ||
-      (primaryIndex as number) < 0 || (primaryIndex as number) >= anchors.length ||
-      shadowX === undefined || shadowY === undefined || supportLeft === undefined ||
-      supportRight === undefined || supportTop === undefined || supportBottom === undefined ||
-      supportRegion?.surface !== "horizontal-light-neutral" ||
-      supportRight - supportLeft < 0.45 || supportBottom - supportTop < 0.06) {
-    issues.push(`Hero asset ${task.taskId} placementPlan is outside the supported geometry bounds.`);
-    return undefined;
-  }
-  const parsedAnchors = anchors as TopicPageHeroPlacementPlan["anchors"];
-  if (parsedAnchors.some(({ x, y }) =>
-    x < supportLeft || x > supportRight || y < supportTop || y > supportBottom
-  )) {
-    issues.push(`Hero asset ${task.taskId} placement contact points must be inside supportRegion.`);
-    return undefined;
-  }
-  return {
-    primaryIndex: primaryIndex as number,
-    anchors: parsedAnchors,
-    shadowDirection: { x: shadowX, y: shadowY },
-    supportRegion: {
-      left: supportLeft,
-      right: supportRight,
-      top: supportTop,
-      bottom: supportBottom,
-      surface: "horizontal-light-neutral",
-    },
-  };
-}
-
-function reviewHeroCompositionAudit(
-  value: unknown,
-  task: TopicPageVisualTaskContext,
-  placementPlan: TopicPageHeroPlacementPlan | undefined,
-  issues: string[],
-): TopicPageHeroCompositionAudit | undefined {
-  if (value === undefined) return undefined;
-  if (task.kind !== "hero-image" || !placementPlan) {
-    issues.push(`Only a placed Hero asset ${task.taskId} may define compositionAudit.`);
-    return undefined;
-  }
-  const audit = objectValue(value);
-  const supportSurfaceLightness = numberInRange(audit?.supportSurfaceLightness, 0, 1);
-  const maximumOverlapRatio = numberInRange(audit?.maximumOverlapRatio, 0, 0.32);
-  const rawProducts = Array.isArray(audit?.products) ? audit.products : [];
-  if (!audit || audit.verification !== "host-geometry-v1" ||
-      (audit.semanticVerification !== "agent-vision-v1" &&
-        audit.semanticVerification !== "known-safe-neutral-v1" &&
-        audit.semanticVerification !== "host-geometry-only") ||
-      supportSurfaceLightness === undefined || supportSurfaceLightness < 0.68 ||
-      maximumOverlapRatio === undefined || audit.bottomSafeAreaStart !== 0.75 ||
-      rawProducts.length !== task.products.length) {
-    issues.push(`Hero asset ${task.taskId} compositionAudit is incomplete or unsafe.`);
-    return undefined;
-  }
-  const products = rawProducts.map((rawProduct, index) => {
-    const product = objectValue(rawProduct);
-    const bounds = objectValue(product?.bounds);
-    const contactPoint = objectValue(product?.contactPoint);
-    const preparationConfidence = numberInRange(product?.preparationConfidence, 0, 1);
-    const left = numberInRange(bounds?.left, 0, 1);
-    const top = numberInRange(bounds?.top, 0, 0.75);
-    const right = numberInRange(bounds?.right, 0, 1);
-    const bottom = numberInRange(bounds?.bottom, 0, 0.749999);
-    const contactX = numberInRange(contactPoint?.x, 0, 1);
-    const contactY = numberInRange(contactPoint?.y, 0, 0.749999);
-    const preparationMethod = product?.preparationMethod;
-    const anchor = placementPlan.anchors[index];
-    if (product?.productId !== task.products[index]?.id ||
-        typeof product?.sourceDigest !== "string" ||
-        !/^sha256:[a-f0-9]{64}$/.test(product.sourceDigest) ||
-        (preparationMethod !== "source-alpha" &&
-          preparationMethod !== "white-background-direct" &&
-          preparationMethod !== "source-studio-tile") ||
-        preparationConfidence === undefined || left === undefined || top === undefined ||
-        right === undefined || bottom === undefined || left >= right || top >= bottom ||
-        contactX === undefined || contactY === undefined || !anchor ||
-        Math.abs(contactX - anchor.x) > 0.005 || Math.abs(contactY - anchor.y) > 0.005) {
-      return undefined;
-    }
-    return {
-      productId: product.productId as string,
-      sourceDigest: product.sourceDigest,
-      preparationMethod,
-      preparationConfidence,
-      bounds: { left, top, right, bottom },
-      contactPoint: { x: contactX, y: contactY },
-    };
-  });
-  if (products.some((product) => !product)) {
-    issues.push(`Hero asset ${task.taskId} compositionAudit product layers are invalid.`);
-    return undefined;
-  }
-  return {
-    verification: "host-geometry-v1",
-    semanticVerification: audit.semanticVerification as TopicPageHeroCompositionAudit["semanticVerification"],
-    supportSurfaceLightness,
-    maximumOverlapRatio,
-    bottomSafeAreaStart: 0.75,
-    products: products as TopicPageHeroCompositionAudit["products"],
-  };
-}
-
 function reviewGenerationProvenance(
   value: unknown,
   task: TopicPageVisualTaskContext,
@@ -197,10 +57,31 @@ function reviewGenerationProvenance(
   const model = stringValue(provenance?.model);
   const modelSource = provenance?.modelSource;
   const attempts = numberInRange(provenance?.attempts, 1, 2);
+  const hasTimings = provenance?.queueDurationMs !== undefined ||
+    provenance?.taskDurationMs !== undefined || provenance?.attemptDurationsMs !== undefined ||
+    provenance?.attemptIssues !== undefined;
+  const queueDurationMs = numberInRange(provenance?.queueDurationMs, 0, 3_600_000);
+  const taskDurationMs = numberInRange(provenance?.taskDurationMs, 0, 3_600_000);
+  const attemptDurationsMs = Array.isArray(provenance?.attemptDurationsMs)
+    ? provenance.attemptDurationsMs.map((duration) => numberInRange(duration, 0, 300_000))
+    : [];
+  const attemptIssues = Array.isArray(provenance?.attemptIssues)
+    ? provenance.attemptIssues.filter((issue): issue is string =>
+      typeof issue === "string" && Boolean(issue.trim()) && issue.length <= 500
+    ).map((issue) => issue.trim())
+    : [];
+  const timingsValid = !hasTimings || (
+    attempts !== undefined && queueDurationMs !== undefined && taskDurationMs !== undefined &&
+    attemptDurationsMs.length === attempts && attemptDurationsMs.every((duration) =>
+      duration !== undefined
+    ) && Array.isArray(provenance?.attemptIssues) &&
+    attemptIssues.length === provenance.attemptIssues.length && attemptIssues.length <= attempts
+  );
   if (!provenance || !provider ||
       (modelSource !== "configured" && modelSource !== "runtime-reported" &&
         modelSource !== "unreported") || attempts === undefined || !Number.isInteger(attempts) ||
       typeof provenance.cacheHit !== "boolean" ||
+      !timingsValid ||
       (modelSource === "unreported" && model) ||
       (modelSource !== "unreported" && !model)) {
     issues.push(`Asset ${task.taskId} generationProvenance is invalid.`);
@@ -212,6 +93,14 @@ function reviewGenerationProvenance(
     modelSource,
     attempts,
     cacheHit: provenance.cacheHit,
+    ...(hasTimings
+      ? {
+          queueDurationMs: queueDurationMs!,
+          taskDurationMs: taskDurationMs!,
+          attemptDurationsMs: attemptDurationsMs as number[],
+          attemptIssues,
+        }
+      : {}),
   };
 }
 
@@ -414,6 +303,36 @@ function reviewDirection(
   if (!exactOrder(referenceProductIds, task.products.map(({ id }) => id))) {
     issues.push(`Asset ${task.taskId} referenceProductIds must match its assigned products.`);
   }
+  const rawAttachedProductIds = direction?.attachedReferenceProductIds;
+  const attachedReferenceProductIds = Array.isArray(rawAttachedProductIds)
+    ? rawAttachedProductIds
+      .filter((item): item is string => typeof item === "string")
+      .map((item) => item.trim())
+      .filter(Boolean)
+    : [];
+  if (rawAttachedProductIds !== undefined && !Array.isArray(rawAttachedProductIds)) {
+    issues.push(`Asset ${task.taskId} attachedReferenceProductIds must be an array.`);
+  } else if (Array.isArray(rawAttachedProductIds) &&
+      attachedReferenceProductIds.length !== rawAttachedProductIds.length) {
+    issues.push(
+      `Asset ${task.taskId} attachedReferenceProductIds may contain only non-empty strings.`,
+    );
+  }
+  if (Array.isArray(rawAttachedProductIds)) {
+    const availableProducts = task.products.filter(({ imageUrl }) => Boolean(imageUrl));
+    const expectedAttachedProductIds = task.kind === "hero-image"
+      ? availableProducts.map(({ id }) => id)
+      : task.kind === "shortcut-image"
+      ? availableProducts.slice(0, 1).map(({ id }) => id)
+      : task.kind === "scene-image"
+      ? availableProducts.slice(0, 3).map(({ id }) => id)
+      : [];
+    if (!exactOrder(attachedReferenceProductIds, expectedAttachedProductIds)) {
+      issues.push(
+        `Asset ${task.taskId} attachedReferenceProductIds must match its actual reference inputs.`,
+      );
+    }
+  }
   const reviewedEvidenceRefs = evidenceRefs(
     direction?.evidenceRefs,
     `Asset ${task.taskId} direction`,
@@ -429,34 +348,6 @@ function reviewDirection(
       );
     }
   });
-  const placementPlan = reviewHeroPlacementPlan(direction?.placementPlan, task, issues);
-  const placementSource = direction?.placementSource;
-  if (placementSource !== undefined && placementSource !== "agent" &&
-      placementSource !== "agent-recovered" &&
-      placementSource !== "safe-fallback") {
-    issues.push(`Asset ${task.taskId} placementSource is unsupported.`);
-  }
-  if ((placementPlan && placementSource === undefined) || (!placementPlan && placementSource !== undefined)) {
-    issues.push(`Asset ${task.taskId} placementPlan and placementSource must be provided together.`);
-  }
-  const compositionAudit = reviewHeroCompositionAudit(
-    direction?.compositionAudit,
-    task,
-    placementPlan,
-    issues,
-  );
-  const rawPlacementIssues = direction?.placementIssues;
-  const placementIssues = Array.isArray(rawPlacementIssues)
-    ? rawPlacementIssues
-      .filter((item): item is string => typeof item === "string")
-      .map((item) => item.trim())
-      .filter(Boolean)
-    : [];
-  if (rawPlacementIssues !== undefined && !Array.isArray(rawPlacementIssues)) {
-    issues.push(`Asset ${task.taskId} placementIssues must be an array.`);
-  } else if (Array.isArray(rawPlacementIssues) && placementIssues.length !== rawPlacementIssues.length) {
-    issues.push(`Asset ${task.taskId} placementIssues may contain only non-empty strings.`);
-  }
   if (direction?.fallbackUsed !== undefined && typeof direction.fallbackUsed !== "boolean") {
     issues.push(`Asset ${task.taskId} fallbackUsed must be a boolean.`);
   }
@@ -477,20 +368,15 @@ function reviewDirection(
     issues,
   );
   if (productionMode === "generated-images" && direction?.fallbackUsed === true &&
-      task.kind !== "hero-image" && task.kind !== "shortcut-image") {
-    issues.push(`Asset ${task.taskId} may not use a fallback for a scene-first visual task.`);
+      task.kind !== "shortcut-image") {
+    issues.push(`Asset ${task.taskId} may use a generated-image fallback only for a Shortcut.`);
   }
   return {
     prompt,
     ...(negativePrompt ? { negativePrompt } : {}),
     evidenceRefs: reviewedEvidenceRefs,
     referenceProductIds,
-    ...(placementPlan && (placementSource === "agent" || placementSource === "agent-recovered" ||
-      placementSource === "safe-fallback")
-      ? { placementPlan, placementSource }
-      : {}),
-    ...(placementIssues.length ? { placementIssues } : {}),
-    ...(compositionAudit ? { compositionAudit } : {}),
+    ...(Array.isArray(rawAttachedProductIds) ? { attachedReferenceProductIds } : {}),
     ...(generationProvenance ? { generationProvenance } : {}),
     ...(typeof direction?.fallbackUsed === "boolean"
       ? { fallbackUsed: direction.fallbackUsed }

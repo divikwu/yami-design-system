@@ -206,34 +206,6 @@ function fixture() {
           "content-task:content-hero",
         ],
         referenceProductIds: ["matcha-1"],
-        placementPlan: {
-          primaryIndex: 0,
-          anchors: [{ x: 0.5, y: 0.68, scale: 1, depth: 2 }],
-          shadowDirection: { x: 0.7, y: 0.5 },
-          supportRegion: {
-            left: 0.08,
-            right: 0.92,
-            top: 0.5,
-            bottom: 0.74,
-            surface: "horizontal-light-neutral" as const,
-          },
-        },
-        placementSource: "agent" as const,
-        compositionAudit: {
-          verification: "host-geometry-v1" as const,
-          semanticVerification: "agent-vision-v1" as const,
-          supportSurfaceLightness: 0.82,
-          maximumOverlapRatio: 0,
-          bottomSafeAreaStart: 0.75 as const,
-          products: [{
-            productId: "matcha-1",
-            sourceDigest: `sha256:${"7".repeat(64)}`,
-            preparationMethod: "white-background-direct" as const,
-            preparationConfidence: 0.98,
-            bounds: { left: 0.4, top: 0.28, right: 0.6, bottom: 0.68 },
-            contactPoint: { x: 0.5, y: 0.68 },
-          }],
-        },
         generationProvenance: {
           provider: "fixture-native",
           modelSource: "unreported" as const,
@@ -522,12 +494,9 @@ describe("PageGenerationSpec and final automatic QA", () => {
     })).toThrow("ExperienceReview bound to ExecutionPlan and QAReport");
   });
 
-  it("blocks generated Hero assets without placement, composition, or model provenance evidence", async () => {
+  it("blocks generated assets without model provenance evidence", async () => {
     const data = fixture();
     const direction = data.manifest.assets[0]!.direction;
-    delete direction.placementPlan;
-    delete direction.placementSource;
-    delete direction.compositionAudit;
     delete direction.generationProvenance;
     data.manifest.digest = topicPageAssetManifestDigest(data.manifest);
     const generationSpec = compileTopicPageGenerationSpec({
@@ -541,7 +510,6 @@ describe("PageGenerationSpec and final automatic QA", () => {
       status: "qa-blocked",
       issues: expect.arrayContaining([
         "Generated asset asset-hero has no generation provenance.",
-        "Hero asset asset-hero requires a verified support region and composition audit.",
       ]),
     });
   });

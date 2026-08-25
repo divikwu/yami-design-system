@@ -160,6 +160,142 @@ describe("Topic Page Agent HTTP contract", () => {
     });
   });
 
+  it("splits generated-image visual runs into bounded task requests and merges them in order", async () => {
+    let activeRequests = 0;
+    let maximumActiveRequests = 0;
+    const fetchMock = vi.fn<typeof fetch>(async (_input, init) => {
+      activeRequests += 1;
+      maximumActiveRequests = Math.max(maximumActiveRequests, activeRequests);
+      const request = JSON.parse(String(init?.body)) as {
+        run: { context: { tasks: Array<{ taskId: string }> } };
+      };
+      const task = request.run.context.tasks[0]!;
+      await new Promise((resolve) => setTimeout(resolve, task.taskId === "asset-hero" ? 10 : 1));
+      activeRequests -= 1;
+      return Response.json({
+        schemaVersion: "topic-page-agent-response/v1",
+        stage: "visual-generation",
+        proposal: {
+          schemaVersion: "topic-page-visual-proposal/v1",
+          keyword: "Matcha",
+          site: "us",
+          language: "en",
+          topicPagePlanDigest: "sha256:plan",
+          topicPageContentSpecDigest: "sha256:content",
+          themeIntentDigest: "sha256:intent",
+          productSelectionDigest: "sha256:selection",
+          productionMode: "generated-images",
+          assets: [{
+            taskId: task.taskId,
+            artifact: { ref: `assets/generated/01-${task.taskId}.webp` },
+          }],
+        },
+        assets: [{
+          taskId: task.taskId,
+          ref: `assets/generated/01-${task.taskId}.webp`,
+          mimeType: "image/webp",
+          dataBase64: "aW1hZ2U=",
+        }],
+      });
+    });
+    const agent = createHttpTopicPageAgent({
+      id: "topic-page-agent",
+      endpoint: "http://127.0.0.1:4400/topic-page",
+      fetch: fetchMock,
+    });
+    const run = {
+      schemaVersion: "topic-page-visual-run/v1",
+      status: "needs-visual-proposal",
+      context: {
+        keyword: "Matcha",
+        productionMode: "generated-images",
+        tasks: [
+          { taskId: "asset-hero" },
+          { taskId: "asset-shortcuts-1" },
+          { taskId: "asset-start-here-1" },
+        ],
+      },
+    };
+
+    await expect(agent.generatePageVisuals(run as never)).resolves.toMatchObject({
+      schemaVersion: "topic-page-visual-agent-output/v1",
+      proposal: {
+        schemaVersion: "topic-page-visual-proposal/v1",
+        assets: [
+          { taskId: "asset-hero", artifact: { ref: "assets/generated/01-asset-hero.webp" } },
+          {
+            taskId: "asset-shortcuts-1",
+            artifact: { ref: "assets/generated/02-asset-shortcuts-1.webp" },
+          },
+          {
+            taskId: "asset-start-here-1",
+            artifact: { ref: "assets/generated/03-asset-start-here-1.webp" },
+          },
+        ],
+      },
+      assets: [
+        { taskId: "asset-hero", ref: "assets/generated/01-asset-hero.webp" },
+        { taskId: "asset-shortcuts-1", ref: "assets/generated/02-asset-shortcuts-1.webp" },
+        { taskId: "asset-start-here-1", ref: "assets/generated/03-asset-start-here-1.webp" },
+      ],
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(maximumActiveRequests).toBe(2);
+    expect(fetchMock.mock.calls.map(([, init]) => {
+      const request = JSON.parse(String(init?.body)) as {
+        run: { context: { tasks: Array<{ taskId: string }> } };
+      };
+      return request.run.context.tasks.map(({ taskId }) => taskId);
+    })).toEqual([
+      ["asset-hero"],
+      ["asset-shortcuts-1"],
+      ["asset-start-here-1"],
+    ]);
+  });
+
+  it("identifies the failed task in a split visual request", async () => {
+    const agent = createHttpTopicPageAgent({
+      id: "topic-page-agent",
+      endpoint: "http://127.0.0.1:4400/topic-page",
+      fetch: vi.fn(async (_input, init) => {
+        const request = JSON.parse(String(init?.body)) as {
+          run: { context: { tasks: Array<{ taskId: string }> } };
+        };
+        const taskId = request.run.context.tasks[0]!.taskId;
+        if (taskId === "asset-shortcuts-1") throw new TypeError("fetch failed");
+        return Response.json({
+          schemaVersion: "topic-page-agent-response/v1",
+          stage: "visual-generation",
+          proposal: {
+            schemaVersion: "topic-page-visual-proposal/v1",
+            keyword: "Matcha",
+            assets: [{ taskId, artifact: { ref: `assets/generated/01-${taskId}.webp` } }],
+          },
+          assets: [{
+            taskId,
+            ref: `assets/generated/01-${taskId}.webp`,
+            mimeType: "image/webp",
+            dataBase64: "aW1hZ2U=",
+          }],
+        });
+      }),
+    });
+    const run = {
+      schemaVersion: "topic-page-visual-run/v1",
+      status: "needs-visual-proposal",
+      context: {
+        productionMode: "generated-images",
+        tasks: [{ taskId: "asset-hero" }, { taskId: "asset-shortcuts-1" }],
+      },
+    };
+
+    await expect(agent.generatePageVisuals(run as never)).rejects.toMatchObject({
+      name: "HttpTopicPageAgentError",
+      stage: "visual-generation",
+      message: 'Visual task "asset-shortcuts-1" failed: Topic Page Agent request failed: fetch failed',
+    });
+  });
+
   it("fails closed on HTTP, response-stage, and visual-body contract drift", async () => {
     const responses = [
       new Response("unavailable", { status: 503 }),

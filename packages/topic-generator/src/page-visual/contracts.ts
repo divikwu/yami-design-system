@@ -33,58 +33,16 @@ export interface TopicPageVisualCompositionGuidance {
   lowerAreaUsage: "low-contrast-decoration-preferred";
 }
 
-export interface TopicPageHeroPlacementAnchor {
-  x: number;
-  y: number;
-  scale: number;
-  depth: number;
-}
-
-export interface TopicPageHeroSupportRegion {
-  left: number;
-  right: number;
-  top: number;
-  bottom: number;
-  surface: "horizontal-light-neutral";
-}
-
-export interface TopicPageHeroPlacementPlan {
-  primaryIndex: number;
-  anchors: TopicPageHeroPlacementAnchor[];
-  shadowDirection: { x: number; y: number };
-  supportRegion: TopicPageHeroSupportRegion;
-}
-
-export type TopicPageHeroProductPreparationMethod =
-  | "source-alpha"
-  | "white-background-direct"
-  | "source-studio-tile";
-
-export interface TopicPageHeroCompositionAudit {
-  verification: "host-geometry-v1";
-  semanticVerification:
-    | "agent-vision-v1"
-    | "known-safe-neutral-v1"
-    | "host-geometry-only";
-  supportSurfaceLightness: number;
-  maximumOverlapRatio: number;
-  bottomSafeAreaStart: 0.75;
-  products: Array<{
-    productId: string;
-    sourceDigest: string;
-    preparationMethod: TopicPageHeroProductPreparationMethod;
-    preparationConfidence: number;
-    bounds: { left: number; top: number; right: number; bottom: number };
-    contactPoint: { x: number; y: number };
-  }>;
-}
-
 export interface TopicPageVisualGenerationProvenance {
   provider: string;
   model?: string;
   modelSource: "configured" | "runtime-reported" | "unreported";
   attempts: number;
   cacheHit: boolean;
+  queueDurationMs?: number;
+  taskDurationMs?: number;
+  attemptDurationsMs?: number[];
+  attemptIssues?: string[];
 }
 
 export interface TopicPageVisualDirection {
@@ -92,10 +50,7 @@ export interface TopicPageVisualDirection {
   negativePrompt?: string;
   evidenceRefs: string[];
   referenceProductIds: string[];
-  placementPlan?: TopicPageHeroPlacementPlan;
-  placementSource?: "agent" | "agent-recovered" | "safe-fallback";
-  placementIssues?: string[];
-  compositionAudit?: TopicPageHeroCompositionAudit;
+  attachedReferenceProductIds?: string[];
   generationProvenance?: TopicPageVisualGenerationProvenance;
   fallbackUsed?: boolean;
   fallbackReason?: string;
@@ -212,10 +167,6 @@ export type TopicPageVisualSceneBrief = TopicPageVisualSceneBriefBase & (
   | {
       priority: "product-first";
       productRole: "primary-subject";
-    }
-  | {
-      priority: "scene-composite";
-      productRole: "locked-source-products";
     }
 );
 

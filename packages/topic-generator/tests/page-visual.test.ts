@@ -511,12 +511,13 @@ describe("TopicPageVisual", () => {
     });
     if (run.status !== "needs-visual-proposal") throw new Error("Expected visual tasks.");
     expect(run.context.tasks[0]!.sceneBrief).toMatchObject({
-      priority: "scene-composite",
-      productRole: "locked-source-products",
+      priority: "scene-first",
+      productRole: "reference-only",
       requirements: expect.arrayContaining([
         "Let the visual Agent derive the setting and supporting elements from the accepted Hero copy and assigned product mix.",
-        "Compose the verified source product images as locked real-product layers; do not ask the image model to redraw their packaging.",
-        "Keep the combined product group at the visual center and keep the bottom quarter free of principal products or scene elements.",
+        "Use the available Hero-assigned product images as visual references and regenerate one complete multi-product lifestyle scene.",
+        "Treat the references as a flexible product family rather than a quantity checklist; the result may use a natural subset without one-to-one coverage.",
+        "Do not extract product pixels, composite source layers, request placement guidance, or use a deterministic Hero image fallback.",
       ]),
     });
     expect(run.context.tasks[1]!.products).toEqual([
@@ -530,9 +531,12 @@ describe("TopicPageVisual", () => {
       priority: "product-first",
       productRole: "primary-subject",
       requirements: expect.arrayContaining([
-        "Use the assigned representative product as the single primary visual subject.",
-        "Place the product near the center with enough clear margin for a circular crop.",
+        "Use the assigned representative product image as a visual reference for a single-product lifestyle scene.",
+        "Favor a clear product subject near the center with enough margin for a circular crop.",
         "Build a natural lifestyle setting around the product; props and environment remain secondary.",
+        "Reproduce the source packaging as faithfully as the image model allows, including visible brand name and logo, key label text, typography hierarchy, layout, primary colors, silhouette, closure, and material character.",
+        "Never simplify the product into blank or generic packaging; copy only packaging text visible in the reference and do not invent claims.",
+        "Treat product placement, packaging fidelity, and crop safety as strong generation guidance rather than acceptance requirements.",
       ]),
     });
     expect(run.context.tasks[2]!.contentTask).toMatchObject({
@@ -573,9 +577,14 @@ describe("TopicPageVisual", () => {
       ]),
       requirements: expect.arrayContaining([
         "Depict a coherent, naturalistic scene that expresses this module's shopping goal.",
-        "Treat assigned products as visual references only; they do not need to appear.",
+        "Use products assigned to the current scene as visual references for regenerating one complete lifestyle image.",
+        "Products are optional; a product-free scene is valid.",
+        "For every referenced product that appears, reproduce the source packaging as faithfully as the image model allows, including visible brand name and logo, key label text, typography hierarchy, layout, primary colors, silhouette, closure, and material character.",
+        "Never simplify a referenced product into blank or generic packaging; copy only packaging text visible in the reference and do not invent claims.",
+        "Do not require an exact product count or one-to-one coverage; packaging fidelity is a strong generation priority rather than a rejection gate.",
+        "Do not copy source-image backdrops, swatches, discs, badges, white canvases, or studio props into the scene.",
         "Do not use isolated product packshots, tiled product grids, or product montages as the primary visual.",
-        "Do not generate or alter packaging, labels, logos, or product claims.",
+        "Keep the scene and activity primary, and do not introduce products assigned to another scene.",
       ]),
     });
   });
@@ -780,78 +789,6 @@ describe("TopicPageVisual", () => {
     });
   });
 
-  it("persists a bounded Hero placement audit and rejects incomplete geometry", () => {
-    const intent = themeIntentFixture();
-    const selection = selectionFixture();
-    const plan = planFixture(intent, selection);
-    const contentSpec = contentSpecFixture(intent, selection, plan);
-    const proposal = visualProposalFixture(intent, selection, plan, contentSpec);
-    proposal.assets[0]!.direction.placementPlan = {
-      primaryIndex: 0,
-      anchors: [{ x: 0.5, y: 0.66, scale: 1, depth: 1 }],
-      shadowDirection: { x: 0.4, y: 0.6 },
-      supportRegion: {
-        left: 0.08,
-        right: 0.92,
-        top: 0.5,
-        bottom: 0.74,
-        surface: "horizontal-light-neutral",
-      },
-    };
-    proposal.assets[0]!.direction.placementSource = "agent";
-    proposal.assets[0]!.direction.compositionAudit = {
-      verification: "host-geometry-v1",
-      semanticVerification: "agent-vision-v1",
-      supportSurfaceLightness: 0.82,
-      maximumOverlapRatio: 0,
-      bottomSafeAreaStart: 0.75,
-      products: [{
-        productId: proposal.assets[0]!.direction.referenceProductIds[0]!,
-        sourceDigest: `sha256:${"7".repeat(64)}`,
-        preparationMethod: "white-background-direct",
-        preparationConfidence: 0.98,
-        bounds: { left: 0.4, top: 0.28, right: 0.6, bottom: 0.66 },
-        contactPoint: { x: 0.5, y: 0.66 },
-      }],
-    };
-    proposal.assets[0]!.direction.generationProvenance = {
-      provider: "codex-native",
-      modelSource: "unreported",
-      attempts: 1,
-      cacheHit: false,
-    };
-
-    const accepted = advanceTopicPageVisualRun({ intent, selection, plan, contentSpec, proposal });
-    expect(accepted.status).toBe("ready");
-    if (accepted.status !== "ready") throw new Error("Expected a ready visual manifest.");
-    expect(accepted.manifest.assets[0]!.direction).toMatchObject({
-      placementSource: "agent",
-      placementPlan: { anchors: [{ x: 0.5, y: 0.66 }] },
-      compositionAudit: {
-        verification: "host-geometry-v1",
-        semanticVerification: "agent-vision-v1",
-        products: [{ preparationMethod: "white-background-direct" }],
-      },
-      generationProvenance: { modelSource: "unreported", attempts: 1 },
-    });
-
-    proposal.assets[0]!.direction.placementSource = "agent-recovered";
-    const recovered = advanceTopicPageVisualRun({ intent, selection, plan, contentSpec, proposal });
-    expect(recovered.status).toBe("ready");
-    if (recovered.status !== "ready") throw new Error("Expected recovered placement to be ready.");
-    expect(recovered.manifest.assets[0]!.direction.placementSource).toBe("agent-recovered");
-
-    proposal.assets[0]!.direction.placementPlan!.anchors = [];
-    const rejected = advanceTopicPageVisualRun({ intent, selection, plan, contentSpec, proposal });
-    expect(rejected).toMatchObject({
-      status: "blocked",
-      issues: expect.arrayContaining([
-        "Hero asset asset-hero placementPlan must contain one anchor per product.",
-        "Asset asset-hero placementPlan and placementSource must be provided together.",
-      ]),
-    });
-  });
-
   it("rejects unsafe artifact refs, wrong crops, invalid hashes, and alt-text mode drift", () => {
     const intent = themeIntentFixture();
     const selection = selectionFixture();
@@ -904,7 +841,7 @@ describe("TopicPageVisual", () => {
     expect(run).toMatchObject({
       status: "blocked",
       issues: expect.arrayContaining([
-        `Asset ${sceneAsset.taskId} may not use a fallback for a scene-first visual task.`,
+        `Asset ${sceneAsset.taskId} may use a generated-image fallback only for a Shortcut.`,
       ]),
     });
   });

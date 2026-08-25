@@ -63,6 +63,7 @@ export class HttpTopicPageAgentError extends Error {
 }
 
 const MAX_RUNNER_ERROR_BYTES = 8 * 1024;
+const VISUAL_REQUEST_CONCURRENCY = 2;
 
 async function boundedRunnerError(response: Response) {
   const contentType = response.headers.get("content-type") ?? "";
@@ -153,13 +154,128 @@ function visualAssetBody(value: unknown): TopicPageVisualAssetBody | null {
   };
 }
 
+function generatedImageVisualTasks(run: unknown) {
+  const value = objectValue(run);
+  const context = objectValue(value?.context);
+  if (value?.schemaVersion !== "topic-page-visual-run/v1" ||
+      value.status !== "needs-visual-proposal" ||
+      context?.productionMode !== "generated-images" ||
+      !Array.isArray(context.tasks) || context.tasks.length < 2) {
+    return null;
+  }
+  const tasks = context.tasks.map(objectValue);
+  const taskIds = tasks.map((task) =>
+    typeof task?.taskId === "string" ? task.taskId.trim() : ""
+  );
+  if (tasks.some((task) => task === null) || taskIds.some((taskId) => !taskId) ||
+      new Set(taskIds).size !== taskIds.length) {
+    return null;
+  }
+  return {
+    context,
+    run: value,
+    tasks: tasks as Record<string, unknown>[],
+    taskIds,
+  };
+}
+
+async function mapWithConcurrency<T, U>(
+  values: T[],
+  concurrency: number,
+  worker: (value: T, index: number) => Promise<U>,
+) {
+  const results = new Array<U>(values.length);
+  let nextIndex = 0;
+  await Promise.all(
+    Array.from({ length: Math.min(concurrency, values.length) }, async () => {
+      while (nextIndex < values.length) {
+        const index = nextIndex++;
+        results[index] = await worker(values[index]!, index);
+      }
+    }),
+  );
+  return results;
+}
+
+function reindexedVisualRef(ref: string, index: number) {
+  const separator = ref.lastIndexOf("/") + 1;
+  const directory = ref.slice(0, separator);
+  const filename = ref.slice(separator).replace(/^\d+-/, "");
+  const nextRef = `${directory}${String(index + 1).padStart(2, "0")}-${filename}`;
+  return safeRelativeRef(nextRef) ? nextRef : null;
+}
+
+function mergeVisualTaskOutputs(
+  outputs: TopicPageVisualAgentOutput[],
+  taskIds: string[],
+  agentId: string,
+) {
+  const proposalAssets: Record<string, unknown>[] = [];
+  const assetBodies: TopicPageVisualAssetBody[] = [];
+  let proposalMetadata: Record<string, unknown> | undefined;
+  let proposalMetadataDigest: string | undefined;
+
+  outputs.forEach((output, index) => {
+    const expectedTaskId = taskIds[index]!;
+    const proposal = objectValue(output.proposal);
+    const rawProposalAssets = Array.isArray(proposal?.assets) ? proposal.assets : [];
+    const proposalAsset = rawProposalAssets.length === 1
+      ? objectValue(rawProposalAssets[0])
+      : null;
+    const artifact = objectValue(proposalAsset?.artifact);
+    const body = output.assets.length === 1 ? output.assets[0] : undefined;
+    if (proposal?.schemaVersion !== "topic-page-visual-proposal/v1" || !proposalAsset ||
+        !artifact || proposalAsset.taskId !== expectedTaskId ||
+        typeof artifact.ref !== "string" || body?.taskId !== expectedTaskId ||
+        body.ref !== artifact.ref) {
+      throw new HttpTopicPageAgentError({
+        agentId,
+        stage: "visual-generation",
+        message: `Topic Page Agent visual task "${expectedTaskId}" returned an invalid response.`,
+      });
+    }
+    const ref = reindexedVisualRef(body.ref, index);
+    if (!ref) {
+      throw new HttpTopicPageAgentError({
+        agentId,
+        stage: "visual-generation",
+        message: `Topic Page Agent visual task "${expectedTaskId}" returned an invalid asset ref.`,
+      });
+    }
+    const metadata = Object.fromEntries(
+      Object.entries(proposal).filter(([key]) => key !== "assets"),
+    );
+    const metadataDigest = JSON.stringify(metadata);
+    if (proposalMetadataDigest !== undefined && metadataDigest !== proposalMetadataDigest) {
+      throw new HttpTopicPageAgentError({
+        agentId,
+        stage: "visual-generation",
+        message: `Topic Page Agent visual task "${expectedTaskId}" changed shared proposal metadata.`,
+      });
+    }
+    proposalMetadata ??= metadata;
+    proposalMetadataDigest ??= metadataDigest;
+    proposalAssets.push({
+      ...proposalAsset,
+      artifact: { ...artifact, ref },
+    });
+    assetBodies.push({ ...body, ref });
+  });
+
+  return {
+    schemaVersion: "topic-page-visual-agent-output/v1" as const,
+    proposal: { ...proposalMetadata, assets: proposalAssets },
+    assets: assetBodies,
+  };
+}
+
 export function createHttpTopicPageAgent(
   options: CreateHttpTopicPageAgentOptions,
 ): HttpTopicPageAgent {
   const fetchImplementation = options.fetch ?? fetch;
   const agentIdFor = (stage: HttpTopicPageAgentStage) =>
     options.agentIds?.[stage] ?? options.id;
-  const requestProposal = async (
+  const requestSingleProposal = async (
     stage: HttpTopicPageAgentStage,
     run: unknown,
   ): Promise<unknown | TopicPageVisualAgentOutput> => {
@@ -243,6 +359,40 @@ export function createHttpTopicPageAgent(
       proposal: result.proposal,
       assets: assets as TopicPageVisualAssetBody[],
     };
+  };
+  const requestProposal = async (
+    stage: HttpTopicPageAgentStage,
+    run: unknown,
+  ): Promise<unknown | TopicPageVisualAgentOutput> => {
+    if (stage !== "visual-generation") return await requestSingleProposal(stage, run);
+    const visualRun = generatedImageVisualTasks(run);
+    if (!visualRun) return await requestSingleProposal(stage, run);
+    const agentId = agentIdFor(stage);
+    const outputs = await mapWithConcurrency(
+      visualRun.tasks,
+      VISUAL_REQUEST_CONCURRENCY,
+      async (task, index) => {
+        const taskId = visualRun.taskIds[index]!;
+        try {
+          return await requestSingleProposal(stage, {
+            ...visualRun.run,
+            context: { ...visualRun.context, tasks: [task] },
+          }) as TopicPageVisualAgentOutput;
+        } catch (error) {
+          if (error instanceof HttpTopicPageAgentError) {
+            throw new HttpTopicPageAgentError({
+              agentId: error.agentId,
+              code: error.code,
+              stage: error.stage,
+              status: error.status,
+              message: `Visual task "${taskId}" failed: ${error.message}`,
+            });
+          }
+          throw error;
+        }
+      },
+    );
+    return mergeVisualTaskOutputs(outputs, visualRun.taskIds, agentId);
   };
 
   return {

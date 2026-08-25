@@ -28,55 +28,46 @@ draft-only reference fallback and final visual QA rejects it. Scene tasks may in
 
 Every task includes a deterministic `sceneBrief` with:
 
-- a paired subject mode: `scene-first` / `reference-only`, ShortcutRail-only
-  `product-first` / `primary-subject`, or ThemeHero-only `scene-composite` /
-  `locked-source-products`;
+- a paired subject mode: `scene-first` / `reference-only`, or ShortcutRail-only
+  `product-first` / `primary-subject`;
 - the ThemeIntent shopping goal, needs, and conditions;
 - the module shopping goal and reason;
 - relevant selected categories and, when applicable, the exact PagePlan scene;
 - the accepted content task ID and localized copy text;
 - mandatory semantic evidence references and visual requirements.
 
-For scene-first tasks, the generated environment and module theme are primary; assigned products are
-references and need not be visible. Those scenes exclude bottles, jars, tubes, pumps, droppers,
-sachets, and product boxes. Each ShortcutRail task instead has exactly one representative product:
-the Host attaches its verified source image, the generator keeps it as the single primary subject near
-the center with circular-crop margin, and category-relevant lifestyle context stays secondary. It must
-preserve source identity and must not invent, rewrite, or add packaging, labels, logos, or claims.
-A ThemeHero instead asks the Agent to derive a scene prompt from accepted Hero copy plus structured
-assigned-category evidence and generate only that background. Product pixels are not attached to the
-background generator. The Host then composites the verified catalog main images as locked source
-layers, preferring three to five products when available without blocking on
-the count. The Agent chooses the camera, support surface, depth pattern, materials, and light from the
-evidence while preserving natural environmental shadows. The background is rejected for steep or
-internally inconsistent perspective, missing credible product footholds, a placement zone that forces
-one flat row, or conflicting light and shadow directions. The Host keeps the central representative
-product unobscured in front, staggers secondary products through middle and rear depths, and adds
-restrained same-direction photographic contact shadows. Empty product silhouettes and empty
-product-shaped shadows remain disallowed, but natural scene shadows do not. After inspecting the
-background, the Agent returns a placement plan with a continuous upward-facing light-neutral support
-region, normalized x/y contact points, scale, depth, primary index, and shadow direction. The Host
-uses valid guidance to follow the actual generated surfaces. Every contact point is visually verified
-against the generated pixels, must lie inside that support region, and must never land on a vertical
-face, wall, or open air. Missing or invalid guidance triggers one read-only visual recovery pass over
-the same background. Recovered guidance is labeled `agent-recovered` and still faces the same Host
-geometry and final semantic checks. Failed recovery discards that background and uses the known-safe
-neutral Hero background; fixed anchors are never applied to an arbitrary generated scene.
-The Host preserves real alpha when present. For a verified uniform white-background main image, it
-derives only a deterministic mask for the edge-connected white canvas, protects the complete product
-silhouette, removes redundant outer whitespace, and preserves every product pixel. Other sources use
-a deliberate studio tile only on the neutral fallback. The
-composition records source digests,
-preparation methods, product bounds, support-region lightness, overlap, bottom-safe-area compliance,
-attempts, cache reuse, provider, and only a runtime-reported model identity.
-The combined group is centered and no principal element enters the bottom quarter. Scene elements
-are Agent-selected from the evidence, so multi-category topics do not inherit a fixed skincare,
-grocery, or other category prop template.
-A Shortcut that exhausts native generation retries may use a source-backed lifestyle fallback with
-the same one-product, centered-subject, circular-crop, identity-preservation, and secondary-context
-rules; this task-level fallback must not discard other completed assets or block the page.
-A Hero may likewise fall back to a neutral background plus the same locked real-product layers rather
-than dropping the products or blocking the entire visual stage.
+For ThemeProductList scene-first tasks, the scene and module theme are primary. The model receives up
+to three product images assigned to the current PagePlan scene as optional visual references and
+regenerates one complete lifestyle image. A product-free scene is valid. For every referenced product
+that appears, the Agent should reproduce the source packaging as faithfully as the image model allows,
+including visible brand name and logo, key label text, typography hierarchy, layout, primary colors,
+silhouette, closure, and material character. It must not intentionally simplify the product into blank or
+generic packaging or invent claims. No exact product-count or one-to-one coverage check applies, and
+packaging fidelity remains a strong generation priority rather than a rejection gate. The Host does not extract
+product pixels, composite source layers, or fall back to source-image compositing. The square source should keep its key action in
+the upper-right across centered wide and card crops, reserve a calm lower-left copy-safe area, and contain
+no baked text, gradient, text panel, or scrim. These composition points are soft art direction rather
+than deterministic rejection gates: a saved decodable image proceeds without semantic retry. Other
+scene-first tasks continue to exclude bottles, jars, tubes,
+pumps, droppers, sachets, and product boxes. Each ShortcutRail task instead receives one representative
+product image as a visual reference for a single-product lifestyle scene. A centered primary subject,
+circular-crop margin, secondary category-relevant context, and faithful reproduction of visible source
+packaging are strong generation guidance rather than acceptance requirements.
+A ThemeHero attaches all available assigned catalog images to one generation request and asks the
+Agent to regenerate one complete 16:9 lifestyle scene. Products and environment are created together
+so lighting, depth, shadows, and materials remain coherent. The Host does not extract or composite
+product pixels. The references are a flexible product family rather than a count
+checklist, so the generated scene may use a natural subset or grouping without one-to-one placement.
+Every referenced product that appears should preserve its visible packaging text, brand identity, layout,
+colors, silhouette, closure, and material as faithfully as the image model allows. The Agent must not copy source-image backdrops, discs, white
+canvases, or studio props as part of a product. When the output file exists, Hero bypasses semantic
+visual rejection and proceeds directly to deterministic byte, MIME, ratio, dimension, and digest
+validation. No placement recovery, source-layer composition, or Hero visual fallback runs.
+A Shortcut may use a source-backed lifestyle fallback only after its bounded technical retries fail;
+semantic or visual differences never trigger fallback. This task-level fallback must not discard other
+completed assets or block the page.
+A Hero reports a technical failure after its bounded generation attempts instead of substituting a
+source-layer composition.
 A direction is rejected when it omits any `sceneBrief.evidenceRefs`.
 
 ## Maintained image slots
@@ -112,48 +103,19 @@ continue to use catalog image identities.
       "kind": "hero-image",
       "direction": {
         "prompt": "Sunlit matcha ritual using the assigned products as references.",
-        "negativePrompt": "logos, unsupported claims, illegible text",
+        "negativePrompt": "collage, watermark, overlay text",
         "evidenceRefs": [
           "theme-intent:scenario:matcha",
           "product:matcha-1",
           "content-task:content-hero"
         ],
         "referenceProductIds": ["matcha-1"],
-        "placementPlan": {
-          "primaryIndex": 0,
-          "anchors": [{ "x": 0.5, "y": 0.7, "scale": 1, "depth": 2 }],
-          "shadowDirection": { "x": 0.7, "y": 0.5 },
-          "supportRegion": {
-            "left": 0.08,
-            "right": 0.92,
-            "top": 0.5,
-            "bottom": 0.74,
-            "surface": "horizontal-light-neutral"
-          }
-        },
-        "placementSource": "agent",
-        "compositionAudit": {
-          "verification": "host-geometry-v1",
-          "semanticVerification": "agent-vision-v1",
-          "supportSurfaceLightness": 0.82,
-          "maximumOverlapRatio": 0,
-          "bottomSafeAreaStart": 0.75,
-          "products": [{
-            "productId": "matcha-1",
-            "sourceDigest": "sha256:...",
-            "preparationMethod": "white-background-direct",
-            "preparationConfidence": 0.98,
-            "bounds": { "left": 0.4, "top": 0.28, "right": 0.6, "bottom": 0.7 },
-            "contactPoint": { "x": 0.5, "y": 0.7 }
-          }]
-        },
         "generationProvenance": {
           "provider": "codex-native",
           "modelSource": "unreported",
           "attempts": 1,
           "cacheHit": false
-        },
-        "fallbackUsed": false
+        }
       },
       "altText": {
         "language": "zh",

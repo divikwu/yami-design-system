@@ -71,26 +71,39 @@ const SCENE_FIRST_REQUIREMENTS = [
   "Do not generate or alter packaging, labels, logos, or product claims.",
 ] as const;
 
-const PRODUCT_FIRST_SHORTCUT_REQUIREMENTS = [
-  "Use the assigned representative product as the single primary visual subject.",
-  "Use the verified source product image as a strict visual reference for shape, color, proportions, and packaging identity.",
-  "Place the product near the center with enough clear margin for a circular crop.",
-  "Build a natural lifestyle setting around the product; props and environment remain secondary.",
-  "Do not add another product, duplicate the product, crop it, or invent or rewrite packaging details.",
+const SCENE_IMAGE_REQUIREMENTS = [
+  "Depict a coherent, naturalistic scene that expresses this module's shopping goal.",
+  "Use products assigned to the current scene as visual references for regenerating one complete lifestyle image.",
+  "Products are optional; a product-free scene is valid.",
+  "For every referenced product that appears, reproduce the source packaging as faithfully as the image model allows, including visible brand name and logo, key label text, typography hierarchy, layout, primary colors, silhouette, closure, and material character.",
+  "Never simplify a referenced product into blank or generic packaging; copy only packaging text visible in the reference and do not invent claims.",
+  "Do not require an exact product count or one-to-one coverage; packaging fidelity is a strong generation priority rather than a rejection gate.",
+  "Do not copy source-image backdrops, swatches, discs, badges, white canvases, or studio props into the scene.",
+  "Do not use isolated product packshots, tiled product grids, or product montages as the primary visual.",
+  "Keep the scene and activity primary, and do not introduce products assigned to another scene.",
+  "Keep the key action in the upper-right area, preserve it in centered wide and card crops, and reserve a quiet lower-left copy-safe area.",
+  "Do not bake text, a gradient, a text panel, or a scrim into the image.",
 ] as const;
 
-const HERO_COMPOSITE_REQUIREMENTS = [
+const PRODUCT_FIRST_SHORTCUT_REQUIREMENTS = [
+  "Use the assigned representative product image as a visual reference for a single-product lifestyle scene.",
+  "Favor a clear product subject near the center with enough margin for a circular crop.",
+  "Build a natural lifestyle setting around the product; props and environment remain secondary.",
+  "Reproduce the source packaging as faithfully as the image model allows, including visible brand name and logo, key label text, typography hierarchy, layout, primary colors, silhouette, closure, and material character.",
+  "Never simplify the product into blank or generic packaging; copy only packaging text visible in the reference and do not invent claims.",
+  "Treat product placement, packaging fidelity, and crop safety as strong generation guidance rather than acceptance requirements.",
+] as const;
+
+const HERO_GENERATION_REQUIREMENTS = [
   "Let the visual Agent derive the setting and supporting elements from the accepted Hero copy and assigned product mix.",
-  "Aim to feature 3 to 5 representative assigned products when available; treat this count as guidance rather than a generation blocker.",
-  "Generate the scene background without receiving product image pixels and without product containers, then add the assigned catalog main images as separate source-backed layers.",
-  "Compose the verified source product images as locked real-product layers; do not ask the image model to redraw their packaging.",
-  "Let the Agent choose the camera, depth pattern, materials, and light while providing one continuous, upward-facing, light-neutral support region for the product group.",
-  "Avoid steep or internally inconsistent perspective, missing credible product footholds, a placement zone that forces a single flat row, and conflicting light or shadow directions.",
-  "Do not pre-render empty product silhouettes, empty product-shaped shadows, or other placeholders for products that are not yet present.",
-  "After inspecting the background, return the normalized support region plus x/y/scale/depth guidance for each assigned product; every contact point must lie inside that support region, never on a vertical face, wall, or open air.",
-  "Visually verify every placement point against the actual generated pixels before returning it; missing or invalid guidance triggers one read-only visual recovery pass, then the Host uses its known-safe neutral Hero background if recovery fails.",
-  "During Host composition, keep the central representative product unobscured in front, stagger secondary products across middle and rear depths, and add restrained same-direction contact shadows.",
-  "Keep the combined product group at the visual center and keep the bottom quarter free of principal products or scene elements.",
+  "Use the available Hero-assigned product images as visual references and regenerate one complete multi-product lifestyle scene.",
+  "Treat the references as a flexible product family rather than a quantity checklist; the result may use a natural subset without one-to-one coverage.",
+  "For every referenced product that appears, reproduce the source packaging as faithfully as the image model allows, including visible brand name and logo, key label text, typography hierarchy, layout, primary colors, silhouette, closure, and material character.",
+  "Never simplify a referenced product into blank or generic packaging; copy only packaging text visible in the reference and do not invent claims.",
+  "Regenerate products and environment together so lighting, shadows, depth, and materials belong to one coherent image.",
+  "Do not extract product pixels, composite source layers, request placement guidance, or use a deterministic Hero image fallback.",
+  "Do not require exact product count or one-to-one coverage; packaging fidelity is a strong generation priority rather than a rejection gate.",
+  "Do not copy source-image backdrops, discs, swatches, white canvases, or studio props into the Hero.",
   "Do not prescribe category-specific props or environments; let the Agent choose them from the theme and cross-category product evidence.",
 ] as const;
 
@@ -146,7 +159,6 @@ function sceneBrief(options: {
     `content-task:${options.contentTask.taskId}`,
   ];
   const productFirst = options.kind === "shortcut-image";
-  const heroComposite = options.kind === "hero-image";
   const brief = {
     theme: {
       shoppingGoal: options.intent.shoppingGoal,
@@ -173,14 +185,7 @@ function sceneBrief(options: {
     },
     evidenceRefs: [...new Set(evidenceRefs)],
   };
-  return heroComposite
-    ? {
-        priority: "scene-composite",
-        productRole: "locked-source-products",
-        ...brief,
-        requirements: [...HERO_COMPOSITE_REQUIREMENTS, KIND_REQUIREMENT[options.kind]],
-      }
-    : productFirst
+  return productFirst
     ? {
         priority: "product-first",
         productRole: "primary-subject",
@@ -191,7 +196,14 @@ function sceneBrief(options: {
         priority: "scene-first",
         productRole: "reference-only",
         ...brief,
-        requirements: [...SCENE_FIRST_REQUIREMENTS, KIND_REQUIREMENT[options.kind]],
+        requirements: [
+          ...(options.kind === "hero-image"
+            ? HERO_GENERATION_REQUIREMENTS
+            : options.kind === "scene-image"
+            ? SCENE_IMAGE_REQUIREMENTS
+            : SCENE_FIRST_REQUIREMENTS),
+          KIND_REQUIREMENT[options.kind],
+        ],
       };
 }
 

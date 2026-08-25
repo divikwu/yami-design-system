@@ -34,15 +34,14 @@ function visualPolicy(
           taskId: asset.taskId,
           moduleId: module.id,
           kind: asset.kind,
-          priority: "hero-composite" as const,
-          productRole: "locked-source-products" as const,
+          priority: "scene-and-module-theme" as const,
+          productRole: "reference-only" as const,
           blockingConditions: [
             "asset-does-not-match-module-theme-or-copy",
-            "visible-product-packaging-is-generated-or-altered",
-            "source-products-overlap-or-obscure-primary-product",
-            "source-product-is-floating-or-lands-on-vertical-surface",
-            "hero-principal-content-enters-bottom-safe-area",
-            "background-contains-product-placeholder-or-product-shaped-shadow",
+            "product-grid-or-montage-used-as-hero",
+            "product-appears-floating-or-lands-on-vertical-surface",
+            "hero-primary-content-has-responsive-crop-risk",
+            "reference-derived-product-uses-blank-generic-or-materially-inconsistent-packaging",
           ],
         };
       }
@@ -51,12 +50,13 @@ function visualPolicy(
           taskId: asset.taskId,
           moduleId: module.id,
           kind: asset.kind,
-          priority: "source-product-fidelity" as const,
+          priority: "scene-and-module-theme" as const,
           productRole: "primary-subject" as const,
           blockingConditions: [
-            "representative-product-missing-cropped-duplicated-or-altered",
-            "representative-product-is-not-the-primary-subject",
             "asset-does-not-match-module-theme-or-copy",
+            "circular-crop-obscures-primary-subject",
+            "image-lacks-category-relevant-primary-subject",
+            "reference-derived-product-uses-blank-generic-or-materially-inconsistent-packaging",
           ],
         };
       }
@@ -70,7 +70,7 @@ function visualPolicy(
           "isolated-product-packshot-used-as-semantic-scene",
           "product-grid-or-montage-used-as-semantic-scene",
           "asset-does-not-match-module-theme-or-copy",
-          "visible-product-packaging-is-generated-or-altered",
+          "reference-derived-product-uses-blank-generic-or-materially-inconsistent-packaging",
         ],
       };
     })),
