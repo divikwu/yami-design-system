@@ -1,0 +1,2631 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="面向 YAMI UX/UI 设计师、产品经理、视觉设计师与组件库创作者的 Storybook 使用与创作指南。"
+    />
+    <title>YAMI Storybook 使用与创作指南</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #0a0a0a;
+        --muted: #525252;
+        --paper: #f5f5f5;
+        --paper-deep: #ebebeb;
+        --surface: #fafafa;
+        --surface-strong: #ffffff;
+        --line: #d4d4d4;
+        --line-strong: #b4b4b4;
+        --accent: #d92b2b;
+        --accent-soft: #ffd8dc;
+        --success: #0c7656;
+        --success-soft: #dcefe8;
+        --warning: #ad6400;
+        --warning-soft: #fff0d2;
+        --info: #245a9b;
+        --info-soft: #dce9f8;
+        --display: "New York", "Noto Serif SC", "Songti SC", serif;
+        --body: "Avenir Next", "PingFang SC", "Hiragino Sans GB", sans-serif;
+        --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        background:
+          linear-gradient(rgba(23, 23, 23, 0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(23, 23, 23, 0.04) 1px, transparent 1px),
+          var(--paper);
+        background-size: 24px 24px;
+        font-family: var(--body);
+        font-size: 14px;
+        line-height: 20px;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      button {
+        font: inherit;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      .shell {
+        width: min(1440px, 100%);
+        min-height: 100vh;
+        margin: 0 auto;
+        border-inline: 1px solid var(--line);
+        background: color-mix(in srgb, var(--paper) 94%, transparent);
+      }
+
+      .document-header {
+        position: sticky;
+        z-index: 20;
+        top: 0;
+        display: flex;
+        min-height: 56px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 10px 24px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.96);
+        backdrop-filter: blur(12px);
+      }
+
+      .document-header-title {
+        margin: 0;
+        font-family: var(--display);
+        font-size: 16px;
+        font-weight: 700;
+        line-height: 20px;
+      }
+
+      .document-header-meta {
+        margin: 0;
+        color: var(--muted);
+        font-family: var(--mono);
+        font-size: 12px;
+        letter-spacing: 0.06em;
+        line-height: 16px;
+        text-transform: uppercase;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 248px minmax(0, 1fr);
+      }
+
+      .rail {
+        position: sticky;
+        top: 56px;
+        height: calc(100vh - 56px);
+        overflow-y: auto;
+        padding: 28px 22px 40px;
+        border-right: 1px solid var(--line-strong);
+        background: rgba(245, 245, 245, 0.94);
+      }
+
+      .rail-title,
+      .eyebrow,
+      .kicker,
+      .meta-label,
+      .status-tag,
+      .metric-label {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        line-height: 16px;
+        text-transform: uppercase;
+      }
+
+      .rail-title {
+        margin: 0 0 22px;
+        color: var(--muted);
+      }
+
+      .rail a {
+        display: grid;
+        grid-template-columns: 30px minmax(0, 1fr);
+        gap: 8px;
+        align-items: baseline;
+        padding: 10px 8px;
+        border-left: 2px solid transparent;
+        color: var(--muted);
+        font-size: 14px;
+        text-decoration: none;
+      }
+
+      .rail a span:first-child {
+        font-family: var(--mono);
+        font-size: 12px;
+        line-height: 16px;
+      }
+
+      .rail a:hover,
+      .rail a:focus-visible,
+      .rail a[aria-current="true"] {
+        border-left-color: var(--accent);
+        color: var(--ink);
+        outline: none;
+        background: #fff;
+      }
+
+      main {
+        min-width: 0;
+      }
+
+      .masthead {
+        position: relative;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 230px;
+        gap: 36px;
+        min-height: 560px;
+        padding: 52px clamp(24px, 5vw, 72px) 48px;
+        overflow: hidden;
+        border-bottom: 1px solid var(--line-strong);
+        background:
+          radial-gradient(circle at 84% 16%, rgba(217, 43, 43, 0.13), transparent 25%),
+          linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(235, 235, 235, 0.72));
+      }
+
+      .masthead::after {
+        position: absolute;
+        right: -92px;
+        bottom: -186px;
+        width: 480px;
+        aspect-ratio: 1;
+        border: 92px solid rgba(217, 43, 43, 0.07);
+        border-radius: 50%;
+        content: "";
+      }
+
+      .masthead-copy,
+      .version-card,
+      .value-strip {
+        position: relative;
+        z-index: 1;
+      }
+
+      .eyebrow {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 56px;
+      }
+
+      .brand-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        outline: 1px solid var(--accent);
+        background: var(--accent);
+        box-shadow: inset 0 0 0 4px #fff;
+      }
+
+      h1 {
+        max-width: 850px;
+        margin-bottom: 26px;
+        font-family: var(--display);
+        font-size: 80px;
+        font-weight: 700;
+        letter-spacing: -0.06em;
+        line-height: 88px;
+      }
+
+      .lede {
+        max-width: 760px;
+        margin-bottom: 0;
+        color: #393939;
+        font-size: 16px;
+        line-height: 24px;
+      }
+
+      .version-card {
+        align-self: end;
+        padding: 20px;
+        border: 1px solid var(--ink);
+        background: rgba(250, 250, 250, 0.94);
+      }
+
+      .version-card strong {
+        display: block;
+        margin: 6px 0 16px;
+        font-family: var(--display);
+        font-size: 32px;
+        line-height: 40px;
+      }
+
+      .version-card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 20px;
+      }
+
+      .value-strip {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        margin-top: 60px;
+        border-top: 1px solid var(--line-strong);
+        border-left: 1px solid var(--line-strong);
+      }
+
+      .value-strip article {
+        min-height: 118px;
+        padding: 18px;
+        border-right: 1px solid var(--line-strong);
+        border-bottom: 1px solid var(--line-strong);
+        background: rgba(250, 250, 250, 0.82);
+      }
+
+      .value-strip strong {
+        display: block;
+        margin: 18px 0 6px;
+        font-family: var(--display);
+        font-size: 20px;
+        line-height: 28px;
+      }
+
+      section {
+        scroll-margin-top: 56px;
+        padding: 72px clamp(24px, 5vw, 72px);
+        border-bottom: 1px solid var(--line-strong);
+      }
+
+      section:nth-of-type(even) {
+        background: rgba(255, 255, 255, 0.42);
+      }
+
+      .section-head {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 14px;
+        margin-bottom: 40px;
+      }
+
+      h2 {
+        margin-bottom: 0;
+        font-family: var(--display);
+        font-size: 48px;
+        letter-spacing: -0.04em;
+        line-height: 56px;
+      }
+
+      h3 {
+        margin-bottom: 9px;
+        font-size: 18px;
+        line-height: 24px;
+      }
+
+      .kicker {
+        margin-bottom: 12px;
+        color: var(--accent);
+      }
+
+      .section-summary {
+        max-width: 820px;
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 20px;
+      }
+
+      .status-tag {
+        display: inline-flex;
+        width: fit-content;
+        align-items: center;
+        padding: 5px 8px;
+        border: 1px solid currentColor;
+        color: var(--muted);
+        background: #fff;
+      }
+
+      .status-tag.current {
+        color: var(--accent);
+        background: var(--accent-soft);
+      }
+
+      .status-tag.validated {
+        color: var(--success);
+        background: var(--success-soft);
+      }
+
+      .status-tag.hypothesis {
+        color: var(--warning);
+        background: var(--warning-soft);
+      }
+
+      .status-tag.pending {
+        color: var(--info);
+        background: var(--info-soft);
+      }
+
+      .summary-grid,
+      .role-grid,
+      .goal-grid,
+      .boundary-grid,
+      .review-grid {
+        display: grid;
+        border-top: 1px solid var(--line-strong);
+        border-left: 1px solid var(--line-strong);
+      }
+
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .summary-cell,
+      .role-card,
+      .goal-card,
+      .boundary-card,
+      .review-card {
+        min-height: 166px;
+        padding: 22px;
+        border-right: 1px solid var(--line-strong);
+        border-bottom: 1px solid var(--line-strong);
+        background: var(--surface);
+      }
+
+      .summary-cell {
+        display: grid;
+        grid-template-columns: 112px minmax(180px, 0.45fr) minmax(0, 1fr);
+        gap: 22px;
+        min-height: 0;
+        align-items: center;
+      }
+
+      #guide-overview .summary-cell {
+        grid-template-columns: minmax(160px, 0.35fr) minmax(0, 1fr);
+      }
+
+      .summary-cell strong {
+        display: block;
+        margin: 0;
+        font-family: var(--display);
+        font-size: 28px;
+        line-height: 36px;
+      }
+
+      .summary-cell p,
+      .role-card p,
+      .goal-card p,
+      .boundary-card p,
+      .review-card p {
+        margin-bottom: 0;
+        color: var(--muted);
+      }
+
+      .record-list {
+        margin: 0;
+        padding-left: 18px;
+        color: var(--muted);
+      }
+
+      .record-list li + li {
+        margin-top: 5px;
+      }
+
+      .impact-table {
+        border-top: 1px solid var(--line-strong);
+        border-left: 1px solid var(--line-strong);
+      }
+
+      .impact-row {
+        display: grid;
+        grid-template-columns: minmax(220px, 0.75fr) minmax(0, 1.6fr);
+        border-right: 1px solid var(--line-strong);
+        border-bottom: 1px solid var(--line-strong);
+        background: var(--surface);
+      }
+
+      .impact-goal,
+      .impact-cost {
+        padding: 22px;
+      }
+
+      .impact-goal {
+        border-right: 1px solid var(--line-strong);
+      }
+
+      .impact-goal strong {
+        display: block;
+        margin-top: 12px;
+        font-family: var(--display);
+        font-size: 26px;
+        line-height: 32px;
+      }
+
+      .impact-cost p {
+        margin: 12px 0 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 20px;
+      }
+
+      .evidence-note,
+      .logic-note {
+        display: grid;
+        grid-template-columns: minmax(150px, 0.3fr) minmax(0, 1fr);
+        gap: 24px;
+        margin-top: 24px;
+        padding: 22px 24px;
+        border-left: 4px solid var(--accent);
+        background: var(--ink);
+        color: #fff;
+      }
+
+      .evidence-note p,
+      .logic-note p {
+        margin: 0;
+        color: #d4d4d4;
+      }
+
+      .role-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .role-card {
+        min-height: 210px;
+      }
+
+      .role-card h3,
+      .goal-card h3,
+      .boundary-card h3,
+      .review-card h3 {
+        margin-top: 24px;
+      }
+
+      .role-priority {
+        display: block;
+        margin-top: 20px;
+        color: var(--muted);
+        font-family: var(--mono);
+        font-size: 12px;
+        line-height: 16px;
+      }
+
+      .goal-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .goal-card {
+        min-height: 240px;
+      }
+
+      .goal-card ul,
+      .boundary-card ul,
+      .review-card ul,
+      .step p {
+        color: var(--muted);
+      }
+
+      .goal-card ul,
+      .boundary-card ul,
+      .review-card ul {
+        margin: 16px 0 0;
+        padding-left: 18px;
+      }
+
+      .goal-card li + li,
+      .boundary-card li + li,
+      .review-card li + li {
+        margin-top: 7px;
+      }
+
+      .metric-bar {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        margin-top: 24px;
+        border: 1px solid var(--line-strong);
+        background: var(--surface-strong);
+      }
+
+      .metric {
+        min-height: 124px;
+        padding: 18px;
+        border-right: 1px solid var(--line-strong);
+      }
+
+      .metric:last-child {
+        border-right: 0;
+      }
+
+      .metric strong {
+        display: block;
+        margin-top: 18px;
+        font-family: var(--display);
+        font-size: 22px;
+        line-height: 28px;
+      }
+
+      .workflow {
+        position: relative;
+        display: grid;
+        gap: 0;
+        padding-left: 54px;
+      }
+
+      .workflow::before {
+        position: absolute;
+        top: 18px;
+        bottom: 18px;
+        left: 18px;
+        width: 1px;
+        background: var(--line-strong);
+        content: "";
+      }
+
+      .step {
+        position: relative;
+        min-height: 126px;
+        padding: 18px 22px 22px;
+        border-top: 1px solid var(--line-strong);
+        border-right: 1px solid var(--line-strong);
+        border-left: 1px solid var(--line-strong);
+        background: var(--surface);
+      }
+
+      .step:last-child {
+        border-bottom: 1px solid var(--line-strong);
+      }
+
+      .step::before {
+        position: absolute;
+        top: 23px;
+        left: -46px;
+        width: 20px;
+        height: 20px;
+        border: 1px solid var(--accent);
+        border-radius: 50%;
+        background: var(--paper);
+        box-shadow: inset 0 0 0 5px var(--paper);
+        content: "";
+      }
+
+      .step.current::before {
+        background: var(--accent);
+      }
+
+      .step-index {
+        color: var(--accent);
+      }
+
+      .step h3 {
+        margin-top: 9px;
+      }
+
+      .step p {
+        max-width: 780px;
+        margin-bottom: 0;
+      }
+
+      .boundary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .boundary-card {
+        min-height: 310px;
+      }
+
+      .boundary-card.figma {
+        background: #fff;
+      }
+
+      .boundary-card.code {
+        color: #fff;
+        background: var(--ink);
+      }
+
+      .boundary-card.code p,
+      .boundary-card.code ul {
+        color: #d4d4d4;
+      }
+
+      .boundary-card .large-label {
+        display: block;
+        margin-top: 42px;
+        font-family: var(--display);
+        font-size: 48px;
+        letter-spacing: -0.04em;
+        line-height: 56px;
+      }
+
+      .boundary-card .large-label + p {
+        margin-top: 14px;
+      }
+
+      .review-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .review-card {
+        min-height: 280px;
+      }
+
+      .review-card .review-number {
+        display: block;
+        color: var(--accent);
+        font-family: var(--display);
+        font-size: 40px;
+        line-height: 48px;
+      }
+
+      .decision-table-wrap {
+        margin-top: 28px;
+        overflow-x: auto;
+        border: 1px solid var(--line-strong);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--surface);
+      }
+
+      th,
+      td {
+        min-width: 150px;
+        padding: 14px 16px;
+        border-right: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        color: var(--muted);
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        line-height: 16px;
+        text-transform: uppercase;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      th:last-child,
+      td:last-child {
+        border-right: 0;
+      }
+
+      .next-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .next-card {
+        min-height: 250px;
+        padding: 22px;
+        border: 1px solid var(--line-strong);
+        background: var(--surface);
+      }
+
+      .next-card.recommended {
+        border: 2px solid var(--accent);
+        background: linear-gradient(145deg, #fff, var(--accent-soft) 180%);
+      }
+
+      .next-card strong {
+        display: block;
+        margin: 32px 0 10px;
+        font-family: var(--display);
+        font-size: 28px;
+        line-height: 36px;
+      }
+
+      .next-card p {
+        margin-bottom: 0;
+        color: var(--muted);
+      }
+
+      .decision-panel {
+        display: grid;
+        grid-template-columns: minmax(150px, 0.32fr) minmax(0, 1fr);
+        gap: 32px;
+        padding: 30px;
+        color: #fff;
+        background: var(--ink);
+      }
+
+      .decision-panel strong {
+        display: block;
+        margin-bottom: 12px;
+        font-family: var(--display);
+        font-size: 40px;
+        line-height: 48px;
+      }
+
+      .decision-panel p,
+      .decision-panel ul {
+        color: #d4d4d4;
+      }
+
+      .decision-panel p {
+        margin-bottom: 18px;
+      }
+
+      .decision-panel ul {
+        margin: 0;
+        padding-left: 18px;
+      }
+
+      .decision-panel li + li {
+        margin-top: 7px;
+      }
+
+      .footer-note {
+        padding: 20px 24px;
+        border-top: 1px solid var(--line-strong);
+        background: #fff;
+      }
+
+      .footer-note p {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        margin: 0;
+        color: var(--muted);
+        font-family: var(--mono);
+        font-size: 12px;
+        line-height: 16px;
+      }
+
+      @media (max-width: 1040px) {
+        h1 {
+          font-size: 64px;
+          line-height: 72px;
+        }
+
+        .layout {
+          display: block;
+        }
+
+        .rail {
+          position: sticky;
+          z-index: 15;
+          top: 56px;
+          display: flex;
+          height: auto;
+          gap: 2px;
+          overflow-x: auto;
+          padding: 8px 16px;
+          border-right: 0;
+          border-bottom: 1px solid var(--line-strong);
+          white-space: nowrap;
+        }
+
+        .rail-title {
+          display: none;
+        }
+
+        .rail a {
+          display: inline-grid;
+          min-width: max-content;
+          grid-template-columns: 24px auto;
+          padding: 8px 10px;
+          border-bottom: 2px solid transparent;
+          border-left: 0;
+        }
+
+        .rail a:hover,
+        .rail a:focus-visible,
+        .rail a[aria-current="true"] {
+          border-bottom-color: var(--accent);
+          border-left: 0;
+        }
+
+        section {
+          scroll-margin-top: 108px;
+        }
+
+        .summary-grid,
+        .metric-bar {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .summary-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .metric:nth-child(2) {
+          border-right: 0;
+        }
+
+        .metric:nth-child(-n + 2) {
+          border-bottom: 1px solid var(--line-strong);
+        }
+
+        .review-grid,
+        .next-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .document-header-meta {
+          display: none;
+        }
+
+        .masthead {
+          display: block;
+          min-height: 0;
+          padding: 32px 20px 36px;
+        }
+
+        .eyebrow {
+          margin-bottom: 56px;
+        }
+
+        h1 {
+          font-size: 48px;
+          line-height: 56px;
+        }
+
+        h2 {
+          font-size: 40px;
+          line-height: 48px;
+        }
+
+        .version-card {
+          margin-top: 38px;
+        }
+
+        .value-strip,
+        .summary-grid,
+        .role-grid,
+        .goal-grid,
+        .boundary-grid,
+        .metric-bar {
+          grid-template-columns: 1fr;
+        }
+
+        .impact-row {
+          grid-template-columns: 1fr;
+        }
+
+        .impact-goal {
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+
+        .value-strip {
+          margin-top: 40px;
+        }
+
+        .summary-cell {
+          display: block;
+        }
+
+        .summary-cell strong {
+          margin: 20px 0 8px;
+        }
+
+        #guide-overview .summary-cell strong {
+          margin-top: 0;
+        }
+
+        .boundary-card .large-label {
+          font-size: 32px;
+          line-height: 40px;
+        }
+
+        .decision-panel strong {
+          font-size: 32px;
+          line-height: 40px;
+        }
+
+        section {
+          padding: 52px 20px;
+        }
+
+        .metric {
+          border-right: 0;
+          border-bottom: 1px solid var(--line-strong);
+        }
+
+        .metric:last-child {
+          border-bottom: 0;
+        }
+
+        .evidence-note,
+        .logic-note,
+        .decision-panel {
+          grid-template-columns: 1fr;
+          gap: 8px;
+        }
+
+        .workflow {
+          padding-left: 38px;
+        }
+
+        .workflow::before {
+          left: 12px;
+        }
+
+        .step::before {
+          left: -37px;
+        }
+
+        .footer-note p {
+          display: block;
+        }
+      }
+
+      @media print {
+        body {
+          background: #fff;
+        }
+
+        .document-header,
+        .rail {
+          display: none;
+        }
+
+        .layout {
+          display: block;
+        }
+
+        section,
+        .masthead {
+          break-inside: avoid;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+      }
+
+      /* Storybook guide extensions: reuse the project-overview visual system. */
+      :root {
+        --tab-offset: 145px;
+      }
+
+      .value-strip {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .value-strip article:nth-child(4) {
+        border-right: 1px solid var(--line-strong);
+      }
+
+      .pathway-module {
+        padding-top: 56px;
+        padding-bottom: 64px;
+      }
+
+      .pathway-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        border-top: 1px solid var(--line-strong);
+        border-left: 1px solid var(--line-strong);
+      }
+
+      .pathway-card {
+        display: flex;
+        min-width: 0;
+        min-height: 0;
+        flex-direction: column;
+        padding: 22px;
+        border-right: 1px solid var(--line-strong);
+        border-bottom: 1px solid var(--line-strong);
+        background: var(--surface);
+      }
+
+      .pathway-card h3 {
+        margin-top: 24px;
+        font-family: var(--display);
+        font-size: 28px;
+        line-height: 36px;
+      }
+
+      .pathway-card > p,
+      .pathway-steps {
+        color: var(--muted);
+      }
+
+      .pathway-steps {
+        margin: 14px 0 0;
+        padding-left: 20px;
+      }
+
+      .pathway-steps li + li {
+        margin-top: 7px;
+      }
+
+      .pathway-output {
+        margin: auto 0 0;
+        padding-top: 18px;
+        border-top: 1px solid var(--line);
+      }
+
+      .pathway-output strong {
+        display: block;
+        margin-bottom: 5px;
+        font-family: var(--mono);
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        line-height: 16px;
+        text-transform: uppercase;
+      }
+
+      .pathway-link {
+        display: inline-flex;
+        width: fit-content;
+        min-height: 44px;
+        align-items: center;
+        margin-top: 16px;
+        padding: 8px 12px;
+        border: 1px solid var(--line-strong);
+        background: #fff;
+        font-family: var(--mono);
+        font-size: 12px;
+        line-height: 16px;
+        text-decoration: none;
+      }
+
+      .pathway-link:hover,
+      .pathway-link:focus-visible {
+        color: var(--ink);
+        outline: 2px solid var(--ink);
+        outline-offset: 2px;
+        background: var(--accent-soft);
+      }
+
+      .prompt-disclosure {
+        margin-top: 16px;
+        border-top: 1px solid var(--line-strong);
+      }
+
+      .prompt-disclosure summary {
+        display: flex;
+        min-height: 44px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        cursor: pointer;
+        font-family: var(--mono);
+        font-size: 12px;
+        line-height: 16px;
+        list-style: none;
+      }
+
+      .prompt-disclosure summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .prompt-disclosure summary::after {
+        color: var(--accent);
+        content: "+";
+        font-size: 18px;
+        line-height: 24px;
+      }
+
+      .prompt-disclosure[open] summary::after {
+        content: "−";
+      }
+
+      .prompt-disclosure summary:focus-visible {
+        outline: 2px solid var(--ink);
+        outline-offset: 2px;
+      }
+
+      .prompt-disclosure .prompt-card {
+        margin: 0;
+        padding: 18px;
+      }
+
+      .prompt-disclosure .prompt-head {
+        align-items: flex-start;
+      }
+
+      .prompt-disclosure .prompt-head h3 {
+        margin: 0;
+        font-family: var(--body);
+        font-size: 16px;
+        line-height: 20px;
+      }
+
+      .prompt-disclosure .prompt-card pre {
+        max-height: 420px;
+      }
+
+      .tab-dock {
+        position: sticky;
+        z-index: 19;
+        top: 56px;
+        border-bottom: 1px solid var(--line-strong);
+        background: rgba(255, 255, 255, 0.96);
+        backdrop-filter: blur(12px);
+      }
+
+      .primary-tabs {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .primary-tab {
+        position: relative;
+        min-height: 88px;
+        padding: 14px 24px;
+        border: 0;
+        border-right: 1px solid var(--line-strong);
+        background: #fff;
+        color: var(--muted);
+        cursor: pointer;
+        text-align: left;
+      }
+
+      .primary-tab:first-child {
+        border-left: 1px solid var(--line-strong);
+      }
+
+      .primary-tab:hover,
+      .primary-tab:focus-visible {
+        color: var(--ink);
+        outline: none;
+        background: var(--surface);
+      }
+
+      .primary-tab[aria-selected="true"] {
+        color: var(--ink);
+        background: var(--accent-soft);
+      }
+
+      .primary-tab[aria-selected="true"]::after {
+        position: absolute;
+        right: -1px;
+        bottom: -1px;
+        left: -1px;
+        height: 4px;
+        background: var(--accent);
+        content: "";
+      }
+
+      .tab-title,
+      .tab-description {
+        display: block;
+      }
+
+      .tab-title {
+        font-family: var(--display);
+        font-size: 20px;
+        font-weight: 700;
+        line-height: 28px;
+      }
+
+      .tab-description {
+        margin-top: 5px;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 16px;
+      }
+
+      .section-picker-wrap {
+        display: none;
+      }
+
+      .section-picker {
+        font-family: var(--body);
+        font-size: 14px;
+        line-height: 20px;
+      }
+
+      .tab-panel[hidden] {
+        display: none;
+      }
+
+      .content-main {
+        min-width: 0;
+      }
+
+      .tab-panel .rail {
+        top: var(--tab-offset);
+        height: calc(100vh - var(--tab-offset));
+      }
+
+      .content-main > section {
+        scroll-margin-top: var(--tab-offset);
+      }
+
+      .guide-grid,
+      .source-grid,
+      .principle-grid,
+      .scenario-grid,
+      .faq-grid {
+        display: grid;
+        border-top: 1px solid var(--line-strong);
+        border-left: 1px solid var(--line-strong);
+      }
+
+      .guide-grid,
+      .source-grid,
+      .principle-grid,
+      .faq-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .scenario-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .guide-card,
+      .source-card,
+      .principle-card,
+      .scenario-card,
+      .faq-card {
+        min-height: 208px;
+        padding: 22px;
+        border-right: 1px solid var(--line-strong);
+        border-bottom: 1px solid var(--line-strong);
+        background: var(--surface);
+      }
+
+      .guide-card h3,
+      .faq-card h3 {
+        margin-top: 24px;
+      }
+
+      .source-card strong,
+      .principle-card strong,
+      .scenario-card strong {
+        display: block;
+        margin: 24px 0 10px;
+        font-family: var(--display);
+        font-size: 24px;
+        line-height: 32px;
+      }
+
+      .guide-card p,
+      .source-card p,
+      .principle-card p,
+      .scenario-card p,
+      .faq-card p {
+        margin-bottom: 0;
+        color: var(--muted);
+      }
+
+      .role-card ul,
+      .principle-card ul,
+      .scenario-card ol,
+      .boundary-card ul,
+      .review-card ul {
+        margin: 16px 0 0;
+        padding-left: 18px;
+        color: var(--muted);
+      }
+
+      .role-card li + li,
+      .principle-card li + li,
+      .scenario-card li + li,
+      .boundary-card li + li,
+      .review-card li + li {
+        margin-top: 7px;
+      }
+
+      .status-tag.emphasis {
+        color: var(--accent);
+        background: var(--accent-soft);
+      }
+
+      .status-tag.dark {
+        color: var(--ink);
+        background: #fff;
+      }
+
+      .role-priority,
+      .evidence-line {
+        display: block;
+        margin-top: 20px;
+        padding-top: 14px;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        font-family: var(--mono);
+        font-size: 12px;
+        line-height: 16px;
+      }
+
+      .table-wrap {
+        margin-top: 28px;
+        overflow-x: auto;
+        border: 1px solid var(--line-strong);
+      }
+
+      .table-wrap table {
+        min-width: 720px;
+      }
+
+      .task-flow {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        padding: 24px;
+        color: #fff;
+        background: var(--ink);
+      }
+
+      .flow-node {
+        padding: 8px 11px;
+        border: 1px solid #666;
+        background: #151515;
+        font-family: var(--mono);
+        font-size: 12px;
+        line-height: 16px;
+      }
+
+      .flow-arrow {
+        color: #a3a3a3;
+      }
+
+      .boundary-note,
+      .prompt-card,
+      .architecture-card,
+      .decision-tree {
+        margin-top: 24px;
+      }
+
+      .boundary-note,
+      .prompt-card {
+        padding: 24px;
+        color: #fff;
+        background: var(--ink);
+      }
+
+      .boundary-note {
+        display: grid;
+        grid-template-columns: minmax(150px, 0.3fr) minmax(0, 1fr);
+        gap: 24px;
+        border-left: 4px solid var(--accent);
+      }
+
+      .boundary-note p,
+      .boundary-note li {
+        margin-bottom: 0;
+        color: #d4d4d4;
+      }
+
+      .architecture-card,
+      .decision-tree {
+        padding: 24px;
+        border: 1px solid var(--line-strong);
+        background: var(--surface-strong);
+      }
+
+      .architecture-stack {
+        display: grid;
+        gap: 8px;
+        max-width: 760px;
+        margin: 0 auto;
+      }
+
+      .architecture-layer {
+        display: grid;
+        grid-template-columns: 180px minmax(0, 1fr);
+        gap: 18px;
+        align-items: center;
+        padding: 16px 18px;
+        border: 1px solid var(--line-strong);
+        background: var(--surface);
+      }
+
+      .architecture-layer strong {
+        font-family: var(--display);
+        font-size: 18px;
+        line-height: 24px;
+      }
+
+      .architecture-layer span {
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 20px;
+      }
+
+      .architecture-branch {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .decision-tree ol {
+        margin-bottom: 0;
+      }
+
+      .decision-tree li + li {
+        margin-top: 10px;
+      }
+
+      .prompt-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+
+      .prompt-head h3 {
+        margin-bottom: 0;
+      }
+
+      .copy-button {
+        min-height: 44px;
+        padding: 7px 12px;
+        border: 1px solid #777;
+        color: #fff;
+        background: transparent;
+        cursor: pointer;
+        font-family: var(--mono);
+        font-size: 12px;
+        line-height: 16px;
+      }
+
+      .copy-button:hover,
+      .copy-button:focus-visible {
+        border-color: #fff;
+        outline: none;
+        background: #252525;
+      }
+
+      .prompt-card pre {
+        margin-bottom: 0;
+        overflow-x: auto;
+        padding-top: 18px;
+        border-top: 1px solid #555;
+        color: #d4d4d4;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-size: 12px;
+        line-height: 20px;
+      }
+
+      .prompt-card code {
+        padding: 0;
+        color: inherit;
+        background: transparent;
+      }
+
+      .checklist {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin: 0;
+        padding: 0;
+        border-top: 1px solid var(--line-strong);
+        border-left: 1px solid var(--line-strong);
+        list-style: none;
+      }
+
+      .checklist li {
+        position: relative;
+        min-height: 68px;
+        padding: 20px 20px 20px 54px;
+        border-right: 1px solid var(--line-strong);
+        border-bottom: 1px solid var(--line-strong);
+        background: var(--surface);
+      }
+
+      .checklist li::before {
+        position: absolute;
+        top: 23px;
+        left: 22px;
+        width: 15px;
+        height: 15px;
+        border: 1px solid var(--line-strong);
+        background: #fff;
+        content: "";
+      }
+
+      .inline-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 24px;
+      }
+
+      .inline-link {
+        display: inline-flex;
+        min-height: 40px;
+        align-items: center;
+        padding: 8px 12px;
+        border: 1px solid var(--line-strong);
+        background: var(--surface);
+        font-family: var(--mono);
+        font-size: 12px;
+        line-height: 16px;
+        text-decoration: none;
+      }
+
+      .inline-link:hover,
+      .inline-link:focus-visible {
+        color: var(--ink);
+        outline: none;
+        background: var(--accent-soft);
+      }
+
+      .back-to-top {
+        position: fixed;
+        z-index: 30;
+        right: 18px;
+        bottom: 18px;
+        display: none;
+        width: 44px;
+        height: 44px;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #fff;
+        color: #fff;
+        background: var(--ink);
+        text-decoration: none;
+      }
+
+      @media (max-width: 1180px) {
+        .scenario-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 1040px) {
+        :root {
+          --tab-offset: 145px;
+        }
+
+        .tab-panel .rail {
+          top: var(--tab-offset);
+          height: auto;
+        }
+
+        .pathway-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .pathway-card {
+          min-height: 0;
+        }
+      }
+
+      @media (max-width: 720px) {
+        :root {
+          --tab-offset: 129px;
+        }
+
+        .value-strip {
+          grid-template-columns: 1fr;
+        }
+
+        .guide-grid,
+        .source-grid,
+        .principle-grid,
+        .faq-grid,
+        .checklist {
+          grid-template-columns: 1fr;
+        }
+
+        .primary-tab {
+          min-height: 72px;
+          padding: 10px 14px;
+        }
+
+        .tab-title {
+          font-size: 16px;
+          line-height: 20px;
+        }
+
+        .tab-description {
+          display: none;
+        }
+
+        .architecture-layer,
+        .boundary-note {
+          grid-template-columns: 1fr;
+          gap: 8px;
+        }
+
+        .architecture-branch {
+          grid-template-columns: 1fr;
+        }
+
+        .back-to-top {
+          display: flex;
+        }
+      }
+
+      @media print {
+        @page {
+          margin: 16mm;
+        }
+
+        .tab-dock,
+        .section-picker-wrap,
+        .back-to-top,
+        .copy-button {
+          display: none !important;
+        }
+
+        .prompt-disclosure > summary {
+          display: none;
+        }
+
+        .prompt-disclosure:not([open]) > :not(summary) {
+          display: block !important;
+        }
+
+        .tab-panel[hidden] {
+          display: block;
+        }
+
+        .tab-panel::before {
+          display: block;
+          margin: 18mm 0 0;
+          padding-bottom: 4mm;
+          border-bottom: 2px solid var(--ink);
+          font-family: var(--display);
+          font-size: 28px;
+          font-weight: 700;
+          line-height: 36px;
+        }
+
+        #panel-guide::before {
+          content: "Tab 1 · Storybook 使用指南";
+        }
+
+        #panel-creator::before {
+          content: "Tab 2 · 创作者知识库";
+        }
+
+        .content-layout {
+          display: block;
+        }
+
+        .content-main > section {
+          break-inside: avoid;
+        }
+
+        .prompt-card,
+        .boundary-note {
+          color: var(--ink);
+          background: var(--surface);
+        }
+
+        .prompt-card pre,
+        .boundary-note p,
+        .boundary-note li {
+          color: var(--muted);
+        }
+      }
+
+    </style>
+  </head>
+  <body>
+    <div class="shell" id="top">
+      <header class="document-header" aria-label="文档标题">
+        <p class="document-header-title">YAMI Storybook 使用与创作指南</p>
+        <p class="document-header-meta">Guide &amp; Creator Knowledge · 2026.08</p>
+      </header>
+
+      <main>
+        <header class="masthead" aria-labelledby="document-title">
+          <div class="masthead-copy">
+            <p class="eyebrow"><span class="brand-dot" aria-hidden="true"></span>YAMI · Storybook</p>
+            <h1 id="document-title">使用与创作<br />指南</h1>
+            <p class="lede">
+              面向 UX/UI 设计师、产品经理、视觉设计师与组件库创作者：从找到真实组件、理解状态和参考页面，到使用 Codex 或 Kiro 创建并验证新的组件与页面版本。
+            </p>
+          </div>
+
+          <aside class="version-card" aria-label="文档状态">
+            <span class="meta-label">Document status</span>
+            <strong>使用初稿</strong>
+            <p>版本 0.1</p>
+            <p>最后核对 2026-08-26</p>
+            <p>默认入口：使用指南</p>
+          </aside>
+
+          <div class="value-strip" aria-label="文档价值概览">
+            <article><span class="meta-label">Find</span><strong>快速找到组件与页面</strong></article>
+            <article><span class="meta-label">Understand</span><strong>理解状态、规则与边界</strong></article>
+            <article><span class="meta-label">Build</span><strong>复用真实组件搭建页面</strong></article>
+            <article><span class="meta-label">Verify</span><strong>完成多端 Review 与交付</strong></article>
+          </div>
+        </header>
+
+        <div class="tab-dock">
+          <div class="primary-tabs" role="tablist" aria-label="文档主章节">
+            <button
+              class="primary-tab"
+              id="tab-guide"
+              role="tab"
+              aria-controls="panel-guide"
+              aria-selected="true"
+              tabindex="0"
+              data-tab="guide"
+            >
+              <span class="tab-title">Storybook 使用指南</span>
+              <span class="tab-description">浏览、理解、搭建与 Review</span>
+            </button>
+            <button
+              class="primary-tab"
+              id="tab-creator"
+              role="tab"
+              aria-controls="panel-creator"
+              aria-selected="false"
+              tabindex="-1"
+              data-tab="creator"
+            >
+              <span class="tab-title">创作者知识库</span>
+              <span class="tab-description">架构、依赖、Codex/Kiro 与发布</span>
+            </button>
+          </div>
+          <div class="section-picker-wrap">
+            <label class="meta-label" for="guide-section-picker">当前章节</label>
+            <select class="section-picker" id="guide-section-picker" data-section-picker="guide">
+              <option value="guide-overview">00 · 使用指南总览</option>
+              <option value="guide-why">01 · 为什么使用 Storybook</option>
+              <option value="guide-map">02 · 内容地图</option>
+              <option value="guide-interface">03 · 界面怎么使用</option>
+              <option value="guide-component">04 · 如何读懂组件</option>
+              <option value="guide-page-building">05 · 从组件到页面</option>
+              <option value="guide-scenarios">06 · 使用案例</option>
+              <option value="guide-review">07 · 页面 Review</option>
+              <option value="guide-share">08 · 分享与协作</option>
+              <option value="guide-boundary">09 · 能力边界与练习</option>
+            </select>
+            <select class="section-picker" id="creator-section-picker" data-section-picker="creator" hidden>
+              <option value="creator-overview">00 · 创作者知识库总览</option>
+              <option value="creator-architecture">01 · 系统架构</option>
+              <option value="creator-dependencies">02 · 框架与依赖</option>
+              <option value="creator-sources">03 · Source of Truth</option>
+              <option value="creator-foundations">04 · 设计与动效规范</option>
+              <option value="creator-decision">05 · 创建前判断树</option>
+              <option value="creator-component">06 · 创建组件</option>
+              <option value="creator-version">07 · 页面与版本模型</option>
+              <option value="creator-page">08 · 创建页面版本</option>
+              <option value="creator-quality">09 · 质量检查</option>
+              <option value="creator-release">10 · 版本、发布与故障处理</option>
+            </select>
+          </div>
+        </div>
+
+        <div
+          class="tab-panel"
+          id="panel-guide"
+          role="tabpanel"
+          aria-labelledby="tab-guide"
+          data-panel="guide"
+        >
+          <div class="content-layout layout">
+            <nav class="section-rail rail" aria-label="Storybook 使用指南目录" data-rail="guide">
+              <p class="rail-title">STORYBOOK GUIDE</p>
+              <a href="?tab=guide#guide-overview"><span>00</span><span>使用指南总览</span></a>
+              <a href="?tab=guide#guide-why"><span>01</span><span>为什么使用</span></a>
+              <a href="?tab=guide#guide-map"><span>02</span><span>内容地图</span></a>
+              <a href="?tab=guide#guide-interface"><span>03</span><span>界面怎么使用</span></a>
+              <a href="?tab=guide#guide-component"><span>04</span><span>如何读懂组件</span></a>
+              <a href="?tab=guide#guide-page-building"><span>05</span><span>从组件到页面</span></a>
+              <a href="?tab=guide#guide-scenarios"><span>06</span><span>使用案例</span></a>
+              <a href="?tab=guide#guide-review"><span>07</span><span>页面 Review</span></a>
+              <a href="?tab=guide#guide-share"><span>08</span><span>分享与协作</span></a>
+              <a href="?tab=guide#guide-boundary"><span>09</span><span>能力边界与练习</span></a>
+            </nav>
+
+            <div class="content-main">
+              <section id="guide-overview" data-section="guide">
+                <div class="section-head">
+                  <div><p class="kicker">00 · Overview</p><h2>这份指南如何帮助你</h2></div>
+                  <p class="section-summary">
+                    Storybook 是 YAMI 真实组件、页面模式和使用规则的共同入口。你不需要先理解代码，也可以查找组件、体验状态、检查多端表现，并用准确链接与团队协作。
+                  </p>
+                </div>
+                <div class="summary-grid">
+                  <article class="summary-cell"><strong>找到</strong><p>从 Foundations、Assets、Components 和 Pages 中找到正确参考。</p></article>
+                  <article class="summary-cell"><strong>理解</strong><p>查看组件用途、变体、状态、内容规则、响应式和无障碍要求。</p></article>
+                  <article class="summary-cell"><strong>组合</strong><p>先选择最接近的完整页面，再把目标拆成可以复用的页面模块。</p></article>
+                  <article class="summary-cell"><strong>验证</strong><p>切换语言、主题和屏幕尺寸，完成交互、视觉和内容 Review。</p></article>
+                </div>
+                <div class="logic-note"><strong>正确定位</strong><p>Storybook 负责查看、理解和验证；新的页面组合通常由现有页面模式配合 Codex、Kiro 或工程协作者完成。</p></div>
+              </section>
+
+              <section id="guide-why" data-section="guide">
+                <div class="section-head">
+                  <div><p class="kicker">01 · Why Storybook</p><h2>为什么不只看静态设计稿</h2></div>
+                  <p class="section-summary">静态设计稿可以表达方向，但 Storybook 可以直接展示组件在真实浏览器里的行为、状态和多端变化。</p>
+                </div>
+                <div class="table-wrap">
+                  <table>
+                    <thead><tr><th>需要确认</th><th>静态设计稿</th><th>Storybook</th></tr></thead>
+                    <tbody>
+                      <tr><td>组件状态</td><td>需要逐张补充或文字说明</td><td>直接体验 Hover、Focus、Loading、Disabled 等状态</td></tr>
+                      <tr><td>响应式</td><td>依赖多个画板和标注</td><td>切换真实宽度，查看布局和内容变化</td></tr>
+                      <tr><td>中英文</td><td>容易只完成其中一个版本</td><td>在同一页面切换并检查表达与长度</td></tr>
+                      <tr><td>交互</td><td>需要原型连线或口头解释</td><td>直接操作真实组件和页面</td></tr>
+                      <tr><td>协作</td><td>反馈容易停留在截图位置</td><td>链接可以绑定具体组件、状态和页面</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="boundary-note"><strong>不是二选一</strong><p>Figma 继续适合自由探索、视觉发散和早期评议；Storybook 更适合在方向收敛后确认真实组件、交互和实现边界。</p></div>
+              </section>
+
+              <section id="guide-map" data-section="guide">
+                <div class="section-head">
+                  <div><p class="kicker">02 · Library map</p><h2>Storybook 里有什么</h2></div>
+                  <p class="section-summary">从左侧导航开始。先判断你需要的是设计规则、品牌资产、单个组件，还是一个可参考的完整页面。</p>
+                </div>
+                <div class="guide-grid">
+                  <article class="guide-card"><span class="status-tag">Foundations</span><h3>设计基础</h3><p>颜色、字体、布局、圆角和响应式规则。适合确认“应该长什么样”。</p></article>
+                  <article class="guide-card"><span class="status-tag">Primitives</span><h3>底层变量</h3><p>尺寸、颜色和字体的基础值。主要用于进阶规范检查，不是普通搭页的起点。</p></article>
+                  <article class="guide-card"><span class="status-tag">Assets</span><h3>品牌资产</h3><p>Logo、图标等可复用资源。用于选择正确版本并确认颜色、尺寸和背景要求。</p></article>
+                  <article class="guide-card"><span class="status-tag">Components</span><h3>组件</h3><p>Button、Header、Product Card、Product List 等真实组件及其状态和用法。</p></article>
+                  <article class="guide-card"><span class="status-tag emphasis">Pages</span><h3>完整页面</h3><p>首页、专题页、搜索页和商品详情页等。搭建新页面时应优先从这里找参考。</p></article>
+                  <article class="guide-card"><span class="status-tag dark">Recommended</span><h3>先页面，后组件</h3><p>如果目标是搭页面，先找到最接近的 Page，再回到 Components 确认模块细节。</p></article>
+                </div>
+                <div class="inline-links">
+                  <a class="inline-link" href="https://yami-design-system-storybook.vercel.app" target="_blank" rel="noreferrer">打开 YAMI Storybook ↗</a>
+                </div>
+              </section>
+
+              <section id="guide-interface" data-section="guide">
+                <div class="section-head">
+                  <div><p class="kicker">03 · Interface</p><h2>Storybook 界面怎么使用</h2></div>
+                  <p class="section-summary">完成一次有效检查，通常只需要认识左侧导航、Story、Docs、Controls，以及顶部的语言、主题和屏幕尺寸切换。</p>
+                </div>
+                <div class="workflow" aria-label="Storybook 基础操作">
+                  <article class="step current"><span class="step-index">01 · Navigate</span><h3>找到 Story</h3><p>在左侧按 Foundations、Assets、Components 或 Pages 展开并选择目标。</p></article>
+                  <article class="step current"><span class="step-index">02 · Inspect</span><h3>看 Story 与 Docs</h3><p>Story 用于操作真实界面；Docs 用于查看说明、主示例、Controls 和其他 Stories。</p></article>
+                  <article class="step current"><span class="step-index">03 · Adjust</span><h3>切换环境</h3><p>用工具栏切换中文/English、Light/Dark，以及 360–1920px 的预设尺寸。</p></article>
+                  <article class="step current"><span class="step-index">04 · Share</span><h3>分享准确状态</h3><p>保留具体 Story、语言、主题、尺寸和问题描述，避免只发 Storybook 首页。</p></article>
+                </div>
+                <div class="logic-note"><strong>Controls 的边界</strong><p>Controls 只用于临时预览参数变化，不会自动保存一个新组件或页面版本。</p></div>
+              </section>
+
+              <section id="guide-component" data-section="guide">
+                <div class="section-head">
+                  <div><p class="kicker">04 · Read a component</p><h2>如何读懂一个组件</h2></div>
+                  <p class="section-summary">不要从代码属性开始。先回答它解决什么问题，再确认内容、状态、响应式和使用边界。</p>
+                </div>
+                <div class="table-wrap">
+                  <table>
+                    <thead><tr><th>维度</th><th>需要回答</th><th>常见位置</th></tr></thead>
+                    <tbody>
+                      <tr><td>Purpose</td><td>它解决什么问题？什么时候使用或避免使用？</td><td>Docs / Usage</td></tr>
+                      <tr><td>Anatomy</td><td>由哪些内容区域组成？哪些是必需的？</td><td>Primary Story / Usage</td></tr>
+                      <tr><td>Variants</td><td>有哪些样式、尺寸和层级？</td><td>Controls / Showcase</td></tr>
+                      <tr><td>States</td><td>默认、Hover、Focus、Loading、Disabled 如何表现？</td><td>Stories</td></tr>
+                      <tr><td>Content</td><td>文案、数字、图片和图标有哪些限制？</td><td>Usage</td></tr>
+                      <tr><td>Responsive</td><td>移动端和桌面端是否改变结构、尺寸或交互？</td><td>Viewport</td></tr>
+                      <tr><td>Locale &amp; Theme</td><td>中英文和 Light/Dark 是否都完整？</td><td>Toolbar</td></tr>
+                      <tr><td>Accessibility</td><td>键盘、焦点、标签和触控区域是否正确？</td><td>a11y / Usage</td></tr>
+                      <tr><td>Do / Don’t</td><td>常见误用是什么？是否已有可复用示例？</td><td>Usage / Stories</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="boundary-note"><strong>不要把视觉相似当作可以替换</strong><p>例如链接和按钮可能看起来相似，但承担不同语义。最终选择需要同时符合用户任务、交互和无障碍要求。</p></div>
+              </section>
+
+              <section id="guide-page-building" data-section="guide">
+                <div class="section-head">
+                  <div><p class="kicker">05 · Build a page</p><h2>从组件到页面</h2></div>
+                  <p class="section-summary">正确的起点不是“我要哪些组件”，而是“用户要完成什么任务”。先找相近页面，再拆模块和准备内容。</p>
+                </div>
+                <div class="task-flow" aria-label="页面搭建流程">
+                  <span class="flow-node">Brief</span><span class="flow-arrow">→</span>
+                  <span class="flow-node">页面参考</span><span class="flow-arrow">→</span>
+                  <span class="flow-node">模块结构</span><span class="flow-arrow">→</span>
+                  <span class="flow-node">组件清单</span><span class="flow-arrow">→</span>
+                  <span class="flow-node">内容与素材</span><span class="flow-arrow">→</span>
+                  <span class="flow-node">AI / 工程组合</span><span class="flow-arrow">→</span>
+                  <span class="flow-node">Storybook 验证</span><span class="flow-arrow">→</span>
+                  <span class="flow-node">Review</span>
+                </div>
+                <div class="table-wrap" style="margin-top: 24px">
+                  <table>
+                    <thead><tr><th>步骤</th><th>需要确认</th><th>输出</th></tr></thead>
+                    <tbody>
+                      <tr><td>Brief</td><td>目标用户、核心任务、范围和业务限制</td><td>页面任务说明</td></tr>
+                      <tr><td>Reference</td><td>最接近的现有页面及差异</td><td>Storybook 参考链接</td></tr>
+                      <tr><td>Structure</td><td>Header、Hero、导航、内容区、列表和 Footer</td><td>模块顺序</td></tr>
+                      <tr><td>Components</td><td>哪些模块已有组件，哪些能力缺失</td><td>复用与新增清单</td></tr>
+                      <tr><td>Content</td><td>文案、图片、商品、状态和中英文</td><td>内容与素材包</td></tr>
+                      <tr><td>Build</td><td>用 Fixture、Story、页面版本或新页面实现</td><td>可运行页面</td></tr>
+                      <tr><td>Verify</td><td>语言、主题、尺寸、交互、视觉和 a11y</td><td>Review 结果</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="inline-links"><a class="inline-link" href="?tab=creator#creator-page" data-route-tab="creator">进入“创建页面版本”</a><a class="inline-link" href="?tab=creator#creator-decision" data-route-tab="creator">判断是否需要新组件</a></div>
+              </section>
+
+              <section class="pathway-module" aria-labelledby="pathway-title">
+                <div class="section-head">
+                  <div>
+                    <p class="kicker">Quick start</p>
+                    <h2 id="pathway-title">从组件到页面</h2>
+                  </div>
+                  <p class="section-summary">
+                    先复用，再扩展，最后才新建。根据任务选择一条路径，准备必要输入，并把提示词复制给 Codex 或 Kiro。
+                  </p>
+                </div>
+
+                <div class="pathway-grid">
+                  <article class="pathway-card">
+                    <span class="status-tag dark">01 · Use</span>
+                    <h3>使用现有组件</h3>
+                    <p>适合查找组件、确认状态，并为页面方案准备准确的复用清单。</p>
+                    <ol class="pathway-steps">
+                      <li>明确页面和用户任务</li>
+                      <li>先检查最接近的 Pages</li>
+                      <li>再检查 Components 与状态</li>
+                      <li>记录复用项和能力缺口</li>
+                    </ol>
+                    <p class="pathway-output"><strong>输出</strong>参考页面、组件清单、状态与响应式要求</p>
+                    <a class="pathway-link" href="?tab=guide#guide-component" data-route-tab="guide">查看完整说明</a>
+                    <details class="prompt-disclosure">
+                      <summary>查看提示词模板</summary>
+                      <div class="prompt-card">
+                        <div class="prompt-head">
+                          <h3>查找组件提示词</h3>
+                          <button class="copy-button" type="button" data-copy-target="quick-use-component-prompt">复制提示词</button>
+                        </div>
+                        <pre id="quick-use-component-prompt">请基于 YAMI Storybook，为【页面 / 用户任务】寻找可以复用的组件。
+
+要求：
+1. 先检查最接近的 Pages，再检查 Components。
+2. 说明每个组件解决什么问题。
+3. 列出需要覆盖的状态、语言和屏幕尺寸。
+4. 标出已有能力和缺失能力。
+5. 暂时不要创建新组件或修改代码。
+
+输出：
+- 参考页面与 Storybook 链接
+- 组件清单及各自用途
+- 状态与响应式要求
+- 当前能力缺口</pre>
+                      </div>
+                    </details>
+                  </article>
+
+                  <article class="pathway-card">
+                    <span class="status-tag emphasis">02 · Create</span>
+                    <h3>创建或扩展组件</h3>
+                    <p>适合现有组件无法覆盖，并且新能力会被多个页面稳定复用的情况。</p>
+                    <ol class="pathway-steps">
+                      <li>检查 Storybook 与 Catalog</li>
+                      <li>判断复用、扩展或新建</li>
+                      <li>定义内容、状态与交互契约</li>
+                      <li>补齐 Story、Usage 与验证</li>
+                    </ol>
+                    <p class="pathway-output"><strong>输出</strong>组件契约、Story、使用说明和验证结果</p>
+                    <a class="pathway-link" href="?tab=creator#creator-component" data-route-tab="creator">查看完整说明</a>
+                    <details class="prompt-disclosure">
+                      <summary>查看提示词模板</summary>
+                      <div class="prompt-card">
+                        <div class="prompt-head">
+                          <h3>创建组件提示词</h3>
+                          <button class="copy-button" type="button" data-copy-target="quick-create-component-prompt">复制提示词</button>
+                        </div>
+                        <pre id="quick-create-component-prompt">请为 YAMI Design System 处理【组件需求】。
+
+使用场景：
+【用户任务与业务场景】
+
+开始前：
+1. 检查 Storybook、generated/catalog.json 和相近组件。
+2. 判断应该复用、扩展还是新建。
+3. 如果已有组件可以满足，请停止新建并说明复用方案。
+
+如果需要创建或扩展：
+- 使用 YAMI 语义 Token，并保持 Design System 包边界。
+- 定义组件用途、内容、状态、响应式、交互和无障碍要求。
+- 补充 meta.json、usage.md、Stories 和公共 export。
+- 覆盖必要状态、中文 / English、Light / Dark 与关键屏幕尺寸。
+- 运行生成检查和 pnpm validate。
+
+只修改直接相关文件。完成后提供 Storybook 入口、验证结果和未解决问题。</pre>
+                      </div>
+                    </details>
+                  </article>
+
+                  <article class="pathway-card">
+                    <span class="status-tag dark">03 · Compose</span>
+                    <h3>用组件搭建页面</h3>
+                    <p>适合在首页、专题页、搜索页或商品详情页基础上创建新的页面版本。</p>
+                    <ol class="pathway-steps">
+                      <li>明确页面目标与业务范围</li>
+                      <li>找到最接近的维护页面</li>
+                      <li>拆解保留、调整与缺失模块</li>
+                      <li>组合组件并完成多端 Review</li>
+                    </ol>
+                    <p class="pathway-output"><strong>输出</strong>页面结构、组件清单、页面 Story 和 Review 结果</p>
+                    <a class="pathway-link" href="?tab=guide#guide-page-building" data-route-tab="guide">查看完整说明</a>
+                    <details class="prompt-disclosure">
+                      <summary>查看提示词模板</summary>
+                      <div class="prompt-card">
+                        <div class="prompt-head">
+                          <h3>搭建页面提示词</h3>
+                          <button class="copy-button" type="button" data-copy-target="quick-compose-page-prompt">复制提示词</button>
+                        </div>
+                        <pre id="quick-compose-page-prompt">请基于 YAMI 现有组件和页面模式，创建【页面名称 / 页面版本】。
+
+页面目标：
+【用户要完成的任务】
+
+参考页面：
+【最接近的 Storybook Page】
+
+目标设备与内容：
+【Mobile / Desktop / Both；中文 / English；正常 / 加载 / 空 / 错误状态】
+
+要求：
+1. 优先复用 packages/prototypes/pages 中最接近的维护页面。
+2. 列出保留、调整和缺失的模块。
+3. 复用 @yami/design-system 公共组件，不复制本地实现。
+4. 只有公共能力被多个页面复用时，才提出新组件需求。
+5. 补充 Fixture、Types 和页面 Story。
+6. 验证 360、375、768、1024、1440px，以及交互和可访问性。
+
+输出页面结构、组件清单、Storybook 入口、验证结果和未解决问题。</pre>
+                      </div>
+                    </details>
+                  </article>
+                </div>
+              </section>
+
+              <section id="guide-scenarios" data-section="guide">
+                <div class="section-head">
+                  <div><p class="kicker">06 · Use cases</p><h2>常见使用案例</h2></div>
+                  <p class="section-summary">每个案例都从真实 Storybook 参考开始，以一个可 Review 的结果结束。</p>
+                </div>
+                <div class="scenario-grid">
+                  <article class="scenario-card"><span class="status-tag emphasis">Homepage</span><strong>首页模块搭建</strong><ol><li>打开 Ecommerce Home</li><li>确认 Header、HeroBanner、ShortcutRail 和 ProductList</li><li>标出保留、调整与新增模块</li><li>使用现有组件完成组合</li><li>切换中英文并完成多端 Review</li></ol><span class="evidence-line">输出：首页结构、模块清单、Story 链接</span></article>
+                  <article class="scenario-card"><span class="status-tag emphasis">UX/UI</span><strong>商品详情页优化版本</strong><ol><li>打开 Product Detail</li><li>确认模块与状态</li><li>标出保留和调整项</li><li>复用现有组件组合</li><li>完成多端 Review</li></ol><span class="evidence-line">输出：页面结构、差异清单、Story 链接</span></article>
+                  <article class="scenario-card"><span class="status-tag dark">Product</span><strong>搜索结果状态补全</strong><ol><li>打开 Search Results</li><li>检查结果、加载、空与错误状态</li><li>整理业务规则</li><li>确认内容范围</li><li>共享状态矩阵</li></ol><span class="evidence-line">输出：状态矩阵、文案、业务边界</span></article>
+                  <article class="scenario-card"><span class="status-tag">Visual</span><strong>活动页 Hero 素材</strong><ol><li>打开 Hero 相关组件</li><li>检查图片比例和文字区</li><li>测试移动端裁切</li><li>准备双语素材</li><li>检查品牌一致性</li></ol><span class="evidence-line">输出：素材、裁切建议、视觉 Review</span></article>
+                </div>
+              </section>
+
+              <section id="guide-review" data-section="guide">
+                <div class="section-head">
+                  <div><p class="kicker">07 · Review</p><h2>页面 Review 清单</h2></div>
+                  <p class="section-summary">Review 不只看“像不像设计稿”。需要同时确认目标、结构、内容、状态、响应式、交互和可访问性。</p>
+                </div>
+                <ul class="checklist">
+                  <li>页面目标和核心用户任务是否清楚</li><li>信息层级和 CTA 优先级是否正确</li>
+                  <li>是否优先复用已有组件</li><li>正常、加载、空、错误和禁用状态是否覆盖</li>
+                  <li>文案长度是否适配容器</li><li>中英文是否表达一致且自然</li>
+                  <li>图片比例、焦点和裁切是否正确</li><li>360、375、768、1024、1440 等关键宽度是否完整</li>
+                  <li>Light/Dark 是否保持可读性</li><li>Hover、Focus、点击和键盘操作是否正确</li>
+                  <li>动效是否用于说明状态变化</li><li>Reduced Motion 是否仍能完成任务</li>
+                  <li>是否出现自定义颜色、圆角或影子</li><li>问题是否能指向具体组件、内容或页面模块</li>
+                </ul>
+                <div class="logic-note"><strong>Review 结果必须可复现</strong><p>记录具体 Story、语言、主题、屏幕尺寸、操作步骤和预期结果。不要只写“页面感觉不对”。</p></div>
+              </section>
+
+              <section id="guide-share" data-section="guide">
+                <div class="section-head">
+                  <div><p class="kicker">08 · Share &amp; collaborate</p><h2>如何分享和协作</h2></div>
+                  <p class="section-summary">一个完整的反馈包应让接收者不用重新猜测页面、环境、状态和问题。</p>
+                </div>
+                <div class="prompt-card">
+                  <div class="prompt-head"><h3>Storybook Review 模板</h3><button class="copy-button" type="button" data-copy-target="share-template">复制模板</button></div>
+                  <pre id="share-template">Storybook 链接：
+页面或组件：
+语言：中文 / English
+主题：Light / Dark
+屏幕尺寸：
+当前状态：
+发现的问题：
+期望结果：
+参考截图：
+优先级：</pre>
+                </div>
+                <div class="table-wrap" style="margin-top: 24px">
+                  <table>
+                    <thead><tr><th>问题类型</th><th>主要负责人</th><th>协作角色</th></tr></thead>
+                    <tbody>
+                      <tr><td>内容与业务规则</td><td>产品/内容负责人</td><td>UX/UI、前端</td></tr>
+                      <tr><td>页面结构与体验</td><td>UX/UI</td><td>产品、前端</td></tr>
+                      <tr><td>图片与视觉表现</td><td>视觉设计师</td><td>UX/UI、内容</td></tr>
+                      <tr><td>公共组件能力</td><td>设计系统维护者</td><td>UX/UI、前端</td></tr>
+                      <tr><td>业务数据与生产接入</td><td>业务前端</td><td>产品、设计系统维护者</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+
+              <section id="guide-boundary" data-section="guide">
+                <div class="section-head">
+                  <div><p class="kicker">09 · Boundary &amp; practice</p><h2>能力边界与首次练习</h2></div>
+                  <p class="section-summary">Storybook 是共同参考和验证入口，不是拖拽式页面编辑器，也不负责接入业务数据或发布生产页面。</p>
+                </div>
+                <div class="role-grid">
+                  <article class="boundary-card"><span class="status-tag dark">可以直接完成</span><h3>在 Storybook 中</h3><ul><li>浏览组件和页面</li><li>查看文档和 Controls</li><li>切换语言、主题和屏幕尺寸</li><li>操作组件与页面</li><li>分享精确链接并 Review</li></ul></article>
+                  <article class="boundary-card"><span class="status-tag">需要协作</span><h3>在 Storybook 之外</h3><ul><li>保存新的组件或页面组合</li><li>创建全新交互和公共能力</li><li>接入真实业务数据</li><li>合并代码与版本发布</li><li>正式生产上线</li></ul></article>
+                </div>
+                <div class="logic-note"><strong>30 分钟首次练习</strong><p>找到一个完整页面，切换中英文和三个屏幕尺寸，识别其中三个组件，记录一个可复现问题，并分享准确 Storybook 链接。</p></div>
+                <div class="inline-links"><a class="inline-link" href="?tab=creator#creator-overview" data-route-tab="creator">下一步：进入创作者知识库</a></div>
+              </section>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="tab-panel"
+          id="panel-creator"
+          role="tabpanel"
+          aria-labelledby="tab-creator"
+          data-panel="creator"
+          hidden
+        >
+          <div class="content-layout layout">
+            <nav class="section-rail rail" aria-label="创作者知识库目录" data-rail="creator">
+              <p class="rail-title">CREATOR KNOWLEDGE</p>
+              <a href="?tab=creator#creator-overview"><span>00</span><span>知识库总览</span></a>
+              <a href="?tab=creator#creator-architecture"><span>01</span><span>系统架构</span></a>
+              <a href="?tab=creator#creator-dependencies"><span>02</span><span>框架与依赖</span></a>
+              <a href="?tab=creator#creator-sources"><span>03</span><span>Source of Truth</span></a>
+              <a href="?tab=creator#creator-foundations"><span>04</span><span>设计与动效</span></a>
+              <a href="?tab=creator#creator-decision"><span>05</span><span>创建前判断树</span></a>
+              <a href="?tab=creator#creator-component"><span>06</span><span>创建组件</span></a>
+              <a href="?tab=creator#creator-version"><span>07</span><span>页面与版本模型</span></a>
+              <a href="?tab=creator#creator-page"><span>08</span><span>创建页面版本</span></a>
+              <a href="?tab=creator#creator-quality"><span>09</span><span>质量检查</span></a>
+              <a href="?tab=creator#creator-release"><span>10</span><span>版本、发布与排错</span></a>
+            </nav>
+
+            <div class="content-main">
+              <section id="creator-overview" data-section="creator">
+                <div class="section-head">
+                  <div><p class="kicker">00 · Creator overview</p><h2>什么时候进入知识库</h2></div>
+                  <p class="section-summary">当你需要保存新的组件、页面组合、页面版本或公共规则时，使用本 Tab。目标不是教所有人写代码，而是让任务、边界、输入和验收足够清楚。</p>
+                </div>
+                <div class="summary-grid">
+                  <article class="summary-cell"><span class="status-tag">Extend</span><strong>扩展现有组件</strong><p>已有组件用途正确，但缺少一个稳定状态、尺寸或内容能力。</p></article>
+                  <article class="summary-cell"><span class="status-tag emphasis">Create</span><strong>新建组件</strong><p>多个页面都会复用、已有组件无法合理承担的新公共能力。</p></article>
+                  <article class="summary-cell"><span class="status-tag dark">Version</span><strong>新建页面版本</strong><p>页面类型不变，但内容、模块组合或布局方向需要独立 Review。</p></article>
+                  <article class="summary-cell"><span class="status-tag">Maintain</span><strong>维护规则与发布</strong><p>涉及 Token、动效、公共组件契约、生成文件或包版本。</p></article>
+                </div>
+                <div class="logic-note"><strong>Codex 与 Kiro 的关系</strong><p>两者使用同一套 YAMI 规则、任务输入和验收标准。知识库只描述平台入口差异，不维护两套互相漂移的创建流程。</p></div>
+              </section>
+
+              <section id="creator-architecture" data-section="creator">
+                <div class="section-head">
+                  <div><p class="kicker">01 · Architecture</p><h2>系统由哪些层组成</h2></div>
+                  <p class="section-summary">公共视觉规则、组件、页面组合、Storybook 和 Canvas 各有明确责任。新能力应放在最小且正确的拥有层。</p>
+                </div>
+                <div class="architecture-card">
+                  <div class="architecture-stack" aria-label="YAMI 系统架构">
+                    <div class="architecture-layer"><strong>DTCG Design Tokens</strong><span>颜色、字体、间距、圆角、响应式等源规则</span></div>
+                    <div class="architecture-layer"><strong>@yami/design-system</strong><span>公共 React 组件、Assets、Usage、Metadata 与规则验证</span></div>
+                    <div class="architecture-layer"><strong>@yami/prototypes</strong><span>使用公共组件组合页面、Fixture 与 Page Stories</span></div>
+                    <div class="architecture-branch">
+                      <div class="architecture-layer"><strong>Storybook</strong><span>查看、文档、Controls、交互和 a11y 验证</span></div>
+                      <div class="architecture-layer"><strong>Canvas</strong><span>方向导入、页面工作台和预览</span></div>
+                    </div>
+                    <div class="architecture-layer"><strong>Business Frontend</strong><span>业务数据接入、工程集成、发布和生产维护</span></div>
+                  </div>
+                </div>
+                <div class="boundary-note"><strong>外部 Agent，不是运行时模型</strong><p>Codex/Kiro 在仓库外部或 IDE 中生成和修改受规则约束的资产；Storybook 和 Canvas 不应被描述为在浏览器中秘密调用模型。</p></div>
+              </section>
+
+              <section id="creator-dependencies" data-section="creator">
+                <div class="section-head">
+                  <div><p class="kicker">02 · Dependencies</p><h2>框架与依赖边界</h2></div>
+                  <p class="section-summary">不要把某一应用层的技术栈带入公共组件包。依赖选择首先服从层级责任，而不是个人偏好。</p>
+                </div>
+                <div class="table-wrap">
+                  <table>
+                    <thead><tr><th>层级</th><th>当前主要技术</th><th>负责</th><th>边界</th></tr></thead>
+                    <tbody>
+                      <tr><td>Design System</td><td>React、Base UI、CSS Modules、DTCG</td><td>公共规则与组件</td><td>不导入 Next.js、Motion、Zod 或 Canvas Runtime</td></tr>
+                      <tr><td>Prototypes</td><td>React、Design System、Contracts</td><td>页面组合与 Fixture</td><td>不重复实现已有基础组件</td></tr>
+                      <tr><td>Storybook</td><td>Storybook、React-Vite、Vite</td><td>Docs、Controls、a11y、测试</td><td>不承担真实业务数据和生产发布</td></tr>
+                      <tr><td>Canvas</td><td>Next.js、Motion、Contracts</td><td>页面工作台和方向预览</td><td>不得反向侵入公共组件包</td></tr>
+                      <tr><td>Quality</td><td>TypeScript、Vitest、Playwright、ESLint</td><td>类型、交互、视觉与规则检查</td><td>不能以截图或 HTTP 200 替代完整验证</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="logic-note"><strong>框架版本如何维护</strong><p>版本号从各层 <code>package.json</code> 核对，不在本说明中复制一份长期维护的版本清单。</p></div>
+              </section>
+
+              <section id="creator-sources" data-section="creator">
+                <div class="section-head">
+                  <div><p class="kicker">03 · Source of truth</p><h2>事实从哪里来</h2></div>
+                  <p class="section-summary">知识库负责解释和导航，不复制完整规则。每类事实只保留一个权威来源。</p>
+                </div>
+                <div class="source-grid">
+                  <article class="source-card"><span class="status-tag dark">Design</span><strong>设计规则</strong><p><code>DESIGN.md</code> 是完整规范；<code>DESIGN.compact.md</code> 是面向设计师和 PM 的快速入口。</p></article>
+                  <article class="source-card"><span class="status-tag">Token</span><strong>视觉变量</strong><p><code>tokens/**/*.tokens.json</code> 是源；<code>generated/</code> 是确定性生成结果，不手工改值。</p></article>
+                  <article class="source-card"><span class="status-tag emphasis">Component</span><strong>组件契约</strong><p><code>meta.json</code>、<code>usage.md</code>、Story 和公共 export 共同定义可维护组件。</p></article>
+                  <article class="source-card"><span class="status-tag">Page</span><strong>页面模式</strong><p><code>packages/prototypes/pages/</code> 保存页面实现、Fixture、Types 和 Stories。</p></article>
+                  <article class="source-card"><span class="status-tag">Agent</span><strong>Codex/Kiro 规则</strong><p><code>packages/design-system/SKILL.md</code> 定义复用顺序、边界和最低验证。</p></article>
+                  <article class="source-card"><span class="status-tag">Release</span><strong>版本与历史</strong><p>Changesets、Git 和受保护的合并记录负责版本与发布事实。</p></article>
+                </div>
+                <div class="inline-links">
+                  <a class="inline-link" href="../packages/design-system/DESIGN.md">完整设计规范</a>
+                  <a class="inline-link" href="../packages/design-system/generated/catalog.json">当前组件 Catalog</a>
+                  <a class="inline-link" href="../packages/design-system/SKILL.md">YAMI Agent Skill</a>
+                  <a class="inline-link" href="../packages/prototypes/pages/">页面目录</a>
+                </div>
+              </section>
+
+              <section id="creator-foundations" data-section="creator">
+                <div class="section-head">
+                  <div><p class="kicker">04 · Foundations</p><h2>设计、内容与动效规范</h2></div>
+                  <p class="section-summary">创建组件或页面时，必须同时处理视觉、响应式、内容和动效。不能只做到桌面端默认状态。</p>
+                </div>
+                <div class="principle-grid">
+                  <article class="principle-card"><span class="status-tag emphasis">Visual</span><strong>视觉</strong><ul><li>品牌红只用于 Logo</li><li>操作红用于 CTA、促销和错误</li><li>最多四层文字层级</li><li>使用语义 Token 和五类圆角</li><li>卡片默认无边框和重阴影</li></ul></article>
+                  <article class="principle-card"><span class="status-tag dark">Responsive</span><strong>响应式</strong><ul><li>从移动端开始验证</li><li>检查 360、375、768、1024、1440</li><li>处理文字换行与图片焦点</li><li>触控区域满足 44–48px</li><li>不假设桌面缩小就是移动端</li></ul></article>
+                  <article class="principle-card"><span class="status-tag">Content</span><strong>内容</strong><ul><li>中英文语义平等</li><li>CTA 直接、行动导向</li><li>不引入无证据的商品表达</li><li>测试真实长度，不只写占位符</li><li>产品 UI 中不使用 Emoji</li></ul></article>
+                  <article class="principle-card"><span class="status-tag">Motion</span><strong>动效</strong><ul><li>功能优先，不做装饰动效</li><li>CSS transition 是组件默认选择</li><li>不动画宽高、字体和网格位置</li><li>状态变化必须可被打断</li><li>支持 <code>prefers-reduced-motion</code></li></ul></article>
+                </div>
+                <div class="boundary-note"><strong>Motion 的层级边界</strong><p>Canvas 可以使用 <code>motion</code>；公共 Design System 包当前禁止导入 Motion。需要声明式复杂动效时，先判断它是否真的属于公共组件层。</p></div>
+              </section>
+
+              <section id="creator-decision" data-section="creator">
+                <div class="section-head">
+                  <div><p class="kicker">05 · Decision tree</p><h2>创建前先判断</h2></div>
+                  <p class="section-summary">很多“新组件”其实只是新的内容、Story 或页面组合。先选择最小拥有层，可以减少重复和维护成本。</p>
+                </div>
+                <div class="decision-tree">
+                  <ol>
+                    <li><strong>已有组件能完成吗？</strong> 能 → 直接复用，优先通过 Props、内容或组合解决。</li>
+                    <li><strong>只需要不同内容或状态吗？</strong> 是 → 新建 Fixture 或 Story，不复制组件。</li>
+                    <li><strong>已有组件用途正确，但缺少稳定能力吗？</strong> 是 → 扩展现有组件和契约。</li>
+                    <li><strong>新能力会被多个页面复用吗？</strong> 是 → 评估为新的公共组件。</li>
+                    <li><strong>只服务一个页面吗？</strong> 是 → 先放在页面内部，不提前抽象。</li>
+                    <li><strong>用户目标或信息架构发生改变吗？</strong> 是 → 创建新页面类型，而不是伪装成一个 Story。</li>
+                  </ol>
+                </div>
+                <div class="logic-note"><strong>创建申请必须回答</strong><p>已检查哪些组件、为什么不能复用、谁会重复使用、需要哪些状态和屏幕、谁负责维护、如何验证。</p></div>
+              </section>
+
+              <section id="creator-component" data-section="creator">
+                <div class="section-head">
+                  <div><p class="kicker">06 · Create a component</p><h2>使用 Codex/Kiro 创建组件</h2></div>
+                  <p class="section-summary">组件交付不是一个 JSX 文件，而是一套可发现、可理解、可验证、可分发的契约。</p>
+                </div>
+                <div class="task-flow" aria-label="组件创建流程">
+                  <span class="flow-node">检查 Catalog</span><span class="flow-arrow">→</span>
+                  <span class="flow-node">决定扩展/新建</span><span class="flow-arrow">→</span>
+                  <span class="flow-node">定义契约</span><span class="flow-arrow">→</span>
+                  <span class="flow-node">实现</span><span class="flow-arrow">→</span>
+                  <span class="flow-node">Story + Usage</span><span class="flow-arrow">→</span>
+                  <span class="flow-node">Generate</span><span class="flow-arrow">→</span>
+                  <span class="flow-node">Validate</span><span class="flow-arrow">→</span>
+                  <span class="flow-node">Review</span>
+                </div>
+                <div class="table-wrap" style="margin-top: 24px">
+                  <table>
+                    <thead><tr><th>基础文件</th><th>作用</th></tr></thead>
+                    <tbody>
+                      <tr><td><code>Component.tsx</code></td><td>语义、行为、公开 Props 和无障碍</td></tr>
+                      <tr><td><code>Component.module.css</code></td><td>只使用 YAMI Token 的组件样式</td></tr>
+                      <tr><td><code>Component.stories.tsx</code></td><td>Showcase、状态、响应式和交互证明</td></tr>
+                      <tr><td><code>meta.json</code></td><td>组件类别、版本、Variants、规则和 Token 绑定</td></tr>
+                      <tr><td><code>usage.md</code></td><td>什么时候使用、避免使用、常见模式与错误示例</td></tr>
+                      <tr><td><code>index.ts</code></td><td>稳定的公共导出</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="prompt-card">
+                  <div class="prompt-head"><h3>Codex/Kiro 组件任务模板</h3><button class="copy-button" type="button" data-copy-target="component-template">复制模板</button></div>
+                  <pre id="component-template">任务类型：扩展现有组件 / 新建公共组件
+组件用途：
+目标用户与任务：
+已检查的 Storybook 组件：
+为什么不能直接复用：
+Figma / 截图参考：
+必须复用的 Tokens、Assets 或组件：
+需要支持的 Variants 与状态：
+移动端与桌面端表现：
+中英文与主题要求：
+交互和无障碍要求：
+允许修改的文件：
+禁止修改的范围：
+验收条件：
+
+请先诊断复用边界，再实施最小改动。完成后提供改动文件、Storybook 验证、测试结果和未解决问题。</pre>
+                </div>
+              </section>
+
+              <section id="creator-version" data-section="creator">
+                <div class="section-head">
+                  <div><p class="kicker">07 · Version model</p><h2>页面与版本模型</h2></div>
+                  <p class="section-summary">在创建之前先说明“版本”具体指什么。不是每一个 Story 都是独立页面版本。</p>
+                </div>
+                <div class="table-wrap">
+                  <table>
+                    <thead><tr><th>类型</th><th>含义</th><th>推荐实现</th><th>示例</th></tr></thead>
+                    <tbody>
+                      <tr><td>Story Variation</td><td>同一实现的不同预览状态</td><td>Story Args / Globals</td><td>Loading、Empty、Mobile</td></tr>
+                      <tr><td>Content Version</td><td>结构不变，只更换文案、商品或图片</td><td>新 Fixture</td><td>同一专题页的不同主题内容</td></tr>
+                      <tr><td>Layout Version</td><td>页面类型不变，但模块组合或顺序变化</td><td>共享页面实现 + 独立版本输入</td><td>商品列表页的不同筛选结构</td></tr>
+                      <tr><td>Page Type</td><td>用户目标或信息架构发生实质变化</td><td>新页面实现与 Story</td><td>Search Results 与 Product Detail</td></tr>
+                      <tr><td>Component Version</td><td>公共组件契约发生变化</td><td>更新组件、Metadata 和 Stories</td><td>Button 新增稳定 Form</td></tr>
+                      <tr><td>Package Version</td><td>包能力对外变化</td><td>Changeset</td><td>Design System minor release</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="logic-note"><strong>当前原则</strong><p>只换数据，不复制页面实现；布局变化但页面类型不变，优先共享实现；新模块会被多个页面复用时，先建设公共组件。</p></div>
+              </section>
+
+              <section id="creator-page" data-section="creator">
+                <div class="section-head">
+                  <div><p class="kicker">08 · Create a page</p><h2>使用 Codex/Kiro 创建页面版本</h2></div>
+                  <p class="section-summary">页面创建必须从最接近的维护页面开始。只有用户目标或信息架构显著变化时，才创建新的 Page Type。</p>
+                </div>
+                <div class="workflow" aria-label="页面版本创建流程">
+                  <article class="step current"><span class="step-index">01 · Brief</span><h3>明确页面目标</h3><p>写清用户任务、范围、业务条件、目标设备和需要 Review 的问题。</p></article>
+                  <article class="step current"><span class="step-index">02 · Reference</span><h3>寻找最近页面</h3><p>检查 Ecommerce Home、Topic Landing、Search Results、Product Detail 等页面。</p></article>
+                  <article class="step current"><span class="step-index">03 · Classify</span><h3>确定版本类型</h3><p>判断是 Story、Content Version、Layout Version 还是新的 Page Type。</p></article>
+                  <article class="step current"><span class="step-index">04 · Reuse</span><h3>复用并组合</h3><p>列出保留、调整和缺失模块，只在正确层新增能力。</p></article>
+                  <article class="step current"><span class="step-index">05 · Content</span><h3>准备内容素材</h3><p>提供中英文文案、图片、商品、数据状态和业务规则。</p></article>
+                  <article class="step current"><span class="step-index">06 · Story</span><h3>建立页面 Story</h3><p>确保页面可在 Storybook 中被发现、切换语言并运行交互。</p></article>
+                  <article class="step current"><span class="step-index">07 · Verify</span><h3>多层验证</h3><p>完成源文件、自动检查、真实浏览器和人工体验 Review。</p></article>
+                  <article class="step current"><span class="step-index">08 · Handoff</span><h3>交付准确结果</h3><p>提供 Story 链接、截图、测试结果、变更范围和未解决问题。</p></article>
+                </div>
+                <div class="prompt-card">
+                  <div class="prompt-head"><h3>Codex/Kiro 页面任务模板</h3><button class="copy-button" type="button" data-copy-target="page-template">复制模板</button></div>
+                  <pre id="page-template">任务类型：Story Variation / Content Version / Layout Version / 新 Page Type
+页面目标：
+目标用户与核心任务：
+最接近的 Storybook 页面：
+必须保留的模块：
+需要改变的模块或顺序：
+必须复用的组件：
+文案、商品和图片来源：
+需要覆盖的业务状态：
+语言：中文 / English / 双语
+主题：Light / Dark
+目标屏幕：
+交互与动效：
+允许修改的文件：
+禁止修改的范围：
+验收条件：
+期望交付物：Storybook 链接、截图、测试结果、改动文件、未解决问题
+
+请先检查现有 Pages 与 Components，再选择最小实现边界。不要复制已有组件或修改无关文件。</pre>
+                </div>
+              </section>
+
+              <section id="creator-quality" data-section="creator">
+                <div class="section-head">
+                  <div><p class="kicker">09 · Quality gates</p><h2>质量检查分四层</h2></div>
+                  <p class="section-summary">自动测试和真实浏览器验证各自证明不同事实。缺少其中一层时，需要明确报告未验证边界。</p>
+                </div>
+                <div class="review-grid">
+                  <article class="review-card"><span class="status-tag dark">01 · Source</span><h3>源文件检查</h3><ul><li>改动是否属于正确层</li><li>是否复用 Catalog 组件</li><li>是否使用真实 Token</li><li>是否保留包边界</li></ul></article>
+                  <article class="review-card"><span class="status-tag dark">02 · Automated</span><h3>自动检查</h3><ul><li>Generated artifacts</li><li>TypeScript / Lint</li><li>Unit / Storybook tests</li><li>Design principles / a11y</li></ul></article>
+                  <article class="review-card"><span class="status-tag emphasis">03 · Runtime</span><h3>真实浏览器</h3><ul><li>监听进程与正确工作区</li><li>DOM 和关键交互</li><li>语言、主题、Viewport</li><li>Console 与页面错误</li></ul></article>
+                  <article class="review-card"><span class="status-tag">04 · Human</span><h3>人工体验 Review</h3><ul><li>用户任务和信息层级</li><li>视觉与内容质量</li><li>业务准确性</li><li>是否可以进入开发</li></ul></article>
+                </div>
+                <div class="prompt-card">
+                  <div class="prompt-head"><h3>最低验证命令</h3><button class="copy-button" type="button" data-copy-target="validation-commands">复制命令</button></div>
+                  <pre id="validation-commands">pnpm generate
+pnpm test:storybook
+pnpm validate
+git diff --check</pre>
+                </div>
+                <div class="boundary-note"><strong>不能偷换证明</strong><p>Build 成功、HTTP 200 或干净的 Git 状态都不能单独证明页面视觉、交互和多端表现已经正确。</p></div>
+              </section>
+
+              <section id="creator-release" data-section="creator">
+                <div class="section-head">
+                  <div><p class="kicker">10 · Release &amp; troubleshoot</p><h2>版本、发布与故障处理</h2></div>
+                  <p class="section-summary">原型确认、代码 Review、合并和生产发布是不同状态。交付说明必须准确描述当前完成到哪一步。</p>
+                </div>
+                <div class="table-wrap">
+                  <table>
+                    <thead><tr><th>状态</th><th>含义</th><th>可以如何描述</th></tr></thead>
+                    <tbody>
+                      <tr><td>Draft</td><td>正在生成或尚未完成验证</td><td>初稿，可继续 Review</td></tr>
+                      <tr><td>In Review</td><td>已有可运行结果，等待设计/产品/工程确认</td><td>已提交 Review，尚未合并</td></tr>
+                      <tr><td>Validated</td><td>已完成约定检查和真实 Storybook 验证</td><td>已验证，可进入发布流程</td></tr>
+                      <tr><td>Stable</td><td>公共能力已合并并按约定发布</td><td>已发布，提供版本和合并证明</td></tr>
+                      <tr><td>Deprecated</td><td>不再推荐使用，但仍可能保留兼容</td><td>已废弃，提供替代方案</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="faq-grid" style="margin-top: 24px">
+                  <article class="faq-card"><h3>找不到合适组件</h3><p>先检查 Pages 和相近复合组件，再进入创建前判断树；不要直接新建视觉相似组件。</p></article>
+                  <article class="faq-card"><h3>Controls 修改没有保存</h3><p>Controls 是预览。需要保存时创建 Fixture、Story 或页面版本，并进入代码 Review。</p></article>
+                  <article class="faq-card"><h3>Storybook 启动失败</h3><p>检查依赖、端口和监听进程所属工作区；不要终止其他会话的 Storybook。</p></article>
+                  <article class="faq-card"><h3>Generated files 漂移</h3><p>运行 <code>pnpm generate</code>，检查生成差异是否由本次源文件改动导致，再重新验证。</p></article>
+                  <article class="faq-card"><h3>测试通过但页面不对</h3><p>回到真实 Storybook 检查 DOM、计算样式、交互、Console 和目标 Viewport。</p></article>
+                  <article class="faq-card"><h3>Codex/Kiro 改动太大</h3><p>缩小允许文件范围，明确“只改直接相关文件”，要求先诊断复用边界再实施。</p></article>
+                </div>
+                <div class="logic-note"><strong>发布边界</strong><p>未经明确授权，不自动提交、推送、合并或部署。需要发布时，单独确认改动范围、检查、版本和目标环境。</p></div>
+                <div class="inline-links"><a class="inline-link" href="?tab=guide#guide-share" data-route-tab="guide">返回 Review 分享模板</a><a class="inline-link" href="#top">回到文档顶部</a></div>
+              </section>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <footer class="footer-note" aria-label="文档信息">
+        <p><span>YAMI Storybook Guide &amp; Creator Knowledge</span><span>版本 0.1 · 最后核对 2026-08-26</span></p>
+      </footer>
+    </div>
+
+    <a class="back-to-top" href="#top" aria-label="返回顶部">↑</a>
+
+    <script>
+      const tabs = [...document.querySelectorAll("[role='tab'][data-tab]")];
+      const panels = [...document.querySelectorAll("[role='tabpanel'][data-panel]")];
+      const pickers = [...document.querySelectorAll("[data-section-picker]")];
+      const routeLinks = [...document.querySelectorAll("a[data-route-tab], .section-rail a")];
+      const validTabs = new Set(tabs.map((tab) => tab.dataset.tab));
+
+      function tabFromLocation() {
+        const queryTab = new URL(location.href).searchParams.get("tab");
+        if (validTabs.has(queryTab)) return queryTab;
+        if (location.hash.startsWith("#creator-")) return "creator";
+        return "guide";
+      }
+
+      function defaultSection(tabName) {
+        return tabName === "creator" ? "creator-overview" : "guide-overview";
+      }
+
+      function updatePanel(tabName, options = {}) {
+        const { updateUrl = false, focusTab = false, sectionId } = options;
+
+        tabs.forEach((tab) => {
+          const selected = tab.dataset.tab === tabName;
+          tab.setAttribute("aria-selected", String(selected));
+          tab.tabIndex = selected ? 0 : -1;
+          if (selected && focusTab) tab.focus();
+        });
+
+        panels.forEach((panel) => {
+          panel.hidden = panel.dataset.panel !== tabName;
+        });
+
+        pickers.forEach((picker) => {
+          picker.hidden = picker.dataset.sectionPicker !== tabName;
+        });
+
+        if (updateUrl) {
+          const nextSection = sectionId || defaultSection(tabName);
+          const url = new URL(location.href);
+          url.searchParams.set("tab", tabName);
+          url.hash = nextSection;
+          history.pushState({ tab: tabName }, "", url);
+          requestAnimationFrame(() => document.getElementById(nextSection)?.scrollIntoView());
+        }
+      }
+
+      tabs.forEach((tab, index) => {
+        tab.addEventListener("click", () => {
+          updatePanel(tab.dataset.tab, { updateUrl: true, focusTab: true });
+        });
+
+        tab.addEventListener("keydown", (event) => {
+          if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+          event.preventDefault();
+          let nextIndex = index;
+          if (event.key === 'ArrowLeft') nextIndex = (index - 1 + tabs.length) % tabs.length;
+          if (event.key === 'ArrowRight') nextIndex = (index + 1) % tabs.length;
+          if (event.key === 'Home') nextIndex = 0;
+          if (event.key === 'End') nextIndex = tabs.length - 1;
+          const nextTab = tabs[nextIndex];
+          updatePanel(nextTab.dataset.tab, { updateUrl: true, focusTab: true });
+        });
+      });
+
+      routeLinks.forEach((link) => {
+        link.addEventListener("click", (event) => {
+          const targetUrl = new URL(link.href, location.href);
+          if (targetUrl.pathname !== location.pathname) return;
+          event.preventDefault();
+          const targetTab = targetUrl.searchParams.get("tab") || link.dataset.routeTab || tabFromLocation();
+          const sectionId = targetUrl.hash.slice(1) || defaultSection(targetTab);
+          updatePanel(targetTab, { updateUrl: false });
+          history.pushState({ tab: targetTab }, "", targetUrl);
+          requestAnimationFrame(() => document.getElementById(sectionId)?.scrollIntoView());
+        });
+      });
+
+      pickers.forEach((picker) => {
+        picker.addEventListener("change", () => {
+          const tabName = picker.dataset.sectionPicker;
+          const sectionId = picker.value;
+          const url = new URL(location.href);
+          url.searchParams.set("tab", tabName);
+          url.hash = sectionId;
+          history.pushState({ tab: tabName }, "", url);
+          document.getElementById(sectionId)?.scrollIntoView();
+        });
+      });
+
+      function syncFromLocation() {
+        const tabName = tabFromLocation();
+        updatePanel(tabName);
+        const sectionId = location.hash.slice(1);
+        if (sectionId) requestAnimationFrame(() => document.getElementById(sectionId)?.scrollIntoView());
+        else window.scrollTo({ top: 0 });
+      }
+
+      window.addEventListener("popstate", syncFromLocation);
+
+      const railLinks = [...document.querySelectorAll(".section-rail a")];
+      const railLinkById = new Map(railLinks.map((link) => [new URL(link.href, location.href).hash.slice(1), link]));
+      const sections = [...document.querySelectorAll("[data-section]")];
+
+      function setCurrentSection(id) {
+        railLinks.forEach((link) => link.removeAttribute("aria-current"));
+        railLinkById.get(id)?.setAttribute("aria-current", "true");
+        const panelName = document.getElementById(id)?.dataset.section;
+        const picker = pickers.find((item) => item.dataset.sectionPicker === panelName);
+        if (picker && [...picker.options].some((option) => option.value === id)) picker.value = id;
+      }
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          const visible = entries
+            .filter((entry) => entry.isIntersecting && !entry.target.closest("[hidden]"))
+            .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+          if (visible) setCurrentSection(visible.target.id);
+        },
+        { rootMargin: "-18% 0px -68% 0px", threshold: [0, 0.2, 0.5] },
+      );
+
+      sections.forEach((section) => observer.observe(section));
+
+      function fallbackCopy(text) {
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        textarea.setAttribute("readonly", "");
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        textarea.remove();
+      }
+
+      document.querySelectorAll("[data-copy-target]").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const target = document.getElementById(button.dataset.copyTarget);
+          if (!target) return;
+          const originalLabel = button.textContent;
+          try {
+            if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(target.innerText);
+            else fallbackCopy(target.innerText);
+            button.textContent = "已复制";
+          } catch {
+            fallbackCopy(target.innerText);
+            button.textContent = "已复制";
+          }
+          window.setTimeout(() => { button.textContent = originalLabel; }, 1600);
+        });
+      });
+
+      updatePanel(tabFromLocation());
+      const requestedSection = location.hash.slice(1);
+      const initialSection = requestedSection || defaultSection(tabFromLocation());
+      setCurrentSection(initialSection);
+      if (requestedSection) requestAnimationFrame(() => document.getElementById(requestedSection)?.scrollIntoView());
+    </script>
+  </body>
+</html>
