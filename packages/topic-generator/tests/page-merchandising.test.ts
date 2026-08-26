@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   advancePageMerchandisingRun,
+  compileDeterministicTopicPagePlanV2,
   compileTopicPagePlanV2,
   evidenceSizedSceneProductRange,
   getLandingPageTypeConfig,
@@ -283,6 +284,53 @@ function validProposal(
 }
 
 describe("PageMerchandising", () => {
+  it("compiles a minimal degraded page when only one primary product is available", () => {
+    const intent = themeIntentFixture();
+    const onlyProduct = productsFor("core", 1)[0]!;
+    const selection: ProductSelectionResult = {
+      schemaVersion: "product-selection-result/v1",
+      strategyRef: "relevance/intent-themes@5",
+      keyword: "Heytea",
+      site: "us",
+      selectedAt: "2026-08-25T00:00:00.000Z",
+      pools: { primaryIds: [onlyProduct.id], relatedIds: [] },
+      products: [onlyProduct],
+      selectedCategories: [],
+      scenes: [],
+      modules: [
+        { id: "popular-picks", productIds: [], groups: [] },
+        { id: "explore-more", productIds: [onlyProduct.id], groups: [] },
+        { id: "brand-spotlight", productIds: [], groups: [] },
+      ],
+    };
+    const sourcePlan = {
+      modules: MODULE_ORDER.map((id) => ({
+        id,
+        visible: id === "hero" || id === "explore-more",
+        heading: id === "hero" ? "Heytea" : "Explore more",
+        label: id,
+        reason: "Continue with the limited verified assortment.",
+        productIds: id === "hero" || id === "explore-more" ? [onlyProduct.id] : [],
+        productReasons: { [onlyProduct.id]: "Only verified primary product." },
+      })),
+    };
+
+    const plan = compileDeterministicTopicPagePlanV2(
+      intent,
+      selection,
+      sourcePlan as never,
+      "topic-landing/topic-relevance@2",
+    );
+
+    expect(plan.status).toBe("plan-ready");
+    expect(plan.modules.find(({ id }) => id === "hero")).toMatchObject({
+      visible: true,
+      assignments: [expect.objectContaining({ productId: onlyProduct.id })],
+    });
+    expect(plan.modules.find(({ id }) => id === "shortcuts")?.visible).toBe(false);
+    expect(plan.modules.find(({ id }) => id === "popular-picks")?.visible).toBe(false);
+  });
+
   it("maps maintained category-role and page-specific relevance variants", () => {
     expect(listPageMerchandisingTemplateConfigs().map(({ ref }) => ref)).toEqual([
       "topic-landing/brand@2",

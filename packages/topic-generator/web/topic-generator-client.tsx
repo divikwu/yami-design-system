@@ -104,8 +104,8 @@ const MANAGED_STAGE_ORDER: readonly TopicGeneratorRunStageId[] = [
 const MANAGED_MILESTONE: Record<TopicGeneratorRunGoal, TopicGeneratorRunStageId> = {
   selection: "module-merchandising",
   content: "content-review",
-  visual: "page-generation",
-  page: "experience-review",
+  visual: "user-approval",
+  page: "user-approval",
 };
 
 const MANAGED_REGENERATION_STAGE: Record<
@@ -126,7 +126,7 @@ const MANAGED_RUN_STATUS_LABELS: Record<
     pending: "Pending",
     running: "Running",
     paused: "Paused",
-    "awaiting-approval": "Awaiting approval",
+    "awaiting-approval": "Finalizing",
     completed: "Completed",
     blocked: "Blocked",
     interrupted: "Interrupted",
@@ -135,7 +135,7 @@ const MANAGED_RUN_STATUS_LABELS: Record<
     pending: "待开始",
     running: "生成中",
     paused: "已暂停",
-    "awaiting-approval": "待审批",
+    "awaiting-approval": "正在定稿",
     completed: "已完成",
     blocked: "已阻塞",
     interrupted: "已中断",
@@ -216,7 +216,8 @@ function managedAutomation(
     ExperienceReviewStageOutput | undefined;
   if (!selection || !merchandising || !content || !assets || !page ||
       qa?.qaReport.status !== "passed" ||
-      experience?.experienceReview.status !== "review-recommended") {
+      experience?.experienceReview?.status !== "review-recommended" ||
+      !experience.reviewPackage) {
     return null;
   }
   const passedQa = qa.qaReport as typeof qa.qaReport & { status: "passed" };
@@ -1043,25 +1044,25 @@ export function managedGenerationProgressSteps(
       ? [
           "检查桌面端与移动端真实页面预览",
           "复核层级、可读性与购物决策",
-          "保留质量建议并继续进入用户审核",
+          "保留质量建议并继续自动定稿",
         ]
       : [
           "Inspect the rendered desktop and mobile previews",
           "Review hierarchy, readability, and shopping decisions",
-          "Keep quality findings advisory and continue to user review",
+          "Keep quality findings advisory and continue to automatic finalization",
         ];
   }
   if (stage === "user-approval") {
     return language === "zh"
       ? [
-          "校验当前评审包与确认摘要",
+          "校验页面生成结果与完整性摘要",
           "渲染可离线打开的最终页面",
-          "写入确认记录与可下载产物",
+          "写入自动完成记录与可下载产物",
         ]
       : [
-          "Validate the current review package and approval summary",
+          "Validate the generated page and integrity summary",
           "Render the final offline-ready page",
-          "Write the approval receipt and downloadable artifact",
+          "Write the automatic completion record and downloadable artifact",
         ];
   }
   return null;
@@ -1864,6 +1865,7 @@ function PoolsView({
   const related = plan.products.filter((product) => product.pool === "related");
   const coverage = plan.catalogCoverage;
   const refinement = plan.catalogRefinement;
+  const selectionDiagnostics = plan.selectionDiagnostics;
   const [collapsedCoverageGroups, setCollapsedCoverageGroups] = useState<Set<string>>(
     () => new Set(),
   );
@@ -1881,6 +1883,11 @@ function PoolsView({
     ? zh
       ? `目录召回部分完成（${refinement.completedKeys.length}/${refinement.requestedKeys.length}）`
       : `Catalog retrieval partial (${refinement.completedKeys.length}/${refinement.requestedKeys.length})`
+    : null;
+  const recoveryLabel = selectionDiagnostics?.recoveryStrategy === "verified-category-context"
+    ? zh
+      ? `${selectionDiagnostics.candidateCount} 件候选中仅 ${selectionDiagnostics.directMatchCount} 件直接匹配，已使用验证分类恢复为 ${selectionDiagnostics.primaryCount} 件主商品。`
+      : `Only ${selectionDiagnostics.directMatchCount} of ${selectionDiagnostics.candidateCount} candidates matched directly; verified categories restored ${selectionDiagnostics.primaryCount} primary products.`
     : null;
 
   function toggleCoverageGroup(groupId: string) {
@@ -2012,6 +2019,12 @@ function PoolsView({
               <strong>{zh ? "选品依据" : "Selection rationale"}</strong>
               {plan.selectionStrategy.description}
             </p>
+            {recoveryLabel && (
+              <p className={styles.poolSelectionReason}>
+                <strong>{zh ? "自动恢复" : "Automatic recovery"}</strong>
+                {recoveryLabel}
+              </p>
+            )}
             {refinementLabel && (
               <p className={styles.poolSelectionReason}>
                 <strong>{zh ? "召回状态" : "Retrieval status"}</strong>
@@ -2121,7 +2134,7 @@ function AutomationRuntimePanel({
         </div>
         <strong data-status={automation.status}>
           {automation.status === "ready"
-            ? zh ? "等待用户 Review" : "Ready for review"
+            ? zh ? "生成完成" : "Generation complete"
             : zh ? `阻止于 ${AUTOMATION_STAGE_LABELS.zh[automation.stage]}` : `Blocked at ${AUTOMATION_STAGE_LABELS.en[automation.stage]}`}
         </strong>
       </header>
@@ -2321,28 +2334,28 @@ function WorkflowView({
     {
       stage: "07",
       icon: WORKFLOW_ICONS.review,
-      label: isChinese ? "用户 Review" : "User review",
+      label: isChinese ? "执行体验检查" : "Run experience review",
       output: isChinese
-        ? "检查选品、模块、文案与来源资产"
-        : "Review products, modules, copy, and source assets",
-      input: "ReviewPackage",
-      action: isChinese ? "用户检查页面方案并提出定向修改或批准；修改后必须重新 QA" : "Review the page plan and request targeted changes or approve; changes must pass QA again",
-      result: "ReviewDecision",
-      rollback: isChinese ? "修改意见映射回 02–05 的所属阶段，再重新执行 06" : "Map requested changes to their owning stage in 02–05, then rerun 06",
-      state: "manual",
+        ? "只读检查选品、模块、文案与来源资产，质量问题仅作建议"
+        : "Read-only review products, modules, copy, and source assets; quality findings stay advisory",
+      input: "PageGenerationSpec + QAReport + Preview",
+      action: isChinese ? "记录桌面端与移动端体验建议，不改变生成状态" : "Record desktop and mobile experience guidance without changing generation status",
+      result: "ExperienceReviewWarnings",
+      rollback: isChinese ? "体验建议不触发回退；数据完整性仍由 06 负责" : "Experience guidance does not roll back generation; integrity remains owned by 06",
+      state: "automatic",
     },
     {
       stage: "08",
       icon: WORKFLOW_ICONS.publish,
-      label: isChinese ? "确认并发布" : "Confirm and publish",
+      label: isChinese ? "自动定稿" : "Finalize automatically",
       output: isChinese
-        ? "仅发布已通过 QA、用户批准且 spec_hash 未变化的版本"
-        : "Publish only a QA-passed, user-approved version with an unchanged spec_hash",
-      input: "ReviewDecision + PageGenerationSpec + spec_hash",
-      action: isChinese ? "冻结版本，执行发布与烟雾测试，并记录回滚入口" : "Freeze the version, publish, run smoke tests, and record the rollback entry",
-      result: "ReleaseRecord + RollbackRecord",
-      rollback: isChinese ? "未批准、QA 失败或哈希变化时阻止发布" : "Block publishing when approval, QA, or hash checks fail",
-      state: "manual",
+        ? "完整性 QA 完成后生成最终离线页面与下载产物"
+        : "Create the final offline page and downloads after integrity QA completes",
+      input: "PageGenerationSpec + QAReport + ExperienceReviewWarnings",
+      action: isChinese ? "写入自动完成记录并生成 page-final.html" : "Write an automatic completion record and generate page-final.html",
+      result: "FinalPage + CompletionRecord",
+      rollback: isChinese ? "仅完整性 QA 失败时返回 06 及其责任阶段" : "Return only integrity failures to 06 and its owning stage",
+      state: "automatic",
     },
   ];
   const agentArchitecture = [
@@ -2478,11 +2491,11 @@ function WorkflowView({
       icon: WORKFLOW_ICONS.qa,
       name: isChinese ? "体验审核 Agent" : "Topic Review Agent",
       role: isChinese ? "只读体验审核" : "Read-only experience review",
-      stage: isChinese ? "自动 QA 后 · 用户批准前" : "After automatic QA · Before user approval",
+      stage: isChinese ? "自动 QA 后 · 自动定稿前" : "After automatic QA · Before finalization",
       skills: ["page-review"],
       responsibility: isChinese
-        ? "硬 QA 通过后，只读检查桌面与移动预览中的选品、文案、视觉和跨阶段一致性，记录证据化警告并向用户审核提供建议。"
-        : "After hard QA passes, read-only review desktop and mobile previews for merchandising, copy, visual, and cross-stage coherence, recording evidence-bound warnings for human review.",
+        ? "硬 QA 通过后，只读检查桌面与移动预览中的选品、文案、视觉和跨阶段一致性，并记录不阻碍定稿的证据化警告。"
+        : "After hard QA passes, read-only review desktop and mobile previews for merchandising, copy, visual, and cross-stage coherence, recording evidence-bound warnings that do not block finalization.",
       input: isChinese
         ? "ExecutionPlan + GenerationSpec + 已通过的 QAReport + 桌面/移动预览 + 允许的证据引用"
         : "ExecutionPlan + GenerationSpec + passed QAReport + desktop/mobile previews + allowed evidence references",
@@ -2490,8 +2503,8 @@ function WorkflowView({
         ? "体验审核建议与警告（TopicPageExperienceReviewProposal）"
         : "Experience-review recommendation and warnings (TopicPageExperienceReviewProposal)",
       boundary: isChinese
-        ? "不直接修复或重跑，不执行硬 QA，不把主观体验问题变成生成阻断，不批准发布，也不代替用户审核。"
-        : "Does not repair or rerun work, perform hard QA, turn subjective experience findings into generation blockers, approve publication, or replace human review.",
+        ? "不直接修复或重跑，不执行硬 QA，不把主观体验问题变成生成阻断，也不批准或执行外部发布。"
+        : "Does not repair or rerun work, perform hard QA, turn subjective experience findings into generation blockers, or approve or perform external publishing.",
     },
   ];
   const renderAgentFlowNode = (
@@ -2609,20 +2622,6 @@ function WorkflowView({
                   <div>
                     <strong>{isChinese ? "QA 未通过" : "QA failed"}</strong>
                     <span>{isChinese ? "商品 → 03 / 04 · 组件 → 04 · 文案 / 图片 → 05" : "Products → 03/04 · Modules → 04 · Copy / images → 05"}</span>
-                  </div>
-                </aside>
-              )}
-              {step.stage === "07" && (
-                <aside className={styles.workflowReturnMap}>
-                  <HugeiconsIcon
-                    icon={ArrowTurnBackwardIcon}
-                    size={18}
-                    strokeWidth={1.5}
-                    aria-hidden="true"
-                  />
-                  <div>
-                    <strong>{isChinese ? "要求修改" : "Changes requested"}</strong>
-                    <span>{isChinese ? "返回 02–05 所属阶段，修改后重新执行 06" : "Return to the owning stage in 02–05, then rerun 06"}</span>
                   </div>
                 </aside>
               )}
@@ -2833,10 +2832,10 @@ function WorkflowView({
             </span>
           </li>
           <li className={styles.agentArchitectureFlowStep}>
-            <article className={styles.agentArchitectureRuntimeNode} data-manual-gate="user-approval">
-              <span>12 · HUMAN GATE</span>
-              <strong>{isChinese ? "用户批准" : "User approval"}</strong>
-              <small>{isChinese ? "批准后才可发布" : "Publishing remains blocked until approval"}</small>
+            <article className={styles.agentArchitectureRuntimeNode} data-system-flow-node="automatic-finalization">
+              <span>12 · SYSTEM</span>
+              <strong>{isChinese ? "自动定稿" : "Automatic finalization"}</strong>
+              <small>{isChinese ? "完整性 QA 完成后生成最终页面" : "Create the final page after integrity QA"}</small>
             </article>
           </li>
         </ol>
@@ -3775,7 +3774,6 @@ export function TopicGenerator({
       while (detail.state.nextStage) {
         const nextIndex = MANAGED_STAGE_ORDER.indexOf(detail.state.nextStage);
         if (nextIndex < 0 || nextIndex > targetIndex ||
-            detail.state.status === "awaiting-approval" ||
             detail.state.status === "completed" ||
             (detail.state.status === "blocked" && advanced)) break;
         const response = await requestJson<{
@@ -3793,31 +3791,6 @@ export function TopicGenerator({
         setActiveMode(goal);
         if (detail.state.status === "blocked") break;
       }
-    } catch (caught) {
-      setError(caught as GeneratorError);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function approveManagedRun() {
-    if (!managedRunsUrl || !currentRun || !currentDetail || !isManagedV2Detail(currentDetail) ||
-        !currentDetail.state.review) return;
-    setLoading(true);
-    setError(null);
-    try {
-      await requestJson(
-        `${managedRunsUrl}/${encodeURIComponent(currentRun.runId)}/review`,
-        {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            decision: "approve",
-            packageDigest: currentDetail.state.review.packageDigest,
-          }),
-        },
-      );
-      await loadManagedRun(currentRun.runId);
     } catch (caught) {
       setError(caught as GeneratorError);
     } finally {
@@ -4692,37 +4665,8 @@ export function TopicGenerator({
                 className={styles.managedRunOutput}
                 aria-label={uiLanguage === "zh" ? "生成内容" : "Generated content"}
               >
-                {currentRun.status === "awaiting-approval" && (
-                  <WorkbenchButton
-                    type="button"
-                    variant="secondary"
-                    disabled={loading}
-                    onClick={() => void approveManagedRun()}
-                  >
-                    {uiLanguage === "zh" ? "批准最终页面" : "Approve final page"}
-                  </WorkbenchButton>
-                )}
                 {currentRun.deliverables.some(({ status }) => status === "ready") && (
                   <div className={styles.deliverableLinks}>
-                    {currentRun.deliverables.some(
-                      ({ name, status }) => name === "page-final.html" && status === "ready",
-                    ) && (
-                      <a
-                        className={styles.topicPackageDownload}
-                        href={`${managedRunsUrl}/${encodeURIComponent(currentRun.runId)}/deliverables/page-final.html`}
-                        download={`${currentRun.runId}-page-final.html`}
-                      >
-                        <HugeiconsIcon
-                          icon={ArchiveArrowDownIcon}
-                          size={16}
-                          strokeWidth={1.5}
-                          aria-hidden="true"
-                        />
-                        <span>
-                          {uiLanguage === "zh" ? "下载最终页面" : "Download final page"}
-                        </span>
-                      </a>
-                    )}
                     <button
                       type="button"
                       className={styles.topicPackageDownload}

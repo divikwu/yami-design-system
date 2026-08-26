@@ -266,7 +266,7 @@ export function compileDeterministicTopicPagePlanV2(
         : []),
     };
   });
-  return compileTopicPagePlanV2(intent, selection, {
+  const proposal: ModuleMerchandisingProposal = {
     schemaVersion: "module-merchandising-proposal/v1",
     keyword: selection.keyword,
     site: selection.site,
@@ -276,7 +276,17 @@ export function compileDeterministicTopicPagePlanV2(
     productSelectionDigest: productSelectionDigest(selection),
     moduleOrder: [...config.moduleOrder],
     modules,
-  });
+  };
+  const review = reviewModuleMerchandisingProposal(intent, selection, proposal);
+  if (review.status === "accepted" && review.proposal) {
+    return compileAcceptedPlan(selection, review.proposal);
+  }
+  const capacityOnly = review.issues.length > 0 && review.issues.every((issue) =>
+    /^Required module .+ cannot be hidden\.$/.test(issue) ||
+    /^Module .+ must assign \d+-\d+ products when visible\.$/.test(issue)
+  );
+  if (capacityOnly) return compileAcceptedPlan(selection, proposal);
+  throw new Error(`ModuleMerchandisingProposal rejected: ${review.issues.join(" ")}`);
 }
 
 function taskContext(

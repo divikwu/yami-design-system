@@ -2,6 +2,7 @@ import type {
   ContentLanguage,
   ProductPool,
   ProductRole,
+  ProductSelectionDiagnostics,
   YamiProduct,
   YamiSearchSnapshot,
   TopicModuleId,
@@ -23,6 +24,7 @@ export interface ProductSelectionResult {
     primaryIds: string[];
     relatedIds: string[];
   };
+  diagnostics?: ProductSelectionDiagnostics;
   products: ProductSelectionProduct[];
   selectedCategories: SelectedCategoryRole[];
   scenes: ProductSelectionScene[];

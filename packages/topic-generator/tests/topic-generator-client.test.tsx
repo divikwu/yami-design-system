@@ -961,7 +961,7 @@ describe("TopicGenerator result navigation", () => {
     expect(agentFlow?.textContent).toContain("文案生成 → 文案审核 → 视觉生成");
     expect(agentFlow?.textContent).toContain("资产落盘 → 页面生成 → 自动 QA");
     expect(agentFlow?.textContent).toContain("体验审核");
-    expect(agentFlow?.textContent).toContain("用户批准");
+    expect(agentFlow?.textContent).toContain("自动定稿");
     expect(agentFlow?.textContent).not.toContain("Proposal 汇合");
   });
 
@@ -981,9 +981,18 @@ describe("TopicGenerator result navigation", () => {
         sourceRank: rank,
       })),
     };
-    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({
-      plans: buildTopicPagePlanMatrix(snapshot),
-    }), { status: 200, headers: { "content-type": "application/json" } }));
+    const plans = buildTopicPagePlanMatrix(snapshot);
+    plans.zh.relevance.selectionDiagnostics = {
+      candidateCount: 3,
+      directMatchCount: 1,
+      primaryCount: 3,
+      relatedCount: 0,
+      recoveryStrategy: "verified-category-context",
+    };
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({ plans }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    }));
 
     await act(async () => {
       root.render(<TopicGenerator />);
@@ -1002,6 +1011,8 @@ describe("TopicGenerator result navigation", () => {
 
     expect(primaryHeading?.textContent).toContain("选品依据");
     expect(primaryHeading?.textContent).toContain("优先关键词和品牌匹配，并保留 Yami 搜索结果顺序。");
+    expect(primaryHeading?.textContent).toContain("自动恢复");
+    expect(primaryHeading?.textContent).toContain("3 件候选中仅 1 件直接匹配，已使用验证分类恢复为 3 件主商品");
     expect(container.textContent).not.toContain("关键词直接命中 · Yami 排名 #1");
   });
 
@@ -1350,7 +1361,7 @@ describe("TopicGenerator result navigation", () => {
     expect(container.textContent).toContain("assets · passed · 0");
 
     await act(async () => button("自动化流程").click());
-    expect(container.textContent).toContain("等待用户 Review");
+    expect(container.textContent).toContain("生成完成");
     expect(container.textContent).toContain("文案审核");
     expect(container.textContent).toContain("图片本体落盘");
 

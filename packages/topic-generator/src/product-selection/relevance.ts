@@ -83,6 +83,21 @@ function matchesIntent(product: YamiProduct, keyword: string, intent?: ThemeInte
   return matchesKeyword(product, keyword);
 }
 
+function verifiedCategoryContextProducts(
+  products: YamiProduct[],
+  intent?: ThemeIntent,
+) {
+  if (!intent?.categoryHypotheses || intent.categoryHypotheses.length < 2) return [];
+  const categoryIds = new Set(
+    intent.categoryHypotheses.flatMap(({ categoryIds: hypothesisCategoryIds }) =>
+      hypothesisCategoryIds
+    ),
+  );
+  return products.filter((product) =>
+    categoryIds.has(String(product.categoryL3Id ?? ""))
+  );
+}
+
 function weeklySalesLowerBound(product: YamiProduct) {
   const quantity = product.weeklySalesLabel?.match(/[\d,]+/)?.[0];
   if (!quantity) return -1;
@@ -201,7 +216,14 @@ function intentThemeSelection(
 ) {
   const policy = config.themeCollections;
   const intent = snapshot.intent;
-  if (!policy || !intent || intent.decision.status !== "resolved") return null;
+  const hasReviewableCategoryContext = Boolean(
+    intent?.decision.status !== "resolved" &&
+    intent?.categoryHypotheses &&
+    intent.categoryHypotheses.length >= 2,
+  );
+  if (!policy || !intent || (
+    intent.decision.status !== "resolved" && !hasReviewableCategoryContext
+  )) return null;
 
   const categories = intent.categories.flatMap((category) => {
     const categoryProducts = products
@@ -392,7 +414,14 @@ function semanticIntentThemeSelection(
 ) {
   const policy = config.themeCollections;
   const intent = snapshot.intent;
-  if (!policy || !intent || intent.decision.status !== "resolved") return null;
+  const hasReviewableCategoryContext = Boolean(
+    intent?.decision.status !== "resolved" &&
+    intent?.categoryHypotheses &&
+    intent.categoryHypotheses.length >= 2,
+  );
+  if (!policy || !intent || (
+    intent.decision.status !== "resolved" && !hasReviewableCategoryContext
+  )) return null;
 
   const catalogSources: SemanticGroupSource[] = intent.categories.map((category) => ({
     id: `theme-${category.id}`,
@@ -659,10 +688,18 @@ export function selectByRelevance(
     snapshot.intent && snapshot.intent.decision.status !== "resolved",
   );
   const minimumDirectCount = Math.min(6, products.length);
+  const verifiedContextProducts = hasReviewRequiredIntent &&
+      directProducts.length < minimumDirectCount
+    ? verifiedCategoryContextProducts(products, snapshot.intent)
+    : [];
+  const usesVerifiedCategoryContext = verifiedContextProducts.length >= minimumDirectCount;
+  const recoveredPrimarySource = usesVerifiedCategoryContext
+    ? verifiedContextProducts
+    : directProducts;
   const primarySource = hasResolvedIntent
     ? directProducts
     : hasReviewRequiredIntent
-    ? directProducts
+    ? recoveredPrimarySource
     : directProducts.length < minimumDirectCount
     ? products.slice(0, 12)
     : directProducts;
@@ -706,6 +743,15 @@ export function selectByRelevance(
     pools: {
       primaryIds: primary.map((product) => product.id),
       relatedIds: related.map((product) => product.id),
+    },
+    diagnostics: {
+      candidateCount: products.length,
+      directMatchCount: directProducts.length,
+      primaryCount: primary.length,
+      relatedCount: related.length,
+      recoveryStrategy: usesVerifiedCategoryContext
+        ? "verified-category-context"
+        : "none",
     },
     products: [
       ...primary.map((product) => ({ ...product, pool: "primary" as const, role: "core" as const })),

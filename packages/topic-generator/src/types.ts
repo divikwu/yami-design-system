@@ -150,6 +150,14 @@ export interface YamiProduct {
   weeklySalesLabel?: string;
 }
 
+export interface ProductSelectionDiagnostics {
+  candidateCount: number;
+  directMatchCount: number;
+  primaryCount: number;
+  relatedCount: number;
+  recoveryStrategy: "none" | "verified-category-context";
+}
+
 export interface CatalogCoverageProduct extends YamiProduct {
   sellerKind: CatalogSellerKind;
   sellerName: string;
@@ -402,6 +410,7 @@ export interface TopicPagePlan {
     primaryIds: string[];
     relatedIds: string[];
   };
+  selectionDiagnostics?: ProductSelectionDiagnostics;
   catalogCoverage?: CatalogCoverage;
   catalogRefinement?: CatalogRefinementReport;
   products: TopicProduct[];

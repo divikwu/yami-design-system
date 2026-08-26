@@ -60,13 +60,6 @@ function compilePlan(
 export function advanceLandingPageOrchestrationRun(
   request: LandingPageOrchestrationRequest,
 ): LandingPageOrchestrationRun {
-  if (request.intent.decision.status !== "resolved" || request.intent.themeType === "uncertain") {
-    return {
-      schemaVersion: "landing-page-orchestration-run/v1",
-      status: "blocked",
-      issues: ["Landing page orchestration requires a resolved ThemeIntent."],
-    };
-  }
   const keyword = requestKeyword(request);
   if (!keyword) {
     return {

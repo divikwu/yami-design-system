@@ -788,10 +788,10 @@ export function buildTopicPagePlanFromProductSelection(
         ? `${verifiedScenarioCategory.label} and ${primary.length} products confirm the “${snapshot.keyword}” shopping occasion.`
         : `${primary.length} direct matches are ready for module planning.`;
   if (primary.length < 3) {
-    status = "blocked";
+    status = "degraded";
     statusReason = language === "zh"
-      ? "可用商品少于 3 件，无法安全装配页面。"
-      : "Fewer than three usable products were found; the page cannot be assembled safely.";
+      ? "可用商品少于 3 件；已使用有限商品池继续装配，结果需要复核。"
+      : "Fewer than three usable products were found; the page continues with a limited assortment and requires review.";
   } else if (hasWeakIntentEvidence) {
     status = "degraded";
     statusReason = language === "zh"
@@ -942,6 +942,9 @@ export function buildTopicPagePlanFromProductSelection(
       primaryIds: primary.map((product) => product.id),
       relatedIds: related.map((product) => product.id),
     },
+    ...(selection.diagnostics
+      ? { selectionDiagnostics: { ...selection.diagnostics } }
+      : {}),
     ...(snapshot.catalogCoverage ? { catalogCoverage: snapshot.catalogCoverage } : {}),
     ...(snapshot.catalogRefinement ? { catalogRefinement: snapshot.catalogRefinement } : {}),
     products: [...primary, ...related],
@@ -975,7 +978,7 @@ export function buildTopicPagePlanFromProductSelection(
         stage: "06",
         label: language === "zh" ? "执行自动 QA" : "Run automatic QA",
         output: status === "ready"
-          ? language === "zh" ? "等待用户 Review" : "Ready for user review"
+          ? language === "zh" ? "自动 QA 完成" : "Automatic QA complete"
           : statusReason,
       } as const] : []),
     ],

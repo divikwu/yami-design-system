@@ -43,7 +43,7 @@ const PAGE_TYPES: readonly LandingPageTypeConfig[] = [
     id: "landing-page/topic",
     version: 2,
     label: { en: "Topic landing page", zh: "主题落地页" },
-    supportedThemeTypes: ["product"],
+    supportedThemeTypes: ["product", "uncertain"],
     requiresExplicitRequest: false,
     routes: [
       {

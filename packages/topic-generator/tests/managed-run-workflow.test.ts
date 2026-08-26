@@ -2,15 +2,20 @@ import { describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   compileTopicPageGenerationSpec: vi.fn(),
+  compileTopicPageReviewPackage: vi.fn(),
+  runTopicPageQa: vi.fn(),
   runTopicBackgroundEvidenceAgentWorkflow: vi.fn(),
   runTopicContentAgentWorkflow: vi.fn(),
   runTopicPageContentApprovalWorkflow: vi.fn(),
   runPageMerchandisingAgentWorkflow: vi.fn(),
+  runTopicPageReviewAgentWorkflow: vi.fn(),
 }));
 
 vi.mock("../src/page-generation/index.js", async (importOriginal) => ({
   ...await importOriginal<typeof import("../src/page-generation/index.js")>(),
   compileTopicPageGenerationSpec: mocks.compileTopicPageGenerationSpec,
+  compileTopicPageReviewPackage: mocks.compileTopicPageReviewPackage,
+  runTopicPageQa: mocks.runTopicPageQa,
 }));
 
 vi.mock("../src/background-evidence/index.js", async (importOriginal) => ({
@@ -27,6 +32,11 @@ vi.mock("../src/page-content/index.js", async (importOriginal) => ({
 vi.mock("../src/page-merchandising/index.js", async (importOriginal) => ({
   ...await importOriginal<typeof import("../src/page-merchandising/index.js")>(),
   runPageMerchandisingAgentWorkflow: mocks.runPageMerchandisingAgentWorkflow,
+}));
+
+vi.mock("../src/page-review/index.js", async (importOriginal) => ({
+  ...await importOriginal<typeof import("../src/page-review/index.js")>(),
+  runTopicPageReviewAgentWorkflow: mocks.runTopicPageReviewAgentWorkflow,
 }));
 
 import { createTopicGeneratorManagedStageExecutor } from "../src/managed-run/workflow.js";
@@ -160,6 +170,273 @@ describe("Topic Generator managed stage executor", () => {
         },
       },
     });
+  });
+
+  it("keeps background-evidence warnings advisory and continues the managed run", async () => {
+    mocks.runTopicBackgroundEvidenceAgentWorkflow.mockImplementation(async ({ language }) => ({
+      bundle: {
+        language,
+        digest: `sha256:${language}-unavailable`,
+        status: "unavailable",
+        issues: ["Theme intent needs clarification before background research."],
+      },
+      run: {
+        status: "blocked",
+        issues: ["Theme intent needs clarification before background research."],
+      },
+    }));
+    const outputs = {
+      "topic-intent": {
+        analysis: {
+          intent: { id: "ambiguous-intent" },
+          snapshot: { keyword: "Heytea", site: "us" },
+        },
+      },
+    } as const;
+    const execute = createTopicGeneratorManagedStageExecutor({
+      topicPageAgent: { id: "topic-page-agent" },
+      deliverableRenderer: { render: async () => "" },
+    } as never);
+
+    const result = await execute({
+      manifest: { request: { language: "zh" } },
+      state: {},
+      stageId: "background-evidence",
+      attempt: 1,
+      readStageResult: async (stageId: keyof typeof outputs) => outputs[stageId],
+      assetStore: {},
+    } as never);
+
+    expect(result).toMatchObject({
+      status: "completed",
+      issues: [
+        "zh: Theme intent needs clarification before background research.",
+        "en: Theme intent needs clarification before background research.",
+      ],
+      output: {
+        backgroundEvidenceByLanguage: {
+          zh: { status: "unavailable" },
+          en: { status: "unavailable" },
+        },
+      },
+    });
+  });
+
+  it("keeps visual and accessibility QA findings advisory after page generation", async () => {
+    mocks.runTopicPageQa.mockResolvedValue({
+      status: "qa-blocked",
+      digest: "sha256:qa",
+      checks: [
+        { id: "visual-policy", status: "failed", issueCount: 1 },
+        { id: "accessibility-structure", status: "failed", issueCount: 1 },
+      ],
+      issues: ["Generated image composition needs review.", "Hero alt text needs review."],
+    });
+    const outputs = {
+      "topic-intent": { analysis: { intent: { id: "intent" } } },
+      "product-selection": { selection: { id: "selection" } },
+      "module-merchandising": { plan: { digest: "sha256:plan" } },
+      "content-review": { contentSpec: { digest: "sha256:content" } },
+      "asset-persistence": { assetManifest: { digest: "sha256:assets" } },
+      "page-generation": { generationSpec: { digest: "sha256:generation" } },
+    } as const;
+    const execute = createTopicGeneratorManagedStageExecutor({
+      topicPageImageDecoder: { inspect: async () => null },
+      deliverableRenderer: { render: async () => "" },
+    } as never);
+
+    const result = await execute({
+      manifest: { request: { language: "zh" } },
+      state: {},
+      stageId: "automatic-qa",
+      attempt: 1,
+      readStageResult: async (stageId: keyof typeof outputs) => outputs[stageId],
+      assetStore: {},
+    } as never);
+
+    expect(result).toMatchObject({
+      status: "completed",
+      issues: ["Generated image composition needs review.", "Hero alt text needs review."],
+      output: { qaReport: { status: "qa-blocked" } },
+    });
+  });
+
+  it("finishes the generation path when only advisory QA prevents experience review", async () => {
+    const outputs = {
+      "product-selection": {
+        executionPlan: { digest: "sha256:execution" },
+      },
+      "page-generation": {
+        generationSpec: { digest: "sha256:generation" },
+      },
+      "automatic-qa": {
+        qaReport: {
+          status: "qa-blocked",
+          digest: "sha256:qa",
+          checks: [{ id: "visual-policy", status: "failed", issueCount: 1 }],
+          issues: ["Generated image composition needs review."],
+        },
+      },
+    } as const;
+    const execute = createTopicGeneratorManagedStageExecutor({
+      topicPageAgent: { id: "topic-page-agent" },
+      topicPagePreviewResolver: async () => ({ desktop: "/desktop", mobile: "/mobile" }),
+      deliverableRenderer: { render: async () => "" },
+    } as never);
+
+    const result = await execute({
+      manifest: { request: { language: "zh" } },
+      state: {},
+      stageId: "experience-review",
+      attempt: 1,
+      readStageResult: async (stageId: keyof typeof outputs) => outputs[stageId],
+      assetStore: {},
+    } as never);
+
+    expect(result).toMatchObject({
+      status: "completed",
+      issues: ["Generated image composition needs review."],
+      output: {
+        qaAdvisoryIssues: ["Generated image composition needs review."],
+      },
+    });
+  });
+
+  it("keeps an unavailable experience reviewer advisory after hard QA", async () => {
+    const outputs = {
+      "product-selection": {
+        executionPlan: { digest: "sha256:execution" },
+      },
+      "page-generation": {
+        generationSpec: { digest: "sha256:generation" },
+      },
+      "automatic-qa": {
+        qaReport: {
+          status: "passed",
+          digest: "sha256:qa",
+          checks: [],
+          issues: [],
+        },
+      },
+    } as const;
+    const execute = createTopicGeneratorManagedStageExecutor({
+      deliverableRenderer: { render: async () => "" },
+    } as never);
+
+    const result = await execute({
+      manifest: { request: { language: "zh" } },
+      state: {},
+      stageId: "experience-review",
+      attempt: 1,
+      readStageResult: async (stageId: keyof typeof outputs) => outputs[stageId],
+      assetStore: {},
+    } as never);
+
+    expect(result).toMatchObject({
+      status: "completed",
+      issues: ["Experience review was unavailable; hard QA remains authoritative."],
+      output: {
+        reviewAdvisoryIssues: [
+          "Experience review was unavailable; hard QA remains authoritative.",
+        ],
+      },
+    });
+  });
+
+  it("keeps an invalid experience-review proposal advisory after generation", async () => {
+    mocks.runTopicPageReviewAgentWorkflow.mockResolvedValue({
+      run: {
+        status: "blocked",
+        issues: ["Experience review proposal used an unknown evidence ref."],
+      },
+      artifacts: { proposal: { schemaVersion: "invalid-review/v1" } },
+    });
+    const outputs = {
+      "product-selection": {
+        executionPlan: { digest: "sha256:execution" },
+      },
+      "page-generation": {
+        generationSpec: { digest: "sha256:generation" },
+      },
+      "automatic-qa": {
+        qaReport: {
+          status: "passed",
+          digest: "sha256:qa",
+          checks: [],
+          issues: [],
+        },
+      },
+    } as const;
+    const execute = createTopicGeneratorManagedStageExecutor({
+      topicPageAgent: { id: "topic-page-agent" },
+      topicPagePreviewResolver: async () => ({ desktop: "/desktop", mobile: "/mobile" }),
+      deliverableRenderer: { render: async () => "" },
+    } as never);
+
+    const result = await execute({
+      manifest: { request: { language: "zh" } },
+      state: {},
+      stageId: "experience-review",
+      attempt: 1,
+      readStageResult: async (stageId: keyof typeof outputs) => outputs[stageId],
+      assetStore: {},
+    } as never);
+
+    expect(result).toMatchObject({
+      status: "completed",
+      issues: ["Experience review proposal used an unknown evidence ref."],
+      output: {
+        reviewAdvisoryIssues: ["Experience review proposal used an unknown evidence ref."],
+      },
+    });
+  });
+
+  it("continues from a successful experience review directly to automatic finalization", async () => {
+    const decision = {
+      status: "review-recommended",
+      recommendation: "recommend-approval",
+    };
+    mocks.runTopicPageReviewAgentWorkflow.mockResolvedValue({
+      run: { status: "ready", decision },
+      artifacts: { proposal: { schemaVersion: "topic-page-experience-review-proposal/v1" } },
+    });
+    mocks.compileTopicPageReviewPackage.mockReturnValue({
+      status: "review-ready",
+      digest: "sha256:review-package",
+    });
+    const outputs = {
+      "product-selection": { executionPlan: { digest: "sha256:execution" } },
+      "page-generation": { generationSpec: { digest: "sha256:generation" } },
+      "automatic-qa": {
+        qaReport: {
+          status: "passed",
+          digest: "sha256:qa",
+          checks: [],
+          issues: [],
+        },
+      },
+    } as const;
+    const execute = createTopicGeneratorManagedStageExecutor({
+      topicPageAgent: { id: "topic-page-agent" },
+      topicPagePreviewResolver: async () => ({ desktop: "/desktop", mobile: "/mobile" }),
+      deliverableRenderer: { render: async () => "" },
+    } as never);
+
+    const result = await execute({
+      manifest: { request: { language: "zh" } },
+      state: {},
+      stageId: "experience-review",
+      attempt: 1,
+      readStageResult: async (stageId: keyof typeof outputs) => outputs[stageId],
+      assetStore: {},
+    } as never);
+
+    expect(result).toMatchObject({
+      status: "completed",
+      reviewPackageDigest: "sha256:review-package",
+      output: { experienceReview: decision },
+    });
+    expect(result).not.toHaveProperty("runStatus");
   });
 
   it("generates independent Chinese and English content specs in one content-writing stage", async () => {
@@ -381,6 +658,50 @@ describe("Topic Generator managed stage executor", () => {
       name: "page-draft.html",
       stages: expect.objectContaining({
         "page-generation": { generationSpec },
+      }),
+    }));
+  });
+
+  it("automatically finalizes a QA-checked page without waiting for user approval", async () => {
+    const outputs = {
+      "automatic-qa": {
+        qaReport: { status: "passed", digest: "sha256:qa", checks: [], issues: [] },
+      },
+      "experience-review": {
+        reviewPackage: { digest: "sha256:review-package" },
+      },
+    } as const;
+    const render = vi.fn(async () => "<!doctype html><title>Final page</title>");
+    const execute = createTopicGeneratorManagedStageExecutor({
+      deliverableRenderer: { render },
+    } as never);
+
+    const result = await execute({
+      manifest: { request: { language: "zh" } },
+      state: {},
+      stageId: "user-approval",
+      attempt: 1,
+      readStageResult: async (stageId: keyof typeof outputs) => outputs[stageId],
+      assetStore: {},
+    } as never);
+
+    expect(result).toMatchObject({
+      status: "completed",
+      runStatus: "completed",
+      output: {
+        completion: "automatic",
+        qaReportDigest: "sha256:qa",
+        reviewPackageDigest: "sha256:review-package",
+      },
+      deliverables: {
+        "page-final.html": "<!doctype html><title>Final page</title>",
+      },
+    });
+    expect(render).toHaveBeenCalledWith(expect.objectContaining({
+      name: "page-final.html",
+      stages: expect.objectContaining({
+        "automatic-qa": outputs["automatic-qa"],
+        "experience-review": outputs["experience-review"],
       }),
     }));
   });

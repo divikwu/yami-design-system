@@ -111,7 +111,8 @@ pnpm topic-generator:migrate-storage -- \
 ```
 
 运行会按成熟度生成三个内部离线 HTML：背景分析后的 `topic-brief.html`、会随文案与图片阶段持续
-刷新的 `page-draft.html`，以及硬 QA、体验审查和用户批准后的 `page-final.html`。Workbench
+刷新的 `page-draft.html`，以及资产持久化、页面装配和完整性 QA 完成后自动生成的
+`page-final.html`。体验审查只提供建议，不阻碍自动定稿。Workbench
 提供一个用户可见的“下载主题包”入口，包含 `README.html`、英中两份独立预览、Topic Brief、
 共享运行时与按摘要去重的媒体；主题包不会包含阶段内部数据，也不会重复内嵌同一媒体。完整运行
 归档 API 仍保留 `run.json`、`state.json`、阶段结果、原始 deliverable 路径、资产和校验清单，
@@ -351,11 +352,10 @@ MIME、尺寸与比例、SHA-256、焦点、背景色和 alt text 模式，成�
 核心包不内置模型、图片 Provider SDK 或来源图合成器。若宿主没有当前模式要求的媒体能力，
 Visual Agent 必须停止，不能伪造图片或元数据。场景任务会给出非阻断的构图建议，帮助避让
 底部叠加文案，但不会因偏离建议而单独阻断。自动 Host 会继续读取图片本体、编译 `topic-page-generation-spec/v1`，并
-执行来源绑定、模块、文案、图片字节和可访问性结构硬 QA。硬 QA 通过后，Review Agent 只能
-建议进入用户 Review 或输出带回退阶段的问题；只有 `review-recommended` 才生成
-`topic-page-review-package/v1` `review-ready`。07 用户审批会绑定当前任务与 ReviewPackage
-摘要；要求修改会创建新任务并重新执行下游 QA。08 只确认本地发布门禁，外部发布仍需要明确
-Adapter 与授权。
+执行来源绑定、模块、文案、图片字节和可访问性结构硬 QA。完整性 QA 完成后，可选的 Review
+Agent 只记录不阻碍生成的体验建议；有效结果可生成 `topic-page-review-package/v1`
+`review-ready`，不可用或无效的评审则保留 warning。随后系统自动生成 `page-final.html` 和完成
+记录。外部发布不属于 Topic Generator 的自动完成流程，仍需要明确 Adapter 与授权。
 
 ## Agent 提案
 

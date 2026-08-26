@@ -357,6 +357,41 @@ describe("managed run API routes", () => {
     expect(readme).toContain("Product images require an internet connection");
   });
 
+  it("packages the final renderer output after automatic completion", async () => {
+    const run = await runtime.current.store.create(runRequest());
+    for (let index = 0; index < 12; index += 1) {
+      await runtime.current.store.advanceRun(run.manifest.runId, {
+        requestId: `automatic-package-stage-${index}`,
+        execute: async ({ stageId }) => ({
+          status: "completed",
+          output: { stageId },
+          ...(stageId === "user-approval" ? { runStatus: "completed" as const } : {}),
+          ...(stageId === "topic-intent"
+            ? { deliverables: { "topic-brief.html": "<!doctype html><title>Brief</title>" } }
+            : {}),
+          ...(stageId === "user-approval"
+            ? { deliverables: { "page-final.html": "<!doctype html><title>Final</title>" } }
+            : {}),
+        }),
+      });
+    }
+    const render = vi.fn(async ({ name, outputLanguage }) =>
+      `<!doctype html><html lang="${outputLanguage}"><head><style></style></head><body data-deliverable="${name}"><script id="topic-generator-offline-media" type="application/json">[]</script><script id="topic-generator-offline-payload" type="application/json">{}</script><script type="module"></script></body></html>`
+    );
+    runtime.current.renderer = { render };
+
+    const response = await downloadRunArchive(
+      new Request("http://localhost/archive?type=preview"),
+      { params: Promise.resolve({ runId: run.manifest.runId }) },
+    );
+
+    expect(response.status).toBe(200);
+    expect(render.mock.calls.map(([request]) => request.name)).toEqual([
+      "page-final.html",
+      "page-final.html",
+    ]);
+  });
+
   it("refreshes and persists stale deliverables once when a historical run is loaded", async () => {
     const run = await runtime.current.store.create(runRequest());
     for (let index = 0; index <= 8; index += 1) {

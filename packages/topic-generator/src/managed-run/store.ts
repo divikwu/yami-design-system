@@ -1138,11 +1138,11 @@ export class TopicGeneratorRunStore {
         ({ requestId }) => requestId === options.requestId,
       );
       if (processed) return this.read(runId);
-      if (run.state.status === "completed" || run.state.status === "awaiting-approval") {
+      if (run.state.status === "completed") {
         return run;
       }
       const stageId = run.state.nextStage;
-      if (!stageId || stageId === "user-approval") {
+      if (!stageId) {
         return run;
       }
       const stage = run.state.stages.find(({ id }) => id === stageId)!;

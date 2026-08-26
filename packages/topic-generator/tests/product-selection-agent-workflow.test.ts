@@ -140,6 +140,51 @@ describe("ProductSelection Agent workflow", () => {
     });
   });
 
+  it("uses deterministic relevance when repaired product semantics remain invalid", async () => {
+    const products = Array.from({ length: 12 }, (_, index) => ({
+      id: `matcha-${index + 1}`,
+      title: `Matcha product ${index + 1}`,
+      brand: "Matcha brand",
+      price: "$9.99",
+      imageUrl: `https://example.com/matcha-${index + 1}.webp`,
+      productUrl: `https://example.com/matcha-${index + 1}`,
+      sourceRank: index + 1,
+      categoryL3Id: 1691,
+      categoryL3Name: "Matcha",
+    }));
+    const proposeProductSemantics = vi.fn(async () => ({
+      schemaVersion: "invalid-product-semantics/v1",
+    }));
+
+    const result = await runProductSelectionAgentWorkflow({
+      snapshot: {
+        keyword: "Matcha",
+        site: "us",
+        sourceUrl: "https://example.com/search?q=Matcha",
+        fetchedAt: "2026-08-20T00:00:00.000Z",
+        products,
+      },
+      strategyRef: "relevance/intent-themes@5",
+      language: "en",
+      candidateAdapter: { id: "unused", search: vi.fn() },
+      agent: {
+        id: "fixture-agent",
+        proposeProductSemantics,
+        proposeCategoryRoles: vi.fn(),
+        proposeScenes: vi.fn(),
+      },
+    });
+
+    expect(proposeProductSemantics).toHaveBeenCalledTimes(2);
+    expect(result).toMatchObject({
+      run: { status: "ready" },
+      artifacts: {
+        productSemanticFallbackUsed: true,
+        productSemanticProposalReview: { status: "rejected" },
+      },
+    });
+  });
+
   it("runs the Matcha CategoryRole flow through two bounded Agent proposals", async () => {
     const { snapshot, taxonomySnapshot } = fixture();
     const queries: CatalogCandidateQuery[] = [];

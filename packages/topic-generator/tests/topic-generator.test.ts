@@ -427,6 +427,141 @@ describe("TOPIC GENERATOR Yami search provider", () => {
     });
   });
 
+  it("recovers exact brand evidence from consistent products when aggregation omits it", () => {
+    const result = parseYamiCatalogResponse("Heytea", {
+      messageId: "10000",
+      body: {
+        brandAgg: [{
+          brand_id: 999,
+          brand_ename: "Unrelated Brand",
+          result_count: 0,
+        }],
+        categoryAgg: [{
+          category_id: 3,
+          category_name: "茶饮冲调",
+          category_ename: "Tea & Beverages",
+          children: [{
+            category_id: 301,
+            category_name: "速溶茶",
+            category_ename: "Instant Tea & Concentrate",
+            result_count: 3,
+            children: [],
+          }],
+        }],
+        items: Array.from({ length: 3 }, (_, index) => ({
+          item_number: `heytea-${index}`,
+          goods_ename: `HEYTEA Fruit Tea ${index}`,
+          brand_id: 7535,
+          brand_ename: "HEYTEA",
+          category_l1_id: 3,
+          category_l3_id: 301,
+          image_url: `/item/heytea-${index}_0x0.webp`,
+          slug: `heytea-fruit-tea-${index}`,
+          status: "A",
+          goods_number: 8,
+        })),
+      },
+    });
+
+    expect(result.snapshot.evidence?.brands).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: "7535",
+        label: "HEYTEA",
+        resultCount: 3,
+      }),
+    ]));
+    expect(result.intent).toMatchObject({
+      themeType: "brand",
+      entityType: "brand",
+      canonicalEntity: { id: "7535", label: "HEYTEA" },
+      decision: { status: "resolved" },
+    });
+  });
+
+  it("preserves product-derived brand evidence after category narrowing", async () => {
+    const broadItems = Array.from({ length: 12 }, (_, index) => ({
+      item_number: `broad-${index}`,
+      goods_ename: `Heytea style tea ${index}`,
+      brand_id: 9000 + index,
+      brand_ename: `Generic Tea ${index}`,
+      category_l1_id: 3,
+      category_l3_id: 301,
+      image_url: `/item/broad-${index}.webp`,
+      slug: `heytea-style-tea-${index}`,
+      status: "A",
+      goods_number: 8,
+    }));
+    const narrowedItems = Array.from({ length: 3 }, (_, index) => ({
+      item_number: `heytea-${index}`,
+      goods_ename: `HEYTEA Fruit Tea ${index}`,
+      brand_id: 7535,
+      brand_ename: "HEYTEA",
+      category_l1_id: 3,
+      category_l3_id: 301,
+      image_url: `/item/heytea-${index}.webp`,
+      slug: `heytea-fruit-tea-${index}`,
+      status: "A",
+      goods_number: 8,
+    }));
+    const categoryAgg = [{
+      category_id: 3,
+      category_name: "茶饮冲调",
+      category_ename: "Tea & Beverages",
+      children: [{
+        category_id: 301,
+        category_name: "速溶茶",
+        category_ename: "Instant Tea & Concentrate",
+        result_count: 12,
+        children: [],
+      }],
+    }];
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          messageId: "10000",
+          body: { categoryAgg, brandAgg: [], items: broadItems },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          messageId: "10000",
+          body: {
+            categoryAgg,
+            brandAgg: [],
+            items: [
+              ...narrowedItems,
+              {
+                item_number: "generic-tea",
+                goods_ename: "Generic Tea Recommendation",
+                brand_id: 999,
+                brand_ename: "Generic Tea",
+                category_l1_id: 3,
+                category_l3_id: 301,
+                image_url: "/item/generic-tea.webp",
+                slug: "generic-tea",
+                status: "A",
+                goods_number: 8,
+              },
+            ],
+          },
+        }),
+      });
+    vi.stubGlobal("fetch", fetchMock);
+
+    try {
+      const result = await searchYamiCatalog("Heytea");
+      expect(result.intent).toMatchObject({
+        themeType: "brand",
+        canonicalEntity: { id: "7535", label: "HEYTEA" },
+        decision: { status: "resolved" },
+      });
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("uses an exact catalog category as the canonical product intent", () => {
     const result = parseYamiCatalogResponse("matcha", {
       messageId: "10000",
@@ -1238,6 +1373,16 @@ describe("Topic page planner", () => {
       "Catalog is fixed to Yami United States; site is never inferred by the planner.",
     );
     expect(plan.selectionStrategy.id).toBe("relevance");
+  });
+
+  it("degrades instead of blocking when fewer than three usable products exist", () => {
+    const plan = buildTopicPagePlan(snapshot(products.slice(0, 2)), "relevance");
+
+    expect(plan).toMatchObject({
+      status: "degraded",
+      pools: { primaryIds: ["1", "2"] },
+    });
+    expect(plan.statusReason).toContain("Fewer than three usable products");
   });
 
   it("keeps the top-ranked Hero candidate and skips exact duplicate source images", () => {

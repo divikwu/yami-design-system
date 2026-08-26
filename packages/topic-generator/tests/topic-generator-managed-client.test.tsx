@@ -158,12 +158,12 @@ describe("Topic Generator managed generation progress", () => {
     expect(managedGenerationProgressSteps("experience-review", "zh")).toEqual([
       "检查桌面端与移动端真实页面预览",
       "复核层级、可读性与购物决策",
-      "保留质量建议并继续进入用户审核",
+      "保留质量建议并继续自动定稿",
     ]);
     expect(managedGenerationProgressSteps("user-approval", "zh")).toEqual([
-      "校验当前评审包与确认摘要",
+      "校验页面生成结果与完整性摘要",
       "渲染可离线打开的最终页面",
-      "写入确认记录与可下载产物",
+      "写入自动完成记录与可下载产物",
     ]);
   });
 });
@@ -335,6 +335,94 @@ describe("Topic Generator managed run loading", () => {
       "Image generation complete",
       "Page generated",
     ]);
+  });
+
+  it("automatically finalizes a legacy awaiting-approval run without an approval control", async () => {
+    const awaiting = v2Detail("matcha-awaiting-finalization", {
+      status: "awaiting-approval",
+      nextStage: "user-approval",
+      completedThrough: "experience-review",
+    });
+    const completedBase = v2Detail("matcha-awaiting-finalization", {
+      status: "completed",
+      nextStage: null,
+      completedThrough: "user-approval",
+    });
+    const completedDeliverables = completedBase.state.deliverables.map((deliverable) =>
+      deliverable.name === "page-final.html"
+        ? {
+            ...deliverable,
+            status: "ready" as const,
+            sha256: "f".repeat(64),
+            bytes: 1024,
+            generatedAt: "2026-08-21T01:00:00.000Z",
+          }
+        : deliverable
+    );
+    const completed = {
+      ...completedBase,
+      state: { ...completedBase.state, deliverables: completedDeliverables },
+      summary: { ...completedBase.summary, deliverables: completedDeliverables },
+    };
+    let advanceCalls = 0;
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
+      const url = String(input);
+      if (url.endsWith("/runs?limit=100") && init?.method === undefined) {
+        return Response.json({
+          schemaVersion: "topic-generator-run-list/v1",
+          items: [awaiting.summary],
+          nextCursor: null,
+        });
+      }
+      if (url.endsWith("/runs/matcha-awaiting-finalization") && init?.method === undefined) {
+        return Response.json(awaiting);
+      }
+      if (url.endsWith("/runs/matcha-awaiting-finalization/advance") &&
+          init?.method === "POST") {
+        advanceCalls += 1;
+        return Response.json({ detail: completed });
+      }
+      throw new Error(`Unexpected ${init?.method ?? "GET"} ${url}`);
+    });
+
+    await act(async () => {
+      root.render(<TopicGenerator managedRunApiBase="/api/topic-generator" />);
+      await Promise.resolve();
+    });
+    await act(async () => {
+      container.querySelector<HTMLInputElement>(
+        'input[name="topic-source"][value="load"]',
+      )!.click();
+    });
+    await act(async () => {
+      [...container.querySelectorAll<HTMLButtonElement>("button")]
+        .find((button) => button.textContent === "加载主题")!.click();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    const dialog = container.querySelector<HTMLDialogElement>(
+      "#topic-generator-managed-run-picker",
+    )!;
+    await act(async () => {
+      [...dialog.querySelectorAll<HTMLButtonElement>("button")]
+        .find((button) => button.textContent === "加载")!.click();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(container.textContent).not.toContain("批准最终页面");
+    const generatePage = [...container.querySelectorAll<HTMLButtonElement>("button")]
+      .find((button) => button.textContent === "生成页面")!;
+    await act(async () => {
+      generatePage.click();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(advanceCalls).toBe(1);
+    expect(container.querySelector<HTMLAnchorElement>(
+      'a[download="matcha-awaiting-finalization-page-final.html"]',
+    )).toBeNull();
+    expect([...container.querySelectorAll<HTMLButtonElement>("button")]
+      .filter((button) => button.textContent === "下载主题包")).toHaveLength(1);
   });
 
   it("lists, loads, and safely deletes one selected managed topic", async () => {
@@ -983,9 +1071,9 @@ describe("Topic Generator managed run loading", () => {
       })),
     }, "selection");
     const base = v2Detail(bilingualRunId, {
-      status: "awaiting-approval",
-      nextStage: "user-approval",
-      completedThrough: "experience-review",
+      status: "completed",
+      nextStage: null,
+      completedThrough: "user-approval",
     });
     const deliverables = base.state.deliverables.map((deliverable) =>
       deliverable.name === "page-draft.html"
@@ -1335,12 +1423,9 @@ describe("Topic Generator managed run loading", () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      const finalPageDownload = container.querySelector<HTMLAnchorElement>(
+      expect(container.querySelector<HTMLAnchorElement>(
         `a[download="${completedRunId}-page-final.html"]`,
-      );
-      expect(finalPageDownload?.getAttribute("href")).toBe(
-        `/api/topic-generator/runs/${completedRunId}/deliverables/page-final.html`,
-      );
+      )).toBeNull();
 
       const action = [...container.querySelectorAll<HTMLButtonElement>("button")]
         .find((button) => button.textContent === actionLabel)!;

@@ -144,11 +144,13 @@ export interface AutomaticQaStageOutput {
 }
 
 export interface ExperienceReviewStageOutput {
-  experienceReview: Extract<
+  experienceReview?: Extract<
     Awaited<ReturnType<typeof runTopicPageReviewAgentWorkflow>>["run"],
     { status: "ready" }
   >["decision"];
-  reviewPackage: ReturnType<typeof compileTopicPageReviewPackage>;
+  reviewPackage?: ReturnType<typeof compileTopicPageReviewPackage>;
+  qaAdvisoryIssues?: string[];
+  reviewAdvisoryIssues?: string[];
 }
 
 export interface TopicGeneratorDeliverableRenderRequest {
@@ -168,6 +170,12 @@ export interface TopicGeneratorManagedRuntimeOptions extends HandleTopicGenerato
 
 function blocked(output: unknown, issues: string[]): TopicGeneratorStageExecutionResult {
   return { status: "blocked", output, issues: [...new Set(issues)] };
+}
+
+function qaHasIntegrityFailure(qaReport: AutomaticQaStageOutput["qaReport"]) {
+  return qaReport.checks.some(({ id, status }) =>
+    status === "failed" && ["sources", "bindings", "modules", "assets"].includes(id)
+  );
 }
 
 function required<T>(value: unknown, label: string): T {
@@ -366,7 +374,7 @@ async function backgroundEvidenceStage(
         .map((issue) => `${language}: ${issue}`)
   );
   return {
-    status: blockedIssues.length > 0 ? "blocked" : "completed",
+    status: "completed",
     request: {
       themeIntentDigest: backgroundEvidence.themeIntentDigest,
       language: manifest.request.language,
@@ -985,20 +993,19 @@ async function automaticQaStage(
     imageDecoder: options.topicPageImageDecoder,
   });
   const output: AutomaticQaStageOutput = { qaReport };
-  return qaReport.status === "passed"
-    ? { status: "completed", request: { generationSpecDigest: generationOutput.generationSpec.digest }, output }
-    : blocked(output, qaReport.issues);
+  if (qaHasIntegrityFailure(qaReport)) return blocked(output, qaReport.issues);
+  return {
+    status: "completed",
+    request: { generationSpecDigest: generationOutput.generationSpec.digest },
+    output,
+    ...(qaReport.issues.length > 0 ? { issues: qaReport.issues } : {}),
+  };
 }
 
 async function experienceReviewStage(
   readStageResult: (stageId: TopicGeneratorRunStageId) => Promise<unknown | undefined>,
   options: TopicGeneratorManagedRuntimeOptions,
 ): Promise<TopicGeneratorStageExecutionResult> {
-  if (!options.topicPageAgent || !options.topicPagePreviewResolver) {
-    return blocked(null, [
-      "Experience review requires the Topic Page Agent and preview resolver.",
-    ]);
-  }
   const selectionOutput = required<ProductSelectionStageOutput>(
     await readStageResult("product-selection"),
     "Product selection stage",
@@ -1012,11 +1019,41 @@ async function experienceReviewStage(
     "Automatic QA stage",
   );
   if (qaOutput.qaReport.status !== "passed") {
-    return blocked(qaOutput, qaOutput.qaReport.issues);
+    if (qaHasIntegrityFailure(qaOutput.qaReport)) {
+      return blocked(qaOutput, qaOutput.qaReport.issues);
+    }
+    const output: ExperienceReviewStageOutput = {
+      qaAdvisoryIssues: [...qaOutput.qaReport.issues],
+    };
+    return {
+      status: "completed",
+      request: {
+        executionPlanDigest: selectionOutput.executionPlan.digest,
+        generationSpecDigest: generationOutput.generationSpec.digest,
+        qaReportDigest: qaOutput.qaReport.digest,
+      },
+      output,
+      issues: [...qaOutput.qaReport.issues],
+    };
   }
   const passedQaReport = qaOutput.qaReport as AutomaticQaStageOutput["qaReport"] & {
     status: "passed";
   };
+  if (!options.topicPageAgent || !options.topicPagePreviewResolver) {
+    const issues = [
+      "Experience review was unavailable; hard QA remains authoritative.",
+    ];
+    return {
+      status: "completed",
+      request: {
+        executionPlanDigest: selectionOutput.executionPlan.digest,
+        generationSpecDigest: generationOutput.generationSpec.digest,
+        qaReportDigest: passedQaReport.digest,
+      },
+      output: { reviewAdvisoryIssues: issues } satisfies ExperienceReviewStageOutput,
+      issues,
+    };
+  }
   const previewRefs = await options.topicPagePreviewResolver({
     executionPlan: selectionOutput.executionPlan,
     generationSpec: generationOutput.generationSpec,
@@ -1030,18 +1067,37 @@ async function experienceReviewStage(
     agent: options.topicPageAgent,
   });
   if (workflow.run.status !== "ready") {
-    return blocked(
-      { reviewRun: workflow.run },
-      workflow.run.status === "blocked"
-        ? workflow.run.issues
-        : ["Experience Review Agent returned no proposal."],
-    );
+    const issues = workflow.run.status === "blocked"
+      ? workflow.run.issues
+      : ["Experience Review Agent returned no proposal."];
+    return {
+      status: "completed",
+      request: {
+        executionPlanDigest: selectionOutput.executionPlan.digest,
+        generationSpecDigest: generationOutput.generationSpec.digest,
+        qaReportDigest: qaOutput.qaReport.digest,
+      },
+      proposal: workflow.artifacts.proposal ?? null,
+      output: { reviewAdvisoryIssues: [...issues] } satisfies ExperienceReviewStageOutput,
+      issues,
+    };
   }
   if (workflow.run.decision.status === "revision-requested") {
-    return blocked(
-      { experienceReview: workflow.run.decision },
-      workflow.run.decision.issues.map(({ message }) => message),
-    );
+    const issues = workflow.run.decision.issues.map(({ message }) => message);
+    return {
+      status: "completed",
+      request: {
+        executionPlanDigest: selectionOutput.executionPlan.digest,
+        generationSpecDigest: generationOutput.generationSpec.digest,
+        qaReportDigest: qaOutput.qaReport.digest,
+      },
+      proposal: workflow.artifacts.proposal ?? null,
+      output: {
+        experienceReview: workflow.run.decision,
+        reviewAdvisoryIssues: [...issues],
+      } satisfies ExperienceReviewStageOutput,
+      issues,
+    };
   }
   const reviewPackage = compileTopicPageReviewPackage({
     executionPlan: selectionOutput.executionPlan,
@@ -1063,8 +1119,40 @@ async function experienceReviewStage(
     },
     proposal: workflow.artifacts.proposal ?? null,
     output,
-    runStatus: "awaiting-approval",
     reviewPackageDigest: reviewPackage.digest,
+  };
+}
+
+async function automaticFinalizationStage(
+  manifest: TopicGeneratorRunManifestV2,
+  readStageResult: (stageId: TopicGeneratorRunStageId) => Promise<unknown | undefined>,
+  options: TopicGeneratorManagedRuntimeOptions,
+): Promise<TopicGeneratorStageExecutionResult> {
+  const qaOutput = required<AutomaticQaStageOutput>(
+    await readStageResult("automatic-qa"),
+    "Automatic QA stage",
+  );
+  if (qaHasIntegrityFailure(qaOutput.qaReport)) {
+    return blocked(qaOutput, qaOutput.qaReport.issues);
+  }
+  const reviewOutput = required<ExperienceReviewStageOutput>(
+    await readStageResult("experience-review"),
+    "Experience review stage",
+  );
+  const html = await options.deliverableRenderer.render({
+    name: "page-final.html",
+    manifest,
+    stages: await stageOutputs(readStageResult, "user-approval"),
+  });
+  return {
+    status: "completed",
+    runStatus: "completed",
+    output: {
+      completion: "automatic",
+      qaReportDigest: qaOutput.qaReport.digest,
+      reviewPackageDigest: reviewOutput.reviewPackage?.digest ?? null,
+    },
+    deliverables: { "page-final.html": html },
   };
 }
 
@@ -1096,7 +1184,7 @@ export function createTopicGeneratorManagedStageExecutor(
       case "experience-review":
         return experienceReviewStage(readStageResult, options);
       case "user-approval":
-        return blocked(null, ["User approval must be submitted through the review API."]);
+        return automaticFinalizationStage(manifest, readStageResult, options);
     }
   };
 }
