@@ -253,7 +253,7 @@ describe("Topic Page Agent HTTP contract", () => {
     ]);
   });
 
-  it("identifies the failed task in a split visual request", async () => {
+  it("keeps successful visual tasks when another split request fails", async () => {
     const agent = createHttpTopicPageAgent({
       id: "topic-page-agent",
       endpoint: "http://127.0.0.1:4400/topic-page",
@@ -289,10 +289,14 @@ describe("Topic Page Agent HTTP contract", () => {
       },
     };
 
-    await expect(agent.generatePageVisuals(run as never)).rejects.toMatchObject({
-      name: "HttpTopicPageAgentError",
-      stage: "visual-generation",
-      message: 'Visual task "asset-shortcuts-1" failed: Topic Page Agent request failed: fetch failed',
+    await expect(agent.generatePageVisuals(run as never)).resolves.toMatchObject({
+      proposal: {
+        assets: [{ taskId: "asset-hero" }],
+      },
+      assets: [{ taskId: "asset-hero" }],
+      issues: [
+        'Visual task "asset-shortcuts-1" was skipped: Topic Page Agent request failed: fetch failed',
+      ],
     });
   });
 

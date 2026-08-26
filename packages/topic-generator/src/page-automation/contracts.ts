@@ -112,7 +112,7 @@ export type TopicPageAutomationRun =
       status: "ready";
       stage: "review-ready";
       stages: TopicPageAutomationStage[];
-      issues: [];
+      issues: string[];
       executionPlan: LandingPageExecutionPlan;
       plan: TopicPagePlanV2;
       contentAttempt?: TopicPageContentAttemptArtifact;
@@ -122,8 +122,8 @@ export type TopicPageAutomationRun =
       assetManifest: TopicPageAssetManifest;
       generationSpec: TopicPageGenerationSpec;
       qaReport: TopicPageQaReport & { status: "passed" };
-      experienceReview: TopicPageExperienceReviewDecision & { status: "review-recommended" };
-      reviewPackage: TopicPageReviewPackage;
+      experienceReview?: TopicPageExperienceReviewDecision;
+      reviewPackage?: TopicPageReviewPackage;
     })
   | ({
       schemaVersion: "topic-page-automation-run/v1";

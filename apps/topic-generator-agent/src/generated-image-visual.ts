@@ -186,15 +186,9 @@ function visualTask(value: unknown, index: number): GeneratedVisualTask {
   if (kind === "shortcut-image" &&
       (parsedBrief.priority !== "product-first" ||
         parsedBrief.productRole !== "primary-subject" ||
-        products.length !== 1 || !products[0]?.imageUrl)) {
+        products.length !== 1)) {
     throw new Error(
-      `Visual task ${taskId} requires one source-backed product-first shortcut subject.`,
-    );
-  }
-  if (kind === "hero-image" &&
-      (products.length === 0 || products.some(({ imageUrl }) => !imageUrl))) {
-    throw new Error(
-      `Visual task ${taskId} requires source-backed products for Hero scene generation.`,
+      `Visual task ${taskId} requires one product-first shortcut subject.`,
     );
   }
   if (kind !== "shortcut-image" &&
@@ -330,7 +324,8 @@ function artDirection(context: GeneratedVisualContext, task: GeneratedVisualTask
     `Needs and conditions: ${compactList([...brief.theme.needs, ...brief.theme.conditions])}.`,
     "Scene, environment, activity, and atmosphere must be the primary visual subject.",
     "Assigned products are semantic references only and do not need to appear.",
-    "Show no bottles, jars, tubes, pumps, droppers, sachets, or boxes; use only environmental and activity props.",
+    "Environmental vessels and category-relevant containers may appear when they support the scene.",
+    "Avoid isolated or fabricated product packaging, labels, logos, and claims.",
     "Use realistic materials, natural light, credible scale, and a calm product-first YAMI tone.",
     "Use a wide lifestyle-category atmosphere without inventing brand artwork.",
   ].filter(Boolean).join(" ");
@@ -342,12 +337,6 @@ const SCENE_NEGATIVE_PROMPT = [
   "product montage",
   "shelf lineup",
   "generated packaging",
-  "cosmetic bottles",
-  "cosmetic jars",
-  "cosmetic tubes",
-  "droppers",
-  "sachets",
-  "product boxes",
   "labels",
   "logos",
   "brand marks",
@@ -602,7 +591,7 @@ ${heroGenerative
     ? "The attached representative product image is a visual reference for one product-led lifestyle scene. Favor one clear product subject near the center with safe margin for circular cropping, while keeping the environment secondary. Reproduce its source packaging as faithfully as the image model allows, including visible brand name and logo, key label text, typography hierarchy, layout, colors, silhouette, closure, and material; never replace it with blank or generic packaging. Copy only packaging text visible in the reference and do not invent claims. Packaging fidelity remains a generation priority rather than an acceptance gate."
     : editorialScene
     ? "The attached current-scene product images are optional visual references for one complete ThemeProductList lifestyle scene; a product-free result is valid. For every referenced product that appears, reproduce its source packaging as faithfully as the image model allows, including visible brand name and logo, key label text, typography hierarchy, layout, colors, silhouette, closure, and material; never replace it with blank or generic packaging. Copy only packaging text visible in the references and do not invent claims. Do not enforce exact product quantity or one-to-one placement; packaging fidelity remains a strong generation priority rather than an acceptance gate. Regenerate products and environment together so lighting, shadows, depth, and materials feel native to one photograph. Do not copy source backdrops, swatches, discs, badges, white canvases, or studio props. Preserve the upper-right action area and quiet lower-left copy-safe area across centered wide and card crops, and do not bake text, a gradient, a text panel, or a scrim into the image."
-    : "Scene and module-theme fidelity are the primary criteria; assigned products are reference-only. Create exactly one realistic image for the declared aspect ratio. Do not create an isolated product packshot, tiled product grid, shelf lineup, or product montage. Show no bottles, jars, tubes, pumps, droppers, sachets, or boxes, even when blank or unbranded. Use environmental, material, activity, and atmosphere cues instead. Do not render packaging, labels, logos, claims, watermarks, or readable text."}
+    : "Scene and module-theme fidelity are the primary criteria; assigned products are reference-only. Create exactly one realistic image for the declared aspect ratio. Do not create an isolated product packshot, tiled product grid, shelf lineup, or product montage. Environmental vessels and category-relevant containers may appear when they support the scene. Avoid fabricated product packaging, labels, logos, claims, watermarks, or readable text."}
 Save the generated image as exactly "${outputFilename}" inside the current working directory. Do not leave the only copy outside the working directory.
 ${heroGenerative
     ? "Do not perform visual rejection for the Hero. If the image file was saved, return status accepted regardless of product count, source-image selection, composition, label differences, or packaging fidelity. Do not retry inside this Agent task; the Host owns the single bounded technical retry."
@@ -610,7 +599,7 @@ ${heroGenerative
     ? "Do not perform semantic visual rejection for the Shortcut. If the image file was saved, return status accepted; product identity, placement, packaging, and composition are soft guidance. Do not retry inside this Agent task; the Host owns bounded technical retries."
     : editorialScene
     ? "Do not perform semantic visual rejection for the ThemeProductList scene. If the image file was saved, return status accepted; composition and product-reference usage are soft guidance. Do not retry inside this Agent task; the Host owns only bounded technical retries."
-    : "Inspect the generated image once before accepting it. Reject any violation of the scene-first Skill contract. Do not retry inside this Agent task; the Host owns the single bounded retry."}
+    : "Do not perform semantic visual rejection. If the image file was saved, return status accepted; scene fidelity, container choice, packaging, and composition are soft guidance. Do not retry inside this Agent task; the Host owns bounded technical retries."}
 Return one JSON object only, with schemaVersion "topic-page-native-image-task-result/v1", the exact taskId, status "accepted" or "rejected", relativePath "${outputFilename}", scenePrompt containing the concise scene prompt actually used, and an issues string array. Do not use Markdown.
 
 <untrusted-art-direction-json>
@@ -633,7 +622,8 @@ export function parseNativeImageTaskResult(
       (result.status !== "accepted" && result.status !== "rejected")) {
     throw new Error(`Native image generation returned an invalid result for ${taskId}.`);
   }
-  if (result.status !== "accepted" && !options.acceptRejected) {
+  const acceptRejected = options.acceptRejected ?? true;
+  if (result.status !== "accepted" && !acceptRejected) {
     throw new Error(
       `Native image inspection rejected ${taskId}${issues.length ? `: ${issues.join("; ")}` : "."}`,
     );
@@ -762,12 +752,15 @@ export async function compileGeneratedImageVisualResponse(
       : task.kind === "scene-image"
       ? task.products.filter(({ imageUrl }) => Boolean(imageUrl)).slice(0, 3)
       : [];
+    const shortcutReferenceImageUrl = task.kind === "shortcut-image"
+      ? task.products[0]?.imageUrl
+      : undefined;
     const request = {
       task,
       prompt,
       outputFilename,
-      ...(task.kind === "shortcut-image"
-        ? { referenceImageUrl: task.products[0]!.imageUrl }
+      ...(shortcutReferenceImageUrl
+        ? { referenceImageUrl: shortcutReferenceImageUrl }
         : task.kind === "hero-image" || task.kind === "scene-image"
           ? {
               referenceImageUrls: attachedProducts
@@ -804,7 +797,7 @@ export async function compileGeneratedImageVisualResponse(
         lastError = error;
       }
     }
-    if (!normalized && options.fallback) {
+    if (!normalized && options.fallback && task.kind === "shortcut-image") {
       const output = await options.fallback(request, lastError);
       const bytes = Buffer.isBuffer(output) ? output : output.bytes;
       generatedScenePrompt = Buffer.isBuffer(output) ? undefined : output.scenePrompt;
@@ -817,10 +810,9 @@ export async function compileGeneratedImageVisualResponse(
     }
     if (!normalized) {
       const message = lastError instanceof Error ? lastError.message : "Unknown image error.";
-      throw new Error(
-        `Image generation failed for ${task.taskId} after ${taskAttempts} attempts: ${message}`,
-        { cause: lastError },
-      );
+      return {
+        issue: `Image generation skipped ${task.taskId} after ${taskAttempts} attempts: ${message}`,
+      };
     }
     const taskDurationMs = Date.now() - taskStartedAt;
     const ref = `assets/generated/${String(index + 1).padStart(2, "0")}-${safeTaskName(task.taskId)}.webp`;
@@ -872,6 +864,11 @@ export async function compileGeneratedImageVisualResponse(
       },
     };
   });
+  const completed = generated.filter((result): result is Extract<
+    (typeof generated)[number],
+    { proposal: unknown }
+  > => "proposal" in result);
+  const issues = generated.flatMap((result) => "issue" in result ? [result.issue] : []);
   return {
     schemaVersion: "topic-page-agent-response/v1" as const,
     stage: "visual-generation" as const,
@@ -885,8 +882,9 @@ export async function compileGeneratedImageVisualResponse(
       themeIntentDigest: context.themeIntentDigest,
       productSelectionDigest: context.productSelectionDigest,
       productionMode: context.productionMode,
-      assets: generated.map(({ proposal }) => proposal),
+      assets: completed.map(({ proposal }) => proposal),
     },
-    assets: generated.map(({ body }) => body),
+    assets: completed.map(({ body }) => body),
+    ...(issues.length > 0 ? { issues } : {}),
   };
 }

@@ -9,9 +9,12 @@ import type {
 import { reviewTopicBackgroundEvidenceBundle } from "../background-evidence/review.js";
 import { topicAudienceContext } from "../background-evidence/run.js";
 import type {
+  EvidencedPageCopy,
   TopicPageContentContext,
+  TopicPageContentProposal,
   TopicPageContentRun,
   TopicPageContentSpec,
+  TopicPageContentTaskContext,
 } from "./contracts.js";
 import {
   eligibleThemeIntentEvidenceIds,
@@ -220,6 +223,143 @@ function compileAcceptedSpec(
     tasks: proposal.tasks,
   };
   return { ...spec, digest: sha256Digest(spec) };
+}
+
+function deterministicEvidenceRefs(
+  context: TopicPageContentContext,
+  task: TopicPageContentTaskContext,
+  options: { productId?: string; sceneId?: string } = {},
+) {
+  if (options.sceneId) return [`scene:${options.sceneId}`];
+  if (options.productId) return [`product:${options.productId}`];
+  const productId = task.assignments[0]?.productId;
+  if (productId) return [`product:${productId}`];
+  const sceneId = task.scenes[0]?.id;
+  if (sceneId) return [`scene:${sceneId}`];
+  const intentEvidenceId = context.eligibleThemeIntentEvidenceIds[0];
+  if (intentEvidenceId) return [`theme-intent:${intentEvidenceId}`];
+  const backgroundClaimId = context.eligibleBackgroundEvidenceClaimIds[0];
+  return backgroundClaimId ? [`background:${backgroundClaimId}`] : [];
+}
+
+function deterministicCopy(
+  text: string,
+  evidenceRefs: string[],
+): EvidencedPageCopy {
+  return { text, evidenceRefs };
+}
+
+function deterministicTaskCopy(
+  context: TopicPageContentContext,
+  task: TopicPageContentTaskContext,
+) {
+  const zh = context.language === "zh";
+  const evidenceRefs = deterministicEvidenceRefs(context, task);
+  const titleText = task.templateCopy?.title ?? (task.moduleId === "hero"
+    ? context.keyword
+    : task.moduleId === "start-here"
+    ? (zh ? "从这里开始" : "Start Here")
+    : task.moduleId === "explore-more"
+    ? (zh ? "更多选择" : "Explore More")
+    : (zh ? "精选商品" : "Selected Products"));
+  const title = deterministicCopy(titleText, evidenceRefs);
+  if (task.moduleId === "hero") {
+    return {
+      title,
+      description: deterministicCopy(
+        zh
+          ? `围绕${context.keyword}浏览当前商品与搭配选择。`
+          : `Explore current ${context.keyword} products and pairings.`,
+        evidenceRefs,
+      ),
+      tags: [
+        deterministicCopy(zh ? "精选商品" : "Selected Products", evidenceRefs),
+        deterministicCopy(zh ? "搭配选择" : "Pairing Ideas", evidenceRefs),
+      ],
+    };
+  }
+  if (task.moduleId === "shortcuts") {
+    return {
+      title,
+      items: task.assignments.map(({ slotId, productId }) => ({
+        slotId,
+        label: deterministicCopy(
+          zh ? "查看商品" : "View Products",
+          deterministicEvidenceRefs(context, task, { productId }),
+        ),
+      })),
+    };
+  }
+  if (task.moduleId === "start-here") {
+    return {
+      title,
+      scenes: task.scenes.map(({ id }) => {
+        const sceneEvidence = deterministicEvidenceRefs(context, task, { sceneId: id });
+        return {
+          sceneId: id,
+          label: deterministicCopy(zh ? "选购场景" : "Shopping Scene", sceneEvidence),
+          title: deterministicCopy(zh ? "按场景选择" : "Choose by Scene", sceneEvidence),
+          description: deterministicCopy(
+            zh ? "浏览适合这一场景的商品搭配。" : "Browse products selected for this scene.",
+            sceneEvidence,
+          ),
+        };
+      }),
+    };
+  }
+  const groups = task.groups.map((group) => ({
+    groupId: group.id,
+    label: deterministicCopy(
+      zh ? "商品分组" : "Product Group",
+      deterministicEvidenceRefs(context, task, { productId: group.productIds[0] }),
+    ),
+  }));
+  if (task.moduleId === "explore-more") {
+    return {
+      title,
+      description: deterministicCopy(
+        task.templateCopy?.description ??
+          (zh ? "浏览更多商品选择。" : "Browse more product options."),
+        evidenceRefs,
+      ),
+      ...(groups.length > 0 ? { groups } : {}),
+    };
+  }
+  if (task.moduleId === "popular-picks") {
+    return { title, ...(groups.length > 0 ? { groups } : {}) };
+  }
+  return { title };
+}
+
+export function deterministicTopicPageContentProposal(
+  context: TopicPageContentContext,
+): TopicPageContentProposal {
+  return {
+    schemaVersion: "topic-page-content-proposal/v1",
+    keyword: context.keyword,
+    site: context.site,
+    language: context.language,
+    topicPagePlanDigest: context.topicPagePlanDigest,
+    themeIntentDigest: context.themeIntentDigest,
+    productSelectionDigest: context.productSelectionDigest,
+    tasks: context.tasks.map((task) => ({
+      taskId: task.taskId,
+      moduleId: task.moduleId,
+      component: task.component,
+      copy: deterministicTaskCopy(context, task),
+    })),
+  };
+}
+
+export function compileDeterministicTopicPageContentRun(
+  request: Omit<TopicPageContentRequest, "proposal">,
+): TopicPageContentRun {
+  const pending = advanceTopicPageContentRun(request);
+  if (pending.status !== "needs-content-proposal") return pending;
+  return advanceTopicPageContentRun({
+    ...request,
+    proposal: deterministicTopicPageContentProposal(pending.context),
+  });
 }
 
 export function compileTopicPageContentSpec(

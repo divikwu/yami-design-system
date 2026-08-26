@@ -39,6 +39,7 @@ export interface TopicVisualAgentWorkflowResult {
     agentId: string;
     proposal?: TopicPageVisualProposal | unknown;
     assetBodies?: TopicPageVisualAssetBody[];
+    issues?: string[];
   };
 }
 
@@ -80,12 +81,16 @@ export async function runTopicVisualAgentWorkflow(
       proposal,
     });
   }
+  const reviewIssues = "proposalReview" in run ? run.proposalReview.issues : [];
   return {
     run,
     artifacts: {
       agentId: request.agent.id,
       ...(proposal === undefined ? {} : { proposal }),
       ...(output ? { assetBodies: output.assets } : {}),
+      ...((output?.issues?.length || reviewIssues.length)
+        ? { issues: [...new Set([...(output?.issues ?? []), ...reviewIssues])] }
+        : {}),
     },
   };
 }

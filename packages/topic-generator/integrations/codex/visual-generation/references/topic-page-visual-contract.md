@@ -15,13 +15,12 @@ scene and accepted content task, verified ThemeIntent evidence, and selected cat
 cannot add tasks, switch components, expose hidden modules, reallocate products, rewrite copy, or
 change any digest.
 
-Visual preflight may receive the BackgroundEvidence bundle already bound to ContentSpec only to
-revalidate accepted copy provenance. `background:*` references remain content-only and are not
-eligible visual direction or alt-text evidence.
+Visual preflight does not revalidate BackgroundEvidence already accepted by ContentSpec.
+`background:*` references remain content-only and are not eligible visual direction or alt-text evidence.
 
 `productionMode` is either `generated-images` or `source-product-images`. The proposal must preserve
-the requested mode. `generated-images` is the final-quality scene path. `source-product-images` is a
-draft-only reference fallback and final visual QA rejects it. Scene tasks may include
+the requested mode. `generated-images` is the preferred scene path. `source-product-images` is a
+draft-quality reference fallback that produces a QA advisory without blocking page completion. Scene tasks may include
 `compositionGuidance`; it is a preference for art direction, not a deterministic rejection rule.
 
 ## Module scene brief
@@ -48,9 +47,10 @@ product pixels, composite source layers, or fall back to source-image compositin
 the upper-right across centered wide and card crops, reserve a calm lower-left copy-safe area, and contain
 no baked text, gradient, text panel, or scrim. These composition points are soft art direction rather
 than deterministic rejection gates: a saved decodable image proceeds without semantic retry. Other
-scene-first tasks continue to exclude bottles, jars, tubes,
-pumps, droppers, sachets, and product boxes. Each ShortcutRail task instead receives one representative
-product image as a visual reference for a single-product lifestyle scene. A centered primary subject,
+scene-first tasks may include environmental vessels and category-relevant containers when they support
+the scene; object type alone is never a rejection reason. Each ShortcutRail task instead receives one representative
+product image when available as a visual reference for a single-product lifestyle scene. Missing source
+image URLs do not remove or block the task; trusted category and accepted-copy context remain sufficient. A centered primary subject,
 circular-crop margin, secondary category-relevant context, and faithful reproduction of visible source
 packaging are strong generation guidance rather than acceptance requirements.
 A ThemeHero attaches all available assigned catalog images to one generation request and asks the
@@ -66,9 +66,11 @@ validation. No placement recovery, source-layer composition, or Hero visual fall
 A Shortcut may use a source-backed lifestyle fallback only after its bounded technical retries fail;
 semantic or visual differences never trigger fallback. This task-level fallback must not discard other
 completed assets or block the page.
-A Hero reports a technical failure after its bounded generation attempts instead of substituting a
-source-layer composition.
-A direction is rejected when it omits any `sceneBrief.evidenceRefs`.
+A Hero that exhausts its bounded generation attempts is omitted instead of substituting a source-layer
+composition. The Host keeps all completed tasks and continues with a partial or empty manifest.
+The Host derives direction evidence, reference product IDs, attached product IDs, localized alt text,
+module/component/kind identity, and fallback metadata from the task context. Agent omissions or drift
+in those fields are normalized rather than rejected.
 
 ## Maintained image slots
 
@@ -136,8 +138,9 @@ continue to use catalog image identities.
 }
 ```
 
-The example abbreviates the asset array. A real proposal must include every returned task in exact
-order. `referenceProductIds` must equal the task product IDs in exact order.
+The example abbreviates the asset array. A real proposal contains the tasks that completed in their
+declared relative order; it may contain a partial subset or zero assets. Unknown, duplicate, or
+out-of-order task IDs remain invalid. The Host derives `referenceProductIds` from task assignments.
 
 ## Evidence namespaces and scope
 
@@ -150,8 +153,8 @@ order. `referenceProductIds` must equal the task product IDs in exact order.
 An accepted content task can itself contain `background:*` copy references. They are not part of
 this list and must not be copied into a visual proposal.
 
-Attach at least one reference to art direction and every required alt text. Evidence constrains the
-direction; it does not authorize facts absent from the referenced artifact.
+The Host attaches the exact scene-brief evidence to art direction and required alt text. Evidence
+constrains the direction; it does not authorize facts absent from the referenced artifact.
 
 ## Artifact rules
 
@@ -168,12 +171,14 @@ direction; it does not authorize facts absent from the referenced artifact.
 - When a task returns `compositionGuidance`, prefer it during art direction but do not treat it as a
   mandatory crop or a hard QA condition.
 
-The deterministic module validates metadata and scope. Stage 06 must still open the actual files,
-verify their bytes against the digest, render them in maintained components, inspect visual quality
-and accessibility, and test responsive crops.
+The deterministic module validates metadata and scope. Stage 06 opens every returned file and verifies
+its bytes against the digest. Missing assets and visual, accessibility, provenance, or responsive-crop
+findings are advisory; byte drift, undeclared identity, broken upstream bindings, and malformed module
+or artifact data remain blocking integrity failures.
 
 ## Ready output
 
 `topic-page-asset-manifest/v1` preserves the accepted assets, language, strategy and template refs,
 all four upstream digests, and computes its own SHA-256 digest. It reports
-`asset-manifest-ready`, not final-page or QA completion.
+`asset-manifest-ready`, including for a partial or empty asset set. It does not by itself assert
+publication-quality visuals.

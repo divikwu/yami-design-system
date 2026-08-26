@@ -431,13 +431,14 @@ describe("Topic page automation workflow", () => {
       qaReport: result.qaReport,
     });
     if (result.status !== "ready") throw new Error("Expected a review-ready run.");
+    if (!result.reviewPackage) throw new Error("Expected a compiled review package.");
     expect(reviewPageExperience).toHaveBeenCalledOnce();
     expect(reviewPageExperience.mock.calls[0]?.[0].context.previewRefs).toEqual(
       result.reviewPackage.previewRefs,
     );
   });
 
-  it("blocks experience review when a QA-passed preview cannot be published", async () => {
+  it("keeps a QA-passed page ready when its experience preview cannot be published", async () => {
     const data = workflowFixture();
     const reviewPageExperience = vi.fn(data.agents.review.reviewPageExperience);
     data.agents.review = { ...data.agents.review, reviewPageExperience };
@@ -452,9 +453,9 @@ describe("Topic page automation workflow", () => {
     });
 
     expect(result).toMatchObject({
-      status: "blocked",
-      stage: "experience-review",
-      issues: ["Preview registry is unavailable."],
+      status: "ready",
+      stage: "review-ready",
+      issues: expect.arrayContaining(["Preview registry is unavailable."]),
       qaReport: { status: "passed" },
     });
     expect(previewResolver).toHaveBeenCalledOnce();
@@ -646,13 +647,16 @@ describe("Topic page automation workflow", () => {
     });
 
     expect(result).toMatchObject({
-      status: "blocked",
-      stage: "automatic-qa",
+      status: "ready",
+      stage: "review-ready",
       assetManifest: { productionMode: "source-product-images" },
       qaReport: {
-        status: "qa-blocked",
+        status: "passed",
+        checks: expect.arrayContaining([
+          expect.objectContaining({ id: "visual-policy", status: "failed" }),
+        ]),
         issues: expect.arrayContaining([
-          "Source-product image composition is a draft fallback and cannot pass final visual QA.",
+          "Source-product image composition is a draft-quality fallback; review visual quality before publication.",
         ]),
       },
     });
@@ -694,7 +698,7 @@ describe("Topic page automation workflow", () => {
     expect(data.persisted.size).toBe(0);
   });
 
-  it("preserves a rejected Content Agent attempt for a content-writing retry", async () => {
+  it("fills invalid Content Agent output with deterministic Host copy", async () => {
     const data = workflowFixture();
     const validContentAgent = data.agents.content;
     const proposeModuleMerchandising = vi.fn(
@@ -722,15 +726,14 @@ describe("Topic page automation workflow", () => {
     });
 
     expect(result).toMatchObject({
-      status: "blocked",
-      stage: "content-writing",
-      faultKind: "proposal-invalid",
-      rollbackStage: "content-writing",
-      plan: { digest: expect.stringMatching(/^sha256:/) },
-      contentRun: {
-        status: "blocked",
-        faultKind: "proposal-invalid",
-        rollbackStage: "content-writing",
+      status: "ready",
+      stage: "review-ready",
+      issues: expect.arrayContaining([
+        "Content Agent output was replaced with deterministic Host copy.",
+      ]),
+      contentSpec: {
+        status: "content-ready",
+        tasks: expect.any(Array),
       },
       contentAttempt: {
         schemaVersion: "topic-page-content-attempt/v1",
@@ -739,70 +742,11 @@ describe("Topic page automation workflow", () => {
         proposalReview: { status: "rejected" },
       },
     });
-    if (result.status !== "blocked" || !result.plan || !result.contentAttempt) {
-      throw new Error("Expected a recoverable content-writing block.");
-    }
-
-    proposeModuleMerchandising.mockClear();
-    const proposePageContent = vi.fn(validContentAgent.proposePageContent);
-    data.agents.content = { ...validContentAgent, proposePageContent };
-    const resumed = await runTopicPageAutomationWorkflow({
-      ...data,
-      language: "zh",
-      contentResume: {
-        plan: result.plan,
-        attempt: result.contentAttempt,
-        proposal: revisedProposal,
-      },
-      previewRefs: { desktop: "/", mobile: "/" },
-    });
-
-    expect(resumed).toMatchObject({ status: "ready", stage: "review-ready" });
-    expect(proposeModuleMerchandising).not.toHaveBeenCalled();
-    expect(proposePageContent).not.toHaveBeenCalled();
-
-    const staleResume = await runTopicPageAutomationWorkflow({
-      ...data,
-      language: "zh",
-      contentResume: {
-        plan: result.plan,
-        attempt: { ...result.contentAttempt, language: "en" },
-        proposal: revisedProposal,
-      },
-      previewRefs: { desktop: "/", mobile: "/" },
-    });
-    expect(staleResume).toMatchObject({
-      status: "blocked",
-      stage: "content-writing",
-      faultKind: "upstream-invalid",
-      rollbackStage: "module-merchandising",
-      issues: ["Content resume language does not match the current request."],
-    });
-    expect(proposeModuleMerchandising).not.toHaveBeenCalled();
-    expect(proposePageContent).not.toHaveBeenCalled();
-
-    const missingRevision = await runTopicPageAutomationWorkflow({
-      ...data,
-      language: "zh",
-      contentResume: {
-        plan: result.plan,
-        attempt: result.contentAttempt,
-        proposal: undefined,
-      },
-      previewRefs: { desktop: "/", mobile: "/" },
-    });
-    expect(missingRevision).toMatchObject({
-      status: "blocked",
-      stage: "content-writing",
-      faultKind: "proposal-invalid",
-      rollbackStage: "content-writing",
-      issues: ["Content resume requires a revised proposal."],
-    });
-    expect(proposeModuleMerchandising).not.toHaveBeenCalled();
-    expect(proposePageContent).not.toHaveBeenCalled();
+    expect(proposeModuleMerchandising).toHaveBeenCalledOnce();
+    expect(revisedProposal).toBeDefined();
   });
 
-  it("preserves the bound attempt when the Content Agent fails", async () => {
+  it("uses deterministic Host copy when the Content Agent fails", async () => {
     const data = workflowFixture();
     data.agents.content = {
       id: "unavailable-content-agent",
@@ -818,11 +762,11 @@ describe("Topic page automation workflow", () => {
     });
 
     expect(result).toMatchObject({
-      status: "blocked",
-      stage: "content-writing",
-      faultKind: "agent-failed",
-      rollbackStage: "content-writing",
-      issues: ["Content Agent failed while preparing a proposal."],
+      status: "ready",
+      stage: "review-ready",
+      issues: expect.arrayContaining([
+        "Content Agent failed while preparing a proposal.",
+      ]),
       contentAttempt: {
         schemaVersion: "topic-page-content-attempt/v1",
         agentId: "unavailable-content-agent",

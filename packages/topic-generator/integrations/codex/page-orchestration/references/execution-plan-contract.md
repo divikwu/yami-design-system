@@ -37,6 +37,10 @@ The deterministic runtime adds:
 
 Never add these fields to the Agent proposal or reproduce their rules outside the runtime.
 
+In automatic Host mode, a missing Agent or rejected proposal may be replaced by the first
+registered route compatible with the frozen ThemeIntent and caller constraints. The Host records
+the original issues and fallback use in workflow artifacts.
+
 ## Failure behavior
 
 Stop and report the runtime issues when:

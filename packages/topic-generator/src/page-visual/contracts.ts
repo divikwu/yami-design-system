@@ -106,6 +106,7 @@ export interface TopicPageVisualAgentOutput {
   schemaVersion: "topic-page-visual-agent-output/v1";
   proposal: unknown;
   assets: TopicPageVisualAssetBody[];
+  issues?: string[];
 }
 
 export interface TopicPageVisualProposalReview {

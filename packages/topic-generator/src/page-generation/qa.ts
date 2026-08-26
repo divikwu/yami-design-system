@@ -37,6 +37,21 @@ export interface RunTopicPageQaOptions {
   imageDecoder: TopicPageImageDecoder;
 }
 
+const INTEGRITY_CHECKS: readonly TopicPageQaCheckId[] = [
+  "sources",
+  "bindings",
+  "modules",
+  "assets",
+];
+
+export function topicPageQaHasIntegrityFailure(
+  qaReport: Pick<TopicPageQaReport, "checks">,
+) {
+  return qaReport.checks.some(({ id, status }) =>
+    status === "failed" && INTEGRITY_CHECKS.includes(id)
+  );
+}
+
 function exactOrder(left: readonly string[], right: readonly string[]) {
   return left.length === right.length && left.every((value, index) => value === right[index]);
 }
@@ -66,7 +81,7 @@ export async function runTopicPageQa(options: RunTopicPageQaOptions): Promise<To
   if (manifest.productionMode === "source-product-images") {
     add(
       "visual-policy",
-      "Source-product image composition is a draft fallback and cannot pass final visual QA.",
+      "Source-product image composition is a draft-quality fallback; review visual quality before publication.",
     );
   }
   if (generationSpec.digest !== topicPageGenerationSpecDigest(generationSpec)) {
@@ -174,9 +189,12 @@ export async function runTopicPageQa(options: RunTopicPageQaOptions): Promise<To
     issueCount: checkIssues.length,
   }));
   const issues = [...issuesByCheck.values()].flat();
+  const hasIntegrityFailure = checks.some(({ id, status }) =>
+    status === "failed" && INTEGRITY_CHECKS.includes(id)
+  );
   const base = {
     schemaVersion: "topic-page-qa-report/v1" as const,
-    status: issues.length === 0 ? "passed" as const : "qa-blocked" as const,
+    status: hasIntegrityFailure ? "qa-blocked" as const : "passed" as const,
     generationSpecDigest: generationSpec.digest,
     topicPageAssetManifestDigest: manifest.digest,
     checks,

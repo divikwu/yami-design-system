@@ -67,7 +67,7 @@ const SCENE_FIRST_REQUIREMENTS = [
   "Depict a coherent, naturalistic scene that expresses this module's shopping goal.",
   "Treat assigned products as visual references only; they do not need to appear.",
   "Do not use isolated product packshots, tiled product grids, or product montages as the primary visual.",
-  "Do not depict bottles, jars, tubes, pumps, droppers, sachets, or product boxes, even when blank or unbranded.",
+  "Environmental vessels and category-relevant containers may appear when they support the scene.",
   "Do not generate or alter packaging, labels, logos, or product claims.",
 ] as const;
 

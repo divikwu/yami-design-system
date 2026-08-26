@@ -23,8 +23,9 @@ task. Keep routing judgment in the Orchestrator Agent and keep workflow authorit
    language, and ThemeIntent digest.
 7. Submit the proposal to the deterministic runtime. Accept the result only when the runtime
    returns `status: ready` with `landing-page-execution-plan/v1`.
-8. Report every rejected field or blocker. Do not silently select a different route after
-   validation fails.
+8. Report every rejected field or blocker. The Agent does not invent a replacement route after
+   validation fails; in automatic Host mode, the runtime may continue with the first compatible
+   registered route and record that deterministic fallback in the run artifacts.
 
 For automatic HTTP execution, respond through `topic-page-agent-response/v1` with
 `stage: workflow-planning` and place the proposal in `proposal`.
@@ -52,6 +53,10 @@ For automatic HTTP execution, respond through `topic-page-agent-response/v1` wit
 - Do not change artifact digests, stage order, retry limits, or rollback policy.
 - Do not retry indefinitely or route to an undeclared Agent.
 - Do not approve review or publication.
+
+When the Orchestrator Agent is unavailable or its proposal is invalid, automatic Host mode uses
+only a route already present in the frozen orchestration context. Missing registrations or
+incompatible caller constraints remain blocked because no valid execution plan can be compiled.
 
 ## Additional resources
 

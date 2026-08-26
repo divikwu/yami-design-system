@@ -36,6 +36,11 @@ Use lowercase kebab-case issue IDs. Cite at least one allowed evidence reference
 The compiled decision uses `review-recommended` or `revision-requested` and adds a digest. A
 review recommendation never grants user approval or publication authority.
 
+Experience review is optional after integrity QA. If previews cannot be published, the Review
+Agent fails, or no valid decision is returned, automatic Host mode records the issue and completes
+generation without a ReviewPackage. A revision request is likewise advisory and does not roll back
+an otherwise valid generated page.
+
 ## Evidence namespaces
 
 - `module:<moduleId>`

@@ -369,6 +369,11 @@ text:
 - `agent-failed` belongs to the Agent Adapter workflow rather than the deterministic content run;
   its attempt still records the Agent ID, language, and all three input digests.
 
+In automatic Host mode, `proposal-invalid` and `agent-failed` do not by themselves stop page
+generation. The Host may replace that attempt with conservative deterministic copy compiled from
+the frozen content context. Upstream digest, identity, task, assignment, scene, group, and evidence
+binding failures remain blocking because fallback cannot establish those facts.
+
 An explicit CLI or caller-managed resume still supplies the preserved attempt plus one revised
 proposal. The Module rechecks the PagePlan, ThemeIntent, ProductSelection, and language bindings;
 matching bindings skip the Agent and continue from `content-writing`.

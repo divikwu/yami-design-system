@@ -394,10 +394,6 @@ export function createCodexExecutor(
                     parseAgentJson(await readFile(outputPath, "utf8")),
                     task.taskId,
                     outputFilename,
-                    {
-                      acceptRejected: task.kind === "hero-image" || task.kind === "shortcut-image" ||
-                        task.kind === "scene-image",
-                    },
                   );
                   const bytes = await readFile(imagePath);
                   if (bytes.byteLength > maxImageBytes) {

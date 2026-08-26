@@ -662,6 +662,57 @@ describe("Topic Generator managed stage executor", () => {
     }));
   });
 
+  it("persists an empty visual manifest without requiring an image decoder", async () => {
+    const assetManifest = { digest: "sha256:empty-assets", assets: [] };
+    const execute = createTopicGeneratorManagedStageExecutor({
+      deliverableRenderer: { render: async () => "" },
+    } as never);
+
+    const result = await execute({
+      manifest: { request: { language: "zh" } },
+      state: {},
+      stageId: "asset-persistence",
+      attempt: 1,
+      readStageResult: async () => ({ assetManifest, assetBodies: [] }),
+      assetStore: { put: vi.fn() },
+    } as never);
+
+    expect(result).toMatchObject({
+      status: "completed",
+      output: { assetManifest, persistedRefs: [] },
+    });
+  });
+
+  it("runs automatic QA for an image-free page without requiring an image decoder", async () => {
+    const qaReport = { status: "passed", digest: "sha256:qa", checks: [], issues: [] };
+    mocks.runTopicPageQa.mockResolvedValue(qaReport);
+    const outputs = {
+      "topic-intent": { analysis: { intent: { id: "intent" } } },
+      "product-selection": { selection: { id: "selection" } },
+      "module-merchandising": { plan: { digest: "sha256:plan" } },
+      "content-review": { contentSpec: { digest: "sha256:content" } },
+      "asset-persistence": { assetManifest: { digest: "sha256:empty-assets", assets: [] } },
+      "page-generation": { generationSpec: { digest: "sha256:generation" } },
+    } as const;
+    const execute = createTopicGeneratorManagedStageExecutor({
+      deliverableRenderer: { render: async () => "" },
+    } as never);
+
+    const result = await execute({
+      manifest: { request: { language: "zh" } },
+      state: {},
+      stageId: "automatic-qa",
+      attempt: 1,
+      readStageResult: async (stageId: keyof typeof outputs) => outputs[stageId],
+      assetStore: {},
+    } as never);
+
+    expect(result).toMatchObject({ status: "completed", output: { qaReport } });
+    expect(mocks.runTopicPageQa).toHaveBeenCalledWith(expect.objectContaining({
+      imageDecoder: { inspect: expect.any(Function) },
+    }));
+  });
+
   it("automatically finalizes a QA-checked page without waiting for user approval", async () => {
     const outputs = {
       "automatic-qa": {

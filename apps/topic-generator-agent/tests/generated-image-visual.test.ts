@@ -257,6 +257,50 @@ describe("Codex-native generated Topic visuals", () => {
     }));
   });
 
+  it("generates Hero and Shortcut without source image attachments when URLs are missing", async () => {
+    const run = visualRun();
+    for (const task of run.context.tasks) {
+      for (const product of task.products) delete (product as { imageUrl?: string }).imageUrl;
+    }
+    const source = await sharp({
+      create: { width: 768, height: 768, channels: 3, background: "#d3dcca" },
+    }).png().toBuffer();
+    const requests: Array<{ referenceImageUrl?: string; referenceImageUrls?: string[] }> = [];
+
+    const response = await compileGeneratedImageVisualResponse(run, async (request) => {
+      requests.push(request);
+      return source;
+    });
+
+    expect(response.assets).toHaveLength(2);
+    expect(requests[0]).toMatchObject({ referenceImageUrls: [] });
+    expect(requests[1]).not.toHaveProperty("referenceImageUrl");
+  });
+
+  it("allows environmental vessels in brand banners without semantic rejection", () => {
+    const run = visualRun();
+    const task = {
+      ...run.context.tasks[0]!,
+      taskId: "asset-brand-spotlight-2",
+      moduleId: "brand-spotlight",
+      component: "BrandProductRail",
+      kind: "brand-banner",
+      targetAspectRatio: "111:40",
+      minimumWidth: 1110,
+      minimumHeight: 400,
+      products: [],
+    };
+    const prompt = generatedImageTaskPrompt(
+      run.context as unknown as GeneratedVisualContext,
+      task as unknown as GeneratedVisualTask,
+      "generated.png",
+    );
+
+    expect(prompt).toContain("Environmental vessels and category-relevant containers may appear");
+    expect(prompt).toContain("Do not perform semantic visual rejection");
+    expect(prompt).not.toMatch(/\b(?:bottles|jars|tubes|pumps|droppers|sachets|boxes)\b/i);
+  });
+
   it("uses current-scene products as flexible references for a responsive editorial scene", async () => {
     const run = visualRun();
     const sceneTask = {
@@ -531,6 +575,27 @@ describe("Codex-native generated Topic visuals", () => {
     ]);
   });
 
+  it("returns partial success when one task exhausts technical retries", async () => {
+    const source = await sharp({
+      create: { width: 768, height: 768, channels: 3, background: "#d3dcca" },
+    }).png().toBuffer();
+
+    const response = await compileGeneratedImageVisualResponse(
+      visualRun(),
+      async ({ task }) => {
+        if (task.kind === "shortcut-image") throw new Error("provider unavailable");
+        return source;
+      },
+      { attempts: 1 },
+    );
+
+    expect(response.proposal.assets.map(({ taskId }) => taskId)).toEqual(["asset-hero"]);
+    expect(response.assets.map(({ taskId }) => taskId)).toEqual(["asset-hero"]);
+    expect(response.issues).toEqual([
+      "Image generation skipped asset-shortcuts-1 after 1 attempts: provider unavailable",
+    ]);
+  });
+
   it("records queue, task, and attempt timings with bounded retry reasons", async () => {
     const source = await sharp({
       create: { width: 768, height: 768, channels: 3, background: "#d3dcca" },
@@ -693,7 +758,19 @@ describe("Codex-native generated Topic visuals", () => {
       status: "rejected",
       relativePath: "generated.png",
       issues: ["product-grid composition"],
-    }, "asset-hero", "generated.png")).toThrow("product-grid composition");
+    }, "asset-hero", "generated.png", { acceptRejected: false }))
+      .toThrow("product-grid composition");
+
+    expect(parseNativeImageTaskResult({
+      schemaVersion: "topic-page-native-image-task-result/v1",
+      taskId: "asset-brand-spotlight-2",
+      status: "rejected",
+      relativePath: "generated.png",
+      issues: ["jar-like ceramic vessel"],
+    }, "asset-brand-spotlight-2", "generated.png")).toEqual({
+      relativePath: "generated.png",
+      issues: ["jar-like ceramic vessel"],
+    });
 
     expect(parseNativeImageTaskResult({
       schemaVersion: "topic-page-native-image-task-result/v1",
