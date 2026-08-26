@@ -134,7 +134,7 @@ function SampleTabs({
   inverse = false,
   fullWidth = false,
   sampleItems = items,
-  compactPanel = false,
+  compactPanel = true,
 }: {
   variant: TabsVariant
   styleVariant?: "a" | "b"
@@ -197,7 +197,8 @@ function contrastRatio(foreground: string, background: string) {
     (Math.min(foregroundLuminance, backgroundLuminance) + 0.05)
 }
 
-export const Showcase: Story = {
+export const AllVariantsContract: Story = {
+  tags: ["!dev", "!autodocs"],
   render: () => (
     <div data-tabs-showcase-stack style={storyStackStyle}>
       <Section title="Primary - Style A">
@@ -372,7 +373,46 @@ export const Showcase: Story = {
   },
 }
 
+export const Showcase: Story = {
+  name: "PC — Primary",
+  globals: {
+    viewport: { value: "yamiDesktopMd", isRotated: false },
+  },
+  render: () => (
+    <SampleTabs
+      variant="primary"
+      styleVariant="a"
+      sampleItems={primaryItems}
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const root = canvasElement.querySelector<HTMLElement>('[data-slot="tabs"]')
+    const list = canvasElement.querySelector<HTMLElement>('[role="tablist"]')
+    if (!root || !list) {
+      throw new Error("PC Primary Tabs did not render")
+    }
+    if (
+      list.dataset.fullWidth !== undefined ||
+      list.getBoundingClientRect().width >= root.getBoundingClientRect().width ||
+      getComputedStyle(list).columnGap !== "24px"
+    ) {
+      throw new Error(
+        "PC Primary Tabs must use content-width triggers with the shared 24px gap",
+      )
+    }
+  },
+}
+
+export const DesktopSecondary: Story = {
+  name: "PC — Secondary",
+  globals: {
+    viewport: { value: "yamiDesktopMd", isRotated: false },
+  },
+  render: () => <SampleTabs variant="secondary" />,
+}
+
 export const Playground: Story = {
+  tags: ["!dev", "!autodocs"],
   render: (args) => (
     <Tabs {...args}>
       <TabsList variant="primary">
@@ -392,6 +432,7 @@ export const Playground: Story = {
 }
 
 export const ScrollableSelection: Story = {
+  tags: ["!dev", "!autodocs"],
   render: () => (
     <div style={{ width: 240 }}>
       <Tabs defaultValue="cleanse">
@@ -503,22 +544,70 @@ export const ScrollableSelection: Story = {
 }
 
 export const PrimaryStyleA: Story = {
-  render: () => <SampleTabs variant="primary" styleVariant="a" fullWidth />,
+  name: "Mobile — Primary A",
+  globals: {
+    viewport: { value: "yamiMobile", isRotated: false },
+  },
+  render: () => (
+    <SampleTabs
+      variant="primary"
+      styleVariant="a"
+      sampleItems={primaryItems}
+    />
+  ),
 }
 
 export const PrimaryStyleB: Story = {
+  name: "Mobile — Primary B",
+  globals: {
+    viewport: { value: "yamiMobile", isRotated: false },
+  },
   render: () => <SampleTabs variant="primary" styleVariant="b" />,
 }
 
 export const Secondary: Story = {
+  name: "Mobile — Secondary",
+  globals: {
+    viewport: { value: "yamiMobile", isRotated: false },
+  },
   render: () => <SampleTabs variant="secondary" />,
+  play: async ({ canvasElement }) => {
+    const triggers = canvasElement.querySelectorAll<HTMLElement>(
+      '[role="tablist"][data-variant="secondary"] [role="tab"]',
+    )
+    const activePanel = canvasElement.querySelector<HTMLElement>(
+      '[role="tabpanel"]:not([hidden])',
+    )
+    if (
+      triggers.length === 0 ||
+      !activePanel ||
+      getComputedStyle(activePanel).position !== "absolute" ||
+      Array.from(triggers).some((trigger) => {
+        const style = getComputedStyle(trigger)
+        return (
+          style.height !== "40px" ||
+          style.fontSize !== "14px" ||
+          style.lineHeight !== "20px"
+        )
+      })
+    ) {
+      throw new Error(
+        "Secondary Tabs must use a 40px height with 14px text and a 20px line height",
+      )
+    }
+  },
 }
 
 export const Tertiary: Story = {
+  name: "Mobile — Tertiary",
+  globals: {
+    viewport: { value: "yamiMobile", isRotated: false },
+  },
   render: () => <SampleTabs variant="tertiary" />,
 }
 
 export const States: Story = {
+  tags: ["!dev"],
   render: () => (
     <Tabs defaultValue="active">
       <TabsList variant="primary" styleVariant="b">
@@ -536,6 +625,7 @@ export const States: Story = {
 }
 
 export const Skeleton: Story = {
+  tags: ["!dev"],
   render: () => (
     <div style={storyStackStyle}>
       <Tabs defaultValue="loading">
@@ -554,6 +644,7 @@ export const Skeleton: Story = {
 }
 
 export const WithIcons: Story = {
+  tags: ["!dev"],
   render: () => (
     <Tabs defaultValue="search">
       <TabsList variant="secondary">
@@ -571,6 +662,7 @@ export const WithIcons: Story = {
 }
 
 export const Vertical: Story = {
+  tags: ["!dev"],
   render: () => (
     <Tabs defaultValue="snacks" orientation="vertical" style={{ minHeight: 160 }}>
       <TabsList variant="primary" styleVariant="a">

@@ -101,6 +101,11 @@ export const Results: Story = {
     const firstProducts = Array.from(productCards)
       .slice(0, 3)
       .map((card) => card.textContent ?? "");
+    const expectedFixture = createSearchResultsFixture(
+      localeFromGlobals(globals.locale)
+    );
+    const expectedFirstProducts = expectedFixture.products.slice(0, 3);
+    const normalizedText = (value: string) => value.replace(/\s+/g, " ").trim();
     if (
       homeLink?.getAttribute("href") !==
       ecommerceHomeStoryHref(localeFromGlobals(globals.locale))
@@ -111,13 +116,13 @@ export const Results: Story = {
       !categoryButton ||
       categoryButton.getAttribute("aria-expanded") === "true" ||
       document.querySelector('[data-slot="filter-chip-category-menu"]') ||
-      productCards.length !== 24 ||
-      !firstProducts[0]?.includes("AOZEN") ||
-      !firstProducts[0].includes("$19.99") ||
-      !firstProducts[1]?.includes("MARUKYU KOYAMAEN") ||
-      !firstProducts[1].includes("$35.99") ||
-      !firstProducts[2]?.includes("TSUJIRI") ||
-      !firstProducts[2].includes("$9.99")
+      productCards.length !== expectedFixture.products.length ||
+      expectedFirstProducts.some((product, index) =>
+        !normalizedText(firstProducts[index] ?? "").includes(
+          normalizedText(product.title)
+        ) ||
+        !firstProducts[index]?.includes(String(product.priceCurrent))
+      )
     ) {
       throw new Error(
         "Search results must open with the current Yami matcha powder product snapshot"

@@ -69,17 +69,36 @@ export function HeaderSearch({
   function renderTag(tag: HeaderSearchTag, key: string) {
     const content = (
       <>
+        {tag.image && (
+          <span className={styles.searchTagImage} data-slot="header-search-tag-image">
+            <ResponsiveImage
+              source={tag.image.src}
+              alt={tag.image.alt}
+              width={32}
+              height={32}
+            />
+          </span>
+        )}
         {tag.label}
         {tag.badge && <em>{tag.badge}</em>}
       </>
     )
 
     return tag.href ? (
-      <a key={key} href={tag.href}>
+      <a
+        className={tag.image ? styles.searchTagWithImage : undefined}
+        key={key}
+        href={tag.href}
+      >
         {content}
       </a>
     ) : (
-      <button key={key} type="button" onClick={() => chooseQuery(tag.label)}>
+      <button
+        className={tag.image ? styles.searchTagWithImage : undefined}
+        key={key}
+        type="button"
+        onClick={() => chooseQuery(tag.label)}
+      >
         {content}
       </button>
     )
@@ -227,7 +246,11 @@ export function HeaderSearch({
                   </section>
                 )}
                 {discoveryGroups.map((group) => (
-                  <section className={styles.searchPanelSection} key={group.id}>
+                  <section
+                    className={styles.searchPanelSection}
+                    data-search-group={group.id}
+                    key={group.id}
+                  >
                     <div className={styles.searchPanelHeading}>
                       <h2>{group.title}</h2>
                     </div>

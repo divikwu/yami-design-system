@@ -30,6 +30,8 @@ Both trees are always rendered and `@media` picks one, so `Header` needs no
 width probe and stays server-renderable — but it also means every prop is
 parsed at both sizes. Pass `mobileLogo` and `inbox` even on a desktop-first
 surface, or the mobile band degrades to the PC lockup with no message entry.
+Use the English YAMI Mobile Logo-UI asset for `mobileLogo` in every locale; only
+the PC `logo` follows the storefront language.
 
 Geometry and token bindings for the PC band were reconciled against the production
 www.yami.com/en header at 1480px. Where production uses a value the DS does not
@@ -38,16 +40,17 @@ sanction, the DS wins — see [Deviations](#deviations-from-production).
 ## Dark surfaces need their own lockup
 
 The Fill lockup paints its wordmark `#222222`. On a dark band that wordmark is
-invisible and the brand reads as a bare red disc. Pass `darkLogo` /
-`darkMobileLogo` from `assets/logos/yami-ui-<lang>-<platform>-fill-inverse.svg`
-— the same locked lockup with a white wordmark and a brand-red mark.
+invisible and the brand reads as a bare red disc. Pass the locale-specific PC
+`darkLogo` and the English `yami-ui-en-mobile-fill-inverse.svg` as
+`darkMobileLogo` — the same locked lockups with a white wordmark and a
+brand-red mark.
 
 ```tsx
 <Header
   logo={{ src: logoZh, alt: '亚米' }}
   darkLogo={{ src: darkLogoZh, alt: '亚米' }}
-  mobileLogo={{ src: mobileLogoZh, alt: '亚米' }}
-  darkMobileLogo={{ src: darkMobileLogoZh, alt: '亚米' }}
+  mobileLogo={{ src: mobileLogoEn, alt: 'YAMI' }}
+  darkMobileLogo={{ src: darkMobileLogoEn, alt: 'YAMI' }}
 />
 ```
 
@@ -202,6 +205,10 @@ opens recent, popular, and deal tags over a page scrim; typing switches the
 same panel to image-backed keyword suggestions. The panel closes on its scrim,
 submit, or <kbd>Escape</kbd>. Its content remains caller-owned so search data
 can change without changing the component.
+
+Discovery tags accept an optional `image`. Use it for image-backed Popular
+Searches; the component renders a 32px circular crop before the label. Keep the
+image `alt` empty when the adjacent label already names the destination.
 
 Below 1024px the same field renders as a 36px pill with a 48 × 28 submit on its
 own row, plus a visual-search control that reports through `onScan`. That

@@ -22,6 +22,7 @@
     "topic-generator:evaluate": "pnpm --filter @yami/topic-generator evaluate",
     "topic-generator:migrate-storage": "node tooling/topic-generator/migrate-storage.mjs",
     "dev:storybook": "pnpm --filter @yami/storybook storybook",
+    "refresh:storybook-search-results": "node tooling/storybook/refresh-search-results-fixture.mjs",
     "build": "pnpm check:images && pnpm check:generated && pnpm check:boundaries && pnpm -r --filter='./packages/*' --filter='./apps/*' run build",
     "typecheck": "pnpm -r --if-present run typecheck",
     "lint": "eslint apps packages tests tooling --max-warnings 0",

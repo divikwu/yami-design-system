@@ -166,7 +166,7 @@ export function Header({
           <a className={styles.mobileBrand} href={homeHref} data-slot="header-mobile-brand">
             <BrandLockup
               className={styles.mobileLogo}
-              height={32}
+              height={28}
               image={mobileLogo ?? logo}
               darkImage={darkMobileLogo ?? darkLogo}
             />

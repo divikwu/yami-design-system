@@ -89,6 +89,8 @@ export interface HeaderCart {
 
 export interface HeaderSearchTag {
   label: string
+  /** Optional decorative artwork rendered before the label. */
+  image?: HeaderImage
   /** Optional destination. Omit to fill the search field when selected. */
   href?: string
   /** Optional promotional suffix such as "Sale" or "New". */
@@ -118,8 +120,8 @@ export interface HeaderProps extends Omit<ComponentProps<'header'>, 'children'> 
   /** Brand lockup — `assets/logos/yami-ui-<lang>-pc-fill.svg`, 52px tall at PC. */
   logo: HeaderImage
   /**
-   * Brand lockup below 1024px — `assets/logos/yami-ui-<lang>-mobile-fill.svg`,
-   * 32px tall. The Mobile lockup is a distinct Figma variant with its own mark /
+   * Brand lockup below 1024px — `assets/logos/yami-ui-en-mobile-fill.svg`,
+   * 28px tall in every locale. It is a distinct Figma variant with its own mark /
    * wordmark proportions, not the PC one scaled down. Falls back to `logo`.
    */
   mobileLogo?: HeaderImage
