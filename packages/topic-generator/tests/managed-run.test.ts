@@ -810,6 +810,54 @@ describe("TopicGeneratorRunStore", () => {
     }
   });
 
+  it("advances the legacy approval stage as automatic finalization", async () => {
+    const root = await mkdtemp(join(tmpdir(), "topic-generator-managed-finalization-"));
+    const store = new TopicGeneratorRunStore({ root });
+    try {
+      const run = await store.create(request());
+      for (let index = 0; index < 11; index += 1) {
+        await store.advanceRun(run.manifest.runId, {
+          requestId: `finalization-stage-${index}`,
+          execute: async ({ stageId }) => ({
+            status: "completed",
+            output: { stageId },
+            ...(stageId === "experience-review"
+              ? {
+                  runStatus: "awaiting-approval" as const,
+                  reviewPackageDigest: "sha256:review-package",
+                }
+              : {}),
+          }),
+        });
+      }
+
+      const completed = await store.advanceRun(run.manifest.runId, {
+        requestId: "automatic-finalization",
+        execute: async () => ({
+          status: "completed",
+          runStatus: "completed",
+          output: { completion: "automatic" },
+          deliverables: {
+            "page-final.html": "<!doctype html><html><body>Final page</body></html>",
+          },
+        }),
+      });
+
+      expect(completed.state).toMatchObject({
+        status: "completed",
+        nextStage: null,
+        stages: expect.arrayContaining([
+          expect.objectContaining({ id: "user-approval", status: "completed" }),
+        ]),
+        deliverables: expect.arrayContaining([
+          expect.objectContaining({ name: "page-final.html", status: "ready" }),
+        ]),
+      });
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
   it("verifies deliverable bytes before returning them", async () => {
     const root = await mkdtemp(join(tmpdir(), "topic-generator-managed-delivery-"));
     const store = new TopicGeneratorRunStore({ root });

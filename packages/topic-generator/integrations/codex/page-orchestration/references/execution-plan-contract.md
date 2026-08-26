@@ -41,7 +41,7 @@ Never add these fields to the Agent proposal or reproduce their rules outside th
 
 Stop and report the runtime issues when:
 
-- ThemeIntent is unresolved;
+- no registered page type supports the current ThemeIntent type;
 - the page type does not support the ThemeIntent type;
 - an explicit-only page type was not requested;
 - the caller constraint was changed or dropped;

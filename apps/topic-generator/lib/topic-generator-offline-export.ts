@@ -340,9 +340,14 @@ function deliveryManifest(
     contentDigest: digests.content ?? null,
     pageDigest: digests.page ?? null,
     qaDigest: qa?.qaReport.digest ?? null,
-    approval: request.name === "page-final.html"
-      ? { decision: "approved", packageDigest: review?.reviewPackage.digest ?? null }
+    completion: request.name === "page-final.html"
+      ? {
+          mode: "automatic",
+          qaDigest: qa?.qaReport.digest ?? null,
+          reviewPackageDigest: review?.reviewPackage?.digest ?? null,
+        }
       : null,
+    approval: null,
   };
 }
 
@@ -507,12 +512,11 @@ export function createTopicGeneratorOfflineRenderer(): TopicGeneratorDeliverable
       }
       const page = request.stages["page-generation"] as PageGenerationStageOutput | undefined;
       const qa = request.stages["automatic-qa"] as AutomaticQaStageOutput | undefined;
-      const review = request.stages["experience-review"] as ExperienceReviewStageOutput | undefined;
-      if (!page || qa?.qaReport.status !== "passed" ||
-          review?.experienceReview.status !== "review-recommended" ||
-          review.experienceReview.recommendation !== "recommend-approval" ||
-          review.reviewPackage.status !== "review-ready" || !review.reviewPackage.digest) {
-        throw new Error("Final page requires passed QA and a complete review package.");
+      const integrityFailure = qa?.qaReport.checks?.some(({ id, status }) =>
+        status === "failed" && ["sources", "bindings", "modules", "assets"].includes(id)
+      ) ?? false;
+      if (!page || !qa?.qaReport || integrityFailure) {
+        throw new Error("Final page requires completed integrity QA.");
       }
       const generationSpec = await inlineFinalSpec(page.generationSpec, request);
       return documentHtml({

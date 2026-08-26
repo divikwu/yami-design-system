@@ -36,9 +36,11 @@ For automatic HTTP execution, respond through `topic-page-agent-response/v1` wit
   `requiresExplicitRequest`.
 - Treat the execution-plan stage graph, retry limits, and allowed review rollback stages as
   deterministic output owned by the runtime. Do not place them in the proposal.
-- Prefer a route that satisfies caller constraints and the resolved ThemeIntent. Do not optimize
+- Prefer a route that satisfies caller constraints and the current best ThemeIntent. Do not optimize
   for model preference, novelty, or an unregistered future capability.
-- Stop when ThemeIntent is unresolved. Do not reinterpret intent inside this Skill.
+- Preserve unresolved ThemeIntent as advisory context. Select a registered page type that supports
+  its current `themeType`; use the registered Topic draft route when the type is `uncertain`.
+  Do not reinterpret intent inside this Skill.
 
 ## Boundaries
 

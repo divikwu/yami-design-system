@@ -157,7 +157,7 @@ Module 拥有。`asset-manifest-ready` 不等于资产文件和页面渲染硬 Q
 `runTopicPageAutomationWorkflow` 必须消费已校验的 `LandingPageExecutionPlan`。它按注册顺序
 执行选品完成确认、模块陈列、文案、独立文案审核、视觉、资产持久化、页面规范编译、硬 QA 与体验 Review；
 提案结构拒绝、图片字节不匹配或硬 QA 失败会停在明确 stage，不会静默回退；体验质量发现作为建议保留，
-不会阻止页面进入用户审核。
+不会阻止页面自动定稿。
 
 `advanceTopicPageExperienceReviewRun` 只接受硬 QA 已通过的 GenerationSpec。它把 Review Agent
 提案绑定到 execution plan、generation spec 与 QA 三个 digest，只允许引用生成模块、商品、

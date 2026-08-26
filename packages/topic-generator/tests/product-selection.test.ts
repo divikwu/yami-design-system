@@ -512,6 +512,178 @@ describe("ProductSelection Module", () => {
     ]);
   });
 
+  it("recovers verified category context when an ambiguous intent would leave one primary product", () => {
+    const categories = [
+      { id: "1499", label: "Tea Bags", evidenceCount: 12 },
+      { id: "1498", label: "Tea Drinks", evidenceCount: 2 },
+      { id: "1501", label: "Instant Tea & Concentrate", evidenceCount: 1 },
+      { id: "1607", label: "Wellness Teas & Soups", evidenceCount: 1 },
+    ];
+    const baseIntent = brandIntent(categories);
+    const intent: NonNullable<YamiSearchSnapshot["intent"]> = {
+      ...baseIntent,
+      themeType: "product",
+      catalogDomain: "Beverage",
+      entityType: "category",
+      canonicalEntity: { id: "1501", label: "Instant Tea & Concentrate" },
+      shoppingIntent: "find-product",
+      shopperAction: "filter",
+      shoppingGoal: "Find products matching Heytea.",
+      needs: categories.map(({ label }) => label),
+      conditions: ["heytea"],
+      mustInclude: ["Instant Tea & Concentrate"],
+      searchTerms: ["Heytea", ...categories.map(({ label }) => label)],
+      constraints: [
+        {
+          id: "core-entity:instant-tea-concentrate",
+          kind: "core-entity",
+          value: "Instant Tea & Concentrate",
+          status: "verified",
+          evidenceIds: ["catalog-category:1501"],
+        },
+        {
+          id: "modifier:heytea",
+          kind: "modifier",
+          value: "heytea",
+          status: "unverified",
+          evidenceIds: [],
+        },
+      ],
+      categoryHypotheses: [
+        {
+          label: "Tea bags and floral tea",
+          role: "core",
+          categoryIds: ["1499", "1607"],
+          evidenceIds: ["catalog-category:1499", "catalog-category:1607"],
+          reason: "Verified brewed tea categories.",
+        },
+        {
+          label: "Ready-to-drink tea",
+          role: "core",
+          categoryIds: ["1498"],
+          evidenceIds: ["catalog-category:1498"],
+          reason: "Verified bottled tea category.",
+        },
+        {
+          label: "Instant tea",
+          role: "core",
+          categoryIds: ["1501"],
+          evidenceIds: ["catalog-category:1501"],
+          reason: "Verified instant tea category.",
+        },
+      ],
+      decision: {
+        ...baseIntent.decision,
+        status: "ambiguous",
+        selectedCandidateId: "product:category:1501:find-product:filter",
+        evidenceLevel: "medium",
+        selectedCandidateMargin: 0.01,
+        requiresAgentReview: true,
+      },
+      reason: "The selected category narrowly leads a competing interpretation.",
+      confidence: 0.75,
+    };
+    const products = categories.flatMap((category, categoryIndex) =>
+      Array.from({ length: category.evidenceCount }, (_, productIndex) => ({
+        id: `${category.id}-${productIndex + 1}`,
+        title: `HEYTEA ${category.label} ${productIndex + 1}`,
+        brand: "HEYTEA",
+        brandId: 7535,
+        price: "$10.00",
+        imageUrl: `https://example.com/${category.id}-${productIndex + 1}.webp`,
+        productUrl: `https://example.com/${category.id}-${productIndex + 1}`,
+        sourceRank: categoryIndex * 20 + productIndex + 1,
+        categoryL3Id: Number(category.id),
+        categoryL3Name: category.label,
+      }))
+    );
+
+    const snapshot: YamiSearchSnapshot = {
+      keyword: "Heytea",
+      site: "us",
+      sourceUrl: "https://example.com/search?q=Heytea",
+      fetchedAt: "2026-08-25T00:00:00.000Z",
+      provider: "yami-catalog-search",
+      products,
+      intent,
+    };
+    const run = advanceProductSelectionRun({
+      snapshot,
+      strategyRef: "relevance/intent-themes@5",
+    });
+
+    expect(run.status).toBe("ready");
+    if (run.status !== "ready") return;
+    expect(run.result.pools.primaryIds).toEqual(products.map(({ id }) => id));
+    expect(run.result.pools.relatedIds).toEqual([]);
+    expect(run.result.diagnostics).toEqual({
+      candidateCount: 16,
+      directMatchCount: 1,
+      primaryCount: 16,
+      relatedCount: 0,
+      recoveryStrategy: "verified-category-context",
+    });
+    expect(run.result.modules.find(({ id }) => id === "shortcuts")?.groups)
+      .toHaveLength(3);
+    expect(buildTopicPagePlanFromProductSelection(snapshot, run.result, "zh")
+      .selectionDiagnostics).toEqual(run.result.diagnostics);
+  });
+
+  it("keeps a genuine single-product category without inventing recovery products", () => {
+    const baseIntent = brandIntent([
+      { id: "1501", label: "Instant Tea & Concentrate", evidenceCount: 1 },
+    ]);
+    const intent: NonNullable<YamiSearchSnapshot["intent"]> = {
+      ...baseIntent,
+      themeType: "product",
+      entityType: "category",
+      canonicalEntity: { id: "1501", label: "Instant Tea & Concentrate" },
+      shoppingIntent: "find-product",
+      shopperAction: "find",
+      decision: {
+        ...baseIntent.decision,
+        status: "needs-review",
+        requiresAgentReview: true,
+      },
+    };
+    const run = advanceProductSelectionRun({
+      snapshot: {
+        keyword: "Instant Tea & Concentrate",
+        site: "us",
+        sourceUrl: "https://example.com/search?q=instant+tea",
+        fetchedAt: "2026-08-25T00:00:00.000Z",
+        provider: "yami-catalog-search",
+        products: [{
+          id: "instant-tea-1",
+          title: "Instant Tea & Concentrate",
+          brand: "Tea Brand",
+          price: "$10.00",
+          imageUrl: "https://example.com/instant-tea-1.webp",
+          productUrl: "https://example.com/instant-tea-1",
+          sourceRank: 1,
+          categoryL3Id: 1501,
+          categoryL3Name: "Instant Tea & Concentrate",
+        }],
+        intent,
+      },
+      strategyRef: "relevance/intent-themes@5",
+    });
+
+    expect(run).toMatchObject({
+      status: "ready",
+      result: {
+        pools: { primaryIds: ["instant-tea-1"], relatedIds: [] },
+        diagnostics: {
+          candidateCount: 1,
+          directMatchCount: 1,
+          primaryCount: 1,
+          relatedCount: 0,
+          recoveryStrategy: "none",
+        },
+      },
+    });
+  });
+
   it("requests an Agent product-semantic proposal when one catalog leaf cannot form useful themes", () => {
     const products = [
       ...Array.from({ length: 4 }, (_, index) => ({
@@ -2066,7 +2238,7 @@ describe("ProductSelection Module", () => {
     });
   });
 
-  it("blocks automatic selection when candidate retrieval quality has an error", async () => {
+  it("reports candidate retrieval quality errors without blocking a valid selection", async () => {
     const { categories, snapshot, taxonomySnapshot, categoryRoleProposal } =
       categoryRoleFixture();
     const candidateSnapshot = candidateSnapshotFixture(categories, 4);
@@ -2093,10 +2265,10 @@ describe("ProductSelection Module", () => {
 
     expect(result.artifacts.candidateQualityReport?.status).toBe("error");
     expect(result.run).toMatchObject({
-      status: "blocked",
-      issues: expect.arrayContaining([
-        "Candidate request discovery failed (timeout).",
-      ]),
+      status: "ready",
+      result: {
+        strategyRef: "category-role/landing-page-agent@1",
+      },
     });
   });
 

@@ -297,13 +297,14 @@ decoder must fully decode every PNG, JPEG, or WebP body. `runTopicPageQa` then r
 bytes and independently repeats full decoding plus SHA-256, MIME, dimensions, bindings, module/order,
 content presence, and alt-text structure.
 
-Only after hard QA passes may `runTopicPageReviewAgentWorkflow(...)` invoke the read-only Review
-Agent. The `page-review` Module binds its proposal to the execution-plan, generation-spec, and QA
-digests and restricts evidence to generated modules, products, assets, QA, and preview refs. Its
-`advisory-never-block-generation` policy normalizes experience quality findings to warnings, so a
-valid review continues to a `topic-page-review-package/v1`; missing evidence, invalid bindings, and
-hard-QA drift still stop the workflow. User approval and publishing remain outside automation and
-require separate authority.
+Only after integrity QA completes may `runTopicPageReviewAgentWorkflow(...)` invoke the optional
+read-only Review Agent. The `page-review` Module binds its proposal to the execution-plan,
+generation-spec, and QA digests and restricts evidence to generated modules, products, assets, QA,
+and preview refs. Its `advisory-never-block-generation` policy normalizes experience quality
+findings, unavailable review capability, and invalid review proposals to warnings. The deterministic
+runtime then writes `page-final.html` with an automatic-completion record. Invalid source, product,
+module, or asset bindings and hard-QA drift still stop finalization. External publishing remains
+outside Topic Generator automation and requires separate authority.
 
 ### RunArtifact and Evaluation Modules
 

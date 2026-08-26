@@ -206,8 +206,37 @@ describe("Landing page orchestration", () => {
       language: "en",
     });
     expect(unresolved).toMatchObject({
-      status: "blocked",
-      issues: ["Landing page orchestration requires a resolved ThemeIntent."],
+      status: "needs-execution-plan-proposal",
+      context: {
+        themeIntent: {
+          themeType: "uncertain",
+          decision: { status: "needs-review" },
+        },
+      },
+    });
+    if (unresolved.status !== "needs-execution-plan-proposal") {
+      throw new Error("Expected unresolved intent to continue with an advisory draft route.");
+    }
+    const unresolvedReady = advanceLandingPageOrchestrationRun({
+      intent: unresolved.context.themeIntent,
+      language: "en",
+      proposal: {
+        schemaVersion: "landing-page-execution-plan-proposal/v1",
+        keyword: "Hot pot night",
+        site: "us",
+        language: "en",
+        themeIntentDigest: unresolved.context.themeIntentDigest,
+        requestedPageTypeRef: null,
+        requestedSelectionStrategyRef: null,
+        pageTypeRef: "landing-page/topic@2",
+        selectionStrategyRef: "relevance/intent-themes@5",
+        templateRef: "topic-landing/topic-relevance@2",
+        reason: "Use the topic draft route while intent uncertainty remains advisory.",
+      },
+    });
+    expect(unresolvedReady).toMatchObject({
+      status: "ready",
+      plan: { pageTypeRef: "landing-page/topic@2" },
     });
   });
 
@@ -242,5 +271,32 @@ describe("Landing page orchestration", () => {
     expect(result.run.status).toBe("ready");
     expect(result.artifacts.agentId).toBe("topic-page-orchestrator");
     expect(proposeExecutionPlan).toHaveBeenCalledTimes(1);
+  });
+
+  it("falls back to a registered deterministic route when the Agent proposal is invalid", async () => {
+    const result = await runLandingPageOrchestratorAgentWorkflow({
+      intent: brandIntent(),
+      language: "en",
+      requestedSelectionStrategyRef: "relevance/intent-themes@5",
+      agent: {
+        id: "topic-page-orchestrator",
+        proposeExecutionPlan: async () => ({ pageTypeRef: "invented/page@99" }),
+      },
+    });
+
+    expect(result).toMatchObject({
+      run: {
+        status: "ready",
+        plan: {
+          pageTypeRef: "landing-page/brand@2",
+          selectionStrategyRef: "relevance/intent-themes@5",
+          templateRef: "topic-landing/brand-relevance@2",
+        },
+      },
+      artifacts: {
+        fallbackUsed: true,
+        agentProposal: { pageTypeRef: "invented/page@99" },
+      },
+    });
   });
 });

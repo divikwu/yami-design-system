@@ -164,7 +164,7 @@ function extractSharedPageFiles(html: string, shared: Map<string, ArchiveEntry>)
 function packageReadme(run: TopicGeneratorRunDetail) {
   const ready = run.state.stages.filter(({ status }) => status === "completed").length;
   const status = run.state.status === "completed" ? "Completed"
-    : run.state.status === "awaiting-approval" ? "Awaiting approval"
+    : run.state.status === "awaiting-approval" ? "Finalizing"
     : "Preview — workflow not yet complete";
   return strToU8(`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(run.summary.keyword)} · Topic package</title><style>body{max-width:760px;margin:0 auto;padding:48px 24px;font:16px/1.6 Arial,sans-serif;color:#222}a{color:inherit}code{overflow-wrap:anywhere}.meta{color:#666}</style></head><body><main><p>TOPIC GENERATOR · BILINGUAL PREVIEW PACKAGE</p><h1>${escapeHtml(run.summary.keyword)}</h1><p><strong>${status}</strong></p><p>This package contains independent English and Chinese previews. Both pages share the same product selection, structure, and visual assets; their approved copy is language-specific.</p><ul><li><a href="deliverables/page-preview.en.html">Open English preview</a></li><li><a href="deliverables/page-preview.zh.html">打开中文预览</a></li><li><a href="deliverables/topic-brief.html">Open topic brief</a></li></ul><h2>Media</h2><p>Generated visuals are included in this package and remain available offline. Product images require an internet connection and load from their original Yami CDN URLs.</p><p class="meta">Workflow progress: ${ready}/${run.state.stages.length} stages. Catalog and price information is a snapshot from generation time and may change. This preview is not a publication approval.</p><h2>Traceability</h2><p>Run: <code>${escapeHtml(run.manifest.runId)}</code></p>${run.manifest.parentRunId ? `<p>Parent run: <code>${escapeHtml(run.manifest.parentRunId)}</code></p>` : ""}</main></body></html>`);
 }
@@ -183,9 +183,12 @@ export async function createTopicGeneratorPreviewArchive(
     stages["page-generation"] = run.retainedVisualPreview.pageGeneration;
   }
   const shared = new Map<string, ArchiveEntry>();
+  const pageDeliverable = run.state.status === "completed"
+    ? "page-final.html"
+    : "page-draft.html";
   const rendered = await Promise.all((["en", "zh"] as const).map(async (language) => {
     const html = await renderer.render({
-      name: "page-draft.html",
+      name: pageDeliverable,
       manifest: run.manifest,
       stages,
       outputLanguage: language,

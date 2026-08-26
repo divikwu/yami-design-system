@@ -2,6 +2,7 @@ import type { CatalogCandidateAdapter } from "./candidates.js";
 import { loadCatalogCandidateSnapshot } from "./candidates.js";
 import type {
   CatalogCandidateSnapshot,
+  ProductSemanticProposalReview,
   ProductSelectionRequest,
   ProductSelectionRun,
 } from "./contracts.js";
@@ -56,31 +57,8 @@ export interface ProductSelectionAgentWorkflowResult {
     candidateSnapshot?: CatalogCandidateSnapshot;
     candidateQualityReport?: CatalogCandidateQualityReport;
     sceneProposal?: unknown;
-  };
-}
-
-function blockOnCandidateQuality(
-  run: ProductSelectionRun,
-  report: CatalogCandidateQualityReport | undefined,
-): ProductSelectionRun {
-  if (
-    report?.status !== "error" ||
-    (run.status !== "needs-scene-proposal" && run.status !== "ready")
-  ) {
-    return run;
-  }
-
-  return {
-    schemaVersion: "product-selection-run/v1",
-    status: "blocked",
-    strategyRef: run.status === "ready" ? run.result.strategyRef : run.strategyRef,
-    ...(run.categoryProposalReview
-      ? { categoryProposalReview: run.categoryProposalReview }
-      : {}),
-    ...(run.candidateSnapshotReview
-      ? { candidateSnapshotReview: run.candidateSnapshotReview }
-      : {}),
-    issues: report.issues.map(({ message }) => message),
+    productSemanticFallbackUsed?: boolean;
+    productSemanticProposalReview?: ProductSemanticProposalReview;
   };
 }
 
@@ -91,7 +69,6 @@ export async function runProductSelectionWorkflow(
   let candidateQualityReport = request.candidateSnapshot
     ? analyzeCatalogCandidateQuality(request.candidateSnapshot)
     : undefined;
-  run = blockOnCandidateQuality(run, candidateQualityReport);
   if (
     run.status !== "needs-candidate-snapshot" ||
     !request.taxonomySnapshot ||
@@ -116,7 +93,6 @@ export async function runProductSelectionWorkflow(
     candidateSnapshot,
   });
   candidateQualityReport = analyzeCatalogCandidateQuality(candidateSnapshot);
-  run = blockOnCandidateQuality(run, candidateQualityReport);
   return { run, artifacts: { candidateSnapshot, candidateQualityReport } };
 }
 
@@ -138,7 +114,7 @@ export async function runProductSelectionAgentWorkflow(
     const candidateQualityReport = candidateSnapshot
       ? analyzeCatalogCandidateQuality(candidateSnapshot)
       : undefined;
-    const run = blockOnCandidateQuality(advanceProductSelectionRun({
+    const run = advanceProductSelectionRun({
       snapshot: request.snapshot,
       strategyRef: request.strategyRef,
       language: request.language,
@@ -147,7 +123,7 @@ export async function runProductSelectionAgentWorkflow(
       categoryRoleProposal,
       candidateSnapshot,
       sceneProposal,
-    }), candidateQualityReport);
+    });
     const artifacts = {
       agentId: request.agent.id,
       productSemanticProposal,
@@ -178,6 +154,28 @@ export async function runProductSelectionAgentWorkflow(
       });
       productSemanticAttempts += 1;
       continue;
+    }
+    if (
+      run.status === "blocked" &&
+      run.productSemanticProposalReview?.status === "rejected" &&
+      productSemanticNeed
+    ) {
+      const fallbackRun = advanceProductSelectionRun({
+        snapshot: request.snapshot,
+        strategyRef: request.strategyRef,
+        language: request.language,
+        productSemanticProposal: null,
+      });
+      if (fallbackRun.status === "ready") {
+        return {
+          run: fallbackRun,
+          artifacts: {
+            ...artifacts,
+            productSemanticFallbackUsed: true,
+            productSemanticProposalReview: run.productSemanticProposalReview,
+          },
+        };
+      }
     }
     if (run.status === "ready" || run.status === "blocked") {
       return { run, artifacts };

@@ -398,7 +398,7 @@ describe("Topic Generator offline export", () => {
     } as never))).rejects.toThrow("Final media is missing for hero.webp");
   });
 
-  it("embeds QA and approval summaries in an approved final page", async () => {
+  it("records automatic completion instead of a human approval in the final page", async () => {
     const renderer = createTopicGeneratorOfflineRenderer();
     const generationSpec = {
       schemaVersion: "topic-page-generation-spec/v1",
@@ -423,8 +423,43 @@ describe("Topic Generator offline export", () => {
 
     expect(html).toContain("sha256:qa");
     expect(html).toContain("sha256:review");
-    expect(html).toContain('"decision":"approved"');
+    expect(html).toContain('"completion":{"mode":"automatic"');
+    expect(html).toContain('"approval":null');
+    expect(html).not.toContain('"decision":"approved"');
     expect(html).not.toMatch(/localhost|127\.0\.0\.1|\/_next|\/api\/topic-generator/i);
+  });
+
+  it("finalizes a hard-QA-checked page when experience review is unavailable", async () => {
+    const renderer = createTopicGeneratorOfflineRenderer();
+    const generationSpec = {
+      schemaVersion: "topic-page-generation-spec/v1",
+      status: "generation-ready",
+      keyword: "Matcha",
+      site: "us",
+      language: "zh",
+      strategyRef: "relevance/intent-themes@5",
+      templateRef: "topic-landing/topic@2",
+      bindings: {},
+      moduleOrder: [],
+      modules: [],
+      digest: "sha256:generation",
+    };
+    const html = await renderer.render(request("page-final.html", {
+      "product-selection": { executionPlan: { pageTypeRef: "landing-page/topic@2" } },
+      "page-generation": { generationSpec },
+      "automatic-qa": {
+        qaReport: { status: "passed", digest: "sha256:qa", checks: [], issues: [] },
+      },
+      "experience-review": {
+        reviewAdvisoryIssues: [
+          "Experience review was unavailable; hard QA remains authoritative.",
+        ],
+      },
+      "visual-generation": { assetBodies: [] },
+    } as never));
+
+    expect(html).toContain('"completion":{"mode":"automatic"');
+    expect(html).toContain('"reviewPackageDigest":null');
   });
 
   it("keeps only the remote Explore products reachable in the capped preview", async () => {

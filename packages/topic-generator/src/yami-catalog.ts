@@ -578,6 +578,47 @@ function catalogProducts(
   });
 }
 
+function exactProductBrandEvidence(
+  keyword: string,
+  items: CatalogItem[],
+): CatalogBrandEvidence | null {
+  const query = normalized(keyword);
+  if (!query || items.length === 0) return null;
+  const aliases = uniqueStrings(items.flatMap((item) => [item.brand_ename, item.brand_name]));
+  const brandIds = uniqueStrings(items.map((item) => item.brand_id?.toString()));
+  const everyProductMatches = items.every((item) =>
+    uniqueStrings([item.brand_ename, item.brand_name]).some((alias) => normalized(alias) === query)
+  );
+  if (!everyProductMatches || brandIds.length > 1) return null;
+  const label = aliases.find((alias) => normalized(alias) === query);
+  if (!label) return null;
+  return {
+    id: brandIds[0] ?? label,
+    label,
+    aliases,
+    resultCount: items.length,
+  };
+}
+
+function exactFilteredProductBrandEvidence(
+  keyword: string,
+  products: YamiProduct[],
+): CatalogBrandEvidence | null {
+  const query = normalized(keyword);
+  if (!query || products.length === 0 ||
+      !products.every(({ brand }) => normalized(brand) === query)) return null;
+  const brandIds = uniqueStrings(products.map(({ brandId }) => brandId?.toString()));
+  if (brandIds.length > 1) return null;
+  const label = products.find(({ brand }) => normalized(brand) === query)?.brand;
+  if (!label) return null;
+  return {
+    id: brandIds[0] ?? label,
+    label,
+    aliases: [label],
+    resultCount: products.length,
+  };
+}
+
 export function parseYamiCatalogSnapshot(
   keyword: string,
   response: CatalogResponse,
@@ -589,6 +630,17 @@ export function parseYamiCatalogSnapshot(
   const categories = flattenCategories(response.body.categoryAgg ?? []);
   const inspected = availableCatalogItems(response.body.items ?? []);
   const items = inspected.items;
+  const aggregatedBrands = (response.body.brandAgg ?? []).flatMap<CatalogBrandEvidence>((brand) => {
+    const aliases = uniqueStrings([brand.brand_ename, brand.brand_name]);
+    if (aliases.length === 0) return [];
+    return [{
+      id: String(brand.brand_id ?? aliases[0]),
+      label: aliases[0]!,
+      aliases,
+      resultCount: brand.result_count ?? 0,
+    }];
+  });
+  const productBrand = exactProductBrandEvidence(keyword, items);
   const productCounts = new Map<number, number>();
   items.forEach((item) => {
     if (typeof item.category_l3_id !== "number") return;
@@ -607,16 +659,9 @@ export function parseYamiCatalogSnapshot(
     products: catalogProducts(items, categories),
     quality: inspected.quality,
     evidence: {
-      brands: (response.body.brandAgg ?? []).flatMap<CatalogBrandEvidence>((brand) => {
-        const aliases = uniqueStrings([brand.brand_ename, brand.brand_name]);
-        if (aliases.length === 0) return [];
-        return [{
-          id: String(brand.brand_id ?? aliases[0]),
-          label: aliases[0]!,
-          aliases,
-          resultCount: brand.result_count ?? 0,
-        }];
-      }),
+      brands: productBrand && !exactBrand(keyword, aggregatedBrands)
+        ? [...aggregatedBrands, productBrand]
+        : aggregatedBrands,
       categories: categories.map<CatalogCategoryEvidence>((category) => ({
         id: String(category.id),
         label: category.label,
@@ -2048,6 +2093,20 @@ function evidenceWithProductCounts(
   };
 }
 
+function evidenceWithNarrowedBrand(
+  keyword: string,
+  broad: YamiSearchSnapshot["evidence"],
+  narrowed: YamiSearchSnapshot["evidence"],
+  products: YamiProduct[],
+) {
+  if (!broad) return evidenceWithProductCounts(narrowed, products);
+  const narrowedBrand = exactBrand(keyword, narrowed?.brands ?? []);
+  const brands = narrowedBrand && !exactBrand(keyword, broad.brands)
+    ? [...broad.brands, narrowedBrand]
+    : broad.brands;
+  return evidenceWithProductCounts({ ...broad, brands }, products);
+}
+
 function evidenceWithIntentProductCounts(
   evidence: YamiSearchSnapshot["evidence"],
   products: YamiProduct[],
@@ -2087,6 +2146,15 @@ function filterStructuredCatalogSnapshot(
   );
   const products = snapshot.products.filter(({ id }) => relevantIds.has(id));
   const keywordMismatchCount = snapshot.products.length - products.length;
+  const productBrand = exactFilteredProductBrandEvidence(keyword, products);
+  const evidence = snapshot.evidence
+    ? evidenceWithProductCounts({
+        ...snapshot.evidence,
+        brands: productBrand && !exactBrand(keyword, snapshot.evidence.brands)
+          ? [...snapshot.evidence.brands, productBrand]
+          : snapshot.evidence.brands,
+      }, products)
+    : undefined;
   return {
     ...snapshot,
     products,
@@ -2105,11 +2173,7 @@ function filterStructuredCatalogSnapshot(
           },
         }
       : {}),
-    ...(snapshot.evidence
-      ? {
-          evidence: evidenceWithProductCounts(snapshot.evidence, products),
-        }
-      : {}),
+    ...(evidence ? { evidence } : {}),
   } satisfies YamiSearchSnapshot;
 }
 
@@ -2156,7 +2220,12 @@ export async function fetchYamiCatalogSnapshot(
     if (narrowed.products.length > 0) {
       return {
         ...narrowed,
-        evidence: evidenceWithProductCounts(broad.evidence, narrowed.products),
+        evidence: evidenceWithNarrowedBrand(
+          keyword,
+          broad.evidence,
+          narrowed.evidence,
+          narrowed.products,
+        ),
         retrievalTerms: broad.retrievalTerms,
       };
     }
