@@ -667,6 +667,7 @@ export const Pc: Story = {
       : null;
     const isMobileHero = window.innerWidth < 1024;
     const expectedHeroDescriptionSize = isMobileHero ? "14px" : "16px";
+    const expectedHeroDescriptionLines = isMobileHero ? "2" : "3";
     if (
       !copy ||
       !heroDescription ||
@@ -688,7 +689,8 @@ export const Pc: Story = {
         localizedExpectation.heroDescriptionCollapseLabel ||
       heroDescriptionStyle?.fontSize !== expectedHeroDescriptionSize ||
       heroDescriptionStyle?.lineHeight !== "20px" ||
-      getComputedStyle(heroDescriptionText).webkitLineClamp !== "2" ||
+      getComputedStyle(heroDescriptionText).webkitLineClamp !==
+        expectedHeroDescriptionLines ||
       (heroDescriptionToggle !== null &&
         (normalize(heroDescriptionToggle.textContent) !==
           localizedExpectation.heroDescriptionExpandLabel ||
@@ -696,7 +698,7 @@ export const Pc: Story = {
           getComputedStyle(heroDescriptionToggle).fontWeight !== "400"))
     ) {
       throw new Error(
-        "Topic landing page description must use localized two-line ThemeHero copy at desktop 16/20 and mobile 14/20 with a plain-text localized expansion action",
+        "Topic landing page description must use localized three-line desktop and two-line mobile ThemeHero copy with a plain-text localized expansion action",
       );
     }
 

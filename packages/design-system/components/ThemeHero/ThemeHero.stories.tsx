@@ -110,8 +110,8 @@ export const Showcase: Story = {
       descriptionStyle.fontSize !== "16px" ||
       descriptionStyle.lineHeight !== "20px" ||
       descriptionStyle.fontWeight !== "400" ||
-      descriptionTextStyle.webkitLineClamp !== "2" ||
-      descriptionText.getBoundingClientRect().height > 41 ||
+      descriptionTextStyle.webkitLineClamp !== "3" ||
+      descriptionText.getBoundingClientRect().height > 61 ||
       descriptionToggle.textContent?.trim() !== "More" ||
       descriptionToggleStyle.backgroundImage !== "none" ||
       descriptionToggleStyle.fontWeight !== "400" ||
@@ -121,7 +121,7 @@ export const Showcase: Story = {
       descriptionToggleRect.left - descriptionLastLine.right > 8
     ) {
       throw new Error(
-        "Desktop ThemeHero description must use the regular 16/20 two-line contract with a plain-text expansion action",
+        "Desktop ThemeHero description must use the regular 16/20 three-line contract with a plain-text expansion action",
       );
     }
     descriptionToggle.click();

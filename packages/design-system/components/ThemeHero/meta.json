@@ -4,7 +4,7 @@
   "category": "composite",
   "status": "experimental",
   "version": "0.8.1",
-  "description": "Responsive theme storytelling hero with a two-column desktop composition, a localized expandable two-line description, optional size-configurable descriptive Badges, one or two configurable actions and full-bleed mobile artwork.",
+  "description": "Responsive theme storytelling hero with a two-column desktop composition, a localized expandable three-line desktop and two-line mobile description, optional size-configurable descriptive Badges, one or two configurable actions and full-bleed mobile artwork.",
   "figma": {
     "nodeId": "1877:43111",
     "componentKey": null,
@@ -26,19 +26,19 @@
     "description": {
       "type": "ReactNode",
       "required": true,
-      "description": "Selectable supporting theme copy clamped to two lines until expanded."
+      "description": "Selectable supporting theme copy clamped to three lines on desktop and two lines on mobile until expanded."
     },
     "descriptionExpandLabel": {
       "type": "ReactNode",
       "required": false,
       "default": "More",
-      "description": "Localized plain-text action shown only when the two-line description overflows."
+      "description": "Localized plain-text action shown only when the responsive description line limit overflows."
     },
     "descriptionCollapseLabel": {
       "type": "ReactNode",
       "required": false,
       "default": "Less",
-      "description": "Localized plain-text action used to restore the two-line description."
+      "description": "Localized plain-text action used to restore the responsive description line limit."
     },
     "tags": {
       "type": "readonly string[]",

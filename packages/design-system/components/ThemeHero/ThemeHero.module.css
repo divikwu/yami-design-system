@@ -100,7 +100,7 @@
   display: -webkit-box;
   overflow: hidden;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
 }
 
 .description[data-expanded="true"] .descriptionText {
@@ -268,6 +268,10 @@
   .description {
     font-size: var(--font-size-heading-xs);
     line-height: var(--line-height-heading-xs);
+  }
+
+  .descriptionText {
+    -webkit-line-clamp: 2;
   }
 
   .tags {

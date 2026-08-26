@@ -145,6 +145,13 @@ export function ProductList(props: ProductListProps) {
     () => tabs?.find((tab) => !tab.disabled)?.value,
     [tabs],
   );
+  const handleTabValueChange = (nextValue: string) => {
+    if (layout === "rail" && railRef.current) {
+      railRef.current.scrollLeft = 0;
+      updateRailState();
+    }
+    onValueChange?.(nextValue);
+  };
 
   const mergedStyle = {
     ...style,
@@ -274,7 +281,7 @@ export function ProductList(props: ProductListProps) {
           <Tabs
             value={value}
             defaultValue={defaultValue ?? firstTabValue}
-            onValueChange={onValueChange}
+            onValueChange={handleTabValueChange}
           >
             <TabsList className={styles.tabsList} variant="tertiary">
               {tabs.map((tab) => (
