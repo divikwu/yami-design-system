@@ -20,6 +20,11 @@ function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
+const DESCRIPTION_LINE_LIMIT = {
+  desktop: 3,
+  mobile: 2,
+} as const;
+
 /**
  * Theme storytelling hero with selectable copy, optional primary and secondary
  * actions, and a campaign image repeated as a blurred full-bleed atmosphere.
@@ -69,10 +74,14 @@ export function ThemeHero({
     const element = descriptionRef.current;
     const copy = descriptionCopyRef.current;
     if (!element || !copy || descriptionExpanded) return;
+    const desktopMediaQuery = window.matchMedia("(min-width: 1024px)");
 
     const measure = () => {
       const lineHeight = Number.parseFloat(getComputedStyle(element).lineHeight);
-      const maxHeight = lineHeight * 2 + 1;
+      const lineLimit = desktopMediaQuery.matches
+        ? DESCRIPTION_LINE_LIMIT.desktop
+        : DESCRIPTION_LINE_LIMIT.mobile;
+      const maxHeight = lineHeight * lineLimit + 1;
 
       if (descriptionString === null) {
         setDescriptionCanExpand(element.scrollHeight > maxHeight);
@@ -152,6 +161,7 @@ export function ThemeHero({
       measure();
     });
     observer.observe(element);
+    desktopMediaQuery.addEventListener("change", measure);
     let cancelled = false;
     void document.fonts?.ready.then(() => {
       if (!cancelled) measure();
@@ -159,6 +169,7 @@ export function ThemeHero({
     return () => {
       cancelled = true;
       observer.disconnect();
+      desktopMediaQuery.removeEventListener("change", measure);
     };
   }, [description, descriptionExpandLabel, descriptionExpanded, descriptionString]);
 

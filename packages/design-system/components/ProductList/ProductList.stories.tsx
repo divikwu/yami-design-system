@@ -142,6 +142,36 @@ export const Showcase: Story = {
   },
 };
 
+export const TabChangeResetsRailPosition: Story = {
+  tags: ["!dev", "!autodocs"],
+  render: Showcase.render,
+  play: async ({ canvasElement }) => {
+    const list = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-list-items"]',
+    );
+    const tabs = canvasElement.querySelectorAll<HTMLButtonElement>(
+      '[data-slot="tabs-trigger"]',
+    );
+    const nextTab = tabs[1];
+    if (!list || !nextTab || list.scrollWidth <= list.clientWidth) {
+      throw new Error("Tabbed Product List must render a scrollable rail");
+    }
+
+    list.scrollLeft = Math.min(200, list.scrollWidth - list.clientWidth);
+    list.dispatchEvent(new Event("scroll"));
+    if (list.scrollLeft <= 0) {
+      throw new Error("Tabbed Product List could not establish a scrolled state");
+    }
+
+    nextTab.click();
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+
+    if (nextTab.dataset.state !== "active" || list.scrollLeft !== 0) {
+      throw new Error("Product List tab changes must reset the rail to its start");
+    }
+  },
+};
+
 /* Divider position and variant are Controls on every story, so these two exist
  * only to assert the computed borders. `!dev` keeps them out of the sidebar and
  * the docs page — a config flag does not deserve a component-level entry — while
