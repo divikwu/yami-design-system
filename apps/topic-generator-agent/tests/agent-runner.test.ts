@@ -288,7 +288,7 @@ describe("TOPIC GENERATOR Agent Runner", () => {
     await expect(response.json()).resolves.toMatchObject({
       schemaVersion: "topic-agent-runner-error/v1",
       code: "generated_visual_assets_missing",
-      message: "Generated visual output must contain one real image body for every visual task.",
+      message: "Every returned visual proposal asset must include one matching real image body.",
     });
   });
 

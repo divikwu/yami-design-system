@@ -299,4 +299,30 @@ describe("Landing page orchestration", () => {
       },
     });
   });
+
+  it("uses the registered deterministic route when the Orchestrator Agent is unavailable", async () => {
+    const result = await runLandingPageOrchestratorAgentWorkflow({
+      intent: brandIntent(),
+      language: "en",
+      requestedSelectionStrategyRef: "relevance/intent-themes@5",
+    });
+
+    expect(result).toMatchObject({
+      run: {
+        status: "ready",
+        plan: {
+          pageTypeRef: "landing-page/brand@2",
+          selectionStrategyRef: "relevance/intent-themes@5",
+          templateRef: "topic-landing/brand-relevance@2",
+        },
+      },
+      artifacts: {
+        agentId: "deterministic-host",
+        fallbackUsed: true,
+        fallbackIssues: [
+          "Landing Page Orchestrator Agent is unavailable; using the registered route.",
+        ],
+      },
+    });
+  });
 });

@@ -24,7 +24,7 @@ export interface LandingPageOrchestratorAgentWorkflowRequest {
   language: ContentLanguage;
   requestedPageTypeRef?: LandingPageTypeRef;
   requestedSelectionStrategyRef?: ProductSelectionStrategyRef;
-  agent: LandingPageOrchestratorAgent;
+  agent?: LandingPageOrchestratorAgent;
   proposal?: unknown;
 }
 
@@ -81,15 +81,19 @@ export async function runLandingPageOrchestratorAgentWorkflow(
   let fallbackUsed = false;
   if (run.status === "needs-execution-plan-proposal") {
     const pending = run;
-    try {
-      agentProposal = await request.agent.proposeExecutionPlan(run);
-      proposal = agentProposal;
-      run = advanceLandingPageOrchestrationRun({ ...request, proposal });
-      if (run.status === "blocked") fallbackIssues = [...run.issues];
-    } catch (error) {
-      fallbackIssues = [error instanceof Error
-        ? error.message
-        : "Landing Page Orchestrator Agent failed."];
+    if (request.agent) {
+      try {
+        agentProposal = await request.agent.proposeExecutionPlan(run);
+        proposal = agentProposal;
+        run = advanceLandingPageOrchestrationRun({ ...request, proposal });
+        if (run.status === "blocked") fallbackIssues = [...run.issues];
+      } catch (error) {
+        fallbackIssues = [error instanceof Error
+          ? error.message
+          : "Landing Page Orchestrator Agent failed."];
+      }
+    } else {
+      fallbackIssues = ["Landing Page Orchestrator Agent is unavailable; using the registered route."];
     }
     if (run.status !== "ready") {
       const fallbackProposal = deterministicProposal(pending);
@@ -103,7 +107,7 @@ export async function runLandingPageOrchestratorAgentWorkflow(
   return {
     run,
     artifacts: {
-      agentId: request.agent.id,
+      agentId: request.agent?.id ?? "deterministic-host",
       ...(proposal === undefined ? {} : { proposal }),
       ...(agentProposal === undefined ? {} : { agentProposal }),
       ...(fallbackUsed ? { fallbackUsed } : {}),

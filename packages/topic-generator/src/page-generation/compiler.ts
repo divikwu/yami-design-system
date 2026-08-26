@@ -21,8 +21,14 @@ export interface CompileTopicPageGenerationSpecOptions {
   assetUrl(ref: string): string;
 }
 
-function exactOrder(left: readonly string[], right: readonly string[]) {
-  return left.length === right.length && left.every((value, index) => value === right[index]);
+function preservesDeclaredOrder(declared: readonly string[], actual: readonly string[]) {
+  let previousIndex = -1;
+  return actual.every((value) => {
+    const index = declared.indexOf(value);
+    if (index <= previousIndex) return false;
+    previousIndex = index;
+    return true;
+  });
 }
 
 function preflightIssues(options: CompileTopicPageGenerationSpecOptions) {
@@ -76,21 +82,24 @@ function preflightIssues(options: CompileTopicPageGenerationSpecOptions) {
     topicPageContentSpecDigest: manifest.topicPageContentSpecDigest,
     themeIntentDigest: manifest.themeIntentDigest,
     productSelectionDigest: manifest.productSelectionDigest,
+    productionMode: manifest.productionMode,
     assets: manifest.assets,
   };
-  issues.push(...reviewTopicPageVisualProposal(
+  const visualReview = reviewTopicPageVisualProposal(
     intent,
     selection,
     plan,
     contentSpec,
     reconstructedProposal,
-  ).issues);
+    manifest.productionMode ?? "generated-images",
+  );
+  if (visualReview.status === "rejected") issues.push(...visualReview.issues);
   const visibleModules = plan.modules.filter(({ visible }) => visible);
-  if (!exactOrder(
+  if (!preservesDeclaredOrder(
     visibleModules.flatMap(({ assetTaskIds }) => assetTaskIds),
     manifest.assets.map(({ taskId }) => taskId),
   )) {
-    issues.push("TopicPageAssetManifest assets do not match visible PagePlan asset tasks.");
+    issues.push("TopicPageAssetManifest assets do not preserve visible PagePlan task order.");
   }
   return [...new Set(issues)];
 }

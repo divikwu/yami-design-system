@@ -332,6 +332,12 @@ latest structurally valid ContentSpec, records advisory warnings, and continues.
 missing immutable structure remain invalid because no trustworthy ContentSpec can be compiled from
 them.
 
+If the Content Agent is unavailable or its proposal is structurally invalid, automatic Host mode
+may compile conservative deterministic copy for every frozen task, assignment, scene, and group.
+That fallback preserves locale, upstream digests, task order, and allowed evidence references; it
+is recorded as an advisory substitution. The Host does not use fallback copy to repair missing or
+stale upstream bindings.
+
 In automatic Host mode, accept only a `topic-page-agent-request/v1` whose stage is
 `content-writing`, and return the proposal inside `topic-page-agent-response/v1` with the same
 stage. Do not persist drafts or return image data from this stage.

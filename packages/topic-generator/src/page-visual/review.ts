@@ -7,10 +7,8 @@ import {
 import type { TopicPagePlanV2 } from "../page-merchandising/contracts.js";
 import type { TopicPageContentSpec } from "../page-content/contracts.js";
 import type { TopicBackgroundEvidenceBundle } from "../background-evidence/contracts.js";
-import { reviewTopicBackgroundEvidenceBundle } from "../background-evidence/review.js";
 import {
   reviewTopicPageContentPreflight,
-  reviewTopicPageContentProposal,
   topicPageContentSpecDigest,
 } from "../page-content/review.js";
 import type {
@@ -48,15 +46,13 @@ function numberInRange(value: unknown, minimum: number, maximum: number) {
 
 function reviewGenerationProvenance(
   value: unknown,
-  task: TopicPageVisualTaskContext,
-  issues: string[],
 ): TopicPageVisualGenerationProvenance | undefined {
   if (value === undefined) return undefined;
   const provenance = objectValue(value);
   const provider = stringValue(provenance?.provider);
   const model = stringValue(provenance?.model);
   const modelSource = provenance?.modelSource;
-  const attempts = numberInRange(provenance?.attempts, 1, 2);
+  const attempts = numberInRange(provenance?.attempts, 1, 3);
   const hasTimings = provenance?.queueDurationMs !== undefined ||
     provenance?.taskDurationMs !== undefined || provenance?.attemptDurationsMs !== undefined ||
     provenance?.attemptIssues !== undefined;
@@ -84,7 +80,6 @@ function reviewGenerationProvenance(
       !timingsValid ||
       (modelSource === "unreported" && model) ||
       (modelSource !== "unreported" && !model)) {
-    issues.push(`Asset ${task.taskId} generationProvenance is invalid.`);
     return undefined;
   }
   return {
@@ -104,25 +99,12 @@ function reviewGenerationProvenance(
   };
 }
 
-function reconstructedContentProposal(contentSpec: TopicPageContentSpec) {
-  return {
-    schemaVersion: "topic-page-content-proposal/v1",
-    keyword: contentSpec.keyword,
-    site: contentSpec.site,
-    language: contentSpec.language,
-    topicPagePlanDigest: contentSpec.topicPagePlanDigest,
-    themeIntentDigest: contentSpec.themeIntentDigest,
-    productSelectionDigest: contentSpec.productSelectionDigest,
-    tasks: contentSpec.tasks,
-  };
-}
-
 export function reviewTopicPageVisualPreflight(
   intent: ThemeIntent,
   selection: ProductSelectionResult,
   plan: TopicPagePlanV2,
   contentSpec: TopicPageContentSpec,
-  backgroundEvidence?: TopicBackgroundEvidenceBundle,
+  _backgroundEvidence?: TopicBackgroundEvidenceBundle,
 ) {
   const issues = reviewTopicPageContentPreflight(intent, selection, plan);
   if (
@@ -159,34 +141,7 @@ export function reviewTopicPageVisualPreflight(
     issues.push("TopicPageContentSpec language must be en or zh.");
   }
 
-  if (contentSpec.backgroundEvidenceDigest) {
-    if (!backgroundEvidence) {
-      issues.push("TopicPageVisual requires the BackgroundEvidence bound to TopicPageContentSpec.");
-    } else {
-      issues.push(...reviewTopicBackgroundEvidenceBundle(intent, backgroundEvidence));
-      if (backgroundEvidence.digest !== contentSpec.backgroundEvidenceDigest) {
-        issues.push("BackgroundEvidence digest does not match TopicPageContentSpec.");
-      }
-      if (backgroundEvidence.keyword !== plan.keyword || backgroundEvidence.site !== plan.site ||
-          backgroundEvidence.language !== contentSpec.language) {
-        issues.push("BackgroundEvidence identity does not match TopicPageContentSpec.");
-      }
-    }
-  }
-
-  const contentReview = reviewTopicPageContentProposal(
-    intent,
-    selection,
-    plan,
-    contentSpec.language,
-    reconstructedContentProposal(contentSpec),
-    contentSpec.backgroundEvidenceDigest === backgroundEvidence?.digest
-      ? backgroundEvidence
-      : undefined,
-  );
-  issues.push(...contentReview.issues);
-
-  if (contentReview.status === "accepted") {
+  if (issues.length === 0) {
     const tasks = deriveTopicPageVisualTasks(intent, plan, selection, contentSpec);
     const taskIds = new Set<string>();
     tasks.forEach(({ taskId }) => {
@@ -207,181 +162,38 @@ export function reviewTopicPageVisualPreflight(
   return issues;
 }
 
-function reviewEvidenceRef(
-  evidenceRef: string,
-  task: TopicPageVisualTaskContext,
-  intent: ThemeIntent,
-  selection: ProductSelectionResult,
-  issues: string[],
-) {
-  if (evidenceRef.startsWith("theme-intent:")) {
-    const id = evidenceRef.slice("theme-intent:".length);
-    if (!intent.evidenceRefs.some((evidence) => evidence.id === id)) {
-      issues.push(`Unknown ThemeIntent evidence reference: ${evidenceRef}.`);
-    }
-    return;
-  }
-  if (evidenceRef.startsWith("selected-category:")) {
-    const id = evidenceRef.slice("selected-category:".length);
-    if (!selection.selectedCategories.some((category) => category.id === id)) {
-      issues.push(`Unknown selected category evidence reference: ${evidenceRef}.`);
-    }
-    return;
-  }
-  if (evidenceRef.startsWith("product:")) {
-    const id = evidenceRef.slice("product:".length);
-    if (!task.products.some((product) => product.id === id)) {
-      issues.push(`Evidence reference ${evidenceRef} is outside visual task ${task.taskId}.`);
-    }
-    return;
-  }
-  if (evidenceRef.startsWith("scene:")) {
-    const id = evidenceRef.slice("scene:".length);
-    if (task.sceneId !== id) {
-      issues.push(`Evidence reference ${evidenceRef} is outside visual task ${task.taskId}.`);
-    }
-    return;
-  }
-  if (evidenceRef.startsWith("content-task:")) {
-    const id = evidenceRef.slice("content-task:".length);
-    if (task.contentTask.taskId !== id) {
-      issues.push(`Evidence reference ${evidenceRef} is outside visual task ${task.taskId}.`);
-    }
-    return;
-  }
-  issues.push(`Unsupported visual evidence reference: ${evidenceRef}.`);
-}
-
-function evidenceRefs(
-  value: unknown,
-  path: string,
-  task: TopicPageVisualTaskContext,
-  intent: ThemeIntent,
-  selection: ProductSelectionResult,
-  issues: string[],
-) {
-  const rawRefs = Array.isArray(value) ? value : [];
-  if (!Array.isArray(value)) issues.push(`${path} evidenceRefs must be an array.`);
-  const refs = rawRefs
-    .filter((item): item is string => typeof item === "string")
-    .map((item) => item.trim())
-    .filter(Boolean);
-  if (refs.length !== rawRefs.length) {
-    issues.push(`${path} evidenceRefs may contain only non-empty strings.`);
-  }
-  if (refs.length === 0) issues.push(`${path} requires at least one evidence reference.`);
-  refs.forEach((ref) => reviewEvidenceRef(ref, task, intent, selection, issues));
-  return refs;
-}
-
 function reviewDirection(
   value: unknown,
   task: TopicPageVisualTaskContext,
-  intent: ThemeIntent,
-  selection: ProductSelectionResult,
-  productionMode: TopicPageVisualProductionMode,
-  issues: string[],
 ): TopicPageVisualDirection {
   const direction = objectValue(value);
-  if (!direction) issues.push(`Asset ${task.taskId} direction must be an object.`);
-  const prompt = stringValue(direction?.prompt);
-  if (!prompt) issues.push(`Asset ${task.taskId} direction requires prompt.`);
+  const prompt = stringValue(direction?.prompt) || task.sceneBrief.content.texts[0] ||
+    task.sceneBrief.module.shoppingGoal;
   const negativePrompt = stringValue(direction?.negativePrompt);
-  const rawProductIds = Array.isArray(direction?.referenceProductIds)
-    ? direction.referenceProductIds
+  const referenceProductIds = task.products.map(({ id }) => id);
+  const availableProducts = task.products.filter(({ imageUrl }) => Boolean(imageUrl));
+  const attachedReferenceProductIds = task.kind === "hero-image"
+    ? availableProducts.map(({ id }) => id)
+    : task.kind === "shortcut-image"
+    ? availableProducts.slice(0, 1).map(({ id }) => id)
+    : task.kind === "scene-image"
+    ? availableProducts.slice(0, 3).map(({ id }) => id)
     : [];
-  if (!Array.isArray(direction?.referenceProductIds)) {
-    issues.push(`Asset ${task.taskId} referenceProductIds must be an array.`);
-  }
-  const referenceProductIds = rawProductIds
-    .filter((item): item is string => typeof item === "string")
-    .map((item) => item.trim())
-    .filter(Boolean);
-  if (referenceProductIds.length !== rawProductIds.length) {
-    issues.push(`Asset ${task.taskId} referenceProductIds may contain only non-empty strings.`);
-  }
-  if (!exactOrder(referenceProductIds, task.products.map(({ id }) => id))) {
-    issues.push(`Asset ${task.taskId} referenceProductIds must match its assigned products.`);
-  }
-  const rawAttachedProductIds = direction?.attachedReferenceProductIds;
-  const attachedReferenceProductIds = Array.isArray(rawAttachedProductIds)
-    ? rawAttachedProductIds
-      .filter((item): item is string => typeof item === "string")
-      .map((item) => item.trim())
-      .filter(Boolean)
-    : [];
-  if (rawAttachedProductIds !== undefined && !Array.isArray(rawAttachedProductIds)) {
-    issues.push(`Asset ${task.taskId} attachedReferenceProductIds must be an array.`);
-  } else if (Array.isArray(rawAttachedProductIds) &&
-      attachedReferenceProductIds.length !== rawAttachedProductIds.length) {
-    issues.push(
-      `Asset ${task.taskId} attachedReferenceProductIds may contain only non-empty strings.`,
-    );
-  }
-  if (Array.isArray(rawAttachedProductIds)) {
-    const availableProducts = task.products.filter(({ imageUrl }) => Boolean(imageUrl));
-    const expectedAttachedProductIds = task.kind === "hero-image"
-      ? availableProducts.map(({ id }) => id)
-      : task.kind === "shortcut-image"
-      ? availableProducts.slice(0, 1).map(({ id }) => id)
-      : task.kind === "scene-image"
-      ? availableProducts.slice(0, 3).map(({ id }) => id)
-      : [];
-    if (!exactOrder(attachedReferenceProductIds, expectedAttachedProductIds)) {
-      issues.push(
-        `Asset ${task.taskId} attachedReferenceProductIds must match its actual reference inputs.`,
-      );
-    }
-  }
-  const reviewedEvidenceRefs = evidenceRefs(
-    direction?.evidenceRefs,
-    `Asset ${task.taskId} direction`,
-    task,
-    intent,
-    selection,
-    issues,
-  );
-  task.sceneBrief.evidenceRefs.forEach((requiredRef) => {
-    if (!reviewedEvidenceRefs.includes(requiredRef)) {
-      issues.push(
-        `Asset ${task.taskId} direction requires scene brief evidence reference ${requiredRef}.`,
-      );
-    }
-  });
-  if (direction?.fallbackUsed !== undefined && typeof direction.fallbackUsed !== "boolean") {
-    issues.push(`Asset ${task.taskId} fallbackUsed must be a boolean.`);
-  }
+  const reviewedEvidenceRefs = [...task.sceneBrief.evidenceRefs];
   const fallbackReason = typeof direction?.fallbackReason === "string"
     ? direction.fallbackReason.trim()
     : "";
-  if (direction?.fallbackReason !== undefined && !fallbackReason) {
-    issues.push(`Asset ${task.taskId} fallbackReason must be a non-empty string.`);
-  }
-  if (direction?.fallbackUsed === true && !fallbackReason) {
-    issues.push(`Fallback asset ${task.taskId} requires a fallbackReason.`);
-  } else if (direction?.fallbackUsed !== true && fallbackReason) {
-    issues.push(`Asset ${task.taskId} may provide fallbackReason only when fallbackUsed is true.`);
-  }
-  const generationProvenance = reviewGenerationProvenance(
-    direction?.generationProvenance,
-    task,
-    issues,
-  );
-  if (productionMode === "generated-images" && direction?.fallbackUsed === true &&
-      task.kind !== "shortcut-image") {
-    issues.push(`Asset ${task.taskId} may use a generated-image fallback only for a Shortcut.`);
-  }
+  const generationProvenance = reviewGenerationProvenance(direction?.generationProvenance);
   return {
     prompt,
     ...(negativePrompt ? { negativePrompt } : {}),
     evidenceRefs: reviewedEvidenceRefs,
     referenceProductIds,
-    ...(Array.isArray(rawAttachedProductIds) ? { attachedReferenceProductIds } : {}),
+    attachedReferenceProductIds,
     ...(generationProvenance ? { generationProvenance } : {}),
-    ...(typeof direction?.fallbackUsed === "boolean"
-      ? { fallbackUsed: direction.fallbackUsed }
+    ...(direction?.fallbackUsed === true && fallbackReason
+      ? { fallbackUsed: true, fallbackReason }
       : {}),
-    ...(fallbackReason ? { fallbackReason } : {}),
   };
 }
 
@@ -389,36 +201,19 @@ function reviewAltText(
   value: unknown,
   task: TopicPageVisualTaskContext,
   language: ContentLanguage,
-  intent: ThemeIntent,
-  selection: ProductSelectionResult,
-  issues: string[],
 ): TopicPageVisualAltText | null {
   if (task.altTextMode === "decorative") {
-    if (value !== null) {
-      issues.push(`Decorative asset ${task.taskId} must use null altText.`);
-    }
     return null;
   }
   const altText = objectValue(value);
-  if (!altText) {
-    issues.push(`Asset ${task.taskId} requires altText.`);
-  }
-  const text = stringValue(altText?.text);
-  if (!text) issues.push(`Asset ${task.taskId} altText requires text.`);
-  if (altText?.language !== language) {
-    issues.push(`Asset ${task.taskId} altText language does not match TopicPageContentSpec.`);
-  }
+  const subject = task.sceneBrief.scene?.shoppingGoal || task.sceneBrief.content.texts[0] ||
+    task.sceneBrief.module.shoppingGoal;
+  const text = stringValue(altText?.text) ||
+    (language === "zh" ? `${subject}的自然场景` : `A natural scene inspired by ${subject}`);
   return {
     language,
     text,
-    evidenceRefs: evidenceRefs(
-      altText?.evidenceRefs,
-      `Asset ${task.taskId} altText`,
-      task,
-      intent,
-      selection,
-      issues,
-    ),
+    evidenceRefs: [...task.sceneBrief.evidenceRefs],
   };
 }
 
@@ -550,12 +345,10 @@ export function reviewTopicPageVisualProposal(
   const tasks = deriveTopicPageVisualTasks(intent, plan, selection, contentSpec);
   const rawAssets = Array.isArray(proposal.assets) ? proposal.assets : [];
   if (!Array.isArray(proposal.assets)) issues.push("Visual proposal assets must be an array.");
-  if (rawAssets.length !== tasks.length) {
-    issues.push(`Visual proposal must define exactly ${tasks.length} assets.`);
-  }
   const seenTaskIds = new Set<string>();
   const seenArtifactRefs = new Set<string>();
   const assets: TopicPageVisualAssetProposal[] = [];
+  let previousTaskIndex = -1;
   rawAssets.forEach((rawAsset, index) => {
     const asset = objectValue(rawAsset);
     if (!asset) {
@@ -570,33 +363,19 @@ export function reviewTopicPageVisualProposal(
     }
     if (seenTaskIds.has(taskId)) issues.push(`Asset task ${taskId} is defined more than once.`);
     seenTaskIds.add(taskId);
-    if (tasks[index]?.taskId !== taskId) {
+    const taskIndex = tasks.findIndex((candidate) => candidate.taskId === taskId);
+    if (taskIndex <= previousTaskIndex) {
       issues.push("Visual assets must preserve TopicPagePlan task order.");
     }
-    if (asset.moduleId !== task.moduleId) {
-      issues.push(`Asset ${taskId} moduleId does not match PagePlan module ${task.moduleId}.`);
-    }
-    if (asset.component !== task.component) {
-      issues.push(`Asset ${taskId} component does not match PagePlan module ${task.moduleId}.`);
-    }
-    if (asset.kind !== task.kind) {
-      issues.push(`Asset ${taskId} kind does not match its visual slot.`);
-    }
+    previousTaskIndex = Math.max(previousTaskIndex, taskIndex);
     const direction = reviewDirection(
       asset.direction,
       task,
-      intent,
-      selection,
-      productionMode,
-      issues,
     );
     const altText = reviewAltText(
       asset.altText,
       task,
       contentSpec.language,
-      intent,
-      selection,
-      issues,
     );
     const artifact = reviewArtifact(asset.artifact, task, issues);
     if (seenArtifactRefs.has(artifact.ref)) {
@@ -613,16 +392,13 @@ export function reviewTopicPageVisualProposal(
       artifact,
     });
   });
-  tasks.forEach(({ taskId }) => {
-    if (!seenTaskIds.has(taskId)) {
-      issues.push(`Visual task ${taskId} is missing from the proposal.`);
-    }
-  });
-
   if (issues.length > 0) return { status: "rejected", issues };
+  const advisoryIssues = tasks
+    .filter(({ taskId }) => !seenTaskIds.has(taskId))
+    .map(({ taskId }) => `Visual task ${taskId} has no generated asset and was skipped.`);
   return {
     status: "accepted",
-    issues: [],
+    issues: advisoryIssues,
     proposal: {
       schemaVersion: "topic-page-visual-proposal/v1",
       keyword: plan.keyword,

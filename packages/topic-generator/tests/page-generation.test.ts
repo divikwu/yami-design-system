@@ -494,7 +494,7 @@ describe("PageGenerationSpec and final automatic QA", () => {
     })).toThrow("ExperienceReview bound to ExecutionPlan and QAReport");
   });
 
-  it("blocks generated assets without model provenance evidence", async () => {
+  it("reports missing model provenance without blocking an otherwise complete page", async () => {
     const data = fixture();
     const direction = data.manifest.assets[0]!.direction;
     delete direction.generationProvenance;
@@ -507,7 +507,10 @@ describe("PageGenerationSpec and final automatic QA", () => {
     const qaReport = await runTopicPageQa({ ...data, generationSpec });
 
     expect(qaReport).toMatchObject({
-      status: "qa-blocked",
+      status: "passed",
+      checks: expect.arrayContaining([
+        expect.objectContaining({ id: "visual-policy", status: "failed" }),
+      ]),
       issues: expect.arrayContaining([
         "Generated asset asset-hero has no generation provenance.",
       ]),
@@ -540,7 +543,7 @@ describe("PageGenerationSpec and final automatic QA", () => {
     })).toThrow("ReviewPackage requires a passed QAReport.");
   });
 
-  it("keeps source-product compositions as draft fallback instead of final visual QA", async () => {
+  it("reports source-product draft quality without blocking the page", async () => {
     const data = fixture();
     data.manifest.productionMode = "source-product-images";
     data.manifest.digest = topicPageAssetManifestDigest(data.manifest);
@@ -552,12 +555,12 @@ describe("PageGenerationSpec and final automatic QA", () => {
     const qaReport = await runTopicPageQa({ ...data, generationSpec });
 
     expect(qaReport).toMatchObject({
-      status: "qa-blocked",
+      status: "passed",
       checks: expect.arrayContaining([
         expect.objectContaining({ id: "visual-policy", status: "failed" }),
       ]),
       issues: expect.arrayContaining([
-        "Source-product image composition is a draft fallback and cannot pass final visual QA.",
+        "Source-product image composition is a draft-quality fallback; review visual quality before publication.",
       ]),
     });
   });

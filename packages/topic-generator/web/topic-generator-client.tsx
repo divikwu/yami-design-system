@@ -2154,11 +2154,11 @@ function AutomationRuntimePanel({
           {automation.contentReview && <div><dt>ContentReview</dt><dd>{automation.contentReview.verdict}</dd></div>}
           <div><dt>PageGenerationSpec</dt><dd>{automation.generationSpec.digest.slice(0, 18)}…</dd></div>
           <div><dt>QAReport</dt><dd>{automation.qaReport.status}</dd></div>
-          <div><dt>ExperienceReview</dt><dd>{automation.experienceReview.status}</dd></div>
-          <div><dt>ReviewPackage</dt><dd>{automation.reviewPackage.status}</dd></div>
+          <div><dt>ExperienceReview</dt><dd>{automation.experienceReview?.status ?? "skipped"}</dd></div>
+          <div><dt>ReviewPackage</dt><dd>{automation.reviewPackage?.status ?? "not-required"}</dd></div>
         </dl>
       )}
-      {automation.status === "blocked" && automation.issues.length > 0 && (
+      {automation.issues.length > 0 && (
         <ul>{automation.issues.map((issue) => <li key={issue}>{issue}</li>)}</ul>
       )}
     </section>

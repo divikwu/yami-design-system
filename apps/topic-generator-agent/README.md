@@ -85,26 +85,19 @@ If `TOPIC_AGENT_RUNNER_TOKEN` is set, use the same value for
 - Live web search is enabled only for `background-evidence`; all other text stages keep the existing
   bounded tool set. Brand research prioritizes the official site and treats Wikipedia as secondary
   context.
-- In `generated-images` mode, every visual task must return real image bytes for its module-specific
+- In `generated-images` mode, every returned visual proposal asset must have real image bytes for its module-specific
   scene brief. Codex invokes the enabled native image-generation capability once per attempt,
   consumes the checked-in Visual Agent and Skill instructions, inspects the result,
   and copies the accepted source into a task-scoped temporary directory. The Runner then reads the
   actual file, crops it to the maintained slot, converts it to WebP, and derives dimensions, MIME,
   background color, and SHA-256 from the resulting bytes. A proposal or artifact path without
-  matching image bytes is rejected. An executor without image-generation capability fails before
-  execution instead of returning a placeholder.
-- Hero background generation receives structured theme, copy, and product-category evidence but no
-  product image pixels. The Host then uses the exact catalog main images as locked layers: existing
-  alpha is preserved, verified white-background images receive only a deterministic canvas-removal
-  mask that protects the complete product silhouette, and uncertain sources move to a deliberate
-  studio tile on the safe-neutral fallback. No product is generatively redrawn. The
-  Agent must return a light-neutral horizontal support region and contact points. Host geometry
-  checks reject overlap, unsafe bounds, or contacts outside that region. Missing or invalid placement
-  first receives one read-only recovery pass over the same background; a separate read-only vision
-  pass compares the completed Hero with the catalog sources and rejects floating products, vertical
-  landings, altered packaging, ghost-product shadows, and bottom-safe-area intrusion. A failed pass
-  consumes the one Host retry, then uses the known-safe neutral Hero background and records a bounded
-  rejection reason in the asset direction.
+  matching image bytes is rejected. A task that exhausts technical retries is omitted with an advisory
+  issue; completed tasks remain usable, and an empty asset set can still produce a page. An executor
+  without image-generation capability therefore degrades the visual stage instead of returning placeholders.
+- Hero generation receives structured theme, accepted copy, and all available assigned product images
+  as flexible references, then regenerates one coherent scene directly. Missing catalog image URLs do
+  not block the request. There is no locked-layer placement pass, semantic rejection, or deterministic
+  Hero fallback; a failed Hero is omitted while the rest of the page continues.
 - Successful per-task outputs are reused in memory. Set an absolute
   `TOPIC_AGENT_RUNNER_IMAGE_CACHE_ROOT` to persist them across Runner restarts; cache keys include
   Skill/Agent prompts, generator identity, task data, and source-image SHA-256 digests.
@@ -115,7 +108,7 @@ If `TOPIC_AGENT_RUNNER_TOKEN` is set, use the same value for
   Other maintained image slots remain scene-first and treat assigned products as references only.
 - In `source-product-images` mode, `visual-generation` creates deterministic WebP reference
   compositions from approved Yami CDN images. This is a draft-only catalog fallback, not semantic
-  scene generation, and final visual QA rejects it.
+  scene generation, and is surfaced as a draft-quality QA advisory without blocking completion.
 - For `module-merchandising`, an image-capable executor first creates the complete text proposal.
   The Runner then prepares 512px thumbnails only for its Start Here assignments plus a small number
   of title-similar source-scene alternatives. A second bounded Agent pass confirms visual duplicate

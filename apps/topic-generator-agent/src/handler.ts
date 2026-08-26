@@ -150,18 +150,23 @@ function validateGeneratedVisualResponse(
   const proposal = asObject(value.proposal);
   const proposalAssets = Array.isArray(proposal?.assets) ? proposal.assets : [];
   const assets = Array.isArray(value.assets) ? value.assets : [];
-  const valid = tasks.length > 0 && proposalAssets.length === tasks.length &&
-    assets.length === tasks.length && assets.every((assetValue, index) => {
-      const task = asObject(tasks[index]);
+  let previousTaskIndex = -1;
+  const valid = tasks.length > 0 && proposalAssets.length === assets.length &&
+    assets.length <= tasks.length && assets.every((assetValue, index) => {
       const proposalAsset = asObject(proposalAssets[index]);
       const artifact = asObject(proposalAsset?.artifact);
       const asset = asObject(assetValue);
       const dataBase64 = typeof asset?.dataBase64 === "string" ? asset.dataBase64 : "";
-      if (!task || !proposalAsset || !artifact || !asset ||
+      const taskIndex = tasks.findIndex((taskValue) =>
+        asObject(taskValue)?.taskId === asset?.taskId
+      );
+      const task = taskIndex >= 0 ? asObject(tasks[taskIndex]) : null;
+      if (!task || taskIndex <= previousTaskIndex || !proposalAsset || !artifact || !asset ||
           asset.taskId !== task.taskId || proposalAsset.taskId !== task.taskId ||
           asset.ref !== artifact.ref || asset.mimeType !== artifact.mimeType || !dataBase64) {
         return false;
       }
+      previousTaskIndex = taskIndex;
       const bytes = Buffer.from(dataBase64, "base64");
       return bytes.byteLength > 0 &&
         bytes.toString("base64").replace(/=+$/, "") === dataBase64.replace(/=+$/, "");
@@ -170,7 +175,7 @@ function validateGeneratedVisualResponse(
     throw new RequestError(
       422,
       "generated_visual_assets_missing",
-      "Generated visual output must contain one real image body for every visual task.",
+      "Every returned visual proposal asset must include one matching real image body.",
     );
   }
   return value;

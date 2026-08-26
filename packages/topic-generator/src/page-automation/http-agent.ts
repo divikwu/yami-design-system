@@ -159,8 +159,9 @@ function generatedImageVisualTasks(run: unknown) {
   const context = objectValue(value?.context);
   if (value?.schemaVersion !== "topic-page-visual-run/v1" ||
       value.status !== "needs-visual-proposal" ||
-      context?.productionMode !== "generated-images" ||
-      !Array.isArray(context.tasks) || context.tasks.length < 2) {
+      (context?.productionMode !== "generated-images" &&
+        context?.productionMode !== "source-product-images") ||
+      !Array.isArray(context.tasks) || context.tasks.length < 1) {
     return null;
   }
   const tasks = context.tasks.map(objectValue);
@@ -206,19 +207,38 @@ function reindexedVisualRef(ref: string, index: number) {
 }
 
 function mergeVisualTaskOutputs(
-  outputs: TopicPageVisualAgentOutput[],
+  outputs: Array<{ output?: TopicPageVisualAgentOutput; issue?: string }>,
   taskIds: string[],
   agentId: string,
+  context: Record<string, unknown>,
 ) {
   const proposalAssets: Record<string, unknown>[] = [];
   const assetBodies: TopicPageVisualAssetBody[] = [];
-  let proposalMetadata: Record<string, unknown> | undefined;
-  let proposalMetadataDigest: string | undefined;
-
-  outputs.forEach((output, index) => {
+  const issues: string[] = [];
+  const proposalMetadata: Record<string, unknown> = {
+    schemaVersion: "topic-page-visual-proposal/v1",
+    keyword: context.keyword,
+    site: context.site,
+    language: context.language,
+    topicPagePlanDigest: context.topicPagePlanDigest,
+    topicPageContentSpecDigest: context.topicPageContentSpecDigest,
+    themeIntentDigest: context.themeIntentDigest,
+    productSelectionDigest: context.productSelectionDigest,
+    productionMode: context.productionMode,
+  };
+  outputs.forEach((result, index) => {
     const expectedTaskId = taskIds[index]!;
+    if (!result.output) {
+      issues.push(result.issue ?? `Visual task "${expectedTaskId}" produced no image.`);
+      return;
+    }
+    const output = result.output;
+    issues.push(...(output.issues ?? []));
     const proposal = objectValue(output.proposal);
     const rawProposalAssets = Array.isArray(proposal?.assets) ? proposal.assets : [];
+    if (rawProposalAssets.length === 0 && output.assets.length === 0) {
+      return;
+    }
     const proposalAsset = rawProposalAssets.length === 1
       ? objectValue(rawProposalAssets[0])
       : null;
@@ -242,19 +262,6 @@ function mergeVisualTaskOutputs(
         message: `Topic Page Agent visual task "${expectedTaskId}" returned an invalid asset ref.`,
       });
     }
-    const metadata = Object.fromEntries(
-      Object.entries(proposal).filter(([key]) => key !== "assets"),
-    );
-    const metadataDigest = JSON.stringify(metadata);
-    if (proposalMetadataDigest !== undefined && metadataDigest !== proposalMetadataDigest) {
-      throw new HttpTopicPageAgentError({
-        agentId,
-        stage: "visual-generation",
-        message: `Topic Page Agent visual task "${expectedTaskId}" changed shared proposal metadata.`,
-      });
-    }
-    proposalMetadata ??= metadata;
-    proposalMetadataDigest ??= metadataDigest;
     proposalAssets.push({
       ...proposalAsset,
       artifact: { ...artifact, ref },
@@ -266,6 +273,7 @@ function mergeVisualTaskOutputs(
     schemaVersion: "topic-page-visual-agent-output/v1" as const,
     proposal: { ...proposalMetadata, assets: proposalAssets },
     assets: assetBodies,
+    ...(issues.length > 0 ? { issues: [...new Set(issues)] } : {}),
   };
 }
 
@@ -358,6 +366,13 @@ export function createHttpTopicPageAgent(
       schemaVersion: "topic-page-visual-agent-output/v1",
       proposal: result.proposal,
       assets: assets as TopicPageVisualAssetBody[],
+      ...(Array.isArray(result.issues)
+        ? {
+            issues: result.issues.filter((issue): issue is string =>
+              typeof issue === "string" && Boolean(issue.trim())
+            ),
+          }
+        : {}),
     };
   };
   const requestProposal = async (
@@ -374,25 +389,23 @@ export function createHttpTopicPageAgent(
       async (task, index) => {
         const taskId = visualRun.taskIds[index]!;
         try {
-          return await requestSingleProposal(stage, {
+          return { output: await requestSingleProposal(stage, {
             ...visualRun.run,
             context: { ...visualRun.context, tasks: [task] },
-          }) as TopicPageVisualAgentOutput;
+          }) as TopicPageVisualAgentOutput };
         } catch (error) {
           if (error instanceof HttpTopicPageAgentError) {
-            throw new HttpTopicPageAgentError({
-              agentId: error.agentId,
-              code: error.code,
-              stage: error.stage,
-              status: error.status,
-              message: `Visual task "${taskId}" failed: ${error.message}`,
-            });
+            return { issue: `Visual task "${taskId}" was skipped: ${error.message}` };
           }
-          throw error;
+          return {
+            issue: `Visual task "${taskId}" was skipped: ${
+              error instanceof Error ? error.message : "Unknown visual generation failure."
+            }`,
+          };
         }
       },
     );
-    return mergeVisualTaskOutputs(outputs, visualRun.taskIds, agentId);
+    return mergeVisualTaskOutputs(outputs, visualRun.taskIds, agentId, visualRun.context);
   };
 
   return {

@@ -447,7 +447,7 @@ function visualProposalFixture(
 }
 
 describe("TopicPageVisual", () => {
-  it("revalidates background-backed copy with its bound evidence without expanding visual evidence", () => {
+  it("does not make Visual repeat the upstream background-evidence review", () => {
     const intent = themeIntentFixture();
     const selection = selectionFixture();
     const plan = planFixture(intent, selection);
@@ -477,12 +477,7 @@ describe("TopicPageVisual", () => {
       plan,
       contentSpec,
     });
-    expect(missingEvidenceRun).toMatchObject({
-      status: "blocked",
-      issues: expect.arrayContaining([
-        "TopicPageVisual requires the BackgroundEvidence bound to TopicPageContentSpec.",
-      ]),
-    });
+    expect(missingEvidenceRun.status).toBe("needs-visual-proposal");
   });
 
   it("returns only PagePlan asset tasks with real component presentation requirements", () => {
@@ -587,9 +582,34 @@ describe("TopicPageVisual", () => {
         "Keep the scene and activity primary, and do not introduce products assigned to another scene.",
       ]),
     });
+    expect(run.context.tasks[3]!.sceneBrief.requirements).toContain(
+      "Environmental vessels and category-relevant containers may appear when they support the scene.",
+    );
+    expect(run.context.tasks[3]!.sceneBrief.requirements.join(" ")).not.toMatch(
+      /do not depict bottles|exclude bottles/i,
+    );
   });
 
-  it("requires every direction to cite its deterministic module scene brief", () => {
+  it("keeps Hero and Shortcut tasks generatable when catalog image URLs are unavailable", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    for (const product of selection.products) delete (product as { imageUrl?: string }).imageUrl;
+    const plan = planFixture(intent, selection);
+    const contentSpec = contentSpecFixture(intent, selection, plan);
+
+    const run = advanceTopicPageVisualRun({ intent, selection, plan, contentSpec });
+
+    expect(run.status).toBe("needs-visual-proposal");
+    if (run.status !== "needs-visual-proposal") throw new Error("Expected visual tasks.");
+    expect(run.context.tasks.find(({ kind }) => kind === "hero-image")?.products).toEqual(
+      expect.arrayContaining([expect.not.objectContaining({ imageUrl: expect.any(String) })]),
+    );
+    expect(run.context.tasks.find(({ kind }) => kind === "shortcut-image")?.products).toEqual([
+      expect.not.objectContaining({ imageUrl: expect.any(String) }),
+    ]);
+  });
+
+  it("normalizes direction evidence to the deterministic module scene brief", () => {
     const intent = themeIntentFixture();
     const selection = selectionFixture();
     const plan = planFixture(intent, selection);
@@ -608,18 +628,26 @@ describe("TopicPageVisual", () => {
       proposal,
     });
 
-    expect(run).toMatchObject({
-      status: "blocked",
-      issues: expect.arrayContaining([
-        "Asset asset-hero direction requires scene brief evidence reference theme-intent:scenario:matcha.",
-        "Asset asset-hero direction requires scene brief evidence reference content-task:content-hero.",
-        "Asset asset-shortcuts-1 direction requires scene brief evidence reference selected-category:1000.",
-        "Asset asset-shortcuts-1 direction requires scene brief evidence reference content-task:content-shortcuts.",
-        "Asset asset-start-here-page-scene-1 direction requires scene brief evidence reference scene:page-scene-1.",
-        "Asset asset-start-here-page-scene-1 direction requires scene brief evidence reference content-task:content-start-here.",
-        "Asset asset-brand-spotlight-1 direction requires scene brief evidence reference content-task:content-brand-spotlight.",
+    expect(run.status).toBe("ready");
+    if (run.status !== "ready") throw new Error("Expected normalized manifest.");
+    expect(run.manifest.assets[0]!.direction.evidenceRefs).toEqual(
+      expect.arrayContaining([
+        "theme-intent:scenario:matcha",
+        "content-task:content-hero",
       ]),
-    });
+    );
+    expect(run.manifest.assets[1]!.direction.evidenceRefs).toEqual(
+      expect.arrayContaining([
+        "selected-category:1000",
+        "content-task:content-shortcuts",
+      ]),
+    );
+    expect(run.manifest.assets[2]!.direction.evidenceRefs).toEqual(
+      expect.arrayContaining([
+        "scene:page-scene-1",
+        "content-task:content-start-here",
+      ]),
+    );
   });
 
   it("gives scene images soft composition guidance without constraining other visual tasks", () => {
@@ -730,9 +758,37 @@ describe("TopicPageVisual", () => {
       language: "zh",
       topicPagePlanDigest: plan.digest,
       topicPageContentSpecDigest: contentSpec.digest,
-      assets: proposal.assets,
+      assets: proposal.assets.map(({ taskId }) => ({ taskId })),
     });
+    expect(first.assets[0]!.direction.evidenceRefs).toEqual([
+      "theme-intent:scenario:matcha",
+      "selected-category:1000",
+      "content-task:content-hero",
+    ]);
     expect(first.digest).toMatch(/^sha256:[a-f0-9]{64}$/);
+  });
+
+  it("accepts an ordered partial proposal and reports omitted tasks as advisory issues", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const contentSpec = contentSpecFixture(intent, selection, plan);
+    const proposal = visualProposalFixture(intent, selection, plan, contentSpec);
+    proposal.assets = [proposal.assets[0]!];
+
+    const run = advanceTopicPageVisualRun({ intent, selection, plan, contentSpec, proposal });
+
+    expect(run).toMatchObject({
+      status: "ready",
+      proposalReview: {
+        issues: expect.arrayContaining([
+          "Visual task asset-shortcuts-1 has no generated asset and was skipped.",
+        ]),
+      },
+      manifest: {
+        assets: [{ taskId: "asset-hero" }],
+      },
+    });
   });
 
   it("blocks before Agent work when PagePlan or ContentSpec digests drift", () => {
@@ -754,7 +810,7 @@ describe("TopicPageVisual", () => {
     });
   });
 
-  it("rejects undeclared tasks, task drift, and evidence outside each asset scope", () => {
+  it("rejects undeclared tasks while normalizing Agent-owned metadata", () => {
     const intent = themeIntentFixture();
     const selection = selectionFixture();
     const plan = planFixture(intent, selection);
@@ -780,16 +836,12 @@ describe("TopicPageVisual", () => {
     expect(run).toMatchObject({
       status: "blocked",
       issues: expect.arrayContaining([
-        "Visual proposal must define exactly 5 assets.",
-        "Asset asset-hero component does not match PagePlan module hero.",
-        "Asset asset-hero referenceProductIds must match its assigned products.",
-        "Evidence reference scene:page-scene-1 is outside visual task asset-hero.",
         "Asset task asset-reviews is not declared by TopicPagePlan.",
       ]),
     });
   });
 
-  it("rejects unsafe artifact refs, wrong crops, invalid hashes, and alt-text mode drift", () => {
+  it("rejects unsafe or internally invalid artifacts while normalizing alt text", () => {
     const intent = themeIntentFixture();
     const selection = selectionFixture();
     const plan = planFixture(intent, selection);
@@ -820,13 +872,12 @@ describe("TopicPageVisual", () => {
         "Asset asset-hero artifact ref must be a safe relative path.",
         "Asset asset-hero dimensions do not match target aspect ratio 16:9.",
         "Asset asset-hero artifact digest must be a SHA-256 digest.",
-        "Decorative asset asset-shortcuts-1 must use null altText.",
         "Asset asset-start-here-page-scene-1 requires backgroundColor.",
       ]),
     });
   });
 
-  it("rejects deterministic fallback provenance for scene-first assets", () => {
+  it("preserves observable fallback provenance for any generated asset", () => {
     const intent = themeIntentFixture();
     const selection = selectionFixture();
     const plan = planFixture(intent, selection);
@@ -838,15 +889,15 @@ describe("TopicPageVisual", () => {
 
     const run = advanceTopicPageVisualRun({ intent, selection, plan, contentSpec, proposal });
 
-    expect(run).toMatchObject({
-      status: "blocked",
-      issues: expect.arrayContaining([
-        `Asset ${sceneAsset.taskId} may use a generated-image fallback only for a Shortcut.`,
-      ]),
+    expect(run.status).toBe("ready");
+    if (run.status !== "ready") throw new Error("Expected fallback manifest.");
+    expect(run.manifest.assets.find(({ taskId }) => taskId === sceneAsset.taskId)?.direction).toMatchObject({
+      fallbackUsed: true,
+      fallbackReason: "native generation unavailable",
     });
   });
 
-  it("rejects a fallback without an observable reason", () => {
+  it("drops incomplete fallback metadata instead of blocking generation", () => {
     const intent = themeIntentFixture();
     const selection = selectionFixture();
     const plan = planFixture(intent, selection);
@@ -857,12 +908,11 @@ describe("TopicPageVisual", () => {
 
     const run = advanceTopicPageVisualRun({ intent, selection, plan, contentSpec, proposal });
 
-    expect(run).toMatchObject({
-      status: "blocked",
-      issues: expect.arrayContaining([
-        `Fallback asset ${shortcutAsset.taskId} requires a fallbackReason.`,
-      ]),
-    });
+    expect(run.status).toBe("ready");
+    if (run.status !== "ready") throw new Error("Expected normalized manifest.");
+    const direction = run.manifest.assets.find(({ taskId }) => taskId === shortcutAsset.taskId)!.direction;
+    expect(direction.fallbackUsed).toBeUndefined();
+    expect(direction.fallbackReason).toBeUndefined();
   });
 
   it("keeps the independent Visual Agent behind deterministic review", async () => {

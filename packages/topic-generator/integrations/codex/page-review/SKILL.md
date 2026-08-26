@@ -31,6 +31,10 @@ the Orchestrator, deterministic runtime, and user.
 7. Submit the proposal to the deterministic runtime. Preserve the accepted decision and its digest.
 8. Stop on rejected evidence, stale bindings, unavailable previews, or hard-QA drift.
 
+Stopping here ends only the optional Review Agent task. In automatic Host mode, unavailable
+previews, review transport failures, invalid review proposals, and revision requests are recorded
+as advisory issues; a page that already passed integrity QA remains generated and ready.
+
 For automatic HTTP execution, respond through `topic-page-agent-response/v1` with
 `stage: experience-review` and place the proposal in `proposal`.
 

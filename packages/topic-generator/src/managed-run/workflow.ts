@@ -6,6 +6,7 @@ import {
   type TopicBackgroundEvidenceBundle,
 } from "../background-evidence/index.js";
 import {
+  compileDeterministicTopicPageContentRun,
   runTopicPageContentApprovalWorkflow,
   runTopicContentAgentWorkflow,
   type TopicPageContentSpec,
@@ -14,6 +15,7 @@ import {
   compileTopicPageGenerationSpec,
   compileTopicPageReviewPackage,
   runTopicPageQa,
+  topicPageQaHasIntegrityFailure,
 } from "../page-generation/index.js";
 import {
   compileDeterministicTopicPagePlanV2,
@@ -170,12 +172,6 @@ export interface TopicGeneratorManagedRuntimeOptions extends HandleTopicGenerato
 
 function blocked(output: unknown, issues: string[]): TopicGeneratorStageExecutionResult {
   return { status: "blocked", output, issues: [...new Set(issues)] };
-}
-
-function qaHasIntegrityFailure(qaReport: AutomaticQaStageOutput["qaReport"]) {
-  return qaReport.checks.some(({ id, status }) =>
-    status === "failed" && ["sources", "bindings", "modules", "assets"].includes(id)
-  );
 }
 
 function required<T>(value: unknown, label: string): T {
@@ -401,12 +397,6 @@ async function productSelectionStage(
     "Topic intent stage",
   );
   const { intent, snapshot } = intentOutput.analysis;
-  if (!options.topicPageAgent) {
-    return blocked(null, [
-      ...(options.pageAutomationConfigurationIssues ?? []),
-      "Product selection requires the configured Topic Page Orchestrator.",
-    ]);
-  }
   const requestedSelectionStrategyRef = manifest.request.requestedSelectionStrategyRef ??
     (manifest.request.strategy === "category-role"
       ? "category-role/landing-page-agent@1"
@@ -418,7 +408,7 @@ async function productSelectionStage(
     language: manifest.request.language,
     requestedPageTypeRef: manifest.request.requestedPageTypeRef,
     requestedSelectionStrategyRef,
-    agent: options.topicPageAgent,
+    ...(options.topicPageAgent ? { agent: options.topicPageAgent } : {}),
   });
   if (orchestration.run.status !== "ready") {
     return blocked(
@@ -610,9 +600,6 @@ async function contentWritingStage(
   readStageResult: (stageId: TopicGeneratorRunStageId) => Promise<unknown | undefined>,
   options: TopicGeneratorManagedRuntimeOptions,
 ): Promise<TopicGeneratorStageExecutionResult> {
-  if (!options.topicPageAgent) {
-    return blocked(null, ["Content writing requires the configured Topic Page Agent."]);
-  }
   const intentOutput = required<TopicIntentStageOutput>(
     await readStageResult("topic-intent"),
     "Topic intent stage",
@@ -630,39 +617,60 @@ async function contentWritingStage(
     "Module merchandising stage",
   );
   const localized = await Promise.all(contentLanguages(manifest.request.language).map(
-    async (language) => ({
-      language,
-      workflow: await runTopicContentAgentWorkflow({
+    async (language) => {
+      const request = {
         intent: intentOutput.analysis.intent,
         selection: selectionOutput.selection,
         plan: moduleOutput.plan,
         language,
         audienceContext: topicAudienceContext(language),
         backgroundEvidence: backgroundOutput.backgroundEvidenceByLanguage[language],
-        agent: options.topicPageAgent!,
-        selectorAgent: options.topicPageAgent!,
-      }),
-    }),
+      };
+      let workflow: Awaited<ReturnType<typeof runTopicContentAgentWorkflow>> | undefined;
+      let fallbackIssue: string | undefined;
+      if (options.topicPageAgent) {
+        try {
+          workflow = await runTopicContentAgentWorkflow({
+            ...request,
+            agent: options.topicPageAgent,
+            selectorAgent: options.topicPageAgent,
+          });
+          if (workflow.run.status !== "ready") {
+            fallbackIssue = "Content Agent output was replaced with deterministic Host copy.";
+          }
+        } catch (error) {
+          fallbackIssue = error instanceof Error
+            ? error.message
+            : "Content Agent failed while preparing a proposal.";
+        }
+      } else {
+        fallbackIssue = "Content Agent is unavailable; deterministic Host copy was used.";
+      }
+      const run = workflow?.run.status === "ready"
+        ? workflow.run
+        : compileDeterministicTopicPageContentRun(request);
+      return { language, workflow, run, fallbackIssue };
+    },
   ));
-  const failed = localized.filter(({ workflow }) => workflow.run.status !== "ready");
+  const failed = localized.filter(({ run }) => run.status !== "ready");
   if (failed.length > 0) {
     return blocked(
-      { contentByLanguage: Object.fromEntries(localized.map(({ language, workflow }) => [
+      { contentByLanguage: Object.fromEntries(localized.map(({ language, workflow, run }) => [
         language,
-        { contentRun: workflow.run, contentAttempt: workflow.artifacts },
+        { contentRun: run, contentAttempt: workflow?.artifacts },
       ])) },
-      failed.flatMap(({ language, workflow }) => (
-        workflow.run.status === "blocked"
-          ? workflow.run.issues
+      failed.flatMap(({ language, run }) => (
+        run.status === "blocked"
+          ? run.issues
           : ["Content Agent returned no proposal."]
       ).map((issue) => `${language}: ${issue}`)),
     );
   }
-  const contentByLanguage = Object.fromEntries(localized.map(({ language, workflow }) => {
-    const ready = workflow.run as Extract<typeof workflow.run, { status: "ready" }>;
+  const contentByLanguage = Object.fromEntries(localized.map(({ language, workflow, run }) => {
+    const ready = run as Extract<typeof run, { status: "ready" }>;
     return [language, {
       contentSpec: ready.spec,
-      ...(workflow.artifacts ? { contentAttempt: workflow.artifacts } : {}),
+      ...(workflow?.artifacts ? { contentAttempt: workflow.artifacts } : {}),
     }];
   })) as ContentWritingStageOutput["contentByLanguage"];
   const primary = contentByLanguage[manifest.request.language];
@@ -680,9 +688,13 @@ async function contentWritingStage(
     },
     proposal: Object.fromEntries(localized.map(({ language, workflow }) => [
       language,
-      workflow.artifacts?.proposal ?? null,
+      workflow?.artifacts?.proposal ?? null,
     ])),
     output,
+    ...(localized.some(({ fallbackIssue }) => fallbackIssue)
+      ? { issues: localized.flatMap(({ language, fallbackIssue }) =>
+          fallbackIssue ? [`${language}: ${fallbackIssue}`] : []) }
+      : {}),
   };
 }
 
@@ -691,9 +703,6 @@ async function contentReviewStage(
   readStageResult: (stageId: TopicGeneratorRunStageId) => Promise<unknown | undefined>,
   options: TopicGeneratorManagedRuntimeOptions,
 ): Promise<TopicGeneratorStageExecutionResult> {
-  if (!options.topicPageAgent) {
-    return blocked(null, ["Content review requires the configured Topic Page Agent."]);
-  }
   const intentOutput = required<TopicIntentStageOutput>(
     await readStageResult("topic-intent"),
     "Topic intent stage",
@@ -715,6 +724,11 @@ async function contentReviewStage(
     "Content writing stage",
   );
   const languages = contentLanguages(manifest.request.language);
+  const contentAgent = options.topicPageAgent ?? {
+    id: "deterministic-host",
+    async proposePageContent() { return undefined; },
+    async reviewPageContent() { return undefined; },
+  };
   const localized: Array<{
     language: ContentLanguage;
     workflow: Awaited<ReturnType<typeof runTopicPageContentApprovalWorkflow>>;
@@ -736,8 +750,8 @@ async function contentReviewStage(
         audienceContext: topicAudienceContext(language),
         backgroundEvidence: backgroundOutput.backgroundEvidenceByLanguage[language],
         contentSpec: contentOutput.contentByLanguage[language].contentSpec,
-        contentAgent: options.topicPageAgent!,
-        reviewAgent: options.topicPageAgent!,
+        contentAgent,
+        reviewAgent: contentAgent,
         ...(primaryReady
           ? {
               localizationReference: {
@@ -858,6 +872,7 @@ async function visualGenerationStage(
     },
     proposal: workflow.artifacts.proposal ?? null,
     output,
+    ...(workflow.artifacts.issues?.length ? { issues: workflow.artifacts.issues } : {}),
   };
 }
 
@@ -870,6 +885,16 @@ async function assetPersistenceStage(
     await readStageResult("visual-generation"),
     "Visual generation stage",
   );
+  if (visualOutput.assetManifest.assets.length === 0) {
+    return {
+      status: "completed",
+      request: { topicPageAssetManifestDigest: visualOutput.assetManifest.digest },
+      output: {
+        assetManifest: visualOutput.assetManifest,
+        persistedRefs: [],
+      } satisfies AssetPersistenceStageOutput,
+    };
+  }
   if (!options.topicPageImageDecoder) {
     return blocked(null, ["Asset persistence requires an image decoder."]);
   }
@@ -955,9 +980,6 @@ async function automaticQaStage(
   assetStore: Parameters<AdvanceTopicGeneratorRunOptions["execute"]>[0]["assetStore"],
   options: TopicGeneratorManagedRuntimeOptions,
 ): Promise<TopicGeneratorStageExecutionResult> {
-  if (!options.topicPageImageDecoder) {
-    return blocked(null, ["Automatic QA requires an image decoder."]);
-  }
   const intentOutput = required<TopicIntentStageOutput>(
     await readStageResult("topic-intent"),
     "Topic intent stage",
@@ -982,6 +1004,13 @@ async function automaticQaStage(
     await readStageResult("page-generation"),
     "Page generation stage",
   );
+  const imageDecoder = options.topicPageImageDecoder ??
+    (assetsOutput.assetManifest.assets.length === 0
+      ? { inspect: async () => null }
+      : undefined);
+  if (!imageDecoder) {
+    return blocked(null, ["Automatic QA requires an image decoder."]);
+  }
   const qaReport = await runTopicPageQa({
     intent: intentOutput.analysis.intent,
     selection: selectionOutput.selection,
@@ -990,10 +1019,10 @@ async function automaticQaStage(
     manifest: assetsOutput.assetManifest,
     generationSpec: generationOutput.generationSpec,
     reader: assetStore,
-    imageDecoder: options.topicPageImageDecoder,
+    imageDecoder,
   });
   const output: AutomaticQaStageOutput = { qaReport };
-  if (qaHasIntegrityFailure(qaReport)) return blocked(output, qaReport.issues);
+  if (topicPageQaHasIntegrityFailure(qaReport)) return blocked(output, qaReport.issues);
   return {
     status: "completed",
     request: { generationSpecDigest: generationOutput.generationSpec.digest },
@@ -1019,7 +1048,7 @@ async function experienceReviewStage(
     "Automatic QA stage",
   );
   if (qaOutput.qaReport.status !== "passed") {
-    if (qaHasIntegrityFailure(qaOutput.qaReport)) {
+    if (topicPageQaHasIntegrityFailure(qaOutput.qaReport)) {
       return blocked(qaOutput, qaOutput.qaReport.issues);
     }
     const output: ExperienceReviewStageOutput = {
@@ -1132,7 +1161,7 @@ async function automaticFinalizationStage(
     await readStageResult("automatic-qa"),
     "Automatic QA stage",
   );
-  if (qaHasIntegrityFailure(qaOutput.qaReport)) {
+  if (topicPageQaHasIntegrityFailure(qaOutput.qaReport)) {
     return blocked(qaOutput, qaOutput.qaReport.issues);
   }
   const reviewOutput = required<ExperienceReviewStageOutput>(
