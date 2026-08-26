@@ -24,16 +24,14 @@ export interface HeaderFixtureOptions {
 
 const logoEn = new URL('../../assets/logos/yami-ui-en-pc-fill.svg', import.meta.url).href
 const logoZh = new URL('../../assets/logos/yami-ui-cn-pc-fill.svg', import.meta.url).href
-// Below 1024px the band uses the Mobile lockup variant — its own mark /
-// wordmark proportions, not the PC file scaled down.
+// Below 1024px every locale uses the English Mobile lockup variant — its own
+// mark / wordmark proportions, not the PC file scaled down.
 const mobileLogoEn = new URL('../../assets/logos/yami-ui-en-mobile-fill.svg', import.meta.url).href
-const mobileLogoZh = new URL('../../assets/logos/yami-ui-cn-mobile-fill.svg', import.meta.url).href
 // Dark surfaces get the same locked lockup with a white wordmark — the Fill
 // wordmark is #222222 and vanishes on a dark band.
 const darkLogoEn = new URL('../../assets/logos/yami-ui-en-pc-fill-inverse.svg', import.meta.url).href
 const darkLogoZh = new URL('../../assets/logos/yami-ui-cn-pc-fill-inverse.svg', import.meta.url).href
 const darkMobileLogoEn = new URL('../../assets/logos/yami-ui-en-mobile-fill-inverse.svg', import.meta.url).href
-const darkMobileLogoZh = new URL('../../assets/logos/yami-ui-cn-mobile-fill-inverse.svg', import.meta.url).href
 // Locale flag comes from the maintained DS icon set (Assets → Icons → area),
 // not from this component's fixture folder.
 const flagUs = new URL('../../assets/icons/area/united-states.svg', import.meta.url).href
@@ -132,6 +130,32 @@ const ARTWORK = {
   'influencer-picks': new URL('./assets/influencer-picks.png', import.meta.url).href,
   subscribe: new URL('./assets/subscribe.png', import.meta.url).href,
   'gift-card': new URL('./assets/gift-card.png', import.meta.url).href,
+}
+
+const POPULAR_SEARCH_ARTWORK = [
+  SEARCH_SUGGESTION_IMAGES.matcha,
+  ARTWORK.beauty,
+  ARTWORK.gifts,
+  ARTWORK['personal-care'],
+  ARTWORK.health,
+  ARTWORK['k-trend'],
+] as const
+
+/** Adds the image-backed Popular Searches treatment without changing V1 data. */
+export function createPopularSearchImagePanel(
+  panel: HeaderSearchPanel,
+  popular = panel.popular,
+): HeaderSearchPanel {
+  return {
+    ...panel,
+    popular: popular.map((tag, index) => ({
+      ...tag,
+      image: tag.image ?? {
+        src: POPULAR_SEARCH_ARTWORK[index % POPULAR_SEARCH_ARTWORK.length],
+        alt: '',
+      },
+    })),
+  }
 }
 
 type ArtworkSlug = keyof typeof ARTWORK
@@ -243,9 +267,9 @@ const STOREFRONT = {
   },
   zh: {
     logo: logoZh,
-    mobileLogo: mobileLogoZh,
+    mobileLogo: mobileLogoEn,
     darkLogo: darkLogoZh,
-    darkMobileLogo: darkMobileLogoZh,
+    darkMobileLogo: darkMobileLogoEn,
     logoAlt: '亚米',
     inbox: '消息',
     scanLabel: '拍照搜索',
@@ -284,9 +308,9 @@ function createArgs(locale: HeaderLocale): HeaderProps {
   const site = STOREFRONT[locale]
   const args: HeaderProps = {
     logo: { src: site.logo, alt: site.logoAlt },
-    mobileLogo: { src: site.mobileLogo, alt: site.logoAlt },
+    mobileLogo: { src: site.mobileLogo, alt: 'YAMI' },
     darkLogo: { src: site.darkLogo, alt: site.logoAlt },
-    darkMobileLogo: { src: site.darkMobileLogo, alt: site.logoAlt },
+    darkMobileLogo: { src: site.darkMobileLogo, alt: 'YAMI' },
     zipcode: { ...site.zipcode },
     inbox: { label: site.inbox },
     scanLabel: site.scanLabel,

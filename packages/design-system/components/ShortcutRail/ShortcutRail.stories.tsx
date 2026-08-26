@@ -71,6 +71,10 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Showcase: Story = {
+  name: "PC",
+  globals: {
+    viewport: { value: "yamiDesktopMd", isRotated: false },
+  },
   render: (args, { globals }) => {
     const locale = localeFromGlobals(globals.locale);
     return (
@@ -182,7 +186,7 @@ export const Showcase: Story = {
 };
 
 export const CardSurface: Story = {
-  name: "Card Surface",
+  tags: ["!dev", "!autodocs"],
   args: {
     surface: "card",
   },
@@ -244,7 +248,7 @@ export const CardSurface: Story = {
 };
 
 export const FullBleedImages: Story = {
-  name: "Full-bleed Images",
+  name: "Mobile — Full-bleed",
   globals: {
     viewport: { value: "yamiMobile", isRotated: false },
   },
@@ -337,7 +341,7 @@ export const FullBleedImages: Story = {
 };
 
 export const CompactViewport: Story = {
-  name: "Mobile — 1 Line",
+  name: "Mobile — 1 Row",
   args: {
     surface: "card",
     lines: 1,
@@ -428,7 +432,7 @@ export const CompactViewport: Story = {
 
 export const MobileTwoLines: Story = {
   ...CompactViewport,
-  name: "Mobile — 2 Lines",
+  name: "Mobile — 2 Rows",
   args: {
     surface: "card",
     lines: 2,
@@ -437,7 +441,7 @@ export const MobileTwoLines: Story = {
     docs: {
       description: {
         story:
-          "The same title-free mobile card and entries as `Mobile — 1 Line`, with only `lines={2}` changed.",
+          "The same title-free mobile card and entries as `Mobile — 1 Row`, with only `lines={2}` changed.",
       },
     },
   },

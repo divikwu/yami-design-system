@@ -5,6 +5,7 @@ import { ActivityPageHeader } from "./ActivityPageHeader";
 const meta = {
   title: "YAMI/Components/Navigation/Activity Page Header",
   component: ActivityPageHeader,
+  tags: ["!dev", "!autodocs"],
   parameters: {
     layout: "fullscreen",
     docs: {
@@ -31,6 +32,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Showcase: Story = {
+  name: "H5 Activity Page",
   play: async ({ canvasElement }) => {
     const root = canvasElement.querySelector<HTMLElement>(
       '[data-slot="activity-page-header"]',
@@ -57,11 +59,14 @@ export const Showcase: Story = {
     ) {
       throw new Error("ActivityPageHeader must match the 402x56 Figma frame");
     }
+    const expectedLogoWidth = 74;
     if (
-      Math.round(logo.getBoundingClientRect().width) !== 84 ||
-      Math.round(logo.getBoundingClientRect().height) !== 32
+      Math.round(logo.getBoundingClientRect().width) !== expectedLogoWidth ||
+      Math.round(logo.getBoundingClientRect().height) !== 28
     ) {
-      throw new Error("ActivityPageHeader must use the 84x32 Mobile Logo-UI lockup");
+      throw new Error(
+        `ActivityPageHeader must preserve the Mobile Logo-UI ratio at ${expectedLogoWidth}x28`,
+      );
     }
     if (
       getComputedStyle(title).fontSize !== "18px" ||
@@ -82,6 +87,26 @@ export const Showcase: Story = {
     }
     if (root.scrollWidth > root.clientWidth) {
       throw new Error("ActivityPageHeader must not introduce horizontal overflow");
+    }
+  },
+};
+
+export const ChineseLocaleUsesEnglishLogo: Story = {
+  args: {
+    locale: "zh",
+    title: "活动专题",
+  },
+  play: async ({ canvasElement }) => {
+    const logo = canvasElement.querySelector<HTMLImageElement>(
+      '[data-slot="activity-page-header-brand"] img',
+    );
+    if (
+      !logo ||
+      logo.alt !== "YAMI" ||
+      Math.round(logo.getBoundingClientRect().width) !== 74 ||
+      Math.round(logo.getBoundingClientRect().height) !== 28
+    ) {
+      throw new Error("Chinese H5 navigation must keep the 74x28 English Mobile Logo-UI lockup");
     }
   },
 };

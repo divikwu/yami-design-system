@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
+import { ActivityPageHeader } from '../ActivityPageHeader'
 import { Header } from './Header'
 import { HeaderCategoryRail } from './HeaderCategoryRail'
 import { HeaderSearch } from './HeaderSearch'
@@ -14,7 +15,7 @@ function localeFromGlobals(value: unknown): HeaderLocale {
 const meta = {
   title: 'YAMI/Components/Navigation/Header',
   component: Header,
-  subcomponents: { HeaderSearch, HeaderCategoryRail },
+  subcomponents: { HeaderSearch, HeaderCategoryRail, ActivityPageHeader },
   decorators: [
     (Story) => (
       <div className={storyStyles.canvas}>
@@ -29,7 +30,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'YAMI PC global navigation band, measured against the production www.yami.com header: a 64px utility row (brand lockup · hall switcher · locale · deliver-to · search · account · cart) over a 63.6px category rail, closed by a 2px rule. Category entries are campaign artwork rather than icon components. The EN and CN storefronts are separate CMS feeds — switch the toolbar language to compare. PC only — the mobile header ships separately.',
+          'YAMI Web header family for PC and H5. PC follows the production www.yami.com header with a utility row and category rail; H5 provides Home, PDP, and Activity Page forms. The Activity Page form is implemented by the focused ActivityPageHeader subcomponent. The EN and CN storefronts are separate CMS feeds — switch the toolbar language to compare. Native App navigation is separate and is not represented here.',
       },
     },
   },
@@ -75,8 +76,11 @@ async function validateMobileBand(canvasElement: HTMLElement, site: Storefront) 
 
   const logo = visibleLockup(canvasElement, 'header-mobile-brand')
   if (!logo) throw new Error('Mobile lockup did not render')
-  if (Math.round(logo.getBoundingClientRect().height) !== 32) {
-    throw new Error(`Mobile lockup must be 32px tall, got ${logo.getBoundingClientRect().height}px`)
+  if (logo.alt !== 'YAMI' || logo.naturalWidth !== 84 || logo.naturalHeight !== 32) {
+    throw new Error('Mobile navigation must use the English YAMI Mobile Logo-UI asset')
+  }
+  if (Math.round(logo.getBoundingClientRect().height) !== 28) {
+    throw new Error(`Mobile lockup must be 28px tall, got ${logo.getBoundingClientRect().height}px`)
   }
   // Vite inlines the lockups as data URIs, so identity is the only thing left
   // to compare — the two bands must not be serving the same artwork.
@@ -133,12 +137,16 @@ async function validateMobileBand(canvasElement: HTMLElement, site: Storefront) 
 }
 
 export const Showcase: Story = {
+  name: 'PC',
+  globals: {
+    viewport: { value: 'yamiDesktopLg', isRotated: false },
+  },
   render: (_args, { globals }) => <Header {...createHeaderProps(localeFromGlobals(globals.locale))} />,
   parameters: {
     docs: {
       description: {
         story:
-          'Switch the toolbar viewport to cross `--breakpoints-desktop` — at 1024px and above this is the PC band, below it the mobile chrome. The assertions follow whichever anatomy is live.',
+          'PC Web navigation at and above `--breakpoints-desktop`: brand, storefront controls, search, account, cart, and the category rail. H5 is documented in its own stories; native App navigation is out of scope.',
       },
     },
   },
@@ -365,6 +373,7 @@ export const Showcase: Story = {
 
 export const HallSwitcher: Story = {
   name: 'Hall Switcher (EN only)',
+  tags: ['!dev', '!autodocs'],
   // PC-only anatomy — these assertions need the desktop band live, so the
   // story pins its viewport rather than following the toolbar.
   globals: {
@@ -430,6 +439,7 @@ export const HallSwitcher: Story = {
 
 export const NoHallSwitcher: Story = {
   name: 'No Hall Switcher (CN)',
+  tags: ['!dev', '!autodocs'],
   globals: {
     viewport: { value: 'yamiDesktopLg', isRotated: false },
   },
@@ -460,6 +470,7 @@ export const NoHallSwitcher: Story = {
 }
 
 export const PromotionBadges: Story = {
+  tags: ['!dev', '!autodocs'],
   globals: {
     viewport: { value: 'yamiDesktopLg', isRotated: false },
   },
@@ -511,6 +522,7 @@ export const PromotionBadges: Story = {
 }
 
 export const CategoryRail: Story = {
+  tags: ['!dev', '!autodocs'],
   globals: {
     viewport: { value: 'yamiDesktopLg', isRotated: false },
   },
@@ -602,7 +614,7 @@ export const CategoryRail: Story = {
 }
 
 export const Mobile: Story = {
-  name: 'Mobile (<1024px)',
+  name: 'H5 Home',
   globals: {
     viewport: { value: 'yamiMobile', isRotated: false },
   },
@@ -611,7 +623,7 @@ export const Mobile: Story = {
     docs: {
       description: {
         story:
-          'Below `--breakpoints-desktop` the band swaps to the mobile chrome (Figma `2725:151904`): a 56px brand bar carrying the Mobile lockup, deliver-to, and inbox, over a 36px search field with visual search. The hall switcher, locale flag, account, cart, and category rail have no mobile counterpart and drop out entirely — this is a different anatomy, not a reflow.',
+          'H5 home navigation below `--breakpoints-desktop` (Figma `2725:151904`): a 56px brand bar carrying the Mobile lockup, deliver-to, and inbox, over a 36px search field with visual search. This is not the native App header.',
       },
     },
   },
@@ -620,8 +632,20 @@ export const Mobile: Story = {
   },
 }
 
+export const MobileChineseLocale: Story = {
+  tags: ['!dev', '!autodocs'],
+  globals: {
+    locale: 'zh',
+    viewport: { value: 'yamiMobile', isRotated: false },
+  },
+  render: () => <Header {...createHeaderProps('zh')} />,
+  play: async ({ canvasElement }) => {
+    await validateMobileBand(canvasElement, headerStorefront.zh)
+  },
+}
+
 export const PdpMobile: Story = {
-  name: 'H5 PDP navigation',
+  name: 'H5 PDP',
   globals: {
     locale: 'en',
     viewport: { value: 'yamiMobile', isRotated: false },
@@ -665,8 +689,11 @@ export const PdpMobile: Story = {
       Math.round(bar.getBoundingClientRect().height) !== 56 ||
       !brand ||
       !logo ||
-      Math.round(logo.getBoundingClientRect().width) !== 84 ||
-      Math.round(logo.getBoundingClientRect().height) !== 32 ||
+      logo.alt !== 'YAMI' ||
+      logo.naturalWidth !== 84 ||
+      logo.naturalHeight !== 32 ||
+      Math.round(logo.getBoundingClientRect().width) !== 74 ||
+      Math.round(logo.getBoundingClientRect().height) !== 28 ||
       !defaultActions ||
       getComputedStyle(defaultActions).display !== 'none' ||
       !pdpActions ||
@@ -689,7 +716,33 @@ export const PdpMobile: Story = {
   },
 }
 
+export const H5ActivityPage: Story = {
+  name: 'H5 Activity Page',
+  globals: {
+    viewport: { value: 'yamiMobileLg', isRotated: false },
+  },
+  render: (_args, { globals }) => {
+    const locale = localeFromGlobals(globals.locale)
+    return (
+      <ActivityPageHeader
+        locale={locale}
+        title={locale === 'zh' ? '活动专题' : 'Activity'}
+      />
+    )
+  },
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          'H5 activity and topic-page navigation with a centered page title, search, and cart. This family story renders the focused ActivityPageHeader subcomponent; its runtime API remains separate from the global Header API.',
+      },
+    },
+  },
+}
+
 export const DarkTheme: Story = {
+  tags: ['!dev', '!autodocs'],
   globals: {
     theme: 'dark',
     viewport: { value: 'yamiDesktopLg', isRotated: false },
@@ -741,4 +794,6 @@ export const DarkTheme: Story = {
   },
 }
 
-export const Playground: Story = {}
+export const Playground: Story = {
+  tags: ['!dev', '!autodocs'],
+}

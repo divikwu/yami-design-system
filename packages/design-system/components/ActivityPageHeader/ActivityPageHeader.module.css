@@ -34,8 +34,8 @@
 
 .logo {
   display: block;
-  width: 84px;
-  height: 32px;
+  width: auto;
+  height: 28px;
 }
 
 .titleArea {

@@ -26,7 +26,7 @@
       "type": "\"en\" | \"zh\"",
       "required": false,
       "default": "en",
-      "description": "Selects the approved EN or CN Mobile Logo-UI lockup."
+      "description": "Content locale. Mobile navigation keeps the approved English YAMI Logo-UI lockup in every locale."
     },
     "homeHref": {
       "type": "string",

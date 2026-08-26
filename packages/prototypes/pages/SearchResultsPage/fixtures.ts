@@ -15,7 +15,10 @@ import type {
   SearchResultsLocale,
   SearchResultsPageProps,
 } from "./SearchResultsPage.types";
-import { createLiveMatchaSearchProducts } from "./live-matcha-products.fixture";
+import {
+  createLiveMatchaSearchProducts,
+  liveMatchaSearchResultCount,
+} from "./live-matcha-products.fixture";
 
 const copy = {
   en: {
@@ -232,7 +235,7 @@ export function createSearchResultsFixture(
     locale,
     contentMaxWidth: 1440,
     query: locale === "en" ? "matcha powder" : "抹茶粉",
-    resultCount: locale === "en" ? 1500 : 4033,
+    resultCount: locale === "en" ? liveMatchaSearchResultCount : 4033,
     header: createStorefrontHeader(locale),
     footer: createFooter(locale),
     products,

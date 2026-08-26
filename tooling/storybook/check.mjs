@@ -41,9 +41,25 @@ const index = JSON.parse(await fs.readFile(indexPath, "utf8"));
 const entries = Object.values(index.entries ?? {});
 const docsEntries = entries.filter((entry) => entry.type === "docs");
 const docsComponentNames = new Set(docsEntries.map((entry) => normalizeComponentName(entry.title.split("/").at(-1))));
+const storySources = new Map(await Promise.all(componentDocs.map(async (component) => [
+  normalizeComponentName(component.name),
+  await fs.readFile(component.storyPath, "utf8"),
+])));
+
+function hasOwningDocsEntry(componentName) {
+  const normalizedName = normalizeComponentName(componentName);
+  if (docsComponentNames.has(normalizedName)) return true;
+
+  return componentDocs.some((owner) => {
+    if (!docsComponentNames.has(normalizeComponentName(owner.name))) return false;
+    const source = storySources.get(normalizeComponentName(owner.name)) ?? "";
+    const subcomponents = source.match(/subcomponents\s*:\s*{([^}]*)}/s)?.[1] ?? "";
+    return new RegExp(`\\b${componentName}\\b`).test(subcomponents);
+  });
+}
 
 for (const component of componentDocs) {
-  if (!docsComponentNames.has(normalizeComponentName(component.name))) {
+  if (!hasOwningDocsEntry(component.name)) {
     throw new Error(`${component.name} is missing its Storybook docs entry`);
   }
 }

@@ -219,6 +219,7 @@ const validateLayout: NonNullable<Story['play']> = async ({ canvasElement }) => 
 }
 
 export const Showcase: Story = {
+  name: 'PC',
   globals: {
     viewport: { value: 'yamiDesktopMd', isRotated: false },
   },
@@ -227,6 +228,7 @@ export const Showcase: Story = {
 }
 
 export const DarkTheme: Story = {
+  tags: ['!dev', '!autodocs'],
   globals: {
     theme: 'dark',
     viewport: { value: 'yamiDesktopMd', isRotated: false },

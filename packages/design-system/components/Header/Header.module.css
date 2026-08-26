@@ -375,6 +375,29 @@
   background: var(--button-secondary-active);
 }
 
+.searchTags :is(button, a).searchTagWithImage {
+  padding: var(--space-025) var(--space-150) var(--space-025) var(--space-025);
+}
+
+.searchTagImage {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-400);
+  height: var(--space-400);
+  flex: 0 0 auto;
+  overflow: hidden;
+  border-radius: var(--radius-full);
+  background: var(--surface-primary);
+}
+
+.searchTagImage img {
+  display: block;
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
 .searchTags em {
   color: var(--text-emphasis);
   font-size: var(--font-size-link-sm);
@@ -784,7 +807,7 @@
 .mobileLogo {
   display: block;
   width: auto;
-  height: 32px;
+  height: 28px;
 }
 
 .mobileActions {

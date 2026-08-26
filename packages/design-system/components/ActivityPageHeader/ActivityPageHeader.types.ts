@@ -6,7 +6,7 @@ export interface ActivityPageHeaderProps
   extends Omit<HTMLAttributes<HTMLElement>, "children" | "title"> {
   /** Short page or campaign title. Truncates to one line between the fixed actions. */
   title: string;
-  /** Selects the approved Mobile Logo-UI lockup. */
+  /** Content locale. Mobile navigation keeps the English YAMI lockup in every locale. */
   locale?: ActivityPageHeaderLocale;
   /** Destination for the brand lockup. Omit while home navigation is not configured. */
   homeHref?: string;

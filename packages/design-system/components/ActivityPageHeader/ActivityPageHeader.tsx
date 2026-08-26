@@ -8,10 +8,6 @@ const logoEn = new URL(
   "../../assets/logos/yami-ui-en-mobile-fill.svg",
   import.meta.url,
 ).href;
-const logoZh = new URL(
-  "../../assets/logos/yami-ui-cn-mobile-fill.svg",
-  import.meta.url,
-).href;
 const searchIcon = new URL(
   "../../assets/icons/action/search.svg",
   import.meta.url,
@@ -21,9 +17,10 @@ const cartIcon = new URL(
   import.meta.url,
 ).href;
 
-const logos: Record<ActivityPageHeaderLocale, { src: string; alt: string }> = {
-  en: { src: logoEn, alt: "YAMI" },
-  zh: { src: logoZh, alt: "亚米" },
+const mobileLogo = { src: logoEn, alt: "YAMI", width: 73.5 };
+const logos: Record<ActivityPageHeaderLocale, typeof mobileLogo> = {
+  en: mobileLogo,
+  zh: mobileLogo,
 };
 
 function cx(...classes: Array<string | false | null | undefined>) {
@@ -48,8 +45,8 @@ export function ActivityPageHeader({
       className={styles.logo}
       src={logo.src}
       alt={logo.alt}
-      width={84}
-      height={32}
+      width={logo.width}
+      height={28}
     />
   );
 

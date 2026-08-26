@@ -5,15 +5,33 @@ import {
   createProductListProducts,
   createProductListTabs,
 } from "@yami/design-system/components/ProductList/fixtures";
+import { createPopularSearchImagePanel } from "@yami/design-system/components/Header/fixtures";
 
 import { EcommerceHomeTemplate } from "./EcommerceHome";
 import {
   createEcommerceHomeFixture,
   type EcommerceHomeLocale,
 } from "./fixtures";
+import { popularSearchProductTags } from "./popular-search-products.fixture";
 
 function localeFromGlobals(value: unknown): EcommerceHomeLocale {
   return value === "en" ? "en" : "zh";
+}
+
+function createSearchFocusedV2Fixture() {
+  const fixture = createEcommerceHomeFixture("en");
+  const searchPanel = fixture.header.searchPanel;
+  if (!searchPanel) return fixture;
+  return {
+    ...fixture,
+    header: {
+      ...fixture.header,
+      searchPanel: createPopularSearchImagePanel(
+        searchPanel,
+        popularSearchProductTags,
+      ),
+    },
+  };
 }
 
 const meta = {
@@ -754,9 +772,83 @@ export const SearchFocused: Story = {
       !panel.textContent?.includes("Recent Searches") ||
       !panel.textContent.includes("Popular Searches") ||
       !panel.textContent.includes("Hot Deals") ||
+      panel.querySelector('[data-slot="header-search-tag-image"]') ||
       getComputedStyle(panel).borderRadius !== "16px"
     ) {
       throw new Error("Focused search must match the Figma discovery state");
+    }
+  },
+};
+
+export const SearchFocusedV2: Story = {
+  name: "Search — Focused V2",
+  globals: {
+    locale: "en",
+    viewport: { value: "yamiDesktopXl", isRotated: false },
+  },
+  render: () => <EcommerceHomeTemplate {...createSearchFocusedV2Fixture()} />,
+  play: async ({ canvasElement }) => {
+    const field = canvasElement.querySelector<HTMLInputElement>(
+      '[data-slot="header-search"][data-variant="pc"] [data-slot="header-search-field"]',
+    );
+    if (!field) throw new Error("PC search field did not render");
+
+    await userEvent.click(field);
+
+    const panel = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="header-search-panel"]',
+    );
+    const popularGroup = panel?.querySelector<HTMLElement>(
+      '[data-search-group="popular"]',
+    );
+    const hotDealsGroup = panel?.querySelector<HTMLElement>(
+      '[data-search-group="hot-deals"]',
+    );
+    const imageSlots = popularGroup?.querySelectorAll<HTMLElement>(
+      '[data-slot="header-search-tag-image"]',
+    );
+    const popularLabels = popularGroup
+      ? Array.from(popularGroup.querySelectorAll("button, a"), (tag) =>
+          tag.textContent?.trim(),
+        )
+      : [];
+    if (
+      panel?.dataset.state !== "discovery" ||
+      !popularGroup ||
+      !imageSlots ||
+      imageSlots.length !== 10 ||
+      popularLabels.join("|") !==
+        popularSearchProductTags.map((tag) => tag.label).join("|") ||
+      hotDealsGroup?.querySelector('[data-slot="header-search-tag-image"]') ||
+      Array.from(imageSlots).some((slot) => {
+        const image = slot.querySelector<HTMLImageElement>("img");
+        const tag = slot.parentElement;
+        const style = getComputedStyle(slot);
+        const tagStyle = tag ? getComputedStyle(tag) : null;
+        const imageStyle = image ? getComputedStyle(image) : null;
+        return (
+          !image ||
+          !imageStyle ||
+          !tagStyle ||
+          image.alt !== "" ||
+          style.width !== "32px" ||
+          style.height !== "32px" ||
+          style.backgroundColor !== "rgb(255, 255, 255)" ||
+          style.alignItems !== "center" ||
+          style.justifyContent !== "center" ||
+          style.borderRadius !== "9999px" ||
+          imageStyle.width !== "28px" ||
+          imageStyle.height !== "28px" ||
+          tagStyle.paddingTop !== "2px" ||
+          tagStyle.paddingRight !== "12px" ||
+          tagStyle.paddingBottom !== "2px" ||
+          tagStyle.paddingLeft !== "2px"
+        );
+      })
+    ) {
+      throw new Error(
+        "Focused search V2 must show ten product-backed Popular Searches with centered 28px images in white 32px circular containers and 2px top, bottom, and left padding",
+      );
     }
   },
 };

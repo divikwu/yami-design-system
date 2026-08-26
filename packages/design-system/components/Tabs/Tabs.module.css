@@ -248,19 +248,19 @@
 }
 
 .list[data-variant="secondary"] {
-  min-height: 44px;
+  min-height: var(--space-500);
   gap: var(--space-200);
   padding-inline: var(--space-200);
   border-bottom: var(--stroke-default) solid var(--divider-default);
 }
 
 .list[data-variant="secondary"] .trigger {
-  height: 44px;
+  height: var(--space-500);
   padding: 0;
   border-radius: var(--radius-component-none);
   color: var(--text-secondary);
-  font-size: var(--font-size-body-xl);
-  line-height: var(--line-height-body-xl);
+  font-size: var(--font-size-body-md);
+  line-height: var(--line-height-body-md);
   font-weight: var(--font-weight-normal);
 }
 

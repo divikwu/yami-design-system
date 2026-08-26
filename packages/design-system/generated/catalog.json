@@ -33,7 +33,7 @@
             "type": "\"en\" | \"zh\"",
             "required": false,
             "default": "en",
-            "description": "Selects the approved EN or CN Mobile Logo-UI lockup."
+            "description": "Content locale. Mobile navigation keeps the approved English YAMI Logo-UI lockup in every locale."
           },
           "homeHref": {
             "type": "string",
@@ -2207,7 +2207,7 @@
           "mobileLogo": {
             "type": "HeaderImage",
             "required": false,
-            "description": "Brand lockup below 1024px. Renders the assets/logos/yami-ui-<lang>-mobile-fill.svg lockup at 32px tall — a distinct Figma variant with its own mark / wordmark proportions, not the PC file scaled down. Falls back to logo."
+            "description": "Brand lockup below 1024px. Every locale renders assets/logos/yami-ui-en-mobile-fill.svg at 28px tall — a distinct Figma variant with its own mark / wordmark proportions, not the PC file scaled down. Falls back to logo."
           },
           "darkLogo": {
             "type": "HeaderImage",
