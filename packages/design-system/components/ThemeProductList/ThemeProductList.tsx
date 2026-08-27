@@ -44,6 +44,7 @@ function ThemeProductListContentPanel({
       data-foreground={palette.foreground}
     >
       <img
+        key={image.src}
         ref={prepareProgressiveImage}
         className={styles.image}
         src={image.src}
