@@ -38,31 +38,15 @@ test.each([375, 1440])("keeps summary photo frames stable during hover at %ipx",
     expect(before.width).toBe(expectedSize);
     expect(before.height).toBe(expectedSize);
 
-    // Re-hover after any asynchronous layout change while waiting for the transition.
-    try {
-    await expect.poll(async () => {
-      await page.elementLocator(photo).hover();
-      return getComputedStyle(photo).transform;
-    }).toBe(width < 1024 ? "none" : "matrix(1.12, 0, 0, 1.12, 0, 0)");
-    } catch (error) {
-      console.log("HOVER_FAILURE", JSON.stringify({
-        width: innerWidth,
-        focused: document.hasFocus(),
-        visibility: document.visibilityState,
-        media: ["(min-width: 1024px)", "(hover: hover)", "(pointer: fine)", "(prefers-reduced-motion: reduce)"].map(query => [query, matchMedia(query).matches]),
-        hovered: [frame.matches(":hover"), photo.matches(":hover")],
-        transform: getComputedStyle(photo).transform,
-        transition: getComputedStyle(photo).transition,
-        frame: frame.getBoundingClientRect().toJSON(),
-        iframe: window.frameElement?.getBoundingClientRect().toJSON(),
-        animations: photo.getAnimations().map(animation => ({ state: animation.playState, time: animation.currentTime })),
-      }));
-      throw error;
-    }
+    // Keep Playwright's input wait outside the CSS transition polling deadline.
+    await page.elementLocator(frame).hover();
+    await expect.poll(() => frame.matches(":hover"), { timeout: 3000 }).toBe(true);
+    await expect.poll(() => getComputedStyle(photo).transform, { timeout: 3000 })
+      .toBe(width < 1024 ? "none" : "matrix(1.12, 0, 0, 1.12, 0, 0)");
     expect(frame.getBoundingClientRect().toJSON()).toEqual(before.toJSON());
 
-    await page.elementLocator(photo).unhover();
-    await expect.poll(() => getComputedStyle(photo).transform).toBe("none");
+    await page.elementLocator(frame).unhover();
+    await expect.poll(() => getComputedStyle(photo).transform, { timeout: 3000 }).toBe("none");
   } finally {
     await session.send("Emulation.setFocusEmulationEnabled", { enabled: false });
     root.unmount();
