@@ -45,7 +45,13 @@ test("native touch snaps images without blocking vertical scrolling", async () =
         xDistance, yDistance, gestureSourceType: "touch", speed: 600,
       });
     };
+    console.info("[DEBUG-pdp-input] touch", {
+      box: box.toJSON(), frame: window.frameElement?.getBoundingClientRect().toJSON(),
+      viewport: [innerWidth, innerHeight], topViewport: [top!.innerWidth, top!.innerHeight],
+      focused: document.hasFocus(), visibility: document.visibilityState,
+    });
     await swipe(-300);
+    console.info("[DEBUG-pdp-input] after swipe", { scrollLeft: rail.scrollLeft, active: gallery.dataset.activeIndex });
     await expect.poll(() => gallery.dataset.activeIndex).toBe("1");
     await expect.poll(() => rail.scrollLeft).toBeCloseTo(448, 0);
     expect(changed).toHaveBeenLastCalledWith(1);

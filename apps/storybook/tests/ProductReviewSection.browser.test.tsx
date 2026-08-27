@@ -35,6 +35,13 @@ test.each([375, 1440])("keeps summary photo frames stable during hover at %ipx",
     expect(before.height).toBe(expectedSize);
 
     await page.elementLocator(photo).hover();
+    console.info("[DEBUG-pdp-input] hover", {
+      width, hover: matchMedia("(hover: hover)").matches, fine: matchMedia("(pointer: fine)").matches,
+      reducedMotion: matchMedia("(prefers-reduced-motion: reduce)").matches,
+      photoHover: photo.matches(":hover"), frameHover: frame.matches(":hover"),
+      focused: document.hasFocus(), visibility: document.visibilityState,
+      box: frame.getBoundingClientRect().toJSON(),
+    });
     await expect.poll(() => getComputedStyle(photo).transform).toBe(
       width < 1024 ? "none" : "matrix(1.12, 0, 0, 1.12, 0, 0)",
     );
