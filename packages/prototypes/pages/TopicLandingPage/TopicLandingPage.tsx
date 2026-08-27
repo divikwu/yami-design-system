@@ -2,6 +2,7 @@
 
 import {
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type CSSProperties,
@@ -28,6 +29,7 @@ import type { TopicLandingPageProps } from "./TopicLandingPage.types";
 
 const SECTION_REVEAL_ROOT_MARGIN = "0px 0px -40px 0px";
 const SCROLLABLE_OVERFLOW = /^(auto|scroll|overlay)$/;
+const EXPLORE_MORE_PAGE_SIZE = 60;
 
 function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
@@ -91,6 +93,7 @@ export function TopicLandingPage({
       waterfall.tabs?.find((tab) => !tab.disabled)?.value ??
       "",
   );
+  const [waterfallVisibleCounts, setWaterfallVisibleCounts] = useState<Record<string, number>>({});
   const [productRailTabValue, setProductRailTabValue] = useState(
     () =>
       productRail.value ??
@@ -116,11 +119,19 @@ export function TopicLandingPage({
     ...waterfallProps
   } = waterfall;
   const activeWaterfallTab = waterfall.value ?? waterfallTabValue;
-  const visibleWaterfallProducts =
+  const waterfallProducts =
     waterfallProductsByTab?.[activeWaterfallTab] ?? waterfallFallbackProducts;
-  const firstWaterfallTab = waterfall.tabs?.find(
-    (tab) => !tab.disabled,
-  )?.value;
+  const waterfallVisibleCount = waterfallVisibleCounts[activeWaterfallTab] ?? EXPLORE_MORE_PAGE_SIZE;
+  const visibleWaterfallProducts = useMemo(
+    () => waterfallProducts.slice(0, waterfallVisibleCount),
+    [waterfallProducts, waterfallVisibleCount],
+  );
+  const loadMoreWaterfallProducts = () => {
+    setWaterfallVisibleCounts((counts) => ({
+      ...counts,
+      [activeWaterfallTab]: (counts[activeWaterfallTab] ?? EXPLORE_MORE_PAGE_SIZE) + EXPLORE_MORE_PAGE_SIZE,
+    }));
+  };
   const selectWaterfallTab = (value: string) => {
     if (waterfall.value === undefined) {
       setWaterfallTabValue(value);
@@ -619,9 +630,8 @@ export function TopicLandingPage({
               products={visibleWaterfallProducts}
               value={activeWaterfallTab}
               onValueChange={selectWaterfallTab}
-              hasMore={
-                activeWaterfallTab === firstWaterfallTab && waterfall.hasMore
-              }
+              hasMore={visibleWaterfallProducts.length < waterfallProducts.length}
+              onLoadMore={loadMoreWaterfallProducts}
               className={styles.waterfall}
               data-page-slot="topic-landing-waterfall"
             />

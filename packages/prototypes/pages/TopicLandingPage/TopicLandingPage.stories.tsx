@@ -992,11 +992,11 @@ export const Pc: Story = {
       !pairingTab ||
       exploreMoreTabs[1] !== pairingTab ||
       !allProductsCount ||
-      allProductsCount <= 8 ||
+      allProductsCount !== Math.min(60, localizedArgs.waterfall.products.length) ||
       waterfall?.querySelector('[data-slot="product-card-badges"]')
     ) {
       throw new Error(
-        "Explore More must render a badge-free full catalogue and nine localized tabs",
+        "Explore More must initially render at most 60 badge-free products and nine localized tabs",
       );
     }
 
@@ -1060,7 +1060,11 @@ export const Pc: Story = {
     const loadMoreButton = waterfall?.querySelector<HTMLElement>(
       '[data-slot="product-list-load-more"] > button',
     );
+    if (Boolean(loadMoreButton) !== (localizedArgs.waterfall.products.length > 60)) {
+      throw new Error("Explore More must show Load more only when products remain beyond the first 60");
+    }
     if (
+      loadMoreButton &&
       page.getBoundingClientRect().width >= 1024 &&
       loadMoreButton?.getBoundingClientRect().height !== 48
     ) {

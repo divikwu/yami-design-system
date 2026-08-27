@@ -315,10 +315,8 @@ function createProductListProps(
     dividerVariant: "gray",
     viewAllHref: isWaterfall ? undefined : "#all-products",
     viewAllLabel: copy.viewAll,
-    hasMore: isWaterfall,
     loadMoreLabel: copy.loadMore,
     loadingLabel: copy.loading,
-    onLoadMore: isWaterfall ? () => {} : undefined,
     onAddToCart: () => {},
   };
 }
