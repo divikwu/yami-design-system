@@ -77,6 +77,8 @@ export function TopicLandingPage({
   ...rest
 }: TopicLandingPageProps) {
   const mainRef = useRef<HTMLElement>(null);
+  const globalHeaderRef = useRef<HTMLDivElement>(null);
+  const [globalHeaderHeight, setGlobalHeaderHeight] = useState(0);
   const primaryTabsRef = useRef<HTMLDivElement>(null);
   const pendingPrimaryTabValueRef = useRef<string | null>(null);
   const [primaryTabValue, setPrimaryTabValue] = useState(
@@ -200,6 +202,16 @@ export function TopicLandingPage({
   }));
 
   useLayoutEffect(() => {
+    const element = globalHeaderRef.current;
+    const updateHeight = () => setGlobalHeaderHeight(element?.getBoundingClientRect().height ?? 0);
+    updateHeight();
+    if (!element) return;
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [showChrome]);
+
+  useLayoutEffect(() => {
     const targetId = window.location.hash.slice(1);
     const matchingTab = primaryTabs.items.find(
       (item) => item.targetId === targetId,
@@ -260,7 +272,7 @@ export function TopicLandingPage({
       animationFrame = 0;
       const activationLine = getTopicLandingActivationLine(
         scrollRoot,
-        primaryTabsElement.getBoundingClientRect().height,
+        globalHeaderHeight + primaryTabsElement.getBoundingClientRect().height,
       );
       const pendingValue = pendingPrimaryTabValueRef.current;
       if (pendingValue) {
@@ -325,7 +337,7 @@ export function TopicLandingPage({
       window.removeEventListener("resize", scheduleUpdate);
       if (animationFrame) window.cancelAnimationFrame(animationFrame);
     };
-  }, [primaryTabs.defaultValue, primaryTabs.items]);
+  }, [globalHeaderHeight, primaryTabs.defaultValue, primaryTabs.items]);
 
   useLayoutEffect(() => {
     if (waterfall.value !== undefined) return;
@@ -491,13 +503,14 @@ export function TopicLandingPage({
       {...rest}
       className={cx(styles.root, className)}
       data-slot="topic-landing-page"
+      style={{ ...rest.style, "--topic-landing-header-height": `${globalHeaderHeight}px` } as CSSProperties}
     >
       {showChrome && (
         <>
           <div className={styles.activityHeader} data-slot="topic-landing-activity-header">
             <ActivityPageHeader {...activityHeader} />
           </div>
-          <div className={styles.globalHeader} data-slot="topic-landing-global-header">
+          <div ref={globalHeaderRef} className={styles.globalHeader} data-slot="topic-landing-global-header">
             <Header {...header} />
           </div>
         </>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type FormEvent } from "react";
+import { useId, useLayoutEffect, useRef, useState, type FormEvent } from "react";
 
 import styles from "./MobileSearchPage.module.css";
 import {
@@ -39,6 +39,67 @@ const hotIcon = new URL("../SearchResultsPage/assets/hot.svg", import.meta.url).
 
 function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
+}
+
+function RecentSearchTags() {
+  const id = useId();
+  const measureRef = useRef<HTMLDivElement>(null);
+  const [visibleCount, setVisibleCount] = useState(recentSearches.length);
+  const [expanded, setExpanded] = useState(false);
+
+  useLayoutEffect(() => {
+    const measure = measureRef.current!;
+    const tags = Array.from(measure.querySelectorAll<HTMLElement>("[data-recent-tag]"));
+    const more = measure.lastElementChild as HTMLElement;
+    const update = () => {
+      if (!tags.length) return;
+      const gap = parseFloat(getComputedStyle(measure).columnGap);
+      const secondRowTop = tags[0]!.offsetTop + tags[0]!.offsetHeight + parseFloat(getComputedStyle(measure).rowGap);
+      const overflowIndex = tags.findIndex((tag) => tag.offsetTop > secondRowTop);
+      let count = overflowIndex < 0 ? tags.length : overflowIndex;
+      // Keep the arrow on the second row, even when the last tag fills it.
+      if (count < tags.length) {
+        while (count > 0) {
+          const last = tags[count - 1]!;
+          if (last.offsetTop < secondRowTop || last.getBoundingClientRect().right + gap + more.getBoundingClientRect().width <= measure.getBoundingClientRect().right) break;
+          count -= 1;
+        }
+      }
+      setVisibleCount(count);
+    };
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(measure);
+    // Font loading can change tag widths without changing the container width.
+    tags.forEach((tag) => observer.observe(tag));
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div className={styles.recentSearches}>
+      <div ref={measureRef} className={cx(styles.recentTags, styles.recentMeasure)} aria-hidden="true" inert>
+        {recentSearches.map((item) => <span className={styles.recentTag} data-recent-tag key={item.label}>{item.label}</span>)}
+        <span className={cx(styles.recentTag, styles.more)} />
+      </div>
+      <div id={id} className={styles.recentTags} data-slot="mobile-search-recent-tags">
+        {recentSearches.slice(0, expanded ? recentSearches.length : visibleCount).map((item) => (
+          <a className={styles.recentTag} key={item.label} href={item.href} target="_top">{item.label}</a>
+        ))}
+        {visibleCount < recentSearches.length && (
+          <button
+            className={cx(styles.recentTag, styles.more)}
+            type="button"
+            aria-label={expanded ? "Fewer recent searches" : "More recent searches"}
+            aria-expanded={expanded}
+            aria-controls={id}
+            onClick={() => setExpanded((value) => !value)}
+          >
+            <img src={arrowDownIcon} alt="" width={16} height={16} />
+          </button>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export function MobileSearchPage({
@@ -156,14 +217,7 @@ export function MobileSearchPage({
                   <img src={deleteIcon} alt="" width={20} height={20} />
                 </button>
               </div>
-              <div className={styles.recentTags}>
-                {recentSearches.map((item) => (
-                  <a key={item.label} href={item.href} target="_top">{item.label}</a>
-                ))}
-                <button className={styles.more} type="button" aria-label="More recent searches">
-                  <img src={arrowDownIcon} alt="" width={16} height={16} />
-                </button>
-              </div>
+              <RecentSearchTags />
             </section>
           )}
 
