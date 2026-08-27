@@ -42,6 +42,7 @@ export function HeaderCategoryRail({
   previousLabel,
   nextLabel,
   imageLoadingStrategy = 'native',
+  menuTrigger,
 }: HeaderCategoryRailProps) {
   const railRef = useRef<HTMLUListElement>(null)
   const [edges, setEdges] = useState({ atStart: true, atEnd: true })
@@ -103,6 +104,37 @@ export function HeaderCategoryRail({
             {category.startsGroup && (
               <span className={styles.railGroupDivider} aria-hidden="true" />
             )}
+            {menuTrigger?.id === category.id ? (
+              <button
+                ref={menuTrigger.ref}
+                className={styles.category}
+                type="button"
+                data-slot="header-category"
+                data-category-trigger=""
+                aria-expanded={menuTrigger.open}
+                aria-controls={menuTrigger.panelId}
+                onClick={(event) => menuTrigger.onToggle(event.detail === 0)}
+                onPointerEnter={(event) => {
+                  if (event.pointerType === 'mouse') menuTrigger.onOpen(false)
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === 'ArrowDown') {
+                    event.preventDefault()
+                    menuTrigger.onOpen(true)
+                  }
+                }}
+              >
+                <span className={styles.categoryMedia}>
+                  <span
+                    className={styles.categoryBuiltinIcon}
+                    data-slot="header-all-icon"
+                    aria-hidden="true"
+                    style={{ ['--category-icon' as string]: `url("${allIcon}")` }}
+                  />
+                </span>
+                <span className={styles.categoryLabel} data-slot="header-category-label">{category.label}</span>
+              </button>
+            ) : (
             <a className={styles.category} href={category.href} data-slot="header-category">
               {category.badges && category.badges.length > 0 && (
                 <span className={styles.categoryBadges} data-slot="header-category-badges">
@@ -137,6 +169,7 @@ export function HeaderCategoryRail({
                 {category.label}
               </span>
             </a>
+            )}
           </li>
         ))}
         </ul>

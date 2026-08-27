@@ -76,6 +76,99 @@ every consumer, where nothing validates it.
 
 ## Category entries are images, not icons
 
+### PC category navigation
+
+Pass `categoryMenu` to turn the rail entry matching `triggerId` into a disclosure
+button. Omit it to preserve the ordinary rail. The tree is caller-owned and
+supports up to three levels: branches expand; leaves use their supplied `href`.
+Include an explicit All link in a branch when the parent also has a destination.
+
+The menu follows English Site Optimization 2026 nodes `947:53795` / `951:24791`
+(file `wE2APma1NxPl3eHM5NFpU9`): 248px columns, a maximum 548px height,
+independent vertical scrolling, 44px rows, and a scrim below the header. It
+anchors to the Categories entry and follows the header when it scrolls or sticks.
+The design's 16px shell radius maps to the maintained 12px surface token.
+
+Mouse hover, click or Arrow Down on the entry opens the menu in both V1 and V2.
+Hover opening does not move focus; click or Arrow Down enters the menu.
+Hover, focus, or click selects
+a branch; switching a parent clears its old child selection. Up/Down, Home/End,
+and Left/Right move through the visible levels. Escape or the scrim closes and
+returns focus to the entry; leaving the menu by Tab dismisses it. Search and
+categories are mutually exclusive. Below 1024px the menu closes and leaves the
+existing mobile header unchanged.
+
+Leaving the trigger and panel closes after 200ms. A diagonal pointer route from
+the trigger toward the panel's upper edge renews a 350ms grace period. Entering
+either region cancels dismissal; moving away resumes the 200ms delay. Keyboard
+navigation stays open. There is no pointer-blocking overlay over neighboring links.
+
+`Pages → Categories` shows `PC — V1 Text` and `PC — V2 Images` on the real
+storefront, both initially collapsed. Explore two and three levels within each
+example; these states remain covered by browser regression tests.
+`createHeaderCategoryMenu` supplies separate English and Chinese V1
+API snapshots, preserving each locale's ordering, full tree, root icons and real
+destination links. `category-menu.en.json` / `category-menu.zh.json` record the
+endpoint, language, version and capture time. Display labels omit emoji per the
+DS rule; original labels remain in the snapshots. Protocol-relative image URLs
+and malformed URL slashes are normalized; no HTML template is injected.
+
+Root `image` / `activeImage` come from the API's `image` / `active_image` fields.
+The fixture resolves both to downloaded local assets, preserving GIF animation
+and locale-specific artwork. Hover, focus, or click uses the selected icon;
+moving into its children keeps it selected. Selecting another root restores the
+previous default icon. If callers omit `activeImage`, `image` remains visible.
+The existing 20 × 20 menu icon size and text-tree layout are unchanged.
+
+All three levels accept `fontColor` / `activeFontColor` from the API's
+`font_color` / `active_font_color`. These are explicitly API-owned merchandising
+colors and retain the configured original colors, including campaign colors;
+they are not remapped to design-system tokens. The refresh script strips the
+API's trailing `!important` and accepts hexadecimal colors only. Both V1 and V2
+keep the default `fontColor` on hover, keyboard focus and selected branches;
+missing defaults fall back to the existing text color. Hover underlines only the
+text label. `activeFontColor` remains in the API data but is not applied. Icon
+state switching, selected backgrounds and keyboard focus outlines are unchanged.
+
+Refresh explicitly with `node tooling/storybook/refresh-category-menu-fixture.mjs`.
+This also downloads both states to `assets/category-menu/api/` and regenerates
+`category-menu.images.ts`; snapshots retain the original CDN URLs for provenance.
+The capture uses `pageScene=cms_main`, `customized_template=true`, `env=pre` and
+requires a nonempty V1 response. This preview parameter is only used by the
+refresh script: the storefront does not fetch that environment at runtime.
+Production integration still requires confirmation of the official V1 rollout.
+
+### V2 image categories
+
+Set `categoryMenu.presentation` to `'images'` to opt into V2; omission or `'text'`
+retains V1. This is a presentation choice, not a claim that the upstream API's
+AB assignment has changed to V2.
+
+V2 follows [Figma 951:24797](https://www.figma.com/design/wE2APma1NxPl3eHM5NFpU9/English-Site-Optimization-2026?node-id=951-24797):
+two 240px text columns and a 440px independently scrolling third-level panel,
+with three image cards per row, 80px-high artwork, centered two-line labels and a
+548px maximum panel height. The full label remains the link's accessible name
+and title. Missing image data leaves a text link, not a fabricated image.
+Third-level artwork comes from the snapshot's original CDN URLs and needs a
+network connection; root default/active icons remain bundled locally.
+The snapshot preserves API `img_ratio` as `imageRatio`: `1` (or omitted) keeps
+80×80 artwork; `2` renders 160×80 artwork at full frame height, centered and
+clipped horizontally by the card rather than shrunk into a square.
+Hovering the image frame scales only its artwork to 1.03 over 150ms, clipped
+inside the unchanged frame. Hovering the label does not zoom the image.
+Reduced-motion preference removes the transition.
+
+Up/Down move one grid row, Left/Right move within a row; Left from the first
+column returns to the selected second-level category. Home/End move to the
+first/last card, Tab follows native link order, and Escape returns to Categories.
+Changing a parent discards the previous panel and resets its scroll position.
+
+`Pages → Categories → PC — V2 Images` lets users explore all levels in one
+example. The Figma reference shows makeup artwork with a Skincare selection;
+the example uses the API's matching branches rather than mixing categories.
+
+### Rail artwork
+
 `categories[].image` is an `<img>` source rendered at 24 × 24. This is
 deliberate: category artwork is merchandising content that campaign teams reskin
 per season, so it must not require a component release.

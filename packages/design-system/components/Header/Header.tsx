@@ -25,11 +25,12 @@
  * See meta.json for the structured spec, usage.md for narrative.
  */
 
-import { useState } from 'react'
+import { useCallback, useEffect, useId, useImperativeHandle, useRef, useState } from 'react'
 import { ResponsiveImage } from '../ResponsiveImage'
 
 import styles from './Header.module.css'
 import { HeaderCategoryRail } from './HeaderCategoryRail'
+import { HeaderCategoryMenu } from './HeaderCategoryMenu'
 import { HeaderSearch } from './HeaderSearch'
 import type { HeaderImage, HeaderProps } from './Header.types'
 
@@ -113,6 +114,7 @@ export function Header({
   onHallChange,
   zipcode,
   categories,
+  categoryMenu,
   searchPlaceholder = 'Search',
   searchValue,
   onSearchValueChange,
@@ -134,11 +136,39 @@ export function Header({
   imageLoadingStrategy = 'native',
   className,
   style,
+  ref: forwardedRef,
   ...rest
 }: HeaderProps) {
   const [uncontrolledHallId, setUncontrolledHallId] = useState(() => halls[0]?.id)
   const isHallControlled = hallId !== undefined
   const activeHallId = isHallControlled ? hallId : uncontrolledHallId
+  const [overlay, setOverlay] = useState<'search' | 'categories' | null>(null)
+  const [categoryMenuAutoFocus, setCategoryMenuAutoFocus] = useState(false)
+  const [categoryMenuKeyboard, setCategoryMenuKeyboard] = useState(false)
+  const headerRef = useRef<HTMLElement>(null)
+  useImperativeHandle(forwardedRef, () => headerRef.current!, [])
+  const categoryTriggerRef = useRef<HTMLButtonElement>(null)
+  const categoryPanelId = useId()
+  const hasCategoryMenu = Boolean(categoryMenu?.items.length && categories.some((item) => item.id === categoryMenu.triggerId))
+
+  useEffect(() => {
+    const desktop = window.matchMedia('(min-width: 1024px)')
+    const closeOnMobile = () => { if (!desktop.matches) setOverlay(null) }
+    desktop.addEventListener('change', closeOnMobile)
+    return () => desktop.removeEventListener('change', closeOnMobile)
+  }, [])
+
+  const closeCategories = useCallback((restoreFocus = false) => {
+    setOverlay(null)
+    if (restoreFocus) categoryTriggerRef.current?.focus()
+  }, [])
+
+  function openCategories(focusMenu: boolean, keyboard = false) {
+    if (overlay === 'categories' && !focusMenu) return
+    setCategoryMenuAutoFocus(focusMenu)
+    setCategoryMenuKeyboard(keyboard)
+    setOverlay('categories')
+  }
 
   function selectHall(id: string) {
     if (!isHallControlled) setUncontrolledHallId(id)
@@ -148,12 +178,14 @@ export function Header({
   return (
     <header
       {...rest}
+      ref={headerRef}
       className={cx(
         styles.root,
         mobileVariant === 'pdp' && styles.rootPdpMobile,
         className,
       )}
       data-slot="header"
+      data-overlay={overlay ?? undefined}
       aria-label={ariaLabel}
       style={style}
     >
@@ -356,6 +388,8 @@ export function Header({
           onSubmit={onSearchSubmit}
           searchLabel={searchLabel}
           panel={searchPanel}
+          open={overlay === 'search'}
+          onOpenChange={(open) => setOverlay(open ? 'search' : null)}
         />
 
         <div className={styles.actions} data-slot="header-actions">
@@ -393,8 +427,30 @@ export function Header({
           previousLabel={previousCategoriesLabel}
           nextLabel={nextCategoriesLabel}
           imageLoadingStrategy={imageLoadingStrategy}
+          menuTrigger={hasCategoryMenu && categoryMenu ? {
+            id: categoryMenu.triggerId,
+            panelId: categoryPanelId,
+            open: overlay === 'categories',
+            ref: categoryTriggerRef,
+            onOpen: (focusMenu) => openCategories(focusMenu, focusMenu),
+            onToggle: (keyboard) => {
+              if (overlay === 'categories' && categoryMenuAutoFocus) closeCategories()
+              else openCategories(true, keyboard)
+            },
+          } : undefined}
         />
       </div>
+      {hasCategoryMenu && categoryMenu && overlay === 'categories' && (
+        <HeaderCategoryMenu
+          id={categoryPanelId}
+          data={categoryMenu}
+          headerRef={headerRef}
+          triggerRef={categoryTriggerRef}
+          autoFocus={categoryMenuAutoFocus}
+          keyboardOpen={categoryMenuKeyboard}
+          onClose={closeCategories}
+        />
+      )}
     </header>
   )
 }

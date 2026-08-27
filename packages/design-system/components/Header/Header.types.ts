@@ -1,4 +1,4 @@
-import type { ComponentProps } from 'react'
+import type { ComponentProps, RefObject } from 'react'
 import type { ImageLoadingStrategy, ImageSource } from '../image.types'
 
 /** An image slot. Category artwork, the brand lockup, and the locale flag are all images. */
@@ -39,6 +39,33 @@ export interface HeaderCategory {
   badges?: string[]
   /** Renders a vertical divider before this entry, opening a regional group. */
   startsGroup?: boolean
+}
+
+/** Caller-owned category tree, up to three levels. Branches expand; leaves navigate. */
+export interface HeaderCategoryMenuItem {
+  id: string
+  label: string
+  image?: HeaderImage
+  /** API img_ratio: 1 for square, 2 for 2:1 artwork that fills the V2 frame height. */
+  imageRatio?: number
+  /** Root icon while selected by hover, keyboard focus, or click; falls back to image. */
+  activeImage?: HeaderImage
+  /** API-owned merchandising text color; not remapped to design-system colors. */
+  fontColor?: string
+  /** Preserved API metadata; V1/V2 keep fontColor unchanged during interaction. */
+  activeFontColor?: string
+  href?: string
+  children?: HeaderCategoryMenuItem[]
+}
+
+export interface HeaderCategoryMenuData {
+  /** V1 text lists by default; V2 displays third-level categories as image cards. */
+  presentation?: 'text' | 'images'
+  /** ID of the category rail entry that opens the menu. */
+  triggerId: string
+  label: string
+  closeLabel: string
+  items: HeaderCategoryMenuItem[]
 }
 
 /** Deliver-to control beside the locale switcher and before the search field. */
@@ -149,6 +176,9 @@ export interface HeaderProps extends Omit<ComponentProps<'header'>, 'children'> 
   /** Category rail entries, in display order. */
   categories: HeaderCategory[]
 
+  /** Optional PC category navigation. Omit to retain the ordinary rail links. */
+  categoryMenu?: HeaderCategoryMenuData
+
   searchPlaceholder?: string
   /** Controlled query. Leave undefined for an uncontrolled field. */
   searchValue?: string
@@ -185,6 +215,9 @@ export interface HeaderProps extends Omit<ComponentProps<'header'>, 'children'> 
 }
 
 export interface HeaderSearchProps {
+  /** Header coordinates search and category overlays; standalone search stays uncontrolled. */
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
   placeholder: string
   value: string | undefined
   onValueChange: ((value: string) => void) | undefined
@@ -205,6 +238,14 @@ export interface HeaderSearchProps {
 }
 
 export interface HeaderCategoryRailProps {
+  menuTrigger?: {
+    id: string
+    panelId: string
+    open: boolean
+    ref: RefObject<HTMLButtonElement | null>
+    onOpen: (focusMenu: boolean) => void
+    onToggle: (keyboard: boolean) => void
+  }
   categories: HeaderCategory[]
   ariaLabel: string
   previousLabel: string
