@@ -360,28 +360,6 @@
 
 }
 
-@media (max-width: 767px) {
-  .productGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .productCard {
-    display: grid;
-    grid-template-columns: 96px minmax(0, 1fr);
-    column-gap: var(--space-150);
-    align-items: start;
-  }
-
-  .productMedia {
-    grid-row: span 2;
-  }
-
-  .productTitle {
-    margin-top: var(--space-050);
-  }
-
-}
-
 @media (prefers-reduced-motion: reduce) {
   .cta,
   .secondaryCta {
