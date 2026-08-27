@@ -96,12 +96,16 @@ export const Showcase: Story = {
     if (
       counterStyle.right !== "8px" ||
       counterStyle.bottom !== "8px" ||
-      counterStyle.height !== "28px" ||
+      counter.getBoundingClientRect().height !== 24 ||
+      counterStyle.borderWidth !== "1px" ||
+      counterStyle.borderStyle !== "solid" ||
+      counterStyle.borderColor !== "rgba(0, 0, 0, 0.08)" ||
+      counterStyle.backdropFilter !== "blur(4px)" ||
       counterStyle.backgroundColor !== "rgba(255, 255, 255, 0.87)" ||
       counterStyle.color !== "rgba(0, 0, 0, 0.87)"
     ) {
       throw new Error(
-        "Product media gallery counter must share the quick-add surface, use a 28px height, and keep an 8px stage inset",
+        "Product media gallery counter must share the quick-add surface and border, use a 24px outer height, and keep an 8px stage inset",
       );
     }
     if (
@@ -216,27 +220,47 @@ export const Mobile: Story = {
       );
     }
 
-    const dispatchTouch = (type: "touchstart" | "touchend", clientX: number) => {
-      const event = new Event(type, { bubbles: true });
-      Object.defineProperty(event, "changedTouches", {
-        value: [{ clientX }],
-      });
-      gallery.dispatchEvent(event);
-    };
-
-    dispatchTouch("touchstart", 300);
-    dispatchTouch("touchend", 100);
+    const rail = canvasElement.querySelector<HTMLElement>('[data-slot="product-media-gallery-rail"]')!;
+    const counter = canvasElement.querySelector<HTMLElement>('[data-slot="product-media-gallery-counter"]')!;
+    const counterStyle = getComputedStyle(counter);
+    if (
+      counter.getBoundingClientRect().height !== 24 ||
+      counterStyle.borderWidth !== "1px" ||
+      counterStyle.borderColor !== "rgba(0, 0, 0, 0.08)" ||
+      counterStyle.backgroundColor !== "rgba(255, 255, 255, 0.87)" ||
+      counterStyle.backdropFilter !== "blur(4px)"
+    ) {
+      throw new Error("Mobile counter must keep the same 24px height and quick-add surface and border as desktop");
+    }
+    const slides = rail.querySelectorAll<HTMLElement>('[data-slot="product-media-gallery-slide"]');
+    const wideMobile = window.innerWidth > 440;
+    const gap = wideMobile ? 8 : 0;
+    const imageWidth = wideMobile ? Math.min(rail.clientWidth - 48, 440) : rail.clientWidth;
+    if (
+      getComputedStyle(rail).overflowX !== "auto" ||
+      getComputedStyle(rail).scrollSnapType !== "x mandatory" ||
+      getComputedStyle(rail).touchAction !== "auto" ||
+      getComputedStyle(rail).columnGap !== `${gap}px` ||
+      slides.length !== images.length ||
+      Array.from(slides).some((slide) =>
+        Math.abs(slide.getBoundingClientRect().width - imageWidth) > 1 ||
+        Math.abs(slide.getBoundingClientRect().height - slide.getBoundingClientRect().width) > 1 ||
+        getComputedStyle(slide).borderRadius !== (wideMobile ? "8px" : "0px") ||
+        getComputedStyle(slide).borderWidth !== "0px" ||
+        getComputedStyle(slide).boxShadow !== "none")
+    ) {
+      throw new Error("Mobile images must form horizontal pages capped at 440px without blocking vertical gestures");
+    }
+    rail.scrollTo({ left: slides[0].getBoundingClientRect().width + gap, behavior: "instant" });
     await waitFor(() => {
       if (gallery.dataset.activeIndex !== "1" || image()?.alt !== images[1].alt) {
-        throw new Error("Mobile swipe left must advance the active image");
+        throw new Error("Native horizontal scrolling must advance the active image");
       }
     });
-
-    dispatchTouch("touchstart", 100);
-    dispatchTouch("touchend", 300);
+    rail.scrollTo({ left: 0, behavior: "instant" });
     await waitFor(() => {
       if (gallery.dataset.activeIndex !== "0" || image()?.alt !== images[0].alt) {
-        throw new Error("Mobile swipe right must restore the previous image");
+        throw new Error("Scrolling back must restore the previous image");
       }
     });
   },

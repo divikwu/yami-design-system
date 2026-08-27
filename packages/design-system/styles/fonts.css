@@ -13,7 +13,8 @@
 @font-face {
   font-family: 'GT Walsheim';
   src: url('../assets/fonts/GT-Walsheim-Medium.woff2') format('woff2');
-  font-weight: 500;
+  /* A Chinese emphasis run requests 600; its Latin glyphs still use Medium. */
+  font-weight: 500 600;
   font-display: swap;
 }
 @font-face {

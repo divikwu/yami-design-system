@@ -188,6 +188,7 @@ export function ProductDetailPage({
   priceOriginal,
   discountLabel,
   optionGroups,
+  skus,
   bestBefore,
   highlights,
   specifications,
@@ -207,6 +208,30 @@ export function ProductDetailPage({
   const [selectedOptions, setSelectedOptions] = useState(() =>
     Object.fromEntries(optionGroups.map((group) => [group.id, group.value]))
   );
+  const availableSkus = skus?.filter((sku) => sku.available);
+  const matchesSelection = (options: Readonly<Record<string, string>>, selection: Record<string, string>) =>
+    optionGroups.every((group) => options[group.id] === selection[group.id]);
+  const selectionAvailable = availableSkus
+    ? availableSkus.some((sku) => matchesSelection(sku.options, selectedOptions))
+    : optionGroups.every((group) => group.options.some((option) =>
+        option.value === selectedOptions[group.id] && !option.unavailable
+      ));
+
+  function selectOption(groupId: string, value: string) {
+    setSelectedOptions((current) => {
+      const next = { ...current, [groupId]: value };
+      if (!availableSkus || availableSkus.some((sku) => matchesSelection(sku.options, next))) return next;
+      // Preserve as many other selections as possible; inventory order breaks ties.
+      const candidates = availableSkus.filter((sku) => sku.options[groupId] === value);
+      const score = (options: Readonly<Record<string, string>>) =>
+        optionGroups.filter((group) => options[group.id] === next[group.id]).length;
+      const closest = candidates.reduce<(typeof candidates)[number] | undefined>(
+        (best, sku) => !best || score(sku.options) > score(best.options) ? sku : best,
+        undefined
+      );
+      return closest ? { ...closest.options } : current;
+    });
+  }
   const contentMaxWidthValue =
     typeof contentMaxWidth === "number"
       ? `${contentMaxWidth}px`
@@ -457,28 +482,40 @@ export function ProductDetailPage({
                             aria-label={group.label}
                             data-pdp-option-group={group.id}
                           >
-                            {group.options.map((option) => (
+                            {group.options.map((option) => {
+                              const candidates = availableSkus?.filter((sku) => sku.options[group.id] === option.value);
+                              const availability = candidates
+                                ? candidates.length === 0 ? "sold-out"
+                                  : candidates.some((sku) => matchesSelection(sku.options, { ...selectedOptions, [group.id]: option.value }))
+                                    ? "available" : "other-combination"
+                                : option.unavailable ? "sold-out" : "available";
+                              const hint = availability === "sold-out"
+                                ? copy.optionSoldOut ?? "All combinations are out of stock"
+                                : availability === "other-combination"
+                                  ? copy.optionOtherCombination ?? "Current combination is out of stock; select to switch to an available combination"
+                                  : undefined;
+                              return (
                               <FilterChip
                                 key={option.value}
+                                data-availability={availability}
+                                data-option-value={option.value}
                                 selected={
                                   selectedOptions[group.id] === option.value
                                 }
-                                disabled={option.unavailable}
-                                aria-label={
-                                  option.unavailable
-                                    ? `${option.label}, unavailable`
-                                    : option.label
-                                }
-                                onClick={() =>
-                                  setSelectedOptions((current) => ({
-                                    ...current,
-                                    [group.id]: option.value,
-                                  }))
-                                }
+                                disabled={availability === "sold-out"}
+                                aria-label={hint ? `${option.label}, ${hint}` : option.label}
+                                title={hint}
+                                onClick={() => selectOption(group.id, option.value)}
                               >
                                 {option.label}
+                                {availability === "sold-out" ? (
+                                  <svg className={styles.optionUnavailableSlash} viewBox="0 0 40 40" aria-hidden="true">
+                                    <line x1="0" y1="40" x2="40" y2="0" />
+                                  </svg>
+                                ) : null}
                               </FilterChip>
-                            ))}
+                              );
+                            })}
                           </FilterChipGroup>
                           </fieldset>
                         );
@@ -628,6 +665,7 @@ export function ProductDetailPage({
                         form="full"
                         size="lg"
                         data-pdp-add-to-cart="true"
+                        disabled={!selectionAvailable}
                       >
                         {copy.addToCart}
                       </Button>
@@ -742,72 +780,80 @@ export function ProductDetailPage({
                         ) : null}
                       </div>
                       </div>
-                      {purchaseTags.length > 0 ? (
+                      {purchaseTags.length > 0 || region ? (
                         <div
-                          className={styles.purchaseTagsBlock}
-                          data-slot="product-detail-tags-block"
+                          className={styles.purchaseMetadataGroup}
+                          data-slot="product-detail-purchase-metadata"
                         >
-                          <span
-                            className={styles.purchaseLabel}
-                            data-slot="product-detail-tags-label"
-                          >
-                            {copy.tags}
-                          </span>
-                          <ul
-                            id="product-purchase-tags"
-                            className={styles.purchaseTags}
-                          >
-                            {(showAllTags
-                              ? purchaseTags
-                              : purchaseTags.slice(0, 3)
-                            ).map((tag) => (
-                              <li key={tag}>
-                                <Tag tone="dark-outline">{tag}</Tag>
-                              </li>
-                            ))}
-                          </ul>
-                          {purchaseTags.length > 3 ? (
-                            <button
-                              className={styles.textButton}
-                              data-slot="product-detail-tags-toggle"
-                              type="button"
-                              aria-expanded={showAllTags}
-                              aria-controls="product-purchase-tags"
-                              onClick={() =>
-                                setShowAllTags((isExpanded) => !isExpanded)
-                              }
+                          {purchaseTags.length > 0 ? (
+                            <div
+                              className={styles.purchaseTagsBlock}
+                              data-slot="product-detail-tags-block"
                             >
-                              {showAllTags
-                                ? copy.showFewerTags
-                                : copy.showAllTags}
-                            </button>
+                              <span
+                                className={styles.purchaseLabel}
+                                data-slot="product-detail-tags-label"
+                              >
+                                {copy.tags}
+                              </span>
+                              <ul
+                                id="product-purchase-tags"
+                                className={styles.purchaseTags}
+                                data-expanded={showAllTags}
+                              >
+                                {purchaseTags.map((tag) => (
+                                  <li key={tag}>
+                                    <Tag tone="dark-outline">{tag}</Tag>
+                                  </li>
+                                ))}
+                              </ul>
+                              {purchaseTags.length > 3 ? (
+                                <button
+                                  className={styles.textButton}
+                                  data-slot="product-detail-tags-toggle"
+                                  type="button"
+                                  aria-expanded={showAllTags}
+                                  aria-controls="product-purchase-tags"
+                                  onClick={() =>
+                                    setShowAllTags((isExpanded) => !isExpanded)
+                                  }
+                                >
+                                  {showAllTags
+                                    ? copy.showFewerTags
+                                    : copy.showAllTags}
+                                </button>
+                              ) : null}
+                            </div>
                           ) : null}
-                        </div>
-                      ) : null}
-                      {region ? (
-                        <div
-                          className={styles.purchaseRegionBlock}
-                          data-slot="product-detail-region"
-                        >
-                          <span
-                            className={styles.purchaseLabel}
-                            data-slot="product-detail-region-label"
-                          >
-                            {region.label}
-                          </span>
-                          <div
-                            className={styles.purchaseRegionValue}
-                            data-slot="product-detail-region-value"
-                          >
-                            <img
-                              src={region.iconSrc}
-                              alt=""
-                              width={40}
-                              height={40}
-                              data-slot="product-detail-region-icon"
-                            />
-                            <span>{region.value}</span>
-                          </div>
+                          {purchaseTags.length > 0 && region ? (
+                            <Divider className={styles.purchaseMetadataDivider} />
+                          ) : null}
+                          {region ? (
+                            <div
+                              className={styles.purchaseRegionBlock}
+                              data-slot="product-detail-region"
+                            >
+                              <span
+                                className={styles.purchaseLabel}
+                                data-slot="product-detail-region-label"
+                              >
+                                {region.label}
+                              </span>
+                              <div
+                                className={styles.purchaseRegionValue}
+                                data-slot="product-detail-region-value"
+                              >
+                                <img
+                                  src={region.iconSrc}
+                                  alt=""
+                                  width={40}
+                                  height={40}
+                                  data-slot="product-detail-region-icon"
+                                />
+                                <span>{region.value}</span>
+                              </div>
+                            </div>
+                          ) : null}
                         </div>
                       ) : null}
                     </div>
@@ -821,6 +867,7 @@ export function ProductDetailPage({
         <ProductList
           className={styles.recommendations}
           title={copy.recommendations}
+          mobileTitleSize={16}
           products={recommendations}
           layout="rail"
           imageLoadingStrategy="windowed"
@@ -832,6 +879,7 @@ export function ProductDetailPage({
         {reviewSection ? (
           <ProductReviewSection
             {...reviewSection}
+            mobileTitleSize={16}
             className={styles.reviews}
             data-pdp-module="reviews"
           />
@@ -841,9 +889,10 @@ export function ProductDetailPage({
           <ProductList
             id="torriden-products"
             className={styles.brandProducts}
+            mobileTitleSize={16}
             title={
               <>
-                <span>{brandSection.title}</span>
+                <span lang={brandSection.titleLang}>{brandSection.title}</span>
                 {brandSection.logo ? (
                   <img
                     className={styles.brandLogo}
@@ -881,6 +930,7 @@ export function ProductDetailPage({
           <ProductList
             className={styles.recentlyViewed}
             title={copy.recentlyViewed}
+            mobileTitleSize={16}
             products={recentlyViewed}
             layout="rail"
             imageLoadingStrategy="windowed"

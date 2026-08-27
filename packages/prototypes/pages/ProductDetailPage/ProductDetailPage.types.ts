@@ -39,6 +39,8 @@ export interface ProductDetailRegion {
 
 export interface ProductDetailBrandSection {
   title: string;
+  /** Language of the brand name when it differs from the page language. */
+  titleLang?: string;
   /** Optional decorative brand mark shown in the center of the section heading. */
   logo?: {
     src: string;
@@ -76,6 +78,8 @@ export interface ProductDetailPageCopy {
   decreaseQuantity: string;
   increaseQuantity: string;
   addToCart: string;
+  optionSoldOut?: string;
+  optionOtherCombination?: string;
   seller: string;
   shipTo: string;
   deliveryEstimate: string;
@@ -107,6 +111,11 @@ export interface ProductDetailPageProps
   priceOriginal: string;
   discountLabel: string;
   optionGroups: readonly ProductDetailOptionGroup[];
+  /** Complete SKU inventory; omitted combinations are unavailable. Overrides option.unavailable. */
+  skus?: readonly {
+    options: Readonly<Record<string, string>>;
+    available: boolean;
+  }[];
   bestBefore: string;
   highlights: readonly string[];
   specifications: readonly ProductDetailSpecification[];

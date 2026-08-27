@@ -29,6 +29,12 @@
       "required": true,
       "description": "Authoritative total review count displayed in the heading and summary."
     },
+    "mobileTitleSize": {
+      "type": "16 | 20",
+      "required": false,
+      "default": 20,
+      "description": "Shared heading below 1024px: 20px normal (400), or 16px Chinese 600 / English 500 resolved from lang. Desktop typography is unchanged."
+    },
     "averageRating": {
       "type": "number",
       "required": true,

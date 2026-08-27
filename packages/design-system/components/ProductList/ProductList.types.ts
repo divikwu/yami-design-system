@@ -38,6 +38,8 @@ interface ProductListBaseProps
     SectionDividerProps {
   "data-component"?: string;
   title: ReactNode;
+  /** Below 1024px: 20px normal (default); 16px Chinese 600 / English 500 via lang. */
+  mobileTitleSize?: 16 | 20;
   /** Optional supporting copy rendered alongside the section title. */
   description?: ReactNode;
   /** Optional full-width editorial content rendered before the product collection. */

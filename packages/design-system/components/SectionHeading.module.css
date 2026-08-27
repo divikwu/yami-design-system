@@ -30,12 +30,8 @@
   flex: 0 1 auto;
 }
 
-/* The canonical section-title type ramp, taken from ProductList: heading-xl
- * at normal weight on mobile, heading-2xl on desktop. The galleries used to
- * carry their own copies (one at emphasize weight), which is how the four
- * cards on the mobile page showed two different title weights. A section that
- * must deviate — e.g. the brand-panel title recoloured over its banner —
- * overrides from outside with a more specific selector. */
+/* Shared title ramp: mobile 20px normal or 16px emphasized (Chinese 600,
+ * English 500, resolved from lang); desktop keeps its existing typography. */
 .title {
   min-width: 0;
   flex: 1 1 auto;
@@ -52,6 +48,18 @@
 .titleSerif {
   font-family: var(--font-family-serif);
   font-weight: var(--font-weight-semibold);
+}
+
+@media (max-width: 1023.98px) {
+  .title[data-mobile-title-size="16"] {
+    font-size: var(--font-size-heading-sm);
+    line-height: var(--line-height-heading-sm);
+  }
+
+  .title[data-mobile-title-size="16"]:not(.titleSerif),
+  .title[data-mobile-title-size="16"]:not(.titleSerif) [lang] {
+    font-weight: var(--font-weight-emphasize);
+  }
 }
 
 .description {

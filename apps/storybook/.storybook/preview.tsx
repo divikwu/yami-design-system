@@ -68,7 +68,7 @@ const preview: Preview = {
       }
 
       return (
-        <div data-theme={context.globals.theme} data-locale={context.globals.locale} className="yami-story-root">
+        <div lang={context.globals.locale} data-theme={context.globals.theme} data-locale={context.globals.locale} className="yami-story-root">
           <Story />
         </div>
       );

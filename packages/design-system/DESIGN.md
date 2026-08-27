@@ -18,7 +18,7 @@ typography:
   brand: "GT Walsheim"
   cn_ios: "PingFang SC"
   cn_android: "Noto Sans SC"
-  weights: [400, 500] # 700 loaded via @font-face but exposed only as legacy --fw-bold
+  weights: [400, 500, 600] # normal 400; emphasis EN 500 / CN 600; serif 600 preserved
 status:
   success: "#27812B" # emerald-700 — WCAG-AA on white
   warning: "#9E4303" # amber-700  — WCAG-AA on white
@@ -148,7 +148,22 @@ In Light, YAMI's product surfaces sit on a pure white canvas (`#FFFFFF`) with ne
 | Token                     | Value | Use                                            |
 | ------------------------- | ----- | ---------------------------------------------- |
 | `--font-weight-normal`    | `400` | Body, captions, default reading.               |
-| `--font-weight-emphasize` | `500` | Headings, prices, short titles, button labels. |
+| `--font-weight-emphasize` | EN `500` / CN `600` | Headings, prices, short titles, button labels; resolved from inherited `lang`. |
+| `--font-weight-semibold` | `600` | Explicit serif heading weight; independent of language. |
+
+Use `--font-weight-emphasize` for all ordinary emphasis, including `strong` and
+`b`. The generated token CSS matches inherited `lang="zh"` (including `zh-CN`)
+and `lang="en"` (including `en-US`) on both desktop and mobile. Nested language
+changes reset the token. Callers must declare the content language; mixed-language
+emphasized elements need their own `lang` and must consume the emphasis token.
+Regular text stays 400. Shared sans section headings use 20px/400 by default on
+mobile; the 16px option uses the language-aware emphasis weight. Explicit serif
+titles retain their existing weight.
+
+GT Walsheim Medium covers CSS weights 500–600 so Latin letters and numerals in a
+Chinese emphasis run still render the approved Medium glyphs. A separately tagged
+English run computes to 500; Chinese computes to 600. Do not use 700 for ordinary
+emphasis, or replace the literal serif token with the language-aware token.
 
 ### Type Scale (mobile baseline → desktop-lg ≥ 1440px overrides)
 
@@ -348,7 +363,7 @@ YAMI's current inventory is generated in [`generated/catalog.json`](./generated/
 | **Sizes**      | `sm` (32) · `md` (40) · `lg` (48)                                                                |
 | **States**     | default · hover · active · disabled · loading · focus-visible                                    |
 | **Radius**     | `form=full` → `--radius-component-default` (8px) · `form=inline` → `--radius-button-primary` (pill) · `form=icon` keeps hierarchy-specific radius |
-| **Typography** | `--font-family-ios` + weight 500; sm/md `body-md`, lg `body-xl`; desktop (≥1024px) text-bearing lg uses `--font-size-button-lg-desktop` (18px), retaining 20px line-height. |
+| **Typography** | `--font-family-ios` + `--font-weight-emphasize` (EN 500 / CN 600); sm/md `body-md`, lg `body-xl`; desktop (≥1024px) text-bearing lg uses `--font-size-button-lg-desktop` (18px), retaining 20px line-height. |
 | **Tap target** | All sizes pad to ≥ 44pt internal hit area (rule `tap-target`)                                    |
 | **Rate limit** | **`emphasis` = 1 per screen.** No exceptions. (rule `emphasis-limit`)                            |
 | **Disabled**   | `--button-disabled` bg + `--text-disabled` fg. **Never `opacity`.** (rule `no-opacity-disabled`) |

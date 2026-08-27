@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { userEvent } from "storybook/test";
+import { expect, userEvent } from "storybook/test";
 
+import addIcon from "../../../design-system/assets/icons/system/add.svg?inline";
+import minusIcon from "../../../design-system/assets/icons/system/minus.svg?inline";
 import { ProductDetailPage } from "./ProductDetailPage";
 import { createProductDetailPageFixture } from "./fixtures";
 
@@ -27,6 +29,19 @@ function verifyWriteReviewIcon(canvasElement: HTMLElement) {
     throw new Error(
       "PDP write-review action must lead with the decorative 16px post-drafts icon, centered with a 4px gap"
     );
+  }
+}
+
+function verifyOptionChipWeights(root: HTMLElement, selectedWeight: "500" | "600") {
+  const chips = root.querySelectorAll<HTMLElement>(
+    '[data-slot="product-detail-options"] [data-slot="filter-chip"]'
+  );
+  if (chips.length !== 8 || Array.from(chips).some((chip) =>
+    chip.getBoundingClientRect().height !== 40 ||
+    getComputedStyle(chip, "::before").height !== "44px" ||
+    getComputedStyle(chip).fontWeight !== (chip.getAttribute("aria-pressed") === "true" ? selectedWeight : "400")
+  )) {
+    throw new Error("PDP options must be 40px high with 44px hit areas; only selected options use language-aware emphasis");
   }
 }
 
@@ -72,6 +87,8 @@ async function verifyDetailDisclosures(
         const content = contents[index]!;
         return (
           trigger.getAttribute("aria-expanded") !== String(expanded) ||
+          getComputedStyle(trigger).fontSize !== "16px" ||
+          getComputedStyle(trigger).fontWeight !== "500" ||
           trigger.getAttribute("aria-controls") !== contents[index]?.id ||
           content.hidden !== !expanded ||
           modules[index]?.dataset.expanded !== String(expanded) ||
@@ -83,7 +100,8 @@ async function verifyDetailDisclosures(
           Math.round(arrows[index]!.getBoundingClientRect().width) !== 16 ||
           Math.round(arrows[index]!.getBoundingClientRect().height) !== 16 ||
           arrows[index]!.dataset.direction !== (expanded ? "up" : "down") ||
-          initialArrowMasks[index] === "none" ||
+          initialArrowMasks[index] !==
+            `url("${expanded ? minusIcon : addIcon}")` ||
           (expanded &&
             (getComputedStyle(content).paddingTop !==
               expectedContentSpacing.paddingTop ||
@@ -110,6 +128,10 @@ async function verifyDetailDisclosures(
     (arrow) => getComputedStyle(arrow).maskImage
   );
 
+  if (collapsedArrowMasks.some((mask) => mask !== `url("${addIcon}")`)) {
+    throw new Error("Collapsed PDP detail modules must use the system add icon");
+  }
+
   for (const [index, trigger] of triggers.entries()) {
     await userEvent.click(trigger);
     if (
@@ -123,8 +145,7 @@ async function verifyDetailDisclosures(
       getComputedStyle(contents[index]!).marginBottom !==
         expectedContentSpacing.marginBottom ||
       arrows[index]!.dataset.direction !== "up" ||
-      getComputedStyle(arrows[index]!).maskImage ===
-        collapsedArrowMasks[index] ||
+      getComputedStyle(arrows[index]!).maskImage !== `url("${minusIcon}")` ||
       triggers.some(
         (otherTrigger, otherIndex) =>
           otherIndex !== index &&
@@ -142,7 +163,8 @@ async function verifyDetailDisclosures(
     if (
       trigger.getAttribute("aria-expanded") !== "false" ||
       !contents[index]?.hidden ||
-      modules[index]?.dataset.expanded !== "false"
+      modules[index]?.dataset.expanded !== "false" ||
+      getComputedStyle(arrows[index]!).maskImage !== `url("${addIcon}")`
     ) {
       throw new Error(
         "PDP detail disclosure buttons must support keyboard collapse"
@@ -196,6 +218,86 @@ export const PDP: Story = {
   name: "PC",
 };
 
+async function verifySkuAvailability(canvasElement: HTMLElement) {
+  const chip = (value: string) => canvasElement.querySelector<HTMLButtonElement>(`[data-option-value="${value}"]`)!;
+  const selected = (value: string) => expect(chip(value)).toHaveAttribute("aria-pressed", "true");
+  const firming = chip("firming");
+  const soldOut = chip("3-packs");
+  await selected("hyaluronic");
+  await selected("10-sheets");
+  await expect(firming).toBeEnabled();
+  await expect(firming).toHaveAttribute("data-availability", "other-combination");
+  await expect(getComputedStyle(firming).borderTopStyle).toBe("dashed");
+  await expect(getComputedStyle(firming).borderTopColor).toMatch(/(?:0\.16|16%)/);
+  await expect(getComputedStyle(chip("5-sheets")).borderTopColor).toBe(getComputedStyle(firming).borderTopColor);
+  await expect(getComputedStyle(chip("hyaluronic")).borderTopColor).toBe("rgba(0, 0, 0, 0.87)");
+  await expect(getComputedStyle(soldOut).borderTopColor).toBe("rgba(0, 0, 0, 0.08)");
+  await expect(soldOut).toBeDisabled();
+  await expect(soldOut.querySelector('svg[aria-hidden="true"] line')).not.toBeNull();
+  await expect(getComputedStyle(soldOut).color).not.toBe(getComputedStyle(firming).color);
+  await expect(firming.getBoundingClientRect().height).toBe(40);
+  await expect(soldOut.getBoundingClientRect().height).toBe(40);
+  await userEvent.click(soldOut);
+  await selected("10-sheets");
+  await userEvent.click(firming);
+  await selected("firming");
+  await selected("5-sheets");
+  await expect(getComputedStyle(firming).borderTopStyle).toBe("solid");
+  await expect(chip("10-sheets")).toHaveAttribute("data-availability", "other-combination");
+  // Switching the second group must also choose a compatible first group.
+  await userEvent.click(chip("10-sheets"));
+  await selected("hyaluronic");
+  await selected("10-sheets");
+  // When the current packaging is compatible, keep it unchanged.
+  await userEvent.click(chip("5-sheets"));
+  await expect(firming).toHaveAttribute("data-availability", "available");
+  await userEvent.click(firming);
+  await selected("5-sheets");
+  await expect(canvasElement.querySelector('[data-pdp-add-to-cart]')).not.toHaveAttribute("aria-disabled", "true");
+}
+
+export const SkuAvailability: Story = {
+  name: "SKU availability",
+  globals: { locale: "en", viewport: { value: "yamiDesktop", isRotated: false } },
+  play: async ({ canvasElement }) => verifySkuAvailability(canvasElement),
+};
+
+export const SkuAvailabilityMobile: Story = {
+  ...SkuAvailability,
+  name: "SKU availability / Mobile",
+  globals: { locale: "zh", viewport: { value: "yamiMobile", isRotated: false } },
+};
+
+export const SoldOutOption: Story = {
+  name: "SKU availability / All firming sizes sold out",
+  render: (_args, { globals }) => {
+    const fixture = createProductDetailPageFixture(globals.locale === "zh" ? "zh" : "en");
+    return <ProductDetailPage {...fixture} skus={fixture.skus!.map((sku) => ({
+      ...sku, available: sku.available && sku.options["mask-type"] !== "firming",
+    }))} />;
+  },
+  play: async ({ canvasElement }) => {
+    const firming = canvasElement.querySelector<HTMLButtonElement>('[data-option-value="firming"]')!;
+    await expect(firming).toBeDisabled();
+    await expect(firming).toHaveAttribute("data-availability", "sold-out");
+    await expect(firming.querySelector("svg line")).not.toBeNull();
+    await userEvent.click(firming);
+    await expect(canvasElement.querySelector('[data-option-value="hyaluronic"]')).toHaveAttribute("aria-pressed", "true");
+    await expect(canvasElement.querySelector('[data-pdp-add-to-cart]')).not.toHaveAttribute("aria-disabled", "true");
+  },
+};
+
+export const SoldOutProduct: Story = {
+  name: "SKU availability / Product sold out",
+  render: (_args, { globals }) => <ProductDetailPage {...createProductDetailPageFixture(globals.locale === "zh" ? "zh" : "en")} skus={[]} />,
+  play: async ({ canvasElement }) => {
+    for (const chip of canvasElement.querySelectorAll('[data-option-value]')) {
+      await expect(chip).toBeDisabled();
+    }
+    await expect(canvasElement.querySelector('[data-pdp-add-to-cart]')).toHaveAttribute("aria-disabled", "true");
+  },
+};
+
 export const DesktopRegression: Story = {
   name: "Desktop regression",
   tags: ["!dev", "!autodocs"],
@@ -205,6 +307,7 @@ export const DesktopRegression: Story = {
   },
   play: async ({ canvasElement, args }) => {
     verifyWriteReviewIcon(canvasElement);
+    verifyOptionChipWeights(canvasElement, "500");
     if (
       canvasElement.querySelector('[data-slot="product-detail-sales-volume"]')
         ?.textContent?.trim() !== "400+ sold this week"
@@ -317,7 +420,9 @@ export const DesktopRegression: Story = {
       '[data-slot="product-detail-purchase-fulfillment"]'
     );
     const purchaseSecondarySections =
-      purchaseSecondary?.querySelectorAll<HTMLElement>(":scope > div");
+      purchaseSecondary?.querySelectorAll<HTMLElement>(
+        ':scope > [data-slot="product-detail-purchase-fulfillment"], :scope > [data-slot="product-detail-purchase-metadata"] > div'
+      );
     const purchaseFulfillmentSections =
       purchaseFulfillment?.querySelectorAll<HTMLElement>(":scope > div");
     const sellerShippingSection = canvasElement.querySelector<HTMLElement>(
@@ -388,9 +493,9 @@ export const DesktopRegression: Story = {
       '[data-slot="product-detail-region-icon"]'
     );
     const purchaseTags = () =>
-      canvasElement.querySelectorAll(
+      Array.from(canvasElement.querySelectorAll(
         '#product-purchase-tags [data-slot="tag"]'
-      );
+      )).filter((tag) => getComputedStyle(tag.parentElement!).display !== "none");
     const overview = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-detail-overview"]'
     );
@@ -946,7 +1051,7 @@ export const DesktopRegression: Story = {
         (arrow) => getComputedStyle(arrow).display !== "none"
       ) ||
       !maskTypeOption ||
-      Math.round(maskTypeOption.getBoundingClientRect().height) !== 44 ||
+      Math.round(maskTypeOption.getBoundingClientRect().height) !== 40 ||
       getComputedStyle(maskTypeOption).borderRadius !== "8px" ||
       getComputedStyle(purchasePanel).position !== "static" ||
       getComputedStyle(purchasePanel).alignSelf !== "stretch" ||
@@ -1057,6 +1162,10 @@ export const DesktopRegression: Story = {
       purchaseTags().length !== 5
     ) {
       throw new Error("PDP purchase tags must disclose the complete tag set");
+    }
+    await userEvent.click(purchaseTagToggle);
+    if (purchaseTags().length !== 3) {
+      throw new Error("Desktop PDP purchase tags must collapse back to three tags");
     }
     const initialFirstReviewer = reviews.querySelector(
       '[data-slot="product-review-card"] strong'
@@ -1239,6 +1348,32 @@ export const ChineseRegression: Story = {
       );
     }
 
+    const chineseHeadings = canvasElement.querySelectorAll<HTMLElement>(
+      '[data-slot="product-detail-seller-label"], [data-pdp-module="recommendations"] [data-slot="product-list-title"], [data-slot="product-review-section-title"], [data-pdp-module="recently-viewed"] [data-slot="product-list-title"], [data-slot="product-detail-disclosure-trigger"]'
+    );
+    const englishBrandName = canvasElement.querySelector<HTMLElement>(
+      '[data-pdp-module="brand-products"] [data-slot="product-list-title"] > span'
+    );
+    const chineseSelections = canvasElement.querySelectorAll<HTMLElement>(
+      '[data-slot="product-detail-options"] strong'
+    );
+    verifyOptionChipWeights(canvasElement, "600");
+    if (
+      chineseSelections.length !== 2 ||
+      Array.from(chineseSelections).some((selection) => getComputedStyle(selection).fontWeight !== "600") ||
+      chineseHeadings.length !== 7 ||
+      Array.from(chineseHeadings).some((heading) =>
+        getComputedStyle(heading).fontSize !== "16px" ||
+        getComputedStyle(heading).fontWeight !== "600"
+      ) ||
+      !englishBrandName ||
+      englishBrandName.lang !== "en" ||
+      getComputedStyle(englishBrandName).fontSize !== "16px" ||
+      getComputedStyle(englishBrandName).fontWeight !== "500"
+    ) {
+      throw new Error("Mobile PDP headings must use 600 for Chinese and 500 for the English brand name");
+    }
+
     const deliveryEstimate = canvasElement.querySelector<HTMLParagraphElement>(
       '[data-slot="product-detail-shipping"] p'
     );
@@ -1273,6 +1408,7 @@ export const MobileRegression: Story = {
   },
   play: async ({ canvasElement }) => {
     verifyWriteReviewIcon(canvasElement);
+    verifyOptionChipWeights(canvasElement, "500");
     const viewportWidth = canvasElement.ownerDocument.defaultView?.innerWidth;
     if (!viewportWidth) {
       throw new Error("Mobile PDP viewport width must be available");
@@ -1405,6 +1541,12 @@ export const MobileRegression: Story = {
     const mobileGuaranteeItems = purchaseFulfillment?.querySelectorAll<HTMLElement>(
       '[data-slot="product-detail-guarantees"] li'
     );
+    const purchaseMetadata = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-detail-purchase-metadata"]'
+    );
+    const purchaseMetadataDivider = purchaseMetadata?.querySelector<HTMLElement>(
+      ':scope > [data-slot="divider"]'
+    );
     const purchaseTagsBlock = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-detail-tags-block"]'
     );
@@ -1457,6 +1599,33 @@ export const MobileRegression: Story = {
       row: module?.querySelector<HTMLElement>(`[data-slot="${slot}-heading"]`),
       title: module?.querySelector<HTMLElement>(`[data-slot="${slot}-title"]`),
     }));
+    const brandHeading = brandProducts?.querySelector<HTMLElement>(
+      '[data-slot="product-list-heading"]'
+    );
+    const brandLogo = brandProducts?.querySelector<HTMLImageElement>(
+      '[data-slot="product-detail-brand-logo"]'
+    );
+    const brandActions = brandProducts?.querySelector<HTMLElement>(
+      '[data-slot="product-list-actions"]'
+    );
+    if (
+      !brandHeading ||
+      !brandLogo ||
+      !brandActions ||
+      getComputedStyle(brandActions).display !== "none" ||
+      brandLogo.getBoundingClientRect().width !== 96 ||
+      brandLogo.getBoundingClientRect().height !== 48 ||
+      getComputedStyle(brandLogo).borderRadius !== "4px" ||
+      Math.abs(
+        brandHeading.getBoundingClientRect().right -
+          brandLogo.getBoundingClientRect().right -
+          parseFloat(getComputedStyle(brandHeading).paddingRight)
+      ) > 1
+    ) {
+      throw new Error(
+        "Mobile PDP brand header must hide its actions and align the 96x48 logo with a 4px radius to the right content edge"
+      );
+    }
     const utilityRow = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-detail-utility-row"]'
     );
@@ -1524,7 +1693,7 @@ export const MobileRegression: Story = {
       Math.abs(gallery.getBoundingClientRect().width - viewportWidth) > 1 ||
       Math.abs(galleryStage.getBoundingClientRect().width - viewportWidth) > 1 ||
       Math.abs(
-        galleryStage.getBoundingClientRect().width -
+        (viewportWidth > 440 ? Math.min(galleryStage.getBoundingClientRect().width - 48, 440) : galleryStage.getBoundingClientRect().width) -
           galleryStage.getBoundingClientRect().height
       ) > 1 ||
       getComputedStyle(galleryThumbnails).display !== "none" ||
@@ -1613,7 +1782,7 @@ export const MobileRegression: Story = {
           ) > 1
       ) ||
       !mobileMaskTypeOption ||
-      Math.round(mobileMaskTypeOption.getBoundingClientRect().height) !== 32 ||
+      Math.round(mobileMaskTypeOption.getBoundingClientRect().height) !== 40 ||
       mobileOptionChips.length !== 8 ||
       Array.from(mobileOptionChips).some(
         (chip) =>
@@ -1621,8 +1790,7 @@ export const MobileRegression: Story = {
           getComputedStyle(chip).paddingRight !== "8px"
       ) ||
       mobileMaskTypeHitArea?.position !== "absolute" ||
-      mobileMaskTypeHitArea.top !== "-6px" ||
-      mobileMaskTypeHitArea.bottom !== "-6px" ||
+      mobileMaskTypeHitArea.height !== "44px" ||
       !purchasePanel ||
       !purchaseSticky ||
       !purchaseCheckout ||
@@ -1658,7 +1826,7 @@ export const MobileRegression: Story = {
       getComputedStyle(purchaseSeller).alignItems !== "center" ||
       getComputedStyle(purchaseSellerLabel).flexGrow !== "1" ||
       getComputedStyle(purchaseSellerLabel).minWidth !== "0px" ||
-      getComputedStyle(purchaseSellerLabel).fontSize !== "14px" ||
+      getComputedStyle(purchaseSellerLabel).fontSize !== "16px" ||
       getComputedStyle(purchaseSellerLabel).fontWeight !== "500" ||
       getComputedStyle(purchaseSellerLabel).color !== "rgba(0, 0, 0, 0.87)" ||
       Math.abs(
@@ -1676,6 +1844,8 @@ export const MobileRegression: Story = {
         .map((item) => item.textContent?.trim())
         .join("|") !==
         "Free shipping over $49|Ships from the United States|Easy returns" ||
+      !purchaseMetadata ||
+      !purchaseMetadataDivider ||
       !purchaseTagsBlock ||
       !purchaseRegion ||
       !purchaseRegionIcon ||
@@ -1697,21 +1867,30 @@ export const MobileRegression: Story = {
       getComputedStyle(purchaseSecondary).rowGap !== "8px" ||
       getComputedStyle(purchaseFulfillment).backgroundColor !==
         "rgb(255, 255, 255)" ||
-      getComputedStyle(purchaseTagsBlock).backgroundColor !==
+      getComputedStyle(purchaseMetadata).backgroundColor !==
         "rgb(255, 255, 255)" ||
+      purchaseTagsBlock.parentElement !== purchaseMetadata ||
+      purchaseRegion.parentElement !== purchaseMetadata ||
+      purchaseMetadataDivider.getBoundingClientRect().height !== 1 ||
+      getComputedStyle(purchaseMetadataDivider).backgroundColor !==
+        "rgba(0, 0, 0, 0.08)" ||
+      getComputedStyle(purchaseMetadataDivider).marginLeft !== "12px" ||
+      getComputedStyle(purchaseMetadataDivider).marginRight !== "12px" ||
+      getComputedStyle(purchaseTagsBlock).backgroundColor !==
+        "rgba(0, 0, 0, 0)" ||
       getComputedStyle(purchaseTagsBlock).borderTopWidth !== "0px" ||
       getComputedStyle(purchaseRegion).backgroundColor !==
-        "rgb(255, 255, 255)" ||
+        "rgba(0, 0, 0, 0)" ||
       getComputedStyle(purchaseRegion).borderTopWidth !== "0px" ||
       Math.abs(
         purchaseTagsBlock.getBoundingClientRect().top -
-          purchaseFulfillment.getBoundingClientRect().bottom -
+          details.getBoundingClientRect().bottom -
           8
       ) > 1 ||
       Math.abs(
         purchaseRegion.getBoundingClientRect().top -
           purchaseTagsBlock.getBoundingClientRect().bottom -
-          8
+          1
       ) > 1 ||
       getComputedStyle(purchaseCheckout).position !== "fixed" ||
       getComputedStyle(purchaseCheckout).bottom !== "0px" ||
@@ -1725,6 +1904,7 @@ export const MobileRegression: Story = {
       !detailModules ||
       detailModules.length !== 3 ||
       getComputedStyle(details).rowGap !== "4px" ||
+      getComputedStyle(details).borderTopWidth !== "0px" ||
       getComputedStyle(details).paddingTop !== "4px" ||
       getComputedStyle(details).paddingBottom !== "4px" ||
       getComputedStyle(details).paddingLeft !== "12px" ||
@@ -1734,6 +1914,8 @@ export const MobileRegression: Story = {
           getComputedStyle(module).rowGap !== "normal" ||
           getComputedStyle(module).paddingTop !==
             (index === 0 ? "0px" : "4px") ||
+          getComputedStyle(module).borderTopWidth !==
+            (index === 0 ? "0px" : "1px") ||
           getComputedStyle(module).paddingBottom !== "0px"
       ) ||
       overview.parentElement !== leftContent ||
@@ -1749,7 +1931,7 @@ export const MobileRegression: Story = {
       Math.abs(
         mobileSummary.getBoundingClientRect().width - (viewportWidth - 16)
       ) > 1 ||
-      getComputedStyle(mobileSummary).padding !== "12px" ||
+      getComputedStyle(mobileSummary).padding !== "8px 12px 12px" ||
       getComputedStyle(mobileSummary).backgroundColor !== "rgb(255, 255, 255)" ||
       Math.round(mobileOptionsModule.getBoundingClientRect().left) !== 8 ||
       Math.abs(
@@ -1768,7 +1950,7 @@ export const MobileRegression: Story = {
       ) > 1 ||
       Math.abs(
         details.getBoundingClientRect().top -
-          purchaseRegion.getBoundingClientRect().bottom -
+          purchaseFulfillment.getBoundingClientRect().bottom -
           8
       ) > 1 ||
       !recommendations ||
@@ -1795,9 +1977,9 @@ export const MobileRegression: Story = {
         const titleStyle = getComputedStyle(moduleTitle);
         return (
           getComputedStyle(row).paddingLeft !== "4px" ||
-          titleStyle.fontSize !== "20px" ||
-          titleStyle.fontWeight !== "400" ||
-          titleStyle.lineHeight !== "28px"
+          titleStyle.fontSize !== "16px" ||
+          titleStyle.fontWeight !== "500" ||
+          titleStyle.lineHeight !== "20px"
         );
       }) ||
       !utilityRow ||
@@ -1808,6 +1990,7 @@ export const MobileRegression: Story = {
       shareGroup.parentElement !== utilityRow ||
       !mobileSummaryActions ||
       getComputedStyle(mobileSummaryActions).display !== "flex" ||
+      getComputedStyle(mobileSummaryActions).columnGap !== "8px" ||
       mobileSummaryButtons?.length !== 2 ||
       !purchaseFavorite ||
       !purchaseActions ||
@@ -1820,6 +2003,9 @@ export const MobileRegression: Story = {
       !rating ||
       !ranking ||
       !price ||
+      getComputedStyle(price).paddingTop !== "4px" ||
+      getComputedStyle(price).paddingBottom !== "4px" ||
+      getComputedStyle(price).marginTop !== "4px" ||
       rating.getBoundingClientRect().top >= ranking.getBoundingClientRect().top ||
       ranking.getBoundingClientRect().top >= price.getBoundingClientRect().top ||
       purchasePanelShareButtons?.length !== 0 ||
@@ -1827,6 +2013,8 @@ export const MobileRegression: Story = {
       getComputedStyle(brandIntro).paddingRight !== "4px" ||
       getComputedStyle(brandIntro).marginBottom !== "8px" ||
       getComputedStyle(brandIntro).rowGap !== "4px" ||
+      getComputedStyle(brandIntro.querySelector("h3")!).display !== "none" ||
+      getComputedStyle(brandIntro.querySelector("p")!).display === "none" ||
       brandIntro.getBoundingClientRect().top >=
         brandItems.getBoundingClientRect().top ||
       getComputedStyle(reviewGrid).gridAutoFlow !== "column" ||
@@ -1845,13 +2033,42 @@ export const MobileRegression: Story = {
       );
     }
 
+    const mobileTags = purchaseTagsBlock.querySelector("ul");
+    const mobileTagsToggle = purchaseTagsBlock.querySelector("button");
+    if (
+      !mobileTags ||
+      !mobileTagsToggle ||
+      getComputedStyle(mobileTags).display !== "flex" ||
+      getComputedStyle(mobileTags).flexWrap !== "wrap" ||
+      mobileTags.children.length !== 5 ||
+      Array.from(mobileTags.children).some((tag) => getComputedStyle(tag).display === "none") ||
+      getComputedStyle(mobileTagsToggle).display !== "none"
+    ) {
+      throw new Error("Mobile PDP must show all purchase tags in a wrapping row without a disclosure button");
+    }
+
+    const mobileQuantity = canvasElement.querySelector("output");
+    if (
+      !mobileQuantity ||
+      mobileQuantity.getBoundingClientRect().width !== 48 ||
+      [recommendations, brandProducts, recentlyViewed].some((module) => {
+        const container = module.querySelector<HTMLElement>(
+          '[data-slot="product-list-container"]'
+        );
+        return !container || getComputedStyle(container).rowGap !== "8px";
+      })
+    ) {
+      throw new Error(
+        "Mobile PDP product lists must use 8px row gaps and the quantity value must occupy 48px"
+      );
+    }
+
     const mobileCardSequence = [
       mobileSummary,
       mobileOptionsModule,
       purchaseFulfillment,
-      purchaseTagsBlock,
-      purchaseRegion,
       details,
+      purchaseMetadata,
       recommendations,
       reviewContainer,
       brandProducts,
@@ -1893,6 +2110,7 @@ export const MobileRegression: Story = {
     ).find((option) => option.textContent?.trim() === "Cica");
     if (!cicaOption) throw new Error("Cica product option did not render");
     await userEvent.click(cicaOption);
+    verifyOptionChipWeights(canvasElement, "500");
     if (mobileOptionGroupSelections[0]?.textContent?.trim() !== "Cica") {
       throw new Error("Mobile option heading must reflect the selected value");
     }

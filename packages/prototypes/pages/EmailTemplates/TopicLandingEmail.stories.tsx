@@ -331,7 +331,7 @@ export const BrandExample: Story = {
       appDownload.querySelector("h2")?.textContent?.trim() !== expectedAppHeading ||
       appDownload.querySelector("p")?.textContent?.replace(/\s+/g, "").trim() !==
         expectedAppDescription.replace(/\s+/g, "") ||
-      getComputedStyle(appDownload.querySelector("h2")!).fontWeight !== "500" ||
+      getComputedStyle(appDownload.querySelector("h2")!).fontWeight !== (isChineseEmail ? "600" : "500") ||
       getComputedStyle(appDownload.querySelector("p")!).fontWeight !== "400" ||
       appButtons.length !== 2 ||
       !firstAppButton ||

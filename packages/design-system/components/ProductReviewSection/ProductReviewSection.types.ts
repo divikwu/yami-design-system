@@ -50,6 +50,7 @@ export interface ProductReviewSectionCopy {
   all: ReactNode;
   purchased: ReactNode;
   photos: ReactNode;
+  reviewPhotos?: ReactNode;
   sortBy: string;
   viewMore: ReactNode;
   verifiedPurchase: ReactNode;
@@ -65,6 +66,8 @@ export interface ProductReviewSectionCopy {
 export interface ProductReviewSectionProps
   extends Omit<HTMLAttributes<HTMLElement>, "children" | "title"> {
   title: ReactNode;
+  /** Below 1024px: 20px normal (default); 16px Chinese 600 / English 500 via lang. */
+  mobileTitleSize?: 16 | 20;
   reviewCount: number;
   averageRating: number;
   ratingDistribution: readonly ProductReviewRatingDistribution[];

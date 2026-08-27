@@ -398,6 +398,8 @@ Generated from DTCG sources. Contextual values are listed separately.
 | `font-family.serif` | root | fontFamily | `'Source Serif 4', 'Source Han Serif SC', serif` |
 | `font-family.win` | root | fontFamily | `'GT Walsheim', 'Noto Sans SC', sans-serif` |
 | `font-weight.emphasize` | root | fontWeight | `500` |
+| `font-weight.emphasize` | locale-en | fontWeight | `500` |
+| `font-weight.emphasize` | locale-zh | fontWeight | `600` |
 | `font-weight.normal` | root | fontWeight | `400` |
 | `font-weight.semibold` | root | fontWeight | `600` |
 | `heading-2xl.font-size` | root | dimension | `24px` |

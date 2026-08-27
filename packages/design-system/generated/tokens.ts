@@ -1347,9 +1347,9 @@ export const tokens = {
     "$type": "fontWeight",
     "$value": {
       "EN": "Medium",
-      "CN": "Medium"
+      "CN": "SemiBold"
     },
-    "$description": "强调字重，适用于重点信息、价格与短标题。不用于长正文，也不替代标题层级。"
+    "$description": "常规强调字重：英文 Medium 500，中文 SemiBold 600，按 lang 生效，移动端和桌面端一致。适用于重点信息、价格、按钮与短标题，不用于普通正文。"
   },
   "font-weight.normal": {
     "$type": "fontWeight",

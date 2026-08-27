@@ -50,6 +50,47 @@
   text-align: center;
 }
 
+.summaryContent[data-has-photos="true"] {
+  max-width: none;
+  grid-template-columns: minmax(180px, 220px) minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-300);
+}
+
+.summaryPhotos {
+  min-width: 0;
+}
+
+.summaryPhotos h3 {
+  margin: 0 0 var(--space-150);
+  font-size: var(--font-size-body-md);
+  font-weight: var(--font-weight-emphasize);
+  line-height: var(--line-height-body-md);
+}
+
+.summaryPhotoList {
+  display: flex;
+  gap: var(--space-100);
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: inline proximity;
+}
+
+.summaryPhotoList:focus-visible {
+  outline: var(--stroke-thick) solid var(--border-focus);
+  outline-offset: var(--space-025);
+}
+
+.summaryPhotoFrame {
+  display: block;
+  width: calc(var(--space-600) * 2);
+  height: calc(var(--space-600) * 2);
+  flex: 0 0 auto;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: var(--surface-secondary);
+  scroll-snap-align: start;
+}
+
 .scoreSummary {
   display: flex;
   align-items: center;
@@ -176,11 +217,24 @@
 }
 
 .referenceNotice {
-  display: none;
+  margin: 0 0 var(--space-200);
+  color: var(--text-secondary);
+  font-size: var(--font-size-caption-md);
+  line-height: var(--line-height-caption-md);
+  text-wrap: pretty;
 }
 
 .filters {
   flex: 1 1 auto;
+}
+
+.filterDivider {
+  width: var(--stroke-default);
+  height: var(--space-200);
+  flex: 0 0 var(--stroke-default);
+  align-self: center;
+  margin-inline: var(--space-050);
+  background-color: var(--border-default);
 }
 
 .filters [data-slot="filter-chip"] {
@@ -209,7 +263,6 @@
   position: relative;
   display: flex;
   min-width: 0;
-  min-height: 260px;
   box-sizing: border-box;
   flex-direction: column;
   gap: var(--space-100);
@@ -299,7 +352,7 @@
   inset-inline-end: var(--space-0);
   padding: var(--space-050) var(--space-100);
   border-radius: 0 0 0 var(--radius-component-default);
-  background: var(--fill-secondary);
+  background: var(--color-black-100);
   color: var(--text-secondary);
   font-size: var(--font-size-caption-md);
   line-height: var(--line-height-caption-md);
@@ -319,6 +372,22 @@
   font-size: var(--font-size-caption-md);
   line-height: var(--line-height-caption-md);
   text-wrap: pretty;
+}
+
+.reviewContent {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: var(--space-100);
+}
+
+.reviewText {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space-100);
+  overflow-wrap: anywhere;
 }
 
 .reviewTitle {
@@ -346,17 +415,53 @@
 
 .photos {
   display: flex;
-  flex-wrap: wrap;
+  min-width: 0;
+  flex: 0 0 120px;
   gap: var(--space-050);
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+
+.photos:focus-visible {
+  outline: var(--stroke-thick) solid var(--border-focus);
+  outline-offset: var(--space-025);
+}
+
+.photoFrame {
+  display: block;
+  width: 120px;
+  height: 120px;
+  flex: 0 0 120px;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: var(--surface-secondary);
 }
 
 .photo {
   display: block;
-  width: 72px;
-  height: 72px;
+  width: 100%;
+  height: 100%;
   border-radius: var(--radius-sm);
-  background: var(--surface-secondary);
   object-fit: cover;
+  transition: transform 150ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  .summaryPhotoFrame:hover .photo,
+  .photoFrame:hover .photo {
+    transform: scale(1.12);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .photo {
+    transition: none;
+  }
+
+  .summaryPhotoFrame:hover .photo,
+  .photoFrame:hover .photo {
+    transform: none;
+  }
 }
 
 .cardFooter {
@@ -452,6 +557,7 @@
 .viewMoreButton,
 .viewMoreButton:not([aria-disabled="true"]):hover,
 .viewMoreButton:not([aria-disabled="true"]):active {
+  width: auto;
   background-color: transparent;
   text-decoration: underline;
   text-underline-offset: var(--space-025);
@@ -487,8 +593,8 @@
     background: var(--surface-primary);
   }
 
-  .heading {
-    margin-bottom: var(--space-025);
+  .container .heading {
+    margin-bottom: var(--space-150);
   }
 
   .headingCount {
@@ -506,11 +612,17 @@
     gap: 0;
   }
 
+  .summaryContent[data-has-photos="true"] {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-200);
+  }
+
   .score {
     align-items: center;
     flex-direction: row;
-    gap: var(--space-200);
+    gap: var(--space-100);
     justify-content: space-between;
+    padding-inline: var(--space-050);
     text-align: start;
   }
 
@@ -518,13 +630,14 @@
     display: grid;
     min-width: 0;
     grid-template-columns: auto minmax(0, 1fr);
-    gap: var(--space-050) var(--space-100);
+    gap: 0 var(--space-050);
     align-items: center;
   }
 
   .average {
-    font-size: var(--font-size-display-md);
-    line-height: var(--line-height-display-md);
+    font-size: var(--font-size-display-sm);
+    font-weight: var(--font-weight-normal);
+    line-height: var(--line-height-display-sm);
   }
 
   .score .star {
@@ -535,12 +648,31 @@
 
   .reviewCount {
     grid-column: 1 / -1;
+    font-size: var(--font-size-caption-md);
+    line-height: var(--line-height-caption-md);
   }
 
   .writeReview {
     width: auto;
-    min-width: calc(var(--space-600) * 3);
+    height: var(--space-400);
+    min-width: var(--space-600);
     margin-top: 0;
+    padding-inline: var(--space-150);
+    font-weight: var(--font-weight-normal);
+  }
+
+  .summaryPhotos h3 {
+    display: none;
+  }
+
+  .summaryPhotoFrame {
+    width: var(--space-1000);
+    height: var(--space-1000);
+  }
+
+  .summaryPhotoFrame,
+  .summaryPhotoFrame .photo {
+    border-radius: var(--radius-component-default);
   }
 
   .distribution {
@@ -550,7 +682,7 @@
   .referenceNotice {
     display: block;
     margin: var(--space-100) 0;
-    padding: var(--space-150);
+    padding: var(--space-100) var(--space-150);
     border-radius: var(--radius-component-default);
     background: var(--surface-secondary);
     color: var(--text-secondary);
@@ -582,10 +714,21 @@
   .card {
     height: calc(var(--space-500) * 5);
     min-height: 0;
+    padding: var(--space-150);
     overflow: hidden;
     border: 0;
     background: var(--surface-secondary);
     scroll-snap-align: start;
+  }
+
+  .photos,
+  .photoFrame {
+    flex-basis: 72px;
+  }
+
+  .photoFrame {
+    width: 72px;
+    height: 72px;
   }
 
   .ratingRow {
@@ -611,8 +754,6 @@
   .viewMoreButton:not([aria-disabled="true"]):hover,
   .viewMoreButton:not([aria-disabled="true"]):active {
     width: 100%;
-    min-height: var(--space-600);
-    border-radius: var(--radius-component-default);
     background-color: var(--surface-secondary);
     text-decoration: none;
   }

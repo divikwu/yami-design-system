@@ -532,3 +532,9 @@
     --line-height-strike-sm: 18px;
   }
 }
+:root:lang(en), :where(:lang(en)) {
+  --font-weight-emphasize: 500;
+}
+:root:lang(zh), :where(:lang(zh)) {
+  --font-weight-emphasize: 600;
+}

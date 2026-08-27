@@ -12,6 +12,12 @@ Three files, two roles:
 
 Font-family and font-weight don't vary across breakpoints (verified: 20/20 scales have identical values in Figma's mobile/tablet/desktop-lg modes). They come to the runtime via `primitives/typography.tokens.json` + `styles/base.css` class rules, which is why mode files only need the truly-varying fields.
 
+Ordinary emphasis does vary by language: the primitive's EN value is Medium 500
+and CN is SemiBold 600. `tooling/tokens/build.mjs` emits `locale-en` and `locale-zh`
+contexts for differing language weights, including CSS selectors that follow
+inherited `lang` and reset on nested language switches. Regular and explicit serif
+weights stay language-independent. Never hard-code per-page language overrides.
+
 But `sync-tokens-ci` (the Figma ↔ code drift checker) still needs to know the authored intent for every scale at every mode. Putting cross-mode invariants in `_base.tokens.json` is the canonical answer to "what is `display-xl.font-weight` in Figma's typography-mobile collection?" without repeating it 20× per mode file.
 
 So: `_base.tokens.json` is **authored contract**, not **build input**. Style Dictionary does not read it. Only `sync-tokens-ci` does (Phase D+, not yet implemented).

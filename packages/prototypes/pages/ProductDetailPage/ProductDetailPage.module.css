@@ -289,14 +289,45 @@
 }
 
 .optionChips [data-slot="filter-chip"] {
-  height: 44px;
+  position: relative;
+  height: var(--space-500);
   border-radius: var(--radius-component-default);
 }
 
+.optionChips [data-slot="filter-chip"]::before {
+  position: absolute;
+  top: 50%;
+  inset-inline: 0;
+  height: calc(var(--space-500) + var(--space-050));
+  transform: translateY(-50%);
+  content: "";
+}
+
+.optionChips [data-slot="filter-chip"]:not(:disabled)[aria-pressed="false"] {
+  border-color: rgb(from var(--border-default) r g b / 16%);
+}
+
 .optionChips [data-slot="filter-chip"][aria-pressed="true"] {
+  font-weight: var(--font-weight-emphasize);
   border-color: var(--border-focus);
   border-width: var(--stroke-thick);
   box-shadow: none;
+}
+
+.optionChips [data-availability="other-combination"] {
+  border-style: dashed;
+}
+
+.optionUnavailableSlash {
+  position: absolute;
+  inset-block: 0;
+  left: 50%;
+  width: var(--space-500);
+  height: 100%;
+  transform: translateX(-50%);
+  stroke: var(--border-default);
+  stroke-width: var(--stroke-thin);
+  pointer-events: none;
 }
 
 .bestBefore {
@@ -349,6 +380,14 @@
   border-radius: var(--radius-component-default);
 }
 
+.purchaseMetadataGroup {
+  display: contents;
+}
+
+.purchaseMetadataGroup > .purchaseMetadataDivider {
+  display: none;
+}
+
 .purchaseFulfillmentGroup > div,
 .purchaseTagsBlock,
 .purchaseRegionBlock {
@@ -365,7 +404,8 @@
   flex-direction: column;
 }
 
-.purchaseFulfillmentDivider {
+.purchaseFulfillmentDivider,
+.purchaseMetadataGroup > .purchaseMetadataDivider {
   width: auto;
   margin-inline: var(--space-150);
 }
@@ -591,6 +631,12 @@
   list-style: none;
 }
 
+@media (min-width: 1024px) {
+  .purchaseTags[data-expanded="false"] > li:nth-child(n + 4) {
+    display: none;
+  }
+}
+
 .purchaseTags [data-slot="tag"] {
   height: var(--space-400);
   color: var(--text-emphasis);
@@ -680,11 +726,11 @@
   height: var(--space-200);
   flex: 0 0 auto;
   background: currentColor;
-  mask: url("../../../design-system/assets/icons/action/arrow-down.svg") center / contain no-repeat;
+  mask: url("../../../design-system/assets/icons/system/add.svg") center / contain no-repeat;
 }
 
 .detailArrow[data-direction="up"] {
-  mask-image: url("../../../design-system/assets/icons/action/arrow-up.svg");
+  mask-image: url("../../../design-system/assets/icons/system/minus.svg");
 }
 
 .detailContent {
@@ -823,15 +869,39 @@
 }
 
 @media (max-width: 1023.98px) {
+  .recommendations :global([data-slot="product-list-container"]),
+  .brandProducts :global([data-slot="product-list-container"]),
+  .recentlyViewed :global([data-slot="product-list-container"]) {
+    row-gap: var(--space-100);
+  }
+
   .main :global([data-slot="product-list-heading"]),
   .main :global([data-slot="product-review-section-heading"]) {
     padding-inline-start: var(--space-050);
+  }
+
+  .brandProducts :global([data-slot="product-list-actions"]) {
+    display: none;
+  }
+
+  .brandLogo {
+    position: static;
+    width: calc(var(--space-600) * 2);
+    height: var(--space-600);
+    flex: 0 0 auto;
+    margin-inline-start: auto;
+    border-radius: var(--radius-sm);
+    transform: none;
   }
 
   .brandIntro {
     gap: var(--space-050);
     margin-block-end: var(--space-100);
     padding-inline: var(--space-050);
+  }
+
+  .brandIntro h3 {
+    display: none;
   }
 
   .main {
@@ -889,6 +959,7 @@
     gap: var(--space-050);
     margin-inline: auto;
     padding: var(--space-050) var(--space-150);
+    border-block-start: 0;
     border-radius: var(--radius-surface-default);
     background: var(--surface-primary);
   }
@@ -922,7 +993,7 @@
 
   .productSummary {
     gap: var(--space-050);
-    padding: var(--space-150);
+    padding: var(--space-100) var(--space-150) var(--space-150);
   }
 
   .productOptionsModule {
@@ -993,16 +1064,7 @@
   }
 
   .optionChips [data-slot="filter-chip"] {
-    position: relative;
-    height: var(--space-400);
     padding-inline: var(--space-100);
-  }
-
-  .optionChips [data-slot="filter-chip"]::before {
-    position: absolute;
-    inset-block: calc(var(--space-150) * -0.5);
-    inset-inline: 0;
-    content: "";
   }
 
   .brandRow {
@@ -1013,7 +1075,7 @@
   .mobileSummaryActions {
     display: flex;
     align-items: center;
-    gap: var(--space-050);
+    gap: var(--space-100);
     margin-left: auto;
   }
 
@@ -1031,14 +1093,13 @@
 
   .priceRow {
     order: 5;
+    margin-top: var(--space-050);
+    padding-block: var(--space-050);
   }
 
   .purchasePanel {
     position: static;
-    order: 1;
-    grid-area: purchase;
-    padding-inline: var(--space-100);
-    background: var(--background-secondary);
+    display: contents;
   }
 
   .sellerLogo {
@@ -1055,7 +1116,7 @@
     min-width: 0;
     flex: 1 1 auto;
     color: var(--text-primary);
-    font-size: var(--font-size-body-md);
+    font-size: var(--font-size-heading-sm);
     font-weight: var(--font-weight-emphasize);
   }
 
@@ -1078,16 +1139,45 @@
     background: transparent;
   }
 
+  /* Expose the two purchase cards to the mobile product stack so the details
+   * card can sit between fulfillment and tags/region without duplicating UI. */
+  .purchaseCard,
+  .purchaseCard > div,
+  .purchaseStickyGroup,
+  .purchaseSecondaryGroup {
+    display: contents;
+  }
+
   .purchaseFulfillmentGroup,
-  .purchaseTagsBlock,
-  .purchaseRegionBlock {
+  .purchaseMetadataGroup {
+    box-sizing: border-box;
+    width: calc(100% - var(--space-200));
+    min-width: 0;
+    margin-inline: auto;
     border-radius: var(--radius-surface-default);
     background: var(--surface-primary);
+  }
+
+  .purchaseFulfillmentGroup {
+    order: 1;
+  }
+
+  .purchaseMetadataGroup {
+    display: block;
+    order: 3;
+  }
+
+  .purchaseMetadataGroup > .purchaseMetadataDivider {
+    display: block;
   }
 
   .purchaseTagsBlock,
   .purchaseRegionBlock {
     border-block-start: 0;
+  }
+
+  .purchaseTagsBlock .textButton {
+    display: none;
   }
 
   .purchaseCheckoutGroup {
@@ -1107,10 +1197,6 @@
 
   .quantityRow > .purchaseLabel {
     display: none;
-  }
-
-  .stepper {
-    grid-template-columns: auto var(--space-400) auto;
   }
 
   .title {

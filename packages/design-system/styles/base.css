@@ -30,7 +30,13 @@
 
   --fw-normal: var(--font-weight-normal);
   --fw-emphasize: var(--font-weight-emphasize);
-  --fw-bold: 700;
+  --fw-bold: var(--font-weight-emphasize);
+}
+
+/* Resolve legacy aliases locally after inherited language changes. */
+:where(*) {
+  --fw-emphasize: var(--font-weight-emphasize);
+  --fw-bold: var(--font-weight-emphasize);
 }
 
 /* ============ SEMANTIC ELEMENT BASELINES ============ */
@@ -43,8 +49,14 @@
 html,
 body {
   font-family: var(--font-cn-ios);
+  font-weight: var(--font-weight-normal);
   color: var(--text-primary);
   background: var(--background-primary);
+}
+
+strong,
+b {
+  font-weight: var(--font-weight-emphasize);
 }
 
 h1,

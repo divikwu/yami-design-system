@@ -10,6 +10,8 @@ export type SectionHeadingProps = {
   description?: ReactNode;
   /** Shown below 1024px in place of `title`; omit to use one title at every width. */
   mobileTitle?: ReactNode;
+  /** Below 1024px: 20px normal; 16px Chinese 600 / English 500 via lang. Desktop unchanged. */
+  mobileTitleSize?: 16 | 20;
   /**
    * Renders the canonical view-all pair — a text link on desktop, a circular
    * chevron on mobile — so a section does not restate it. Omit for a section
@@ -44,6 +46,7 @@ export function SectionHeading({
   title,
   description,
   mobileTitle,
+  mobileTitleSize = 20,
   viewAllHref,
   viewAllLabel,
   actions,
@@ -74,6 +77,7 @@ export function SectionHeading({
             titleClassName,
           )}
           data-slot={slotName("title")}
+          data-mobile-title-size={mobileTitleSize}
         >
           {mobileTitle === undefined ? (
             title

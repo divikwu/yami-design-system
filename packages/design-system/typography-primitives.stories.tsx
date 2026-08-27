@@ -56,6 +56,7 @@ function valueLabel(value: Record<string, unknown>) {
 }
 
 function fontWeightValue(value: unknown) {
+  if (value === "SemiBold") return 600
   if (value === "Medium") return 500
   if (value === "Regular") return 400
   if (typeof value === "number") return value
@@ -119,16 +120,20 @@ function TypographyCard({
 function WeightPreview({ token }: { token: TypographyPrimitiveToken }) {
   return (
     <div style={{ display: "grid", gap: "var(--space-050, 4px)" }}>
+      {(["EN", "CN"] as const).map((language) => (
       <div
+        key={language}
+        lang={language === "EN" ? "en" : "zh"}
         style={{
           color: "var(--text-primary, var(--foreground, #222))",
           fontSize: 24,
-          fontWeight: fontWeightValue(token.value.EN),
+          fontWeight: fontWeightValue(token.value[language]),
           lineHeight: "30px",
         }}
       >
-        {PREVIEW_COPY}
+        {language === "EN" ? PREVIEW_COPY : "亚米精选，汇聚亚洲好物"}
       </div>
+      ))}
       <span style={tokenStoryStyles.caption}>EN {String(token.value.EN)} / CN {String(token.value.CN)}</span>
     </div>
   )
