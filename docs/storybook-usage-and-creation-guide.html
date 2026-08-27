@@ -394,7 +394,8 @@
         align-items: center;
       }
 
-      #guide-overview .summary-cell {
+      #guide-overview .summary-cell,
+      #creator-overview .summary-cell {
         grid-template-columns: minmax(160px, 0.35fr) minmax(0, 1fr);
       }
 
@@ -1020,8 +1021,7 @@
       .pathway-grid {
         display: grid;
         grid-template-columns: 1fr;
-        border-top: 1px solid var(--line-strong);
-        border-left: 1px solid var(--line-strong);
+        gap: 24px;
       }
 
       .pathway-card {
@@ -1030,8 +1030,7 @@
         min-height: 0;
         flex-direction: column;
         padding: 22px;
-        border-right: 1px solid var(--line-strong);
-        border-bottom: 1px solid var(--line-strong);
+        border: 1px solid var(--line-strong);
         background: var(--surface);
       }
 
@@ -1446,7 +1445,7 @@
 
       .architecture-branch {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: 1fr;
         gap: 8px;
       }
 
@@ -1738,7 +1737,7 @@
             <span class="meta-label">Document status</span>
             <strong>使用初稿</strong>
             <p>版本 0.1</p>
-            <p>最后核对 2026-08-26</p>
+            <p>最后核对 2026-08-27</p>
             <p>默认入口：使用指南</p>
           </aside>
 
@@ -1788,8 +1787,6 @@
               <option value="guide-page-building">05 · 从组件到页面</option>
               <option value="guide-scenarios">06 · 使用案例</option>
               <option value="guide-review">07 · 页面 Review</option>
-              <option value="guide-share">08 · 分享与协作</option>
-              <option value="guide-boundary">09 · 能力边界与练习</option>
             </select>
             <select class="section-picker" id="creator-section-picker" data-section-picker="creator" hidden>
               <option value="creator-overview">00 · 创作者知识库总览</option>
@@ -1825,8 +1822,6 @@
               <a href="?tab=guide#guide-page-building"><span>05</span><span>从组件到页面</span></a>
               <a href="?tab=guide#guide-scenarios"><span>06</span><span>使用案例</span></a>
               <a href="?tab=guide#guide-review"><span>07</span><span>页面 Review</span></a>
-              <a href="?tab=guide#guide-share"><span>08</span><span>分享与协作</span></a>
-              <a href="?tab=guide#guide-boundary"><span>09</span><span>能力边界与练习</span></a>
             </nav>
 
             <div class="content-main">
@@ -2119,50 +2114,6 @@
                 <div class="logic-note"><strong>Review 结果必须可复现</strong><p>记录具体 Story、语言、主题、屏幕尺寸、操作步骤和预期结果。不要只写“页面感觉不对”。</p></div>
               </section>
 
-              <section id="guide-share" data-section="guide">
-                <div class="section-head">
-                  <div><p class="kicker">08 · Share &amp; collaborate</p><h2>如何分享和协作</h2></div>
-                  <p class="section-summary">一个完整的反馈包应让接收者不用重新猜测页面、环境、状态和问题。</p>
-                </div>
-                <div class="prompt-card">
-                  <div class="prompt-head"><h3>Storybook Review 模板</h3><button class="copy-button" type="button" data-copy-target="share-template">复制模板</button></div>
-                  <pre id="share-template">Storybook 链接：
-页面或组件：
-语言：中文 / English
-主题：Light / Dark
-屏幕尺寸：
-当前状态：
-发现的问题：
-期望结果：
-参考截图：
-优先级：</pre>
-                </div>
-                <div class="table-wrap" style="margin-top: 24px">
-                  <table>
-                    <thead><tr><th>问题类型</th><th>主要负责人</th><th>协作角色</th></tr></thead>
-                    <tbody>
-                      <tr><td>内容与业务规则</td><td>产品/内容负责人</td><td>UX/UI、前端</td></tr>
-                      <tr><td>页面结构与体验</td><td>UX/UI</td><td>产品、前端</td></tr>
-                      <tr><td>图片与视觉表现</td><td>视觉设计师</td><td>UX/UI、内容</td></tr>
-                      <tr><td>公共组件能力</td><td>设计系统维护者</td><td>UX/UI、前端</td></tr>
-                      <tr><td>业务数据与生产接入</td><td>业务前端</td><td>产品、设计系统维护者</td></tr>
-                    </tbody>
-                  </table>
-                </div>
-              </section>
-
-              <section id="guide-boundary" data-section="guide">
-                <div class="section-head">
-                  <div><p class="kicker">09 · Boundary &amp; practice</p><h2>能力边界与首次练习</h2></div>
-                  <p class="section-summary">Storybook 是共同参考和验证入口，不是拖拽式页面编辑器，也不负责接入业务数据或发布生产页面。</p>
-                </div>
-                <div class="role-grid">
-                  <article class="boundary-card"><span class="status-tag dark">可以直接完成</span><h3>在 Storybook 中</h3><ul><li>浏览组件和页面</li><li>查看文档和 Controls</li><li>切换语言、主题和屏幕尺寸</li><li>操作组件与页面</li><li>分享精确链接并 Review</li></ul></article>
-                  <article class="boundary-card"><span class="status-tag">需要协作</span><h3>在 Storybook 之外</h3><ul><li>保存新的组件或页面组合</li><li>创建全新交互和公共能力</li><li>接入真实业务数据</li><li>合并代码与版本发布</li><li>正式生产上线</li></ul></article>
-                </div>
-                <div class="logic-note"><strong>30 分钟首次练习</strong><p>找到一个完整页面，切换中英文和三个屏幕尺寸，识别其中三个组件，记录一个可复现问题，并分享准确 Storybook 链接。</p></div>
-                <div class="inline-links"><a class="inline-link" href="?tab=creator#creator-overview" data-route-tab="creator">下一步：进入创作者知识库</a></div>
-              </section>
             </div>
           </div>
         </div>
@@ -2198,10 +2149,10 @@
                   <p class="section-summary">当你需要保存新的组件、页面组合、页面版本或公共规则时，使用本 Tab。目标不是教所有人写代码，而是让任务、边界、输入和验收足够清楚。</p>
                 </div>
                 <div class="summary-grid">
-                  <article class="summary-cell"><span class="status-tag">Extend</span><strong>扩展现有组件</strong><p>已有组件用途正确，但缺少一个稳定状态、尺寸或内容能力。</p></article>
-                  <article class="summary-cell"><span class="status-tag emphasis">Create</span><strong>新建组件</strong><p>多个页面都会复用、已有组件无法合理承担的新公共能力。</p></article>
-                  <article class="summary-cell"><span class="status-tag dark">Version</span><strong>新建页面版本</strong><p>页面类型不变，但内容、模块组合或布局方向需要独立 Review。</p></article>
-                  <article class="summary-cell"><span class="status-tag">Maintain</span><strong>维护规则与发布</strong><p>涉及 Token、动效、公共组件契约、生成文件或包版本。</p></article>
+                  <article class="summary-cell"><strong>扩展现有组件</strong><p>已有组件用途正确，但缺少一个稳定状态、尺寸或内容能力。</p></article>
+                  <article class="summary-cell"><strong>新建组件</strong><p>多个页面都会复用、已有组件无法合理承担的新公共能力。</p></article>
+                  <article class="summary-cell"><strong>新建页面版本</strong><p>页面类型不变，但内容、模块组合或布局方向需要独立 Review。</p></article>
+                  <article class="summary-cell"><strong>维护规则与发布</strong><p>涉及 Token、动效、公共组件契约、生成文件或包版本。</p></article>
                 </div>
                 <div class="logic-note"><strong>Codex 与 Kiro 的关系</strong><p>两者使用同一套 YAMI 规则、任务输入和验收标准。知识库只描述平台入口差异，不维护两套互相漂移的创建流程。</p></div>
               </section>
@@ -2218,9 +2169,8 @@
                     <div class="architecture-layer"><strong>@yami/prototypes</strong><span>使用公共组件组合页面、Fixture 与 Page Stories</span></div>
                     <div class="architecture-branch">
                       <div class="architecture-layer"><strong>Storybook</strong><span>查看、文档、Controls、交互和 a11y 验证</span></div>
-                      <div class="architecture-layer"><strong>Canvas</strong><span>方向导入、页面工作台和预览</span></div>
+                      <div class="architecture-layer"><strong>Canvas（探索中）</strong><span>方向导入、页面工作台和预览</span></div>
                     </div>
-                    <div class="architecture-layer"><strong>Business Frontend</strong><span>业务数据接入、工程集成、发布和生产维护</span></div>
                   </div>
                 </div>
                 <div class="boundary-note"><strong>外部 Agent，不是运行时模型</strong><p>Codex/Kiro 在仓库外部或 IDE 中生成和修改受规则约束的资产；Storybook 和 Canvas 不应被描述为在浏览器中秘密调用模型。</p></div>
@@ -2455,7 +2405,7 @@ git diff --check</pre>
                   <article class="faq-card"><h3>Codex/Kiro 改动太大</h3><p>缩小允许文件范围，明确“只改直接相关文件”，要求先诊断复用边界再实施。</p></article>
                 </div>
                 <div class="logic-note"><strong>发布边界</strong><p>未经明确授权，不自动提交、推送、合并或部署。需要发布时，单独确认改动范围、检查、版本和目标环境。</p></div>
-                <div class="inline-links"><a class="inline-link" href="?tab=guide#guide-share" data-route-tab="guide">返回 Review 分享模板</a><a class="inline-link" href="#top">回到文档顶部</a></div>
+                <div class="inline-links"><a class="inline-link" href="?tab=guide#guide-review" data-route-tab="guide">返回页面 Review 清单</a><a class="inline-link" href="#top">回到文档顶部</a></div>
               </section>
             </div>
           </div>
@@ -2463,7 +2413,7 @@ git diff --check</pre>
       </main>
 
       <footer class="footer-note" aria-label="文档信息">
-        <p><span>YAMI Storybook Guide &amp; Creator Knowledge</span><span>版本 0.1 · 最后核对 2026-08-26</span></p>
+        <p><span>YAMI Storybook Guide &amp; Creator Knowledge</span><span>版本 0.1 · 最后核对 2026-08-27</span></p>
       </footer>
     </div>
 
