@@ -37,21 +37,28 @@ test("native touch snaps images without blocking vertical scrolling", async () =
     expect(slides[1].getBoundingClientRect().left - slides[0].getBoundingClientRect().right).toBe(8);
     expect(getComputedStyle(slides[0]).borderRadius).toBe("8px");
     expect(slides[1].getBoundingClientRect().left).toBeLessThan(box.right);
+    // CDP uses top-page coordinates; Vitest scales its test iframe on CI.
     const swipe = async (xDistance: number, yDistance = 0) => {
       const rect = rail.getBoundingClientRect();
-      await session.send("Input.synthesizeScrollGesture", {
-        x: rect.left + rect.width / 2,
-        y: rect.top + rect.height / 2,
-        xDistance, yDistance, gestureSourceType: "touch", speed: 600,
-      });
+      const frame = window.frameElement!.getBoundingClientRect();
+      const scale = frame.width / innerWidth;
+      const point = {
+        x: frame.left + (rect.left + rect.width / 2) * scale,
+        y: frame.top + (rect.top + rect.height / 2) * scale,
+        id: 0,
+      };
+      await session.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [point] });
+      for (let step = 1; step <= 16; step++) {
+        await session.send("Input.dispatchTouchEvent", {
+          type: "touchMove",
+          touchPoints: [{ ...point, x: point.x + xDistance * scale * step / 16,
+            y: point.y + yDistance * scale * step / 16 }],
+        });
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+      }
+      await session.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
     };
-    console.info("[DEBUG-pdp-input] touch", {
-      box: box.toJSON(), frame: window.frameElement?.getBoundingClientRect().toJSON(),
-      viewport: [innerWidth, innerHeight], topViewport: [top!.innerWidth, top!.innerHeight],
-      focused: document.hasFocus(), visibility: document.visibilityState,
-    });
     await swipe(-300);
-    console.info("[DEBUG-pdp-input] after swipe", { scrollLeft: rail.scrollLeft, active: gallery.dataset.activeIndex });
     await expect.poll(() => gallery.dataset.activeIndex).toBe("1");
     await expect.poll(() => rail.scrollLeft).toBeCloseTo(448, 0);
     expect(changed).toHaveBeenLastCalledWith(1);
@@ -61,16 +68,7 @@ test("native touch snaps images without blocking vertical scrolling", async () =
     await expect.poll(() => gallery.dataset.activeIndex).toBe("0");
     await swipe(300);
     expect(gallery.dataset.activeIndex).toBe("0");
-    const start = rail.getBoundingClientRect();
-    const point = { x: start.left + 100, y: start.top + 300, id: 0 };
-    await session.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [point] });
-    for (let step = 1; step <= 10; step++) {
-      await session.send("Input.dispatchTouchEvent", {
-        type: "touchMove", touchPoints: [{ ...point, y: point.y - step * 16 }],
-      });
-      await new Promise((resolve) => requestAnimationFrame(resolve));
-    }
-    await session.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    await swipe(0, -160);
     await expect.poll(() => window.scrollY).toBeGreaterThan(60);
     expect(gallery.dataset.activeIndex).toBe("0");
   } finally {
