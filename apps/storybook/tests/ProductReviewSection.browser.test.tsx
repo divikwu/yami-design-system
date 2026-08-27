@@ -1,7 +1,8 @@
 import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
 import { expect, test } from "vitest";
-import { page } from "vitest/browser";
+import { cdp, page } from "vitest/browser";
+import type {} from "@vitest/browser-playwright";
 
 import { ProductReviewSection } from "@yami/design-system/components/ProductReviewSection";
 import meta from "../../../packages/design-system/components/ProductReviewSection/ProductReviewSection.stories";
@@ -12,8 +13,11 @@ test.each([375, 1440])("keeps summary photo frames stable during hover at %ipx",
   const container = document.createElement("div");
   document.body.append(container);
   const root = createRoot(container);
+  const session = cdp();
 
   try {
+    await session.send("Emulation.setFocusEmulationEnabled", { enabled: true });
+    await session.send("Page.bringToFront");
     await page.viewport(width, 900);
     flushSync(() => root.render(<ProductReviewSection {...meta.args} />));
     for (const image of container.querySelectorAll<HTMLImageElement>(
@@ -44,6 +48,7 @@ test.each([375, 1440])("keeps summary photo frames stable during hover at %ipx",
     await page.elementLocator(photo).unhover();
     await expect.poll(() => getComputedStyle(photo).transform).toBe("none");
   } finally {
+    await session.send("Emulation.setFocusEmulationEnabled", { enabled: false });
     root.unmount();
     container.remove();
     await page.viewport(viewport.width, viewport.height);
