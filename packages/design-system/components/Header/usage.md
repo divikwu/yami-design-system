@@ -335,7 +335,7 @@ pixel result with a clearer authoring model.
 
 | Production | This component | Why |
 | --- | --- | --- |
-| Active hall `font-weight: 700` | `--font-weight-emphasize` (500) | The DS exposes only 400 and 500; there is no bold token. |
+| Active hall `font-weight: 700` | `--font-weight-emphasize` (EN 500 / CN 600) | Ordinary emphasis follows `lang`; reserve the fixed semibold token for explicit serif titles. |
 | Search ring `2px solid #000` | `--stroke-thick` + `--border-focus` (87% black) | Rule `border-strength` allows three strengths only. |
 | Cart ring and rail divider at 17% black | `--border-default` (8%) and `--divider-subtle` (29%) | Same rule — 17% is not a sanctioned strength. |
 | Row rule `#f5f5f5`, closing rule `#222` | `--border-default`, `--divider-emphasis` | Semantic aliases instead of raw neutrals. |
