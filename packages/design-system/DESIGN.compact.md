@@ -40,7 +40,7 @@ Beyond these five anchors: a 50→950 neutral ramp (`#FAFAFA → #0A0A0A`) for c
 
 ## Typography — 4 levels, GT Walsheim numerals
 
-- **GT Walsheim** — every digit, every price, every Latin character. Authored UI uses 400 / 500; the loaded 700 face is legacy-only and is not a semantic emphasis weight.
+- **GT Walsheim** — every digit, every price, every Latin character. Normal text uses 400; ordinary emphasis uses `--font-weight-emphasize`: EN 500 / CN 600 via `lang`, at every breakpoint. Medium glyphs cover CSS 500–600 for Latin text within Chinese runs; 700 is not a semantic emphasis weight. Explicit serif titles keep their existing weight.
 - **PingFang SC** (iOS / web) / **Noto Sans SC** (Android) — CJK body. Mixed strings keep digits and Latin in GT Walsheim.
 - **Max 4 levels per page**: display / heading / body / caption (or equivalent). If you need a 5th, the page has a hierarchy problem.
 

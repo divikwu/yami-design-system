@@ -264,7 +264,7 @@ export function createProductDetailPageFixture(
         label: "Mask Type",
         value: "hyaluronic",
         options: [
-          { label: "Pink Cellmazing Firming", value: "firming", unavailable: true },
+          { label: "Pink Cellmazing Firming", value: "firming" },
           { label: "Hyaluronic", value: "hyaluronic" },
           { label: "Cica", value: "cica" },
         ],
@@ -282,6 +282,14 @@ export function createProductDetailPageFixture(
         ],
       },
     ],
+    // Demo inventory, not live stock: firming is available only in 5 sheets;
+    // 3 packs is sold out for every mask type.
+    skus: ["firming", "hyaluronic", "cica"].flatMap((type) =>
+      ["4-sheets", "5-sheets", "10-sheets", "20-sheets", "3-packs"].map((packaging) => ({
+        options: { "mask-type": type, packaging },
+        available: packaging !== "3-packs" && (type !== "firming" || packaging === "5-sheets"),
+      }))
+    ),
     bestBefore: "Sep 15, 2028",
     highlights: [
       "Contains a 5D hyaluronic acid complex designed for multi-layer hydration.",
@@ -473,6 +481,7 @@ export function createProductDetailPageFixture(
         all: "All",
         purchased: "Purchased",
         photos: "Photos",
+        reviewPhotos: "Review Photos",
         sortBy: "Sort by",
         viewMore: "View All Reviews",
         verifiedPurchase: "Verified purchase",
@@ -499,6 +508,7 @@ export function createProductDetailPageFixture(
     },
     brandSection: {
       title: "Torriden",
+      titleLang: "en",
       logo: {
         src: "https://cdn.yamibuy.net/brand/792b967e8361282011110f2387764792_240x120.webp",
         width: 120,
@@ -611,7 +621,7 @@ export function createProductDetailPageFixture(
         ...fixture.optionGroups[0],
         label: "面膜类型",
         options: [
-          { label: "粉色紧致款", value: "firming", unavailable: true },
+          { label: "粉色紧致款", value: "firming" },
           { label: "玻尿酸补水款", value: "hyaluronic" },
           { label: "积雪草舒缓款", value: "cica" },
         ],
@@ -664,11 +674,12 @@ export function createProductDetailPageFixture(
       })),
       copy: {
         reviewsLabel: "条评价",
-        referenceNotice: "部分评价来自其他规格，仅供参考。",
+        referenceNotice: "部分评论来自其他选项，仅供参考。",
         writeReview: "写评价",
         all: "全部",
         purchased: "已购买",
         photos: "带图",
+        reviewPhotos: "买家晒图",
         sortBy: "排序",
         viewMore: "查看全部评价",
         verifiedPurchase: "已验证购买",
@@ -720,6 +731,8 @@ export function createProductDetailPageFixture(
       decreaseQuantity: "减少数量",
       increaseQuantity: "增加数量",
       addToCart: "加入购物车",
+      optionSoldOut: "所有规格均无货",
+      optionOtherCombination: "当前组合无货，选择后切换到有货规格",
       seller: "由亚米销售并发货",
       shipTo: "配送至",
       deliveryEstimate: "明天 1:30 AM 前下单，预计明天（8月28日 星期五）送达。",

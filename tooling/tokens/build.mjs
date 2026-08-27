@@ -15,6 +15,8 @@ const contexts = [
   { id: "dark", selector: ".dark" },
   { id: "desktop", media: "(min-width: 1024px)" },
   { id: "desktop-lg", media: "(min-width: 1440px)" },
+  { id: "locale-en", selector: ":root:lang(en), :where(:lang(en))" },
+  { id: "locale-zh", selector: ":root:lang(zh), :where(:lang(zh))" },
 ];
 
 async function list(dir) {
@@ -130,6 +132,16 @@ for (const file of files) {
     record.values.push(asValue(token, contextId));
     tokenRecords.set(token.id, record);
 
+    // Keep language-specific weights in the generated runtime and catalog.
+    // Match inherited language on every element so nested lang switches reset.
+    if (token.type === "fontWeight" && token.value?.EN !== token.value?.CN && token.value?.CN) {
+      for (const [locale, key] of [["en", "EN"], ["zh", "CN"]]) {
+        const override = { ...enriched, value: token.value[key] };
+        byContext.get(`locale-${locale}`).push(override);
+        record.values.push(asValue(override, `locale-${locale}`));
+      }
+    }
+
     const breakpointOverrides = token.extensions?.["com.yami.breakpoints"];
     if (breakpointOverrides?.desktop !== undefined) {
       const override = { ...enriched, value: breakpointOverrides.desktop };
@@ -171,6 +183,7 @@ const css = [
   renderBlock(".dark", byContext.get("dark")),
   `@media (min-width: 1024px) {\n${renderBlock("  :root", byContext.get("desktop")).replaceAll("\n", "\n  ").trimEnd()}\n}\n`,
   `@media (min-width: 1440px) {\n${renderBlock("  :root", byContext.get("desktop-lg")).replaceAll("\n", "\n  ").trimEnd()}\n}\n`,
+  ...contexts.filter(({ id }) => id.startsWith("locale-")).map(({ id, selector }) => renderBlock(selector, byContext.get(id))),
 ].join("");
 const ts = `/* Generated from DTCG token sources. Do not edit. */\nexport const tokens = ${JSON.stringify(flat, null, 2)} as const;\n`;
 const md = `# YAMI tokens\n\nGenerated from DTCG sources. Contextual values are listed separately.\n\n| Token | Context | Type | Value |\n| --- | --- | --- | --- |\n${records.flatMap((token) => token.values.map((value) => `| \`${token.id}\` | ${value.contextId} | ${token.type} | \`${value.cssValue}\` |`)).join("\n")}\n`;

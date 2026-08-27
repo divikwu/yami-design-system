@@ -12,6 +12,12 @@ fulfillment, or multi-product selection controls.
 
 ## Layouts
 
+The shared section heading supports `mobileTitleSize={20}` (default, 28px line
+height, weight 400) and `mobileTitleSize={16}` (20px line height, Chinese weight
+600 / English weight 500) below 1024px. Language is resolved from the inherited
+`lang` attribute; mark mixed-language title spans with their own `lang`.
+This option does not change desktop typography or heading spacing.
+
 `ProductList` keeps every card in one collection visually consistent. The
 component chooses the matching `ProductCard` presentation; callers cannot mix
 presentations inside a list.

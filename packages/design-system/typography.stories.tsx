@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
 
+import { Button } from "./components/Button/Button"
+import { SectionHeading } from "./components/SectionHeading"
 import yamiTokensJson from "./generated/tokens.json"
 import { TokenHeading, TokenStoryFrame, formatTokenValue, tokenStoryStyles } from "./token-story"
 
@@ -295,4 +297,66 @@ export const Overview: Story = {
       }
     }
   },
+}
+
+export const LanguageWeights: Story = {
+  name: "Language weights",
+  globals: { viewport: { value: "yamiMobile", isRotated: false } },
+  render: () => (
+    <div style={{ display: "grid", gap: "var(--space-300)" }}>
+      {(["zh-CN", "en-US"] as const).map((lang) => (
+        <section key={lang} lang={lang} data-weight-language={lang}>
+          <p data-weight="400">{lang === "zh-CN" ? "普通正文" : "Regular text"}</p>
+          <strong data-emphasis>{lang === "zh-CN" ? "强调信息" : "Emphasized text"}</strong>
+          <b data-emphasis>{lang === "zh-CN" ? "规格选中值" : "Selected option"}</b>
+          <Button variant="secondary" data-emphasis>{lang === "zh-CN" ? "查看全部" : "View all"}</Button>
+          <span data-emphasis style={{ fontWeight: "var(--fw-bold)" }}>Legacy alias</span>
+          <div lang={lang === "zh-CN" ? "en" : "zh"}>
+            <strong data-weight={lang === "zh-CN" ? "500" : "600"}>Nested language</strong>
+            <span data-weight="400">Regular nested text</span>
+          </div>
+          <SectionHeading title="20px title" slot="weight-default" />
+          <SectionHeading title="Serif title" titleFontFamily="serif" slot="weight-serif" />
+          <SectionHeading
+            title={<>16px title <span lang="en">Torriden</span><span lang="zh">品牌</span></>}
+            mobileTitleSize={16}
+            slot="weight-compact"
+          />
+          <p data-weight="600" style={{ fontFamily: "var(--font-family-serif)", fontWeight: "var(--font-weight-semibold)" }}>Serif 衬线标题</p>
+        </section>
+      ))}
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const mobile = window.innerWidth < 1024
+    for (const sample of canvasElement.querySelectorAll<HTMLElement>("[data-weight]")) {
+      if (getComputedStyle(sample).fontWeight !== sample.dataset.weight) {
+        throw new Error(`${sample.textContent} must use weight ${sample.dataset.weight}`)
+      }
+    }
+    for (const section of canvasElement.querySelectorAll<HTMLElement>("[data-weight-language]")) {
+      const weight = section.lang.startsWith("zh") ? "600" : "500"
+      for (const sample of section.querySelectorAll<HTMLElement>("[data-emphasis]")) {
+        if (getComputedStyle(sample).fontWeight !== weight) throw new Error(`${section.lang} emphasis must use ${weight}`)
+      }
+      const normal = section.querySelector<HTMLElement>('[data-slot="weight-default-title"]')!
+      const compact = section.querySelector<HTMLElement>('[data-slot="weight-compact-title"]')!
+      const serif = section.querySelector<HTMLElement>('[data-slot="weight-serif-title"]')!
+      if (
+        getComputedStyle(serif).fontWeight !== "600" ||
+        getComputedStyle(normal).fontWeight !== "400" ||
+        getComputedStyle(normal).fontSize !== (mobile ? "20px" : "24px") ||
+        getComputedStyle(compact).fontWeight !== (mobile ? weight : "400") ||
+        getComputedStyle(compact).fontSize !== (mobile ? "16px" : "24px") ||
+        getComputedStyle(compact.querySelector('[lang="en"]')!).fontWeight !== (mobile ? "500" : "400") ||
+        getComputedStyle(compact.querySelector('[lang="zh"]')!).fontWeight !== (mobile ? "600" : "400")
+      ) throw new Error("Shared title sizes must preserve normal and language-aware emphasis weights")
+    }
+  },
+}
+
+export const LanguageWeightsDesktop: Story = {
+  ...LanguageWeights,
+  name: "Language weights / Desktop",
+  globals: { viewport: { value: "yamiDesktopLg", isRotated: false } },
 }

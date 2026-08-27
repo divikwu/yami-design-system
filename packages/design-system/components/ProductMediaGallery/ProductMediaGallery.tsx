@@ -3,6 +3,7 @@
 import {
   type HTMLAttributes,
   type ImgHTMLAttributes,
+  useLayoutEffect,
   useRef,
   useState,
 } from "react";
@@ -35,11 +36,14 @@ function clampIndex(index: number, length: number) {
   return Math.max(0, Math.min(index, Math.max(0, length - 1)));
 }
 
+function pageStep(rail: HTMLDivElement) {
+  const width = rail.firstElementChild?.getBoundingClientRect().width || rail.clientWidth;
+  return width + (parseFloat(getComputedStyle(rail).columnGap) || 0);
+}
+
 function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
-
-const SWIPE_THRESHOLD_PX = 40;
 
 export function ProductMediaGallery({
   images,
@@ -53,16 +57,42 @@ export function ProductMediaGallery({
   className,
   ...rest
 }: ProductMediaGalleryProps) {
-  const [activeIndex, setActiveIndex] = useState(() =>
+  const [selectedIndex, setActiveIndex] = useState(() =>
     clampIndex(defaultIndex, images.length),
   );
-  const touchStartX = useRef<number | null>(null);
+  const activeIndex = clampIndex(selectedIndex, images.length);
+  const railRef = useRef<HTMLDivElement>(null);
+  const activeIndexRef = useRef(activeIndex);
+  activeIndexRef.current = activeIndex;
+
+  // Keep a full page aligned when mounting, resizing, or crossing the PC breakpoint.
+  useLayoutEffect(() => {
+    const rail = railRef.current;
+    if (!rail) return;
+    const alignImage = () => {
+      rail.scrollTo({
+        left: getComputedStyle(rail).overflowX === "auto"
+          ? pageStep(rail) * activeIndexRef.current : 0,
+        behavior: "instant",
+      });
+    };
+    alignImage();
+    const observer = new ResizeObserver(alignImage);
+    observer.observe(rail);
+    return () => observer.disconnect();
+  }, [images.length]);
   const activeImage = images[activeIndex];
 
   if (!activeImage) return null;
 
   function selectImage(index: number) {
     const nextIndex = clampIndex(index, images.length);
+    const rail = railRef.current;
+    if (rail && getComputedStyle(rail).overflowX === "auto") {
+      rail.scrollTo({ left: pageStep(rail) * nextIndex, behavior: "instant" });
+    }
+    if (nextIndex === activeIndexRef.current) return;
+    activeIndexRef.current = nextIndex;
     setActiveIndex(nextIndex);
     onIndexChange?.(nextIndex);
   }
@@ -92,30 +122,6 @@ export function ProductMediaGallery({
           event.preventDefault();
           move(1);
         }
-      }}
-      onTouchStart={(event) => {
-        rest.onTouchStart?.(event);
-        if (event.defaultPrevented) return;
-        touchStartX.current = event.changedTouches[0]?.clientX ?? null;
-      }}
-      onTouchEnd={(event) => {
-        rest.onTouchEnd?.(event);
-        const startX = touchStartX.current;
-        const endX = event.changedTouches[0]?.clientX;
-        touchStartX.current = null;
-        if (
-          event.defaultPrevented ||
-          startX === null ||
-          endX === undefined ||
-          Math.abs(endX - startX) < SWIPE_THRESHOLD_PX
-        ) {
-          return;
-        }
-        move(endX < startX ? 1 : -1);
-      }}
-      onTouchCancel={(event) => {
-        rest.onTouchCancel?.(event);
-        touchStartX.current = null;
       }}
     >
       <div
@@ -149,18 +155,46 @@ export function ProductMediaGallery({
       </div>
 
       <div className={styles.stage} data-slot="product-media-gallery-stage">
-        <ResponsiveImage
-          key={activeImage.id}
-          className={styles.mainImage}
-          source={activeImage.src}
-          alt={activeImage.alt}
-          fallbackWidth={757}
-          fallbackHeight={757}
-          loading={imageLoading}
-          fetchPriority={activeIndex === defaultIndex ? "high" : "auto"}
-          revealOnLoad={false}
-          data-slot="product-media-gallery-image"
-        />
+        <div
+          ref={railRef}
+          className={styles.imageRail}
+          data-slot="product-media-gallery-rail"
+          onScroll={(event) => {
+            const rail = event.currentTarget;
+            if (!rail.clientWidth || getComputedStyle(rail).overflowX !== "auto") return;
+            const maxScroll = rail.scrollWidth - rail.clientWidth;
+            const atEnd = maxScroll > 0 && rail.scrollLeft >= maxScroll - 1;
+            const index = atEnd ? images.length - 1
+              : clampIndex(Math.round(rail.scrollLeft / pageStep(rail)), images.length);
+            if (index === activeIndexRef.current) return;
+            activeIndexRef.current = index;
+            setActiveIndex(index);
+            onIndexChange?.(index);
+          }}
+        >
+          {images.map((image, index) => (
+            <div
+              key={image.id}
+              className={styles.slide}
+              data-active={index === activeIndex}
+              data-slot="product-media-gallery-slide"
+              aria-hidden={index !== activeIndex}
+            >
+              <ResponsiveImage
+                className={styles.mainImage}
+                source={image.src}
+                alt={image.alt}
+                fallbackWidth={757}
+                fallbackHeight={757}
+                loading={index === activeIndex ? imageLoading : "lazy"}
+                fetchPriority={index === defaultIndex ? "high" : "auto"}
+                revealOnLoad={false}
+                draggable={false}
+                data-slot={index === activeIndex ? "product-media-gallery-image" : "product-media-gallery-inactive-image"}
+              />
+            </div>
+          ))}
+        </div>
 
         {images.length > 1 ? (
           <>

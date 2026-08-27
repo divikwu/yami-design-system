@@ -68,6 +68,11 @@ const meta = {
     },
   },
   argTypes: {
+    mobileTitleSize: {
+      options: [20, 16],
+      control: { type: "radio" },
+      description: "Mobile heading size below 1024px; desktop typography is unchanged.",
+    },
     mobileSurface: {
       options: ["card", "plain"],
       control: { type: "radio" },
@@ -116,6 +121,7 @@ export const Showcase: Story = {
     <Collection
       globals={globals}
       overrides={{
+        mobileTitleSize: args.mobileTitleSize,
         dividerPosition: args.dividerPosition,
         dividerVariant: args.dividerVariant,
         mobileSurface: args.mobileSurface,
@@ -199,6 +205,51 @@ export const BlackBottomDivider: Story = {
     const style = getComputedStyle(root);
     if (style.borderBottomWidth !== "2px" || style.borderTopWidth !== "0px") {
       throw new Error("Product List black divider must render 2px on the bottom only");
+    }
+  },
+};
+
+export const MobileTitleSizes: Story = {
+  name: "Mobile / Title sizes",
+  globals: {
+    viewport: { value: "yamiMobile", isRotated: false },
+  },
+  render: (args) => (
+    <>
+      <ProductList {...args} lang="zh" title="默认标题 20px" />
+      <ProductList {...args} lang="en" title="Default title 20px" />
+      <ProductList
+        {...args}
+        lang="zh"
+        title={<>紧凑标题 16px <span lang="en">Torriden</span></>}
+        mobileTitleSize={16}
+      />
+      <ProductList
+        {...args}
+        lang="en"
+        title={<>Compact title 16px <span lang="zh">品牌</span></>}
+        mobileTitleSize={16}
+      />
+    </>
+  ),
+  play: async ({ canvasElement }) => {
+    const titles = canvasElement.querySelectorAll<HTMLElement>(
+      '[data-slot="product-list-title"]',
+    );
+    if (
+      titles.length !== 4 ||
+      Array.from(titles).some((title, index) => {
+        const style = getComputedStyle(title);
+        return (
+          style.fontSize !== (index < 2 ? "20px" : "16px") ||
+          style.lineHeight !== (index < 2 ? "28px" : "20px") ||
+          style.fontWeight !== ["400", "400", "600", "500"][index]
+        );
+      }) ||
+      getComputedStyle(titles[2].querySelector("span")!).fontWeight !== "500" ||
+      getComputedStyle(titles[3].querySelector("span")!).fontWeight !== "600"
+    ) {
+      throw new Error("Mobile headings must use 20px normal or 16px Chinese 600 / English 500, including mixed-language titles");
     }
   },
 };

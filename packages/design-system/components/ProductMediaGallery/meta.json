@@ -51,7 +51,7 @@
     "onIndexChange": {
       "type": "(index: number) => void",
       "required": false,
-      "description": "Reports thumbnail, arrow button, and keyboard image changes."
+      "description": "Reports native image scrolling, thumbnail, arrow button, and keyboard image changes."
     }
   },
   "rules": {
@@ -76,6 +76,7 @@
     "--text-primary",
     "--product-card-add-icon",
     "--product-card-add-surface",
+    "--product-card-add-border",
     "--surface-secondary",
     "--fill-tertiary",
     "--border-default",
@@ -84,6 +85,7 @@
     "--stroke-thick",
     "--radius-component-default",
     "--radius-surface-default",
+    "--radius-surface-none",
     "--radius-full",
     "--font-family-ios",
     "--font-size-caption-md",
@@ -91,6 +93,7 @@
     "--space-100",
     "--space-150",
     "--space-200",
+    "--space-300",
     "--space-400",
     "--space-600",
     "--space-800",
@@ -99,7 +102,7 @@
   "tokenBindings": {
     "--fill-tertiary": {
       "property": "background-color",
-      "selector": ".stage, .thumbnailButton"
+      "selector": ".stage, .thumbnailButton, .slide"
     },
     "--border-focus": {
       "property": "border-color and outline-color",
@@ -114,12 +117,12 @@
       "selector": ".stage"
     },
     "--space-200": {
-      "property": "desktop control inset",
-      "selector": ".previousButton, .nextButton"
+      "property": "desktop control inset; wide-mobile stage bleed and counter inset",
+      "selector": ".previousButton, .nextButton, .stage, .counter"
     },
     "--space-100": {
-      "property": "thumbnail gap; counter inset",
-      "selector": ".thumbnails, .counter"
+      "property": "thumbnail and mobile image gap; counter inset; wide-mobile outer padding",
+      "selector": ".thumbnails, .imageRail, .counter, .root"
     },
     "--space-150": {
       "property": "vertical padding",
@@ -128,6 +131,22 @@
     "--product-card-add-surface": {
       "property": "background-color",
       "selector": ".counter"
+    },
+    "--product-card-add-border": {
+      "property": "border-color",
+      "selector": ".counter"
+    },
+    "--space-300": {
+      "property": "height",
+      "selector": ".counter"
+    },
+    "--radius-component-default": {
+      "property": "border-radius",
+      "selector": ".thumbnailButton, .slide"
+    },
+    "--space-400": {
+      "property": "mobile next-image preview reservation",
+      "selector": ".slide"
     },
     "--product-card-add-icon": {
       "property": "color",
@@ -140,7 +159,7 @@
     "keyboardNav": ["tab", "enter", "space", "arrow left", "arrow right"],
     "ariaPattern": "labelled region containing a labelled thumbnail group, pressed-state buttons, and previous or next controls",
     "structure": "The active product image retains meaningful alt text. Thumbnail images are decorative because each button announces position and image meaning.",
-    "interaction": "Thumbnail, previous, next, and ArrowLeft or ArrowRight selection all update the active image and polite counter."
+    "interaction": "Native horizontal scrolling on mobile, thumbnail, previous, next, and ArrowLeft or ArrowRight selection all update the active image and polite counter."
   },
   "dependencies": {
     "runtime": ["react", "./Button", "./ResponsiveImage"],

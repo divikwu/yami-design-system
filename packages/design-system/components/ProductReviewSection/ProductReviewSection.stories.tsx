@@ -97,6 +97,7 @@ const baseArgs: ProductReviewSectionProps = {
     all: "All",
     purchased: "Purchased",
     photos: "Photos",
+    reviewPhotos: "Review Photos",
     sortBy: "Sort by",
     viewMore: "View more",
     verifiedPurchase: "Verified purchase",
@@ -142,7 +143,43 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+function assertSummaryPhotos(root: HTMLElement, items: readonly ProductReviewItem[]) {
+  const expected = items.flatMap((review) => review.photos ?? []);
+  const gallery = root.querySelector<HTMLElement>(
+    '[data-slot="product-review-summary-photos"]',
+  );
+  const images = Array.from(gallery?.querySelectorAll("img") ?? []);
+  if (
+    Boolean(gallery) !== Boolean(expected.length) ||
+    images.length !== expected.length ||
+    images.some((image, index) =>
+      image.getAttribute("src") !== expected[index]?.src ||
+      image.alt !== expected[index]?.alt,
+    )
+  ) {
+    throw new Error("Review summary must include every photo from all supplied reviews in order");
+  }
+  const photoSize = window.innerWidth < 1024 ? 80 : 96;
+  if (images.some((image) => {
+    const frame = image.parentElement!;
+    const rect = frame.getBoundingClientRect();
+    return rect.width !== photoSize || rect.height !== photoSize ||
+      getComputedStyle(frame).overflow !== "hidden";
+  })) {
+    throw new Error("Summary photos must keep fixed frames that contain hover zoom");
+  }
+}
+
 function assertVerifiedLabel(root: HTMLElement) {
+  const currentItem = root.querySelector<HTMLElement>(
+    '[data-review-id="k-baby"] header > span:last-child',
+  );
+  if (!currentItem ||
+    getComputedStyle(currentItem).backgroundColor !== "rgba(0, 0, 0, 0.04)" ||
+    getComputedStyle(currentItem).opacity !== "1"
+  ) {
+    throw new Error("Current-item tags must use a translucent black background without fading their text");
+  }
   const reviewerLine = root.querySelector<HTMLElement>(
     '[data-review-id="k-baby"] header > div > div',
   );
@@ -157,12 +194,47 @@ function assertVerifiedLabel(root: HTMLElement) {
   }
 }
 
+function assertReviewContentLayout(root: HTMLElement) {
+  const photoSize = window.innerWidth < 1024 ? 72 : 120;
+  const cards = root.querySelectorAll<HTMLElement>('[data-slot="product-review-card"]');
+  for (const card of cards) {
+    if (getComputedStyle(card).padding !== (window.innerWidth < 1024 ? "12px" : "16px")) {
+      throw new Error("Review cards must use 12px padding on mobile and 16px on desktop");
+    }
+    const content = card.querySelector<HTMLElement>('[data-slot="product-review-content"]');
+    const text = content?.firstElementChild;
+    const photos = content?.querySelector<HTMLElement>('[role="group"]');
+    if (!content || !text || content.scrollWidth > content.clientWidth + 1) {
+      throw new Error("Review text and photos must share one container without horizontal overflow");
+    }
+    const textRect = text.getBoundingClientRect();
+    if (photos) {
+      const photoRect = photos.getBoundingClientRect();
+      if (
+        photos.parentElement !== content ||
+        Math.abs(photoRect.left - textRect.right - 8) > 1 ||
+        Math.abs(photoRect.top - textRect.top) > 1 ||
+        photoRect.width !== photoSize ||
+        Array.from(photos.querySelectorAll("img")).some((image) =>
+          image.getBoundingClientRect().width !== photoSize ||
+          image.getBoundingClientRect().height !== photoSize,
+        )
+      ) {
+        throw new Error("Review photos must stay to the right at 120px on desktop and 72px on mobile");
+      }
+    } else if (Math.abs(textRect.width - content.getBoundingClientRect().width) > 1) {
+      throw new Error("Reviews without photos must use the full content width");
+    }
+  }
+}
+
 function assertReviewGrid(
   grid: HTMLElement,
   columnCount: number,
   rowCount: number,
 ) {
   assertVerifiedLabel(grid);
+  assertReviewContentLayout(grid);
   const cards = Array.from(
     grid.querySelectorAll<HTMLElement>('[data-slot="product-review-card"]'),
   );
@@ -186,6 +258,12 @@ function assertReviewGrid(
 }
 
 export const Showcase: Story = {
+  args: {
+    copy: {
+      ...baseArgs.copy,
+      referenceNotice: "Some reviews are from other options and are shown for reference.",
+    },
+  },
   play: async ({ canvasElement }) => {
     const root = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-review-section"]',
@@ -261,6 +339,31 @@ export const Showcase: Story = {
       throw new Error("Desktop review container spacing regressed");
     }
     assertReviewGrid(grid, 3, 2);
+    const notice = root.querySelector<HTMLElement>('[data-slot="product-review-reference-notice"]');
+    const toolbar = root.querySelector<HTMLElement>('[data-slot="product-review-toolbar"]')!;
+    if (!notice ||
+      getComputedStyle(notice).display === "none" ||
+      notice.previousElementSibling !== toolbar ||
+      notice.nextElementSibling !== grid ||
+      getComputedStyle(notice).fontSize !== "12px" ||
+      getComputedStyle(notice).backgroundColor !== "rgba(0, 0, 0, 0)" ||
+      grid.getBoundingClientRect().top - notice.getBoundingClientRect().bottom !== 16
+    ) {
+      throw new Error("Desktop reference notice must appear between filters and reviews as secondary text");
+    }
+    const filterDivider = root.querySelector<HTMLElement>(
+      '[data-slot="product-review-filter-divider"]',
+    );
+    if (!filterDivider ||
+      filterDivider.previousElementSibling?.getAttribute("data-review-filter") !== "all" ||
+      filterDivider.nextElementSibling?.getAttribute("data-review-filter") !== "purchased" ||
+      filterDivider.getAttribute("aria-hidden") !== "true" ||
+      getComputedStyle(filterDivider).width !== "1px" ||
+      getComputedStyle(filterDivider).height !== "16px" ||
+      getComputedStyle(filterDivider).backgroundColor !== "rgba(0, 0, 0, 0.08)"
+    ) {
+      throw new Error("Review filters must separate All from other filters with an 8% black vertical line");
+    }
 
     if (
       meters.length !== 5 ||
@@ -407,6 +510,8 @@ export const Mobile: Story = {
   globals: { viewport: { value: "yamiMobile", isRotated: false } },
   play: async ({ canvasElement }) => {
     assertVerifiedLabel(canvasElement);
+    assertReviewContentLayout(canvasElement);
+    assertSummaryPhotos(canvasElement, reviews);
     const viewportWidth = canvasElement.ownerDocument.defaultView?.innerWidth;
     const root = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-review-section"]',
@@ -482,7 +587,10 @@ export const Mobile: Story = {
       Math.abs(container.getBoundingClientRect().width - (viewportWidth - 16)) > 1 ||
       containerStyle.marginLeft !== "8px" ||
       containerStyle.marginRight !== "8px" ||
-      containerStyle.padding !== "8px" ||
+      containerStyle.paddingTop !== "8px" ||
+      containerStyle.paddingRight !== "8px" ||
+      containerStyle.paddingBottom !== "8px" ||
+      containerStyle.paddingLeft !== "8px" ||
       containerStyle.backgroundColor !== "rgb(255, 255, 255)" ||
       containerStyle.borderRadius !== "12px" ||
       !heading.textContent?.includes("Customer Reviews") ||
@@ -494,12 +602,19 @@ export const Mobile: Story = {
       summaryStyle.backgroundColor !== "rgba(0, 0, 0, 0)" ||
       getComputedStyle(summaryContent).gridTemplateColumns.split(" ").length !== 1 ||
       getComputedStyle(score).flexDirection !== "row" ||
+      getComputedStyle(score).paddingLeft !== "4px" ||
+      getComputedStyle(score).paddingRight !== "4px" ||
+      getComputedStyle(score.querySelector("strong")!).fontSize !== "24px" ||
+      getComputedStyle(score.querySelector('[data-slot="product-review-score-summary"]')!).rowGap !== "0px" ||
       getComputedStyle(writeReview).marginTop !== "0px" ||
+      writeReview.getBoundingClientRect().height !== 32 ||
+      getComputedStyle(writeReview, "::before").height !== "44px" ||
       getComputedStyle(distribution).display !== "none" ||
       getComputedStyle(toolbar).display !== "none" ||
       getComputedStyle(notice).display !== "block" ||
+      getComputedStyle(notice).padding !== "8px 12px" ||
       !notice.textContent?.includes("other options") ||
-      summary.getBoundingClientRect().top - heading.getBoundingClientRect().bottom !== 2 ||
+      summary.getBoundingClientRect().top - heading.getBoundingClientRect().bottom !== 12 ||
       notice.getBoundingClientRect().top - summary.getBoundingClientRect().bottom !== 8 ||
       grid.getBoundingClientRect().top - notice.getBoundingClientRect().bottom !== 8 ||
       viewMore.getBoundingClientRect().top - grid.getBoundingClientRect().bottom !== 8 ||
@@ -513,6 +628,9 @@ export const Mobile: Story = {
       cards.some((card) => Math.round(card.getBoundingClientRect().height) !== 200) ||
       getComputedStyle(firstCard).backgroundColor !== "rgb(245, 245, 245)" ||
       viewMore.textContent?.trim() !== "View All Reviews" ||
+      viewMore.getBoundingClientRect().height !== 40 ||
+      getComputedStyle(viewMore).borderRadius !== "8px" ||
+      getComputedStyle(viewMore, "::before").height !== "44px" ||
       Math.abs(
         viewMore.getBoundingClientRect().width -
           (viewMore.parentElement?.clientWidth ?? 0)
@@ -591,4 +709,127 @@ export const DesktopXl: Story = {
     if (!grid) throw new Error("Desktop-xl review grid did not render");
     assertReviewGrid(grid, 4, 2);
   },
+};
+
+export const AllReviewPhotos: Story = {
+  args: {
+    initialVisibleCount: 1,
+    reviews: reviews.map((review, index) => index === reviews.length - 1 ? {
+      ...review,
+      photos: [
+        { src: productPhoto, alt: "Last review, first photo" },
+        { src: productPhoto, alt: "Last review, second photo" },
+        { src: productPhoto, alt: "Last review, third photo" },
+      ],
+    } : review),
+  },
+  play: async ({ canvasElement, args }) => {
+    assertSummaryPhotos(canvasElement, args.reviews);
+    const purchased = canvasElement.querySelector<HTMLButtonElement>(
+      '[data-review-filter="purchased"]',
+    )!;
+    await userEvent.click(purchased);
+    await waitFor(() => {
+      if (canvasElement.querySelector('[data-active-filter="purchased"]') === null) {
+        throw new Error("Purchased filter must be active");
+      }
+    });
+    assertSummaryPhotos(canvasElement, args.reviews);
+    await userEvent.click(canvasElement.querySelector<HTMLButtonElement>(
+      '[data-product-review-action="view-more"]',
+    )!);
+    assertSummaryPhotos(canvasElement, args.reviews);
+  },
+};
+
+export const AllReviewPhotosMobile: Story = {
+  args: AllReviewPhotos.args,
+  globals: { viewport: { value: "yamiMobile", isRotated: false } },
+  play: async ({ canvasElement, args }) => {
+    assertSummaryPhotos(canvasElement, args.reviews);
+    const rail = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-review-summary-photo-list"]',
+    )!;
+    if (
+      getComputedStyle(rail).overflowX !== "auto" ||
+      rail.scrollWidth <= rail.clientWidth ||
+      getComputedStyle(rail).columnGap !== "8px" ||
+      getComputedStyle(rail.parentElement!.querySelector("h3")!).display !== "none" ||
+      Array.from(rail.querySelectorAll("img")).some((image) =>
+        image.getBoundingClientRect().width !== 80 ||
+        image.getBoundingClientRect().height !== 80,
+      ) ||
+      document.documentElement.scrollWidth > document.documentElement.clientWidth
+    ) {
+      throw new Error("Summary photos must scroll within the mobile page width");
+    }
+  },
+};
+
+export const WithoutReviewPhotos: Story = {
+  args: { reviews: reviews.map((review) => ({ ...review, photos: [] })) },
+  play: async ({ canvasElement, args }) => {
+    assertSummaryPhotos(canvasElement, args.reviews);
+    assertReviewContentLayout(canvasElement);
+    const cards = canvasElement.querySelectorAll<HTMLElement>('[data-slot="product-review-card"]');
+    if (Array.from(cards).some((card) => card.getBoundingClientRect().height >= 260)) {
+      throw new Error("Short text-only reviews must shrink below the old 260px minimum");
+    }
+  },
+};
+
+export const ContentHeightRows: Story = {
+  args: {
+    reviews: reviews.map((review, index) => ({
+      ...review,
+      photos: index === 2 ? review.photos : undefined,
+      body: "Very good",
+    })),
+  },
+  globals: { viewport: { value: "yamiDesktopMd", isRotated: false } },
+  play: async ({ canvasElement }) => {
+    const grid = canvasElement.querySelector<HTMLElement>('[data-slot="product-review-grid"]')!;
+    assertReviewGrid(grid, 3, 2);
+    const cards = Array.from(grid.querySelectorAll<HTMLElement>('[data-slot="product-review-card"]'));
+    const heights = cards.map((card) => card.getBoundingClientRect().height);
+    if (
+      heights[0]! <= heights[3]! ||
+      new Set(heights.slice(0, 3)).size !== 1 ||
+      new Set(heights.slice(3, 6)).size !== 1
+    ) {
+      throw new Error("Each review row must fit its tallest card independently of other rows");
+    }
+  },
+};
+
+export const MultipleCardPhotos: Story = {
+  args: {
+    reviews: [{
+      ...reviews[2]!,
+      title: "Gentle and hydrating",
+      photos: [
+        { src: productPhoto, alt: "First customer photo" },
+        { src: `${productPhoto}?second`, alt: "Second customer photo" },
+      ],
+    }],
+  },
+  play: async ({ canvasElement }) => {
+    assertReviewContentLayout(canvasElement);
+    const photos = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-review-content"] [role="group"]',
+    )!;
+    if (
+      photos.querySelectorAll("img").length !== 2 ||
+      photos.tabIndex !== 0 ||
+      getComputedStyle(photos).overflowX !== "auto" ||
+      photos.scrollWidth <= photos.clientWidth
+    ) {
+      throw new Error("Multiple review photos must remain accessible within the right column");
+    }
+  },
+};
+
+export const MultipleCardPhotosMobile: Story = {
+  ...MultipleCardPhotos,
+  globals: { viewport: { value: "yamiMobile", isRotated: false } },
 };

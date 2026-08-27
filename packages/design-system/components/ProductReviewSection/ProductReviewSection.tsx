@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useMemo, useState, type ReactNode } from "react";
+import { Fragment, useId, useMemo, useState, type ReactNode } from "react";
 
 import { Button } from "../Button";
 import { FilterChip, FilterChipGroup, FilterChipMenu } from "../FilterChip";
@@ -112,27 +112,35 @@ function ReviewCard({
         {review.variant ? <span className={styles.variant}>{review.variant}</span> : null}
       </div>
 
-      {review.title ? <h3 className={styles.reviewTitle}>{review.title}</h3> : null}
-      <div className={styles.reviewBody}>{review.body}</div>
-
-      {review.photos?.length ? (
-        <div
-          className={styles.photos}
-          role="group"
-          aria-label={accessibleText(copy.photos, "Review photos")}
-        >
-          {review.photos.map((photo) => (
-            <img
-              key={`${review.id}-${photo.src}`}
-              className={styles.photo}
-              src={photo.src}
-              alt={photo.alt}
-              loading="lazy"
-              decoding="async"
-            />
-          ))}
+      <div className={styles.reviewContent} data-slot="product-review-content">
+        <div className={styles.reviewText}>
+          {review.title ? <h3 className={styles.reviewTitle}>{review.title}</h3> : null}
+          <div className={styles.reviewBody}>{review.body}</div>
         </div>
-      ) : null}
+        {review.photos?.length ? (
+          <div
+            className={styles.photos}
+            role="group"
+            aria-label={accessibleText(copy.photos, "Review photos")}
+            tabIndex={review.photos.length > 1 ? 0 : undefined}
+          >
+            {review.photos.map((photo) => (
+              <span
+                key={`${review.id}-${photo.src}`}
+                className={styles.photoFrame}
+              >
+                <img
+                  className={styles.photo}
+                  src={photo.src}
+                  alt={photo.alt}
+                  loading="lazy"
+                  decoding="async"
+                />
+              </span>
+            ))}
+          </div>
+        ) : null}
+      </div>
 
       <footer className={styles.cardFooter}>
         {review.showOriginalHref ? (
@@ -180,6 +188,7 @@ function ReviewCard({
 
 export function ProductReviewSection({
   title,
+  mobileTitleSize,
   reviewCount,
   averageRating,
   ratingDistribution,
@@ -208,6 +217,12 @@ export function ProductReviewSection({
   const activeSort = sortValue ?? internalSort;
   const safeAverage = clampRating(averageRating);
   const starsLabel = copy.stars ?? "Stars";
+  const reviewPhotos = reviews.flatMap((review) =>
+    (review.photos ?? []).map((photo, index) => ({
+      ...photo,
+      key: `${review.id}-${index}`,
+    })),
+  );
 
   const distribution = useMemo(
     () =>
@@ -264,6 +279,7 @@ export function ProductReviewSection({
       <div className={styles.container} data-slot="product-review-section-container">
         <SectionHeading
           id={titleId}
+          mobileTitleSize={mobileTitleSize}
           title={
             <>
               {title} <span className={styles.headingCount}>({reviewCount})</span>
@@ -274,7 +290,11 @@ export function ProductReviewSection({
         />
 
         <div className={styles.summary} data-slot="product-review-summary">
-          <div className={styles.summaryContent} data-slot="product-review-summary-content">
+          <div
+            className={styles.summaryContent}
+            data-slot="product-review-summary-content"
+            data-has-photos={reviewPhotos.length > 0}
+          >
             <div className={styles.score}>
               <div className={styles.scoreSummary} data-slot="product-review-score-summary">
                 <strong className={styles.average}>{safeAverage.toFixed(1)}</strong>
@@ -318,14 +338,35 @@ export function ProductReviewSection({
                 </div>
               ))}
             </div>
+            {reviewPhotos.length > 0 ? (
+              <div
+                className={styles.summaryPhotos}
+                data-slot="product-review-summary-photos"
+              >
+                <h3>{copy.reviewPhotos ?? copy.photos}</h3>
+                <div
+                  className={styles.summaryPhotoList}
+                  data-slot="product-review-summary-photo-list"
+                  role="group"
+                  aria-label={accessibleText(copy.reviewPhotos ?? copy.photos, "Review photos")}
+                  tabIndex={0}
+                >
+                  {reviewPhotos.map((photo) => (
+                    <span key={photo.key} className={styles.summaryPhotoFrame}>
+                      <img
+                        className={styles.photo}
+                        src={photo.src}
+                        alt={photo.alt}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </div>
         </div>
-
-        {copy.referenceNotice ? (
-          <p className={styles.referenceNotice} data-slot="product-review-reference-notice">
-            {copy.referenceNotice}
-          </p>
-        ) : null}
 
         <div className={styles.toolbar} data-slot="product-review-toolbar">
           <FilterChipGroup
@@ -335,15 +376,23 @@ export function ProductReviewSection({
             data-product-review-filters="true"
           >
             {filters.map((item) => (
-              <FilterChip
-                key={item.value}
-                variant={activeFilter === item.value ? "outlined" : "filled"}
-                selected={activeFilter === item.value}
-                onClick={() => selectFilter(item.value)}
-                data-review-filter={item.value}
-              >
-                {item.label}
-              </FilterChip>
+              <Fragment key={item.value}>
+                <FilterChip
+                  variant={activeFilter === item.value ? "outlined" : "filled"}
+                  selected={activeFilter === item.value}
+                  onClick={() => selectFilter(item.value)}
+                  data-review-filter={item.value}
+                >
+                  {item.label}
+                </FilterChip>
+                {item.value === "all" ? (
+                  <span
+                    className={styles.filterDivider}
+                    data-slot="product-review-filter-divider"
+                    aria-hidden="true"
+                  />
+                ) : null}
+              </Fragment>
             ))}
           </FilterChipGroup>
 
@@ -362,6 +411,12 @@ export function ProductReviewSection({
             />
           </div>
         </div>
+
+        {copy.referenceNotice ? (
+          <p className={styles.referenceNotice} data-slot="product-review-reference-notice">
+            {copy.referenceNotice}
+          </p>
+        ) : null}
 
         {visibleReviews.items.length ? (
           <div className={styles.grid} data-slot="product-review-grid">
@@ -385,6 +440,8 @@ export function ProductReviewSection({
             <Button
               className={styles.viewMoreButton}
               variant="tertiary"
+              form="full"
+              size="md"
               onClick={() =>
                 setVisibleCount((current) => current + Math.max(1, viewMoreIncrement))
               }
