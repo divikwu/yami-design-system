@@ -2157,7 +2157,7 @@
       "sourceSha256": "6be002ddd249abe23ca95a83c4eb6e6848eafc0111a82677fe6b0115f0c15689",
       "disposition": "migrated",
       "destination": "packages/design-system/components/Header/usage.md",
-      "destinationSha256": "eefd5d1c029d406bfa0558ce98e99df512eb7bd90458ea282bf6e749c1518492"
+      "destinationSha256": "0b7327b56900940322d4fd842218c12e277c46a56afdc7dfba0ccf9693e0721d"
     },
     {
       "source": "components/HeroBanner/HeroBanner.figma.tsx",
