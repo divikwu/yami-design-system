@@ -55,6 +55,10 @@ function money(value) {
   return `$${Number(value).toFixed(2)}`;
 }
 
+function capitalizeLabel(value) {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
 function badges(item) {
   return [item.item_badge, item.price_badge]
     .filter((value) =>
@@ -215,7 +219,7 @@ for (const popularKeyword of popularSearchKeywords) {
     throw new Error(`Yami catalog search for "${popularKeyword}" returned no usable product image.`);
   }
   popularSearchTags.push({
-    label: popularKeyword,
+    label: capitalizeLabel(popularKeyword),
     image: {
       src: absoluteImageUrl(firstProduct.image_url),
       alt: "",
