@@ -41,8 +41,19 @@ test.each([375, 1440])("keeps summary photo frames stable during hover at %ipx",
     // Keep Playwright's input wait outside the CSS transition polling deadline.
     await page.elementLocator(frame).hover();
     await expect.poll(() => frame.matches(":hover"), { timeout: 3000 }).toBe(true);
-    await expect.poll(() => getComputedStyle(photo).transform, { timeout: 3000 })
-      .toBe(width < 1024 ? "none" : "matrix(1.12, 0, 0, 1.12, 0, 0)");
+    await expect.poll(() => ({
+      hovered: frame.matches(":hover"),
+      wide: matchMedia("(min-width: 1024px)").matches,
+      finePointer: matchMedia("(hover: hover) and (pointer: fine)").matches,
+      reducedMotion: matchMedia("(prefers-reduced-motion: reduce)").matches,
+      transform: getComputedStyle(photo).transform,
+    }), { timeout: 3000 }).toEqual({
+      hovered: true,
+      wide: width >= 1024,
+      finePointer: true,
+      reducedMotion: false,
+      transform: width < 1024 ? "none" : "matrix(1.12, 0, 0, 1.12, 0, 0)",
+    });
     expect(frame.getBoundingClientRect().toJSON()).toEqual(before.toJSON());
 
     await page.elementLocator(frame).unhover();
