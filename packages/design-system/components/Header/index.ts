@@ -5,6 +5,8 @@ export type {
   HeaderAccount,
   HeaderCart,
   HeaderCategory,
+  HeaderCategoryMenuData,
+  HeaderCategoryMenuItem,
   HeaderCategoryRailProps,
   HeaderHall,
   HeaderImage,

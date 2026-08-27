@@ -367,3 +367,4 @@ export function createHeaderProps(
 }
 
 export { STOREFRONT as headerStorefront }
+export { createHeaderCategoryMenu } from './category-menu.fixture'

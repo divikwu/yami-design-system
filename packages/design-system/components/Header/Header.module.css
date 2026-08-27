@@ -49,6 +49,12 @@
   transform: translateX(-50%);
 }
 
+@media (min-width: 1024px) {
+  .root[data-overlay] {
+    z-index: 30;
+  }
+}
+
 /* ---------------------------------------------------------------- row 1 */
 
 .utilityRow {
@@ -620,6 +626,10 @@
   justify-content: center;
   gap: var(--space-050);
   padding: var(--space-150) var(--space-100) var(--space-100);
+  border: 0;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
   border-radius: 0;
   color: var(--text-primary);
   text-align: center;

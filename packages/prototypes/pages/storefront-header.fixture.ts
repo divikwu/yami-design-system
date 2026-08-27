@@ -1,5 +1,5 @@
 import type { HeaderProps } from "@yami/design-system";
-import { createHeaderProps } from "@yami/design-system/components/Header/fixtures";
+import { createHeaderCategoryMenu, createHeaderProps } from "@yami/design-system/components/Header/fixtures";
 
 export type StorefrontLocale = "zh" | "en";
 
@@ -15,6 +15,7 @@ export function createStorefrontHeader(
 
   return {
     ...header,
+    categoryMenu: createHeaderCategoryMenu(locale),
     cart: { ...header.cart, count: 2 },
     mobileSearchHref:
       `/iframe.html?id=yami-pages-search--mobile-discovery&viewMode=story&globals=locale%3A${locale}`,

@@ -42,10 +42,17 @@ export function HeaderSearch({
   variant = 'pc',
   scanLabel,
   onScan,
+  open,
+  onOpenChange,
 }: HeaderSearchProps) {
   const isMobile = variant === 'mobile'
   const [draftValue, setDraftValue] = useState(value ?? '')
-  const [isOpen, setIsOpen] = useState(false)
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false)
+  const isOpen = open ?? uncontrolledOpen
+  function setIsOpen(nextOpen: boolean) {
+    if (open === undefined) setUncontrolledOpen(nextOpen)
+    onOpenChange?.(nextOpen)
+  }
   const [recentCleared, setRecentCleared] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const panelId = useId()
