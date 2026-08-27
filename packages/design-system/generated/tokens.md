@@ -79,6 +79,7 @@ Generated from DTCG sources. Contextual values are listed separately.
 | `breakpoints.desktop-xl` | root | dimension | `1920px` |
 | `breakpoints.mobile` | root | dimension | `402px` |
 | `breakpoints.tablet` | root | dimension | `768px` |
+| `button-lg-desktop.font-size` | root | dimension | `18px` |
 | `button.disabled` | root | color | `var(--color-neutral-200)` |
 | `button.disabled` | dark | color | `var(--color-white-400)` |
 | `button.disabled-inverse` | root | color | `var(--color-white-400)` |

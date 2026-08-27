@@ -348,7 +348,7 @@ YAMI's current inventory is generated in [`generated/catalog.json`](./generated/
 | **Sizes**      | `sm` (32) · `md` (40) · `lg` (48)                                                                |
 | **States**     | default · hover · active · disabled · loading · focus-visible                                    |
 | **Radius**     | `form=full` → `--radius-component-default` (8px) · `form=inline` → `--radius-button-primary` (pill) · `form=icon` keeps hierarchy-specific radius |
-| **Typography** | `--font-family-ios` + weight 500; sm/md `body-md`, lg `body-xl`                                  |
+| **Typography** | `--font-family-ios` + weight 500; sm/md `body-md`, lg `body-xl`; desktop (≥1024px) text-bearing lg uses `--font-size-button-lg-desktop` (18px), retaining 20px line-height. |
 | **Tap target** | All sizes pad to ≥ 44pt internal hit area (rule `tap-target`)                                    |
 | **Rate limit** | **`emphasis` = 1 per screen.** No exceptions. (rule `emphasis-limit`)                            |
 | **Disabled**   | `--button-disabled` bg + `--text-disabled` fg. **Never `opacity`.** (rule `no-opacity-disabled`) |

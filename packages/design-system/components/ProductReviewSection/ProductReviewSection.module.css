@@ -259,7 +259,7 @@
   min-width: 0;
   flex-wrap: nowrap;
   align-items: center;
-  gap: var(--space-050);
+  gap: var(--space-100);
   overflow: hidden;
   font-size: var(--font-size-body-md);
   line-height: var(--line-height-body-md);
@@ -470,6 +470,10 @@
 @media (min-width: 1440px) {
   .grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .verified {
+    font-size: var(--font-size-caption-sm);
   }
 }
 

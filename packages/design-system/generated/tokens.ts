@@ -205,6 +205,11 @@ export const tokens = {
     "$type": "dimension",
     "$value": "768px"
   },
+  "button-lg-desktop.font-size": {
+    "$type": "dimension",
+    "$value": "18px",
+    "$description": "PC 端 56px 高度的文字型大按钮字号，适用于 Full 和 Inline，不随 desktop-lg 断点变化。"
+  },
   "button.disabled": {
     "$type": "color",
     "$value": "{color.neutral.200}",

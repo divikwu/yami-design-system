@@ -142,11 +142,27 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+function assertVerifiedLabel(root: HTMLElement) {
+  const reviewerLine = root.querySelector<HTMLElement>(
+    '[data-review-id="k-baby"] header > div > div',
+  );
+  const verified = reviewerLine?.querySelector<HTMLElement>("span");
+  if (
+    !reviewerLine ||
+    !verified ||
+    getComputedStyle(reviewerLine).columnGap !== "8px" ||
+    getComputedStyle(verified).fontSize !== "12px"
+  ) {
+    throw new Error("Verified-purchase labels must stay 12px with an 8px name gap");
+  }
+}
+
 function assertReviewGrid(
   grid: HTMLElement,
   columnCount: number,
   rowCount: number,
 ) {
+  assertVerifiedLabel(grid);
   const cards = Array.from(
     grid.querySelectorAll<HTMLElement>('[data-slot="product-review-card"]'),
   );
@@ -390,6 +406,7 @@ export const Mobile: Story = {
   },
   globals: { viewport: { value: "yamiMobile", isRotated: false } },
   play: async ({ canvasElement }) => {
+    assertVerifiedLabel(canvasElement);
     const viewportWidth = canvasElement.ownerDocument.defaultView?.innerWidth;
     const root = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-review-section"]',

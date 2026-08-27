@@ -1085,6 +1085,7 @@
           "--font-weight-emphasize",
           "--font-size-body-md",
           "--font-size-body-xl",
+          "--font-size-button-lg-desktop",
           "--line-height-body-md",
           "--line-height-body-xl",
           "--space-050",
@@ -1176,6 +1177,11 @@
           "--font-size-body-xl": {
             "property": "font-size",
             "selector": ".lg"
+          },
+          "--font-size-button-lg-desktop": {
+            "property": "font-size",
+            "selector": ".lg:not(.iconOnly)",
+            "media": "(min-width: 1024px)"
           },
           "--line-height-body-md": {
             "property": "line-height",

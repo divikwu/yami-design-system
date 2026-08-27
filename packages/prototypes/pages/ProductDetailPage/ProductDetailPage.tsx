@@ -78,7 +78,7 @@ function cx(...classes: Array<string | false | null | undefined>) {
 }
 
 const deliveryTimePattern =
-  /(\btomorrow\b|\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{1,2}\b|\b\d{1,2}:\d{2} (?:AM|PM)\b|明天|\d{1,2}月\d{1,2}日|(?:凌晨|上午|下午|晚上)\s*\d{1,2}:\d{2})/gi;
+  /(\btomorrow\b|\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{1,2}\b|\b\d{1,2}:\d{2} (?:AM|PM)\b|明天|\d{1,2}月\d{1,2}日(?: 星期[一二三四五六日天])?|(?:凌晨|上午|下午|晚上)\s*\d{1,2}:\d{2})/gi;
 
 function DeliveryEstimate({ children }: { children: string }) {
   return (
@@ -121,14 +121,16 @@ function DetailDisclosure({
   id,
   label,
   headingLevel = 2,
+  defaultExpanded = false,
   children,
 }: {
   id: "highlights" | "specifications" | "disclaimer";
   label: string;
   headingLevel?: 2 | 3;
+  defaultExpanded?: boolean;
   children: ReactNode;
 }) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(defaultExpanded);
   const headingId = `product-${id}`;
   const contentId = `${headingId}-content`;
   const Heading = headingLevel === 3 ? "h3" : "h2";
@@ -191,6 +193,7 @@ export function ProductDetailPage({
   specifications,
   serviceDetailsHref,
   purchaseTags = [],
+  region,
   recommendations,
   recentlyViewed,
   reviewSection,
@@ -370,12 +373,23 @@ export function ProductDetailPage({
                       <span className={styles.metaSeparator} aria-hidden="true">
                         ·
                       </span>
-                      <span>{soldCount}</span>
+                      <span data-slot="product-detail-sales-volume">
+                        {soldCount}
+                      </span>
                       <span className={styles.metaSeparator} aria-hidden="true">
                         ·
                       </span>
-                      <button className={styles.textButton} type="button">
-                        {copy.writeReview}
+                      <button
+                        className={cx(styles.textButton, styles.writeReviewButton)}
+                        type="button"
+                        data-slot="product-detail-write-review"
+                      >
+                        <span
+                          className={styles.writeReviewIcon}
+                          aria-hidden="true"
+                          data-slot="product-detail-write-review-icon"
+                        />
+                        <span>{copy.writeReview}</span>
                       </button>
                     </div>
 
@@ -488,6 +502,7 @@ export function ProductDetailPage({
                     <DetailDisclosure
                       id="highlights"
                       label={copy.productHighlights}
+                      defaultExpanded
                     >
                       <ul className={styles.highlightList}>
                         {highlights.map((highlight) => (
@@ -499,6 +514,7 @@ export function ProductDetailPage({
                     <DetailDisclosure
                       id="specifications"
                       label={copy.specifications}
+                      defaultExpanded
                     >
                       <dl className={styles.specificationList}>
                         {specifications.map((specification) => (
@@ -766,6 +782,32 @@ export function ProductDetailPage({
                                 : copy.showAllTags}
                             </button>
                           ) : null}
+                        </div>
+                      ) : null}
+                      {region ? (
+                        <div
+                          className={styles.purchaseRegionBlock}
+                          data-slot="product-detail-region"
+                        >
+                          <span
+                            className={styles.purchaseLabel}
+                            data-slot="product-detail-region-label"
+                          >
+                            {region.label}
+                          </span>
+                          <div
+                            className={styles.purchaseRegionValue}
+                            data-slot="product-detail-region-value"
+                          >
+                            <img
+                              src={region.iconSrc}
+                              alt=""
+                              width={40}
+                              height={40}
+                              data-slot="product-detail-region-icon"
+                            />
+                            <span>{region.value}</span>
+                          </div>
                         </div>
                       ) : null}
                     </div>

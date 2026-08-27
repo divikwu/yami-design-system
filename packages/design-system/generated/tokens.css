@@ -42,6 +42,7 @@
   --breakpoints-desktop-xl: 1920px;
   --breakpoints-mobile: 402px;
   --breakpoints-tablet: 768px;
+  --font-size-button-lg-desktop: 18px;
   --button-disabled: var(--color-neutral-200);
   --button-disabled-inverse: var(--color-white-400);
   --button-emphasis: var(--color-red-500);
