@@ -160,13 +160,13 @@ main.main[data-title-font-family="sans"]
 .reviewList,
 .waterfallAnchor,
 .waterfall {
-  scroll-margin-top: var(--topic-landing-tabs-height);
+  scroll-margin-top: calc(var(--topic-landing-header-height, 0px) + var(--topic-landing-tabs-height));
 }
 
 .primaryTabs {
   position: sticky;
   z-index: 10;
-  top: 0;
+  top: var(--topic-landing-header-height, 0px);
   width: 100%;
   margin-inline: 0;
   background: var(--surface-primary);
@@ -302,6 +302,10 @@ main.main[data-title-font-family="sans"]
 
   .globalHeader {
     display: block;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--surface-primary);
   }
 
   .waterfall [data-slot="product-list-load-more"] > button {

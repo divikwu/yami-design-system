@@ -496,7 +496,9 @@ export const Pc: Story = {
       primaryTabsList.dataset.style !== "a" ||
       activePrimaryTab?.textContent !== localizedExpectation.firstTab ||
       primaryTabsStyle.position !== "sticky" ||
-      primaryTabsStyle.top !== "0px" ||
+      Math.abs(parseFloat(primaryTabsStyle.top) - (
+        page.querySelector<HTMLElement>('[data-slot="topic-landing-global-header"]')?.getBoundingClientRect().height ?? 0
+      )) > 1 ||
       primaryTabsStyle.zIndex !== "10" ||
       primaryTabsStyle.maxWidth !== "none" ||
       primaryTabsStyle.marginLeft !== "0px" ||
@@ -1451,12 +1453,12 @@ export const Pc: Story = {
       : activityHeader.parentElement!;
     const activeHeaderStyle = getComputedStyle(activeHeader);
     if (
-      activeHeaderStyle.position !== "static" ||
-      activeHeaderStyle.top !== "auto" ||
-      activeHeaderStyle.zIndex !== "auto"
+      activeHeaderStyle.position !== (isDesktop ? "sticky" : "static") ||
+      activeHeaderStyle.top !== (isDesktop ? "0px" : "auto") ||
+      activeHeaderStyle.zIndex !== (isDesktop ? "20" : "auto")
     ) {
       throw new Error(
-        "Topic landing Header must scroll with the page instead of remaining sticky",
+        "Topic landing Header must remain sticky on PC and scroll normally on mobile",
       );
     }
     if (isDesktop && !footer) {

@@ -185,7 +185,8 @@ export const MobileDiscovery: Story = {
       !page.textContent?.includes("Recent Searches") ||
       !page.textContent.includes("Popular Searches") ||
       !page.textContent.includes("Hot Deals") ||
-      recentLinks?.length !== 7 ||
+      !recentLinks?.length ||
+      new Set(Array.from(recentLinks, (link) => link.offsetTop)).size > 2 ||
       popularLinks?.length !== 10 ||
       hotDealLinks?.length !== 6 ||
       hotDealsListStyle?.paddingTop !== "4px" ||

@@ -102,11 +102,15 @@
 .sectionHeading { display: flex; align-items: center; justify-content: space-between; }
 .sectionHeading button { display: inline-flex; padding: 0; border: 0; background: transparent; cursor: pointer; }
 
+.recentSearches { position: relative; }
 .recentTags { display: flex; flex-wrap: wrap; gap: var(--space-100); }
-.recentTags a,
-.recentTags button {
+.recentMeasure { position: absolute; inset: 0 0 auto; height: 0; overflow: hidden; visibility: hidden; pointer-events: none; }
+.recentTag {
   display: inline-flex;
   height: 32px;
+  flex: 0 0 auto;
+  max-width: 100%;
+  box-sizing: border-box;
   align-items: center;
   padding: 0 var(--space-150);
   border: 0;
@@ -119,8 +123,11 @@
   white-space: nowrap;
   cursor: pointer;
 }
-.recentTags .more { display: inline-flex; width: 32px; align-items: center; justify-content: center; padding: 0; }
+.recentTags .more { position: relative; display: inline-flex; width: 32px; align-items: center; justify-content: center; padding: 0; }
 .recentTags .more img { display: block; }
+.recentTags .more[aria-expanded="true"] img { transform: rotate(180deg); }
+.recentTags .more::before { position: absolute; inset: -6px; content: ""; }
+.recentTag:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 2px; }
 
 .popular {
   display: grid;
