@@ -17,7 +17,7 @@ export function createStorefrontHeader(
     ...header,
     cart: { ...header.cart, count: 2 },
     mobileSearchHref:
-      `/iframe.html?id=yami-pages-mobile-search--empty&viewMode=story&globals=locale%3A${locale}`,
+      `/iframe.html?id=yami-pages-search--mobile-discovery&viewMode=story&globals=locale%3A${locale}`,
     searchPanel: header.searchPanel
       ? {
           ...header.searchPanel,

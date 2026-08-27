@@ -158,9 +158,9 @@
 
 .hotDeals { overflow: hidden; border: var(--stroke-default) solid color-mix(in srgb, var(--border-attention) 8%, transparent); border-radius: var(--radius-lg); background: var(--surface-primary); }
 .hotDeals h2 { display: flex; height: 40px; align-items: center; gap: var(--space-100); padding: 0 var(--space-100); border-bottom: var(--stroke-default) solid color-mix(in srgb, var(--border-attention) 4%, transparent); background: linear-gradient(180deg, var(--fill-error-secondary) 0%, var(--surface-primary) 100%); color: var(--text-emphasis); }
-.hotDeals ul { margin: 0; padding: var(--space-100); list-style: none; }
+.hotDeals ul { margin: 0; padding: var(--space-050) var(--space-100); list-style: none; }
 .hotDeals a { display: block; width: 100%; min-height: 38px; color: var(--text-primary); cursor: pointer; font: inherit; font-size: var(--font-size-body-md); text-align: left; text-decoration: none; }
-.hotDealRow { display: grid; min-height: 38px; align-items: center; gap: var(--space-100); grid-template-columns: auto minmax(0, 1fr) auto; }
+.hotDealRow { display: grid; min-height: 38px; align-items: center; gap: var(--space-100); grid-template-columns: auto minmax(0, 1fr) auto; padding-right: var(--space-025); }
 .hotDealMarker { display: flex; width: var(--space-200); height: var(--space-200); align-items: center; justify-content: center; color: var(--text-emphasis); line-height: 1; }
 .hotDeals em { color: var(--text-emphasis); font-size: var(--font-size-caption-md); font-weight: var(--font-weight-normal); }
 

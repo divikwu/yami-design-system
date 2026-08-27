@@ -40,7 +40,7 @@ function ecommerceHomeStoryHref(locale: SearchResultsLocale) {
 }
 
 function mobileSearchStoryHref(locale: SearchResultsLocale) {
-  return `/?path=/story/yami-pages-mobile-search--empty&globals=locale%3A${locale}`;
+  return `/?path=/story/yami-pages-search--mobile-discovery&globals=locale%3A${locale}`;
 }
 
 function createSearchResultsStoryFixture(locale: SearchResultsLocale) {
@@ -688,7 +688,7 @@ export const Mobile: Story = {
     );
     if (
       backLink?.getAttribute("href") !==
-        "/?path=/story/yami-pages-mobile-search--empty&globals=locale%3Aen" ||
+        "/?path=/story/yami-pages-search--mobile-discovery&globals=locale%3Aen" ||
       backLink.getAttribute("target") !== "_top" ||
       layoutToggle?.getAttribute("aria-pressed") !== "false" ||
       layoutToggle.getAttribute("aria-label") !== "Switch to list view"
