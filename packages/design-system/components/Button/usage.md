@@ -43,6 +43,11 @@ Wrong — two red emphasis buttons on the same screen:
 | `md` | 40px | 40px | **Default.** Most buttons in the product |
 | `lg` | 48px | **56px** (text) · 48px (icon) | Hero CTAs, mobile primary action at the bottom of the screen, full-width sheet actions. Text-bearing `lg` bumps to 56 at ≥1024px to match PC Figma; icon-only `lg` stays 48×48. |
 
+Text-bearing `lg` uses 16px labels on mobile and 18px labels at ≥1024px
+(`--font-size-button-lg-desktop`), including ≥1440px. Line-height stays 20px.
+This applies to all hierarchies and both surfaces. Icon-only `lg` and `sm`/`md`
+typography are unchanged.
+
 All sizes meet the `tap-target` rule (≥44pt iOS / 48dp Android) via internal padding even when visible height is shorter.
 
 ## Form

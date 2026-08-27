@@ -84,6 +84,7 @@
 @media (min-width: 1024px) {
   .lg:not(.iconOnly) {
     height: 56px;
+    font-size: var(--font-size-button-lg-desktop);
   }
 }
 

@@ -42,6 +42,7 @@ export const registeredTokenReferenceTypes = {
   "breakpoints.desktop-xl": "dimension",
   "breakpoints.mobile": "dimension",
   "breakpoints.tablet": "dimension",
+  "button-lg-desktop.font-size": "dimension",
   "button.disabled": "color",
   "button.disabled-inverse": "color",
   "button.emphasis": "color",

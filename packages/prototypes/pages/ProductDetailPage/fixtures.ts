@@ -14,6 +14,11 @@ import type { ProductDetailPageProps } from "./ProductDetailPage.types";
 
 export type ProductDetailPageLocale = "zh" | "en";
 
+const koreaRegionIcon = new URL(
+  "../../../design-system/components/Header/assets/korea.png",
+  import.meta.url
+).href;
+
 const productImages = [
   ["front", "22f1eabda8bc0200d050ebcb1ebdb469", "Torriden Dive In Low Molecule Hyaluronic Acid Mask box, front view"],
   ["packaging", "c635ba73e529d262e7b2e25d3a7fb89c", "Torriden Dive In mask packaging and individual sheet"],
@@ -249,7 +254,7 @@ export function createProductDetailPageFixture(
     ranking: "#3 Most Liked Masks",
     rating: 4.7,
     ratingCount: "10",
-    soldCount: "400+ sold",
+    soldCount: "400+ sold this week",
     priceCurrent: "$16.29",
     priceOriginal: "$20.99",
     discountLabel: "22% off",
@@ -294,6 +299,11 @@ export function createProductDetailPageFixture(
     ],
     serviceDetailsHref: "#product-highlights",
     purchaseTags: ["Best Sellers", "New Arrivals", "Dryness", "Oily", "Dry"],
+    region: {
+      label: "Region",
+      value: "Korea",
+      iconSrc: koreaRegionIcon,
+    },
     recommendations: [
       recommendation("biodance-mask", "c8dcfa16d92b0def7c96453886efa36e", "BIODANCE", "Bio-Collagen Real Deep Mask, Hydrating and Firming, 4pcs", "$16.00", "$19.00", "41"),
       recommendation("mediheal-mask", "868c0f52ce4313e6e25590c6912b76be", "MEDIHEAL", "Essential Mask Madecassoside Soothing, 10 sheets", "$10.39", "$26.99", "22"),
@@ -593,9 +603,9 @@ export function createProductDetailPageFixture(
       ][index] ?? item.alt,
     })),
     title: "Torriden DIVE IN 低分子玻尿酸补水面膜 10片",
-    ranking: "面膜人气榜第 3 名",
-    soldCount: "已售 400+",
-    discountLabel: "立省 22%",
+    ranking: "面膜人气榜 No.3",
+    soldCount: "周销量 400+",
+    discountLabel: "78折",
     optionGroups: [
       {
         ...fixture.optionGroups[0],
@@ -608,7 +618,7 @@ export function createProductDetailPageFixture(
       },
       {
         ...fixture.optionGroups[1],
-        label: "包装规格",
+        label: "规格",
         options: [
           { label: "4片/盒", value: "4-sheets" },
           { label: "5片装", value: "5-sheets" },
@@ -634,6 +644,11 @@ export function createProductDetailPageFixture(
       { label: "包装规格", value: "10片" },
     ],
     purchaseTags: ["热销商品", "新品", "干燥", "油性肌", "干性肌"],
+    region: {
+      label: "地区",
+      value: "韩国",
+      iconSrc: koreaRegionIcon,
+    },
     recommendations: localizeProducts(fixture.recommendations),
     recentlyViewed: localizeProducts(fixture.recentlyViewed ?? []),
     reviewSection: {
@@ -689,7 +704,7 @@ export function createProductDetailPageFixture(
       nextImage: "下一张商品图片",
       ratingLabel: "评分",
       writeReview: "写评价",
-      bestBefore: "保质期至",
+      bestBefore: "商品有效期至",
       productHighlights: "商品亮点",
       specifications: "商品规格",
       disclaimer: "免责声明",
@@ -707,8 +722,8 @@ export function createProductDetailPageFixture(
       addToCart: "加入购物车",
       seller: "由亚米销售并发货",
       shipTo: "配送至",
-      deliveryEstimate: "明天下单，预计 8月21日 送达；请在凌晨 1:30 前完成订单。",
-      serviceGuarantees: ["满 $49 免运费", "美国境内发货", "轻松退货"],
+      deliveryEstimate: "明天 1:30 AM 前下单，预计明天（8月28日 星期五）送达。",
+      serviceGuarantees: ["满 $49 免运费", "从美国发货", "无忧退换"],
       viewDetails: "查看详情",
       tags: "标签",
       showAllTags: "展开全部",

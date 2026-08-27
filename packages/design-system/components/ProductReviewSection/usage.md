@@ -18,6 +18,10 @@ Do not use this component for a small editorial review rail. Use `ReviewList`
 when each review should link to a different product or appear as curated social
 proof on a homepage or topic page.
 
+Review-card names and verified-purchase labels have an 8px gap. Verified labels
+stay at 12px: use `caption-md` below 1440px and `caption-sm` from 1440px, without
+changing the existing caption line-height or success color.
+
 Every action has a native button, chip, select, or link semantic. Rating
 distributions expose `role="meter"`, avatars require meaningful alternative
 text, and the empty filtered state provides one action to restore all reviews.
