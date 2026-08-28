@@ -340,7 +340,6 @@
 .productSummary .bestBefore {
   margin-block-start: var(--space-100);
   padding-block-start: var(--space-150);
-  border-block-start: var(--stroke-default) solid var(--divider-default);
 }
 
 .purchaseLabel {
@@ -706,6 +705,12 @@
   margin: 0;
 }
 
+.detailTitle {
+  display: flex;
+  min-height: calc(var(--space-600) - var(--space-050));
+  align-items: center;
+}
+
 .detailToggle {
   display: flex;
   width: 100%;
@@ -815,6 +820,18 @@
   font-size: var(--font-size-body-md);
   line-height: var(--line-height-body-md);
   overflow-wrap: anywhere;
+}
+
+.mobileNutrition {
+  display: none;
+}
+
+.nutritionSheetArrow {
+  width: var(--space-200);
+  height: var(--space-200);
+  flex-shrink: 0;
+  background: currentColor;
+  mask: url("../../../design-system/assets/icons/system/arrow-right.svg") center / contain no-repeat;
 }
 
 .nutritionLabel {
@@ -1025,6 +1042,14 @@
 }
 
 @media (max-width: 1023.98px) {
+  .desktopNutrition {
+    display: none;
+  }
+
+  .mobileNutrition {
+    display: block;
+  }
+
   .recommendations :global([data-slot="product-list-container"]),
   .brandProducts :global([data-slot="product-list-container"]),
   .recentlyViewed :global([data-slot="product-list-container"]) {
@@ -1279,6 +1304,7 @@
 
   .productSummary .bestBefore {
     order: 6;
+    border-block-start: var(--stroke-default) solid var(--divider-default);
   }
 
   .purchasePanel {

@@ -53,34 +53,46 @@ async function verifyDetailDisclosures(
     marginBottom: string;
   }
 ) {
+  const mobile = details.ownerDocument.defaultView!.matchMedia("(max-width: 1023.98px)").matches;
+  if (mobile) {
+    const highlights = details.querySelector<HTMLElement>('[data-pdp-detail-module="highlights"]')!;
+    if (highlights.querySelector("button") || highlights.querySelector('[data-slot="product-detail-disclosure-arrow"]') || highlights.querySelector<HTMLElement>('[data-slot="product-detail-disclosure-content"]')!.hidden) {
+      throw new Error("Mobile product highlights must remain expanded with a static heading and no collapse icon");
+    }
+  }
   const modules = Array.from(
     details.querySelectorAll<HTMLElement>("[data-pdp-detail-module]")
-  );
-  const triggers = Array.from(
-    details.querySelectorAll<HTMLButtonElement>(
-      '[data-slot="product-detail-disclosure-trigger"]'
-    )
-  );
-  const contents = Array.from(
-    details.querySelectorAll<HTMLElement>(
-      '[data-slot="product-detail-disclosure-content"]'
-    )
-  );
-  const arrows = Array.from(
-    details.querySelectorAll<HTMLElement>(
-      '[data-slot="product-detail-disclosure-arrow"]'
-    )
-  );
-  const defaultExpanded = [true, true, false];
+  ).filter((module) => !mobile || module.dataset.pdpDetailModule !== "highlights");
+  const triggers = modules.map((module) => module.querySelector<HTMLButtonElement>('[data-slot="product-detail-disclosure-trigger"]')!);
+  if (mobile) {
+    await expect(modules).toHaveLength(2);
+    for (const [index, trigger] of triggers.entries()) {
+      await expect(trigger).toHaveAttribute("aria-haspopup", "dialog");
+      await expect(trigger).not.toHaveAttribute("aria-expanded");
+      await expect(modules[index].querySelector('[data-slot="product-detail-disclosure-content"]')).toBeNull();
+      await expect(modules[index].querySelector('[data-slot="product-detail-disclosure-arrow"]')).toHaveAttribute("data-direction", "right");
+      await userEvent.click(trigger);
+      const sheet = modules[index].querySelector("dialog")!;
+      await expect(sheet).toBeVisible();
+      await expect(sheet.querySelector("h2")).toHaveTextContent(trigger.textContent!);
+      await userEvent.keyboard("{Escape}");
+      await expect(modules[index].querySelector("dialog")).toBeNull();
+      await expect(trigger).toHaveFocus();
+    }
+    return;
+  }
+  const contents = modules.map((module) => module.querySelector<HTMLElement>('[data-slot="product-detail-disclosure-content"]')!);
+  const arrows = modules.map((module) => module.querySelector<HTMLElement>('[data-slot="product-detail-disclosure-arrow"]')!);
+  const defaultExpanded = mobile ? [true, false] : [true, true, false];
   const initialArrowMasks = arrows.map(
     (arrow) => getComputedStyle(arrow).maskImage
   );
 
   if (
-    modules.length !== 3 ||
-    triggers.length !== 3 ||
-    contents.length !== 3 ||
-    arrows.length !== 3 ||
+    modules.length !== defaultExpanded.length ||
+    triggers.some((trigger) => !trigger) ||
+    contents.some((content) => !content) ||
+    arrows.some((arrow) => !arrow) ||
     triggers.some(
       (trigger, index) => {
         const expanded = defaultExpanded[index]!;
@@ -1357,7 +1369,7 @@ export const ChineseRegression: Story = {
     }
 
     const chineseHeadings = canvasElement.querySelectorAll<HTMLElement>(
-      '[data-slot="product-detail-seller-label"], [data-pdp-module="recommendations"] [data-slot="product-list-title"], [data-slot="product-review-section-title"], [data-pdp-module="recently-viewed"] [data-slot="product-list-title"], [data-slot="product-detail-disclosure-trigger"]'
+      '[data-slot="product-detail-seller-label"], [data-pdp-module="recommendations"] [data-slot="product-list-title"], [data-slot="product-review-section-title"], [data-pdp-module="recently-viewed"] [data-slot="product-list-title"], #product-highlights > span, [data-slot="product-detail-disclosure-trigger"]'
     );
     const englishBrandName = canvasElement.querySelector<HTMLElement>(
       '[data-pdp-module="brand-products"] [data-slot="product-list-title"] > span'

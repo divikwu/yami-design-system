@@ -146,6 +146,8 @@ export interface ProductDetailPageProps
   highlights: readonly string[];
   specifications: readonly ProductDetailSpecification[];
   nutrition?: ProductDetailNutrition;
+  /** Existing label translations available to the Mobile nutrition sheet. */
+  nutritionTranslations?: Partial<Record<"en" | "zh", ProductDetailNutrition>>;
   ingredients?: ProductDetailIngredients;
   serviceDetailsHref?: string;
   purchaseTags?: readonly string[];

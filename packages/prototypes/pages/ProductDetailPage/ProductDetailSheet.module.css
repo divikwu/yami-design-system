@@ -1,0 +1,163 @@
+/* Keep scroll locking independent of the gallery dialog's inline overflow restoration. */
+:global(html:has([data-pdp-detail-sheet][open])) {
+  overflow: hidden;
+}
+
+.sheet {
+  position: fixed;
+  inset: auto 0 0;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  height: calc(100dvh - max(env(safe-area-inset-top), var(--space-600)));
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-surface-default) var(--radius-surface-default) 0 0;
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  font-family: var(--font-family-ios);
+  font-size: var(--font-size-body-md);
+  line-height: var(--line-height-body-md);
+  overflow: hidden;
+}
+
+.sheet[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.sheet::backdrop {
+  background: var(--overlay-default);
+}
+
+.header {
+  flex: 0 0 auto;
+  padding-inline: var(--space-200);
+  border-block-end: var(--stroke-default) solid var(--divider-default);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-block: var(--space-150);
+}
+
+/* Match the 24px close control while retaining Button's 44px touch target. */
+.sheet .closeButton {
+  width: var(--space-300);
+  height: var(--space-300);
+}
+
+.sheet .closeButton,
+.sheet .closeButton:not([aria-disabled="true"]):hover,
+.sheet .closeButton:not([aria-disabled="true"]):active {
+  background-color: transparent;
+}
+
+.sheet .title {
+  margin: 0;
+  padding-block-end: var(--space-150);
+  font-size: var(--font-size-heading-2xl);
+  font-weight: var(--font-weight-emphasize);
+  line-height: var(--line-height-heading-2xl);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-150);
+  min-height: 0;
+  padding: var(--space-200) var(--space-200) max(var(--space-800), env(safe-area-inset-bottom));
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+}
+
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-050);
+}
+
+.notice img {
+  flex-shrink: 0;
+}
+
+.notice p {
+  margin: 0;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-250);
+  padding: var(--space-100) var(--space-100) var(--space-250);
+  border-radius: var(--radius-surface-default);
+  background: var(--surface-secondary);
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-100);
+}
+
+.source,
+.language select {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: calc(var(--space-600) - var(--space-050));
+  padding: var(--space-100) var(--space-200);
+  border: var(--stroke-default) solid var(--border-default);
+  border-radius: var(--radius-component-default);
+  background: var(--button-tertiary);
+  color: var(--text-primary);
+  font: inherit;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.language {
+  position: relative;
+}
+
+.language select {
+  appearance: none;
+  color: transparent;
+}
+
+.language select option {
+  color: var(--text-primary);
+  background: var(--surface-primary);
+}
+
+/* Keep the native full-width select interactive behind its centered label. */
+.languageValue {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-050);
+  pointer-events: none;
+}
+
+.source:focus-visible,
+.language select:focus-visible {
+  outline: var(--stroke-thick) solid var(--border-focus);
+  outline-offset: var(--space-025);
+}
+
+.table {
+  min-width: 0;
+}
+
+.table > div {
+  width: calc(100% - 2 * var(--space-025));
+  margin-inline: var(--space-025);
+}

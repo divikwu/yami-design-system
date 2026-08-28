@@ -78,4 +78,13 @@ describe("Beverage product detail fixture", () => {
       ? "本信息由 AI 辅助从商品标签中提取。为获取准确、最新的信息，请以实物包装为准。"
       : "This information was extracted from the product label with AI assistance. Please refer to the actual product packaging for the most accurate and up-to-date information.");
   });
+
+  it("reuses the current localized nutrition data for the Mobile language selector", () => {
+    const fixture = createBeverageProductDetailPageFixture();
+    for (const locale of ["en", "zh"] as const) {
+      expect(fixture.nutritionTranslations?.[locale]).toEqual(createBeverageProductDetailPageFixture(locale).nutrition);
+    }
+    expect(fixture.nutritionTranslations?.zh?.rows.map(({ amount, dailyValue }) => [amount, dailyValue]))
+      .toEqual(fixture.nutritionTranslations?.en?.rows.map(({ amount, dailyValue }) => [amount, dailyValue]));
+  });
 });

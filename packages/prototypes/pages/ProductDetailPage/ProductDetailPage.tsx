@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, type MouseEvent, type ReactNode, useRef, useState } from "react";
+import { type CSSProperties, type MouseEvent, type ReactNode, useLayoutEffect, useRef, useState } from "react";
 
 import {
   Badge,
@@ -20,6 +20,9 @@ import {
 
 import styles from "./ProductDetailPage.module.css";
 import type { ProductDetailPageProps } from "./ProductDetailPage.types";
+import { ProductNutritionSheet } from "./ProductNutritionSheet";
+import { ProductDetailSheet } from "./ProductDetailSheet";
+import { ProductNutritionTable } from "./ProductNutritionTable";
 
 const heartIcon = new URL(
   "../../../design-system/assets/icons/action/heart.svg",
@@ -123,51 +126,75 @@ function DetailDisclosure({
   label,
   headingLevel = 2,
   defaultExpanded = false,
+  locale = "en",
+  className,
   children,
 }: {
   id: "highlights" | "specifications" | "nutrition" | "ingredients" | "disclaimer";
   label: string;
   headingLevel?: 2 | 3;
   defaultExpanded?: boolean;
+  locale?: "en" | "zh";
+  className?: string;
   children: ReactNode;
 }) {
   const [expanded, setExpanded] = useState(defaultExpanded);
+  const [mobile, setMobile] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  useLayoutEffect(() => {
+    const viewport = window.matchMedia("(max-width: 1023.98px)");
+    const update = () => {
+      setMobile(viewport.matches);
+      if (!viewport.matches) setSheetOpen(false);
+    };
+    update();
+    viewport.addEventListener("change", update);
+    return () => viewport.removeEventListener("change", update);
+  }, []);
+  const mobileHighlights = mobile && id === "highlights";
+  const mobileSheet = mobile && id !== "highlights" && id !== "nutrition";
+  const contentExpanded = mobileHighlights || expanded;
   const headingId = `product-${id}`;
   const contentId = `${headingId}-content`;
   const Heading = headingLevel === 3 ? "h3" : "h2";
 
   return (
     <div
-      className={styles.detailModule}
-      data-expanded={expanded}
+      className={cx(styles.detailModule, className)}
+      data-expanded={mobileSheet ? undefined : contentExpanded}
       data-pdp-detail-module={id}
     >
       <Heading id={headingId}>
-        <button
+        {mobileHighlights ? <span className={styles.detailTitle}>{label}</span> : <button
           className={styles.detailToggle}
           type="button"
-          aria-controls={contentId}
-          aria-expanded={expanded}
+          aria-controls={mobileSheet ? (sheetOpen ? `product-${id}-sheet` : undefined) : contentId}
+          aria-haspopup={mobileSheet ? "dialog" : undefined}
+          aria-expanded={mobileSheet ? undefined : expanded}
           data-slot="product-detail-disclosure-trigger"
-          onClick={() => setExpanded((current) => !current)}
+          onClick={() => mobileSheet ? setSheetOpen(true) : setExpanded((current) => !current)}
         >
           <span>{label}</span>
           <span
-            className={styles.detailArrow}
+            className={mobileSheet ? styles.nutritionSheetArrow : styles.detailArrow}
             aria-hidden="true"
-            data-direction={expanded ? "up" : "down"}
+            data-direction={mobileSheet ? "right" : expanded ? "up" : "down"}
             data-slot="product-detail-disclosure-arrow"
           />
-        </button>
+        </button>}
       </Heading>
-      <div
+      {mobileSheet ? sheetOpen && (
+        <ProductDetailSheet id={id} title={label} closeLabel={locale === "zh" ? `关闭${label}` : `Close ${label}`} onClose={() => setSheetOpen(false)}>
+          {children}
+        </ProductDetailSheet>
+      ) : <div
         className={styles.detailContent}
         id={contentId}
         data-slot="product-detail-disclosure-content"
-        hidden={!expanded}
+        hidden={!contentExpanded}
       >
         {children}
-      </div>
+      </div>}
     </div>
   );
 }
@@ -194,6 +221,7 @@ export function ProductDetailPage({
   highlights,
   specifications,
   nutrition,
+  nutritionTranslations,
   ingredients,
   serviceDetailsHref,
   purchaseTags = [],
@@ -207,6 +235,7 @@ export function ProductDetailPage({
   ...rest
 }: ProductDetailPageProps) {
   const galleryRef = useRef<ProductMediaGalleryHandle>(null);
+  const [nutritionOpen, setNutritionOpen] = useState(false);
   function openSourcePreview(event: MouseEvent<HTMLAnchorElement>, sourceHref: string) {
     if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     const sourceImage = images.find((image) =>
@@ -575,6 +604,7 @@ export function ProductDetailPage({
                     <DetailDisclosure
                       id="specifications"
                       label={copy.specifications}
+                      locale={rest.lang?.startsWith("zh") ? "zh" : "en"}
                       defaultExpanded
                     >
                       <dl className={styles.specificationList}>
@@ -588,38 +618,9 @@ export function ProductDetailPage({
                     </DetailDisclosure>
 
                     {nutrition && (
-                      <DetailDisclosure id="nutrition" label={nutrition.title} defaultExpanded>
+                      <DetailDisclosure id="nutrition" label={nutrition.title} defaultExpanded className={styles.desktopNutrition}>
                         <div className={styles.nutritionContent}>
-                          <div className={styles.nutritionLabel}>
-                            <table className={styles.nutritionTable} aria-label={nutrition.title}>
-                              <caption>
-                                <h3 className={styles.nutritionTitle}>{nutrition.title}</h3>
-                                <div className={styles.nutritionServing}>
-                                  <p>{nutrition.servingsPerContainer}</p>
-                                  <p className={styles.nutritionServingSize}>
-                                    <span>{nutrition.servingSizeLabel}</span>
-                                    <span>{nutrition.servingSize}</span>
-                                  </p>
-                                </div>
-                                <div className={styles.nutritionCalories}>
-                                  <p>{nutrition.amountPerServingLabel}</p>
-                                  <p><span>{nutrition.calories.label}</span><span>{nutrition.calories.value}</span></p>
-                                </div>
-                              </caption>
-                              <thead>
-                                <tr><td aria-hidden="true" /><th scope="col">{nutrition.dailyValueLabel}</th></tr>
-                              </thead>
-                              <tbody>
-                                {nutrition.rows.map((row) => (
-                                  <tr key={row.label} className={cx(row.indented && styles.nutritionIndented, row.groupStart && styles.nutritionGroupStart)}>
-                                    <th scope="row">{row.label} <span className={styles.nutritionAmount}>{row.amount ?? "—"}</span></th>
-                                    <td>{row.dailyValue ?? "—"}</td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                            <p className={styles.nutritionFootnote}>{nutrition.dailyValueNote}</p>
-                          </div>
+                          <ProductNutritionTable nutrition={nutrition} />
                           <p className={styles.disclaimer}>{nutrition.note}</p>
                           <a
                             className={styles.detailSource}
@@ -632,8 +633,28 @@ export function ProductDetailPage({
                       </DetailDisclosure>
                     )}
 
+                    {nutrition && (
+                      <div className={cx(styles.detailModule, styles.mobileNutrition)}>
+                        <h2>
+                          <button className={styles.detailToggle} type="button" aria-haspopup="dialog" aria-controls={nutritionOpen ? "product-nutrition-sheet" : undefined} onClick={() => setNutritionOpen(true)}>
+                            <span>{nutrition.title}</span>
+                            <span className={styles.nutritionSheetArrow} aria-hidden="true" />
+                          </button>
+                        </h2>
+                        {nutritionOpen && (
+                          <ProductNutritionSheet
+                            nutrition={nutrition}
+                            translations={nutritionTranslations}
+                            locale={rest.lang?.startsWith("zh") ? "zh" : "en"}
+                            onSourceClick={openSourcePreview}
+                            onClose={() => setNutritionOpen(false)}
+                          />
+                        )}
+                      </div>
+                    )}
+
                     {ingredients && (
-                      <DetailDisclosure id="ingredients" label={ingredients.title} defaultExpanded>
+                      <DetailDisclosure id="ingredients" label={ingredients.title} locale={rest.lang?.startsWith("zh") ? "zh" : "en"} defaultExpanded>
                         <div className={styles.ingredientsContent}>
                           <p>{ingredients.body}</p>
                           <p><strong>{ingredients.allergenLabel}</strong> {ingredients.allergens}</p>
@@ -651,6 +672,7 @@ export function ProductDetailPage({
                     <DetailDisclosure
                       id="disclaimer"
                       label={copy.disclaimer}
+                      locale={rest.lang?.startsWith("zh") ? "zh" : "en"}
                       headingLevel={3}
                     >
                       <p className={styles.disclaimer}>{copy.disclaimerBody}</p>
