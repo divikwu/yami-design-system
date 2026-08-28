@@ -1,7 +1,7 @@
 import type { ProductListItem } from "@yami/design-system";
 
 import { createProductDetailPageFixture, type ProductDetailPageLocale } from "./fixtures";
-import type { ProductDetailPageProps } from "./ProductDetailPage.types";
+import type { ProductDetailNutrition, ProductDetailPageProps } from "./ProductDetailPage.types";
 
 export const beverageProductSource = {
   url: "https://www.yami.com/us/en/p/binggrae-banana-flavored-milk-drink-6pack-200ml/1020002371",
@@ -106,6 +106,42 @@ const reviewSummaries = [
   },
 ] as const;
 
+function createBeverageNutrition(locale: ProductDetailPageLocale): ProductDetailNutrition {
+  const zh = locale === "zh";
+  return {
+    title: zh ? "营养成分表" : "Nutrition Facts",
+    servingSizeLabel: zh ? "每份用量" : "Serving size",
+    servingSize: zh ? "1盒（200毫升）" : "1 carton (200ml)",
+    servingsPerContainer: zh ? "每包装含6份" : "6 servings per container",
+    amountPerServingLabel: zh ? "每份含量" : "Amount per serving",
+    calories: { label: zh ? "热量（千卡）" : "Calories", value: "160" },
+    dailyValueLabel: zh ? "每日参考值%*" : "% Daily Value*",
+    rows: [
+      { label: zh ? "总脂肪" : "Total Fat", amount: "5.5g", dailyValue: "8%" },
+      { label: zh ? "饱和脂肪" : "Saturated Fat", amount: "2.7g", dailyValue: "14%", indented: true },
+      { label: zh ? "反式脂肪" : "Trans Fat", amount: "0g", indented: true },
+      { label: zh ? "胆固醇" : "Cholesterol", amount: "20mg", dailyValue: "6%" },
+      { label: zh ? "钠" : "Sodium", amount: "85mg", dailyValue: "4%" },
+      { label: zh ? "总碳水化合物" : "Total Carbohydrate", amount: "22g", dailyValue: "7%" },
+      { label: zh ? "膳食纤维" : "Dietary Fiber", amount: "0g", dailyValue: "0%", indented: true },
+      { label: zh ? "糖" : "Sugars", amount: "21g", indented: true },
+      { label: zh ? "蛋白质" : "Protein", amount: "5.2g" },
+      { label: zh ? "维生素A" : "Vitamin A", dailyValue: "2%", groupStart: true },
+      { label: zh ? "维生素C" : "Vitamin C", dailyValue: "4%" },
+      { label: zh ? "钙" : "Calcium", dailyValue: "18%" },
+      { label: zh ? "铁" : "Iron", dailyValue: "1%" },
+    ],
+    dailyValueNote: zh
+      ? "*每日参考值百分比沿用原标签，基于每日2000千卡饮食。— 表示标签未列出，并非0。"
+      : "*Daily Values follow the source label and are based on a 2,000-calorie diet. — means not listed, not zero.",
+    note: zh
+      ? "本信息由 AI 辅助从商品标签中提取。为获取准确、最新的信息，请以实物包装为准。"
+      : "This information was extracted from the product label with AI assistance. Please refer to the actual product packaging for the most accurate and up-to-date information.",
+    sourceHref: beverageProductSource.labelImage,
+    sourceLabel: zh ? "查看营养及配料标签原图" : "View nutrition and ingredients label",
+  };
+}
+
 export function createBeverageProductDetailPageFixture(
   locale: ProductDetailPageLocale = "en",
 ): ProductDetailPageProps {
@@ -176,38 +212,8 @@ export function createBeverageProductDetailPageFixture(
       { label: zh ? "饮用建议" : "Serving suggestion", value: zh ? "冰镇饮用更佳" : "Best served chilled" },
       { label: zh ? "含糖情况" : "Sugar", value: zh ? "含糖" : "Contains sugar" },
     ],
-    nutrition: {
-      title: zh ? "营养成分表" : "Nutrition Facts",
-      servingSizeLabel: zh ? "每份用量" : "Serving size",
-      servingSize: zh ? "1盒（200毫升）" : "1 carton (200ml)",
-      servingsPerContainer: zh ? "每包装含6份" : "6 servings per container",
-      amountPerServingLabel: zh ? "每份含量" : "Amount per serving",
-      calories: { label: zh ? "热量（千卡）" : "Calories", value: "160" },
-      dailyValueLabel: zh ? "每日参考值%*" : "% Daily Value*",
-      rows: [
-        { label: zh ? "总脂肪" : "Total Fat", amount: "5.5g", dailyValue: "8%" },
-        { label: zh ? "饱和脂肪" : "Saturated Fat", amount: "2.7g", dailyValue: "14%", indented: true },
-        { label: zh ? "反式脂肪" : "Trans Fat", amount: "0g", indented: true },
-        { label: zh ? "胆固醇" : "Cholesterol", amount: "20mg", dailyValue: "6%" },
-        { label: zh ? "钠" : "Sodium", amount: "85mg", dailyValue: "4%" },
-        { label: zh ? "总碳水化合物" : "Total Carbohydrate", amount: "22g", dailyValue: "7%" },
-        { label: zh ? "膳食纤维" : "Dietary Fiber", amount: "0g", dailyValue: "0%", indented: true },
-        { label: zh ? "糖" : "Sugars", amount: "21g", indented: true },
-        { label: zh ? "蛋白质" : "Protein", amount: "5.2g" },
-        { label: zh ? "维生素A" : "Vitamin A", dailyValue: "2%", groupStart: true },
-        { label: zh ? "维生素C" : "Vitamin C", dailyValue: "4%" },
-        { label: zh ? "钙" : "Calcium", dailyValue: "18%" },
-        { label: zh ? "铁" : "Iron", dailyValue: "1%" },
-      ],
-      dailyValueNote: zh
-        ? "*每日参考值百分比沿用原标签，基于每日2000千卡饮食。— 表示标签未列出，并非0。"
-        : "*Daily Values follow the source label and are based on a 2,000-calorie diet. — means not listed, not zero.",
-      note: zh
-        ? "本信息由 AI 辅助从商品标签中提取。为获取准确、最新的信息，请以实物包装为准。"
-        : "This information was extracted from the product label with AI assistance. Please refer to the actual product packaging for the most accurate and up-to-date information.",
-      sourceHref: beverageProductSource.labelImage,
-      sourceLabel: zh ? "查看营养及配料标签原图" : "View nutrition and ingredients label",
-    },
+    nutrition: createBeverageNutrition(locale),
+    nutritionTranslations: { en: createBeverageNutrition("en"), zh: createBeverageNutrition("zh") },
     ingredients: {
       title: zh ? "配料" : "Ingredients",
       body: zh

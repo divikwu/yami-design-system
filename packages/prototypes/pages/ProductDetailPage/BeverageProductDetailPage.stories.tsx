@@ -38,6 +38,7 @@ export const Mobile: Story = {
 
 const verifyBeveragePage: Story["play"] = async ({ canvasElement, globals }) => {
   const locale = globals.locale === "zh" ? "zh" : "en";
+  const mobile = canvasElement.ownerDocument.defaultView!.matchMedia("(max-width: 1023.98px)").matches;
   const fixture = createBeverageProductDetailPageFixture(locale);
   const canvas = within(canvasElement);
   await expect(canvas.getByRole("heading", { level: 1, name: fixture.title })).toBeVisible();
@@ -52,15 +53,17 @@ const verifyBeveragePage: Story["play"] = async ({ canvasElement, globals }) => 
   await expect(bestBefore.previousElementSibling).toBe(canvasElement.querySelector('[data-slot="product-detail-price"]'));
   await expect(getComputedStyle(bestBefore.previousElementSibling!).paddingTop).toBe("0px");
   await expect(getComputedStyle(bestBefore.previousElementSibling!).paddingBottom).toBe("0px");
-  await expect(getComputedStyle(bestBefore).borderTopWidth).toBe("1px");
-  await expect(getComputedStyle(bestBefore).borderTopColor).toBe("rgba(0, 0, 0, 0.08)");
+  await expect(getComputedStyle(bestBefore).borderTopWidth).toBe(mobile ? "1px" : "0px");
+  await expect(getComputedStyle(bestBefore).borderTopStyle).toBe(mobile ? "solid" : "none");
   await expect(bestBefore.getBoundingClientRect().top).toBeGreaterThanOrEqual(bestBefore.previousElementSibling!.getBoundingClientRect().bottom);
   await expect(canvasElement.querySelector('[data-pdp-add-to-cart]')).toBeEnabled();
   await expect(canvasElement.querySelectorAll('[data-slot="product-media-gallery-thumbnail"]')).toHaveLength(11);
   await expect(canvasElement.querySelector('[data-pdp-module="brand-products"]')).toBeNull();
   await expect(canvasElement.querySelector('[data-pdp-module="recently-viewed"]')).toBeNull();
-  await expect(canvas.getByText(locale === "zh" ? /含牛奶。/ : /Contains milk\./)).toBeVisible();
-  await expect(canvas.getByText(locale === "zh" ? "开封后冷藏" : "Refrigerate after opening", { exact: true })).toBeVisible();
+  if (!mobile) {
+    await expect(canvas.getByText(locale === "zh" ? /含牛奶。/ : /Contains milk\./)).toBeVisible();
+    await expect(canvas.getByText(locale === "zh" ? "开封后冷藏" : "Refrigerate after opening", { exact: true })).toBeVisible();
+  }
 
   await userEvent.click(canvas.getByRole("button", { name: fixture.copy.increaseQuantity, exact: true }));
   await expect(canvasElement.querySelector("output")).toHaveTextContent("2");
@@ -75,12 +78,20 @@ const verifyBeveragePage: Story["play"] = async ({ canvasElement, globals }) => 
 
   const disclosure = canvas.getByRole("button", { name: fixture.copy.specifications, exact: true });
   await userEvent.click(disclosure);
-  await expect(disclosure).toHaveAttribute("aria-expanded", "false");
-  await userEvent.click(disclosure);
-  await expect(disclosure).toHaveAttribute("aria-expanded", "true");
+  if (mobile) {
+    await expect(disclosure).toHaveAttribute("aria-haspopup", "dialog");
+    const sheet = canvas.getByRole("dialog", { name: fixture.copy.specifications });
+    await expect(sheet).toBeVisible();
+    await expect(within(sheet).getByText(locale === "zh" ? "开封后冷藏" : "Refrigerate after opening", { exact: true })).toBeVisible();
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(canvas.queryByRole("dialog")).toBeNull());
+    await expect(disclosure).toHaveFocus();
+  } else {
+    await expect(disclosure).toHaveAttribute("aria-expanded", "false");
+    await userEvent.click(disclosure);
+    await expect(disclosure).toHaveAttribute("aria-expanded", "true");
+  }
 
-  const nutrition = canvas.getByRole("table", { name: fixture.nutrition!.title });
-  const mobile = canvasElement.ownerDocument.defaultView!.matchMedia("(max-width: 1023.98px)").matches;
   {
     const trigger = canvas.getByRole("button", { name: fixture.copy.openImagePreview });
     await userEvent.click(trigger);
@@ -91,6 +102,47 @@ const verifyBeveragePage: Story["play"] = async ({ canvasElement, globals }) => 
     await waitFor(() => expect(canvas.queryByRole("dialog")).toBeNull());
     await expect(trigger).toHaveFocus();
   }
+  const nutritionTrigger = canvas.getByRole("button", { name: fixture.nutrition!.title, exact: true });
+  const root = canvasElement.ownerDocument.documentElement;
+  const originalOverflow = root.style.overflow;
+  let sheetScrollTop = 0;
+  if (mobile) {
+    await expect(canvas.queryByRole("table", { name: fixture.nutrition!.title })).toBeNull();
+    await expect(nutritionTrigger).toHaveAttribute("aria-haspopup", "dialog");
+    await expect(nutritionTrigger).not.toHaveAttribute("aria-expanded");
+    await userEvent.click(nutritionTrigger);
+    const sheet = canvas.getByRole("dialog", { name: fixture.nutrition!.title });
+    await expect(sheet).toBeVisible();
+    await expect(getComputedStyle(sheet).backgroundColor).toBe("rgb(255, 255, 255)");
+    await expect(getComputedStyle(sheet).borderTopLeftRadius).toBe("12px");
+    await expect(getComputedStyle(root).overflow).toBe("hidden");
+    await expect(sheet.getBoundingClientRect().bottom).toBeCloseTo(root.clientHeight, 0);
+    const sheetCanvas = within(sheet);
+    const close = sheetCanvas.getByRole("button", { name: locale === "zh" ? "关闭营养成分表" : "Close nutrition facts" });
+    await expect(close).toHaveFocus();
+    const language = sheetCanvas.getByRole("combobox", { name: locale === "zh" ? "营养成分表语言" : "Nutrition facts language" });
+    await expect(language).toHaveValue(locale);
+    const otherLocale = locale === "en" ? "zh" : "en";
+    await userEvent.selectOptions(language, otherLocale);
+    const otherTable = sheetCanvas.getByRole("table", { name: fixture.nutritionTranslations![otherLocale]!.title });
+    await expect(within(otherTable).getByText("160", { exact: true })).toBeVisible();
+    await expect(otherTable.closest("[lang]")).toHaveAttribute("lang", otherLocale);
+    await userEvent.selectOptions(language, locale);
+    const content = sheet.querySelector<HTMLElement>('[data-slot="product-nutrition-sheet-content"]')!;
+    const heading = sheetCanvas.getByRole("heading", { level: 2 });
+    const headingTop = heading.getBoundingClientRect().top;
+    await expect(content.scrollHeight).toBeGreaterThan(content.clientHeight);
+    content.scrollTop = 120;
+    sheetScrollTop = content.scrollTop;
+    await expect(sheetScrollTop).toBeGreaterThan(0);
+    await expect(heading.getBoundingClientRect().top).toBe(headingTop);
+    content.scrollTop = 0;
+  } else {
+    await expect(nutritionTrigger).toHaveAttribute("aria-expanded", "true");
+    await expect(nutritionTrigger).not.toHaveAttribute("aria-haspopup");
+    await expect(canvas.queryByRole("dialog")).toBeNull();
+  }
+  const nutrition = canvas.getByRole("table", { name: fixture.nutrition!.title });
   await expect(nutrition).toBeVisible();
   await expect(within(nutrition).getAllByRole("row")).toHaveLength(14);
   await expect(within(nutrition).getByRole("heading", { level: 3, name: fixture.nutrition!.title })).toBeVisible();
@@ -131,9 +183,19 @@ const verifyBeveragePage: Story["play"] = async ({ canvasElement, globals }) => 
   await expect(getComputedStyle(indented).paddingBlockStart).toBe("4px");
   await expect(getComputedStyle(indented).paddingBlockEnd).toBe("4px");
   await expect(getComputedStyle(indented).fontSize).toBe("14px");
-  await expect(canvas.getByText(fixture.nutrition!.note!, { exact: true })).toBeVisible();
+  const nutritionScope = mobile ? within(canvas.getByRole("dialog", { name: fixture.nutrition!.title })) : canvas;
+  await expect(nutritionScope.getByText(fixture.nutrition!.note!, { exact: true })).toBeVisible();
   for (const source of [fixture.nutrition!, fixture.ingredients!]) {
-    const sourceLink = canvas.getByRole("link", { name: source.sourceLabel, exact: true });
+    const inSheet = mobile;
+    const isNutrition = source === fixture.nutrition;
+    const sourceTrigger = isNutrition ? nutritionTrigger : canvas.getByRole("button", { name: source.title, exact: true });
+    if (mobile && !isNutrition) {
+      await userEvent.click(sourceTrigger);
+      await expect(canvas.getByRole("dialog", { name: source.title })).toBeVisible();
+      await expect(within(canvas.getByRole("dialog", { name: source.title })).getByText(locale === "zh" ? /含牛奶。/ : /Contains milk\./)).toBeVisible();
+    }
+    const sourceScope = inSheet ? within(canvas.getByRole("dialog", { name: source.title })) : canvas;
+    const sourceLink = sourceScope.getByRole("link", { name: inSheet && isNutrition ? (locale === "zh" ? "查看标签原图" : "View original label") : source.sourceLabel, exact: true });
     await expect(sourceLink).toHaveAttribute("href", source.sourceHref);
     {
       const sourceIndex = fixture.images.findIndex((image) => image.src === source.sourceHref);
@@ -154,23 +216,54 @@ const verifyBeveragePage: Story["play"] = async ({ canvasElement, globals }) => 
         }
         await expect(within(preview).getByRole("img")).toHaveAttribute("alt", fixture.images[9].alt);
         await userEvent.keyboard("{Escape}");
-        await waitFor(() => expect(canvas.queryByRole("dialog")).toBeNull());
+        await waitFor(() => expect(canvas.queryByRole("dialog", { name: fixture.copy.galleryLabel })).toBeNull());
         await expect(sourceLink).toHaveFocus();
         await expect(canvasElement.ownerDocument.documentElement.style.overflow).toBe(originalOverflow);
+        if (inSheet) {
+          await expect(canvas.getByRole("dialog", { name: source.title })).toBeVisible();
+          await expect(getComputedStyle(root).overflow).toBe("hidden");
+        }
+      }
+      if (inSheet) {
+        const sheet = canvas.getByRole("dialog", { name: source.title });
+        const pageScrollTop = root.scrollTop;
+        await userEvent.click(sheet.querySelector("button")!);
+        await waitFor(() => expect(canvas.queryByRole("dialog")).toBeNull());
+        await expect(sourceTrigger).toHaveFocus();
+        await expect(root.scrollTop).toBe(pageScrollTop);
+        await expect(root.style.overflow).toBe(originalOverflow);
       }
       await userEvent.click(thumbnails[0]!);
     }
   }
   await expect(canvasElement.querySelectorAll('[data-pdp-detail-module]')).toHaveLength(5);
-  for (const title of [fixture.nutrition!.title, fixture.ingredients!.title]) {
+  for (const title of mobile ? [fixture.ingredients!.title, fixture.copy.disclaimer] : [fixture.nutrition!.title, fixture.ingredients!.title]) {
     const toggle = canvas.getByRole("button", { name: title, exact: true });
     await userEvent.click(toggle);
+    if (mobile) {
+      await expect(toggle).toHaveAttribute("aria-haspopup", "dialog");
+      await expect(canvas.getByRole("dialog", { name: title })).toBeVisible();
+      await userEvent.keyboard("{Escape}");
+      await waitFor(() => expect(canvas.queryByRole("dialog")).toBeNull());
+      await expect(toggle).toHaveFocus();
+      continue;
+    }
     await expect(toggle).toHaveAttribute("aria-expanded", "false");
     toggle.focus();
     await userEvent.keyboard("{Enter}");
     await expect(toggle).toHaveAttribute("aria-expanded", "true");
   }
-  await expect(nutrition).toBeVisible();
+  if (mobile) {
+    await userEvent.click(nutritionTrigger);
+    await expect(canvas.getByRole("dialog", { name: fixture.nutrition!.title })).toBeVisible();
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(canvas.queryByRole("dialog")).toBeNull());
+    await expect(nutritionTrigger).toHaveFocus();
+    await expect(root.style.overflow).toBe(originalOverflow);
+    await expect(canvas.queryByRole("table", { name: fixture.nutrition!.title })).toBeNull();
+  } else {
+    await expect(nutrition).toBeVisible();
+  }
 
   const document = canvasElement.ownerDocument;
   await expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(document.documentElement.clientWidth + 1);

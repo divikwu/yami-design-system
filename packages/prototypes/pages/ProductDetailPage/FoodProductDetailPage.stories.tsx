@@ -38,6 +38,7 @@ export const Mobile: Story = {
 
 const verifyFoodPage: Story["play"] = async ({ canvasElement, globals }) => {
   const locale = globals.locale === "zh" ? "zh" : "en";
+  const mobile = canvasElement.ownerDocument.defaultView!.matchMedia("(max-width: 1023.98px)").matches;
   const fixture = createFoodProductDetailPageFixture(locale);
   const canvas = within(canvasElement);
   await expect(canvas.getByRole("heading", { level: 1, name: fixture.title })).toBeVisible();
@@ -49,8 +50,8 @@ const verifyFoodPage: Story["play"] = async ({ canvasElement, globals }) => {
   await expect(canvasElement.querySelectorAll('[data-slot="product-detail-best-before"]')).toHaveLength(1);
   await expect(bestBefore.parentElement).toBe(canvasElement.querySelector('[data-slot="product-detail-summary"]'));
   await expect(bestBefore.previousElementSibling).toBe(canvasElement.querySelector('[data-slot="product-detail-price"]'));
-  await expect(getComputedStyle(bestBefore).borderTopWidth).toBe("1px");
-  await expect(getComputedStyle(bestBefore).borderTopColor).toBe("rgba(0, 0, 0, 0.08)");
+  await expect(getComputedStyle(bestBefore).borderTopWidth).toBe(mobile ? "1px" : "0px");
+  await expect(getComputedStyle(bestBefore).borderTopStyle).toBe(mobile ? "solid" : "none");
   await expect(bestBefore.getBoundingClientRect().top).toBeGreaterThanOrEqual(bestBefore.previousElementSibling!.getBoundingClientRect().bottom);
   await expect(canvasElement.querySelector('[data-pdp-add-to-cart]')).toBeEnabled();
   await expect(canvasElement.querySelectorAll('[data-slot="product-media-gallery-thumbnail"]')).toHaveLength(9);
@@ -72,9 +73,17 @@ const verifyFoodPage: Story["play"] = async ({ canvasElement, globals }) => {
 
   const disclosure = canvas.getByRole("button", { name: fixture.copy.specifications, exact: true });
   await userEvent.click(disclosure);
-  await expect(disclosure).toHaveAttribute("aria-expanded", "false");
-  await userEvent.click(disclosure);
-  await expect(disclosure).toHaveAttribute("aria-expanded", "true");
+  if (mobile) {
+    await expect(disclosure).toHaveAttribute("aria-haspopup", "dialog");
+    await expect(canvas.getByRole("dialog", { name: fixture.copy.specifications })).toBeVisible();
+    await userEvent.keyboard("{Escape}");
+    await expect(canvas.queryByRole("dialog")).toBeNull();
+    await expect(disclosure).toHaveFocus();
+  } else {
+    await expect(disclosure).toHaveAttribute("aria-expanded", "false");
+    await userEvent.click(disclosure);
+    await expect(disclosure).toHaveAttribute("aria-expanded", "true");
+  }
 
   const document = canvasElement.ownerDocument;
   await expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(document.documentElement.clientWidth + 1);
