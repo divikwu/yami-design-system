@@ -89,8 +89,16 @@ const START_HERE_COPY_RULES: Readonly<
   Record<ContentLanguage, readonly TopicPageContentCopyRule[]>
 > = {
   zh: [
-    { slot: "title", maxCharacters: 64 },
-    { slot: "scenes[].label", maxCharacters: 32 },
+    {
+      slot: "title",
+      maxCharacters: 20,
+      preferredLength: { minCharacters: 8, maxCharacters: 16 },
+    },
+    {
+      slot: "scenes[].label",
+      maxCharacters: 6,
+      preferredLength: { minCharacters: 2, maxCharacters: 4 },
+    },
     {
       slot: "scenes[].title",
       maxCharacters: 12,
@@ -103,20 +111,28 @@ const START_HERE_COPY_RULES: Readonly<
     },
   ],
   en: [
-    { slot: "title", maxCharacters: 64 },
-    { slot: "scenes[].label", maxCharacters: 32 },
+    {
+      slot: "title",
+      maxCharacters: 32,
+      preferredLength: { minWords: 3, maxWords: 6, maxCharacters: 24 },
+    },
+    {
+      slot: "scenes[].label",
+      maxCharacters: 32,
+      preferredLength: { minWords: 1, maxWords: 3, maxCharacters: 24 },
+    },
     {
       slot: "scenes[].title",
-      maxCharacters: 30,
+      maxCharacters: 32,
       preferredLength: {
         minWords: 3,
         maxWords: 4,
-        maxCharacters: 26,
+        maxCharacters: 24,
       },
     },
     {
       slot: "scenes[].description",
-      maxCharacters: 84,
+      maxCharacters: 96,
       preferredLength: {
         minWords: 8,
         maxWords: 12,

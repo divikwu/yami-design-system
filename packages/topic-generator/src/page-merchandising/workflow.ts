@@ -44,7 +44,6 @@ function materializeFrozenRelevanceAssignments(
   if (typeof value !== "object" || value === null || Array.isArray(value)) return value;
   const proposal = value as Record<string, unknown>;
   if (!Array.isArray(proposal.modules)) return value;
-  const selectionModulesById = new Map(selection.modules.map((module) => [module.id, module]));
   return {
     ...proposal,
     modules: proposal.modules.map((rawModule) => {
@@ -53,13 +52,32 @@ function materializeFrozenRelevanceAssignments(
       }
       const module = rawModule as Record<string, unknown>;
       const moduleId = typeof module.id === "string" ? module.id : "";
+      const selectionModule = selection.modules.find(({ id }) => id === moduleId);
+      if (moduleId === "brand-spotlight" && selectionModule?.groups.length &&
+          preservesCurrentRelevanceSelectionAssignments(templateRef, "popular-picks") &&
+          Array.isArray(module.assignments)) {
+        return {
+          ...module,
+          assignments: module.assignments.map((value: unknown) => {
+            if (typeof value !== "object" || value === null || Array.isArray(value)) return value;
+            const assignment = value as Record<string, unknown>;
+            const group = selectionModule.groups.find(({ id }) => id === assignment.groupId);
+            if (typeof assignment.productId !== "string" ||
+                !group?.productIds.includes(assignment.productId) ||
+                typeof assignment.reuseReason === "string" && assignment.reuseReason.trim()) return value;
+            return {
+              ...assignment,
+              reuseReason: "Preserved from the ProductSelection brand group for cross-module brand comparison.",
+            };
+          }),
+        };
+      }
       if (
         moduleId !== "popular-picks" && moduleId !== "explore-more" ||
         !preservesCurrentRelevanceSelectionAssignments(templateRef, moduleId)
       ) {
         return rawModule;
       }
-      const selectionModule = selectionModulesById.get(moduleId);
       if (!selectionModule) return rawModule;
       return {
         ...module,

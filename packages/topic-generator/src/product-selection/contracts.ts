@@ -237,7 +237,7 @@ export type ProductSelectionRun =
         maximumScenes: number;
         minimumProductsPerScene: number;
         maximumProductsPerScene: number;
-        products: YamiProduct[];
+        products: Omit<YamiProduct, "imageUrl" | "productUrl">[];
         repair?: {
           issues: string[];
           warnings: string[];

@@ -185,6 +185,10 @@ export function compileDeterministicTopicPagePlanV2(
 
     if (id === "shortcuts") {
       const groups = selectionModulesById.get("shortcuts")?.groups ?? sourceModule?.groups ?? [];
+      const imageKeyByProductId = new Map(selection.products.map((product) =>
+        [product.id, product.imageUrl.trim().split(/[?#]/, 1)[0] ?? ""]
+      ));
+      const usedImageKeys = new Set<string>();
       return {
         id,
         visible,
@@ -192,7 +196,10 @@ export function compileDeterministicTopicPagePlanV2(
         reason,
         scenes: [],
         assignments: assignmentsWithReuseReason(id, groups.flatMap((group) => {
-          const productId = group.productIds[0];
+          const productId = group.productIds.find((candidateId) =>
+            !usedImageKeys.has(imageKeyByProductId.get(candidateId) ?? "")
+          ) ?? group.productIds[0];
+          if (productId) usedImageKeys.add(imageKeyByProductId.get(productId) ?? "");
           return productId
             ? [{
                 productId,

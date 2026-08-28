@@ -42,7 +42,19 @@ export function advanceProductSelectionRun(
           maximumScenes: policy.maximumThemes,
           minimumProductsPerScene: policy.minimumProducts,
           maximumProductsPerScene: policy.maximumProducts,
-          products: primaryProducts,
+          products: primaryProducts.map(({ imageUrl: _imageUrl, productUrl: _productUrl, ...product }) => {
+            const existingText = new Set([
+              product.title, product.brand,
+              product.categoryL1Name, product.categoryL2Name, product.categoryL3Name,
+            ]);
+            return {
+              ...product,
+              ...(product.searchAliases ? {
+                searchAliases: [...new Set(product.searchAliases)]
+                  .filter((alias) => !existingText.has(alias)),
+              } : {}),
+            };
+          }),
         },
       };
     }

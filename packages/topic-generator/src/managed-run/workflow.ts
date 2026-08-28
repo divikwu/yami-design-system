@@ -37,6 +37,8 @@ import {
   runProductSelectionWorkflow,
   type ProductSelectionRun,
   type ProductSelectionResult,
+  type ProductSelectionAgentWorkflowResult,
+  type ProductSelectionWorkflowResult,
 } from "../product-selection/index.js";
 import { buildTopicPagePlanFromProductSelection, buildTopicPagePlanMatrix } from "../planner.js";
 import type { HandleTopicGeneratorOptions } from "../server.js";
@@ -420,7 +422,7 @@ async function productSelectionStage(
   }
   const executionPlan = orchestration.run.plan;
   const strategy = getProductSelectionStrategyConfig(executionPlan.selectionStrategyRef).engine;
-  let selectionWorkflow;
+  let selectionWorkflow: ProductSelectionWorkflowResult | ProductSelectionAgentWorkflowResult;
   if (strategy === "category-role") {
     const issues = [
       ...(options.categoryRoleConfigurationIssues ?? []),
@@ -447,13 +449,10 @@ async function productSelectionStage(
         candidateAdapter: options.candidateAdapter ?? yamiCatalogCandidateAdapter,
         agent: options.productSelectionAgent,
       });
-    } catch {
-      selectionWorkflow = await runProductSelectionWorkflow({
-        snapshot,
-        strategyRef: executionPlan.selectionStrategyRef,
-        language: manifest.request.language,
-        productSemanticProposal: null,
-      });
+    } catch (error) {
+      return blocked({ executionPlan }, [
+        error instanceof Error ? error.message : "Product semantic grouping failed.",
+      ]);
     }
   } else {
     selectionWorkflow = await runProductSelectionWorkflow({
@@ -462,6 +461,14 @@ async function productSelectionStage(
       language: manifest.request.language,
       productSemanticProposal: null,
     });
+  }
+  if ("agentId" in selectionWorkflow.artifacts &&
+      selectionWorkflow.artifacts.productSemanticFallbackUsed) {
+    return blocked(
+      { executionPlan, selectionRun: selectionWorkflow.run, artifacts: selectionWorkflow.artifacts },
+      selectionWorkflow.artifacts.productSemanticProposalReview?.issues ??
+        ["Product semantic grouping was not accepted."],
+    );
   }
   if (selectionWorkflow.run.status !== "ready") {
     return blocked(

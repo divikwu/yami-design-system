@@ -110,7 +110,10 @@ a single `topic-page-content-proposal/v1`. Return one complete
   formats,” “浏览入口,” “从类别开始,” “从需求开始,” or “查看代表形态.” General verbs such as find,
   choose, and discover remain valid when their object is a supported brand idea, experience, use,
   or decision rather than the page itself.
-- Within each Start Here package, make scene titles compact decision phrases and descriptions one
+- Within each Start Here package, use the locale-specific module-title and scene-label
+  `preferredLength` targets: keep the heading concise but broad enough for the whole journey, and
+  make labels short, distinct tab names rather than sentences. Do not pad or truncate them to fit.
+  Make scene titles compact decision phrases and descriptions one
   short sentence. Do not consume the recommended ceiling by enumerating every category already
   visible in the product row; aim for the returned scene `preferredLength` before submission.
 - Treat each candidate as if it will be compiled independently. Every required copy slot and

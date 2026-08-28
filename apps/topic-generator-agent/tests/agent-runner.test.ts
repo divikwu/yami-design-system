@@ -1,4 +1,6 @@
-import { access, readFile } from "node:fs/promises";
+import { access, chmod, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 import { describe, expect, it, vi } from "vitest";
 
@@ -37,6 +39,44 @@ function post(path: string, body: Record<string, unknown>, token?: string) {
 }
 
 describe("TOPIC GENERATOR Agent Runner", () => {
+  it("exchanges complete semantic evidence and proposals through isolated files", async () => {
+    const root = await mkdtemp(join(tmpdir(), "semantic-executor-test-"));
+    try {
+      const command = join(root, "codex-test.cjs");
+      const trace = join(root, "trace.json");
+      await writeFile(command, `#!${process.execPath}
+const fs = require('node:fs');
+const path = require('node:path');
+const args = process.argv.slice(2);
+const cwd = args[args.indexOf('--cd') + 1];
+const input = fs.readFileSync(0, 'utf8');
+const run = JSON.parse(fs.readFileSync(path.join(cwd, 'run.json'), 'utf8'));
+fs.writeFileSync(${JSON.stringify(trace)}, JSON.stringify({cwd, input, args, run}));
+fs.writeFileSync(path.join(cwd, 'proposal.json'), JSON.stringify({schemaVersion:'product-semantic-proposal/v1', count:run.context.products.length}));
+fs.writeFileSync(args[args.indexOf('--output-last-message') + 1], JSON.stringify({written:true}));
+`);
+      await chmod(command, 0o755);
+      const run = { context: { products: Array.from({ length: 1345 }, (_, id) => ({
+        id: String(id), title: `Mooncake ${id}`, sourceRank: id + 1,
+      })) } };
+      const result = await createCodexExecutor({ TOPIC_AGENT_RUNNER_CODEX_COMMAND: command }).execute({
+        route: AGENT_ROUTES.find(({ stage }) => stage === "product-semantic-proposal")!,
+        requestAgentId: "test", run, repositoryRoot: root,
+        skillInstructions: "Review every product.", agentInstructions: "Return a semantic proposal.",
+      });
+      expect(result).toEqual({ schemaVersion: "product-semantic-proposal/v1", count: 1345 });
+      const captured = JSON.parse(await readFile(trace, "utf8"));
+      expect(captured.run).toEqual(run);
+      expect(captured.input).toContain("run.json");
+      expect(captured.input).toContain("proposal.json");
+      expect(captured.input).not.toContain("Mooncake 1344");
+      expect(captured.args[captured.args.indexOf("--sandbox") + 1]).toBe("workspace-write");
+      await expect(access(captured.cwd)).rejects.toThrow();
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
   it("registers every canonical Skill and automatic stage", () => {
     expect(AGENT_ROUTES.map(({ protocol, stage }) => `${protocol}:${stage}`)).toEqual([
       "topic-page:topic-intent",

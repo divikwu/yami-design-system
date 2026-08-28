@@ -50,10 +50,13 @@ Create exactly one `product-semantic-proposal/v1` only when ProductSelection ret
 - Keep labels, shopping goals, and reasons in `context.language`. Product and brand names may remain
   unchanged.
 - Preserve facts and source order. The runtime, not the Agent, sorts products by `sourceRank`.
-- Create two to six shopping scenes. Each scene must reference known group IDs and resolve to 4–16
-  distinct products. Do not reuse the same group across scenes.
-- This stage is text-first. Product image URLs are supporting evidence only; image comparison belongs
-  to the later bounded duplicate-review step after textual candidate narrowing.
+- Create two to six shopping scenes. Each scene must reference known group IDs providing at least
+  four distinct products. Groups may contain more than 16 products: the runtime sorts candidates by
+  sourceRank and displays at most 16 per scene. Do not split coherent groups for this display limit
+  or reuse the same group across scenes.
+- This stage uses complete textual product evidence. Image and product URLs are omitted and aliases
+  already present in title, brand, or category fields are deduplicated; no products are sampled away.
+  Image comparison belongs to the later bounded duplicate-review step after textual candidate narrowing.
 - Do not retrieve products, invent IDs or catalog facts, replace a weak candidate, or emit page copy.
 - The runtime removes accidental repeated assignments from later groups and retains unassigned
   verified products in a visible More to Explore group, recording both corrections as review

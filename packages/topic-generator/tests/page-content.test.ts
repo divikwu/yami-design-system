@@ -1067,7 +1067,7 @@ describe("TopicPageContent", () => {
       ]);
   });
 
-  it("returns card-fit Start Here scene length guidance for Chinese and English", () => {
+  it("returns compact Start Here heading, label, and scene guidance for Chinese and English", () => {
     const intent = themeIntentFixture();
     const selection = selectionFixture();
     const plan = planFixture(intent, selection);
@@ -1086,8 +1086,14 @@ describe("TopicPageContent", () => {
     }
     expect(zh.context.tasks.find(({ moduleId }) => moduleId === "start-here")?.copyRules)
       .toEqual([
-        { slot: "title", maxCharacters: 64 },
-        { slot: "scenes[].label", maxCharacters: 32 },
+        {
+          slot: "title", maxCharacters: 20,
+          preferredLength: { minCharacters: 8, maxCharacters: 16 },
+        },
+        {
+          slot: "scenes[].label", maxCharacters: 6,
+          preferredLength: { minCharacters: 2, maxCharacters: 4 },
+        },
         {
           slot: "scenes[].title",
           maxCharacters: 12,
@@ -1101,20 +1107,26 @@ describe("TopicPageContent", () => {
       ]);
     expect(en.context.tasks.find(({ moduleId }) => moduleId === "start-here")?.copyRules)
       .toEqual([
-        { slot: "title", maxCharacters: 64 },
-        { slot: "scenes[].label", maxCharacters: 32 },
+        {
+          slot: "title", maxCharacters: 32,
+          preferredLength: { minWords: 3, maxWords: 6, maxCharacters: 24 },
+        },
+        {
+          slot: "scenes[].label", maxCharacters: 32,
+          preferredLength: { minWords: 1, maxWords: 3, maxCharacters: 24 },
+        },
         {
           slot: "scenes[].title",
-          maxCharacters: 30,
+          maxCharacters: 32,
           preferredLength: {
             minWords: 3,
             maxWords: 4,
-            maxCharacters: 26,
+            maxCharacters: 24,
           },
         },
         {
           slot: "scenes[].description",
-          maxCharacters: 84,
+          maxCharacters: 96,
           preferredLength: {
             minWords: 8,
             maxWords: 12,
@@ -1122,6 +1134,10 @@ describe("TopicPageContent", () => {
           },
         },
       ]);
+    for (const run of [zh, en]) {
+      expect(run.context.copyBrief.moduleObjectives.find(({ moduleId }) => moduleId === "start-here")?.copyRules)
+        .toEqual(run.context.tasks.find(({ moduleId }) => moduleId === "start-here")?.copyRules);
+    }
   });
 
   it("bounds the single Explore More topic anchor for Chinese and English", () => {
@@ -1682,6 +1698,26 @@ describe("TopicPageContent", () => {
       language: "en",
       proposal,
     })).toMatchObject({ status: "ready" });
+  });
+
+  it.each(["zh", "en"] as const)("preserves %s Start Here headings and labels beyond advisory ceilings", (language) => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    const plan = planFixture(intent, selection);
+    const proposal = proposalFixture(intent, selection, plan);
+    proposal.language = language;
+    if (language === "en") {
+      evidencedSegments(proposal.tasks).forEach((segment) => { segment.text = `Shop ${plan.keyword}`; });
+    }
+    const copy = proposal.tasks.find(({ moduleId }) => moduleId === "start-here")!.copy;
+    copy.title.text = language === "zh" ? "选".repeat(21) : "Explore your choices for a complete daily shopping routine";
+    copy.scenes![0]!.label.text = language === "zh" ? "选".repeat(7) : "Compare all daily routine choices";
+    const run = advanceTopicPageContentRun({ intent, selection, plan, language, proposal });
+    expect(run.status).toBe("ready");
+    if (run.status !== "ready") throw new Error("Expected structurally valid copy.");
+    const actual = run.spec.tasks.find(({ moduleId }) => moduleId === "start-here")!.copy;
+    expect(actual.title.text).toBe(copy.title.text);
+    expect(actual.scenes![0]!.label.text).toBe(copy.scenes![0]!.label.text);
   });
 
   it("keeps English Start Here scene character ceilings advisory", () => {

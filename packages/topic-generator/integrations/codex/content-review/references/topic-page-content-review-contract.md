@@ -38,8 +38,10 @@ Here may include optional whole-scene selections for an existing `sceneId`; all 
 from the chosen base package. The selector cannot rewrite copy, combine fields within a scene or
 Hero, alter evidence, or omit a target. Compare every package using the supplied criteria and judge cross-module
 coherence before returning concise reasons under 300 characters. When Start Here packages are
-otherwise equally useful and supported, prefer scene titles and descriptions that meet their
-returned `preferredLength` without enumerating every category already visible in the product row.
+otherwise equally useful and supported, prefer module titles, scene labels, scene titles, and
+descriptions that meet their returned locale-specific `preferredLength`. Keep the heading broad
+enough for the whole journey and tab labels short and distinct; do not enumerate every category
+already visible in the product row or truncate meaningful words merely to fit.
 Treat Hero tags as evidence-bound browsing labels; do not select first / next / last sequencing
 language when the cited evidence establishes category presence but not a care order.
 
