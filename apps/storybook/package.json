@@ -6,7 +6,7 @@
   "scripts": {
     "storybook": "storybook dev -p 6006",
     "build": "storybook build",
-    "test-storybook": "vitest run --project=storybook --project=browser",
+    "test-storybook": "vitest run --project=storybook --project=browser --no-file-parallelism",
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
