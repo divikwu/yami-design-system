@@ -3,6 +3,8 @@
 import {
   type HTMLAttributes,
   type ImgHTMLAttributes,
+  forwardRef,
+  useImperativeHandle,
   useLayoutEffect,
   useRef,
   useState,
@@ -11,6 +13,7 @@ import {
 import { RailNavigationButton } from "../Button/RailNavigation";
 import type { ImageSource } from "../image.types";
 import { ResponsiveImage } from "../ResponsiveImage";
+import { ProductMediaPreview } from "./ProductMediaPreview";
 
 import styles from "./ProductMediaGallery.module.css";
 
@@ -18,6 +21,10 @@ export interface ProductMediaGalleryItem {
   id: string;
   src: ImageSource;
   alt: string;
+}
+
+export interface ProductMediaGalleryHandle {
+  openPreview: (imageId: string) => boolean;
 }
 
 export interface ProductMediaGalleryProps
@@ -28,6 +35,10 @@ export interface ProductMediaGalleryProps
   thumbnailsLabel?: string;
   previousLabel?: string;
   nextLabel?: string;
+  desktopPreview?: boolean;
+  mobilePreview?: boolean;
+  openPreviewLabel?: string;
+  closePreviewLabel?: string;
   imageLoading?: ImgHTMLAttributes<HTMLImageElement>["loading"];
   onIndexChange?: (index: number) => void;
 }
@@ -45,25 +56,43 @@ function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
-export function ProductMediaGallery({
+export const ProductMediaGallery = forwardRef<ProductMediaGalleryHandle, ProductMediaGalleryProps>(function ProductMediaGallery({
   images,
   defaultIndex = 0,
   galleryLabel = "Product images",
   thumbnailsLabel = "Choose product image",
   previousLabel = "Previous image",
   nextLabel = "Next image",
+  desktopPreview = false,
+  mobilePreview = false,
+  openPreviewLabel = "Open image preview",
+  closePreviewLabel = "Close image preview",
   imageLoading = "eager",
   onIndexChange,
   className,
   ...rest
-}: ProductMediaGalleryProps) {
+}, ref) {
+  const [pointerFocus, setPointerFocus] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [selectedIndex, setActiveIndex] = useState(() =>
     clampIndex(defaultIndex, images.length),
   );
   const activeIndex = clampIndex(selectedIndex, images.length);
   const railRef = useRef<HTMLDivElement>(null);
+  const previewPointer = useRef<{ x: number; y: number } | null>(null);
   const activeIndexRef = useRef(activeIndex);
   activeIndexRef.current = activeIndex;
+
+  useImperativeHandle(ref, () => ({
+    openPreview(imageId) {
+      const index = images.findIndex((image) => image.id === imageId);
+      const enabled = window.matchMedia("(min-width: 1024px)").matches ? desktopPreview : mobilePreview;
+      if (!enabled || index < 0) return false;
+      selectImage(index);
+      setPreviewOpen(true);
+      return true;
+    },
+  }));
 
   // Keep a full page aligned when mounting, resizing, or crossing the PC breakpoint.
   useLayoutEffect(() => {
@@ -80,7 +109,7 @@ export function ProductMediaGallery({
     const observer = new ResizeObserver(alignImage);
     observer.observe(rail);
     return () => observer.disconnect();
-  }, [images.length]);
+  }, [images.length, previewOpen]);
   const activeImage = images[activeIndex];
 
   if (!activeImage) return null;
@@ -110,10 +139,20 @@ export function ProductMediaGallery({
       aria-label={galleryLabel}
       data-slot="product-media-gallery"
       data-active-index={activeIndex}
+      data-pointer-focus={pointerFocus || undefined}
       tabIndex={rest.tabIndex ?? 0}
+      onPointerDown={(event) => {
+        rest.onPointerDown?.(event);
+        setPointerFocus(true);
+      }}
+      onBlur={(event) => {
+        rest.onBlur?.(event);
+        if (!event.currentTarget.contains(event.relatedTarget)) setPointerFocus(false);
+      }}
       onKeyDown={(event) => {
         rest.onKeyDown?.(event);
         if (event.defaultPrevented) return;
+        setPointerFocus(false);
         if (event.key === "ArrowLeft") {
           event.preventDefault();
           move(-1);
@@ -160,6 +199,7 @@ export function ProductMediaGallery({
           className={styles.imageRail}
           data-slot="product-media-gallery-rail"
           onScroll={(event) => {
+            if (previewOpen) return;
             const rail = event.currentTarget;
             if (!rail.clientWidth || getComputedStyle(rail).overflowX !== "auto") return;
             const maxScroll = rail.scrollWidth - rail.clientWidth;
@@ -192,9 +232,41 @@ export function ProductMediaGallery({
                 draggable={false}
                 data-slot={index === activeIndex ? "product-media-gallery-image" : "product-media-gallery-inactive-image"}
               />
+              {mobilePreview && (
+                <button
+                  type="button"
+                  className={cx(styles.previewTrigger, styles.mobilePreviewTrigger)}
+                  aria-label={openPreviewLabel}
+                  aria-haspopup="dialog"
+                  tabIndex={index === activeIndex ? 0 : -1}
+                  data-slot="product-media-mobile-preview-trigger"
+                  onPointerDown={(event) => { previewPointer.current = { x: event.clientX, y: event.clientY }; }}
+                  onPointerCancel={() => { previewPointer.current = null; }}
+                  onClick={(event) => {
+                    const start = previewPointer.current;
+                    previewPointer.current = null;
+                    if (event.detail !== 0 && (!start || Math.hypot(event.clientX - start.x, event.clientY - start.y) > 8)) return;
+                    selectImage(index);
+                    setPreviewOpen(true);
+                  }}
+                />
+              )}
             </div>
           ))}
         </div>
+
+        {desktopPreview && (
+          <button
+            type="button"
+            className={cx(styles.previewTrigger, styles.desktopPreviewTrigger)}
+            aria-label={openPreviewLabel}
+            aria-haspopup="dialog"
+            data-slot="product-media-preview-trigger"
+            onClick={() => {
+              if (window.matchMedia("(min-width: 1024px)").matches) setPreviewOpen(true);
+            }}
+          />
+        )}
 
         {images.length > 1 ? (
           <>
@@ -220,6 +292,21 @@ export function ProductMediaGallery({
           </>
         ) : null}
       </div>
+      {(desktopPreview || mobilePreview) && previewOpen && (
+        <ProductMediaPreview
+          desktopPreview={desktopPreview}
+          mobilePreview={mobilePreview}
+          images={images}
+          activeIndex={activeIndex}
+          galleryLabel={galleryLabel}
+          thumbnailsLabel={thumbnailsLabel}
+          previousLabel={previousLabel}
+          nextLabel={nextLabel}
+          closeLabel={closePreviewLabel}
+          onSelect={selectImage}
+          onClose={() => setPreviewOpen(false)}
+        />
+      )}
     </section>
   );
-}
+});

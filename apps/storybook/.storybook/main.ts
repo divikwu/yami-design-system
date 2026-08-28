@@ -9,7 +9,8 @@ const config: StorybookConfig = {
   stories: [
     "../../../packages/design-system/*.stories.@(ts|tsx|mdx)",
     "../../../packages/design-system/components/**/*.stories.@(ts|tsx|mdx)",
-    "../../../packages/prototypes/pages/**/*.stories.@(ts|tsx|mdx)"
+    "../../../packages/prototypes/pages/**/*.stories.@(ts|tsx|mdx)",
+    "../docs/**/*.mdx"
   ],
   addons: ["@storybook/addon-docs", "@storybook/addon-a11y", "@storybook/addon-vitest"],
   framework: { name: "@storybook/react-vite", options: {} },

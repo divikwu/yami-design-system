@@ -1,0 +1,62 @@
+import { Description, Meta } from "@storybook/addon-docs/blocks";
+import * as BeautyStories from "../../../packages/prototypes/pages/ProductDetailPage/ProductDetailPage.stories";
+import * as FoodStories from "../../../packages/prototypes/pages/ProductDetailPage/FoodProductDetailPage.stories";
+import * as BeverageStories from "../../../packages/prototypes/pages/ProductDetailPage/BeverageProductDetailPage.stories";
+
+<Meta title="YAMI/Pages/Product Detail" />
+
+# Product Detail
+
+同一个商品详情页，三组商品数据。Beauty、Food、Beverage 均复用 `ProductDetailPage`，共用图片浏览、商品信息、购买区、推荐与评价组件，不是三套页面实现。
+
+One shared product-detail layout with three product fixtures. Each category has a PC and Mobile preview; use the toolbar to switch between 中文 and English.
+
+## 页面预览 / Previews
+
+<table>
+  <thead>
+    <tr><th>品类 / Category</th><th>示例商品 / Product</th><th>PC</th><th>Mobile</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Beauty</td><td>Torriden 面膜 / Sheet mask</td>
+      <td><a href="/?path=/story/yami-pages-product-detail-beauty--pdp" target="_top">PC</a></td>
+      <td><a href="/?path=/story/yami-pages-product-detail-beauty--mobile" target="_top">Mobile</a></td>
+    </tr>
+    <tr>
+      <td>Food</td><td>TSUJIRI 无糖抹茶粉 / Unsweetened matcha</td>
+      <td><a href="/?path=/story/yami-pages-product-detail-food--pc" target="_top">PC</a></td>
+      <td><a href="/?path=/story/yami-pages-product-detail-food--mobile" target="_top">Mobile</a></td>
+    </tr>
+    <tr>
+      <td>Beverage</td><td>BINGGRAE 香蕉味牛奶 / Banana flavored milk</td>
+      <td><a href="/?path=/story/yami-pages-product-detail-beverage--pc" target="_top">PC</a></td>
+      <td><a href="/?path=/story/yami-pages-product-detail-beverage--mobile" target="_top">Mobile</a></td>
+    </tr>
+  </tbody>
+</table>
+
+三个分组只公开 PC / Mobile；布局、语言及 SKU 状态的回归用例继续运行，但不显示在侧栏。
+
+Regression stories remain available to automated tests and are hidden from the sidebar.
+
+## 共用规则 / Shared behavior
+
+- PC 与 Mobile 使用同一组件，响应式布局在 1024px 切换；工具栏控制内容语言。
+- 品类差异由数据决定：护肤品保留多规格选择，食品及饮料展示各自的规格、赏味期限和已核实的食用说明。
+- 内容最大宽度由 `contentMaxWidth` 控制；Header、Footer 和全宽分隔线不受此内容宽度限制。
+- 商品信息是演示快照，并非实时价格、库存或履约承诺。购物车及评价操作不执行真实交易。
+
+The shared component handles responsive layout, media navigation, quantity controls and disclosures. Product-specific facts remain in independent fixtures; prototype actions do not place orders or submit reviews.
+
+## Beauty
+
+<Description of={BeautyStories} />
+
+## Food
+
+<Description of={FoodStories} />
+
+## Beverage
+
+<Description of={BeverageStories} />

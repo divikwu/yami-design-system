@@ -93,6 +93,7 @@
 }
 
 .slide {
+  position: relative;
   display: none;
   width: 100%;
   height: 100%;
@@ -110,7 +111,8 @@
   }
 
   .stage:hover .navigationButton,
-  .root:focus-within .navigationButton {
+  .root:not([data-pointer-focus="true"]):focus-visible .navigationButton,
+  .root:not([data-pointer-focus="true"]):has(:focus-visible) .navigationButton {
     visibility: visible;
     pointer-events: auto;
   }
@@ -143,9 +145,181 @@
   color: var(--product-card-add-icon);
   font-size: var(--font-size-caption-md);
   line-height: var(--line-height-caption-md);
+  pointer-events: none;
+}
+
+.previewTrigger {
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: zoom-in;
+}
+
+.previewTrigger:focus-visible {
+  outline: var(--stroke-thick) solid var(--border-focus);
+  outline-offset: calc(-1 * var(--stroke-thick));
+}
+
+.mobilePreviewTrigger {
+  display: none;
+}
+
+.preview {
+  box-sizing: border-box;
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: var(--surface-primary);
+  color: var(--text-primary);
+}
+
+.preview::backdrop {
+  background: var(--surface-primary);
+}
+
+.previewStage {
+  position: absolute;
+  inset: 0 calc(var(--space-800) * 2);
+}
+
+.previewImageRail {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  direction: ltr;
+}
+
+.previewSlide {
+  display: none;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+}
+
+.previewSlide[data-active="true"] {
+  display: block;
+}
+
+.previewClose {
+  position: absolute;
+  top: var(--space-300);
+  right: var(--space-300);
+  z-index: 1;
+}
+
+.previewSidebar {
+  position: absolute;
+  top: var(--space-400);
+  bottom: var(--space-400);
+  left: var(--space-300);
+  display: flex;
+  width: var(--space-1000);
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-100);
+}
+
+.previewThumbnails {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: var(--space-100);
+  padding: var(--space-050);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+
+.previewThumbnails .thumbnailButton {
+  width: var(--space-800);
+  height: var(--space-800);
+  border-radius: var(--radius-surface-none);
+}
+
+.previewNavigation {
+  min-width: var(--space-600);
+  min-height: var(--space-600);
+  flex-shrink: 0;
+  transform: rotate(90deg);
+}
+
+.previewCounter {
+  font-size: var(--font-size-caption-md);
+  line-height: var(--line-height-caption-md);
 }
 
 @media (max-width: 1023.98px) {
+  .desktopPreviewTrigger {
+    display: none;
+  }
+
+  .mobilePreviewTrigger {
+    display: block;
+  }
+
+  .previewStage {
+    inset: calc(var(--space-800) + env(safe-area-inset-top, 0px)) 0 calc(var(--space-800) * 2 + env(safe-area-inset-bottom, 0px));
+  }
+
+  .previewImageRail {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    touch-action: pan-x pinch-zoom;
+    scrollbar-width: none;
+  }
+
+  .previewImageRail::-webkit-scrollbar {
+    display: none;
+  }
+
+  .previewSlide {
+    display: block;
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  .previewClose {
+    top: calc(var(--space-100) + env(safe-area-inset-top, 0px));
+    right: var(--space-100);
+  }
+
+  .previewSidebar {
+    top: auto;
+    right: 0;
+    bottom: env(safe-area-inset-bottom, 0px);
+    left: 0;
+    width: auto;
+    padding: var(--space-100) 0 var(--space-200);
+  }
+
+  .previewThumbnails {
+    box-sizing: border-box;
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    padding: var(--space-050) var(--space-200);
+    overflow-x: auto;
+    overflow-y: hidden;
+    touch-action: pan-x;
+  }
+
+  .previewNavigation,
+  .previewCounter {
+    display: none;
+  }
+
   .stage {
     max-height: 440px;
     aspect-ratio: auto;

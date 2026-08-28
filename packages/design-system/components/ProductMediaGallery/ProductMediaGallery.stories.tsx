@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { userEvent, waitFor } from "storybook/test";
+import { expect, userEvent, waitFor, within } from "storybook/test";
 
 import { ProductMediaGallery } from "./ProductMediaGallery";
 
@@ -54,6 +54,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Showcase: Story = {
+  args: { desktopPreview: true },
   play: async ({ canvasElement }) => {
     const gallery = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-media-gallery"]',
@@ -190,14 +191,56 @@ export const Showcase: Story = {
     if (image()?.alt !== images[0].alt) {
       throw new Error("ArrowRight must wrap the gallery from last to first");
     }
+
+    const canvas = within(canvasElement);
+    const trigger = canvas.getByRole("button", { name: "Open image preview" });
+    const root = canvasElement.ownerDocument.documentElement;
+    const originalOverflow = root.style.overflow;
+    await userEvent.click(trigger);
+    const preview = canvas.getByRole("dialog", { name: "Product images" });
+    const controls = within(preview);
+    const close = controls.getByRole("button", { name: "Close image preview" });
+    await expect(preview).toBeVisible();
+    await expect(controls.getByText("1 / 4", { exact: true })).toBeVisible();
+    await expect(preview).toHaveAttribute("open");
+    await expect(preview.matches(":modal")).toBe(true);
+    await expect(close).toHaveFocus();
+    await expect(root.style.overflow).toBe("hidden");
+    await expect(preview.getBoundingClientRect().width).toBe(window.innerWidth);
+    await expect(preview.getBoundingClientRect().height).toBe(window.innerHeight);
+    await expect(getComputedStyle(controls.getByRole("img")).objectFit).toBe("contain");
+    await expect(controls.getByRole("button", { name: "Previous image" })).toHaveAttribute("aria-disabled", "true");
+    await userEvent.click(controls.getByRole("button", { name: "Next image" }));
+    await expect(controls.getByRole("img")).toHaveAttribute("alt", images[1].alt);
+    await userEvent.click(controls.getByRole("button", { name: `4 / 4: ${images[3].alt}` }));
+    await expect(controls.getByRole("img")).toHaveAttribute("alt", images[3].alt);
+    await userEvent.keyboard("{ArrowRight}");
+    await expect(controls.getByRole("img")).toHaveAttribute("alt", images[0].alt);
+    await userEvent.keyboard("{ArrowLeft}");
+    await expect(controls.getByRole("img")).toHaveAttribute("alt", images[3].alt);
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(canvas.queryByRole("dialog")).toBeNull());
+    await expect(trigger).toHaveFocus();
+    await expect(root.style.overflow).toBe(originalOverflow);
+    await expect(image()).toHaveAttribute("alt", images[3].alt);
+    await userEvent.keyboard("{Enter}");
+    await userEvent.click(canvas.getByRole("button", { name: "Close image preview" }));
+    await waitFor(() => expect(canvas.queryByRole("dialog")).toBeNull());
+    await expect(trigger).toHaveFocus();
+    await expect(root.style.overflow).toBe(originalOverflow);
+    await userEvent.click(thumbnails[0]);
+    gallery.focus();
   },
 };
 
 export const Mobile: Story = {
+  args: { desktopPreview: true, mobilePreview: true },
   globals: {
     viewport: { value: "yamiMobile", isRotated: false },
   },
   play: async ({ canvasElement }) => {
+    await expect(canvasElement.querySelector('[data-slot="product-media-preview-trigger"]')).not.toBeVisible();
+    await expect(within(canvasElement).queryByRole("dialog")).toBeNull();
     const gallery = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-media-gallery"]',
     );
@@ -257,6 +300,27 @@ export const Mobile: Story = {
         throw new Error("Native horizontal scrolling must advance the active image");
       }
     });
+    const canvas = within(canvasElement);
+    const originalOverflow = canvasElement.ownerDocument.documentElement.style.overflow;
+    await userEvent.click(canvas.getByRole("button", { name: "Open image preview" }));
+    const preview = canvas.getByRole("dialog", { name: "Product images" });
+    const controls = within(preview);
+    await expect(preview.matches(":modal")).toBe(true);
+    await expect(getComputedStyle(preview).backgroundColor).toBe("rgb(255, 255, 255)");
+    await expect(preview.getBoundingClientRect().height).toBe(window.innerHeight);
+    await expect(controls.getByRole("img")).toHaveAttribute("alt", images[1].alt);
+    const previewRail = controls.getByRole("group", { name: "Choose product image" });
+    await expect(controls.getByText("2 / 4", { exact: true })).not.toBeVisible();
+    await expect(getComputedStyle(previewRail).flexDirection).toBe("row");
+    await expect(getComputedStyle(previewRail).flexWrap).toBe("nowrap");
+    await expect(getComputedStyle(previewRail).overflowX).toBe("auto");
+    await expect(previewRail.getBoundingClientRect().top).toBeGreaterThan(preview.querySelector('[data-slot="product-media-preview-stage"]')!.getBoundingClientRect().bottom);
+    await userEvent.click(controls.getByRole("button", { name: `4 / 4: ${images[3].alt}` }));
+    await expect(controls.getByRole("img")).toHaveAttribute("alt", images[3].alt);
+    await userEvent.click(controls.getByRole("button", { name: "Close image preview" }));
+    await waitFor(() => expect(canvas.queryByRole("dialog")).toBeNull());
+    await expect(gallery).toHaveAttribute("data-active-index", "3");
+    await expect(canvasElement.ownerDocument.documentElement.style.overflow).toBe(originalOverflow);
     rail.scrollTo({ left: 0, behavior: "instant" });
     await waitFor(() => {
       if (gallery.dataset.activeIndex !== "0" || image()?.alt !== images[0].alt) {

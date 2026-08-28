@@ -174,7 +174,8 @@ async function verifyDetailDisclosures(
 }
 
 const meta = {
-  title: "YAMI/Pages/Product Detail",
+  title: "YAMI/Pages/Product Detail/Beauty",
+  tags: ["!autodocs"],
   component: ProductDetailPage,
   parameters: {
     layout: "fullscreen",
@@ -258,6 +259,7 @@ async function verifySkuAvailability(canvasElement: HTMLElement) {
 
 export const SkuAvailability: Story = {
   name: "SKU availability",
+  tags: ["!dev", "!autodocs"],
   globals: { locale: "en", viewport: { value: "yamiDesktop", isRotated: false } },
   play: async ({ canvasElement }) => verifySkuAvailability(canvasElement),
 };
@@ -265,11 +267,13 @@ export const SkuAvailability: Story = {
 export const SkuAvailabilityMobile: Story = {
   ...SkuAvailability,
   name: "SKU availability / Mobile",
+  tags: ["!dev", "!autodocs"],
   globals: { locale: "zh", viewport: { value: "yamiMobile", isRotated: false } },
 };
 
 export const SoldOutOption: Story = {
   name: "SKU availability / All firming sizes sold out",
+  tags: ["!dev", "!autodocs"],
   render: (_args, { globals }) => {
     const fixture = createProductDetailPageFixture(globals.locale === "zh" ? "zh" : "en");
     return <ProductDetailPage {...fixture} skus={fixture.skus!.map((sku) => ({
@@ -289,6 +293,7 @@ export const SoldOutOption: Story = {
 
 export const SoldOutProduct: Story = {
   name: "SKU availability / Product sold out",
+  tags: ["!dev", "!autodocs"],
   render: (_args, { globals }) => <ProductDetailPage {...createProductDetailPageFixture(globals.locale === "zh" ? "zh" : "en")} skus={[]} />,
   play: async ({ canvasElement }) => {
     for (const chip of canvasElement.querySelectorAll('[data-option-value]')) {
@@ -1211,6 +1216,9 @@ export const DesktopRegression: Story = {
     ) {
       throw new Error("PDP gallery next control must switch the visible image");
     }
+    // Synthetic clicks do not hover; reveal controls with keyboard focus again.
+    await userEvent.keyboard("{Tab}");
+    gallery.focus();
     await userEvent.click(previous);
     if (
       activeImage()?.alt !== firstAlt ||
@@ -2003,8 +2011,8 @@ export const MobileRegression: Story = {
       !rating ||
       !ranking ||
       !price ||
-      getComputedStyle(price).paddingTop !== "4px" ||
-      getComputedStyle(price).paddingBottom !== "4px" ||
+      getComputedStyle(price).paddingTop !== "0px" ||
+      getComputedStyle(price).paddingBottom !== "0px" ||
       getComputedStyle(price).marginTop !== "4px" ||
       rating.getBoundingClientRect().top >= ranking.getBoundingClientRect().top ||
       ranking.getBoundingClientRect().top >= price.getBoundingClientRect().top ||

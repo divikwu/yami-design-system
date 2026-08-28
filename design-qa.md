@@ -195,6 +195,7 @@ passed
 
 - Source visual truth: `/var/folders/wk/b2pxrhkn49v_sb753kw8ktp80000gn/T/codex-clipboard-2c98bdfa-a5d1-4aab-9b9a-c60070dad568.png`
 - Browser implementation: `http://127.0.0.1:6006/iframe.html?id=yami-pages-product-detail--desktop-md-boundary&viewMode=story`
+- Current grouped preview: `http://127.0.0.1:6006/iframe.html?id=yami-pages-product-detail-beauty--desktop-md-boundary&viewMode=story` (the evidence URL above predates the category grouping).
 - Full-view evidence: `/Users/divikwu/.codex/visualizations/2026/08/21/01a02220-ec19-74f0-9770-8c1aa3efff5a/product-detail-three-sections-1432-viewport.png`
 - Focused implementation evidence: `/Users/divikwu/.codex/visualizations/2026/08/21/01a02220-ec19-74f0-9770-8c1aa3efff5a/product-detail-purchase-card-three-sections-half.png`
 - Combined comparison: `/Users/divikwu/.codex/visualizations/2026/08/21/01a02220-ec19-74f0-9770-8c1aa3efff5a/product-detail-purchase-card-comparison.png`

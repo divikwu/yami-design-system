@@ -337,6 +337,12 @@
   line-height: var(--line-height-body-md);
 }
 
+.productSummary .bestBefore {
+  margin-block-start: var(--space-100);
+  padding-block-start: var(--space-150);
+  border-block-start: var(--stroke-default) solid var(--divider-default);
+}
+
 .purchaseLabel {
   color: var(--text-secondary);
 }
@@ -801,6 +807,135 @@
   color: var(--text-secondary);
 }
 
+.nutritionContent,
+.ingredientsContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-100);
+  font-size: var(--font-size-body-md);
+  line-height: var(--line-height-body-md);
+  overflow-wrap: anywhere;
+}
+
+.nutritionLabel {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 400px;
+  padding: var(--space-100) var(--space-200);
+  border: var(--stroke-thick) solid var(--text-primary);
+  background: var(--surface-primary);
+}
+
+.nutritionTable {
+  width: 100%;
+  border-collapse: collapse;
+  font: inherit;
+}
+
+.nutritionTable caption {
+  text-align: start;
+}
+
+.details .nutritionTitle {
+  margin: 0;
+  padding-block: var(--space-150);
+  border-block-end: var(--stroke-thick) solid var(--text-primary);
+  font-size: var(--font-size-heading-4xl);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-heading-4xl);
+}
+
+.nutritionServing {
+  padding-block: var(--space-050);
+  border-block-end: calc(var(--space-050) + var(--stroke-thick)) solid var(--text-primary);
+}
+
+.nutritionServing p,
+.nutritionCalories p {
+  margin: 0;
+}
+
+.nutritionServingSize,
+.nutritionCalories p:last-child {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-100);
+  font-weight: var(--font-weight-emphasize);
+}
+
+.nutritionServingSize span:last-child {
+  text-align: end;
+}
+
+.nutritionCalories {
+  padding-block: var(--space-025);
+  border-block-end: var(--space-050) solid var(--text-primary);
+}
+
+.nutritionCalories p:last-child {
+  font-size: var(--font-size-heading-2xl);
+  line-height: var(--line-height-heading-2xl);
+}
+
+.nutritionTable th,
+.nutritionTable td {
+  padding: var(--space-050) 0;
+  border-block-end: var(--stroke-default) solid var(--text-primary);
+  text-align: end;
+  vertical-align: top;
+  font-weight: var(--font-weight-emphasize);
+}
+
+.nutritionTable tbody th {
+  padding-inline-end: var(--space-100);
+  text-align: start;
+}
+
+.nutritionTable thead th,
+.nutritionTable .nutritionIndented th,
+.nutritionAmount {
+  font-weight: var(--font-weight-normal);
+}
+
+.nutritionTable .nutritionIndented th {
+  padding-inline-start: var(--space-300);
+}
+
+.nutritionTable .nutritionGroupStart {
+  border-block-start: calc(var(--space-050) + var(--stroke-thick)) solid var(--text-primary);
+}
+
+.nutritionTable tbody tr:last-child {
+  border-block-end: var(--stroke-thick) solid var(--text-primary);
+}
+
+.nutritionAmount {
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.nutritionFootnote {
+  margin: 0;
+  padding-block: var(--space-100);
+  color: var(--text-secondary);
+}
+
+.ingredientsContent strong {
+  font-weight: var(--font-weight-emphasize);
+}
+
+.detailSource {
+  align-self: flex-start;
+  color: var(--text-primary);
+  text-decoration: underline;
+  text-underline-offset: var(--space-025);
+}
+
+.detailSource:focus-visible {
+  outline: var(--stroke-thick) solid var(--border-focus);
+  outline-offset: var(--space-025);
+}
+
 .recommendations,
 .reviews,
 .brandProducts,
@@ -865,6 +1000,27 @@
     position: sticky;
     top: var(--space-300);
     align-self: start;
+  }
+
+  .nutritionLabel {
+    padding-inline: var(--space-150);
+  }
+
+  .details .nutritionTitle {
+    padding-block: var(--space-100);
+    /* Requested label-heading emphasis uses the bundled GT Walsheim Bold face. */
+    font-weight: 700;
+  }
+
+  .nutritionFootnote {
+    padding-block-end: var(--space-0);
+    font-size: var(--font-size-caption-md);
+  }
+}
+
+@media (min-width: 1440px) {
+  .nutritionFootnote {
+    font-size: var(--font-size-caption-sm);
   }
 }
 
@@ -975,6 +1131,30 @@
   .detailContent {
     margin-block-end: var(--space-150);
     padding-block: 0;
+  }
+
+  .nutritionLabel {
+    padding: var(--space-050) var(--space-100);
+  }
+
+  .details .nutritionTitle {
+    padding-block: var(--space-100);
+    font-size: var(--font-size-heading-2xl);
+    line-height: var(--line-height-heading-2xl);
+  }
+
+  .nutritionFootnote {
+    padding-block: var(--space-050);
+    font-size: var(--font-size-caption-md);
+  }
+
+  .nutritionCalories p:last-child {
+    font-size: var(--font-size-heading-xl);
+    line-height: var(--line-height-heading-xl);
+  }
+
+  .nutritionTable .nutritionIndented th {
+    padding-inline-start: var(--space-200);
   }
 
   .productInfo {
@@ -1094,7 +1274,11 @@
   .priceRow {
     order: 5;
     margin-top: var(--space-050);
-    padding-block: var(--space-050);
+    padding-block: var(--space-0);
+  }
+
+  .productSummary .bestBefore {
+    order: 6;
   }
 
   .purchasePanel {

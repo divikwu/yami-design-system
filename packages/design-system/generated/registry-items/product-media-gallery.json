@@ -8,6 +8,7 @@
   "files": [
     "components/ProductMediaGallery/index.ts",
     "components/ProductMediaGallery/ProductMediaGallery.module.css",
-    "components/ProductMediaGallery/ProductMediaGallery.tsx"
+    "components/ProductMediaGallery/ProductMediaGallery.tsx",
+    "components/ProductMediaGallery/ProductMediaPreview.tsx"
   ]
 }

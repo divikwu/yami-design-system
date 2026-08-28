@@ -1044,14 +1044,14 @@
       "sourceSha256": "9b6806fc353b6b3da5f56a233c56ef4d871fb9cafe30870237f51a2c0e51860d",
       "disposition": "regenerated",
       "destination": "packages/design-system/generated/catalog.json",
-      "destinationSha256": "19dbd2c13131a999349f55e163e1ff873e3e96bc7fcb03526f2a209059098dbc"
+      "destinationSha256": "2a247656c8f26adc67ed14eea90e220c04910f59d7e287efb7eed6dfd0fbc0b0"
     },
     {
       "source": "catalog.json",
       "sourceSha256": "3333682325d00194fb646874f8453e3545a46813986fbac22e9e0bf18f87b5fa",
       "disposition": "regenerated",
       "destination": "packages/design-system/generated/catalog.json",
-      "destinationSha256": "19dbd2c13131a999349f55e163e1ff873e3e96bc7fcb03526f2a209059098dbc"
+      "destinationSha256": "2a247656c8f26adc67ed14eea90e220c04910f59d7e287efb7eed6dfd0fbc0b0"
     },
     {
       "source": "color-primitives.stories.tsx",

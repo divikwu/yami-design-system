@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, type ReactNode, useState } from "react";
+import { type CSSProperties, type MouseEvent, type ReactNode, useRef, useState } from "react";
 
 import {
   Badge,
@@ -13,6 +13,7 @@ import {
   Header,
   ProductList,
   ProductMediaGallery,
+  type ProductMediaGalleryHandle,
   ProductReviewSection,
   Tag,
 } from "@yami/design-system";
@@ -124,7 +125,7 @@ function DetailDisclosure({
   defaultExpanded = false,
   children,
 }: {
-  id: "highlights" | "specifications" | "disclaimer";
+  id: "highlights" | "specifications" | "nutrition" | "ingredients" | "disclaimer";
   label: string;
   headingLevel?: 2 | 3;
   defaultExpanded?: boolean;
@@ -192,6 +193,8 @@ export function ProductDetailPage({
   bestBefore,
   highlights,
   specifications,
+  nutrition,
+  ingredients,
   serviceDetailsHref,
   purchaseTags = [],
   region,
@@ -203,6 +206,14 @@ export function ProductDetailPage({
   className,
   ...rest
 }: ProductDetailPageProps) {
+  const galleryRef = useRef<ProductMediaGalleryHandle>(null);
+  function openSourcePreview(event: MouseEvent<HTMLAnchorElement>, sourceHref: string) {
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    const sourceImage = images.find((image) =>
+      (typeof image.src === "string" ? image.src : image.src.src) === sourceHref
+    );
+    if (sourceImage && galleryRef.current?.openPreview(sourceImage.id)) event.preventDefault();
+  }
   const [quantity, setQuantity] = useState(1);
   const [showAllTags, setShowAllTags] = useState(false);
   const [selectedOptions, setSelectedOptions] = useState(() =>
@@ -310,12 +321,17 @@ export function ProductDetailPage({
                 data-slot="product-detail-overview"
               >
                 <ProductMediaGallery
+                  ref={galleryRef}
                   className={styles.gallery}
                   images={images}
                   galleryLabel={copy.galleryLabel}
                   thumbnailsLabel={copy.thumbnailsLabel}
                   previousLabel={copy.previousImage}
                   nextLabel={copy.nextImage}
+                  desktopPreview
+                  mobilePreview
+                  openPreviewLabel={copy.openImagePreview}
+                  closePreviewLabel={copy.closeImagePreview}
                 />
 
                 <div
@@ -368,7 +384,7 @@ export function ProductDetailPage({
                       {title}
                     </h1>
 
-                    <div
+                    {ranking && <div
                       className={styles.rankingRow}
                       data-slot="product-detail-ranking"
                     >
@@ -378,7 +394,7 @@ export function ProductDetailPage({
                       >
                         {ranking}
                       </Badge>
-                    </div>
+                    </div>}
 
                     <div
                       className={styles.ratingRow}
@@ -435,9 +451,17 @@ export function ProductDetailPage({
                         {discountLabel}
                       </span>
                     </div>
+                    {optionGroups.length === 0 && (
+                      <p
+                        className={styles.bestBefore}
+                        data-slot="product-detail-best-before"
+                      >
+                        <span>{copy.bestBefore}</span> {bestBefore}
+                      </p>
+                    )}
                     </div>
 
-                  <div
+                  {optionGroups.length > 0 && <div
                     className={styles.productOptionsModule}
                     data-pdp-info-module="options"
                   >
@@ -528,7 +552,7 @@ export function ProductDetailPage({
                     >
                       <span>{copy.bestBefore}</span> {bestBefore}
                     </p>
-                    </div>
+                    </div>}
                   </section>
 
                   <section
@@ -562,6 +586,67 @@ export function ProductDetailPage({
                         ))}
                       </dl>
                     </DetailDisclosure>
+
+                    {nutrition && (
+                      <DetailDisclosure id="nutrition" label={nutrition.title} defaultExpanded>
+                        <div className={styles.nutritionContent}>
+                          <div className={styles.nutritionLabel}>
+                            <table className={styles.nutritionTable} aria-label={nutrition.title}>
+                              <caption>
+                                <h3 className={styles.nutritionTitle}>{nutrition.title}</h3>
+                                <div className={styles.nutritionServing}>
+                                  <p>{nutrition.servingsPerContainer}</p>
+                                  <p className={styles.nutritionServingSize}>
+                                    <span>{nutrition.servingSizeLabel}</span>
+                                    <span>{nutrition.servingSize}</span>
+                                  </p>
+                                </div>
+                                <div className={styles.nutritionCalories}>
+                                  <p>{nutrition.amountPerServingLabel}</p>
+                                  <p><span>{nutrition.calories.label}</span><span>{nutrition.calories.value}</span></p>
+                                </div>
+                              </caption>
+                              <thead>
+                                <tr><td aria-hidden="true" /><th scope="col">{nutrition.dailyValueLabel}</th></tr>
+                              </thead>
+                              <tbody>
+                                {nutrition.rows.map((row) => (
+                                  <tr key={row.label} className={cx(row.indented && styles.nutritionIndented, row.groupStart && styles.nutritionGroupStart)}>
+                                    <th scope="row">{row.label} <span className={styles.nutritionAmount}>{row.amount ?? "—"}</span></th>
+                                    <td>{row.dailyValue ?? "—"}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                            <p className={styles.nutritionFootnote}>{nutrition.dailyValueNote}</p>
+                          </div>
+                          <p className={styles.disclaimer}>{nutrition.note}</p>
+                          <a
+                            className={styles.detailSource}
+                            href={nutrition.sourceHref}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={(event) => openSourcePreview(event, nutrition.sourceHref)}
+                          >{nutrition.sourceLabel}</a>
+                        </div>
+                      </DetailDisclosure>
+                    )}
+
+                    {ingredients && (
+                      <DetailDisclosure id="ingredients" label={ingredients.title} defaultExpanded>
+                        <div className={styles.ingredientsContent}>
+                          <p>{ingredients.body}</p>
+                          <p><strong>{ingredients.allergenLabel}</strong> {ingredients.allergens}</p>
+                          <a
+                            className={styles.detailSource}
+                            href={ingredients.sourceHref}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={(event) => openSourcePreview(event, ingredients.sourceHref)}
+                          >{ingredients.sourceLabel}</a>
+                        </div>
+                      </DetailDisclosure>
+                    )}
 
                     <DetailDisclosure
                       id="disclaimer"
