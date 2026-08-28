@@ -31,6 +31,30 @@ export interface ProductDetailSpecification {
   value: string;
 }
 
+export interface ProductDetailNutrition {
+  title: string;
+  servingSize: string;
+  servingSizeLabel: string;
+  servingsPerContainer: string;
+  amountPerServingLabel: string;
+  calories: { label: string; value: string };
+  dailyValueLabel: string;
+  rows: readonly { label: string; amount?: string; dailyValue?: string; indented?: boolean; groupStart?: boolean }[];
+  dailyValueNote: string;
+  note: string;
+  sourceHref: string;
+  sourceLabel: string;
+}
+
+export interface ProductDetailIngredients {
+  title: string;
+  body: string;
+  allergenLabel: string;
+  allergens: string;
+  sourceHref: string;
+  sourceLabel: string;
+}
+
 export interface ProductDetailRegion {
   label: string;
   value: string;
@@ -61,6 +85,8 @@ export interface ProductDetailPageCopy {
   thumbnailsLabel: string;
   previousImage: string;
   nextImage: string;
+  openImagePreview: string;
+  closeImagePreview: string;
   ratingLabel: string;
   writeReview: string;
   bestBefore: string;
@@ -119,6 +145,8 @@ export interface ProductDetailPageProps
   bestBefore: string;
   highlights: readonly string[];
   specifications: readonly ProductDetailSpecification[];
+  nutrition?: ProductDetailNutrition;
+  ingredients?: ProductDetailIngredients;
   serviceDetailsHref?: string;
   purchaseTags?: readonly string[];
   region?: ProductDetailRegion;

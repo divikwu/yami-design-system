@@ -3755,6 +3755,7 @@
         },
         "exports": [
           "ProductMediaGallery",
+          "ProductMediaGalleryHandle",
           "ProductMediaGalleryItem",
           "ProductMediaGalleryProps"
         ],
@@ -3763,6 +3764,11 @@
           "ResponsiveImage"
         ],
         "props": {
+          "ref": {
+            "type": "Ref<ProductMediaGalleryHandle>",
+            "required": false,
+            "description": "Exposes openPreview(imageId), which selects an existing image by stable ID and opens the enabled preview at the current breakpoint. Returns false without changing selection when unavailable, so source links can preserve native navigation."
+          },
           "images": {
             "type": "ProductMediaGalleryItem[]",
             "required": true,
@@ -3798,6 +3804,30 @@
             "default": "Next image",
             "description": "Accessible name for the next control."
           },
+          "desktopPreview": {
+            "type": "boolean",
+            "required": false,
+            "default": false,
+            "description": "Enables a full-viewport image dialog from 1024px with a left thumbnail column."
+          },
+          "mobilePreview": {
+            "type": "boolean",
+            "required": false,
+            "default": false,
+            "description": "Enables tap-to-preview below 1024px with a primary-surface background, swipeable large images, and one horizontally scrollable bottom thumbnail row; native gallery swiping is preserved."
+          },
+          "openPreviewLabel": {
+            "type": "string",
+            "required": false,
+            "default": "Open image preview",
+            "description": "Localized accessible name for the main-image preview trigger."
+          },
+          "closePreviewLabel": {
+            "type": "string",
+            "required": false,
+            "default": "Close image preview",
+            "description": "Localized accessible name for the preview close button."
+          },
           "onIndexChange": {
             "type": "(index: number) => void",
             "required": false,
@@ -3823,6 +3853,8 @@
           }
         },
         "tokens": [
+          "--surface-primary",
+          "--space-050",
           "--text-primary",
           "--product-card-add-icon",
           "--product-card-add-surface",
@@ -3911,11 +3943,14 @@
             "enter",
             "space",
             "arrow left",
-            "arrow right"
+            "arrow right",
+            "arrow up",
+            "arrow down",
+            "escape"
           ],
           "ariaPattern": "labelled region containing a labelled thumbnail group, pressed-state buttons, and previous or next controls",
           "structure": "The active product image retains meaningful alt text. Thumbnail images are decorative because each button announces position and image meaning.",
-          "interaction": "Native horizontal scrolling on mobile, thumbnail, previous, next, and ArrowLeft or ArrowRight selection all update the active image and polite counter."
+          "interaction": "Native horizontal scrolling on mobile, thumbnail, previous, next, and ArrowLeft or ArrowRight selection all update the active image and polite counter. Opt-in previews use a native modal dialog, trap focus, and restore focus and scroll on close. Mobile preview has a single scrollable bottom thumbnail row. Escape closes the dialog; crossing into a disabled breakpoint also closes it."
         },
         "dependencies": {
           "runtime": [
