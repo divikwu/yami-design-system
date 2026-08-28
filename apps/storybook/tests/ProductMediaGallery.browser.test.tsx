@@ -150,11 +150,13 @@ test("mobile preview opens the selected image and supports a single touch-scroll
     expect(getComputedStyle(rail).overflowX).toBe("auto");
     expect(document.documentElement.style.overflow).toBe("hidden");
     const stage = dialog.querySelector<HTMLElement>('[data-slot="product-media-preview-stage"]')!;
-    const swipeImage = async (distance: number) => {
+    const swipeImage = async (direction: -1 | 1) => {
       const rect = stage.getBoundingClientRect();
       const frame = window.frameElement!.getBoundingClientRect();
       const scale = frame.width / innerWidth;
-      const point = { x: frame.left + (rect.left + rect.width / 2) * scale,
+      // Cross the snap midpoint without relying on platform-dependent fling velocity.
+      const distance = rect.width * 0.6 * direction;
+      const point = { x: frame.left + (rect.left + rect.width * (direction < 0 ? 0.8 : 0.2)) * scale,
         y: frame.top + (rect.top + rect.height / 2) * scale, id: 0 };
       await session.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [point] });
       for (let step = 1; step <= 16; step++) {
@@ -166,20 +168,20 @@ test("mobile preview opens the selected image and supports a single touch-scroll
     };
     const selectedImage = () => dialog.querySelector('[data-slot="product-media-preview-image"]');
     const imageRail = dialog.querySelector<HTMLElement>('[data-slot="product-media-preview-rail"]')!;
-    await swipeImage(-160);
+    await swipeImage(-1);
     await expect.poll(() => thumbnails[3].getAttribute("aria-pressed")).toBe("true");
     await expect.poll(() => imageRail.scrollLeft).toBe(imageRail.clientWidth * 3);
     expect(selectedImage()?.getAttribute("alt")).toBe(manyImages[3].alt);
-    await swipeImage(160);
+    await swipeImage(1);
     await expect.poll(() => thumbnails[2].getAttribute("aria-pressed")).toBe("true");
     await expect.poll(() => imageRail.scrollLeft).toBe(imageRail.clientWidth * 2);
     await page.elementLocator(thumbnails[0]).click();
     await expect.poll(() => thumbnails[0].getAttribute("aria-pressed")).toBe("true");
     await expect.poll(() => dialog.querySelector('[data-slot="product-media-preview-rail"]')!.scrollLeft).toBe(0);
-    await swipeImage(160);
+    await swipeImage(1);
     expect(thumbnails[0].getAttribute("aria-pressed")).toBe("true");
     await page.elementLocator(thumbnails[10]).click();
-    await swipeImage(-160);
+    await swipeImage(-1);
     expect(thumbnails[10].getAttribute("aria-pressed")).toBe("true");
     await page.elementLocator(thumbnails[2]).click();
     expect(selectedImage()?.getAttribute("alt")).toBe(manyImages[2].alt);
