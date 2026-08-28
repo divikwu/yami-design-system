@@ -637,6 +637,30 @@ describe("PageMerchandising", () => {
     });
   });
 
+  it("chooses a distinct source image within each frozen shortcut group in fallback plans", () => {
+    const intent = themeIntentFixture();
+    const selection = selectionFixture();
+    selection.strategyRef = "relevance/intent-themes@5";
+    selection.products.find(({ id }) => id === "core-8")!.imageUrl = "https://example.com/core-7.webp?size=large";
+    selection.modules.push({
+      id: "shortcuts", productIds: ["core-7", "core-8", "core-9"],
+      groups: [
+        { id: "first", label: "First", role: "core", productIds: ["core-7"] },
+        { id: "second", label: "Second", role: "core", productIds: ["core-8", "core-9"] },
+      ],
+    });
+    const sourcePlan = { modules: validProposal(selection, intent, "topic-landing/topic-relevance@2")
+      .modules.map((module) => ({
+        ...module, heading: module.shoppingGoal,
+        productIds: module.assignments.map(({ productId }) => productId),
+      })) };
+    const plan = compileDeterministicTopicPagePlanV2(
+      intent, selection, sourcePlan as never, "topic-landing/topic-relevance@2",
+    );
+    expect(plan.modules.find(({ id }) => id === "shortcuts")?.assignments.map(({ productId }) => productId))
+      .toEqual(["core-7", "core-9"]);
+  });
+
   it("derives the Shortcuts assignment count from all frozen navigation groups", () => {
     const intent = themeIntentFixture();
     const selection = selectionFixture();
@@ -729,7 +753,7 @@ describe("PageMerchandising", () => {
     ]);
   });
 
-  it("requires relevance proposals to preserve every frozen Brand Spotlight group", () => {
+  it("requires relevance proposals to preserve every frozen Brand Spotlight group", async () => {
     const intent = themeIntentFixture();
     const selection = selectionFixture();
     selection.strategyRef = "relevance/intent-themes@5";
@@ -778,6 +802,22 @@ describe("PageMerchandising", () => {
     const ready = advancePageMerchandisingRun({ intent, selection, proposal });
     expect(ready.status).toBe("ready");
 
+    const withoutReuseReasons = structuredClone(proposal);
+    withoutReuseReasons.modules.find(({ id }) => id === "brand-spotlight")!.assignments
+      .forEach((assignment) => { delete assignment.reuseReason; });
+    const agent = { id: "fixture", proposeModuleMerchandising: vi.fn(async () => withoutReuseReasons) };
+    const workflow = await runPageMerchandisingAgentWorkflow({
+      intent, selection, templateRef: "topic-landing/topic-relevance@2", agent,
+    });
+    expect(workflow.run.status).toBe("ready");
+    expect(agent.proposeModuleMerchandising).toHaveBeenCalledOnce();
+    if (workflow.run.status !== "ready") throw new Error("Expected frozen brand references.");
+    expect(workflow.run.plan.modules.find(({ id }) => id === "brand-spotlight")?.assignments
+      .map(({ productId, groupId, reuseReason }) => ({ productId, groupId, explained: Boolean(reuseReason) })))
+      .toEqual(brand.assignments.map(({ productId, groupId }) => ({ productId, groupId, explained: true })));
+    expect(withoutReuseReasons.modules.find(({ id }) => id === "brand-spotlight")!.assignments[0])
+      .not.toHaveProperty("reuseReason");
+
     const truncated = structuredClone(proposal);
     truncated.modules.find(({ id }) => id === "brand-spotlight")!.assignments.pop();
     const blocked = advancePageMerchandisingRun({ intent, selection, proposal: truncated });
@@ -787,6 +827,14 @@ describe("PageMerchandising", () => {
         "Module brand-spotlight must assign 6-6 products when visible.",
         "Module brand-spotlight must preserve ProductSelectionResult product order.",
       ]),
+    });
+    const invalidWorkflow = await runPageMerchandisingAgentWorkflow({
+      intent, selection, templateRef: "topic-landing/topic-relevance@2",
+      agent: { id: "truncated-fixture", proposeModuleMerchandising: async () => truncated },
+    });
+    expect(invalidWorkflow.run).toMatchObject({
+      status: "blocked",
+      issues: expect.arrayContaining(["Module brand-spotlight must assign 6-6 products when visible."]),
     });
   });
 

@@ -684,6 +684,37 @@ describe("ProductSelection Module", () => {
     });
   });
 
+  it("keeps the complete large single-leaf pool as compact textual semantic evidence", () => {
+    const products = Array.from({ length: 1345 }, (_, index) => {
+      const title = `Mooncake gift assortment with traditional lotus filling ${index}`;
+      return {
+        id: `mooncake-${index}`, title, brand: "Mooncake Bakery", price: "$20.00",
+        imageUrl: `https://example.com/${"image/".repeat(40)}${index}.webp`,
+        productUrl: `https://example.com/${"mooncake-gift-assortment-".repeat(15)}${index}`,
+        sourceRank: index + 1, soldCount: 2000 - index,
+        categoryL3Id: 178, categoryL3Name: "Mooncakes",
+        searchAliases: [title, "Mooncake Bakery", "Mooncakes", `中秋团圆月饼礼盒 ${index}`, title],
+      };
+    });
+    const snapshot: YamiSearchSnapshot = {
+      keyword: "Mooncake", site: "us", sourceUrl: "https://example.com/search",
+      fetchedAt: "2026-08-27T00:00:00Z", products,
+    };
+    const before = structuredClone(snapshot);
+    const run = advanceProductSelectionRun({ snapshot, strategyRef: "relevance/intent-themes@5" });
+    expect(run.status).toBe("needs-product-semantic-proposal");
+    if (run.status !== "needs-product-semantic-proposal") throw new Error("Expected semantic task.");
+    expect(run.context.products.map(({ id }) => id)).toEqual(products.map(({ id }) => id));
+    expect(run.context.products[0]).toMatchObject({
+      title: products[0]!.title, sourceRank: 1, soldCount: 2000, categoryL3Id: 178,
+      searchAliases: ["中秋团圆月饼礼盒 0"],
+    });
+    expect(run.context.products[0]).not.toHaveProperty("imageUrl");
+    expect(run.context.products[0]).not.toHaveProperty("productUrl");
+    expect(JSON.stringify(run).length).toBeLessThan(700_000);
+    expect(snapshot).toEqual(before);
+  });
+
   it("requests an Agent product-semantic proposal when one catalog leaf cannot form useful themes", () => {
     const products = [
       ...Array.from({ length: 4 }, (_, index) => ({

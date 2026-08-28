@@ -126,6 +126,9 @@ separate request.
    not repeat the same idea; prefer one description sentence and allow two when clarity needs them.
    Read the Hero and Start Here module objectives' locale-specific `copyRules`:
    `preferredLength` is a polish target, while `maxCharacters` is a recommended layout ceiling.
+   For Start Here, also prefer a concise module heading that covers the whole journey and short,
+   distinct scene-tab labels within their own locale-specific targets; do not collapse distinct
+   scenes into indistinguishable labels or prefer awkward abbreviations merely for length.
    Both are advisory. Copy outside either range may receive a warning when it can be tightened,
    but length alone must never produce an error or `revision-required` verdict. For a scene card,
    prefer one compact decision phrase plus one short sentence over an exhaustive list of the

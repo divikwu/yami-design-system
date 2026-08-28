@@ -42,6 +42,42 @@ vi.mock("../src/page-review/index.js", async (importOriginal) => ({
 import { createTopicGeneratorManagedStageExecutor } from "../src/managed-run/workflow.js";
 
 describe("Topic Generator managed stage executor", () => {
+  it.each(["transport", "proposal"])("blocks failed semantic %s instead of silently completing without groups", async (failure) => {
+    const proposeProductSemantics = vi.fn(async () => {
+      if (failure === "transport") throw new Error("Product Agent returned HTTP 502.");
+      return { schemaVersion: "invalid" };
+    });
+    const snapshot = {
+      keyword: "Mooncake", site: "us", sourceUrl: "https://example.com/search",
+      fetchedAt: "2026-08-27T00:00:00Z",
+      products: Array.from({ length: 12 }, (_, index) => ({
+        id: `mooncake-${index}`, title: `Mooncake gift ${index}`, brand: "Bakery", price: "$20",
+        imageUrl: `https://example.com/${index}.webp`, productUrl: `https://example.com/${index}`,
+        sourceRank: index + 1, categoryL3Id: 178, categoryL3Name: "Mooncakes",
+      })),
+    };
+    const execute = createTopicGeneratorManagedStageExecutor({
+      productSelectionAgent: {
+        id: "fixture-product-agent", proposeProductSemantics,
+        proposeCategoryRoles: vi.fn(), proposeScenes: vi.fn(),
+      },
+      deliverableRenderer: { render: async () => "" },
+    });
+    const result = await execute({
+      manifest: { request: { language: "zh", strategy: "relevance", goal: "page" } },
+      state: {}, stageId: "product-selection", attempt: 1,
+      readStageResult: async () => ({ analysis: { intent: { themeType: "product" }, snapshot } }),
+      assetStore: {},
+    } as never);
+    expect(proposeProductSemantics).toHaveBeenCalledTimes(failure === "transport" ? 1 : 2);
+    expect(result).toMatchObject({
+      status: "blocked",
+      issues: [failure === "transport" ? "Product Agent returned HTTP 502."
+        : 'schemaVersion must be "product-semantic-proposal/v1".'],
+      output: { executionPlan: { selectionStrategyRef: "relevance/intent-themes@5" } },
+    });
+  });
+
   it("projects reviewed Start Here scenes and assignments into both preview languages", async () => {
     const startHereModule = {
       id: "start-here",

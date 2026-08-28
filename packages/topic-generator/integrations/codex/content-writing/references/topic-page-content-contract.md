@@ -171,19 +171,29 @@ range by rendered footprint as well as raw count. The generated Explore More tit
 Chinese characters with a recommended ceiling of 20, or 2–5 English words and preferably no more
 than 40 characters with a recommended ceiling of 48.
 
-The active policy also returns card-fit Start Here scene guidance:
+The active policy also returns compact Start Here heading, tab-label, and scene-card guidance:
 
 | Locale | Slot | Preferred length | Recommended `maxCharacters` ceiling |
 | --- | --- | --- | --- |
+| `zh` | module title | 8–16 characters | 20 |
+| `zh` | scene label | 2–4 characters | 6 |
 | `zh` | scene title | 4–10 characters | 12 |
 | `zh` | scene description | 14–28 characters | 40 |
-| `en` | scene title | 3–4 words and preferably no more than 26 characters | 30 |
-| `en` | scene description | 8–12 words and preferably no more than 72 characters | 84 |
+| `en` | module title | 3–6 words and preferably no more than 24 characters | 32 |
+| `en` | scene label | 1–3 words and preferably no more than 24 characters | 32 |
+| `en` | scene title | 3–4 words and preferably no more than 24 characters | 32 |
+| `en` | scene description | 8–12 words and preferably no more than 72 characters | 96 |
 
+English Start Here character targets and ceilings use multiples of four as a configuration
+convention, not a pixel-grid or measured line-fit guarantee. Word-count targets are unchanged.
+
+Keep the module title broad enough to cover the whole shopping journey without listing every
+scene. Scene labels are short, distinct tab names, not sentences or copies of the module title.
+Use natural locale-specific wording; do not pad short labels or truncate meaningful words.
 Use the scene title for one compact decision phrase and the description for one short sentence
 that adds the key comparison or next step. Do not enumerate every category already visible in the
 product row merely because the recommended ceiling has room. Other module titles remain at 64;
-other generic descriptions at 180; Hero tags, shortcut labels, and scene labels at 32. The runtime
+other generic descriptions at 180; Hero tags and shortcut labels at 32. The runtime
 returns these rules with the task and binds them into the CopyBrief so Agents do not need a private
 copy of this table.
 
