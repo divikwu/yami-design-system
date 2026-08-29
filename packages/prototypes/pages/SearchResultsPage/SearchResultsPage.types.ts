@@ -8,6 +8,29 @@ import type {
 
 export type SearchResultsLocale = "zh" | "en";
 
+export type SearchResultsSort =
+  | "featured"
+  | "best-seller"
+  | "popularity"
+  | "most-reviews"
+  | "most-ratings"
+  | "newest"
+  | "price-high"
+  | "price-low";
+
+export interface SearchResultsRequestState {
+  query: string;
+  page: number;
+  sort: SearchResultsSort;
+  categoryIds: readonly string[];
+}
+
+export interface SearchResultsInteraction {
+  request: SearchResultsRequestState;
+  pageCount: number;
+  onRequestChange: (request: SearchResultsRequestState) => void;
+}
+
 export interface SearchResultsFilter {
   id: string;
   label: string;
@@ -63,5 +86,6 @@ export interface SearchResultsPageProps
   products: ProductListItem[];
   filters: SearchResultsFilter[];
   filtersLoading?: boolean;
+  interaction?: SearchResultsInteraction;
   copy: SearchResultsCopy;
 }

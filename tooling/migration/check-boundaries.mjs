@@ -8,6 +8,7 @@ const rules = [
   { dir: "apps/canvas", forbidden: ["@yami/topic-generator"] },
   { dir: "packages/design-system", forbidden: ["@yami/contracts", "@yami/prototypes", "next/", "motion/", "zod", "@design-labs/", "@astryxdesign/"] },
   { dir: "packages/contracts", forbidden: ["@yami/design-system", "@yami/prototypes", "next/", "motion/", "react", "@design-labs/", "@astryxdesign/"] },
+  { dir: "packages/commerce-catalog", forbidden: ["@yami/design-system", "@yami/prototypes", "@yami/topic-generator", "next/", "motion/", "react", "@design-labs/", "@astryxdesign/"] },
   { dir: "packages/prototypes", forbidden: ["next/", "motion/", "@design-labs/", "@astryxdesign/"] }
 ];
 

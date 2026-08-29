@@ -22,12 +22,14 @@ No API key, login, or database is required.
 See [`docs/ai-workflow.md`](docs/ai-workflow.md) for the reusable agent prompt
 and import contract.
 
-- Canvas: http://localhost:3200
+- Canvas Workbench: http://localhost:3200/workbench
+- Canvas Preview: http://localhost:3200/preview?locale=en
 - Storybook: http://localhost:6006
 
 ## Hosted environments
 
-- Canvas: https://yami-design-system.vercel.app
+- Canvas Workbench: https://yami-design-system.vercel.app/workbench
+- Canvas Preview: https://yami-design-system.vercel.app/preview?locale=en
 - Storybook: https://yami-design-system-storybook.vercel.app
 
 The source repository and the manually promoted Vercel production deployments

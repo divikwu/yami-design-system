@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useEffect,
   useMemo,
   useState,
   type CSSProperties,
@@ -21,7 +22,11 @@ import {
 
 import styles from "./SearchResultsPage.module.css";
 import { AllFiltersDialog, type AllFiltersSortValue } from "./AllFiltersDialog";
-import type { SearchResultsPageProps } from "./SearchResultsPage.types";
+import type {
+  SearchResultsPageProps,
+  SearchResultsRequestState,
+  SearchResultsSort,
+} from "./SearchResultsPage.types";
 
 const hotIcon = new URL("./assets/hot.svg", import.meta.url).href;
 const filterIcon = new URL(
@@ -80,6 +85,19 @@ function countValue(value: ReactNode) {
   return Number.parseFloat(String(value).replace(/[^0-9.]/g, "")) || 0;
 }
 
+function paginationItems(page: number, pageCount: number): Array<number | string> {
+  if (pageCount <= 9) return Array.from({ length: pageCount }, (_, index) => index + 1);
+  const pages = Array.from(new Set([1, 2, page - 1, page, page + 1, pageCount - 1, pageCount]))
+    .filter((value) => value >= 1 && value <= pageCount)
+    .sort((a, b) => a - b);
+  return pages.flatMap((value, index) => {
+    const previous = pages[index - 1];
+    return previous !== undefined && value - previous > 1
+      ? [`ellipsis-${previous}`, value]
+      : [value];
+  });
+}
+
 function FilterSkeleton({ widths }: { widths: readonly number[] }) {
   return (
     <div
@@ -111,6 +129,7 @@ export function SearchResultsPage({
   products,
   filters,
   filtersLoading = false,
+  interaction,
   copy,
   className,
   ...rest
@@ -120,15 +139,37 @@ export function SearchResultsPage({
       ? `${contentMaxWidth}px`
       : contentMaxWidth;
   const [draftQuery, setDraftQuery] = useState(query);
-  const [appliedQuery, setAppliedQuery] = useState(query);
+  const [localAppliedQuery, setLocalAppliedQuery] = useState(query);
   const [filterIds, setFilterIds] = useState<string[]>([]);
   const [menuValues, setMenuValues] = useState<Record<string, string[]>>({});
   const [fulfilled, setFulfilled] = useState(false);
-  const [category, setCategory] = useState("");
-  const [sort, setSort] = useState<SortValue>("featured");
+  const [localCategory, setLocalCategory] = useState("");
+  const [localSort, setLocalSort] = useState<SortValue>("featured");
   const [allFiltersOpen, setAllFiltersOpen] = useState(false);
-  const [page, setPage] = useState(1);
+  const [localPage, setLocalPage] = useState(1);
   const [productView, setProductView] = useState<"grid" | "list">("grid");
+  const appliedQuery = interaction?.request.query ?? localAppliedQuery;
+  const category = interaction?.request.categoryIds[0] ?? localCategory;
+  const sort = interaction?.request.sort ?? localSort;
+  const page = interaction?.request.page ?? localPage;
+
+  useEffect(() => {
+    setDraftQuery(interaction?.request.query ?? query);
+  }, [interaction?.request.query, query]);
+
+  function updateRequest(patch: Partial<SearchResultsRequestState>) {
+    if (!interaction) return false;
+    interaction.onRequestChange({ ...interaction.request, ...patch });
+    return true;
+  }
+
+  function commitQuery(value: string) {
+    const nextQuery = value.trim();
+    setDraftQuery(value);
+    if (!updateRequest({ query: nextQuery, page: 1 })) {
+      setLocalAppliedQuery(nextQuery);
+    }
+  }
 
   const visibleProducts = useMemo(() => {
     const selectedFilters = filters.filter((filter) =>
@@ -138,6 +179,7 @@ export function SearchResultsPage({
       selectedFilters.every((filter) => filter.productIds.includes(product.id))
     );
 
+    if (interaction) return filtered;
     if (sort === "featured" || sort === "newest") return filtered;
     return [...filtered].sort((a, b) => {
       if (sort === "price-low") {
@@ -154,7 +196,7 @@ export function SearchResultsPage({
       }
       return countValue(b.soldCount) - countValue(a.soldCount);
     });
-  }, [filterIds, filters, products, sort]);
+  }, [filterIds, filters, interaction, products, sort]);
 
   const visibleResultCount = filterIds.length
     ? visibleProducts.length
@@ -173,27 +215,29 @@ export function SearchResultsPage({
 
   function resetSearch() {
     setDraftQuery("");
-    setAppliedQuery("");
+    setLocalAppliedQuery("");
     setFilterIds([]);
     setMenuValues({});
-    setCategory("");
+    setLocalCategory("");
     setFulfilled(false);
-    setSort("featured");
-    setPage(1);
+    setLocalSort("featured");
+    setLocalPage(1);
+    updateRequest({ query: "", page: 1, sort: "featured", categoryIds: [] });
   }
 
   function clearAllFilters() {
     setFilterIds([]);
     setMenuValues({});
-    setCategory("");
+    setLocalCategory("");
     setFulfilled(false);
-    setSort("featured");
-    setPage(1);
+    setLocalSort("featured");
+    setLocalPage(1);
+    updateRequest({ page: 1, sort: "featured", categoryIds: [] });
   }
 
   function submitMobileSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setAppliedQuery(draftQuery.trim());
+    commitQuery(draftQuery);
   }
 
   return (
@@ -208,10 +252,7 @@ export function SearchResultsPage({
           {...header}
           searchValue={draftQuery}
           onSearchValueChange={setDraftQuery}
-          onSearchSubmit={(value) => {
-            setDraftQuery(value);
-            setAppliedQuery(value.trim());
-          }}
+          onSearchSubmit={commitQuery}
         />
       </div>
 
@@ -381,7 +422,12 @@ export function SearchResultsPage({
                   closeLabel={locale === "en" ? "Close sorting" : "关闭排序"}
                   selectionMode="single"
                   value={sort}
-                  onValueChange={(value) => setSort(value as SortValue)}
+                  onValueChange={(value) => {
+                    const nextSort = value as SearchResultsSort;
+                    if (!updateRequest({ sort: nextSort, page: 1 })) {
+                      setLocalSort(nextSort);
+                    }
+                  }}
                   options={[
                     { label: copy.sortFeatured, value: "featured" },
                     { label: copy.sortBestSeller, value: "best-seller" },
@@ -435,7 +481,11 @@ export function SearchResultsPage({
                           locale === "en" ? "Category filters" : "分类筛选"
                         }
                         value={category}
-                        onValueChange={setCategory}
+                        onValueChange={(value) => {
+                          if (!updateRequest({ categoryIds: value ? [value] : [], page: 1 })) {
+                            setLocalCategory(value);
+                          }
+                        }}
                         options={copy.categoryOptions}
                         clearLabel={copy.clearSelection}
                         applyLabel={copy.showResults(visibleResultCount)}
@@ -562,24 +612,23 @@ export function SearchResultsPage({
             data-slot="search-results-pagination"
             aria-label="Pagination"
           >
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((pageNumber) => (
+            {(interaction
+              ? paginationItems(page, interaction.pageCount)
+              : [1, 2, 3, 4, 5, 6, 7, 8, "ellipsis-local", 25]
+            ).map((item) => typeof item === "number" ? (
               <button
-                key={pageNumber}
+                key={item}
                 type="button"
-                aria-current={page === pageNumber ? "page" : undefined}
-                onClick={() => setPage(pageNumber)}
+                aria-current={page === item ? "page" : undefined}
+                onClick={() => {
+                  if (!updateRequest({ page: item })) setLocalPage(item);
+                }}
               >
-                {pageNumber}
+                {item}
               </button>
+            ) : (
+              <span key={item} aria-hidden="true">…</span>
             ))}
-            <span aria-hidden="true">…</span>
-            <button
-              type="button"
-              aria-current={page === 25 ? "page" : undefined}
-              onClick={() => setPage(25)}
-            >
-              25
-            </button>
           </nav>
         )}
       </main>
@@ -596,11 +645,16 @@ export function SearchResultsPage({
         onClose={() => setAllFiltersOpen(false)}
         onClear={clearAllFilters}
         onApply={(value) => {
-          setSort(value.sort);
-          setCategory(value.category);
+          setLocalSort(value.sort);
+          setLocalCategory(value.category);
           setFulfilled(value.fulfilled);
           setMenuValues(value.menuValues);
-          setPage(1);
+          setLocalPage(1);
+          updateRequest({
+            sort: value.sort,
+            categoryIds: value.category ? [value.category] : [],
+            page: 1,
+          });
           setAllFiltersOpen(false);
         }}
       />

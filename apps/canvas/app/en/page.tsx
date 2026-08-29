@@ -1,6 +1,6 @@
-import { Suspense } from "react";
-import { PreviewSurface } from "../ui/preview-surface";
+import { redirect } from "next/navigation";
+import { previewRoute, type PreviewSearchParams } from "../lib/preview-routes";
 
-export default function EnglishHomePage() {
-  return <Suspense fallback={<div className="preview-loading" aria-label="Loading prototype" />}><PreviewSurface localeOverride="en" /></Suspense>;
+export default async function EnglishHomePage({ searchParams }: { searchParams: Promise<PreviewSearchParams> }) {
+  redirect(previewRoute(await searchParams, "en"));
 }
