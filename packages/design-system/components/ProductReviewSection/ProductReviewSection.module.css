@@ -241,12 +241,14 @@
   background: var(--fill-primary);
 }
 
-.filters [data-slot="filter-chip"]:hover {
-  background: color-mix(
-    in srgb,
-    var(--fill-primary) 92%,
-    var(--text-primary) 8%
-  );
+@media (hover: hover) and (pointer: fine) {
+  .filters [data-slot="filter-chip"]:hover {
+    background: color-mix(
+      in srgb,
+      var(--fill-primary) 92%,
+      var(--text-primary) 8%
+    );
+  }
 }
 
 .sort {
@@ -457,7 +459,9 @@
   .photo {
     transition: none;
   }
+}
 
+@media (prefers-reduced-motion: reduce) and (hover: hover) and (pointer: fine) {
   .summaryPhotoFrame:hover .photo,
   .photoFrame:hover .photo {
     transform: none;
@@ -555,7 +559,6 @@
 }
 
 .viewMoreButton,
-.viewMoreButton:not([aria-disabled="true"]):hover,
 .viewMoreButton:not([aria-disabled="true"]):active {
   width: auto;
   background-color: transparent;
@@ -751,7 +754,6 @@
   }
 
   .viewMoreButton,
-  .viewMoreButton:not([aria-disabled="true"]):hover,
   .viewMoreButton:not([aria-disabled="true"]):active {
     width: 100%;
     background-color: var(--surface-secondary);

@@ -26,21 +26,9 @@
   border: var(--stroke-default) solid transparent;
 }
 
-.filled:hover {
-  background: color-mix(
-    in srgb,
-    var(--fill-secondary) 92%,
-    var(--text-primary) 8%
-  );
-}
-
 .filled[aria-pressed="true"] {
   background: var(--fill-primary);
   box-shadow: inset 0 0 0 1px var(--border-focus);
-}
-
-.filled[aria-pressed="true"]:hover {
-  box-shadow: inset 0 0 0 2px var(--border-focus);
 }
 
 .outlined {
@@ -48,21 +36,35 @@
   border: var(--stroke-default) solid var(--border-default);
 }
 
-.outlined:hover {
-  background: color-mix(
-    in srgb,
-    var(--fill-primary) 92%,
-    var(--text-primary) 8%
-  );
-}
-
 .outlined[aria-pressed="true"] {
   background: var(--fill-primary);
   box-shadow: inset 0 0 0 1px var(--border-focus);
 }
 
-.outlined[aria-pressed="true"]:hover {
-  box-shadow: inset 0 0 0 2px var(--border-focus);
+@media (hover: hover) and (pointer: fine) {
+  .filled:hover {
+    background: color-mix(
+      in srgb,
+      var(--fill-secondary) 92%,
+      var(--text-primary) 8%
+    );
+  }
+
+  .filled[aria-pressed="true"]:hover {
+    box-shadow: inset 0 0 0 2px var(--border-focus);
+  }
+
+  .outlined:hover {
+    background: color-mix(
+      in srgb,
+      var(--fill-primary) 92%,
+      var(--text-primary) 8%
+    );
+  }
+
+  .outlined[aria-pressed="true"]:hover {
+    box-shadow: inset 0 0 0 2px var(--border-focus);
+  }
 }
 
 .icon {
@@ -103,14 +105,6 @@
 
 .menuPositioner {
   z-index: 100;
-}
-
-.menuBackdrop {
-  display: none;
-}
-
-.mobileMenuHeader {
-  display: none;
 }
 
 .menuPopup {
@@ -161,8 +155,10 @@
   cursor: pointer;
 }
 
-.optionRow:hover {
-  background: var(--fill-secondary);
+@media (hover: hover) and (pointer: fine) {
+  .optionRow:hover {
+    background: var(--fill-secondary);
+  }
 }
 
 .optionRow:has([data-disabled]) {
@@ -244,8 +240,10 @@
   border-radius: var(--radius-button-emphasis);
 }
 
-.categoryRow:hover {
-  background: var(--fill-secondary);
+@media (hover: hover) and (pointer: fine) {
+  .categoryRow:hover {
+    background: var(--fill-secondary);
+  }
 }
 
 .categoryChoice {
@@ -276,8 +274,10 @@
   place-items: center;
 }
 
-.categoryToggle:hover {
-  background: var(--color-black-200);
+@media (hover: hover) and (pointer: fine) {
+  .categoryToggle:hover {
+    background: var(--color-black-200);
+  }
 }
 
 .categoryToggle:focus-visible {
@@ -299,96 +299,8 @@
 }
 
 @media (max-width: 1023.98px) {
-  .menuBackdrop {
-    position: fixed;
-    z-index: 99;
-    inset: 0;
-    display: block;
-    background: rgb(0 0 0 / 48%);
-  }
-
-  .menuPositioner {
-    position: fixed !important;
-    top: auto !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    width: 100vw !important;
-    height: auto !important;
-    transform: none !important;
-  }
-
-  .menuPopup,
-  .categoryPopup {
-    width: 100%;
-    max-width: 100vw;
-    max-height: min(75dvh, calc(100dvh - var(--space-200)));
-    border-bottom: 0;
-    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-    transform-origin: bottom center;
-    transition:
-      opacity 180ms cubic-bezier(0.23, 1, 0.32, 1),
-      transform 220ms cubic-bezier(0.32, 0.72, 0, 1);
-  }
-
-  .mobileMenuHeader {
-    box-sizing: border-box;
-    display: grid;
-    min-height: 0;
-    flex: 0 0 auto;
-    row-gap: var(--space-050);
-    padding: var(--space-150) var(--space-200);
-    border-bottom: var(--stroke-default) solid var(--divider-default);
-    background: var(--fill-primary);
-  }
-
-  .mobileMenuHeader h2 {
-    margin: 0;
-    font-size: var(--font-size-heading-xl);
-    font-weight: var(--font-weight-emphasize);
-    line-height: var(--line-height-heading-xl);
-  }
-
-  .mobileMenuClose {
-    position: static;
-    display: grid;
-    width: 24px;
-    height: 24px;
-    padding: 0;
-    place-items: center;
-    justify-self: end;
-    border: 0;
-    background: transparent;
-    cursor: pointer;
-  }
-
-  .mobileMenuClose img {
-    display: block;
-    width: 24px;
-    height: 24px;
-  }
-
-  .mobileMenuClose:focus-visible {
-    border-radius: var(--radius-xs);
-    outline: 2px solid var(--border-focus);
-    outline-offset: 2px;
-  }
-
-  .menuPopup[data-starting-style],
-  .menuPopup[data-ending-style] {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-}
-
-@media (max-width: 1023.98px) and (prefers-reduced-motion: reduce) {
-  .menuPopup,
-  .categoryPopup {
-    transition: opacity 120ms ease-out;
-  }
-
-  .menuPopup[data-starting-style],
-  .menuPopup[data-ending-style] {
-    transform: none;
+  .optionList,
+  .categoryList {
+    overflow-y: visible;
   }
 }

@@ -362,6 +362,9 @@ export function SearchResultsPage({
                   <FilterChip
                     className={styles.filterControl}
                     data-search-results-filter-button="true"
+                    aria-label={copy.filtersButton}
+                    aria-haspopup="dialog"
+                    aria-controls={allFiltersOpen ? "all-filters" : undefined}
                     selected={allFiltersOpen}
                     leftIcon={
                       <img src={filterIcon} alt="" width={16} height={16} />

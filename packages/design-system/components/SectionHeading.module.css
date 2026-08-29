@@ -129,9 +129,14 @@
   transform: translate(-50%, -50%);
 }
 
-.viewAllMobile:hover,
 .viewAllMobile:active {
   background-color: var(--button-secondary-active);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .viewAllMobile:hover {
+    background-color: var(--button-secondary-active);
+  }
 }
 
 .viewAll:focus-visible,

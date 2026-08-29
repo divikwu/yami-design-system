@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "name": "sheet",
+  "title": "Sheet",
+  "type": "component",
+  "status": "experimental",
+  "source": "components/Sheet",
+  "files": [
+    "components/Sheet/index.ts",
+    "components/Sheet/Sheet.module.css",
+    "components/Sheet/Sheet.stories.module.css",
+    "components/Sheet/Sheet.tsx"
+  ]
+}

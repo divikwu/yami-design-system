@@ -58,8 +58,10 @@
   cursor: pointer;
   transition: background-color 150ms cubic-bezier(0.2, 0, 0, 1);
 }
-.interactive:hover {
-  background-color: var(--surface-secondary);
+@media (hover: hover) and (pointer: fine) {
+  .interactive:hover {
+    background-color: var(--surface-secondary);
+  }
 }
 .interactive:focus-visible {
   outline: 2px solid var(--border-focus);

@@ -1,0 +1,43 @@
+{
+  "$schema": "../../../schema/component.json",
+  "name": "Dialog",
+  "category": "layout",
+  "status": "experimental",
+  "version": "0.1.0",
+  "description": "Centered modal for confirmation, alerts, and short tasks on mobile and desktop.",
+  "figma": { "nodeId": null, "componentKey": null, "notes": "No standalone Figma binding is assigned yet." },
+  "exports": ["Dialog", "DialogProps"],
+  "composes": ["Button"],
+  "variants": { "role": ["dialog", "alertdialog"], "variant": ["default", "confirmation"] },
+  "props": {
+    "open": { "type": "boolean", "required": true, "description": "Controlled visibility. Closed dialogs unmount their content." },
+    "title": { "type": "string", "required": true, "description": "Visible heading and accessible dialog name." },
+    "closeLabel": { "type": "string", "required": false, "description": "Localized accessible label for the default variant's close action." },
+    "onClose": { "type": "() => void", "required": true, "description": "Request to close; the consumer must set open to false." },
+    "role": { "type": "enum", "values": ["dialog", "alertdialog"], "default": "dialog", "required": false, "description": "Use alertdialog only for critical prompts that need immediate announcement." },
+    "variant": { "type": "enum", "values": ["default", "confirmation"], "default": "default", "required": false, "description": "Confirmation centers its title and relies on explicit footer actions instead of a close button." },
+    "footer": { "type": "ReactNode", "required": false, "description": "Caller-owned actions outside the scrolling content." },
+    "children": { "type": "ReactNode", "required": true, "description": "Short task or message content." }
+  },
+  "rules": {
+    "radii": { "ruleId": "no-custom-radii", "note": "Uses the shared surface radius." },
+    "focus": { "ruleId": "focus-style", "note": "Uses Button focus rings, confines Tab navigation, and restores the opener on close." },
+    "tapTarget": { "ruleId": "tap-target", "note": "The visual close control is 32px with a centered 20px icon and Button's 44px hit-area extender." }
+  },
+  "tokens": ["--surface-primary", "--text-primary", "--text-secondary", "--overlay-scrim", "--divider-default", "--radius-surface-default", "--font-size-heading-sm", "--font-weight-emphasize", "--space-100", "--space-150", "--space-200", "--space-400", "--space-600"],
+  "tokenBindings": {
+    "--surface-primary": { "property": "background", "selector": ".dialog" },
+    "--overlay-scrim": { "property": "background", "selector": ".dialog::backdrop" },
+    "--radius-surface-default": { "property": "border-radius", "selector": ".dialog" },
+    "--font-size-heading-sm": { "property": "font-size", "selector": ".title" }
+  },
+  "accessibility": {
+    "role": "dialog", "wcagLevel": "AA", "tapTargetMin": 44,
+    "keyboardNav": ["tab", "shift+tab", "escape", "enter", "space"],
+    "ariaPattern": "Native modal dialog labelled by its visible h2; alertdialog is an explicit variant.",
+    "interaction": "showModal makes the background inert. Focus starts on Close for default dialogs or the first control for confirmation dialogs, remains inside, and returns to the opener."
+  },
+  "dependencies": { "runtime": ["react"], "peer": [], "devOnly": [] },
+  "usageRef": "./usage.md",
+  "examples": ["./examples.tsx#DialogExample"]
+}

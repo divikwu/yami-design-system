@@ -109,12 +109,14 @@
   color: var(--text-disabled-inverse);
 }
 
-.trigger:not([aria-disabled="true"]):hover {
-  color: var(--text-primary);
-}
+@media (hover: hover) and (pointer: fine) {
+  .trigger:not([aria-disabled="true"]):hover {
+    color: var(--text-primary);
+  }
 
-.list[data-inverse="true"] .trigger:not([aria-disabled="true"]):hover {
-  color: var(--text-primary-inverse);
+  .list[data-inverse="true"] .trigger:not([aria-disabled="true"]):hover {
+    color: var(--text-primary-inverse);
+  }
 }
 
 .label,
@@ -311,11 +313,6 @@
   inset-block: var(--space-100);
 }
 
-.list[data-variant="tertiary"]
-  .trigger[data-state="inactive"]:not([aria-disabled="true"]):hover::before {
-  background: var(--button-secondary);
-}
-
 .list[data-variant="tertiary"] .trigger[data-state="active"] {
   color: var(--text-primary-inverse);
   font-weight: var(--font-weight-emphasize);
@@ -337,9 +334,16 @@
   background: var(--surface-primary);
 }
 
-.list[data-inverse="true"][data-variant="tertiary"]
-  .trigger[data-state="inactive"]:not([aria-disabled="true"]):hover::before {
-  background: var(--button-secondary-inverse);
+@media (hover: hover) and (pointer: fine) {
+  .list[data-variant="tertiary"]
+    .trigger[data-state="inactive"]:not([aria-disabled="true"]):hover::before {
+    background: var(--button-secondary);
+  }
+
+  .list[data-inverse="true"][data-variant="tertiary"]
+    .trigger[data-state="inactive"]:not([aria-disabled="true"]):hover::before {
+    background: var(--button-secondary-inverse);
+  }
 }
 
 .list[data-full-width="true"] .trigger {

@@ -186,8 +186,10 @@
   object-fit: cover;
 }
 
-.iconSurface:hover .icon {
-  transform: scale(1.03);
+@media (hover: hover) and (pointer: fine) {
+  .iconSurface:hover .icon {
+    transform: scale(1.03);
+  }
 }
 
 .label {
@@ -269,6 +271,9 @@
     transition: none;
   }
 
+}
+
+@media (prefers-reduced-motion: reduce) and (hover: hover) and (pointer: fine) {
   .iconSurface:hover .icon {
     transform: none;
   }

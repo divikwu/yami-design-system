@@ -31,4 +31,9 @@ Selecting a parent row reveals its immediate children. The separate 28px
 trailing control only expands or collapses that branch and never changes the
 selected category.
 
+Below 1024px, all three menus use the shared `Sheet` component instead of an
+anchored Popover. The modal header, close action, backdrop, focus trap, scroll
+lock and safe-area footer come from Sheet. Selection and draft behavior are
+unchanged; desktop keeps the anchored popup and its existing dimensions.
+
 Do not use the static `Tag` component for filtering.

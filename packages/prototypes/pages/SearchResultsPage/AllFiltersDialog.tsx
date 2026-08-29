@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import {
   Button,
+  Sheet,
   Checkbox,
   RadioGroup,
   RadioGroupItem,
@@ -26,14 +27,6 @@ const minusIcon = new URL(
 ).href;
 const arrowRightIcon = new URL(
   "../../../design-system/assets/icons/system/arrow-right.svg",
-  import.meta.url
-).href;
-const closeIcon = new URL(
-  "../../../design-system/assets/icons/action/close.svg",
-  import.meta.url
-).href;
-const backIcon = new URL(
-  "../../../design-system/assets/icons/action/arrow-left.svg",
   import.meta.url
 ).href;
 const tagCloseIcon = new URL(
@@ -198,7 +191,9 @@ export function AllFiltersDialog({
   onApply,
   onClear,
 }: AllFiltersDialogProps) {
-  const dialogRef = useRef<HTMLDivElement>(null);
+  const mainRef = useRef<HTMLDivElement>(null);
+  const sectionTrigger = useRef<HTMLButtonElement | null>(null);
+  const mainScroll = useRef(0);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set()
@@ -261,18 +256,23 @@ export function AllFiltersDialog({
     setExpanded(new Set());
     setExpandedCategories(new Set());
     setMobileSection(null);
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    requestAnimationFrame(() => dialogRef.current?.focus());
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      document.removeEventListener("keydown", onKeyDown);
-    };
   }, [category, fulfilled, menuValues, onClose, open, sort]);
+
+  useLayoutEffect(() => {
+    if (!mobileSection && sectionTrigger.current) {
+      const content = mainRef.current?.parentElement;
+      if (content) content.scrollTop = mainScroll.current;
+      sectionTrigger.current.focus({ preventScroll: true });
+      sectionTrigger.current = null;
+    }
+  }, [mobileSection]);
+
+  useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    const returnToFilters = () => { if (desktop.matches) setMobileSection(null); };
+    desktop.addEventListener("change", returnToFilters);
+    return () => desktop.removeEventListener("change", returnToFilters);
+  }, []);
 
   if (!open) return null;
 
@@ -468,11 +468,13 @@ export function AllFiltersDialog({
           className={styles.sectionHeader}
           type="button"
           aria-expanded={isExpanded}
-          onClick={() => {
+          onClick={(event) => {
             if (
               typeof window !== "undefined" &&
               window.matchMedia("(max-width: 1023.98px)").matches
             ) {
+              sectionTrigger.current = event.currentTarget;
+              mainScroll.current = mainRef.current?.parentElement?.scrollTop ?? 0;
               setMobileSection(section);
               return;
             }
@@ -497,203 +499,166 @@ export function AllFiltersDialog({
   }
 
   return (
-    <div
-      className={styles.overlay}
-      data-slot="all-filters-overlay"
-      onMouseDown={onClose}
-    >
-      <div
-        ref={dialogRef}
-        className={styles.dialog}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="all-filters-title"
-        tabIndex={-1}
-        data-slot="all-filters-dialog"
-        onMouseDown={(event) => event.stopPropagation()}
-      >
-        <header
-          className={`${styles.header} ${
-            mobileSection ? styles.subdialogHeader : ""
-          }`}
-        >
-          {mobileSection && (
-            <button
-              className={styles.backButton}
-              type="button"
-              aria-label={
-                locale === "zh" ? "返回全部筛选" : "Back to all filters"
-              }
-              onClick={() => setMobileSection(null)}
-            >
-              <img src={backIcon} alt="" width={24} height={24} />
-            </button>
-          )}
-          {!mobileSection && (
-            <button
-              className={styles.closeButton}
-              type="button"
-              aria-label={locale === "zh" ? "关闭筛选" : "Close filters"}
-              onClick={onClose}
-            >
-              <img src={closeIcon} alt="" width={24} height={24} />
-            </button>
-          )}
-          <h2 id="all-filters-title">
-            {mobileSection
-              ? getSectionLabel(mobileSection)
-              : copy.filtersButton}
-          </h2>
-        </header>
-
-        <div className={styles.body}>
-          {mobileSection ? (
+    <Sheet
+      open={open}
+      id="all-filters"
+      data-slot="all-filters-dialog"
+      title={mobileSection ? getSectionLabel(mobileSection) : copy.filtersButton}
+      closeLabel={locale === "zh" ? "关闭筛选" : "Close filters"}
+      onClose={onClose}
+      back={mobileSection ? {
+        label: locale === "zh" ? "返回全部筛选" : "Back to all filters",
+        onClick: () => setMobileSection(null),
+      } : undefined}
+      contentPadding="none"
+      footer={
+        <>
+          {selectedTags.length > 0 && (
             <div
-              className={styles.mobileSectionContent}
-              data-slot="all-filters-subdialog"
-              data-section={mobileSection}
+              className={styles.selectedTags}
+              aria-label={locale === "zh" ? "已选筛选" : "Selected filters"}
             >
-              {renderSectionContent(mobileSection)}
+              {selectedTags.map((tag) => (
+                <span className={styles.selectedTag} key={tag.key}>
+                  <span>{tag.label}</span>
+                  <button
+                    className={styles.removeTagButton}
+                    type="button"
+                    aria-label={
+                      locale === "zh"
+                        ? `移除${tag.label}筛选`
+                        : `Remove ${tag.label} filter`
+                    }
+                    onClick={tag.onRemove}
+                  >
+                    <img src={tagCloseIcon} alt="" width={16} height={16} />
+                  </button>
+                </span>
+              ))}
             </div>
-          ) : (
-            <>
-              {renderSection(
-                "sort",
-                sortOptions[sortValues.indexOf(draftSort)]
-              )}
-
-              {renderSection(
-                "category",
-                findCategoryLabel(copy.categoryOptions, draftCategory)
-              )}
-
-              <section className={styles.section}>
-                <button
-                  className={styles.switchRow}
-                  type="button"
-                  role="switch"
-                  aria-checked={draftFulfilled}
-                  onClick={() => setDraftFulfilled((current) => !current)}
-                >
-                  <strong className={styles.fulfilledLabel}>
-                    <img src={fulfilledIcon} alt="" width={24} height={24} />
-                    {copy.fulfilledByYami}
-                  </strong>
-                  <span className={styles.switch} aria-hidden="true">
-                    <span />
-                  </span>
-                </button>
-              </section>
-
-              <section className={styles.section}>
-                <button
-                  className={styles.switchRow}
-                  type="button"
-                  role="switch"
-                  aria-checked={
-                    draftMenuValues[labels.inStock]?.includes("in-stock") ??
-                    false
-                  }
-                  onClick={() =>
-                    setDraftMenuValues((current) => ({
-                      ...current,
-                      [labels.inStock]: current[labels.inStock]?.includes(
-                        "in-stock"
-                      )
-                        ? []
-                        : ["in-stock"],
-                    }))
-                  }
-                >
-                  <strong>{labels.inStock}</strong>
-                  <span className={styles.switch} aria-hidden="true">
-                    <span />
-                  </span>
-                </button>
-              </section>
-
-              {(
-                ["offers", "brand", "region"] as const
-              ).map((section) =>
-                renderSection(
-                  section,
-                  draftMenuValues[getSectionLabel(section)]?.join(", ")
-                )
-              )}
-
-              {renderSection(
-                "price",
-                draftMenuValues[labels.price]?.join(", ")
-              )}
-
-              {(["tags", "seller"] as const).map((section) =>
-                renderSection(
-                  section,
-                  draftMenuValues[getSectionLabel(section)]?.join(", ")
-                )
-              )}
-            </>
           )}
-        </div>
 
-        {selectedTags.length > 0 && (
-          <div
-            className={styles.selectedTags}
-            aria-label={locale === "zh" ? "已选筛选" : "Selected filters"}
-          >
-            {selectedTags.map((tag) => (
-              <span className={styles.selectedTag} key={tag.key}>
-                <span>{tag.label}</span>
-                <button
-                  className={styles.removeTagButton}
-                  type="button"
-                  aria-label={
-                    locale === "zh"
-                      ? `移除${tag.label}筛选`
-                      : `Remove ${tag.label} filter`
-                  }
-                  onClick={tag.onRemove}
-                >
-                  <img src={tagCloseIcon} alt="" width={16} height={16} />
-                </button>
-              </span>
-            ))}
-          </div>
+          <footer className={styles.footer}>
+            <button
+              className={styles.clearButton}
+              type="button"
+              onClick={() => {
+                setDraftSort("featured");
+                setDraftCategory("");
+                setDraftFulfilled(false);
+                setDraftMenuValues({});
+                setMinimumPrice("");
+                setMaximumPrice("");
+                onClear();
+              }}
+            >
+              {copy.clearFilters}
+            </button>
+            <Button
+              className={styles.applyButton}
+              variant="primary"
+              size="md"
+              onClick={() =>
+                onApply({
+                  sort: draftSort,
+                  category: draftCategory,
+                  fulfilled: draftFulfilled,
+                  menuValues: draftMenuValues,
+                })
+              }
+            >
+              {copy.showResults(resultCount)}
+            </Button>
+          </footer>
+        </>
+      }
+    >
+      {mobileSection && (
+        <div
+          className={styles.mobileSectionContent}
+          data-slot="all-filters-subdialog"
+          data-section={mobileSection}
+        >
+          {renderSectionContent(mobileSection)}
+        </div>
+      )}
+      <div ref={mainRef} hidden={Boolean(mobileSection)}>
+        {renderSection(
+          "sort",
+          sortOptions[sortValues.indexOf(draftSort)]
         )}
 
-        <footer className={styles.footer}>
+        {renderSection(
+          "category",
+          findCategoryLabel(copy.categoryOptions, draftCategory)
+        )}
+
+        <section className={styles.section}>
           <button
-            className={styles.clearButton}
+            className={styles.switchRow}
             type="button"
-            onClick={() => {
-              setDraftSort("featured");
-              setDraftCategory("");
-              setDraftFulfilled(false);
-              setDraftMenuValues({});
-              setMinimumPrice("");
-              setMaximumPrice("");
-              onClear();
-            }}
+            role="switch"
+            aria-checked={draftFulfilled}
+            onClick={() => setDraftFulfilled((current) => !current)}
           >
-            {copy.clearFilters}
+            <strong className={styles.fulfilledLabel}>
+              <img src={fulfilledIcon} alt="" width={24} height={24} />
+              {copy.fulfilledByYami}
+            </strong>
+            <span className={styles.switch} aria-hidden="true">
+              <span />
+            </span>
           </button>
-          <Button
-            className={styles.applyButton}
-            variant="primary"
-            size="md"
+        </section>
+
+        <section className={styles.section}>
+          <button
+            className={styles.switchRow}
+            type="button"
+            role="switch"
+            aria-checked={
+              draftMenuValues[labels.inStock]?.includes("in-stock") ??
+              false
+            }
             onClick={() =>
-              onApply({
-                sort: draftSort,
-                category: draftCategory,
-                fulfilled: draftFulfilled,
-                menuValues: draftMenuValues,
-              })
+              setDraftMenuValues((current) => ({
+                ...current,
+                [labels.inStock]: current[labels.inStock]?.includes(
+                  "in-stock"
+                )
+                  ? []
+                  : ["in-stock"],
+              }))
             }
           >
-            {copy.showResults(resultCount)}
-          </Button>
-        </footer>
+            <strong>{labels.inStock}</strong>
+            <span className={styles.switch} aria-hidden="true">
+              <span />
+            </span>
+          </button>
+        </section>
+
+        {(
+          ["offers", "brand", "region"] as const
+        ).map((section) =>
+          renderSection(
+            section,
+            draftMenuValues[getSectionLabel(section)]?.join(", ")
+          )
+        )}
+
+        {renderSection(
+          "price",
+          draftMenuValues[labels.price]?.join(", ")
+        )}
+
+        {(["tags", "seller"] as const).map((section) =>
+          renderSection(
+            section,
+            draftMenuValues[getSectionLabel(section)]?.join(", ")
+          )
+        )}
       </div>
-    </div>
+    </Sheet>
   );
 }

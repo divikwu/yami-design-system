@@ -111,8 +111,10 @@
   opacity: 1;
 }
 
-.image:hover {
-  transform: scale(1.03);
+@media (hover: hover) and (pointer: fine) {
+  .image:hover {
+    transform: scale(1.03);
+  }
 }
 
 .content {
@@ -234,8 +236,10 @@
   opacity: 1;
 }
 
-.product:hover img {
-  transform: scale(1.03);
+@media (hover: hover) and (pointer: fine) {
+  .product:hover img {
+    transform: scale(1.03);
+  }
 }
 
 .controls {
@@ -344,6 +348,9 @@
     transition: none;
   }
 
+}
+
+@media (prefers-reduced-motion: reduce) and (hover: hover) and (pointer: fine) {
   .image:hover,
   .product:hover img {
     transform: none;

@@ -62,6 +62,12 @@
       "path": "registry-items/checkbox.json"
     },
     {
+      "name": "dialog",
+      "title": "Dialog",
+      "type": "component",
+      "path": "registry-items/dialog.json"
+    },
+    {
       "name": "divider",
       "title": "Divider",
       "type": "component",
@@ -138,6 +144,12 @@
       "title": "ReviewList",
       "type": "component",
       "path": "registry-items/review-list.json"
+    },
+    {
+      "name": "sheet",
+      "title": "Sheet",
+      "type": "component",
+      "path": "registry-items/sheet.json"
     },
     {
       "name": "shortcut-rail",
