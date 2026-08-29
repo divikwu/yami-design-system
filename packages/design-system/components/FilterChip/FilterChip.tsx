@@ -1,6 +1,8 @@
 import {
   forwardRef,
   useState,
+  useId,
+  useLayoutEffect,
   type ButtonHTMLAttributes,
   type HTMLAttributes,
   type ReactNode,
@@ -8,15 +10,11 @@ import {
 import { Popover } from "@base-ui/react/popover";
 
 import { Button } from "../Button";
+import { Sheet } from "../Sheet";
 import { Checkbox } from "../Checkbox";
 import { RadioGroup, RadioGroupItem } from "../RadioGroup";
 
 import styles from "./FilterChip.module.css";
-
-const closeIcon = new URL(
-  "../../assets/icons/system/close.svg",
-  import.meta.url,
-).href;
 
 export type FilterChipVariant = "filled" | "outlined";
 
@@ -140,6 +138,57 @@ export interface FilterChipCategoryMenuProps {
   closeLabel?: string;
 }
 
+function FilterChipPopup({
+  open, onOpenChange, trigger, title, closeLabel, ariaLabel, category = false, selectionMode, children, footer,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  trigger: React.ReactElement<FilterChipProps>;
+  title: string;
+  closeLabel: string;
+  ariaLabel: string;
+  category?: boolean;
+  selectionMode?: "single" | "multiple";
+  children: ReactNode;
+  footer?: ReactNode;
+}) {
+  const [mobile, setMobile] = useState(false);
+  const id = useId();
+  useLayoutEffect(() => {
+    const viewport = window.matchMedia("(max-width: 1023.98px)");
+    const update = () => setMobile(viewport.matches);
+    update();
+    viewport.addEventListener("change", update);
+    return () => viewport.removeEventListener("change", update);
+  }, []);
+  const slot = category ? "filter-chip-category-menu" : "filter-chip-menu";
+
+  if (mobile) {
+    return (
+      <>
+        <FilterChip {...trigger.props} aria-haspopup="dialog" aria-expanded={open} aria-controls={open ? id : undefined} onClick={() => onOpenChange(!open)} />
+        <Sheet open={open} id={id} title={title} closeLabel={closeLabel} onClose={() => onOpenChange(false)} contentPadding="none" footer={footer} data-slot={slot} data-selection-mode={selectionMode}>
+          {children}
+        </Sheet>
+      </>
+    );
+  }
+
+  return (
+    <Popover.Root open={open} onOpenChange={onOpenChange}>
+      <Popover.Trigger render={trigger} />
+      <Popover.Portal>
+        <Popover.Positioner className={styles.menuPositioner} side="bottom" align="start" sideOffset={4} collisionPadding={16} collisionAvoidance={category ? { side: "none", align: "shift", fallbackAxisSide: "none" } : undefined}>
+          <Popover.Popup className={[styles.menuPopup, category && styles.categoryPopup].filter(Boolean).join(" ")} aria-label={ariaLabel} data-slot={slot} data-selection-mode={selectionMode}>
+            {children}
+            {footer}
+          </Popover.Popup>
+        </Popover.Positioner>
+      </Popover.Portal>
+    </Popover.Root>
+  );
+}
+
 export function FilterChipMenu(props: FilterChipMenuProps) {
   const [open, setOpen] = useState(false);
   const [draftValue, setDraftValue] = useState<string[]>(
@@ -152,142 +201,97 @@ export function FilterChipMenu(props: FilterChipMenuProps) {
       : false;
 
   return (
-    <Popover.Root
+    <FilterChipPopup
       open={open}
       onOpenChange={(nextOpen) => {
-        if (nextOpen && props.selectionMode === "multiple") {
-          setDraftValue([...props.value]);
-        }
+        if (nextOpen && props.selectionMode === "multiple") setDraftValue([...props.value]);
         setOpen(nextOpen);
       }}
-    >
-      <Popover.Trigger
-        render={
-          <FilterChip
-            className={props.className}
-            selected={selected}
-            leftIcon={props.leftIcon}
-            rightIcon={props.rightIcon}
-          >
-            {props.label}
-          </FilterChip>
-        }
-      />
-      <Popover.Portal>
+      title={props.label}
+      closeLabel={props.closeLabel ?? `Close ${props.label}`}
+      ariaLabel={props.popupAriaLabel ?? props.label}
+      selectionMode={props.selectionMode}
+      trigger={<FilterChip className={props.className} selected={selected} leftIcon={props.leftIcon} rightIcon={props.rightIcon}>{props.label}</FilterChip>}
+      footer={props.selectionMode === "multiple" ? (
         <div
-          className={styles.menuBackdrop}
-          data-slot="filter-chip-menu-backdrop"
-          aria-hidden="true"
-        />
-        <Popover.Positioner
-          className={styles.menuPositioner}
-          side="bottom"
-          align="start"
-          sideOffset={4}
-          collisionPadding={16}
+          className={styles.menuFooter}
+          data-filter-chip-menu-footer="true"
         >
-          <Popover.Popup
-            className={styles.menuPopup}
-            aria-label={props.popupAriaLabel ?? props.label}
-            data-slot="filter-chip-menu"
-            data-selection-mode={props.selectionMode}
+          <button
+            className={styles.clearButton}
+            type="button"
+            onClick={() => setDraftValue([])}
           >
-            <header
-              className={styles.mobileMenuHeader}
-              data-slot="filter-chip-menu-title"
-            >
-              <button
-                className={styles.mobileMenuClose}
-                type="button"
-                aria-label={props.closeLabel ?? `Close ${props.label}`}
-                onClick={() => setOpen(false)}
-              >
-                <img src={closeIcon} alt="" width={24} height={24} />
-              </button>
-              <h2>{props.label}</h2>
-            </header>
-            {props.selectionMode === "single" ? (
-              <RadioGroup
-                className={styles.optionList}
-                data-filter-chip-menu-options="true"
-                value={props.value}
-                onValueChange={(value) => {
-                  props.onValueChange(String(value));
-                  setOpen(false);
-                }}
-                aria-label={props.popupAriaLabel ?? props.label}
-              >
-                {props.options.map((option) => (
-                  <label key={option.value} className={styles.optionRow}>
-                    <span className={styles.optionControl}>
-                      <RadioGroupItem
-                        value={option.value}
-                        disabled={option.disabled}
-                      />
-                    </span>
-                    <span className={styles.optionLabel}>{option.label}</span>
-                  </label>
-                ))}
-              </RadioGroup>
-            ) : (
-              <>
-                <div
-                  className={styles.optionList}
-                  role="group"
-                  aria-label={props.popupAriaLabel ?? props.label}
-                  data-filter-chip-menu-options="true"
-                >
-                  {props.options.map((option) => {
-                    const checked = draftValue.includes(option.value);
-                    return (
-                      <label key={option.value} className={styles.optionRow}>
-                        <span className={styles.optionControl}>
-                          <Checkbox
-                            checked={checked}
-                            disabled={option.disabled}
-                            onCheckedChange={(nextChecked) =>
-                              setDraftValue((current) =>
-                                nextChecked
-                                  ? [...current, option.value]
-                                  : current.filter((value) => value !== option.value),
-                              )
-                            }
-                          />
-                        </span>
-                        <span className={styles.optionLabel}>{option.label}</span>
-                      </label>
-                    );
-                  })}
-                </div>
-                <div
-                  className={styles.menuFooter}
-                  data-filter-chip-menu-footer="true"
-                >
-                  <button
-                    className={styles.clearButton}
-                    type="button"
-                    onClick={() => setDraftValue([])}
-                  >
-                    {props.clearLabel}
-                  </button>
-                  <Button
-                    className={styles.applyButton}
-                    variant="primary"
-                    size="md"
-                    onClick={() => {
-                      props.onValueChange(draftValue);
-                      setOpen(false);
-                    }}
-                  >
-                    {props.applyLabel}
-                  </Button>
-                </div>
-              </>
-            )}
-          </Popover.Popup>
-        </Popover.Positioner>
-      </Popover.Portal>
-    </Popover.Root>
+            {props.clearLabel}
+          </button>
+          <Button
+            className={styles.applyButton}
+            variant="primary"
+            size="md"
+            onClick={() => {
+              props.onValueChange(draftValue);
+              setOpen(false);
+            }}
+          >
+            {props.applyLabel}
+          </Button>
+        </div>
+      ) : undefined}
+    >
+      {props.selectionMode === "single" ? (
+        <RadioGroup
+          className={styles.optionList}
+          data-filter-chip-menu-options="true"
+          value={props.value}
+          onValueChange={(value) => {
+            props.onValueChange(String(value));
+            setOpen(false);
+          }}
+          aria-label={props.popupAriaLabel ?? props.label}
+        >
+          {props.options.map((option) => (
+            <label key={option.value} className={styles.optionRow}>
+              <span className={styles.optionControl}>
+                <RadioGroupItem
+                  value={option.value}
+                  disabled={option.disabled}
+                />
+              </span>
+              <span className={styles.optionLabel}>{option.label}</span>
+            </label>
+          ))}
+        </RadioGroup>
+      ) : (
+        <div
+          className={styles.optionList}
+          role="group"
+          aria-label={props.popupAriaLabel ?? props.label}
+          data-filter-chip-menu-options="true"
+        >
+          {props.options.map((option) => {
+            const checked = draftValue.includes(option.value);
+            return (
+              <label key={option.value} className={styles.optionRow}>
+                <span className={styles.optionControl}>
+                  <Checkbox
+                    checked={checked}
+                    disabled={option.disabled}
+                    onCheckedChange={(nextChecked) =>
+                      setDraftValue((current) =>
+                        nextChecked
+                          ? [...current, option.value]
+                          : current.filter((value) => value !== option.value),
+                      )
+                    }
+                  />
+                </span>
+                <span className={styles.optionLabel}>{option.label}</span>
+              </label>
+            );
+          })}
+        </div>
+      )}
+    </FilterChipPopup>
   );
 }
 
@@ -359,116 +363,72 @@ export function FilterChipCategoryMenu(props: FilterChipCategoryMenuProps) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   return (
-    <Popover.Root
+    <FilterChipPopup
       open={open}
       onOpenChange={(nextOpen) => {
         if (nextOpen) setDraftValue(props.value);
         setOpen(nextOpen);
       }}
-    >
-      <Popover.Trigger
-        render={
-          <FilterChip
-            className={props.className}
-            selected={Boolean(props.value)}
-            rightIcon={props.rightIcon}
-          >
-            {props.label}
-          </FilterChip>
-        }
-      />
-      <Popover.Portal>
+      title={props.label}
+      closeLabel={props.closeLabel ?? `Close ${props.label}`}
+      ariaLabel={props.popupAriaLabel ?? props.label}
+      category
+      trigger={<FilterChip className={props.className} selected={Boolean(props.value)} rightIcon={props.rightIcon}>{props.label}</FilterChip>}
+      footer={
         <div
-          className={styles.menuBackdrop}
-          data-slot="filter-chip-menu-backdrop"
-          aria-hidden="true"
-        />
-        <Popover.Positioner
-          className={styles.menuPositioner}
-          side="bottom"
-          align="start"
-          sideOffset={4}
-          collisionPadding={16}
-          collisionAvoidance={{
-            side: "none",
-            align: "shift",
-            fallbackAxisSide: "none",
-          }}
+          className={styles.menuFooter}
+          data-filter-chip-menu-footer="true"
         >
-          <Popover.Popup
-            className={[styles.menuPopup, styles.categoryPopup].join(" ")}
-            aria-label={props.popupAriaLabel ?? props.label}
-            data-slot="filter-chip-category-menu"
+          <button
+            className={styles.clearButton}
+            type="button"
+            onClick={() => setDraftValue("")}
           >
-            <header
-              className={styles.mobileMenuHeader}
-              data-slot="filter-chip-menu-title"
-            >
-              <button
-                className={styles.mobileMenuClose}
-                type="button"
-                aria-label={props.closeLabel ?? `Close ${props.label}`}
-                onClick={() => setOpen(false)}
-              >
-                <img src={closeIcon} alt="" width={24} height={24} />
-              </button>
-              <h2>{props.label}</h2>
-            </header>
-            <RadioGroup
-              className={styles.categoryList}
-              value={draftValue}
-              onValueChange={(value) => setDraftValue(String(value))}
-              aria-label={props.popupAriaLabel ?? props.label}
-            >
-              <CategoryOptions
-                options={props.options}
-                expanded={expanded}
-                onToggle={(value) =>
-                  setExpanded((current) => {
-                    const next = new Set(current);
-                    if (next.has(value)) next.delete(value);
-                    else next.add(value);
-                    return next;
-                  })
-                }
-                onExpand={(value) =>
-                  setExpanded((current) => {
-                    if (current.has(value)) return current;
-                    const next = new Set(current);
-                    next.add(value);
-                    return next;
-                  })
-                }
-                expandIcon={props.expandIcon}
-                collapseIcon={props.collapseIcon}
-              />
-            </RadioGroup>
-            <div
-              className={styles.menuFooter}
-              data-filter-chip-menu-footer="true"
-            >
-              <button
-                className={styles.clearButton}
-                type="button"
-                onClick={() => setDraftValue("")}
-              >
-                {props.clearLabel}
-              </button>
-              <Button
-                className={styles.applyButton}
-                variant="primary"
-                size="md"
-                onClick={() => {
-                  props.onValueChange(draftValue);
-                  setOpen(false);
-                }}
-              >
-                {props.applyLabel}
-              </Button>
-            </div>
-          </Popover.Popup>
-        </Popover.Positioner>
-      </Popover.Portal>
-    </Popover.Root>
+            {props.clearLabel}
+          </button>
+          <Button
+            className={styles.applyButton}
+            variant="primary"
+            size="md"
+            onClick={() => {
+              props.onValueChange(draftValue);
+              setOpen(false);
+            }}
+          >
+            {props.applyLabel}
+          </Button>
+        </div>
+      }
+    >
+      <RadioGroup
+        className={styles.categoryList}
+        value={draftValue}
+        onValueChange={(value) => setDraftValue(String(value))}
+        aria-label={props.popupAriaLabel ?? props.label}
+      >
+        <CategoryOptions
+          options={props.options}
+          expanded={expanded}
+          onToggle={(value) =>
+            setExpanded((current) => {
+              const next = new Set(current);
+              if (next.has(value)) next.delete(value);
+              else next.add(value);
+              return next;
+            })
+          }
+          onExpand={(value) =>
+            setExpanded((current) => {
+              if (current.has(value)) return current;
+              const next = new Set(current);
+              next.add(value);
+              return next;
+            })
+          }
+          expandIcon={props.expandIcon}
+          collapseIcon={props.collapseIcon}
+        />
+      </RadioGroup>
+    </FilterChipPopup>
   );
 }

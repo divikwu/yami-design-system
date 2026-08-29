@@ -461,7 +461,6 @@
 }
 
 .quantityButton,
-.quantityButton:not([aria-disabled="true"]):hover,
 .quantityButton:not([aria-disabled="true"]):active,
 .quantityButton[aria-disabled="true"] {
   box-sizing: border-box;

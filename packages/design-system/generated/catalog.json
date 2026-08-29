@@ -1591,6 +1591,164 @@
       }
     },
     {
+      "id": "Dialog",
+      "source": "components/Dialog",
+      "meta": {
+        "$schema": "../../../schema/component.json",
+        "name": "Dialog",
+        "category": "layout",
+        "status": "experimental",
+        "version": "0.1.0",
+        "description": "Centered modal for confirmation, alerts, and short tasks on mobile and desktop.",
+        "figma": {
+          "nodeId": null,
+          "componentKey": null,
+          "notes": "No standalone Figma binding is assigned yet."
+        },
+        "exports": [
+          "Dialog",
+          "DialogProps"
+        ],
+        "composes": [
+          "Button"
+        ],
+        "variants": {
+          "role": [
+            "dialog",
+            "alertdialog"
+          ],
+          "variant": [
+            "default",
+            "confirmation"
+          ]
+        },
+        "props": {
+          "open": {
+            "type": "boolean",
+            "required": true,
+            "description": "Controlled visibility. Closed dialogs unmount their content."
+          },
+          "title": {
+            "type": "string",
+            "required": true,
+            "description": "Visible heading and accessible dialog name."
+          },
+          "closeLabel": {
+            "type": "string",
+            "required": false,
+            "description": "Localized accessible label for the default variant's close action."
+          },
+          "onClose": {
+            "type": "() => void",
+            "required": true,
+            "description": "Request to close; the consumer must set open to false."
+          },
+          "role": {
+            "type": "enum",
+            "values": [
+              "dialog",
+              "alertdialog"
+            ],
+            "default": "dialog",
+            "required": false,
+            "description": "Use alertdialog only for critical prompts that need immediate announcement."
+          },
+          "variant": {
+            "type": "enum",
+            "values": [
+              "default",
+              "confirmation"
+            ],
+            "default": "default",
+            "required": false,
+            "description": "Confirmation centers its title and relies on explicit footer actions instead of a close button."
+          },
+          "footer": {
+            "type": "ReactNode",
+            "required": false,
+            "description": "Caller-owned actions outside the scrolling content."
+          },
+          "children": {
+            "type": "ReactNode",
+            "required": true,
+            "description": "Short task or message content."
+          }
+        },
+        "rules": {
+          "radii": {
+            "ruleId": "no-custom-radii",
+            "note": "Uses the shared surface radius."
+          },
+          "focus": {
+            "ruleId": "focus-style",
+            "note": "Uses Button focus rings, confines Tab navigation, and restores the opener on close."
+          },
+          "tapTarget": {
+            "ruleId": "tap-target",
+            "note": "The visual close control is 32px with a centered 20px icon and Button's 44px hit-area extender."
+          }
+        },
+        "tokens": [
+          "--surface-primary",
+          "--text-primary",
+          "--text-secondary",
+          "--overlay-scrim",
+          "--divider-default",
+          "--radius-surface-default",
+          "--font-size-heading-sm",
+          "--font-weight-emphasize",
+          "--space-100",
+          "--space-150",
+          "--space-200",
+          "--space-400",
+          "--space-600"
+        ],
+        "tokenBindings": {
+          "--surface-primary": {
+            "property": "background",
+            "selector": ".dialog"
+          },
+          "--overlay-scrim": {
+            "property": "background",
+            "selector": ".dialog::backdrop"
+          },
+          "--radius-surface-default": {
+            "property": "border-radius",
+            "selector": ".dialog"
+          },
+          "--font-size-heading-sm": {
+            "property": "font-size",
+            "selector": ".title"
+          }
+        },
+        "accessibility": {
+          "role": "dialog",
+          "wcagLevel": "AA",
+          "tapTargetMin": 44,
+          "keyboardNav": [
+            "tab",
+            "shift+tab",
+            "escape",
+            "enter",
+            "space"
+          ],
+          "ariaPattern": "Native modal dialog labelled by its visible h2; alertdialog is an explicit variant.",
+          "interaction": "showModal makes the background inert. Focus starts on Close for default dialogs or the first control for confirmation dialogs, remains inside, and returns to the opener."
+        },
+        "dependencies": {
+          "runtime": [
+            "react"
+          ],
+          "peer": [],
+          "devOnly": []
+        },
+        "usageRef": "./usage.md",
+        "examples": [
+          "./examples.tsx#DialogExample"
+        ]
+      }
+    },
+    {
       "id": "Divider",
       "source": "components/Divider",
       "meta": {
@@ -1719,12 +1877,18 @@
         "category": "form",
         "status": "experimental",
         "version": "0.1.0",
-        "description": "Interactive 36px filter-pill family with filled and outlined variants, optional icons, single-, multiple-, and hierarchical category popovers, and horizontally scrollable grouping.",
+        "description": "Interactive 36px filter-pill family with filled and outlined variants, optional icons, single-, multiple-, and hierarchical category popovers on desktop and shared mobile Sheets, and horizontally scrollable grouping.",
         "figma": {
           "nodeId": "1123:65336",
           "componentKey": null,
           "notes": "Filter popup geometry and selection patterns follow English Site Optimization 2026 nodes 1123:65336 and 1252:78302. Distinct from the non-interactive Tag component."
         },
+        "composes": [
+          "Button",
+          "Checkbox",
+          "RadioGroup",
+          "Sheet"
+        ],
         "variants": {
           "variant": [
             "filled",
@@ -4469,6 +4633,168 @@
         "usageRef": "./usage.md",
         "examples": [
           "./examples.tsx#ReviewListExample"
+        ]
+      }
+    },
+    {
+      "id": "Sheet",
+      "source": "components/Sheet",
+      "meta": {
+        "$schema": "../../../schema/component.json",
+        "name": "Sheet",
+        "category": "layout",
+        "status": "experimental",
+        "version": "0.1.0",
+        "description": "Shared modal shell: a mobile bottom sheet and centered desktop dialog, with a fixed header, scrolling content, optional footer, and child-view back navigation.",
+        "figma": {
+          "nodeId": null,
+          "componentKey": null,
+          "notes": "Extracted from maintained PDP and search filter implementations. No standalone Figma binding is assigned yet."
+        },
+        "exports": [
+          "Sheet",
+          "SheetProps"
+        ],
+        "composes": [
+          "Button"
+        ],
+        "variants": {
+          "size": [
+            "content",
+            "full"
+          ],
+          "contentPadding": [
+            "default",
+            "compact",
+            "none"
+          ]
+        },
+        "props": {
+          "open": {
+            "type": "boolean",
+            "required": true,
+            "description": "Controlled visibility. Closed sheets unmount their content."
+          },
+          "title": {
+            "type": "string",
+            "required": true,
+            "description": "Visible heading and accessible dialog name."
+          },
+          "closeLabel": {
+            "type": "string",
+            "required": true,
+            "description": "Localized accessible label for the close action."
+          },
+          "onClose": {
+            "type": "() => void",
+            "required": true,
+            "description": "Request to close; the consumer must set open to false."
+          },
+          "back": {
+            "type": "{ label: string; onClick: () => void }",
+            "required": false,
+            "description": "Replaces Close with Back in a child view. Escape also goes back; the backdrop closes the whole sheet."
+          },
+          "size": {
+            "type": "enum",
+            "values": [
+              "content",
+              "full"
+            ],
+            "default": "content",
+            "required": false,
+            "description": "Mobile content height starts at 50dvh and grows to the visible viewport minus its top safe area, with at least 48px reserved. Full height fills that maximum. Desktop is centered at 560px."
+          },
+          "contentPadding": {
+            "type": "enum",
+            "values": [
+              "default",
+              "compact",
+              "none"
+            ],
+            "default": "default",
+            "required": false,
+            "description": "Use compact for 8px content insets or none for lists that own their row padding."
+          },
+          "footer": {
+            "type": "ReactNode",
+            "required": false,
+            "description": "Caller-owned actions outside the scrolling content, with bottom safe-area protection."
+          },
+          "children": {
+            "type": "ReactNode",
+            "required": true,
+            "description": "Business content. Sheet does not own selection or draft state."
+          }
+        },
+        "rules": {
+          "radii": {
+            "ruleId": "no-custom-radii",
+            "note": "Uses the shared surface radius; bottom corners are flush on mobile."
+          },
+          "focus": {
+            "ruleId": "focus-style",
+            "note": "Uses Button focus rings, confines Tab navigation, and restores the opener on close."
+          },
+          "tapTarget": {
+            "ruleId": "tap-target",
+            "note": "Close/back controls are visually 32px with centered 20px icons and Button's 44px hit-area extender."
+          }
+        },
+        "tokens": [
+          "--surface-primary",
+          "--text-primary",
+          "--overlay-scrim",
+          "--divider-default",
+          "--radius-surface-default",
+          "--font-size-heading-2xl",
+          "--font-weight-emphasize",
+          "--space-100",
+          "--space-200",
+          "--space-600"
+        ],
+        "tokenBindings": {
+          "--surface-primary": {
+            "property": "background",
+            "selector": ".sheet"
+          },
+          "--overlay-scrim": {
+            "property": "background",
+            "selector": ".sheet::backdrop"
+          },
+          "--radius-surface-default": {
+            "property": "border-radius",
+            "selector": ".sheet"
+          },
+          "--font-size-heading-2xl": {
+            "property": "font-size",
+            "selector": ".title"
+          }
+        },
+        "accessibility": {
+          "role": "dialog",
+          "wcagLevel": "AA",
+          "tapTargetMin": 44,
+          "keyboardNav": [
+            "tab",
+            "shift+tab",
+            "escape",
+            "enter",
+            "space"
+          ],
+          "ariaPattern": "Native modal dialog labelled by its visible h2",
+          "interaction": "showModal makes the background inert. Close restores the opener; child views focus Back and use Escape to return."
+        },
+        "dependencies": {
+          "runtime": [
+            "react"
+          ],
+          "peer": [],
+          "devOnly": []
+        },
+        "usageRef": "./usage.md",
+        "examples": [
+          "./examples.tsx#SheetExample"
         ]
       }
     },

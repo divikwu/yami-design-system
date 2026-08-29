@@ -425,6 +425,14 @@ Static full-pill label for short descriptive keywords. Dark, light, and outlined
 
 Interactive filter-pill family with filled and outlined treatments, selected state, optional icons, and single-, multiple-, or hierarchical selection. Groups retain native horizontal overflow on narrow surfaces and expose selection through accessible pressed-state controls.
 
+### Sheet — `components/Sheet/`
+
+Shared modal shell for PDP details and search filters. Mobile uses a bottom sheet with content or full-height sizing; desktop uses a centered 560px dialog. The token-backed header, close/back action, modal focus behavior, scroll lock, independent content scrolling, and optional fixed footer are shared. Child views reuse one shell and backdrop; callers retain business state and restore the parent entry on return. Desktop quick-filter menus remain anchored Popovers.
+
+### Dialog — `components/Dialog/`
+
+Centered modal for confirmation, alerts, and short tasks on mobile and desktop. The confirmation variant centers its title and uses explicit footer actions without a close button; the default variant keeps a close action. Irreversible destructive confirmations use `alertdialog` and one red `emphasis` action, while ordinary confirmations keep the black `primary` action. Mobile keeps 16px side margins, content height is intrinsic up to the safe viewport limit, and overflowing body content scrolls between a fixed header and optional footer. Use `Sheet` for filters, details, child views, and long mobile content.
+
 ### Checkbox — `components/Checkbox/`
 
 |                |                                                                                                                                |
@@ -646,6 +654,7 @@ Functional, not decorative. State feedback uses **color shift first** (the `-act
 
 **Hard motion rules**:
 
+- Hover feedback must be declared inside `@media (hover: hover) and (pointer: fine)`, never inferred from viewport width. Touch devices keep `:active`, `:focus-visible`, and semantic selected/checked states without a sticky Hover state.
 - Hover / press changes `background-color` only — no scale, no shadow, no rotation. ProductCard media is the sole scale exception: the image may zoom to `1.03` while its card geometry remains fixed. (per `elevation-on-press` rule.)
 - We **do not animate** `height`, `width`, `flex-direction`, `border-width`, `font-size`, or grid reflow card positions. Let them snap.
 - `prefers-reduced-motion: reduce` → all `transition-duration` / `animation-duration` go to `0ms`. Exception: essential loading spinners still rotate at reduced speed.

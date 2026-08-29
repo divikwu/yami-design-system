@@ -450,6 +450,7 @@ export const ResultsInteractions: Story = {
       );
       if (
         !dialog ||
+        allFiltersButton.getAttribute("aria-controls") !== dialog.id ||
         getComputedStyle(dialog).width !== "560px" ||
         dialog.getAttribute("aria-modal") !== "true"
       ) {
@@ -458,7 +459,7 @@ export const ResultsInteractions: Story = {
       return dialog;
     });
     const allFiltersBody =
-      allFiltersDialog.querySelector<HTMLElement>('[class*="_body_"]');
+      allFiltersDialog.querySelector<HTMLElement>('[data-sheet-content]');
     if (
       !allFiltersBody ||
       getComputedStyle(allFiltersBody).paddingLeft !== "0px" ||
@@ -813,34 +814,21 @@ export const MobileInteractions: Story = {
         );
         if (!nextPopup) throw new Error(`${slot} did not open`);
         const title = nextPopup.querySelector<HTMLElement>(
-          '[data-slot="filter-chip-menu-title"]'
+          '[data-slot="sheet-header"]'
         );
         const closeButton = title?.querySelector<HTMLButtonElement>("button");
         const heading = title?.querySelector<HTMLElement>("h2");
-        const positioner = nextPopup.parentElement;
-        const backdrop = document.querySelector<HTMLElement>(
-          '[data-slot="filter-chip-menu-backdrop"]'
-        );
         const popupRect = nextPopup.getBoundingClientRect();
         if (
           !viewport ||
-          !positioner ||
-          !backdrop ||
+          !nextPopup.matches("dialog:modal[data-sheet]") ||
           !title ||
           !closeButton ||
           !heading ||
           title.textContent?.trim() !== expectedTitle ||
           getComputedStyle(title).display === "none" ||
-          getComputedStyle(title).rowGap !== "4px" ||
-          getComputedStyle(title).minHeight !== "0px" ||
-          getComputedStyle(title).paddingTop !== "12px" ||
-          getComputedStyle(title).paddingBottom !== "12px" ||
-          getComputedStyle(heading).fontSize !== "20px" ||
-          getComputedStyle(closeButton).position !== "static" ||
-          getComputedStyle(closeButton).justifySelf !== "end" ||
-          getComputedStyle(positioner).position !== "fixed" ||
-          getComputedStyle(positioner).bottom !== "0px" ||
-          getComputedStyle(backdrop).position !== "fixed" ||
+          getComputedStyle(heading).fontSize !== "24px" ||
+          getComputedStyle(nextPopup, "::backdrop").backgroundColor !== "rgba(0, 0, 0, 0.68)" ||
           Math.abs(popupRect.width - viewport.innerWidth) > 1 ||
           Math.abs(popupRect.bottom - viewport.innerHeight) > 1 ||
           getComputedStyle(nextPopup).borderBottomLeftRadius !== "0px" ||
@@ -901,7 +889,6 @@ export const MobileInteractions: Story = {
       if (!dialog) throw new Error("All filters dialog did not open");
       return dialog;
     });
-    const overlay = allFiltersDialog.parentElement;
     const dialogRect = allFiltersDialog.getBoundingClientRect();
     const mobileSections = allFiltersDialog.querySelectorAll<HTMLElement>(
       "section"
@@ -918,17 +905,9 @@ export const MobileInteractions: Story = {
     await userEvent.hover(firstMobileSectionAction);
     if (
       !viewport ||
-      !overlay ||
+      !allFiltersDialog.matches("dialog:modal[data-sheet]") ||
       allFiltersDialog.querySelector("h2")?.textContent?.trim() !== "Filters" ||
-      getComputedStyle(allFiltersDialog.querySelector("h2")!).fontSize !==
-        "20px" ||
-      getComputedStyle(allFiltersDialog.querySelector("header")!).rowGap !==
-        "4px" ||
-      getComputedStyle(allFiltersDialog.querySelector("header")!).paddingTop !==
-        "12px" ||
-      getComputedStyle(allFiltersDialog.querySelector("header")!)
-        .paddingBottom !== "12px" ||
-      getComputedStyle(overlay).alignItems !== "end" ||
+      getComputedStyle(allFiltersDialog.querySelector("h2")!).fontSize !== "24px" ||
       Math.abs(dialogRect.width - viewport.innerWidth) > 1 ||
       Math.abs(dialogRect.bottom - viewport.innerHeight) > 1 ||
       dialogRect.height + 1 < viewport.innerHeight * 0.5 ||
@@ -1009,7 +988,7 @@ export const MobileInteractions: Story = {
       if (
         allFiltersDialog.querySelector("h2")?.textContent?.trim() !== label ||
         !subdialogHeader ||
-        getComputedStyle(subdialogHeader).rowGap !== "8px" ||
+        !allFiltersDialog.matches("dialog:modal[data-sheet]") ||
         subdialogCloseButton ||
         allFiltersDialog.getBoundingClientRect().height + 1 <
           viewport.innerHeight * 0.5 ||
@@ -1054,7 +1033,17 @@ export const MobileInteractions: Story = {
       if (!backButton) {
         throw new Error(`${label} child dialog is missing its back action`);
       }
-      await userEvent.click(backButton);
+      if (document.activeElement !== backButton) {
+        throw new Error(`${label} child dialog did not focus its Back action`);
+      }
+      if (section === "sort") {
+        const choice = subdialog.querySelectorAll<HTMLElement>('[role="radio"]')[1];
+        if (!choice) throw new Error("Sort child view needs a selectable option");
+        await userEvent.click(choice);
+        await userEvent.keyboard("{Escape}");
+      } else {
+        await userEvent.click(backButton);
+      }
       await waitFor(() => {
         if (
           allFiltersDialog.querySelector(
@@ -1066,6 +1055,12 @@ export const MobileInteractions: Story = {
           throw new Error(`${label} child dialog did not return to filters`);
         }
       });
+      if (document.activeElement !== sectionButton) {
+        throw new Error(`${label} return did not restore its entry focus`);
+      }
+      if (section === "sort" && !sectionButton.textContent?.includes("Best Seller")) {
+        throw new Error("Returning from the sort child view discarded the draft selection");
+      }
     }
 
     const closeButton = allFiltersDialog.querySelector<HTMLButtonElement>(

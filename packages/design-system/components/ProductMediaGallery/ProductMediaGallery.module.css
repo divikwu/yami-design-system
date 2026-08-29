@@ -41,8 +41,10 @@
   scroll-snap-align: start;
 }
 
-.thumbnailButton:hover {
-  background: var(--surface-secondary);
+@media (hover: hover) and (pointer: fine) {
+  .thumbnailButton:hover {
+    background: var(--surface-secondary);
+  }
 }
 
 .thumbnailButton[data-selected="true"] {

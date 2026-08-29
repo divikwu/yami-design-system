@@ -1,0 +1,114 @@
+/* Preserve inline locks held by another modal. */
+:global(html:has([data-dialog][open])) {
+  overflow: hidden;
+}
+
+.dialog {
+  position: fixed;
+  inset: 0;
+  box-sizing: border-box;
+  width: min(400px, calc(100vw - 2 * var(--space-200)));
+  max-width: none;
+  max-height: calc(100dvh - max(env(safe-area-inset-top), var(--space-600)) - max(env(safe-area-inset-bottom), var(--space-600)));
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-surface-default);
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  font-family: var(--font-family-ios);
+  font-size: var(--font-size-body-md);
+  line-height: var(--line-height-body-md);
+}
+
+.dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.dialog::backdrop {
+  background: var(--overlay-scrim);
+}
+
+.body {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+}
+
+.header {
+  display: grid;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--space-100);
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: var(--space-200);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-heading-sm);
+  font-weight: var(--font-weight-emphasize);
+  line-height: var(--line-height-heading-sm);
+}
+
+.dialog[data-variant="confirmation"] .header {
+  grid-template-columns: minmax(0, 1fr);
+  padding: 0;
+}
+
+.dialog[data-variant="confirmation"] .title {
+  text-align: center;
+}
+
+.dialog[data-variant="confirmation"] .body {
+  gap: var(--space-100);
+  padding: var(--space-200) var(--space-150) var(--space-100);
+}
+
+.dialog[data-variant="confirmation"] .content {
+  padding: 0;
+  text-align: center;
+}
+
+.dialog[data-variant="confirmation"] .footer {
+  padding: var(--space-150);
+  padding-bottom: max(var(--space-150), env(safe-area-inset-bottom));
+  border-block-start: 0;
+}
+
+.dialog .closeButton {
+  width: var(--space-400);
+  height: var(--space-400);
+  background-color: transparent;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .dialog .closeButton:not([aria-disabled="true"]):hover {
+    background-color: transparent;
+  }
+}
+
+.closeButton img {
+  display: block;
+}
+
+:global(.dark) .closeButton img {
+  filter: invert(1);
+}
+
+.content {
+  min-height: 0;
+  padding: var(--space-200);
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+}
+
+.footer {
+  flex: 0 0 auto;
+  padding: var(--space-200);
+  padding-bottom: max(var(--space-200), env(safe-area-inset-bottom));
+  border-block-start: var(--stroke-default) solid var(--divider-default);
+}

@@ -1,70 +1,3 @@
-.overlay {
-  position: fixed;
-  z-index: 1000;
-  inset: 0;
-  display: grid;
-  padding: var(--space-600);
-  place-items: center;
-  background: rgb(0 0 0 / 48%);
-}
-
-.dialog {
-  box-sizing: border-box;
-  display: flex;
-  width: min(560px, calc(100vw - 32px));
-  max-height: calc(100vh - 96px);
-  flex-direction: column;
-  overflow: hidden;
-  border-radius: var(--radius-xl);
-  outline: 0;
-  background: var(--surface-primary);
-  box-shadow: 0 16px 40px rgb(0 0 0 / 24%);
-  color: var(--text-primary);
-  font-family: var(--font-family-ios);
-}
-
-.header {
-  position: relative;
-  flex: 0 0 auto;
-  padding: 56px var(--space-300) var(--space-150);
-  border-bottom: var(--stroke-default) solid var(--divider-default);
-}
-
-.header h2 {
-  margin: 0;
-  font-size: var(--font-size-heading-4xl);
-  font-weight: var(--font-weight-emphasize);
-  line-height: var(--line-height-heading-4xl);
-}
-
-.closeButton,
-.backButton {
-  position: absolute;
-  display: grid;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  place-items: center;
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-}
-
-.closeButton {
-  top: var(--space-200);
-  right: var(--space-300);
-}
-
-.backButton {
-  display: none;
-}
-
-.body {
-  min-height: 0;
-  flex: 1 1 auto;
-  overflow-y: auto;
-}
-
 .section {
   position: relative;
   display: flex;
@@ -114,10 +47,12 @@
   cursor: pointer;
 }
 
-.sectionHeader:hover,
-.switchRow:hover {
-  border-radius: var(--radius-button-emphasis);
-  background: var(--fill-secondary);
+@media (hover: hover) and (pointer: fine) {
+  .sectionHeader:hover,
+  .switchRow:hover {
+    border-radius: var(--radius-button-emphasis);
+    background: var(--fill-secondary);
+  }
 }
 
 .sectionHeader strong,
@@ -153,9 +88,11 @@
   place-items: center;
 }
 
-.sectionIcon:hover,
-.expandButton:hover {
-  background: var(--color-black-200);
+@media (hover: hover) and (pointer: fine) {
+  .sectionIcon:hover,
+  .expandButton:hover {
+    background: var(--color-black-200);
+  }
 }
 
 .sectionIcon img,
@@ -200,9 +137,11 @@
   cursor: pointer;
 }
 
-.optionRow:hover,
-.categoryRow:hover {
-  background: var(--fill-secondary);
+@media (hover: hover) and (pointer: fine) {
+  .optionRow:hover,
+  .categoryRow:hover {
+    background: var(--fill-secondary);
+  }
 }
 
 .categoryList,
@@ -345,8 +284,10 @@
   place-items: center;
 }
 
-.removeTagButton:hover {
-  background: var(--fill-tertiary);
+@media (hover: hover) and (pointer: fine) {
+  .removeTagButton:hover {
+    background: var(--fill-tertiary);
+  }
 }
 
 .removeTagButton img {
@@ -380,8 +321,6 @@
   flex: 0 0 auto;
 }
 
-.closeButton:focus-visible,
-.backButton:focus-visible,
 .sectionHeader:focus-visible,
 .expandButton:focus-visible,
 .switchRow:focus-visible,
@@ -392,54 +331,10 @@
 }
 
 @media (max-width: 1023.98px) {
-  .overlay {
-    padding: 0;
-    place-items: end center;
-  }
-
-  .dialog {
-    width: 100%;
-    min-height: 50dvh;
-    max-height: min(88dvh, calc(100dvh - var(--space-200)));
-    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-  }
-
-  .header {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    row-gap: var(--space-050);
-    padding: var(--space-150) var(--space-200);
-  }
-
-  .subdialogHeader {
-    row-gap: var(--space-100);
-  }
-
   .mobileSectionContent {
     padding-inline: var(--space-100);
     font-size: var(--font-size-body-md);
     line-height: var(--line-height-body-md);
-  }
-
-  .header h2 {
-    grid-column: 1 / -1;
-    font-size: var(--font-size-heading-xl);
-    line-height: var(--line-height-heading-xl);
-  }
-
-  .closeButton {
-    position: static;
-    grid-column: 2;
-    grid-row: 1;
-    justify-self: end;
-  }
-
-  .backButton {
-    position: static;
-    display: grid;
-    grid-column: 1;
-    grid-row: 1;
-    justify-self: start;
   }
 
   .section {
@@ -464,11 +359,6 @@
 
   .sectionIcon .mobileSectionIcon {
     display: block;
-  }
-
-  .sectionHeader:hover,
-  .switchRow:hover {
-    background: transparent;
   }
 
   .optionGrid {

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "name": "dialog",
+  "title": "Dialog",
+  "type": "component",
+  "status": "experimental",
+  "source": "components/Dialog",
+  "files": [
+    "components/Dialog/Dialog.module.css",
+    "components/Dialog/Dialog.stories.module.css",
+    "components/Dialog/Dialog.tsx",
+    "components/Dialog/index.ts"
+  ]
+}

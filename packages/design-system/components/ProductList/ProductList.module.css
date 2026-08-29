@@ -51,11 +51,16 @@
   background-color: var(--color-black-100);
 }
 
-.root[data-appearance="themed"] [data-slot="product-list-view-all-mobile"]:hover,
-.root[data-appearance="atmospheric"] [data-slot="product-list-view-all-mobile"]:hover,
 .root[data-appearance="themed"] [data-slot="product-list-view-all-mobile"]:active,
 .root[data-appearance="atmospheric"] [data-slot="product-list-view-all-mobile"]:active {
   background-color: var(--color-black-200);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .root[data-appearance="themed"] [data-slot="product-list-view-all-mobile"]:hover,
+  .root[data-appearance="atmospheric"] [data-slot="product-list-view-all-mobile"]:hover {
+    background-color: var(--color-black-200);
+  }
 }
 
 .root[data-appearance="themed"] .tabsList,

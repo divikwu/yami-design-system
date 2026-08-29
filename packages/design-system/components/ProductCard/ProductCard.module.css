@@ -47,8 +47,10 @@
   opacity: 1;
 }
 
-.imageWrap:hover .image {
-  transform: scale(1.03);
+@media (hover: hover) and (pointer: fine) {
+  .imageWrap:hover .image {
+    transform: scale(1.03);
+  }
 }
 
 :global(.dark) .image {
@@ -162,6 +164,9 @@
     transition: none;
   }
 
+}
+
+@media (prefers-reduced-motion: reduce) and (hover: hover) and (pointer: fine) {
   .imageWrap:hover .image {
     transform: none;
   }
@@ -219,8 +224,10 @@
   white-space: nowrap;
 }
 
-.brand:hover > span {
-  text-decoration: underline;
+@media (hover: hover) and (pointer: fine) {
+  .brand:hover > span {
+    text-decoration: underline;
+  }
 }
 
 .brand:focus-visible {
@@ -255,8 +262,10 @@
   text-decoration: none;
 }
 
-.cardLink:hover .titleLinkText {
-  text-decoration: underline;
+@media (hover: hover) and (pointer: fine) {
+  .cardLink:hover .titleLinkText {
+    text-decoration: underline;
+  }
 }
 
 .cardLink:focus-visible {

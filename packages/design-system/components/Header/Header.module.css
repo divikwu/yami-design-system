@@ -216,10 +216,12 @@
   mask: var(--zipcode-icon) center / contain no-repeat;
 }
 
-.zipcode:hover,
-.account:hover,
-.locale:hover {
-  background: var(--button-secondary);
+@media (hover: hover) and (pointer: fine) {
+  .zipcode:hover,
+  .account:hover,
+  .locale:hover {
+    background: var(--button-secondary);
+  }
 }
 
 /* ------------------------------------------------------------- search */
@@ -274,8 +276,10 @@
   cursor: pointer;
 }
 
-.searchSubmit:hover {
-  background: var(--button-primary-active);
+@media (hover: hover) and (pointer: fine) {
+  .searchSubmit:hover {
+    background: var(--button-primary-active);
+  }
 }
 
 /* PC search discovery states from English Site Optimization 2026. The search
@@ -377,8 +381,10 @@
   white-space: nowrap;
 }
 
-.searchTags :is(button, a):hover {
-  background: var(--button-secondary-active);
+@media (hover: hover) and (pointer: fine) {
+  .searchTags :is(button, a):hover {
+    background: var(--button-secondary-active);
+  }
 }
 
 .searchTags :is(button, a).searchTagWithImage {
@@ -561,8 +567,10 @@
   mask: var(--cart-icon) center / contain no-repeat;
 }
 
-.cart:hover {
-  background: var(--button-tertiary-active);
+@media (hover: hover) and (pointer: fine) {
+  .cart:hover {
+    background: var(--button-tertiary-active);
+  }
 }
 
 /* ---------------------------------------------------------------- row 2 */
@@ -636,8 +644,10 @@
   text-decoration: none;
 }
 
-.category:hover {
-  background: var(--button-secondary);
+@media (hover: hover) and (pointer: fine) {
+  .category:hover {
+    background: var(--button-secondary);
+  }
 }
 
 .categoryMedia {
@@ -761,8 +771,10 @@
   transform: translateY(-50%);
 }
 
-.railControl:hover {
-  background: var(--button-tertiary-active);
+@media (hover: hover) and (pointer: fine) {
+  .railControl:hover {
+    background: var(--button-tertiary-active);
+  }
 }
 
 .railControlPrevious {

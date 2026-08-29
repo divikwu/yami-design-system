@@ -5,7 +5,7 @@ import { type MouseEvent, useState } from "react";
 import type { ProductDetailNutrition, ProductDetailPageProps } from "./ProductDetailPage.types";
 import { ProductNutritionTable } from "./ProductNutritionTable";
 import { ProductDetailSheet } from "./ProductDetailSheet";
-import styles from "./ProductDetailSheet.module.css";
+import styles from "./ProductNutritionSheet.module.css";
 
 const arrowDownIcon = new URL("../../../design-system/assets/icons/system/arrow-down.svg", import.meta.url).href;
 const aiIcon = new URL("./assets/nutrition-ai.svg", import.meta.url).href;

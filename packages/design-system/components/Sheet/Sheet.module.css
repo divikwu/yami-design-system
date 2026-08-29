@@ -1,0 +1,132 @@
+/* Do not overwrite inline locks held by another modal, such as media preview. */
+:global(html:has([data-sheet][open])) {
+  overflow: hidden;
+}
+
+.sheet {
+  position: fixed;
+  inset: auto 0 0;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  min-height: 50dvh;
+  max-height: calc(100dvh - max(env(safe-area-inset-top), var(--space-600)));
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-surface-default) var(--radius-surface-default) 0 0;
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  font-family: var(--font-family-ios);
+  font-size: var(--font-size-body-md);
+  line-height: var(--line-height-body-md);
+}
+
+.sheet[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.sheet[data-size="full"] {
+  height: calc(100dvh - max(env(safe-area-inset-top), var(--space-600)));
+  max-height: none;
+}
+
+.sheet::backdrop {
+  background: var(--overlay-scrim);
+}
+
+.header {
+  flex: 0 0 auto;
+  padding-inline: var(--space-200);
+  border-block-end: var(--stroke-default) solid var(--divider-default);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-block: var(--space-100) 0;
+}
+
+.actions[data-back] {
+  justify-content: flex-start;
+}
+
+/* The visible control is 32px; Button's sm icon extender keeps a 44px hit area. */
+.sheet .navigationButton {
+  width: var(--space-400);
+  height: var(--space-400);
+  /* Keep the control centered on its previous position. */
+  margin-inline-end: calc(var(--space-050) * -1);
+}
+
+.actions[data-back] .navigationButton {
+  margin-inline-start: calc(var(--space-050) * -1);
+  margin-inline-end: 0;
+}
+
+.sheet .navigationButton,
+.sheet .navigationButton:not([aria-disabled="true"]):active {
+  background-color: transparent;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sheet .navigationButton:not([aria-disabled="true"]):hover {
+    background-color: transparent;
+  }
+}
+
+.navigationButton img {
+  display: block;
+}
+
+:global(.dark) .navigationButton img {
+  filter: invert(1);
+}
+
+.sheet .title {
+  margin: 0;
+  padding-block-end: var(--space-150);
+  font-size: var(--font-size-heading-2xl);
+  font-weight: var(--font-weight-emphasize);
+  line-height: var(--line-height-heading-2xl);
+}
+
+.content {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space-150);
+  padding: var(--space-200) var(--space-200) max(var(--space-800), env(safe-area-inset-bottom));
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+}
+
+.content[data-padding="none"] {
+  display: block;
+  padding: 0;
+}
+
+.content[data-padding="compact"] {
+  padding: var(--space-100) var(--space-100) max(var(--space-100), env(safe-area-inset-bottom));
+}
+
+.footer {
+  flex: 0 0 auto;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@media (min-width: 1024px) {
+  .sheet,
+  .sheet[data-size="full"] {
+    inset: 0;
+    width: min(560px, calc(100vw - 2 * var(--space-200)));
+    height: fit-content;
+    min-height: 0;
+    max-height: calc(100dvh - 2 * var(--space-600));
+    margin: auto;
+    border-radius: var(--radius-surface-default);
+  }
+}

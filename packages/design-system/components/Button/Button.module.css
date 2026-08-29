@@ -162,7 +162,6 @@
   color: var(--text-on-emphasis);
   border-radius: var(--radius-button-emphasis);
 }
-.emphasis:not([aria-disabled="true"]):hover,
 .emphasis:not([aria-disabled="true"]):active {
   background-color: var(--button-emphasis-active);
 }
@@ -179,7 +178,6 @@
   color: var(--text-primary-inverse);
   border-radius: var(--radius-button-primary);
 }
-.primary:not([aria-disabled="true"]):hover,
 .primary:not([aria-disabled="true"]):active {
   background-color: var(--button-primary-active);
 }
@@ -196,7 +194,6 @@
   color: var(--text-primary);
   border-radius: var(--radius-button-primary);
 }
-.secondary:not([aria-disabled="true"]):hover,
 .secondary:not([aria-disabled="true"]):active {
   background-color: var(--button-secondary-active);
 }
@@ -214,7 +211,6 @@
   color: var(--text-primary);
   border-radius: var(--radius-button-primary);
 }
-.tertiary:not([aria-disabled="true"]):hover,
 .tertiary:not([aria-disabled="true"]):active {
   background-color: var(--button-tertiary-active);
 }
@@ -252,7 +248,6 @@
   background-color: var(--button-emphasis-inverse);
   color: var(--text-on-emphasis);
 }
-.emphasis.inverse:not([aria-disabled="true"]):hover,
 .emphasis.inverse:not([aria-disabled="true"]):active {
   background-color: var(--button-emphasis-active-inverse);
 }
@@ -261,7 +256,6 @@
   background-color: var(--button-primary-inverse);
   color: var(--text-primary);
 }
-.primary.inverse:not([aria-disabled="true"]):hover,
 .primary.inverse:not([aria-disabled="true"]):active {
   background-color: var(--button-primary-active-inverse);
 }
@@ -270,7 +264,6 @@
   background-color: var(--button-secondary-inverse);
   color: var(--text-primary-inverse);
 }
-.secondary.inverse:not([aria-disabled="true"]):hover,
 .secondary.inverse:not([aria-disabled="true"]):active {
   background-color: var(--button-secondary-active-inverse);
 }
@@ -279,9 +272,42 @@
   background-color: var(--button-tertiary-inverse);
   color: var(--text-primary-inverse);
 }
-.tertiary.inverse:not([aria-disabled="true"]):hover,
 .tertiary.inverse:not([aria-disabled="true"]):active {
   background-color: var(--button-tertiary-active-inverse);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .emphasis:not([aria-disabled="true"]):hover {
+    background-color: var(--button-emphasis-active);
+  }
+
+  .primary:not([aria-disabled="true"]):hover {
+    background-color: var(--button-primary-active);
+  }
+
+  .secondary:not([aria-disabled="true"]):hover {
+    background-color: var(--button-secondary-active);
+  }
+
+  .tertiary:not([aria-disabled="true"]):hover {
+    background-color: var(--button-tertiary-active);
+  }
+
+  .emphasis.inverse:not([aria-disabled="true"]):hover {
+    background-color: var(--button-emphasis-active-inverse);
+  }
+
+  .primary.inverse:not([aria-disabled="true"]):hover {
+    background-color: var(--button-primary-active-inverse);
+  }
+
+  .secondary.inverse:not([aria-disabled="true"]):hover {
+    background-color: var(--button-secondary-active-inverse);
+  }
+
+  .tertiary.inverse:not([aria-disabled="true"]):hover {
+    background-color: var(--button-tertiary-active-inverse);
+  }
 }
 
 /* ─── Icon slots ────────────────────────────────────────────────── */

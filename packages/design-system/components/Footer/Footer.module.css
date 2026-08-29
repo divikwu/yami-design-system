@@ -89,8 +89,10 @@
   text-decoration: none;
 }
 
-.groupLink:hover {
-  color: var(--text-primary);
+@media (hover: hover) and (pointer: fine) {
+  .groupLink:hover {
+    color: var(--text-primary);
+  }
 }
 
 /* ------------------------------------------------------------ side panel */
@@ -359,8 +361,10 @@
   text-decoration: none;
 }
 
-.legalLink:hover {
-  color: var(--text-primary-inverse);
+@media (hover: hover) and (pointer: fine) {
+  .legalLink:hover {
+    color: var(--text-primary-inverse);
+  }
 }
 
 /* ------------------------------------------------------------------ focus */

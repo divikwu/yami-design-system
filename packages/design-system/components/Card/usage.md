@@ -10,7 +10,7 @@
 
 - **Page-level containers** — no Card on the outermost layout. Cards go inside `<main>`, not around it.
 - **Small badges / chips** — use `<Badge>`, not a Card with tiny radius.
-- **Modal / dialog** — dedicated `<Dialog>` component (future). Don't simulate modal depth with Card.
+- **Modal / dialog** — use the dedicated `<Dialog>` component. Don't simulate modal depth with Card.
 
 ## Default behavior (rule: `card-no-border`)
 

@@ -4,12 +4,13 @@
   "category": "form",
   "status": "experimental",
   "version": "0.1.0",
-  "description": "Interactive 36px filter-pill family with filled and outlined variants, optional icons, single-, multiple-, and hierarchical category popovers, and horizontally scrollable grouping.",
+  "description": "Interactive 36px filter-pill family with filled and outlined variants, optional icons, single-, multiple-, and hierarchical category popovers on desktop and shared mobile Sheets, and horizontally scrollable grouping.",
   "figma": {
     "nodeId": "1123:65336",
     "componentKey": null,
     "notes": "Filter popup geometry and selection patterns follow English Site Optimization 2026 nodes 1123:65336 and 1252:78302. Distinct from the non-interactive Tag component."
   },
+  "composes": ["Button", "Checkbox", "RadioGroup", "Sheet"],
   "variants": {
     "variant": ["filled", "outlined"],
     "selected": ["false", "true"]

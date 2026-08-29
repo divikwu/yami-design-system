@@ -72,9 +72,14 @@
   box-shadow: inset 0 0 0 var(--stroke-default) var(--border-default);
 }
 
-:global(.dark) .railButton:not([aria-disabled="true"]):hover,
 :global(.dark) .railButton:not([aria-disabled="true"]):active {
   background-color: var(--button-tertiary-active);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  :global(.dark) .railButton:not([aria-disabled="true"]):hover {
+    background-color: var(--button-tertiary-active);
+  }
 }
 
 :global(.dark) .railButton[aria-disabled="true"] {

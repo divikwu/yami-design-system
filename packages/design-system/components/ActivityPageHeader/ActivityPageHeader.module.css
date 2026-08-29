@@ -99,8 +99,10 @@
   outline-offset: 2px;
 }
 
-.action:hover {
-  background: var(--button-tertiary-active);
+@media (hover: hover) and (pointer: fine) {
+  .action:hover {
+    background: var(--button-tertiary-active);
+  }
 }
 
 .icon {

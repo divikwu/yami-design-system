@@ -34,18 +34,20 @@
   content: "";
 }
 
-.item:hover:not([data-disabled])::before {
-  background: var(--surface-secondary);
-}
-
 .selected::before,
 .item[aria-checked="true"]::before {
   border-color: var(--text-primary);
 }
 
-.selected:hover:not([data-disabled])::before,
-.item[aria-checked="true"]:hover:not([data-disabled])::before {
-  background: var(--button-secondary-active);
+@media (hover: hover) and (pointer: fine) {
+  .item:hover:not([data-disabled])::before {
+    background: var(--surface-secondary);
+  }
+
+  .selected:hover:not([data-disabled])::before,
+  .item[aria-checked="true"]:hover:not([data-disabled])::before {
+    background: var(--button-secondary-active);
+  }
 }
 
 .item:focus-visible {

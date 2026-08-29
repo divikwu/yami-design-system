@@ -1,0 +1,87 @@
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-050);
+}
+
+.notice img {
+  flex-shrink: 0;
+}
+
+.notice p {
+  margin: 0;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-250);
+  padding: var(--space-100) var(--space-100) var(--space-250);
+  border-radius: var(--radius-surface-default);
+  background: var(--surface-secondary);
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-100);
+}
+
+.source,
+.language select {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: calc(var(--space-600) - var(--space-050));
+  padding: var(--space-100) var(--space-200);
+  border: var(--stroke-default) solid var(--border-default);
+  border-radius: var(--radius-component-default);
+  background: var(--button-tertiary);
+  color: var(--text-primary);
+  font: inherit;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.language {
+  position: relative;
+}
+
+.language select {
+  appearance: none;
+  color: transparent;
+}
+
+.language select option {
+  color: var(--text-primary);
+  background: var(--surface-primary);
+}
+
+/* Keep the native full-width select interactive behind its centered label. */
+.languageValue {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-050);
+  pointer-events: none;
+}
+
+.source:focus-visible,
+.language select:focus-visible {
+  outline: var(--stroke-thick) solid var(--border-focus);
+  outline-offset: var(--space-025);
+}
+
+.table {
+  min-width: 0;
+}
+
+.table > div {
+  width: calc(100% - 2 * var(--space-025));
+  margin-inline: var(--space-025);
+}
