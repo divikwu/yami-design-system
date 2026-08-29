@@ -44,7 +44,7 @@ Beyond these five anchors: a 50→950 neutral ramp (`#FAFAFA → #0A0A0A`) for c
 - **PingFang SC** (iOS / web) / **Noto Sans SC** (Android) — CJK body. Mixed strings keep digits and Latin in GT Walsheim.
 - **Max 4 levels per page**: display / heading / body / caption (or equivalent). If you need a 5th, the page has a hierarchy problem.
 
-Mini scale (mobile baseline → ≥1440 desktop): display 32 → 40, heading 18 → 20, body 14, caption 12 → 14, **price 20 → 24**.
+Mini scale: Desktop and Desktop-LG remain separate authored modes but share identical typography values. Display is 24/32, 28/36, and 32/40; headings span 14–40, body spans 14–16, captions are 12/14 and 14/20; **price-md stays 24/32 and price-sm stays 18/24 at every PC width**. The 1440px breakpoint may change layout, never typography.
 
 Price format: `$12.99` (USD-leading). Discount: `$12.99  $19.99` (current red, original struck-through grey).
 

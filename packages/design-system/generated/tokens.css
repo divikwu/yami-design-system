@@ -61,9 +61,9 @@
   --button-tertiary-active: var(--color-neutral-100);
   --button-tertiary-active-inverse: var(--color-white-100);
   --button-tertiary-inverse: var(--color-white-0);
-  --font-size-caption-md: 12px;
-  --line-height-caption-md: 16px;
-  --font-size-caption-sm: 10px;
+  --font-size-caption-md: 14px;
+  --line-height-caption-md: 20px;
+  --font-size-caption-sm: 12px;
   --line-height-caption-sm: 14px;
   --color-amber-100: #feeecd;
   --color-amber-200: #fdd99b;
@@ -312,12 +312,12 @@
   --font-weight-emphasize: 500;
   --font-weight-normal: 400;
   --font-weight-semibold: 600;
-  --font-size-heading-2xl: 24px;
-  --line-height-heading-2xl: 32px;
-  --font-size-heading-3xl: 28px;
-  --line-height-heading-3xl: 36px;
-  --font-size-heading-4xl: 32px;
-  --line-height-heading-4xl: 40px;
+  --font-size-heading-2xl: 28px;
+  --line-height-heading-2xl: 36px;
+  --font-size-heading-3xl: 32px;
+  --line-height-heading-3xl: 40px;
+  --font-size-heading-4xl: 40px;
+  --line-height-heading-4xl: 48px;
   --font-size-heading-md: 18px;
   --line-height-heading-md: 24px;
   --font-size-heading-sm: 16px;
@@ -338,10 +338,10 @@
   --line-height-link-xl: 20px;
   --overlay-default: var(--color-black-300);
   --overlay-scrim: var(--color-black-700);
-  --font-size-price-md: 20px;
-  --line-height-price-md: 28px;
-  --font-size-price-sm: 16px;
-  --line-height-price-sm: 20px;
+  --font-size-price-md: 24px;
+  --line-height-price-md: 32px;
+  --font-size-price-sm: 18px;
+  --line-height-price-sm: 24px;
   --product-card-add-border: var(--color-black-200);
   --product-card-add-icon: var(--color-black-900);
   --product-card-add-icon-active: var(--color-white-1000);
@@ -505,31 +505,6 @@
   :root {
     --layout-page-margin-card: var(--space-600);
     --layout-page-margin-default: var(--space-600);
-  }
-}
-@media (min-width: 1440px) {
-  :root {
-    --font-size-caption-md: 14px;
-    --line-height-caption-md: 20px;
-    --font-size-caption-sm: 12px;
-    --font-size-display-md: 32px;
-    --line-height-display-md: 40px;
-    --font-size-display-sm: 28px;
-    --line-height-display-sm: 36px;
-    --font-size-display-xl: 40px;
-    --line-height-display-xl: 48px;
-    --font-size-heading-md: 20px;
-    --line-height-heading-md: 28px;
-    --font-size-heading-xl: 24px;
-    --line-height-heading-xl: 32px;
-    --font-size-link-sm: 13px;
-    --line-height-link-sm: 18px;
-    --font-size-price-md: 24px;
-    --line-height-price-md: 32px;
-    --font-size-price-sm: 18px;
-    --line-height-price-sm: 24px;
-    --font-size-strike-sm: 13px;
-    --line-height-strike-sm: 18px;
   }
 }
 :root:lang(en), :where(:lang(en)) {

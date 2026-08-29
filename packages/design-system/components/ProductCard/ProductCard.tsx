@@ -64,8 +64,8 @@ export function ProductCard({
           }
           addButtonAriaLabel={addButtonAriaLabel}
           priceBadge={presentation === "minimal" ? priceCurrent : undefined}
-          href={presentation === "minimal" ? href : undefined}
-          linkLabel={presentation === "minimal" ? title : undefined}
+          href={href}
+          linkLabel={title}
         />
         {presentation !== "minimal" && (
           <div className={styles.content} data-slot="product-card-content">

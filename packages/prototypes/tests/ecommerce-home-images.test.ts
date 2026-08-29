@@ -16,6 +16,10 @@ function expectResponsive(source: ImageSource, widths: number[]) {
 describe.each(["en", "zh"] as const)(
   "Ecommerce Home responsive images (%s)",
   (locale) => {
+    it("sets the page language on the prototype root", () => {
+      expect(createEcommerceHomeFixture(locale).lang).toBe(locale);
+    });
+
     it("opts only the horizontal homepage surfaces into windowed loading", () => {
       const fixture = createEcommerceHomeFixture(locale);
       expect(fixture.header.imageLoadingStrategy).toBe("windowed");

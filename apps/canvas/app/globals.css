@@ -33,7 +33,7 @@ button:focus-visible, a:focus-visible, select:focus-visible { outline: 2px solid
 .canvas-grid { display: grid; grid-template-columns: 308px minmax(0, 1fr); min-height: calc(100vh - var(--canvas-header-height)); }
 .control-panel { padding: 20px; border-right: 1px solid var(--canvas-line); background: var(--canvas-panel); overflow-y: auto; }
 .panel-heading { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; }
-.panel-heading span { font-size: 13px; font-weight: 600; }
+.panel-heading span { font-size: 13px; font-weight: var(--font-weight-emphasize); }
 .panel-heading small { color: var(--canvas-muted); font: 10px/1 ui-monospace, monospace; letter-spacing: .08em; }
 .control-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .path-readout { display: grid; gap: 6px; margin: 0 0 12px; padding: 11px; border-left: 3px solid var(--button-emphasis); background: var(--color-neutral-200); }

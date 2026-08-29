@@ -31,6 +31,8 @@
 | `secondary` | Mobile Secondary / WEB Secondary | Sub-section navigation with the same underline treatment on mobile and PC |
 | `tertiary` | Mobile Tertiary | Compact category or filter pills |
 
+Primary Style B and Tertiary keep their compact 32px selected surface throughout Mobile and Tablet widths. At the shared Desktop breakpoint (`min-width: 1024px`), only the visible selected surface grows to 36px; the underlying trigger and hit-target heights do not change.
+
 ## Inverse
 
 Use `TabsList inverse` only on `--surface-inverse` or another opposite-polarity YAMI surface. It is dark in Light and light in Dark.

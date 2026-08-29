@@ -71,7 +71,11 @@ export function ProductCardSummary({
 
         <p className={styles.title}>
           {href ? (
-            <a className={styles.cardLink} href={href}>
+            <a
+              className={styles.cardLink}
+              href={href}
+              data-slot="product-card-title-link"
+            >
               <span className={styles.titleLinkText}>{title}</span>
             </a>
           ) : (

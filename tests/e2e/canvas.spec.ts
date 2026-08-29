@@ -137,7 +137,11 @@ test("renders Ecommerce Home and routes iframe links through parent history", as
   await expect(page.getByRole("button", { name: "删除" })).toHaveCount(0);
   const preview = page.frameLocator('iframe[title="YAMI 原型预览"]');
   await expect(preview.getByRole("heading", { name: "热销榜单" })).toBeVisible();
-  await preview.getByRole("link", { name: /护肤精华露/ }).click();
+  await preview
+    .locator(
+      '[data-slot="product-card-title-link"][href="/products/product-featured-1"]'
+    )
+    .click();
   await expect(page).toHaveURL(/path=%2Fproducts%2Fproduct-featured-1/);
   await expect(backButton).toBeVisible();
   await expect(preview.getByText("YAMI PROTOTYPE ROUTE")).toBeVisible();

@@ -122,6 +122,18 @@ export const Showcase: Story = {
       throw new Error("Standard ProductCard content padding must be 8px");
     }
 
+    const brand = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="product-card-brand"]',
+    );
+    const brandStyle = brand ? getComputedStyle(brand) : null;
+    if (
+      !brandStyle ||
+      brandStyle.fontSize !== "12px" ||
+      brandStyle.lineHeight !== "14px"
+    ) {
+      throw new Error("ProductCard brand must use 12/14 at every viewport");
+    }
+
     const ranking = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-card-ranking"]',
     );

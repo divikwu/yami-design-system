@@ -1025,7 +1025,7 @@ export const DesktopRegression: Story = {
       productSummary.parentElement !== productInfo ||
       !productTitle ||
       getComputedStyle(productTitle).fontWeight !== "400" ||
-      getComputedStyle(productTitle).fontSize !== "32px" ||
+      getComputedStyle(productTitle).fontSize !== "40px" ||
       getComputedStyle(productSummary).rowGap !== "12px" ||
       !productRanking ||
       productTitle.nextElementSibling !== productRanking ||
@@ -1039,7 +1039,7 @@ export const DesktopRegression: Story = {
       !productPrice ||
       getComputedStyle(productPrice).columnGap !== "8px" ||
       !productCurrentPrice ||
-      getComputedStyle(productCurrentPrice).fontSize !== "24px" ||
+      getComputedStyle(productCurrentPrice).fontSize !== "28px" ||
       !productDiscount ||
       productDiscount.textContent?.trim() !== "22% off" ||
       getComputedStyle(productDiscount).backgroundColor !==

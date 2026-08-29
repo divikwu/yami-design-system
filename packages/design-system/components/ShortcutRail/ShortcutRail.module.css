@@ -392,10 +392,13 @@
    * a single English word is never split across lines. */
   .label {
     display: -webkit-box;
+    max-height: calc(2 * var(--line-height-caption-sm));
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
     line-clamp: 2;
     overflow-wrap: normal;
+    font-size: var(--font-size-caption-sm);
+    line-height: var(--line-height-caption-sm);
     white-space: normal;
   }
 

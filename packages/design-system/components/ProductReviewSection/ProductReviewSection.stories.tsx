@@ -188,9 +188,9 @@ function assertVerifiedLabel(root: HTMLElement) {
     !reviewerLine ||
     !verified ||
     getComputedStyle(reviewerLine).columnGap !== "8px" ||
-    getComputedStyle(verified).fontSize !== "12px"
+    getComputedStyle(verified).fontSize !== "14px"
   ) {
-    throw new Error("Verified-purchase labels must stay 12px with an 8px name gap");
+    throw new Error("Verified-purchase labels must use caption-md 14px with an 8px name gap");
   }
 }
 
@@ -345,7 +345,7 @@ export const Showcase: Story = {
       getComputedStyle(notice).display === "none" ||
       notice.previousElementSibling !== toolbar ||
       notice.nextElementSibling !== grid ||
-      getComputedStyle(notice).fontSize !== "12px" ||
+      getComputedStyle(notice).fontSize !== "14px" ||
       getComputedStyle(notice).backgroundColor !== "rgba(0, 0, 0, 0)" ||
       grid.getBoundingClientRect().top - notice.getBoundingClientRect().bottom !== 16
     ) {

@@ -170,6 +170,9 @@ for (const record of tokenRecords.values()) {
 for (const tokens of byContext.values()) tokens.sort((a, b) => a.id.localeCompare(b.id));
 const records = [...tokenRecords.values()].sort((a, b) => a.id.localeCompare(b.id));
 const rootTokens = byContext.get("root");
+const desktopLgCss = desktopLgOverrides.length > 0
+  ? `@media (min-width: 1440px) {\n${renderBlock("  :root", desktopLgOverrides).replaceAll("\n", "\n  ").trimEnd()}\n}\n`
+  : "";
 const flat = Object.fromEntries(rootTokens.map((token) => [token.id, {
   $type: token.type,
   $value: token.value,
@@ -182,7 +185,7 @@ const css = [
   renderBlock(":root", rootTokens),
   renderBlock(".dark", byContext.get("dark")),
   `@media (min-width: 1024px) {\n${renderBlock("  :root", byContext.get("desktop")).replaceAll("\n", "\n  ").trimEnd()}\n}\n`,
-  `@media (min-width: 1440px) {\n${renderBlock("  :root", byContext.get("desktop-lg")).replaceAll("\n", "\n  ").trimEnd()}\n}\n`,
+  desktopLgCss,
   ...contexts.filter(({ id }) => id.startsWith("locale-")).map(({ id, selector }) => renderBlock(selector, byContext.get(id))),
 ].join("");
 const ts = `/* Generated from DTCG token sources. Do not edit. */\nexport const tokens = ${JSON.stringify(flat, null, 2)} as const;\n`;

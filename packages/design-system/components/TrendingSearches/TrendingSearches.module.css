@@ -506,15 +506,6 @@
   }
 }
 
-@media (min-width: 1440px) {
-  /* Desktop-LG increases heading-xl to 24px. Step the keyword down one token
-   * so its rendered size remains 20px across the whole desktop range. */
-  .keyword {
-    font-size: var(--font-size-heading-md);
-    line-height: var(--line-height-heading-md);
-  }
-}
-
 @media (min-width: 1680px) {
   .item {
     flex-basis: calc((100% - var(--space-600)) / 4);

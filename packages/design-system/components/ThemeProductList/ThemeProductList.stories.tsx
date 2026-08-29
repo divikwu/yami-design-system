@@ -176,8 +176,8 @@ export const Showcase: Story = {
       );
     }
     const descriptionStyle = getComputedStyle(contentDescription);
-    const expectedDescriptionSize = window.innerWidth < 1024 ? "12px" : "14px";
-    const expectedDescriptionLineHeight = window.innerWidth < 1024 ? "16px" : "20px";
+    const expectedDescriptionSize = "14px";
+    const expectedDescriptionLineHeight = "20px";
     if (
       descriptionStyle.fontSize !== expectedDescriptionSize ||
       descriptionStyle.lineHeight !== expectedDescriptionLineHeight ||

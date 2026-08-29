@@ -5,8 +5,17 @@ const generatorCss = [
   "../web/topic-generator.module.css",
   "../web/workbench-controls.module.css",
 ].map((path) => readFileSync(new URL(path, import.meta.url), "utf8")).join("\n");
+const hostLayout = readFileSync(
+  new URL("../../../apps/topic-generator/app/layout.tsx", import.meta.url),
+  "utf8",
+);
 
 describe("Topic Generator typography", () => {
+  it("maps both locale emphasis weights to GT Walsheim Medium", () => {
+    expect(hostLayout).toMatch(/GT-Walsheim-Medium\.woff2[^}]*weight:\s*"500"/);
+    expect(hostLayout).toMatch(/GT-Walsheim-Medium\.woff2[^}]*weight:\s*"600"/);
+  });
+
   it("uses GT Walsheim Medium for non-serif emphasis", () => {
     expect(generatorCss).toMatch(
       /\.generatorShell :where\(strong, b\)\s*\{[^}]*font-weight:\s*var\(--font-weight-emphasize\)/s,

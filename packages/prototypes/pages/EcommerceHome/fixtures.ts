@@ -673,6 +673,7 @@ export function createEcommerceHomeFixture(
 
   return {
     id: "home",
+    lang: locale,
     contentMaxWidth: 1920,
     header: createHeader(locale),
     hero: createHero(locale),

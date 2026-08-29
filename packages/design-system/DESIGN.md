@@ -165,33 +165,39 @@ Chinese emphasis run still render the approved Medium glyphs. A separately tagge
 English run computes to 500; Chinese computes to 600. Do not use 700 for ordinary
 emphasis, or replace the literal serif token with the language-aware token.
 
-### Type Scale (mobile baseline → desktop-lg ≥ 1440px overrides)
+### Type Scale (Desktop = Desktop-LG; separate authored modes)
 
 | Role        | Size    | Line height | Token (size)              | Notes                                                                                         |
 | ----------- | ------- | ----------- | ------------------------- | --------------------------------------------------------------------------------------------- |
-| display-xl  | 32 → 40 | 40 → 48     | `--font-size-display-xl`  | Hero / first-screen marketing                                                                 |
-| display-md  | 28 → 32 | 36 → 40     | `--font-size-display-md`  | `h1` baseline                                                                                 |
-| display-sm  | 24 → 28 | 32 → 36     | `--font-size-display-sm`  | sub-hero                                                                                      |
-| heading-4xl | 32      | 40          | `--font-size-heading-4xl` | Page main title                                                                               |
-| heading-3xl | 28      | 36          | `--font-size-heading-3xl` | Page-level section title                                                                      |
-| heading-2xl | 24      | 32          | `--font-size-heading-2xl` |                                                                                               |
-| heading-xl  | 20 → 24 | 28 → 32     | `--font-size-heading-xl`  | `h2` baseline                                                                                 |
-| heading-md  | 18 → 20 | 24 → 28     | `--font-size-heading-md`  | `h3` baseline                                                                                 |
+| display-xl  | 32      | 40          | `--font-size-display-xl`  | Hero / first-screen marketing                                                                 |
+| display-md  | 28      | 36          | `--font-size-display-md`  | `h1` baseline                                                                                 |
+| display-sm  | 24      | 32          | `--font-size-display-sm`  | sub-hero                                                                                      |
+| heading-4xl | 40      | 48          | `--font-size-heading-4xl` | Page main title                                                                               |
+| heading-3xl | 32      | 40          | `--font-size-heading-3xl` | Page-level section title                                                                      |
+| heading-2xl | 28      | 36          | `--font-size-heading-2xl` |                                                                                               |
+| heading-xl  | 20      | 28          | `--font-size-heading-xl`  | `h2` baseline                                                                                 |
+| heading-md  | 18      | 24          | `--font-size-heading-md`  | `h3` baseline                                                                                 |
 | heading-sm  | 16      | 20          | `--font-size-heading-sm`  | `h4` baseline                                                                                 |
 | heading-xs  | 14      | 20          | `--font-size-heading-xs`  | Compact heading / label emphasis                                                              |
 | body-xl     | 16      | 20          | `--font-size-body-xl`     | Long-form reading, lg button label                                                            |
 | body-md     | 14      | 20          | `--font-size-body-md`     | **Default body.** sm/md button label                                                          |
-| caption-md  | 12 → 14 | 16 → 20     | `--font-size-caption-md`  | Brand row, rating row in ProductCard                                                          |
-| caption-sm  | 10 → 12 | 14          | `--font-size-caption-sm`  | Smallest legal text and helper labels. _Line-height has no desktop-lg override — stays 14px._ |
+| caption-md  | 14      | 20          | `--font-size-caption-md`  | Rating row in ProductCard                                                                     |
+| caption-sm  | 12      | 14          | `--font-size-caption-sm`  | ProductCard brand row, smallest legal text and helper labels                                  |
 | link-xl     | 16      | 20          | `--font-size-link-xl`     | Large inline link / link button                                                               |
 | link-md     | 14      | 20          | `--font-size-link-md`     | Inline link                                                                                   |
-| link-sm     | 12 → 13 | 16 → 18     | `--font-size-link-sm`     | Compact link                                                                                  |
-| price-md    | 20 → 24 | 28 → 32     | `--font-size-price-md`    | Primary price on PDP                                                                          |
-| price-sm    | 16 → 18 | 20 → 24     | `--font-size-price-sm`    | Price in ProductCard                                                                          |
+| link-sm     | 12      | 16          | `--font-size-link-sm`     | Compact link                                                                                  |
+| price-md    | 24      | 32          | `--font-size-price-md`    | Primary price on PDP                                                                          |
+| price-sm    | 18      | 24          | `--font-size-price-sm`    | Price in ProductCard                                                                          |
 | strike-md   | 14      | 20          | `--font-size-strike-md`   | Original price (line-through)                                                                 |
-| strike-sm   | 12 → 13 | 16 → 18     | `--font-size-strike-sm`   | Compact original price                                                                        |
+| strike-sm   | 12      | 16          | `--font-size-strike-sm`   | Compact original price                                                                        |
 
 `html, body` defaults: font-family `--font-family-ios`, color `--text-primary`, background `--background-primary`.
+
+Desktop and Desktop-LG remain separate authored token modes, but every
+`font-size` and `line-height` value is aligned between them. Components must not
+swap typography roles in a `1440px` media query; when a component truly needs
+another density, expose a semantic presentation variant or respond to its own
+container instead of the global viewport.
 
 ### Letter spacing
 
@@ -251,7 +257,7 @@ Figma currently does not provide a YAMI elevation token collection. Components m
 | `--breakpoints-mobile`     | `402px`  | iPhone SE width baseline                                               |
 | `--breakpoints-tablet`     | `768px`  | Reserved — no current `@media` emissions                               |
 | `--breakpoints-desktop`    | `1024px` | **Layout overrides apply.** Page margins jump to 48px.                 |
-| `--breakpoints-desktop-lg` | `1440px` | **Typography overrides apply.** Display / heading / price scale bumps. |
+| `--breakpoints-desktop-lg` | `1440px` | Desktop-LG layout mode; typography remains aligned with Desktop.      |
 | `--breakpoints-desktop-xl` | `1920px` | Reserved                                                               |
 
 Storybook validates mobile layouts at 360px (supported floor), 375px (primary
@@ -378,9 +384,9 @@ YAMI's current inventory is generated in [`generated/catalog.json`](./generated/
 | **Primary styles**      | `styleVariant="a"` underline tabs · `styleVariant="b"` segmented tabs                                   |
 | **Surfaces**            | default · inverse                                                                                       |
 | **States**              | active · inactive · disabled · focus-visible · skeleton                                                 |
-| **Responsive behavior** | Mobile Secondary uses underline selection; WEB Secondary becomes pill selection at `min-width: 1024px`. |
+| **Responsive behavior** | Filled Primary Style B and Tertiary selection surfaces are 32px below `1024px` and 36px from the shared Desktop breakpoint. Secondary keeps its underline treatment. |
 | **Typography**          | Primary Style A uses `heading-md` on mobile and `body-xl` on WEB; compact tabs use `body-md`.           |
-| **Tap target**          | Tertiary uses a 32px control and pill visual with a transparent 44px hit target. (rule `tap-target`)     |
+| **Tap target**          | Tertiary keeps a 48px trigger/hit target; its centered pill visual is 32px on Mobile/Tablet and 36px on Desktop. (rule `tap-target`) |
 | **Focus**               | 2px `--border-focus` outline; inverse uses `--border-focus-inverse`.                                    |
 | **ARIA**                | Compound `tablist` / `tab` / `tabpanel`; arrow keys, Home/End, controlled and uncontrolled state.       |
 
@@ -481,13 +487,13 @@ Canonical YAMI product tile. Anatomy (top → bottom):
 
 | Slot            | Token / spec                                                                                                                                                                                                                                                                                |
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Media**       | Internal `ProductCardMedia`: `AspectRatio ratio={1}` with theme-aware neutral `--fill-tertiary` fallback. Up to 2 horizontal secondary `Badge`s at `--space-050`, restricted to Sale / Low Price / Discount / New / Hot / Exclusive / Choice; rich and minimal presentations overlay `ProductCardAddButton` bottom-right. |
+| **Media**       | Internal `ProductCardMedia`: `AspectRatio ratio={1}` with theme-aware neutral `--fill-tertiary` fallback. The media link shares the product `href` with the title link in every presentation. Up to 2 horizontal secondary `Badge`s at `--space-050`, restricted to Sale / Low Price / Discount / New / Hot / Exclusive / Choice; rich and minimal presentations overlay `ProductCardAddButton` bottom-right. |
 | **Presentation** | `rich` is the compatibility default. `minimal` keeps image, price badge, and quick add. `compact` arranges a 118px image beside identity and pricing as a standalone horizontal product row, with quick add aligned to the right of price.                                                                                                 |
-| **Brand row**   | Internal `ProductCardSummary`: `caption-md`, GT Walsheim 400, `--text-primary`; when brand is present, its destination is required and includes a trailing arrow.                                                                                                                           |
-| **Title**       | Required stretched product link; `body-md`, PingFang SC (CN) / GT Walsheim (EN), 2-line ellipsis clamp, `--text-primary`                                                                                                                                                                    |
+| **Brand row**   | Internal `ProductCardSummary`: `caption-sm` (12/14) at every viewport, GT Walsheim 400, `--text-primary`; when brand is present, its destination is required and includes a trailing arrow.                                                                                                  |
+| **Title**       | Required product link sharing the media destination; `body-md`, PingFang SC (CN) / GT Walsheim (EN), 2-line ellipsis clamp, `--text-primary`                                                                                                                                                 |
 | **Signals**     | Optional ranking Badge, rating + review count, and sold count. Rating star follows Figma `--text-emphasis`.                                                                                                                                                                                 |
 | **Offer**       | Internal `ProductCardOffer`: `price-sm` current price; red only when discounted, `strike-sm` original price, unit/bundle price, campaign rows, and countdown.                                                                                                                               |
-| **Add button**  | Dedicated public `ProductCardAddButton`; rich and minimal cards position it inside media, while compact rows position it beside price. It remains a sibling of the stretched title link, stops propagation, and requires `aria-label`.                                                                                                                      |
+| **Add button**  | Dedicated public `ProductCardAddButton`; rich and minimal cards position it above the media link, while compact rows position it beside price. It remains independent from product navigation, stops propagation, and requires `aria-label`.                                                                                                                |
 | **Type levels** | Exactly **4** — brand caption / title body / price / rating caption. Hits cap (rule `type-hierarchy`).                                                                                                                                                                                      |
 
 ### ProductList — `components/ProductList/` _(composite: composes ProductCard + Tabs + Button)_
@@ -605,9 +611,9 @@ Responsive shortcut navigation for homepage and discovery surfaces.
 
 | Axis | Contract |
 | --- | --- |
-| **Geometry** | Every entry keeps a 64px `--surface-secondary` icon circle, a 32px image slot, and a single `caption-md` label. Page padding follows `--layout-page-margin-default`. |
+| **Geometry** | Every entry keeps a 64px `--surface-secondary` icon circle and a 32px image slot. Labels use `caption-md` (14/20) on PC and `caption-sm` (12/14) below 1024px. Page padding follows `--layout-page-margin-default`. |
 | **Surface** | `plain` spans the available width. `card` uses `--layout-page-margin-card`, `--radius-surface-default`, and `--surface-primary` with no border or shadow; Ecommerce Home uses the card surface while discovery pages may remain plain. |
-| **Responsive behavior** | Icon and label sizes remain stable at narrow widths. Touch and trackpad users retain native horizontal scrolling without progress chrome; desktop adds edge controls only when content overflows. |
+| **Responsive behavior** | Mobile uses compact icon geometry with `caption-sm`; PC uses desktop geometry with `caption-md`. Touch and trackpad users retain native horizontal scrolling without progress chrome; desktop adds edge controls only when content overflows. |
 | **Paging** | Each edge composes the shared YAMI `RailNavigationButton`. A functional `--surface-primary` to transparent mask sits behind the control so clipped content remains legible without adding a shadow. |
 | **Structure** | A labelled `nav` contains a semantic list of destination links. Visible labels name the links; icon artwork is decorative and uses empty alt text. |
 
@@ -778,7 +784,7 @@ Observed failures from real `validate_design` runs + audit findings in [`decisio
 **Why**: The scale has `-sm` / `-md` / `-xl` / `-2xl` etc.; the agent extrapolates a "missing" `-lg` step.
 <!-- /anti-pattern -->
 
-**Why it's wrong**: The `-lg` step doesn't exist in `tokens.css`. YAMI's heading scale is `-sm` (16) / `-md` (18) / `-xl` (20) / `-2xl` (24) / `-3xl` (28) / `-4xl` (32) — no `-lg` step.
+**Why it's wrong**: The `-lg` step doesn't exist in `tokens.css`. YAMI's heading scale is `-sm` (16) / `-md` (18) / `-xl` (20) / `-2xl` (28) / `-3xl` (32) / `-4xl` (40) — no `-lg` step.
 **Fix**: `font-size: var(--font-size-heading-xl);` (or call `list_tokens` MCP to enumerate the real scale).
 **Catch**: `pnpm check:tokens-in-docs` on docs; `principles/validators/token-exists.ts` on code.
 
@@ -969,16 +975,17 @@ Rating star:        #FA8005                (--color-amber-500)
   /* === Type scale (mobile baseline) === */
   --font-size-display-xl: 32px;
   --font-size-display-md: 28px;
-  --font-size-heading-4xl: 32px;
-  --font-size-heading-3xl: 28px;
+  --font-size-display-sm: 24px;
+  --font-size-heading-4xl: 40px;
+  --font-size-heading-3xl: 32px;
   --font-size-heading-xl: 20px;
   --font-size-heading-md: 18px;
   --font-size-heading-xs: 14px;
   --font-size-body-md: 14px;
-  --font-size-caption-md: 12px;
+  --font-size-caption-md: 14px;
   --font-size-link-md: 14px;
-  --font-size-price-md: 20px;
-  --font-size-price-sm: 16px;
+  --font-size-price-md: 24px;
+  --font-size-price-sm: 18px;
   --font-size-strike-md: 14px;
 
   /* === Spacing scale (base 8px) === */
@@ -1013,17 +1020,6 @@ Rating star:        #FA8005                (--color-amber-500)
   }
 }
 
-@media (min-width: 1440px) {
-  :root {
-    --font-size-display-xl: 40px;
-    --font-size-display-md: 32px;
-    --font-size-heading-xl: 24px;
-    --font-size-heading-md: 20px;
-    --font-size-caption-md: 14px;
-    --font-size-price-md: 24px;
-    --font-size-price-sm: 18px;
-  }
-}
 ```
 
 ### Tailwind v4 `@theme`
@@ -1057,8 +1053,8 @@ Rating star:        #FA8005                (--color-amber-500)
   --font-size-display-xl: 32px;
   --font-size-heading-xl: 20px;
   --font-size-body-md: 14px;
-  --font-size-caption-md: 12px;
-  --font-size-price-md: 20px;
+  --font-size-caption-md: 14px;
+  --font-size-price-md: 24px;
 
   /* Spacing (YAMI namespace: --space-*, not Tailwind default --spacing-*) */
   --space-050: 4px;

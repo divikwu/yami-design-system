@@ -65,7 +65,7 @@ removes the outer padding and is the default for standalone cards.
 
 ### Required
 
-- `href` — product destination used by the title link
+- `href` — product destination shared by the media and title links
 - `title` — product title, will be clamped to 2 lines
 - `priceCurrent` — display string (format upstream, e.g. `formatPrice(product.price)`)
 
@@ -73,7 +73,7 @@ removes the outer padding and is the default for standalone cards.
 
 - `image` + `imageAlt` — paired contract; when image is provided, alt is required for a11y
 - `imageLoading` + `imageFetchPriority` — defaults to lazy/auto; use eager/high only for an above-fold LCP image
-- `brand` + `brandHref` — paired contract for the clickable trailing-arrow brand row
+- `brand` + `brandHref` — paired contract for the clickable trailing-arrow brand row; the brand stays at `caption-sm` (12/14) on PC and Mobile
 - `priceOriginal` — only when discounted
 - `unitPrice` — unit/bundle price and pack information
 - `ranking` — ranking badge copy
@@ -130,7 +130,7 @@ For multi-currency stores, format based on user locale before passing in.
 
 ## Link vs click behavior
 
-### Product title link
+### Product media and title links
 
 ```tsx
 <ProductCard
@@ -139,7 +139,10 @@ For multi-currency stores, format based on user locale before passing in.
 />
 ```
 
-The required title link navigates to the PDP without covering the rating, price, promotion, or countdown content. The brand link and Add button remain independent sibling interactions.
+The image and title both navigate to the same PDP destination. Rating, price,
+promotion, and countdown content remain outside those links. The brand link and
+Add button remain independent sibling interactions, and quick add stays above
+the media link so adding a product never triggers navigation.
 
 ## Common patterns
 

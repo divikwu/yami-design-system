@@ -176,7 +176,7 @@
 }
 
 .selectItem[data-selected] {
-  font-weight: 500;
+  font-weight: var(--font-weight-emphasize);
 }
 
 .selectItem[data-disabled] {
@@ -198,7 +198,7 @@
   border-radius: 0;
   cursor: pointer;
   font-size: var(--font-size-caption-md);
-  font-weight: 500;
+  font-weight: var(--font-weight-emphasize);
   line-height: var(--line-height-caption-md);
   transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
 }
@@ -310,7 +310,7 @@
 .segmentedInput:checked + .segmentedLabel {
   background: var(--surface-primary);
   color: var(--text-primary);
-  font-weight: 500;
+  font-weight: var(--font-weight-emphasize);
 }
 
 .segmentedInput:disabled {
