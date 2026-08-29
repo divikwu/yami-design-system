@@ -211,9 +211,9 @@
   margin: 0;
   color: var(--text-primary);
   font-family: var(--font-family-ios);
-  font-size: var(--font-size-caption-md);
+  font-size: var(--font-size-caption-sm);
   font-weight: var(--font-weight-normal);
-  line-height: var(--line-height-caption-md);
+  line-height: var(--line-height-caption-sm);
   text-decoration: none;
 }
 

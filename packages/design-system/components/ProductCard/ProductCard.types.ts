@@ -53,7 +53,7 @@ interface ProductCardBaseProps {
   onAddToCart?: MouseEventHandler<HTMLButtonElement>;
   /** Accessible name for the quick-add action. */
   addButtonAriaLabel?: string;
-  /** Product destination used by the title link. */
+  /** Product destination shared by the media and title links. */
   href: string;
 }
 

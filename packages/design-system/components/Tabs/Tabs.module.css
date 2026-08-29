@@ -406,7 +406,7 @@
   height: var(--space-400);
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   .root[data-orientation="horizontal"]
     .list[data-variant="tertiary"]
     .trigger {

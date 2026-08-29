@@ -112,11 +112,15 @@ export const Showcase: Story = {
     const lineHeight = Number.parseFloat(labelStyle.lineHeight);
     const maxHeight = Number.parseFloat(labelStyle.maxHeight);
     if (
+      labelStyle.fontSize !== "14px" ||
+      labelStyle.lineHeight !== "20px" ||
       labelStyle.overflow !== "hidden" ||
       labelStyle.whiteSpace !== "normal" ||
       Math.abs(maxHeight - lineHeight * 2) > 0.5
     ) {
-      throw new Error("Shortcut labels must wrap and clamp at two lines");
+      throw new Error(
+        "Desktop shortcut labels must use 14/20 and clamp at two lines",
+      );
     }
 
     const containerStyle = getComputedStyle(container);
@@ -388,16 +392,20 @@ export const CompactViewport: Story = {
     const list = canvasElement.querySelector<HTMLElement>(
       '[data-slot="shortcut-rail-list"]',
     );
+    const label = canvasElement.querySelector<HTMLElement>(
+      '[data-slot="shortcut-rail-label"]',
+    );
     const title = canvasElement.querySelector<HTMLElement>(
       '[data-slot="shortcut-rail-title"]',
     );
-    if (!root || !surface || !container || !railBody || !list) {
+    if (!root || !surface || !container || !railBody || !list || !label) {
       throw new Error("Mobile Shortcut Rail did not render");
     }
     const rootStyle = getComputedStyle(root);
     const surfaceStyle = getComputedStyle(surface);
     const containerStyle = getComputedStyle(container);
     const listStyle = getComputedStyle(list);
+    const labelStyle = getComputedStyle(label);
     const canvasRect = canvasElement.getBoundingClientRect();
     const rootRect = root.getBoundingClientRect();
     const railBodyRect = railBody.getBoundingClientRect();
@@ -421,7 +429,9 @@ export const CompactViewport: Story = {
       listStyle.paddingRight !== "8px" ||
       listStyle.paddingTop !== "0px" ||
       listStyle.paddingBottom !== "0px" ||
-      listStyle.display !== (expectedLines === "2" ? "grid" : "flex")
+      listStyle.display !== (expectedLines === "2" ? "grid" : "flex") ||
+      labelStyle.fontSize !== "12px" ||
+      labelStyle.lineHeight !== "14px"
     ) {
       throw new Error(
         `Mobile Shortcut Rail must use a title-free ${expectedLines}-line card surface`,

@@ -89,6 +89,62 @@ describe("YAMI ProductCard interaction contracts", () => {
     expect(addButton!.closest('[data-slot="product-card-media"]')).toBeTruthy()
   })
 
+  it("uses the product destination for the image and title across presentations", async () => {
+    const { ProductCard } = await vi.importActual<{
+      ProductCard: ComponentType<ProductCardTestProps>
+    }>("../components/ProductCard/ProductCard.tsx")
+
+    await act(async () => {
+      root.render(
+        <>
+          <ProductCard
+            href="/product/rich"
+            title="Rich product"
+            priceCurrent="$24.99"
+          />
+          <ProductCard
+            href="/product/minimal"
+            title="Minimal product"
+            priceCurrent="$18.99"
+            presentation="minimal"
+          />
+          <ProductCard
+            href="/product/compact"
+            title="Compact product"
+            priceCurrent="$12.99"
+            presentation="compact"
+          />
+        </>,
+      )
+    })
+
+    const cards = container.querySelectorAll<HTMLElement>(
+      '[data-slot="product-card"]',
+    )
+
+    cards.forEach((card, index) => {
+      const href = ["/product/rich", "/product/minimal", "/product/compact"][
+        index
+      ]
+      expect(
+        card.querySelector<HTMLAnchorElement>(
+          '[data-slot="product-card-media-link"]',
+        )?.getAttribute("href"),
+      ).toBe(href)
+    })
+
+    expect(
+      cards[0]?.querySelector<HTMLAnchorElement>(
+        '[data-slot="product-card-summary"] a[href="/product/rich"]',
+      ),
+    ).toBeTruthy()
+    expect(
+      cards[2]?.querySelector<HTMLAnchorElement>(
+        '[data-slot="product-card-summary"] a[href="/product/compact"]',
+      ),
+    ).toBeTruthy()
+  })
+
   it("composes media, summary, and offer anatomy from the Figma card", async () => {
     const { ProductCard } = await vi.importActual<{
       ProductCard: ComponentType<ProductCardTestProps>

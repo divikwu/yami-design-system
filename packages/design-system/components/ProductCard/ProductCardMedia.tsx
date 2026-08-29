@@ -145,7 +145,11 @@ export function ProductCardMedia({
         )}
 
         {href && linkLabel && (
-          <a className={styles.mediaLink} href={href}>
+          <a
+            className={styles.mediaLink}
+            href={href}
+            data-slot="product-card-media-link"
+          >
             <span className={styles.mediaLinkLabel}>{linkLabel}</span>
           </a>
         )}

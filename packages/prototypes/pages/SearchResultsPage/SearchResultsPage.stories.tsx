@@ -827,7 +827,7 @@ export const MobileInteractions: Story = {
           !heading ||
           title.textContent?.trim() !== expectedTitle ||
           getComputedStyle(title).display === "none" ||
-          getComputedStyle(heading).fontSize !== "24px" ||
+          getComputedStyle(heading).fontSize !== "28px" ||
           getComputedStyle(nextPopup, "::backdrop").backgroundColor !== "rgba(0, 0, 0, 0.68)" ||
           Math.abs(popupRect.width - viewport.innerWidth) > 1 ||
           Math.abs(popupRect.bottom - viewport.innerHeight) > 1 ||
@@ -907,7 +907,7 @@ export const MobileInteractions: Story = {
       !viewport ||
       !allFiltersDialog.matches("dialog:modal[data-sheet]") ||
       allFiltersDialog.querySelector("h2")?.textContent?.trim() !== "Filters" ||
-      getComputedStyle(allFiltersDialog.querySelector("h2")!).fontSize !== "24px" ||
+      getComputedStyle(allFiltersDialog.querySelector("h2")!).fontSize !== "28px" ||
       Math.abs(dialogRect.width - viewport.innerWidth) > 1 ||
       Math.abs(dialogRect.bottom - viewport.innerHeight) > 1 ||
       dialogRect.height + 1 < viewport.innerHeight * 0.5 ||

@@ -557,13 +557,6 @@
   line-height: var(--line-height-heading-xl);
 }
 
-@media (min-width: 1440px) {
-  .stepper output {
-    font-size: var(--font-size-heading-md);
-    line-height: var(--line-height-heading-md);
-  }
-}
-
 .shippingBlock p {
   margin: var(--space-050) 0 0;
   color: var(--text-primary);
@@ -857,7 +850,7 @@
   padding-block: var(--space-150);
   border-block-end: var(--stroke-thick) solid var(--text-primary);
   font-size: var(--font-size-heading-4xl);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-emphasize);
   line-height: var(--line-height-heading-4xl);
 }
 
@@ -1024,19 +1017,11 @@
 
   .details .nutritionTitle {
     padding-block: var(--space-100);
-    /* Requested label-heading emphasis uses the bundled GT Walsheim Bold face. */
-    font-weight: 700;
   }
 
   .nutritionFootnote {
     padding-block-end: var(--space-0);
     font-size: var(--font-size-caption-md);
-  }
-}
-
-@media (min-width: 1440px) {
-  .nutritionFootnote {
-    font-size: var(--font-size-caption-sm);
   }
 }
 

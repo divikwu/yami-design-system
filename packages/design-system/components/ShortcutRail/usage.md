@@ -59,9 +59,13 @@ divider on either edge using the shared section-divider contract:
 - Keep labels short enough to remain useful when truncated to one line.
 - Localize the navigation region and previous/next control labels.
 
-The component keeps icon and label sizes stable at narrow widths. Touch and
-trackpad users scroll the native rail without progress chrome; desktop users
-also receive token-backed paging controls when content overflows.
+The component keeps icon and label sizes stable within each responsive mode.
+Touch and trackpad users scroll the native rail without progress chrome;
+desktop users also receive token-backed paging controls when content overflows.
+
+Shortcut labels use `caption-md` (14/20) on PC and `caption-sm` (12/14) below
+1024px, keeping mobile discovery entrances compact without changing the label
+content or two-line clamp.
 
 `surface="plain"` is the default and spans the available width. Use
 `surface="card"` when the rail belongs to a card-stacked page such as Ecommerce

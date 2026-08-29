@@ -31,7 +31,7 @@
         "secondaryButton": "3112:22838"
       }
     },
-    "sizeDelta": "Mobile Primary Style A uses 56px list height and 18/24 text; WEB Primary uses 48px and 16/20. Mobile Primary Style B uses a 52px segmented surface with 32px visible selected pill inside a 44px hit target. Secondary stays underline-based at 44px on both mobile and PC. Tertiary uses 48px triggers and hit targets with 32px selected pills vertically centered inside.",
+    "sizeDelta": "Mobile Primary Style A uses 56px list height and 18/24 text; WEB Primary uses 48px and 16/20. Primary Style B uses a 52px segmented surface with a 44px trigger; its selected pill is 32px below 1024px and 36px from the 1024px desktop breakpoint. Secondary stays underline-based at 44px on both mobile and PC. Tertiary keeps a 48px trigger and hit target at every width; its selected pill is 32px below 1024px and 36px from the 1024px desktop breakpoint.",
     "stateMapping": "Figma State=Default/Skeleton maps to TabsList skeleton=false/true. Selected/default tab states map to data-state='active'/'inactive'. Hover/focus are code-only interaction states; disabled is a code-side accessibility state for product use."
   },
 

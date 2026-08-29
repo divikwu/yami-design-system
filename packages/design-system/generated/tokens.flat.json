@@ -301,17 +301,17 @@
   },
   "caption-md.font-size": {
     "$type": "dimension",
-    "$value": "12px",
+    "$value": "14px",
     "$description": "用于附注、图文标签与补充说明。适用于辅助信息展示，不用于正文主信息或标题。"
   },
   "caption-md.line-height": {
     "$type": "dimension",
-    "$value": "16px",
+    "$value": "20px",
     "$description": "用于附注、图文标签与补充说明。适用于辅助信息展示，不用于正文主信息或标题。"
   },
   "caption-sm.font-size": {
     "$type": "dimension",
-    "$value": "10px",
+    "$value": "12px",
     "$description": "用于价格提示、状态文本与促销标签。适用于紧凑辅助信息，不用于正文主信息或正文链接。"
   },
   "caption-sm.line-height": {
@@ -1368,32 +1368,32 @@
   },
   "heading-2xl.font-size": {
     "$type": "dimension",
-    "$value": "24px",
+    "$value": "28px",
     "$description": "用于大标题与重点模块标题。适用于高层级内容分组，不用于首屏营销文案或正文说明。"
   },
   "heading-2xl.line-height": {
     "$type": "dimension",
-    "$value": "32px",
+    "$value": "36px",
     "$description": "用于大标题与重点模块标题。适用于高层级内容分组，不用于首屏营销文案或正文说明。"
   },
   "heading-3xl.font-size": {
     "$type": "dimension",
-    "$value": "28px",
+    "$value": "32px",
     "$description": "用于页面级重点标题与核心分区标题。适用于页面主结构分层，不用于展示型营销文案。"
   },
   "heading-3xl.line-height": {
     "$type": "dimension",
-    "$value": "36px",
+    "$value": "40px",
     "$description": "用于页面级重点标题与核心分区标题。适用于页面主结构分层，不用于展示型营销文案。"
   },
   "heading-4xl.font-size": {
     "$type": "dimension",
-    "$value": "32px",
+    "$value": "40px",
     "$description": "用于页面主标题与首屏核心标题。适用于页面最高层级标题，不用于 Banner、按钮或正文内容。"
   },
   "heading-4xl.line-height": {
     "$type": "dimension",
-    "$value": "40px",
+    "$value": "48px",
     "$description": "用于页面主标题与首屏核心标题。适用于页面最高层级标题，不用于 Banner、按钮或正文内容。"
   },
   "heading-md.font-size": {
@@ -1502,22 +1502,22 @@
   },
   "price-md.font-size": {
     "$type": "dimension",
-    "$value": "20px",
+    "$value": "24px",
     "$description": "用于 PDP 核心售价与价格信息。适用于商品详情页主价格，不用于正文数字、统计值或按钮文案。"
   },
   "price-md.line-height": {
     "$type": "dimension",
-    "$value": "28px",
+    "$value": "32px",
     "$description": "用于 PDP 核心售价与价格信息。适用于商品详情页主价格，不用于正文数字、统计值或按钮文案。"
   },
   "price-sm.font-size": {
     "$type": "dimension",
-    "$value": "16px",
+    "$value": "18px",
     "$description": "用于 PLP 紧凑售价与列表价格信息。适用于商品卡片与列表，不用于 PDP 主价格或正文数字。"
   },
   "price-sm.line-height": {
     "$type": "dimension",
-    "$value": "20px",
+    "$value": "24px",
     "$description": "用于 PLP 紧凑售价与列表价格信息。适用于商品卡片与列表，不用于 PDP 主价格或正文数字。"
   },
   "product-card-add.border": {

@@ -146,9 +146,9 @@ const verifyBeveragePage: Story["play"] = async ({ canvasElement, globals }) => 
   await expect(nutrition).toBeVisible();
   await expect(within(nutrition).getAllByRole("row")).toHaveLength(14);
   await expect(within(nutrition).getByRole("heading", { level: 3, name: fixture.nutrition!.title })).toBeVisible();
-  await expect(getComputedStyle(within(nutrition).getByRole("heading", { level: 3 })).fontSize).toBe(mobile ? "24px" : "32px");
+  await expect(getComputedStyle(within(nutrition).getByRole("heading", { level: 3 })).fontSize).toBe(mobile ? "28px" : "40px");
   await expect(within(nutrition).getByText("160", { exact: true })).toBeVisible();
-  await expect(getComputedStyle(within(nutrition).getByText("160", { exact: true })).fontSize).toBe(mobile ? "20px" : "24px");
+  await expect(getComputedStyle(within(nutrition).getByText("160", { exact: true })).fontSize).toBe(mobile ? "20px" : "28px");
   await expect(within(nutrition).getByRole("rowheader", { name: /5.5g/ })).toBeVisible();
   await expect(within(nutrition).getByRole("rowheader", { name: /85mg/ })).toBeVisible();
   const label = nutrition.parentElement!;
@@ -162,7 +162,7 @@ const verifyBeveragePage: Story["play"] = async ({ canvasElement, globals }) => 
   const titleStyle = getComputedStyle(within(nutrition).getByRole("heading", { level: 3 }));
   await expect(titleStyle.paddingTop).toBe("8px");
   await expect(titleStyle.paddingBottom).toBe("8px");
-  await expect(titleStyle.fontWeight).toBe(mobile ? "600" : "700");
+  await expect(titleStyle.fontWeight).toBe(locale === "zh" ? "600" : "500");
   await expect(titleStyle.borderBottomWidth).toBe("2px");
   const serving = nutrition.querySelector("caption > div:first-of-type")!;
   const calories = nutrition.querySelector("caption > div:last-of-type")!;
@@ -174,7 +174,7 @@ const verifyBeveragePage: Story["play"] = async ({ canvasElement, globals }) => 
   await expect(getComputedStyle(nutrientRows[nutrientRows.length - 1]!).borderBottomWidth).toBe("2px");
   await expect(getComputedStyle(within(nutrition).getByRole("rowheader", { name: /5.5g/ })).borderBottomWidth).toBe("1px");
   const footnoteStyle = getComputedStyle(within(label).getByText(fixture.nutrition!.dailyValueNote, { exact: true }));
-  await expect(footnoteStyle.fontSize).toBe("12px");
+  await expect(footnoteStyle.fontSize).toBe("14px");
   await expect(footnoteStyle.paddingTop).toBe(mobile ? "4px" : "8px");
   await expect(footnoteStyle.paddingBottom).toBe(mobile ? "4px" : "0px");
   await expect(label.scrollWidth).toBeLessThanOrEqual(label.clientWidth + 1);

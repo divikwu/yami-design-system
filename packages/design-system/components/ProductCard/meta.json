@@ -59,7 +59,7 @@
     "brand": {
       "type": "ReactNode",
       "required": false,
-      "description": "Brand name above title (GT Walsheim 500, caption-md)."
+      "description": "Brand name above title (GT Walsheim 500, caption-sm at every viewport)."
     },
     "brandHref": {
       "type": "string",
@@ -135,7 +135,7 @@
     "href": {
       "type": "string",
       "required": true,
-      "description": "Product destination used by the title link. Rating, pricing, promotion, and countdown content remain independently targetable."
+      "description": "Product destination shared by the media and title links. Rating, pricing, promotion, and countdown content remain independently targetable."
     }
   },
 
@@ -191,10 +191,12 @@
     "--button-disabled",
     "--font-family-ios",
     "--font-weight-emphasize",
+    "--font-size-caption-sm",
     "--font-size-caption-md",
     "--font-size-body-md",
     "--font-size-price-sm",
     "--font-size-strike-sm",
+    "--line-height-caption-sm",
     "--line-height-caption-md",
     "--line-height-body-md",
     "--line-height-price-sm",
@@ -251,7 +253,7 @@
     },
     "--border-focus": {
       "property": "outline-color",
-      "selector": ".brand:focus-visible, .cardLink:focus-visible, .root:focus-visible"
+      "selector": ".brand:focus-visible, .mediaLink:focus-visible, .cardLink:focus-visible, .root:focus-visible"
     },
     "--button-disabled": {
       "property": "background-color",
@@ -267,7 +269,11 @@
     },
     "--font-size-caption-md": {
       "property": "font-size",
-      "selector": ".brand, .ratingSoldRow, .unitPrice, .promotion, .countdown"
+      "selector": ".ratingSoldRow, .unitPrice, .promotion, .countdown"
+    },
+    "--font-size-caption-sm": {
+      "property": "font-size",
+      "selector": ".brand"
     },
     "--font-size-body-md": { "property": "font-size", "selector": ".title" },
     "--font-size-price-sm": {
@@ -280,7 +286,11 @@
     },
     "--line-height-caption-md": {
       "property": "line-height",
-      "selector": ".brand, .ratingSoldRow, .unitPrice, .promotion, .countdown"
+      "selector": ".ratingSoldRow, .unitPrice, .promotion, .countdown"
+    },
+    "--line-height-caption-sm": {
+      "property": "line-height",
+      "selector": ".brand"
     },
     "--line-height-body-md": {
       "property": "line-height",
@@ -305,9 +315,9 @@
     "wcagLevel": "AA",
     "tapTargetMin": 44,
     "keyboardNav": ["tab", "enter", "space"],
-    "ariaPattern": "article containing a required product-title link and an independent optional quick-add button",
+    "ariaPattern": "article containing media and title links to one product destination plus an independent optional quick-add button",
     "structure": "Image with alt (required when src) or aria-hidden placeholder. Badges use semantic <span>. Rating has aria-label 'Rating X out of 5'.",
-    "interaction": "Only the product title navigates to the product destination. Brand and Add remain independent controls; Add has a required aria-label."
+    "interaction": "The media and title navigate to the same product destination. Brand and Add remain independent controls; Add has a required aria-label."
   },
 
   "dependencies": {

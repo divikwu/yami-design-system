@@ -725,12 +725,6 @@
   white-space: nowrap;
 }
 
-@media (min-width: 1440px) {
-  .categoryLabel {
-    font-size: var(--font-size-caption-sm);
-  }
-}
-
 .railControlMask {
   position: absolute;
   top: 0;

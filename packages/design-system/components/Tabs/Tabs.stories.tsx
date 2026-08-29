@@ -304,7 +304,7 @@ export const AllVariantsContract: Story = {
     const inverseShowcase = canvasElement.querySelector<HTMLElement>("[data-tabs-inverse-showcase]")
     if (!showcaseStack || !inverseShowcase) throw new Error("Tabs responsive showcase did not render")
 
-    if (window.innerWidth >= 768) {
+    if (window.innerWidth >= 1024) {
       const filledLists = canvasElement.querySelectorAll<HTMLElement>(
         '[role="tablist"][data-variant="primary"][data-style="b"], [role="tablist"][data-variant="tertiary"]',
       )

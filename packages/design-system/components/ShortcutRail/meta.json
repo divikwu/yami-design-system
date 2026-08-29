@@ -108,9 +108,11 @@
     "--font-family-ios",
     "--font-weight-normal",
     "--font-weight-semibold",
+    "--font-size-caption-sm",
     "--font-size-caption-md",
     "--font-size-heading-xl",
     "--font-size-heading-2xl",
+    "--line-height-caption-sm",
     "--line-height-caption-md",
     "--line-height-heading-xl",
     "--line-height-heading-2xl",
@@ -144,7 +146,19 @@
     },
     "--font-size-caption-md": {
       "property": "font-size",
-      "selector": ".label"
+      "selector": ".label at or above 1024px"
+    },
+    "--font-size-caption-sm": {
+      "property": "font-size",
+      "selector": ".label below 1024px"
+    },
+    "--line-height-caption-md": {
+      "property": "line-height",
+      "selector": ".label at or above 1024px"
+    },
+    "--line-height-caption-sm": {
+      "property": "line-height",
+      "selector": ".label below 1024px"
     },
     "--layout-page-margin-default": {
       "property": "padding-inline and scroll-padding-inline",
