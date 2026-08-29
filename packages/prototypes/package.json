@@ -6,6 +6,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./ecommerce-home": "./pages/EcommerceHome/index.ts",
+    "./ecommerce-home/popular-search-products": "./pages/EcommerceHome/popular-search-products.fixture.ts",
     "./product-detail-page": "./pages/ProductDetailPage/index.ts",
     "./search-results-page": "./pages/SearchResultsPage/index.ts",
     "./topic-landing-page": "./pages/TopicLandingPage/index.ts"

@@ -15,6 +15,7 @@ import type {
   SearchResultsCategoryOption,
   SearchResultsCopy,
   SearchResultsLocale,
+  SearchResultsSort,
 } from "./SearchResultsPage.types";
 
 const addIcon = new URL(
@@ -38,15 +39,7 @@ const fulfilledIcon = new URL(
   import.meta.url
 ).href;
 
-export type AllFiltersSortValue =
-  | "featured"
-  | "best-seller"
-  | "popularity"
-  | "most-reviews"
-  | "most-ratings"
-  | "newest"
-  | "price-high"
-  | "price-low";
+export type AllFiltersSortValue = SearchResultsSort;
 
 type ExpandableFilterSection =
   | "sort"

@@ -1,12 +1,5 @@
-import type { Metadata } from "next";
-
-import { StandaloneEcommerceHome } from "../ui/standalone-ecommerce-home";
-
-export const metadata: Metadata = {
-  title: "Ecommerce Home | Yami",
-  description: "Explore the Yami ecommerce homepage prototype.",
-};
+import { redirect } from "next/navigation";
 
 export default function EcommerceHomePage() {
-  return <StandaloneEcommerceHome />;
+  redirect("/preview/ecommerce-home");
 }

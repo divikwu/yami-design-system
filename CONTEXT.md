@@ -18,6 +18,18 @@ _Avoid_: Model result, final intent
 An immutable record of products, brands, categories, attributes, source, and retrieval attempts observed for one Theme Keyword and site. One CatalogSnapshot may support one ThemeIntent and many PagePlans.
 _Avoid_: Live catalog, search response
 
+**CommerceCatalog**:
+The normalized read Interface used by prototype Hosts for search and category data. Its Adapters may read a controlled EvaluationScenario, a PrototypeCatalogSnapshot, or the current Yami catalog. CommerceCatalog does not contain page composition, React props, ThemeIntent, or ProductSelection rules.
+_Avoid_: CatalogSnapshot, page fixture, public data proxy
+
+**PrototypeCatalogSnapshot**:
+A versioned, immutable capture of one normalized CommerceCatalog request and result used to reproduce a design evaluation. It records its source and capture time but is not Topic Generator evidence and cannot be used as a CatalogSnapshot without that Module's validation.
+_Avoid_: CatalogSnapshot, live response, cache
+
+**EvaluationScenario**:
+A named, deterministic prototype-data condition such as baseline, empty, dense, delayed, or partial failure. It exists to evaluate an experience predictably and may use curated data rather than current catalog facts.
+_Avoid_: Live mode, production state
+
 **ThemeIntent**:
 The validated contract that states the topic entity, shopping goal, constraints, reason, and confidence supported by a CatalogSnapshot. One ThemeIntent is the semantic input to page planning.
 _Avoid_: Semantic Proposal, route decision

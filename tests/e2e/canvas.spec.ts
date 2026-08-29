@@ -36,6 +36,67 @@ async function seedTestDirection(page: Page) {
   });
 }
 
+test("groups standalone prototype routes under the Preview Module", async ({ page, request }) => {
+  const redirects = [
+    ["/", "/preview?locale=en"],
+    ["/en", "/preview?locale=en"],
+    ["/zh", "/preview?locale=zh"],
+    ["/ecommerce-home", "/preview/ecommerce-home"],
+    ["/topic", "/preview/topic"],
+    ["/brand", "/preview/brand"],
+  ] as const;
+
+  for (const [legacyPath, canonicalPath] of redirects) {
+    const response = await request.get(legacyPath, { maxRedirects: 0 });
+    expect(response.status()).toBe(307);
+    const location = new URL(response.headers().location, "http://localhost:3200");
+    expect(`${location.pathname}${location.search}`).toBe(canonicalPath);
+  }
+
+  const localizedResponse = await request.get("/en?path=%2Fbrands%2Fanua&direction=draft&theme=dark", { maxRedirects: 0 });
+  const localizedLocation = new URL(localizedResponse.headers().location, "http://localhost:3200");
+  expect(localizedLocation.pathname).toBe("/preview");
+  expect(localizedLocation.searchParams.get("path")).toBe("/brands/anua");
+  expect(localizedLocation.searchParams.get("direction")).toBe("draft");
+  expect(localizedLocation.searchParams.get("theme")).toBe("dark");
+  expect(localizedLocation.searchParams.get("locale")).toBe("en");
+
+  await page.goto("/preview/ecommerce-home?locale=zh&theme=dark");
+  await expect(page.locator(".prototype-root")).toHaveAttribute("data-theme", "dark");
+  await expect(page.getByRole("heading", { name: "热销榜单" })).toBeVisible();
+
+  await page.goto("/preview/topic?locale=en");
+  await expect(page.locator('[data-slot="topic-landing-page"]')).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Matcha, from first whisk to favorite treat" })).toBeVisible();
+
+  await page.goto("/preview/brand?locale=en");
+  await expect(page.locator('[data-slot="topic-landing-page"]')).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Anua: Gentle yet Effective Korean Skincare" })).toBeVisible();
+
+  await page.goto("/preview/search?data=snapshot&locale=zh&theme=dark");
+  const homeLink = page.locator('[data-slot="header-brand"]');
+  await expect(homeLink).toHaveAttribute("href", "/preview/ecommerce-home?locale=zh&theme=dark");
+  await homeLink.click();
+  await expect(page).toHaveURL(/\/preview\/ecommerce-home\?locale=zh&theme=dark$/);
+  await expect(page.getByRole("heading", { name: "热销榜单" })).toBeVisible();
+
+  const searchField = page.getByRole("combobox", { name: "搜索" });
+  await searchField.click();
+  const searchPanel = page.locator('[data-slot="header-search-panel"]');
+  await expect(searchPanel).toBeVisible();
+  await expect(searchPanel.getByRole("heading", { name: "最近搜索" })).toBeVisible();
+  await expect(searchPanel.getByRole("heading", { name: "热门搜索" })).toBeVisible();
+  await expect(searchPanel.getByRole("heading", { name: "热门优惠" })).toBeVisible();
+  await expect(searchPanel.locator('[data-slot="header-search-tag-image"]')).toHaveCount(10);
+  await expect(searchPanel.getByRole("link", { name: "抹茶", exact: true }))
+    .toHaveAttribute("href", "/preview/search?data=live&locale=zh&theme=dark&q=%E6%8A%B9%E8%8C%B6");
+
+  await searchField.fill("抹茶");
+  await page.getByRole("button", { name: "搜索", exact: true }).click();
+  await expect(page).toHaveURL(/\/preview\/search\?data=live&locale=zh&theme=dark&q=%E6%8A%B9%E8%8C%B6$/);
+  await expect(page.getByRole("heading", { name: /搜索结果：“抹茶”/ })).toBeVisible();
+});
+
 test("renders Ecommerce Home and routes iframe links through parent history", async ({ page }) => {
   await page.goto("/workbench?path=%2F&direction=current&locale=zh&theme=light&viewport=1440");
   await expect(page.getByText("PROTOTYPE", { exact: true })).toBeVisible();
