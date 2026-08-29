@@ -8,6 +8,7 @@ import {
 import type { TopicIntentAnalysis } from "../src/analyze.js";
 import { handleTopicGeneratorPost } from "../src/server.js";
 import type { CatalogSnapshotAdapter } from "../src/catalog-snapshot.js";
+import { topicPageTemplateCopy } from "../src/page-content/config.js";
 
 describe("TOPIC GENERATOR portable entry points", () => {
   it("shares nine stage Skills while keeping seven logical Agents separate", async () => {
@@ -36,7 +37,23 @@ describe("TOPIC GENERATOR portable entry points", () => {
       new URL("codex/page-merchandising/SKILL.md", integrationRoot),
       "utf8",
     );
-    const contentWritingSkill = await readFile(
+    const pageCopywritingSkill = await readFile(
+      new URL("codex/page-copywriting/SKILL.md", integrationRoot),
+      "utf8",
+    );
+    const pageCopywritingTopicWorkflow = await readFile(
+      new URL("codex/page-copywriting/references/topic-page-workflow.md", integrationRoot),
+      "utf8",
+    );
+    const pageModuleCopyContract = await readFile(
+      new URL("codex/page-copywriting/references/page-module-copy-contract.md", integrationRoot),
+      "utf8",
+    );
+    const kiroPageCopywritingSkill = await readFile(
+      new URL("../../../.kiro/skills/page-copywriting/SKILL.md", import.meta.url),
+      "utf8",
+    );
+    const legacyContentWritingSkill = await readFile(
       new URL("codex/content-writing/SKILL.md", integrationRoot),
       "utf8",
     );
@@ -109,8 +126,32 @@ describe("TOPIC GENERATOR portable entry points", () => {
     expect(pageMerchandisingSkill).toContain(
       "description: This skill should be used when the user asks to",
     );
-    expect(contentWritingSkill).toContain(
-      "description: This skill should be used when the user asks to",
+    expect(pageCopywritingSkill).toContain(
+      "description: Write or rewrite evidence-bound customer-facing copy",
+    );
+    expect(pageCopywritingSkill).toContain("name: page-copywriting");
+    expect(pageCopywritingSkill).toContain("## General page mode");
+    expect(pageCopywritingSkill).toContain("page-copy-proposal/v1");
+    expect(pageCopywritingSkill).toContain(
+      "[the general proposal contract](references/page-copy-proposal-contract.md)",
+    );
+    expect(pageCopywritingSkill).toContain(
+      "[the Topic Page workflow](references/topic-page-workflow.md)",
+    );
+    expect(pageCopywritingSkill).toContain(
+      "[the shared page module copy contract](references/page-module-copy-contract.md)",
+    );
+    expect(pageModuleCopyContract).toContain(
+      "| `hero` | Establish the page proposition and orient the shopper | `title`, `description`, 2–4 `tags` |",
+    );
+    expect(pageModuleCopyContract).toContain(
+      "| `start-here` | Guide a newcomer through distinct situations or decisions |",
+    );
+    expect(pageModuleCopyContract).toContain("`Featured Categories`");
+    expect(pageModuleCopyContract).toContain("`Browse more product options.`");
+    expect(kiroPageCopywritingSkill).toBe(pageCopywritingSkill);
+    expect(legacyContentWritingSkill).toContain(
+      "[`page-copywriting` Skill](../page-copywriting/SKILL.md)",
     );
     expect(visualGenerationSkill).toContain(
       "description: This skill should be used when the user asks to",
@@ -145,11 +186,17 @@ describe("TOPIC GENERATOR portable entry points", () => {
       "skill://.kiro/skills/content-writing/SKILL.md",
     );
     expect(strategyAgent.resources).not.toContain(
+      "skill://.kiro/skills/page-copywriting/SKILL.md",
+    );
+    expect(strategyAgent.resources).not.toContain(
       "skill://.kiro/skills/visual-generation/SKILL.md",
     );
     expect(contentAgent.resources).toEqual(expect.arrayContaining([
-      "skill://.kiro/skills/content-writing/SKILL.md",
+      "skill://.kiro/skills/page-copywriting/SKILL.md",
     ]));
+    expect(contentAgent.resources).not.toContain(
+      "skill://.kiro/skills/content-writing/SKILL.md",
+    );
     expect(backgroundEvidenceAgent.resources).toContain(
       "skill://.kiro/skills/background-evidence/SKILL.md",
     );
@@ -168,7 +215,7 @@ describe("TOPIC GENERATOR portable entry points", () => {
       "skill://.kiro/skills/visual-generation/SKILL.md",
     ]);
     expect(visualAgent.resources).not.toContain(
-      "skill://.kiro/skills/content-writing/SKILL.md",
+      "skill://.kiro/skills/page-copywriting/SKILL.md",
     );
     expect(reviewAgent.resources).toEqual([
       "file://packages/topic-generator/README.md",
@@ -190,16 +237,16 @@ describe("TOPIC GENERATOR portable entry points", () => {
     expect(contentReviewAgent.prompt).toContain("Never browse for new facts");
     expect(contentAgent.prompt).toContain("customer-facing copy");
     expect(contentAgent.prompt).toContain("languagePolicy.immutableProperNouns");
-    expect(contentWritingSkill).toContain("complete exception list");
-    expect(contentWritingSkill).toContain("decision-usefulness check");
-    expect(contentWritingSkill).toContain("canonical brand name");
-    expect(contentWritingSkill).toContain("brand-positioning capsule");
-    expect(contentWritingSkill).toContain("narrowest accurate supported umbrella");
-    expect(contentWritingSkill).toContain("signature ingredient");
+    expect(pageCopywritingTopicWorkflow).toContain("complete exception list");
+    expect(pageCopywritingTopicWorkflow).toContain("decision-usefulness check");
+    expect(pageCopywritingTopicWorkflow).toContain("canonical brand name");
+    expect(pageCopywritingTopicWorkflow).toContain("brand-positioning capsule");
+    expect(pageCopywritingTopicWorkflow).toContain("narrowest accurate supported umbrella");
+    expect(pageCopywritingTopicWorkflow).toContain("signature ingredient");
     expect(contentAgent.prompt).toContain("Do not require codex or kiro-cli");
-    expect(contentWritingSkill).toContain("Host tool or API");
-    expect(contentWritingSkill).toContain("not a\n  prerequisite");
-    expect(contentWritingSkill).toContain("已验证的商品池");
+    expect(pageCopywritingTopicWorkflow).toContain("Host tool or API");
+    expect(pageCopywritingTopicWorkflow).toContain("not a\n  prerequisite");
+    expect(pageCopywritingTopicWorkflow).toContain("已验证的商品池");
     expect(visualAgent.prompt).toContain("independent Topic Visual Agent");
     expect(visualAgent.prompt).toContain("never fabricate an artifact or metadata");
     expect(reviewAgent.prompt).toContain("Never repair generated output");
@@ -221,6 +268,107 @@ describe("TOPIC GENERATOR portable entry points", () => {
       match: ["pnpm topic-generator:analyze *"],
       effect: "allow",
     });
+  });
+
+  it("keeps general page-copy bindings reconstructible and template copy aligned", async () => {
+    const integrationRoot = new URL("../integrations/", import.meta.url);
+    const [proposalContract, moduleContract, proposalExampleText] = await Promise.all([
+      readFile(
+        new URL(
+          "codex/page-copywriting/references/page-copy-proposal-contract.md",
+          integrationRoot,
+        ),
+        "utf8",
+      ),
+      readFile(
+        new URL(
+          "codex/page-copywriting/references/page-module-copy-contract.md",
+          integrationRoot,
+        ),
+        "utf8",
+      ),
+      readFile(
+        new URL(
+          "codex/page-copywriting/references/page-copy-proposal.example.json",
+          integrationRoot,
+        ),
+        "utf8",
+      ),
+    ]);
+    type GenericBinding = {
+      fieldPath: string;
+      bindingId?: string;
+      position?: number;
+      text: string;
+      evidenceRefs: string[];
+    };
+    type GenericModule = { moduleId: string; bindings: GenericBinding[] };
+    const proposal = JSON.parse(proposalExampleText) as {
+      schemaVersion: string;
+      modules: GenericModule[];
+    };
+
+    expect(proposal.schemaVersion).toBe("page-copy-proposal/v1");
+    expect(proposal.modules.map(({ moduleId }) => moduleId)).toEqual([
+      "hero",
+      "shortcuts",
+      "start-here",
+      "popular-picks",
+      "brand-spotlight",
+      "explore-more",
+    ]);
+    expect(proposalContract).toContain("assignment `slotId` as `bindingId`");
+    expect(proposalContract).toContain("`sceneId` as `bindingId`");
+    expect(proposalContract).toContain("`groupId` as `bindingId`");
+
+    for (const { bindings } of proposal.modules) {
+      const seen = new Set<string>();
+      const positionsByPath = new Map<string, number[]>();
+      for (const binding of bindings) {
+        expect(binding.text.trim()).not.toBe("");
+        expect(Array.isArray(binding.evidenceRefs)).toBe(true);
+        const repeated = binding.fieldPath.includes("[]");
+        expect(binding.position === undefined).toBe(!repeated);
+        if (repeated) {
+          expect(Number.isInteger(binding.position)).toBe(true);
+          const positions = positionsByPath.get(binding.fieldPath) ?? [];
+          positions.push(binding.position as number);
+          positionsByPath.set(binding.fieldPath, positions);
+          if (binding.fieldPath === "tags[]") {
+            expect(binding.bindingId).toBeUndefined();
+          } else {
+            expect(binding.bindingId).toBeTruthy();
+          }
+        } else {
+          expect(binding.bindingId).toBeUndefined();
+        }
+        const identity = `${binding.fieldPath}:${binding.bindingId ?? binding.position ?? "scalar"}`;
+        expect(seen.has(identity)).toBe(false);
+        seen.add(identity);
+      }
+      for (const positions of positionsByPath.values()) {
+        expect([...new Set(positions)].sort((a, b) => a - b)).toEqual(
+          Array.from({ length: Math.max(...positions) + 1 }, (_, index) => index),
+        );
+      }
+    }
+
+    const templateBindings = [
+      ["shortcuts", "title"],
+      ["popular-picks", "title"],
+      ["brand-spotlight", "title"],
+      ["explore-more", "description"],
+    ] as const;
+    for (const [moduleId, field] of templateBindings) {
+      const zh = topicPageTemplateCopy(moduleId, "zh") as Record<string, string>;
+      const en = topicPageTemplateCopy(moduleId, "en") as Record<string, string>;
+      expect(moduleContract).toContain(
+        `| \`${moduleId}.${field}\` | \`${zh[field]}\` | \`${en[field]}\` |`,
+      );
+      const exampleModule = proposal.modules.find((module) => module.moduleId === moduleId);
+      expect(exampleModule?.bindings.find((binding) => binding.fieldPath === field)?.text)
+        .toBe(zh[field]);
+    }
   });
 
   it("publishes the complete automatic page contract set in the product manifest", async () => {

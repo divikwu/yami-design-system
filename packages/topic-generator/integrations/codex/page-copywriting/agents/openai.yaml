@@ -1,0 +1,4 @@
+interface:
+  display_name: "Page Content Writing"
+  short_description: "Write evidence-bound copy for pages and modules"
+  default_prompt: "Use $page-copywriting to draft locale-native copy for this page while preserving its structure and facts."

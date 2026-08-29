@@ -25,7 +25,7 @@ modules, scenes, copy, task IDs, and digests as immutable.
 
 ## Prepare the handoff
 
-1. Complete the `content-writing` Skill until `pageContent.status` is `ready`.
+1. Complete the `page-copywriting` Skill until `pageContent.status` is `ready`.
 2. Preserve the exact inputs that reconstructed ThemeIntent, ProductSelectionResult, PagePlan, and
    ContentSpec.
 3. Read `productionMode`. `generated-images` is the final-quality path. Confirm that the host exposes

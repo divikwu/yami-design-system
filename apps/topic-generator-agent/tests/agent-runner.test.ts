@@ -96,7 +96,7 @@ fs.writeFileSync(args[args.indexOf('--output-last-message') + 1], JSON.stringify
       "background-evidence",
       "page-orchestration",
       "page-merchandising",
-      "content-writing",
+      "page-copywriting",
       "content-review",
       "visual-generation",
       "page-review",
@@ -160,7 +160,7 @@ fs.writeFileSync(args[args.indexOf('--output-last-message') + 1], JSON.stringify
     }));
   });
 
-  it("loads the exact ShortcutRail slot binding into the Content Agent contract", async () => {
+  it("loads only Topic-specific references from the shared copy Skill", async () => {
     const executor = fakeExecutor({ schemaVersion: "topic-page-content-proposal/v1" });
     const handler = createAgentRunnerHandler({ executor });
     const response = await handler(post("/topic-page", {
@@ -171,9 +171,13 @@ fs.writeFileSync(args[args.indexOf('--output-last-message') + 1], JSON.stringify
     }));
 
     expect(response.status).toBe(200);
-    expect(executor.execute).toHaveBeenCalledWith(expect.objectContaining({
-      skillInstructions: expect.stringContaining('"slotId": "shortcuts-1"'),
-    }));
+    const skillInstructions = executor.execute.mock.calls[0]?.[0].skillInstructions;
+    expect(skillInstructions).toContain("page-copy-proposal/v1");
+    expect(skillInstructions).toContain("# Topic Page workflow for Page Copywriting");
+    expect(skillInstructions).toContain("brand-spotlight");
+    expect(skillInstructions).toContain("Featured Categories");
+    expect(skillInstructions).toContain('"slotId": "shortcuts-1"');
+    expect(skillInstructions).not.toContain("# General page copy proposal contract");
   });
 
   it("runs text selection before shortlisted visual merchandising review", async () => {

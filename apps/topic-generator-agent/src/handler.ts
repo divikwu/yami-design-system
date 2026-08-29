@@ -74,15 +74,25 @@ function requestSchema(protocol: AgentProtocol) {
     : "product-selection-agent-request/v1";
 }
 
-async function loadSkillInstructions(root: string, skillPath: string) {
+async function loadSkillInstructions(
+  root: string,
+  skillPath: string,
+  includedReferencePaths?: readonly string[],
+) {
   const absoluteSkillPath = resolve(root, skillPath);
   const skillRoot = dirname(absoluteSkillPath);
   const skill = await readFile(absoluteSkillPath, "utf8");
-  const referencePaths = [...skill.matchAll(/\[[^\]]+\]\((references\/[^)#?]+)(?:#[^)]*)?\)/g)]
+  const discoveredReferencePaths = [...skill.matchAll(/\[[^\]]+\]\((references\/[^)#?]+)(?:#[^)]*)?\)/g)]
     .map((match) => match[1])
     .filter((value, index, values): value is string =>
       typeof value === "string" && values.indexOf(value) === index
     );
+  const includedReferences = includedReferencePaths
+    ? new Set(includedReferencePaths)
+    : undefined;
+  const referencePaths = includedReferences
+    ? discoveredReferencePaths.filter((referencePath) => includedReferences.has(referencePath))
+    : discoveredReferencePaths;
   const references = await Promise.all(referencePaths.map(async (referencePath) => {
     const absoluteReferencePath = resolve(skillRoot, referencePath);
     const pathFromSkillRoot = relative(skillRoot, absoluteReferencePath);
@@ -424,7 +434,17 @@ export function createAgentRunnerHandler(options: AgentRunnerHandlerOptions) {
         );
       }
       const [skillInstructions, agentInstructions] = await Promise.all([
-        loadSkillInstructions(root, route.skillPath),
+        loadSkillInstructions(
+          root,
+          route.skillPath,
+          route.stage === "content-writing"
+            ? [
+              "references/topic-page-workflow.md",
+              "references/topic-page-content-contract.md",
+              "references/page-module-copy-contract.md",
+            ]
+            : undefined,
+        ),
         readFile(resolve(root, route.agentConfigPath), "utf8"),
       ]);
       if (isSourceImageVisualRun(route, body.run as Record<string, unknown>)) {

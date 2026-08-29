@@ -318,7 +318,7 @@ outside Topic Generator automation and requires separate authority.
   only the semantic, category-role, scene, and module proposals requested by the current state.
 - Topic Background Evidence loads only `background-evidence`, opens official or authoritative
   sources, and may create context-only claims for the resolved intent.
-- Topic Content loads only `content-writing` and may create copy for the declared PagePlan tasks and
+- Topic Content loads only `page-copywriting` and may create copy for the declared PagePlan tasks and
   language from the bound CopyBrief and scoped evidence.
 - Topic Content Review loads only `content-review`, cannot rewrite copy or browse for facts, and
   must approve the compiled ContentSpec before visual generation.

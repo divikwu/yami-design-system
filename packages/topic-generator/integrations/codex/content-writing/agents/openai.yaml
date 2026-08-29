@@ -1,4 +1,4 @@
 interface:
-  display_name: "Content Writing"
-  short_description: "Write localized, evidence-bound Topic page copy"
-  default_prompt: "Use $content-writing to turn a ready TopicPagePlan v2 into a validated TopicPageContentSpec."
+  display_name: "Content Writing (Compatibility)"
+  short_description: "Route older copy prompts to Page Copywriting"
+  default_prompt: "Use $content-writing to route this saved copy task to the current $page-copywriting Skill."

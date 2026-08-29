@@ -1,4 +1,4 @@
-# Topic page content proposal contract
+# Topic Page content proposal contract
 
 ## State boundary
 

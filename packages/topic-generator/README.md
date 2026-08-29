@@ -42,7 +42,7 @@ Catalog + taxonomy ─> Topic Strategy Agent ─> ProductSelection ─> PagePlan
 - Web：`web`，提供可被 Next.js 宿主加载的产品界面。
 - Host：`apps/topic-generator`，独立暴露 `/` 与 `/api/topic-generator`，默认端口 3300。
 - Codex：`.agents/skills/*` 暴露 `page-orchestration`、`topic-intent`、
-  `background-evidence`、`product-selection`、`page-merchandising`、`content-writing`、
+  `background-evidence`、`product-selection`、`page-merchandising`、`page-copywriting`、
   `content-review`、`visual-generation` 与 `page-review` 九个阶段 Skill。
 - Kiro：`.kiro/agents/topic-page-orchestrator.json`、`topic-strategy.json`、
   `topic-background-evidence.json`、`topic-content.json`、`topic-content-review.json`、
@@ -147,7 +147,8 @@ Topic Page Orchestrator 只加载 `page-orchestration`，并从运行时返回�
 `pageTypeRef + selectionStrategyRef + templateRef` 路由。Topic Strategy Agent 按阶段加载
 `topic-intent`、`product-selection` 或 `page-merchandising` canonical Skill。选品 Skill 只生成
 `CategoryRoleProposal` 与 `SceneProposal`；页面 Skill 只生成 `ModuleMerchandisingProposal`。
-独立 Topic Content Agent 只加载 `content-writing`，生成 `TopicPageContentProposal`；独立
+独立 Topic Content Agent 在 `content-writing` 阶段只加载 `page-copywriting`，生成
+`TopicPageContentProposal`；独立
 Background Evidence Agent 只加载 `background-evidence`，在已确认 ThemeIntent 后生成
 `TopicBackgroundEvidenceProposal`；独立 Content Review Agent 只加载 `content-review`，在
 ContentSpec 编译后、图片生成前审核陌生用户可理解性、主题 / 场景感与证据边界；独立
@@ -157,6 +158,11 @@ Topic Visual Agent 只加载 `visual-generation`，按冻结视觉模式使用�
 首次文案审核返回 `revision-required` 时，自动 Host 会冻结全部上游产物，把上一版
 ContentSpec 与逐模块问题交回 Content Agent 重写一次；复审仍未通过才停止，Visual Agent
 始终只在文案审核批准后启动。
+
+`page-copywriting` 是可独立调用的通用页面文案 Skill：非 Topic 请求使用固定页面结构、证据
+边界与 locale 生成 `page-copy-proposal/v1`；Topic `content-writing` stage 则通过同一入口加载
+`topic-page-workflow` 与 `topic-page-content-contract`，继续遵守原有 PagePlan、digest、任务 ID、
+候选集和 ContentSpec 编译约束。`content-writing` 只保留为旧提示词的兼容别名。
 
 Kiro 可在仓库根目录运行 `kiro-cli --agent topic-page-orchestrator`、
 `topic-strategy`、`topic-background-evidence`、`topic-content`、`topic-content-review`、

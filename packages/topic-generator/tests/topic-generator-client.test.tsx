@@ -905,6 +905,8 @@ describe("TopicGenerator result navigation", () => {
     expect(agentsPanel?.textContent).toContain("topic-visual");
     expect(agentsPanel?.textContent).toContain("topic-review");
     expect(agentsPanel?.textContent).toContain("page-orchestration");
+    expect(agentsPanel?.textContent).toContain("page-copywriting");
+    expect(agentsPanel?.textContent).not.toContain("content-writing");
     expect(agentsPanel?.textContent).toContain("page-review");
     expect(agentsPanel?.textContent).toContain("选品阶段内 · 路由规划");
     expect(agentsPanel?.textContent).toContain("主题意图 / 选品语义 / 模块编排");

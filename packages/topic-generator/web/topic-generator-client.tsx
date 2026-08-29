@@ -2429,7 +2429,7 @@ function WorkflowView({
       name: isChinese ? "页面文案 Agent" : "Topic Content Agent",
       role: isChinese ? "文案生成" : "Content generation",
       stage: isChinese ? "文案生成" : "Content writing",
-      skills: ["content-writing"],
+      skills: ["page-copywriting"],
       responsibility: isChinese
         ? "仅为 PagePlan 声明的内容槽位生成单语本地化文案，绑定允许的目录与背景证据，并保留模板文案和页面结构。"
         : "Generate single-locale copy only for content slots declared by PagePlan, bind allowed catalog and background evidence, and preserve template copy and page structure.",

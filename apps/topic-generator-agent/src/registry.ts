@@ -97,7 +97,7 @@ export const AGENT_ROUTES: readonly AgentRoute[] = [
     stage: "content-writing",
     agentId: "topic-content",
     kiroAgent: "topic-content",
-    skill: "content-writing",
+    skill: "page-copywriting",
     responseSchemaVersion: "topic-page-agent-response/v1",
   }),
   route({

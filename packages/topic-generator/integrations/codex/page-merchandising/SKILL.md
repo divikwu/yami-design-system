@@ -142,7 +142,7 @@ Accept the result only when `pageMerchandising.status` is `ready`. On `blocked`,
 and revise only the proposal; never patch the frozen ProductSelectionResult or its digest.
 
 The ready `topic-page-plan/v2` is the handoff to the independent Content and later Visual stages.
-Preserve its `digest`, `contentTaskId`, and `assetTaskIds`; use the `content-writing` Skill for
+Preserve its `digest`, `contentTaskId`, and `assetTaskIds`; use the `page-copywriting` Skill for
 content tasks and do not fill either task type in this Skill.
 
 ## Architecture boundary

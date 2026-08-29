@@ -1,0 +1,134 @@
+{
+  "schemaVersion": "page-copy-proposal/v1",
+  "pageId": "caller-page-id",
+  "locale": "zh-CN",
+  "status": "ready-for-review",
+  "assumptions": [],
+  "modules": [
+    {
+      "moduleId": "hero",
+      "bindings": [
+        {
+          "fieldPath": "title",
+          "text": "找到适合你的主题选择",
+          "evidenceRefs": ["brief:proposition"]
+        },
+        {
+          "fieldPath": "description",
+          "text": "从不同用途和场景开始比较。",
+          "evidenceRefs": ["brief:proposition"]
+        },
+        {
+          "fieldPath": "tags[]",
+          "position": 0,
+          "text": "日常选择",
+          "evidenceRefs": ["brief:direction-daily"]
+        },
+        {
+          "fieldPath": "tags[]",
+          "position": 1,
+          "text": "送礼灵感",
+          "evidenceRefs": ["brief:direction-gifting"]
+        }
+      ]
+    },
+    {
+      "moduleId": "shortcuts",
+      "bindings": [
+        {
+          "fieldPath": "title",
+          "text": "精选分类",
+          "evidenceRefs": []
+        },
+        {
+          "fieldPath": "items[].label",
+          "bindingId": "shortcut-slot-1",
+          "position": 0,
+          "text": "入门选择",
+          "evidenceRefs": ["assignment:shortcut-slot-1"]
+        }
+      ]
+    },
+    {
+      "moduleId": "start-here",
+      "bindings": [
+        {
+          "fieldPath": "title",
+          "text": "从你的使用场景开始",
+          "evidenceRefs": ["brief:journey"]
+        },
+        {
+          "fieldPath": "scenes[].label",
+          "bindingId": "scene-daily",
+          "position": 0,
+          "text": "日常",
+          "evidenceRefs": ["scene:scene-daily"]
+        },
+        {
+          "fieldPath": "scenes[].title",
+          "bindingId": "scene-daily",
+          "position": 0,
+          "text": "先看日常所需",
+          "evidenceRefs": ["scene:scene-daily"]
+        },
+        {
+          "fieldPath": "scenes[].description",
+          "bindingId": "scene-daily",
+          "position": 0,
+          "text": "按使用频率与形式比较适合日常的选择。",
+          "evidenceRefs": ["scene:scene-daily"]
+        }
+      ]
+    },
+    {
+      "moduleId": "popular-picks",
+      "bindings": [
+        {
+          "fieldPath": "title",
+          "text": "热门精选",
+          "evidenceRefs": []
+        },
+        {
+          "fieldPath": "groups[].label",
+          "bindingId": "popular-all",
+          "position": 0,
+          "text": "全部精选",
+          "evidenceRefs": ["group:popular-all"]
+        }
+      ]
+    },
+    {
+      "moduleId": "brand-spotlight",
+      "bindings": [
+        {
+          "fieldPath": "title",
+          "text": "精选品牌",
+          "evidenceRefs": []
+        }
+      ]
+    },
+    {
+      "moduleId": "explore-more",
+      "bindings": [
+        {
+          "fieldPath": "title",
+          "text": "更多主题选择",
+          "evidenceRefs": ["brief:topic"]
+        },
+        {
+          "fieldPath": "description",
+          "text": "浏览更多商品选择。",
+          "evidenceRefs": []
+        },
+        {
+          "fieldPath": "groups[].label",
+          "bindingId": "explore-more-1",
+          "position": 0,
+          "text": "更多日常选择",
+          "evidenceRefs": ["group:explore-more-1"]
+        }
+      ]
+    }
+  ],
+  "warnings": []
+}
