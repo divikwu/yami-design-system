@@ -145,9 +145,12 @@ export function Header({
   const [overlay, setOverlay] = useState<'search' | 'categories' | null>(null)
   const [categoryMenuAutoFocus, setCategoryMenuAutoFocus] = useState(false)
   const [categoryMenuKeyboard, setCategoryMenuKeyboard] = useState(false)
+  const [activeCategoryId, setActiveCategoryId] = useState<string>()
+  const [activeCategoryMenuItemId, setActiveCategoryMenuItemId] = useState<string>()
+  const [categoryMenuTriggerElement, setCategoryMenuTriggerElement] = useState<HTMLElement | null>(null)
   const headerRef = useRef<HTMLElement>(null)
   useImperativeHandle(forwardedRef, () => headerRef.current!, [])
-  const categoryTriggerRef = useRef<HTMLButtonElement>(null)
+  const categoryMenuAnchorRef = useRef<HTMLButtonElement>(null)
   const categoryPanelId = useId()
   const hasCategoryMenu = Boolean(categoryMenu?.items.length && categories.some((item) => item.id === categoryMenu.triggerId))
 
@@ -160,11 +163,21 @@ export function Header({
 
   const closeCategories = useCallback((restoreFocus = false) => {
     setOverlay(null)
-    if (restoreFocus) categoryTriggerRef.current?.focus()
-  }, [])
+    setActiveCategoryId(undefined)
+    setActiveCategoryMenuItemId(undefined)
+    if (restoreFocus) categoryMenuTriggerElement?.focus()
+  }, [categoryMenuTriggerElement])
 
-  function openCategories(focusMenu: boolean, keyboard = false) {
-    if (overlay === 'categories' && !focusMenu) return
+  function openCategories(
+    categoryId: string,
+    menuItemId: string | undefined,
+    triggerElement: HTMLElement,
+    focusMenu: boolean,
+    keyboard = false,
+  ) {
+    setActiveCategoryId(categoryId)
+    setActiveCategoryMenuItemId(menuItemId)
+    setCategoryMenuTriggerElement(triggerElement)
     setCategoryMenuAutoFocus(focusMenu)
     setCategoryMenuKeyboard(keyboard)
     setOverlay('categories')
@@ -431,12 +444,23 @@ export function Header({
             id: categoryMenu.triggerId,
             panelId: categoryPanelId,
             open: overlay === 'categories',
-            ref: categoryTriggerRef,
-            onOpen: (focusMenu) => openCategories(focusMenu, focusMenu),
-            onToggle: (keyboard) => {
-              if (overlay === 'categories' && categoryMenuAutoFocus) closeCategories()
-              else openCategories(true, keyboard)
+            activeCategoryId,
+            anchorRef: categoryMenuAnchorRef,
+            onOpen: (categoryId, menuItemId, triggerElement, focusMenu) => {
+              openCategories(categoryId, menuItemId, triggerElement, focusMenu, focusMenu)
             },
+            onToggle: (triggerElement, keyboard) => {
+              if (
+                overlay === 'categories' &&
+                activeCategoryId === categoryMenu.triggerId &&
+                categoryMenuAutoFocus
+              ) {
+                closeCategories()
+              } else {
+                openCategories(categoryMenu.triggerId, undefined, triggerElement, true, keyboard)
+              }
+            },
+            onClose: () => closeCategories(),
           } : undefined}
         />
       </div>
@@ -445,7 +469,9 @@ export function Header({
           id={categoryPanelId}
           data={categoryMenu}
           headerRef={headerRef}
-          triggerRef={categoryTriggerRef}
+          anchorRef={categoryMenuAnchorRef}
+          triggerElement={categoryMenuTriggerElement}
+          initialItemId={activeCategoryMenuItemId}
           autoFocus={categoryMenuAutoFocus}
           keyboardOpen={categoryMenuKeyboard}
           onClose={closeCategories}

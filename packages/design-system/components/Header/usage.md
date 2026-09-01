@@ -79,7 +79,9 @@ every consumer, where nothing validates it.
 ### PC category navigation
 
 Pass `categoryMenu` to turn the rail entry matching `triggerId` into a disclosure
-button. Omit it to preserve the ordinary rail. The tree is caller-owned and
+button. A linked rail entry with `menuItemId` previews that matching root branch
+on desktop hover or Arrow Down while preserving its own click destination. Omit
+`categoryMenu` to preserve the ordinary rail. The tree is caller-owned and
 supports up to three levels: branches expand; leaves use their supplied `href`.
 Include an explicit All link in a branch when the parent also has a destination.
 
@@ -89,8 +91,10 @@ independent vertical scrolling, 44px rows, and a scrim below the header. It
 anchors to the Categories entry and follows the header when it scrolls or sticks.
 The design's 16px shell radius maps to the maintained 12px surface token.
 
-Mouse hover, click or Arrow Down on the entry opens the menu in both V1 and V2.
-Hover opening does not move focus; click or Arrow Down enters the menu.
+Mouse hover, click or Arrow Down on the Categories entry opens the full menu in
+both V1 and V2. Hover or Arrow Down on a mapped shortcut opens the same panel
+with its root branch selected; clicking the shortcut still navigates. Hover
+opening does not move focus; click or Arrow Down enters the menu.
 Hover, focus, or click selects
 a branch; switching a parent clears its old child selection. Up/Down, Home/End,
 and Left/Right move through the visible levels. Escape or the scrim closes and
@@ -98,10 +102,12 @@ returns focus to the entry; leaving the menu by Tab dismisses it. Search and
 categories are mutually exclusive. Below 1024px the menu closes and leaves the
 existing mobile header unchanged.
 
-Leaving the trigger and panel closes after 200ms. A diagonal pointer route from
-the trigger toward the panel's upper edge renews a 350ms grace period. Entering
-either region cancels dismissal; moving away resumes the 200ms delay. Keyboard
-navigation stays open. There is no pointer-blocking overlay over neighboring links.
+Initial hover preview waits 120ms; switching between mapped shortcuts waits 60ms
+and keeps the panel mounted and anchored to Categories. Leaving the trigger and
+panel closes after 200ms. A diagonal pointer route from the trigger toward the
+panel's upper edge renews a 350ms grace period. Entering either region cancels
+dismissal; moving away resumes the 200ms delay. Keyboard navigation stays open.
+There is no pointer-blocking overlay over neighboring links.
 
 `Pages → Categories` shows `PC — V1 Text` and `PC — V2 Images` on the real
 storefront, both initially collapsed. Explore two and three levels within each
@@ -180,6 +186,7 @@ categories={[
     id: 'health',
     label: 'Health',
     href: '/en/c/health/7',
+    menuItemId: '8765',
     image: { src: '/images/categories/health.png', alt: 'Health' },
     badges: ['999+', 'NEW'],
   },

@@ -25,6 +25,8 @@ export interface HeaderCategory {
   label: string
   /** Destination for the category. Omit while navigation is not configured. */
   href?: string
+  /** Matching root item in `categoryMenu`; enables desktop hover preview. */
+  menuItemId?: string
   /**
    * Category artwork, rendered as a 24px `<img>` so campaign teams reskin
    * categories without a component release. Omit for the leading
@@ -242,9 +244,16 @@ export interface HeaderCategoryRailProps {
     id: string
     panelId: string
     open: boolean
-    ref: RefObject<HTMLButtonElement | null>
-    onOpen: (focusMenu: boolean) => void
-    onToggle: (keyboard: boolean) => void
+    activeCategoryId?: string
+    anchorRef: RefObject<HTMLButtonElement | null>
+    onOpen: (
+      categoryId: string,
+      menuItemId: string | undefined,
+      triggerElement: HTMLElement,
+      focusMenu: boolean,
+    ) => void
+    onToggle: (triggerElement: HTMLButtonElement, keyboard: boolean) => void
+    onClose: () => void
   }
   categories: HeaderCategory[]
   ariaLabel: string

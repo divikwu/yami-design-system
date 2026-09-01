@@ -90,7 +90,7 @@ test.each([
     await page.getByRole('button', { name: rootName, exact: true }).hover();
     await page.getByRole('button', { name: branchName, exact: true }).click();
     expect(menu().dataset.presentation).toBe('images');
-    expect(menu().getBoundingClientRect().width).toBe(922);
+    expect(menu().getBoundingClientRect().width).toBe(938);
     expect(menu().getBoundingClientRect().right).toBeLessThanOrEqual(width);
     expect(menu().getBoundingClientRect().bottom).toBeLessThanOrEqual(650);
     expect(getComputedStyle(grid()).gridTemplateColumns.split(' ')).toHaveLength(3);
@@ -133,11 +133,14 @@ test.each([
     await page.getByRole('button', { name: rootName, exact: true }).click();
     await page.getByRole('button', { name: branchName, exact: true }).click();
     await page.getByRole('button', { name: locale === 'en' ? 'Skincare' : '面部护肤', exact: true }).hover();
+    await expect.poll(() => links()[0]?.textContent).toBe(locale === 'en' ? 'Makeup Remover' : '卸妆');
     expect(grid().scrollTop).toBe(0);
-    expect(links()[0]!.textContent).toBe(locale === 'en' ? 'Makeup Remover' : '卸妆');
     await page.getByRole('button', { name: locale === 'en' ? 'Beverage' : '饮料', exact: true }).hover();
-    expect(menu().dataset.columns).toBe('2');
-    expect(grid()).toBeNull();
+    await expect.poll(() => menu().dataset.columns).toBe('3');
+    await expect.poll(() =>
+      menu().querySelector<HTMLElement>('[data-level="1"] [aria-expanded="true"]')?.textContent,
+    ).toBe(locale === 'en' ? 'Back to School Essentials' : '返校季特辑');
+    expect(grid()).not.toBeNull();
     await userEvent.keyboard('{Escape}');
     await expect.element(trigger).toHaveFocus();
 

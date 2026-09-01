@@ -31,7 +31,7 @@
 }
 
 /* Shared title ramp: mobile 20px normal or 16px emphasized (Chinese 600,
- * English 500, resolved from lang); desktop keeps its existing typography. */
+ * English 500, resolved from lang); desktop uses the 24px display-sm role. */
 .title {
   min-width: 0;
   flex: 1 1 auto;
@@ -76,8 +76,8 @@
 
 @media (min-width: 1024px) {
   .title {
-    font-size: var(--font-size-heading-2xl);
-    line-height: var(--line-height-heading-2xl);
+    font-size: var(--font-size-display-sm);
+    line-height: var(--line-height-display-sm);
   }
 }
 
