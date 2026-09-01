@@ -14,6 +14,9 @@ const allIcon = new URL('../../assets/icons/base/all.svg', import.meta.url).href
  * reports "not at the end" at the true end and leaves a dead pager mounted.
  */
 const EDGE_EPSILON = 2
+const MENU_INTENT_DELAY = 240
+const MENU_INTENT_RADIUS = 6
+const MENU_SWITCH_DELAY = 60
 
 function ChevronIcon({ direction }: { direction: 'left' | 'right' }) {
   return (
@@ -45,6 +48,14 @@ export function HeaderCategoryRail({
   menuTrigger,
 }: HeaderCategoryRailProps) {
   const railRef = useRef<HTMLUListElement>(null)
+  const menuTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const menuIntentRef = useRef<{
+    categoryId: string
+    menuItemId: string | undefined
+    triggerElement: HTMLElement
+    x: number
+    y: number
+  } | undefined>(undefined)
   const [edges, setEdges] = useState({ atStart: true, atEnd: true })
 
   const updateEdges = useCallback(() => {
@@ -65,6 +76,59 @@ export function HeaderCategoryRail({
     observer.observe(rail)
     return () => observer.disconnect()
   }, [categories.length, updateEdges])
+
+  useEffect(() => () => clearTimeout(menuTimerRef.current), [])
+
+  function cancelMenuOpen() {
+    clearTimeout(menuTimerRef.current)
+    menuTimerRef.current = undefined
+    menuIntentRef.current = undefined
+  }
+
+  function scheduleMenuOpen(
+    categoryId: string,
+    menuItemId: string | undefined,
+    triggerElement: HTMLElement,
+    focusMenu: boolean,
+    pointer?: { clientX: number; clientY: number },
+  ) {
+    if (!menuTrigger) return
+    cancelMenuOpen()
+    const delay = focusMenu ? 0 : menuTrigger.open ? MENU_SWITCH_DELAY : MENU_INTENT_DELAY
+    if (!focusMenu && !menuTrigger.open && pointer) {
+      menuIntentRef.current = {
+        categoryId,
+        menuItemId,
+        triggerElement,
+        x: pointer.clientX,
+        y: pointer.clientY,
+      }
+    }
+    if (delay === 0) {
+      menuTrigger.onOpen(categoryId, menuItemId, triggerElement, focusMenu)
+      return
+    }
+    menuTimerRef.current = setTimeout(() => {
+      menuTrigger.onOpen(categoryId, menuItemId, triggerElement, focusMenu)
+      menuTimerRef.current = undefined
+      menuIntentRef.current = undefined
+    }, delay)
+  }
+
+  function trackMenuIntent(event: { pointerType: string; clientX: number; clientY: number }) {
+    const intent = menuIntentRef.current
+    if (event.pointerType !== 'mouse' || menuTrigger?.open || !intent) return
+    const deltaX = event.clientX - intent.x
+    const deltaY = event.clientY - intent.y
+    if (Math.hypot(deltaX, deltaY) <= MENU_INTENT_RADIUS) return
+    scheduleMenuOpen(
+      intent.categoryId,
+      intent.menuItemId,
+      intent.triggerElement,
+      false,
+      event,
+    )
+  }
 
   function scrollRail(direction: -1 | 1) {
     const rail = railRef.current
@@ -94,84 +158,146 @@ export function HeaderCategoryRail({
           data-slot="header-categories-list"
           onScroll={updateEdges}
         >
-        {categories.map((category) => (
-          <li
-            key={category.id}
-            className={styles.railItem}
-            data-group-start={category.startsGroup || undefined}
-            data-image-window-item="true"
-          >
-            {category.startsGroup && (
-              <span className={styles.railGroupDivider} aria-hidden="true" />
-            )}
-            {menuTrigger?.id === category.id ? (
-              <button
-                ref={menuTrigger.ref}
-                className={styles.category}
-                type="button"
-                data-slot="header-category"
-                data-category-trigger=""
-                aria-expanded={menuTrigger.open}
-                aria-controls={menuTrigger.panelId}
-                onClick={(event) => menuTrigger.onToggle(event.detail === 0)}
-                onPointerEnter={(event) => {
-                  if (event.pointerType === 'mouse') menuTrigger.onOpen(false)
-                }}
-                onKeyDown={(event) => {
-                  if (event.key === 'ArrowDown') {
-                    event.preventDefault()
-                    menuTrigger.onOpen(true)
-                  }
-                }}
+          {categories.map((category) => {
+            const isMenuTrigger = menuTrigger?.id === category.id
+            const previewsMenu = Boolean(menuTrigger && category.menuItemId)
+            const menuActive = Boolean(
+              menuTrigger?.open && menuTrigger.activeCategoryId === category.id,
+            )
+            return (
+              <li
+                key={category.id}
+                className={styles.railItem}
+                data-group-start={category.startsGroup || undefined}
+                data-image-window-item="true"
               >
-                <span className={styles.categoryMedia}>
-                  <span
-                    className={styles.categoryBuiltinIcon}
-                    data-slot="header-all-icon"
-                    aria-hidden="true"
-                    style={{ ['--category-icon' as string]: `url("${allIcon}")` }}
-                  />
-                </span>
-                <span className={styles.categoryLabel} data-slot="header-category-label">{category.label}</span>
-              </button>
-            ) : (
-            <a className={styles.category} href={category.href} data-slot="header-category">
-              {category.badges && category.badges.length > 0 && (
-                <span className={styles.categoryBadges} data-slot="header-category-badges">
-                  {category.badges.map((badge) => (
-                    <span key={badge} className={styles.categoryBadge}>
-                      {badge}
-                    </span>
-                  ))}
-                </span>
-              )}
-              <span className={styles.categoryMedia}>
-                {category.image ? (
-                  <ResponsiveImage
-                    className={styles.categoryImage}
-                    source={category.image.src}
-                    alt={category.image.alt}
-                    width={24}
-                    height={24}
-                    loading="lazy"
-                    decoding="async"
-                  />
-                ) : (
-                  <span
-                    className={styles.categoryBuiltinIcon}
-                    data-slot="header-all-icon"
-                    aria-hidden="true"
-                    style={{ ['--category-icon' as string]: `url("${allIcon}")` }}
-                  />
+                {category.startsGroup && (
+                  <span className={styles.railGroupDivider} aria-hidden="true" />
                 )}
-              </span>
-              <span className={styles.categoryLabel} data-slot="header-category-label">
-                {category.label}
-              </span>
-            </a>
-            )}
-          </li>
-        ))}
+                {isMenuTrigger && menuTrigger ? (
+                  <button
+                    ref={menuTrigger.anchorRef}
+                    className={styles.category}
+                    type="button"
+                    data-slot="header-category"
+                    data-category-trigger=""
+                    data-category-id={category.id}
+                    data-menu-active={menuActive || undefined}
+                    aria-expanded={menuActive}
+                    aria-controls={menuTrigger.panelId}
+                    onClick={(event) =>
+                      menuTrigger.onToggle(event.currentTarget, event.detail === 0)
+                    }
+                    onPointerEnter={(event) => {
+                      if (event.pointerType === 'mouse') {
+                        scheduleMenuOpen(category.id, undefined, event.currentTarget, false, event)
+                      }
+                    }}
+                    onPointerMove={trackMenuIntent}
+                    onPointerLeave={cancelMenuOpen}
+                    onKeyDown={(event) => {
+                      if (event.key === 'ArrowDown') {
+                        event.preventDefault()
+                        scheduleMenuOpen(category.id, undefined, event.currentTarget, true)
+                      }
+                    }}
+                  >
+                    <span className={styles.categoryMedia}>
+                      <span
+                        className={styles.categoryBuiltinIcon}
+                        data-slot="header-all-icon"
+                        aria-hidden="true"
+                        style={{ ['--category-icon' as string]: `url("${allIcon}")` }}
+                      />
+                    </span>
+                    <span className={styles.categoryLabel} data-slot="header-category-label">
+                      {category.label}
+                    </span>
+                  </button>
+                ) : (
+                  <a
+                    className={styles.category}
+                    href={category.href}
+                    data-slot="header-category"
+                    data-category-id={category.id}
+                    data-category-menu-item={category.menuItemId}
+                    data-menu-active={menuActive || undefined}
+                    aria-expanded={previewsMenu ? menuActive : undefined}
+                    aria-controls={previewsMenu ? menuTrigger?.panelId : undefined}
+                    onClick={previewsMenu ? menuTrigger?.onClose : undefined}
+                    onPointerEnter={
+                      previewsMenu
+                        ? (event) => {
+                            if (event.pointerType === 'mouse') {
+                              scheduleMenuOpen(
+                                category.id,
+                                category.menuItemId,
+                                event.currentTarget,
+                                false,
+                                event,
+                              )
+                            }
+                          }
+                        : undefined
+                    }
+                    onPointerMove={previewsMenu ? trackMenuIntent : undefined}
+                    onPointerLeave={previewsMenu ? cancelMenuOpen : undefined}
+                    onKeyDown={
+                      previewsMenu
+                        ? (event) => {
+                            if (event.key === 'ArrowDown') {
+                              event.preventDefault()
+                              scheduleMenuOpen(
+                                category.id,
+                                category.menuItemId,
+                                event.currentTarget,
+                                true,
+                              )
+                            }
+                          }
+                        : undefined
+                    }
+                  >
+                    {category.badges && category.badges.length > 0 && (
+                      <span
+                        className={styles.categoryBadges}
+                        data-slot="header-category-badges"
+                      >
+                        {category.badges.map((badge) => (
+                          <span key={badge} className={styles.categoryBadge}>
+                            {badge}
+                          </span>
+                        ))}
+                      </span>
+                    )}
+                    <span className={styles.categoryMedia}>
+                      {category.image ? (
+                        <ResponsiveImage
+                          className={styles.categoryImage}
+                          source={category.image.src}
+                          alt={category.image.alt}
+                          width={24}
+                          height={24}
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      ) : (
+                        <span
+                          className={styles.categoryBuiltinIcon}
+                          data-slot="header-all-icon"
+                          aria-hidden="true"
+                          style={{ ['--category-icon' as string]: `url("${allIcon}")` }}
+                        />
+                      )}
+                    </span>
+                    <span className={styles.categoryLabel} data-slot="header-category-label">
+                      {category.label}
+                    </span>
+                  </a>
+                )}
+              </li>
+            )
+          })}
         </ul>
       </ImageLoadingWindow>
 

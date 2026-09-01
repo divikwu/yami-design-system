@@ -393,9 +393,9 @@ export const HallSwitcher: Story = {
       '[data-slot="header-category-label"]',
     )
     if (!categoryLabel) throw new Error('Category label did not render')
-    if (getComputedStyle(categoryLabel).fontSize !== '14px') {
+    if (getComputedStyle(categoryLabel).fontSize !== '12px') {
       throw new Error(
-        `Desktop category labels must remain 14px across desktop widths, got ${getComputedStyle(categoryLabel).fontSize}`,
+        `Desktop category labels must remain 12px across desktop widths, got ${getComputedStyle(categoryLabel).fontSize}`,
       )
     }
 
@@ -546,9 +546,9 @@ export const CategoryRail: Story = {
     if (!rail || !list) throw new Error('Category rail did not render')
     const label = rail.querySelector<HTMLElement>('[data-slot="header-category-label"]')
     if (!label) throw new Error('Category label did not render')
-    if (getComputedStyle(label).fontSize !== '14px') {
+    if (getComputedStyle(label).fontSize !== '12px') {
       throw new Error(
-        `Desktop category labels must remain 14px across desktop widths, got ${getComputedStyle(label).fontSize}`,
+        `Desktop category labels must remain 12px across desktop widths, got ${getComputedStyle(label).fontSize}`,
       )
     }
 

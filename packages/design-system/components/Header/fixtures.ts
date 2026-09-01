@@ -163,6 +163,7 @@ type ArtworkSlug = keyof typeof ARTWORK
 interface CategoryFixture {
   id: string
   label: string
+  menuItemId?: string
   /** Undefined for the leading entry, which renders the built-in grid glyph. */
   slug?: ArtworkSlug
   badges?: string[]
@@ -172,19 +173,19 @@ interface CategoryFixture {
 /** EN storefront rail — 24 entries. */
 const CATEGORIES_EN: CategoryFixture[] = [
   { id: 'categories', label: 'Categories' },
-  { id: 'summer-picks', label: 'Summer Picks', slug: 'summer-picks' },
-  { id: 'snack', label: 'Snack', slug: 'snack' },
-  { id: 'grocery', label: 'Grocery', slug: 'grocery' },
-  { id: 'beverage', label: 'Beverage', slug: 'beverage' },
-  { id: 'beauty', label: 'Beauty', slug: 'beauty' },
-  { id: 'personal-care', label: 'Personal Care', slug: 'personal-care' },
-  { id: 'home', label: 'Home', slug: 'home' },
-  { id: 'electronics', label: 'Electronics', slug: 'electronics' },
-  { id: 'baby-and-mom', label: 'Baby & Mom', slug: 'baby-and-mom' },
-  { id: 'health', label: 'Health', slug: 'health', badges: ['999+', 'NEW'] },
-  { id: 'clothing', label: 'Clothing', slug: 'clothing' },
-  { id: 'gifts', label: 'Gifts', slug: 'gifts' },
-  { id: 'k-trend', label: 'K-Trend', slug: 'k-trend' },
+  { id: 'summer-picks', label: 'Summer Picks', slug: 'summer-picks', menuItemId: '21697' },
+  { id: 'snack', label: 'Snack', slug: 'snack', menuItemId: '7721' },
+  { id: 'grocery', label: 'Grocery', slug: 'grocery', menuItemId: '7754' },
+  { id: 'beverage', label: 'Beverage', slug: 'beverage', menuItemId: '7794' },
+  { id: 'beauty', label: 'Beauty', slug: 'beauty', menuItemId: '7819' },
+  { id: 'personal-care', label: 'Personal Care', slug: 'personal-care', menuItemId: '12889' },
+  { id: 'home', label: 'Home', slug: 'home', menuItemId: '7929' },
+  { id: 'electronics', label: 'Electronics', slug: 'electronics', menuItemId: '11397' },
+  { id: 'baby-and-mom', label: 'Baby & Mom', slug: 'baby-and-mom', menuItemId: '7998' },
+  { id: 'health', label: 'Health', slug: 'health', menuItemId: '8765', badges: ['999+', 'NEW'] },
+  { id: 'clothing', label: 'Clothing', slug: 'clothing', menuItemId: '9503' },
+  { id: 'gifts', label: 'Gifts', slug: 'gifts', menuItemId: '13347' },
+  { id: 'k-trend', label: 'K-Trend', slug: 'k-trend', menuItemId: '13346' },
   {
     id: 'greater-china',
     label: 'Greater China Region',
@@ -205,19 +206,19 @@ const CATEGORIES_EN: CategoryFixture[] = [
 /** CN storefront rail — 25 entries, its own labels, order, and badge target. */
 const CATEGORIES_ZH: CategoryFixture[] = [
   { id: 'categories', label: '全部分类' },
-  { id: 'summer-picks', label: '凉夏好物', slug: 'summer-picks-zh' },
-  { id: 'snack', label: '零食', slug: 'snack' },
-  { id: 'grocery', label: '速食粮油', slug: 'grocery' },
-  { id: 'beverage', label: '饮料', slug: 'beverage' },
-  { id: 'beauty', label: '美妆', slug: 'beauty' },
-  { id: 'personal-care', label: '个护', slug: 'personal-care-zh' },
-  { id: 'electronics', label: '厨电家电', slug: 'electronics', badges: ['100+', '上新'] },
-  { id: 'home', label: '家居生活', slug: 'home' },
-  { id: 'health', label: '健康保健', slug: 'health' },
-  { id: 'baby-and-mom', label: '母婴辅食', slug: 'baby-and-mom' },
-  { id: 'clothing', label: '服装', slug: 'clothing' },
-  { id: 'gifts', label: '送礼指南', slug: 'gifts' },
-  { id: 'k-trend', label: '遇见首尔', slug: 'k-trend' },
+  { id: 'summer-picks', label: '凉夏好物', slug: 'summer-picks-zh', menuItemId: '21662' },
+  { id: 'snack', label: '零食', slug: 'snack', menuItemId: '6840' },
+  { id: 'grocery', label: '速食粮油', slug: 'grocery', menuItemId: '6895' },
+  { id: 'beverage', label: '饮料', slug: 'beverage', menuItemId: '6969' },
+  { id: 'beauty', label: '美妆', slug: 'beauty', menuItemId: '6995' },
+  { id: 'personal-care', label: '个护', slug: 'personal-care-zh', menuItemId: '12966' },
+  { id: 'electronics', label: '厨电家电', slug: 'electronics', menuItemId: '11368', badges: ['100+', '上新'] },
+  { id: 'home', label: '家居生活', slug: 'home', menuItemId: '7085' },
+  { id: 'health', label: '健康保健', slug: 'health', menuItemId: '8726' },
+  { id: 'baby-and-mom', label: '母婴辅食', slug: 'baby-and-mom', menuItemId: '7147' },
+  { id: 'clothing', label: '服装', slug: 'clothing', menuItemId: '9468' },
+  { id: 'gifts', label: '送礼指南', slug: 'gifts', menuItemId: '13429' },
+  { id: 'k-trend', label: '遇见首尔', slug: 'k-trend', menuItemId: '13313' },
   { id: 'greater-china', label: '大中华', slug: 'greater-china', startsGroup: true },
   { id: 'japan', label: '日本', slug: 'japan' },
   { id: 'korea', label: '韩国', slug: 'korea' },
@@ -297,6 +298,7 @@ function toCategories(fixture: readonly CategoryFixture[]): HeaderCategory[] {
       id: entry.id,
       label: entry.label,
     }
+    if (entry.menuItemId) category.menuItemId = entry.menuItemId
     if (entry.slug) category.image = { src: ARTWORK[entry.slug], alt: entry.label }
     if (entry.badges) category.badges = [...entry.badges]
     if (entry.startsGroup) category.startsGroup = entry.startsGroup

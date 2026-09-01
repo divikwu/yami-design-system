@@ -16,6 +16,7 @@
   position: fixed;
   z-index: 11;
   top: var(--category-menu-top);
+  transform: translateY(calc(-1 * var(--space-050)));
   display: flex;
   height: min(548px, calc(100dvh - var(--category-menu-top) - var(--space-200)));
   overflow: hidden;
@@ -31,6 +32,7 @@
   padding: var(--space-150);
   overflow-y: auto;
   overscroll-behavior: contain;
+  scroll-padding-block-end: var(--space-150);
   list-style: none;
   scrollbar-width: thin;
 }
@@ -108,7 +110,6 @@
 }
 
 .imagesMenu .column {
-  width: 240px;
   flex-shrink: 0;
 }
 

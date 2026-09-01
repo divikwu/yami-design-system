@@ -6,35 +6,58 @@ import type { HeaderCategoryMenuData, HeaderCategoryMenuItem } from './Header.ty
 import styles from './HeaderCategoryMenu.module.css'
 
 const arrow = new URL('./assets/category-menu/arrow-right.svg', import.meta.url).href
+const SUBMENU_SWITCH_DELAY = 60
+const SUBMENU_AIM_DELAY = 300
+const SUBMENU_AIM_TOLERANCE = 16
+const POINTER_SAMPLE_DISTANCE = 4
 
-export function HeaderCategoryMenu({ id, data, headerRef, triggerRef, autoFocus, keyboardOpen, onClose }: {
+type PointerPoint = { x: number; y: number }
+
+function firstExpandableChildId(item: HeaderCategoryMenuItem | undefined) {
+  return item?.children?.find((child) => child.children?.length)?.id
+}
+
+export function HeaderCategoryMenu({ id, data, headerRef, anchorRef, triggerElement, initialItemId, autoFocus, keyboardOpen, onClose }: {
   id: string
   data: HeaderCategoryMenuData
   headerRef: RefObject<HTMLElement | null>
-  triggerRef: RefObject<HTMLButtonElement | null>
+  anchorRef: RefObject<HTMLButtonElement | null>
+  triggerElement: HTMLElement | null
+  initialItemId?: string
   autoFocus: boolean
   keyboardOpen: boolean
   onClose: (restoreFocus?: boolean) => void
 }) {
-  const [firstId, setFirstId] = useState(data.items[0]?.id)
-  const [secondId, setSecondId] = useState<string>()
+  const initialFirst = data.items.find((item) => item.id === initialItemId) ?? data.items[0]
+  const [firstId, setFirstId] = useState(initialFirst?.id)
+  const [secondId, setSecondId] = useState(() => firstExpandableChildId(initialFirst))
   const [position, setPosition] = useState({ top: 0, left: 0, scrimTop: 0 })
   const menuRef = useRef<HTMLElement>(null)
+  const submenuTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const pointerHistoryRef = useRef<PointerPoint | undefined>(undefined)
   const keyboardMode = useRef(keyboardOpen)
   const first = data.items.find((item) => item.id === firstId) ?? data.items[0]
   const second = first?.children?.find((item) => item.id === secondId)
   const columns = [data.items, first?.children ?? [], second?.children ?? []]
   const columnCount = second?.children?.length ? 3 : 2
   const imagePresentation = data.presentation === 'images'
-  const menuWidth = imagePresentation ? (columnCount === 3 ? 922 : 482) : columnCount * 249
+  const hasThirdColumn = initialFirst?.children?.some((child) => child.children?.length)
+  const positioningColumnCount = hasThirdColumn ? 3 : 2
+  const positioningWidth = imagePresentation && positioningColumnCount === 3
+    ? 938
+    : positioningColumnCount * 249
 
   useLayoutEffect(() => {
     function measure() {
       const header = headerRef.current?.getBoundingClientRect()
-      const trigger = triggerRef.current?.getBoundingClientRect()
-      if (!header || !trigger) return
-      const top = Math.max(0, header.bottom - 8)
-      const left = Math.max(16, Math.min(trigger.left, window.innerWidth - menuWidth - 16))
+      const anchor = anchorRef.current?.getBoundingClientRect()
+      if (!header || !anchor) return
+      const trigger = triggerElement?.getBoundingClientRect() ?? anchor
+      const top = Math.max(0, header.bottom)
+      const left = Math.max(
+        anchor.left,
+        Math.min(trigger.left, window.innerWidth - positioningWidth - anchor.left),
+      )
       setPosition({ top, left, scrimTop: Math.max(0, header.bottom) })
     }
     measure()
@@ -47,19 +70,49 @@ export function HeaderCategoryMenu({ id, data, headerRef, triggerRef, autoFocus,
       window.removeEventListener('resize', measure)
       window.removeEventListener('scroll', measure, true)
     }
-  }, [menuWidth, headerRef, triggerRef])
+  }, [positioningWidth, headerRef, anchorRef, triggerElement])
 
   useLayoutEffect(() => {
-    if (autoFocus) menuRef.current?.querySelector<HTMLElement>('button, a[href]')?.focus()
-  }, [autoFocus])
+    const nextFirst = data.items.find((item) => item.id === initialItemId) ?? data.items[0]
+    setFirstId(nextFirst?.id)
+    setSecondId(firstExpandableChildId(nextFirst))
+  }, [data.items, initialItemId])
+
+  useLayoutEffect(() => {
+    const requestedId = initialItemId ?? data.items[0]?.id
+    const rootItems = menuRef.current?.querySelectorAll<HTMLElement>(
+      '[data-level="0"] [data-item-id]',
+    )
+    const requestedRoot = [...(rootItems ?? [])].find(
+      (item) => item.dataset.itemId === requestedId,
+    )
+    requestedRoot?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+  }, [data.items, initialItemId])
+
+  useLayoutEffect(() => {
+    if (autoFocus) {
+      const rootItems = menuRef.current?.querySelectorAll<HTMLElement>(
+        '[data-level="0"] [data-item-id]',
+      )
+      const requestedRoot = [...(rootItems ?? [])].find(
+        (item) => item.dataset.itemId === initialItemId,
+      )
+      const focusTarget =
+        requestedRoot ?? menuRef.current?.querySelector<HTMLElement>('button, a[href]')
+      focusTarget?.focus()
+    }
+  }, [autoFocus, initialItemId])
 
   useLayoutEffect(() => {
     keyboardMode.current = keyboardOpen
   }, [keyboardOpen])
 
+  useEffect(() => () => clearTimeout(submenuTimerRef.current), [])
+
   useEffect(() => {
     const menu = menuRef.current!
-    const trigger = triggerRef.current!
+    const trigger = triggerElement
+    if (!trigger) return undefined
     let closeTimer: ReturnType<typeof setTimeout> | undefined
     const triggerBounds = trigger.getBoundingClientRect()
     let previousPoint = { x: triggerBounds.left + triggerBounds.width / 2, y: triggerBounds.top + triggerBounds.height / 2 }
@@ -142,15 +195,53 @@ export function HeaderCategoryMenu({ id, data, headerRef, triggerRef, autoFocus,
         region.removeEventListener('pointerdown', pointerDown)
       }
     }
-  }, [onClose, triggerRef])
+  }, [onClose, triggerElement])
+
+  function cancelSubmenuSelect() {
+    clearTimeout(submenuTimerRef.current)
+    submenuTimerRef.current = undefined
+  }
 
   function select(item: HeaderCategoryMenuItem, level: number) {
+    cancelSubmenuSelect()
     if (level === 0) {
       setFirstId(item.id)
-      setSecondId(undefined)
+      setSecondId(firstExpandableChildId(item))
     } else if (level === 1) {
       setSecondId(item.id)
     }
+  }
+
+  function trackPointer(event: PointerEvent<HTMLElement>) {
+    if (event.pointerType !== 'mouse') return
+    const point = { x: event.clientX, y: event.clientY }
+    const current = pointerHistoryRef.current
+    if (current && Math.hypot(point.x - current.x, point.y - current.y) < POINTER_SAMPLE_DISTANCE) return
+    pointerHistoryRef.current = point
+  }
+
+  function movingTowardSubmenu(level: number, point: PointerPoint) {
+    const previous = pointerHistoryRef.current
+    const nextColumn = menuRef.current?.querySelector<HTMLElement>(`[data-level="${level + 1}"]`)
+    if (!previous || !nextColumn || point.x <= previous.x) return false
+    const bounds = nextColumn.getBoundingClientRect()
+    const distanceX = point.x - previous.x
+    const projectedY = previous.y
+      + (point.y - previous.y) * ((bounds.left - previous.x) / distanceX)
+    return point.x < bounds.left
+      && projectedY >= bounds.top - SUBMENU_AIM_TOLERANCE
+      && projectedY <= bounds.bottom + SUBMENU_AIM_TOLERANCE
+  }
+
+  function scheduleSelect(item: HeaderCategoryMenuItem, level: number, event: PointerEvent<HTMLElement>) {
+    cancelSubmenuSelect()
+    if (level >= 2) return
+    const active = level === 0 ? item.id === first?.id : item.id === second?.id
+    if (active) return
+    const delay = movingTowardSubmenu(level, { x: event.clientX, y: event.clientY })
+      ? SUBMENU_AIM_DELAY
+      : SUBMENU_SWITCH_DELAY
+    submenuTimerRef.current = setTimeout(() => select(item, level), delay)
   }
 
   function handleKeys(event: KeyboardEvent<HTMLElement>, item: HeaderCategoryMenuItem, level: number) {
@@ -209,9 +300,11 @@ export function HeaderCategoryMenu({ id, data, headerRef, triggerRef, autoFocus,
         data-slot="header-category-menu"
         data-columns={columnCount}
         data-presentation={imagePresentation ? 'images' : 'text'}
+        onPointerMove={trackPointer}
+        onPointerLeave={cancelSubmenuSelect}
         onBlur={(event) => {
           const next = event.relatedTarget
-          if (next instanceof Element && !event.currentTarget.contains(next) && next !== triggerRef.current && !next.closest('[data-slot="header-category-scrim"]')) onClose()
+          if (next instanceof Element && !event.currentTarget.contains(next) && next !== triggerElement && !next.closest('[data-slot="header-category-scrim"]')) onClose()
         }}
       >
         {columns.slice(0, columnCount).map((items, level) => (
@@ -236,12 +329,13 @@ export function HeaderCategoryMenu({ id, data, headerRef, triggerRef, autoFocus,
               const shared = {
                 className: styles.item,
                 title: imagePresentation && level === 2 ? item.label : undefined,
+                'data-item-id': item.id,
                 'data-active': active || undefined,
                 style: {
                   '--category-font-color': item.fontColor,
                 } as CSSProperties,
                 onPointerEnter: (event: PointerEvent<HTMLElement>) => {
-                  if (event.pointerType === 'mouse') select(item, level)
+                  if (event.pointerType === 'mouse') scheduleSelect(item, level, event)
                 },
                 onFocus: () => select(item, level),
                 onKeyDown: (event: KeyboardEvent<HTMLElement>) => handleKeys(event, item, level),

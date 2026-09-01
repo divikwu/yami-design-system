@@ -58,6 +58,13 @@ export const Showcase: Story = {
     );
     if (!root) throw new Error("Trending searches did not render");
 
+    const heading = root.querySelector<HTMLElement>(
+      '[data-slot="trending-searches-title"]',
+    );
+    if (!heading || getComputedStyle(heading).fontSize !== "24px") {
+      throw new Error("Desktop trending searches title must use the 24px display-sm token");
+    }
+
     const items = Array.from(
       root.querySelectorAll<HTMLElement>('[data-slot="trending-searches-item"]'),
     );

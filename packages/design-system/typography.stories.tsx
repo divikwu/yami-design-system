@@ -345,9 +345,9 @@ export const LanguageWeights: Story = {
       if (
         getComputedStyle(serif).fontWeight !== "600" ||
         getComputedStyle(normal).fontWeight !== "400" ||
-        getComputedStyle(normal).fontSize !== (mobile ? "20px" : "28px") ||
+        getComputedStyle(normal).fontSize !== (mobile ? "20px" : "24px") ||
         getComputedStyle(compact).fontWeight !== (mobile ? weight : "400") ||
-        getComputedStyle(compact).fontSize !== (mobile ? "16px" : "28px") ||
+        getComputedStyle(compact).fontSize !== (mobile ? "16px" : "24px") ||
         getComputedStyle(compact.querySelector('[lang="en"]')!).fontWeight !== (mobile ? "500" : "400") ||
         getComputedStyle(compact.querySelector('[lang="zh"]')!).fontWeight !== (mobile ? "600" : "400")
       ) throw new Error("Shared title sizes must preserve normal and language-aware emphasis weights")

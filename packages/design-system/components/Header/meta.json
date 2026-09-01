@@ -90,7 +90,7 @@
     "categories": {
       "type": "HeaderCategory[]",
       "required": true,
-      "description": "Category rail entries in display order. Each entry's image renders as a 24px <img>, never an icon component; omitting image yields the built-in grid glyph used by the leading Categories entry."
+      "description": "Category rail entries in display order. Each entry's image renders as a 24px <img>, never an icon component; omitting image yields the built-in grid glyph used by the leading Categories entry. menuItemId maps a linked shortcut to a categoryMenu root for desktop hover and Arrow Down preview."
     },
     "searchPlaceholder": {
       "type": "string",
@@ -101,7 +101,7 @@
     "categoryMenu": {
       "type": "HeaderCategoryMenuData",
       "required": false,
-      "description": "Optional PC-only, caller-owned category tree. presentation defaults to text (V1); images (V2) displays the third level as a three-column image grid. The matching rail trigger opens two or three independently scrolling columns, mutually exclusive with search. Supports hover, click, keyboard navigation, Escape and scrim dismissal."
+      "description": "Optional PC-only, caller-owned category tree. presentation defaults to text (V1); images (V2) displays the third level as a three-column image grid. The matching rail trigger opens the full tree; linked entries with menuItemId preview the corresponding root branch. The panel remains anchored to Categories and is mutually exclusive with search. Supports hover, click, keyboard navigation, Escape and scrim dismissal."
     },
     "searchValue": {
       "type": "string",
