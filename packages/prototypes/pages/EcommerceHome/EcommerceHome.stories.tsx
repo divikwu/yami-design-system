@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { userEvent } from "storybook/test";
+import { userEvent, waitFor } from "storybook/test";
 
 import {
   createProductListProducts,
@@ -159,9 +159,6 @@ export const Pc: Story = {
           "Mobile ecommerce home header must gain a background after scrolling",
         );
       }
-      await new Promise<void>((resolve) =>
-        storyWindow.setTimeout(resolve, 200),
-      );
       const mobileBrand = stickyHeader.querySelector<HTMLElement>(
         '[data-slot="header-mobile-brand"]',
       );
@@ -171,19 +168,21 @@ export const Pc: Story = {
       const mobileActions = stickyHeader.querySelector<HTMLElement>(
         '[data-slot="header-mobile-actions"]',
       );
-      if (
-        !mobileBrand ||
-        !mobileSearchRow ||
-        !mobileActions ||
-        getComputedStyle(mobileBrand).opacity !== "0" ||
-        getComputedStyle(mobileBrand).visibility !== "hidden" ||
-        mobileSearchRow.getBoundingClientRect().top !==
-          mobileActions.getBoundingClientRect().top
-      ) {
-        throw new Error(
-          "Scrolled mobile ecommerce header must replace the logo row with search while keeping its actions",
-        );
-      }
+      await waitFor(() => {
+        if (
+          !mobileBrand ||
+          !mobileSearchRow ||
+          !mobileActions ||
+          getComputedStyle(mobileBrand).opacity !== "0" ||
+          getComputedStyle(mobileBrand).visibility !== "hidden" ||
+          mobileSearchRow.getBoundingClientRect().top !==
+            mobileActions.getBoundingClientRect().top
+        ) {
+          throw new Error(
+            "Scrolled mobile ecommerce header must replace the logo row with search while keeping its actions",
+          );
+        }
+      }, { timeout: 2000 });
       storyWindow.scrollTo(0, 0);
     }
 
