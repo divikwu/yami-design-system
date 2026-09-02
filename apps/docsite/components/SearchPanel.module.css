@@ -49,11 +49,6 @@
   outline: 0;
 }
 
-.searchField .close {
-  display: none;
-  flex: none;
-}
-
 .visuallyHidden {
   position: absolute;
   width: var(--space-025);
@@ -159,16 +154,6 @@
 @media (hover: hover) and (pointer: fine) {
   .result:hover {
     background: var(--surface-secondary);
-  }
-}
-
-@media (max-width: 1023px) {
-  .shortcuts {
-    display: none;
-  }
-
-  .searchField .close {
-    display: inline-flex;
   }
 }
 

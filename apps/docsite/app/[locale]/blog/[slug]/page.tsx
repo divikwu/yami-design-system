@@ -44,6 +44,7 @@ export default async function Page({ params }: { params: Promise<{ locale: strin
       locale={locale}
       copy={getSiteCopy(locale)}
       post={post}
+      posts={getAllBlogPosts(locale)}
       relatedDocs={relatedDocs}
     />
   );

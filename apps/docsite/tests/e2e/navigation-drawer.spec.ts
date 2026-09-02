@@ -30,19 +30,6 @@ for (const width of [320, 375, 733, 768]) {
     await group.click();
     await expect(docs.getByRole("link", { name: "开始创建", exact: true })).toBeVisible();
 
-    const utilityControls = [
-      dialog.getByRole("link", { name: "English", exact: true }),
-      dialog.getByRole("button", { name: "主题: 深色", exact: true }),
-      dialog.getByRole("link", { name: "Storybook", exact: true }),
-      dialog.getByRole("link", { name: "GitHub", exact: true }),
-    ];
-    for (const control of utilityControls) {
-      await expect(control).toHaveText("");
-      await expect(control.locator("svg")).toBeVisible();
-      await expect(control).toHaveCSS("width", "32px");
-      await expect(control).toHaveCSS("height", "32px");
-    }
-
     const backdrop = await dialog.evaluate(e => getComputedStyle(e, "::backdrop").backdropFilter);
     expect(backdrop).toBe("blur(2px)");
     await page.mouse.move(0, 400);
@@ -89,8 +76,8 @@ test("drawer enters and exits from the right before releasing its modal lock", a
   await expect(dialog).toHaveAttribute("data-state", "closing");
   await expect(page.locator("html")).toHaveCSS("overflow", "hidden");
   const frames = await panel.evaluate(e => (e.getAnimations()[0].effect as KeyframeEffect).getKeyframes());
-  expect(["translateX(0px)", "translate(0px)"]).toContain(frames[0].transform);
-  expect(["translateX(100%)", "translate(100%)"]).toContain(frames.at(-1)!.transform);
+  expect(frames[0].transform).toBe("translateX(0px)");
+  expect(frames.at(-1)!.transform).toBe("translateX(100%)");
   await expect(dialog).not.toBeAttached();
   await expect(trigger).toBeFocused();
 });

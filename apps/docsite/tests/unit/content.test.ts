@@ -8,7 +8,6 @@ import {
   getDoc,
   getSearchEntries,
   slugifyHeading,
-  sortBlogPostsByUpdatedAt,
 } from "../../lib/content";
 import { docGroups, storybookResources } from "../../lib/docs-navigation";
 import legacyDocRedirects from "../../lib/legacy-doc-redirects.json";
@@ -94,35 +93,14 @@ describe("repository content", () => {
     }
   });
 
-  it("excludes draft Blog posts from the public collection", () => {
+  it("sorts same-date Blog posts by Update, Design, then Engineering", () => {
     const posts = getAllBlogPosts("en");
-    expect(posts.map((item) => item.frontmatter.slug)).toEqual([
-      "build-test-document-components-with-storybook",
-      "motion-for-react-in-yami-canvas",
-      "yami-prototype-architecture-and-motion",
+    expect(posts.map((item) => item.frontmatter.category)).toEqual([
+      "update",
+      "design",
+      "engineering",
     ]);
-    expect(posts.every((item) => item.frontmatter.category === "engineering")).toBe(true);
     expect(posts.every((item) => item.frontmatter.draft === false)).toBe(true);
-  });
-
-  it("sorts Blog posts by update date without mutating the source collection", () => {
-    const posts = getAllBlogPosts("en");
-    const sourceOrder = posts.map((item) => item.frontmatter.slug);
-    const datedPosts = posts.map((item, index) => ({
-      ...item,
-      frontmatter: {
-        ...item.frontmatter,
-        date: `2026-08-${29 + index}`,
-        updatedAt: index === 0 ? "2026-09-01" : undefined,
-      },
-    }));
-
-    expect(sortBlogPostsByUpdatedAt(datedPosts).map((item) => item.frontmatter.slug)).toEqual([
-      datedPosts[0]?.frontmatter.slug,
-      datedPosts[2]?.frontmatter.slug,
-      datedPosts[1]?.frontmatter.slug,
-    ]);
-    expect(posts.map((item) => item.frontmatter.slug)).toEqual(sourceOrder);
   });
 
   it("creates stable multilingual heading anchors", () => {

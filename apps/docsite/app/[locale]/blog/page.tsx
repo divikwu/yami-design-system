@@ -33,8 +33,6 @@ export default async function Page({ params }: { params: Promise<{ locale: strin
     dateLabel: formatDate(post.frontmatter.date, locale),
     readingTimeLabel: copy.blog.readingTime(post.readingTimeMinutes),
     authorLabel: post.frontmatter.authors[0] ?? "YAMI Design System Team",
-    cover: post.frontmatter.cover,
-    coverAlt: post.frontmatter.coverAlt,
   }));
 
   return (

@@ -8,7 +8,6 @@ test("opens search with the keyboard and supports full keyboard selection", asyn
   await page.keyboard.press("Control+K");
   const dialog = page.getByRole("dialog", { name: "搜索" });
   await expect(dialog).toBeVisible();
-  await expect(dialog.locator('[data-slot="sheet-footer"] > div')).toBeVisible();
 
   const input = dialog.getByRole("combobox", { name: "搜索" });
   await expect(input).toBeFocused();
@@ -22,40 +21,6 @@ test("opens search with the keyboard and supports full keyboard selection", asyn
   await expect(dialog.getByRole("status")).toContainText("未找到结果");
   await page.keyboard.press("Escape");
   await expect(page.getByRole("button", { name: "搜索" })).toBeFocused();
-});
-
-test("keeps mobile search dismissible and the keyboard selection in view", async ({ page }) => {
-  await page.setViewportSize({ width: 375, height: 420 });
-  await page.goto("/zh");
-
-  const trigger = page.getByRole("button", { name: "搜索", exact: true });
-  await trigger.click();
-
-  const dialog = page.getByRole("dialog", { name: "搜索" });
-  await expect(dialog.locator('[data-slot="sheet-footer"] > div')).toBeHidden();
-  const close = dialog.getByRole("button", { name: "关闭", exact: true });
-  await expect(close).toBeVisible();
-
-  const input = dialog.getByRole("combobox", { name: "搜索" });
-  const options = dialog.getByRole("option");
-  const optionCount = await options.count();
-  expect(optionCount).toBeGreaterThan(1);
-  for (let index = 1; index < optionCount; index += 1) {
-    await input.press("ArrowDown");
-  }
-
-  const selected = dialog.locator('[role="option"][aria-selected="true"]');
-  await expect(selected).toHaveCount(1);
-  await expect.poll(() => selected.evaluate((element) => {
-    const listbox = element.closest('[role="listbox"]');
-    if (!listbox) return false;
-    const optionBounds = element.getBoundingClientRect();
-    const listBounds = listbox.getBoundingClientRect();
-    return optionBounds.top >= listBounds.top && optionBounds.bottom <= listBounds.bottom;
-  })).toBe(true);
-
-  await close.click();
-  await expect(trigger).toBeFocused();
 });
 
 test("follows the system initially and persists an explicit theme choice", async ({ page }) => {

@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { BlogCover, type BlogCoverData } from "./BlogCover";
+import { brandIcon } from "./assets";
 import styles from "./BlogCard.module.css";
 
 export interface BlogCardData {
@@ -12,8 +12,6 @@ export interface BlogCardData {
   dateLabel: string;
   readingTimeLabel: string;
   authorLabel: string;
-  cover?: BlogCoverData;
-  coverAlt?: string;
 }
 
 export function BlogCard({
@@ -28,26 +26,25 @@ export function BlogCard({
   return (
     <article className={styles.article} data-feature={feature || undefined} data-landing={landing}>
       <Link className={styles.link} href={post.href}>
-        <BlogCover
-          cover={post.cover}
-          alt={post.coverAlt}
-          className={styles.cover}
-        />
+        <div className={styles.cover}>
+          {landing ? null : <img src={brandIcon} alt="" width={feature ? 64 : 48} height={feature ? 64 : 48} />}
+          <span>{post.categoryLabel}</span>
+        </div>
         <div className={styles.content}>
           <h2>{post.title}</h2>
           {landing ? (
             <p className={styles.landingDate}>{post.dateLabel}</p>
           ) : (
-            <>
-              <p className={styles.description}>{post.description}</p>
-              <div className={styles.byline}>
-                <span>{post.dateLabel}</span>
-                <span aria-hidden="true">·</span>
-                <span>{post.readingTimeLabel}</span>
-              </div>
-            </>
+            <div className={styles.byline}>
+              <img src={brandIcon} alt="" width={20} height={20} />
+              <span>{post.authorLabel}</span>
+              <span aria-hidden="true">·</span>
+              <span>{post.dateLabel}</span>
+              <span aria-hidden="true">·</span>
+              <span>{post.readingTimeLabel}</span>
+            </div>
           )}
-          {landing ? <p className={styles.description}>{post.description}</p> : null}
+          <p className={styles.description}>{post.description}</p>
         </div>
       </Link>
     </article>

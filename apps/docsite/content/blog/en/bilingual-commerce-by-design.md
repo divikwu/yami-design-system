@@ -8,7 +8,6 @@ authors: ["YAMI Design System Team"]
 tags: ["Bilingual", "Content", "Typography", "Accessibility"]
 relatedDocs: ["choose-starting-point", "browse-components", "review-checklist"]
 coverAlt: "YAMI Design System mark with the Design category"
-draft: true
 ---
 
 Asian food commerce naturally combines product names, brands, specifications, numerals, and cultural context from multiple languages. Replacing interface strings shortly before release usually leaves lost routes, overflow, unequal actions, and mismatched screen-reader names.

@@ -100,7 +100,7 @@ export default async function LocaleLayout({
         <Script id="yami-theme" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: themeScript }} />
         <SiteHeader
           locale={locale}
-          copy={{ nav: copy.nav, utilities: copy.utilities, docs: copy.docs }}
+          copy={{ nav: copy.nav, utilities: copy.utilities, home: copy.home, docs: copy.docs }}
           searchEntries={searchEntries}
           docNavigation={docNavigation}
         />

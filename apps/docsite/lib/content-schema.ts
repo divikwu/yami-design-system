@@ -27,11 +27,6 @@ export const blogFrontmatterSchema = z.object({
   authors: z.array(z.string().min(1)).min(1),
   tags: z.array(z.string().min(1)).max(4),
   relatedDocs: z.array(slug).optional().default([]),
-  cover: z.object({
-    src: z.string().startsWith("/"),
-    eyebrow: z.string().min(1).optional(),
-    title: z.string().min(1).optional(),
-  }).optional(),
   coverAlt: z.string().optional(),
   draft: z.boolean().optional().default(false),
 });

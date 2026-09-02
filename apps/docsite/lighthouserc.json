@@ -7,7 +7,7 @@
       "url": [
         "http://127.0.0.1:3400/zh",
         "http://127.0.0.1:3400/en/docs/getting-started",
-        "http://127.0.0.1:3400/zh/blog/build-test-document-components-with-storybook"
+        "http://127.0.0.1:3400/zh/blog/introducing-yami-design-system"
       ],
       "numberOfRuns": 1,
       "settings": {

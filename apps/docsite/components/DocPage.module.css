@@ -10,11 +10,6 @@
   display: none;
 }
 
-.contentShell {
-  min-width: 0;
-  width: 100%;
-}
-
 .article {
   min-width: 0;
   width: 100%;
@@ -33,7 +28,7 @@
 
 .articleHeader {
   display: grid;
-  padding-bottom: var(--space-200);
+  padding-bottom: var(--space-300);
   gap: var(--space-150);
 }
 
@@ -250,7 +245,7 @@
 }
 
 /* The reference introduces its left rail independently of the right TOC. */
-@media (min-width: 1024px) {
+@media (min-width: 769px) {
   .layout {
     width: 100%;
     padding: var(--space-150) 0 var(--space-1000);
@@ -268,19 +263,18 @@
     background: var(--surface-primary);
   }
 
-  .contentShell {
-    grid-column: 2;
-  }
-
   .article {
+    grid-column: 2;
     box-sizing: border-box;
     margin-top: calc(var(--space-600) + var(--space-150));
     padding-inline: var(--space-300);
   }
 
   .toc {
+    grid-column: 4;
     box-sizing: border-box;
     margin-top: calc(var(--space-400) + var(--space-050));
+    padding-inline-start: var(--space-400);
   }
 
   .sidebar > nav {
@@ -298,26 +292,19 @@
 
 }
 
-@media (min-width: 1280px) {
+@media (min-width: 1025px) {
   .layout {
+    /* Center the capped article and TOC together, after the fixed sidebar. */
     grid-template-columns:
       calc(var(--space-1000) * 3 + var(--space-250))
+      minmax(0, 1fr)
+      minmax(0, calc(var(--space-1000) * 10))
+      calc(var(--space-1000) * 3 + var(--space-300))
       minmax(0, 1fr);
   }
 
-  .contentShell {
-    display: flex;
-    width: 100%;
-    max-width: calc(var(--space-1000) * 13 + var(--space-300));
-    margin-inline: auto;
-    align-items: flex-start;
-    gap: var(--space-400);
-  }
-
   .article {
-    width: auto;
-    margin-inline: 0;
-    flex: 1 1 auto;
+    grid-column: 3;
     margin-top: calc(var(--space-400) + var(--space-050));
   }
   .breadcrumbs { display: flex; }

@@ -11,8 +11,7 @@
     "test": "vitest run",
     "test:e2e": "playwright test -c playwright.config.ts",
     "test:lighthouse": "lhci autorun --config=lighthouserc.json",
-    "check:content": "node scripts/check-content.mjs",
-    "generate:blog-covers": "node scripts/generate-blog-covers.mjs"
+    "check:content": "node scripts/check-content.mjs"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",

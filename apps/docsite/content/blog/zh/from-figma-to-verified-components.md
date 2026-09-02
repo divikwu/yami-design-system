@@ -8,7 +8,6 @@ authors: ["YAMI Design System Team"]
 tags: ["Figma", "Components", "Storybook", "Validation"]
 relatedDocs: ["choose-starting-point", "create-components", "contribute-upstream"]
 coverAlt: "YAMI Design System 标识与 Engineering 分类"
-draft: true
 ---
 
 从 Figma 交付一个组件，最容易被误解为“把视觉还原成代码”。视觉一致当然重要，但生产组件还要回答属性如何组合、状态如何表达、键盘如何操作、主题如何切换，以及调用方如何知道它已经可以使用。

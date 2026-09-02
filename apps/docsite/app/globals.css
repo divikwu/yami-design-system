@@ -23,7 +23,7 @@ html:has([data-doc-page]) {
   scroll-padding-top: var(--docsite-anchor-offset);
 }
 
-@media (min-width: 1280px) {
+@media (min-width: 1025px) {
   html:has([data-doc-page]) {
     --docsite-anchor-offset: calc(var(--docsite-header-height-desktop) + var(--space-200));
   }

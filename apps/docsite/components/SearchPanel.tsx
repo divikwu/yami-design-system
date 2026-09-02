@@ -1,8 +1,6 @@
 "use client";
 
-import { Cancel01Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Button, Sheet } from "@yami/design-system";
+import { Sheet } from "@yami/design-system";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
@@ -38,7 +36,6 @@ function resultHref(result: SearchResult): string {
 export function SearchPanel({ open, onClose, entries, copy }: SearchPanelProps) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
-  const optionRefs = useRef<Array<HTMLAnchorElement | null>>([]);
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const searchResults = useMemo(() => rankSearchEntries(entries, query), [entries, query]);
@@ -60,10 +57,6 @@ export function SearchPanel({ open, onClose, entries, copy }: SearchPanelProps) 
     const frame = window.requestAnimationFrame(() => inputRef.current?.focus({ preventScroll: true }));
     return () => window.cancelAnimationFrame(frame);
   }, [open]);
-  useEffect(() => {
-    if (!open) return;
-    optionRefs.current[activeIndex]?.scrollIntoView({ block: "nearest" });
-  }, [activeIndex, open]);
 
   const grouped = useMemo(() => {
     const groups = new Map<SearchEntryType, Array<SearchResult & { index: number }>>();
@@ -133,16 +126,6 @@ export function SearchPanel({ open, onClose, entries, copy }: SearchPanelProps) 
           aria-activedescendant={results[activeIndex] ? `search-result-${activeIndex}` : undefined}
         />
         <p id="docsite-search-hint" className={styles.visuallyHidden}>{copy.hint}</p>
-        <Button
-          className={styles.close}
-          variant="tertiary"
-          form="icon"
-          size="sm"
-          aria-label={copy.close}
-          onClick={onClose}
-        >
-          <HugeiconsIcon icon={Cancel01Icon} size={20} strokeWidth={1.5} aria-hidden="true" />
-        </Button>
       </div>
 
       <div
@@ -163,9 +146,6 @@ export function SearchPanel({ open, onClose, entries, copy }: SearchPanelProps) 
                   key={result.id}
                   href={resultHref(result)}
                   className={styles.result}
-                  ref={(element) => {
-                    optionRefs.current[result.index] = element;
-                  }}
                   role="option"
                   aria-selected={activeIndex === result.index}
                   data-active={activeIndex === result.index || undefined}

@@ -44,7 +44,7 @@ test("mobile menu uses a Sheet, has three primary links, and restores focus", as
   await expect(trigger).toBeFocused();
 
   await trigger.click();
-  await dialog.getByRole("link", { name: "文章" }).click();
+  await dialog.getByRole("link", { name: "Blog" }).click();
   await expect(page).toHaveURL(/\/zh\/blog$/);
 });
 

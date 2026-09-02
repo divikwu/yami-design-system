@@ -8,14 +8,11 @@ authors: ["YAMI Design System Team"]
 tags: ["Design System", "Token", "Storybook", "Workflow"]
 relatedDocs: ["getting-started", "collaboration", "contribute-upstream"]
 coverAlt: "YAMI Design System mark with the Update category"
-draft: true
 ---
 
-This article explains how YAMI Design System connects brand rules, component implementation, and verification evidence into an executable delivery chain. By the end, you will know where rules live, how applications consume the system, and how a change is verified.
+YAMI Design System supports Asian food commerce experiences and the designers, developers, and agent-assisted collaborators who build them. Its purpose is not to provide a loose set of visual materials. It keeps brand rules, code implementation, and delivery evidence aligned.
 
-The first Docsite release provides the explanatory entry point. Storybook continues to own component APIs and real interactions, while Catalog, Registry, and CI connect component status, dependencies, and delivery evidence.
-
-The working path is: `DESIGN.md` defines rules, DTCG JSON generates tokens, public components consume semantic tokens, Storybook verifies states, and CI checks generated drift, boundaries, types, and tests.
+The first Docsite release adds an explanatory layer: why the system works this way, how applications should consume it, and what verification completes a change. Storybook remains the source for component APIs and interactive examples.
 
 ## From a static guide to executable contracts
 

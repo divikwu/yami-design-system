@@ -24,8 +24,8 @@ export function BlogIndex({
   const filters: Filter[] = ["all", "update", "design", "engineering"];
 
   return (
-    <Tabs className={styles.tabs} value={filter} onValueChange={(value) => setFilter(value as Filter)}>
-      <TabsList className={styles.tabsList} variant="tertiary" aria-label={labels.all}>
+    <Tabs value={filter} onValueChange={(value) => setFilter(value as Filter)}>
+      <TabsList variant="tertiary" aria-label={labels.all}>
         {filters.map((value) => (
           <TabsTrigger key={value} value={value}>
             {value === "all" ? labels.all : labels.categories[value]}

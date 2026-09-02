@@ -10,18 +10,12 @@ for (const locale of ["zh", "en"]) {
       await expect(header).toBeVisible();
       await page.evaluate(() => document.fonts.ready);
 
-      const inner = header.locator(":scope > div");
-      await expect(inner).toHaveCSS("padding-left", "8px");
-      const tools = header.getByRole("button", { name: locale === "zh" ? "搜索" : "Search", exact: true }).locator("..");
-      await expect(tools).toHaveCSS("gap", "2px");
-
       const compact = width <= 768;
       const menu = header.getByRole("button", { name: locale === "zh" ? "菜单" : "Menu", exact: true });
       const navigation = header.getByRole("navigation");
       const logo = header.locator("img:visible");
       await expect(logo).toHaveCount(1);
-      await expect(logo).toHaveCSS("height", "24px");
-      await expect(header.getByText("YDS", { exact: true })).toBeVisible();
+      await expect(logo).toHaveCSS("height", compact ? "24px" : "32px");
       if (compact) {
         await expect(menu).toBeVisible();
         await expect(menu).toHaveText("");
@@ -32,16 +26,14 @@ for (const locale of ["zh", "en"]) {
         await expect(navigation).toBeVisible();
       }
 
-      const search = header.getByRole("button", { name: locale === "zh" ? "搜索" : "Search", exact: true });
-      const language = header.getByRole("link", { name: locale === "zh" ? "English" : "中文", exact: true });
-      const theme = header.getByTestId("theme-toggle");
-      const github = header.getByRole("link", { name: "GitHub", exact: true });
-      for (const secondaryControl of [language, theme, github]) {
-        if (compact) await expect(secondaryControl).toBeHidden();
-        else await expect(secondaryControl).toBeVisible();
-      }
-
-      for (const control of [search, ...(compact ? [menu] : [language, theme, github])]) {
+      for (const control of [
+        header.getByRole("button", { name: locale === "zh" ? "搜索" : "Search", exact: true }),
+        header.getByRole("link", { name: locale === "zh" ? "English" : "中文", exact: true }),
+        header.getByTestId("theme-toggle"),
+        header.getByRole("link", { name: "GitHub", exact: true }),
+        header.getByRole("link", { name: locale === "zh" ? "开始构建" : "Start Building", exact: true }),
+        ...(compact ? [menu] : []),
+      ]) {
         await expect(control).toBeVisible();
         const box = await control.boundingBox();
         expect(box!.height).toBe(32);
@@ -59,7 +51,6 @@ for (const locale of ["zh", "en"]) {
         expect(hitArea.width).toBeGreaterThanOrEqual(44);
         expect(hitArea.height).toBeGreaterThanOrEqual(44);
       }
-      await expect(header.getByRole("link", { name: locale === "zh" ? "开始构建" : "Start Building", exact: true })).toHaveCount(0);
 
       const brandBox = await header.getByRole("link", { name: "YAMI Design System" }).boundingBox();
       const toolsBox = await header.getByRole("button", { name: locale === "zh" ? "搜索" : "Search", exact: true }).boundingBox();
@@ -77,25 +68,20 @@ for (const locale of ["zh", "en"]) {
   }
 }
 
-test("compact header keeps theme and language tools in the navigation drawer", async ({ page }) => {
+test("compact header theme and language tools work without opening navigation", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 850 });
   await page.emulateMedia({ colorScheme: "light", reducedMotion: "reduce" });
   await page.goto("/zh/docs/browse-components#design-standards");
   const header = page.getByTestId("site-header");
-  await expect(header.getByRole("button", { name: "主题: 深色", exact: true })).toBeHidden();
-  await expect(header.getByRole("link", { name: "English", exact: true })).toBeHidden();
-  await header.getByRole("button", { name: "菜单", exact: true }).click();
-  let dialog = page.getByRole("dialog", { name: "菜单", exact: true });
-  await dialog.getByRole("button", { name: "主题: 深色", exact: true }).click();
+  await header.getByRole("button", { name: "主题: 深色", exact: true }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await expect(header.locator("img:visible")).toHaveCount(1);
-  await dialog.getByRole("link", { name: "English", exact: true }).click();
+  await header.getByRole("link", { name: "English", exact: true }).click();
   await expect(page).toHaveURL(/\/en\/docs\/browse-components#design-standards$/);
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await expect(header.getByRole("button", { name: "Menu", exact: true })).toHaveAttribute("aria-expanded", "false");
   await header.getByRole("button", { name: "Menu", exact: true }).click();
-  dialog = page.getByRole("dialog", { name: "Menu", exact: true });
-  await expect(dialog).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Menu", exact: true })).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(header.getByRole("button", { name: "Menu", exact: true })).toBeFocused();
 });
