@@ -2185,7 +2185,7 @@
       "sourceSha256": "42a0b5de6fd5a80feaabd2830a24ed37d84985ce87db7bd6d7bfea614725ac24",
       "disposition": "migrated",
       "destination": "packages/design-system/components/HeroBanner/HeroBanner.stories.tsx",
-      "destinationSha256": "76f11e2255acd2e0cdcf2d3a264ea27325715a8b9e58297d9fdfc86aa521a7fa"
+      "destinationSha256": "8001c2ab4e0f19d41a59f7b492eec85d5d5c9e7a781bf37bba0e69ff32f35eeb"
     },
     {
       "source": "components/HeroBanner/HeroBanner.tsx",
