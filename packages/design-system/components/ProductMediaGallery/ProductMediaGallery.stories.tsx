@@ -221,13 +221,13 @@ export const Showcase: Story = {
     await userEvent.keyboard("{Escape}");
     await waitFor(() => expect(canvas.queryByRole("dialog")).toBeNull());
     await expect(trigger).toHaveFocus();
-    await expect(root.style.overflow).toBe(originalOverflow);
+    await waitFor(() => expect(root.style.overflow).toBe(originalOverflow));
     await expect(image()).toHaveAttribute("alt", images[3].alt);
     await userEvent.keyboard("{Enter}");
     await userEvent.click(canvas.getByRole("button", { name: "Close image preview" }));
     await waitFor(() => expect(canvas.queryByRole("dialog")).toBeNull());
     await expect(trigger).toHaveFocus();
-    await expect(root.style.overflow).toBe(originalOverflow);
+    await waitFor(() => expect(root.style.overflow).toBe(originalOverflow));
     await userEvent.click(thumbnails[0]);
     gallery.focus();
   },
