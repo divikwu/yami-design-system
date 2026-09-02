@@ -704,9 +704,10 @@ export const AutoAdvanceLoop: Story = {
     }
 
     // Hovering holds it still — a card must not slide out from under a reader.
-    // The tolerance is half a card rather than a pixel: the wrap above is
-    // still settling here, and what matters is that no advance happens.
+    // Let a smooth scroll that started before pointerenter finish before
+    // measuring the paused interval; pointerenter prevents the next tick.
     rail.dispatchEvent(new PointerEvent("pointerenter", { bubbles: false }));
+    await settle(500);
     rail.scrollTo({ left: 0, behavior: "instant" });
     await settle(700);
     if (rail.scrollLeft > itemStep * 0.5) {

@@ -76,7 +76,7 @@ test("drawer enters and exits from the right before releasing its modal lock", a
   await expect(dialog).toHaveAttribute("data-state", "closing");
   await expect(page.locator("html")).toHaveCSS("overflow", "hidden");
   const frames = await panel.evaluate(e => (e.getAnimations()[0].effect as KeyframeEffect).getKeyframes());
-  expect(frames[0].transform).toBe("translateX(0px)");
+  expect(["translateX(0px)", "translate(0px)"]).toContain(frames[0].transform);
   expect(frames.at(-1)!.transform).toBe("translateX(100%)");
   await expect(dialog).not.toBeAttached();
   await expect(trigger).toBeFocused();
