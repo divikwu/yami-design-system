@@ -33,15 +33,14 @@ and import contract.
 - Canvas Workbench: https://yami-design-system.vercel.app/workbench
 - Canvas Preview: https://yami-design-system.vercel.app/preview?locale=en
 - Storybook: https://yami-design-system-storybook.vercel.app
+- Docsite: https://yami-design-system-docsite.vercel.app/zh
 
-Docsite is configured as a separate manual Vercel target at
-`apps/docsite`. This repository change does not create or deploy that project;
-its public URL must be recorded only after an authorized Preview and Production
-promotion.
+Docsite is a separate Vercel target at `apps/docsite`. Pull requests create
+Preview deployments and updates to `main` create Production deployments.
 
-The source repository and the manually promoted Vercel production deployments
-are public. Automatic Git deployments remain disabled, and no Vercel project
-receives an AI secret. See
+The source repository and Vercel Production deployments are public. Canvas and
+Storybook keep automatic Git deployments disabled, while Docsite enables them.
+No Vercel project receives an AI secret. See
 [`ADR 003`](docs/adr/003-public-production-and-manual-deployments.md) for the
 current release policy.
 
