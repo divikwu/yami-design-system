@@ -326,6 +326,8 @@ export const registeredTokenReferenceTypes = {
   "heading-xl.line-height": "dimension",
   "heading-xs.font-size": "dimension",
   "heading-xs.line-height": "dimension",
+  "home-hero-desktop.font-size": "dimension",
+  "home-hero-desktop.line-height": "dimension",
   "layout.page-margin-card": "dimension",
   "layout.page-margin-default": "dimension",
   "letter-spacing.normal": "dimension",

@@ -6,5 +6,17 @@
       "$value": "18px",
       "$description": "PC 端 56px 高度的文字型大按钮字号，适用于 Full 和 Inline，不随 desktop-lg 断点变化。"
     }
+  },
+  "home-hero-desktop": {
+    "font-size": {
+      "$type": "dimension",
+      "$value": "56px",
+      "$description": "Docsite 首页 PC Hero 主标题字号，仅供首页首屏标题使用。"
+    },
+    "line-height": {
+      "$type": "dimension",
+      "$value": "64px",
+      "$description": "Docsite 首页 PC Hero 主标题行高，仅供首页首屏标题使用。"
+    }
   }
 }

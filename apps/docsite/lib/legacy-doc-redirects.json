@@ -1,0 +1,14 @@
+{
+  "overview": "/docs/getting-started#choose-your-path",
+  "brand-principles": "/docs/browse-components#design-standards",
+  "color": "https://yami-design-system-storybook.vercel.app/?path=/story/yami-foundations-color--overview",
+  "typography": "https://yami-design-system-storybook.vercel.app/?path=/story/yami-foundations-typography--overview",
+  "spacing-layout": "https://yami-design-system-storybook.vercel.app/?path=/story/yami-foundations-layout--overview",
+  "radius-border-surfaces": "https://yami-design-system-storybook.vercel.app/?path=/story/yami-foundations-rounded--overview",
+  "light-dark-mode": "/docs/browse-components#themes-and-viewports",
+  "accessibility": "/docs/review-checklist#use-the-shared-acceptance-checklist",
+  "motion": "/docs/review-checklist#use-the-shared-acceptance-checklist",
+  "bilingual-content": "/docs/edit-pages",
+  "working-with-ai": "/docs/first-page",
+  "resources-contribution": "/docs/contribute-upstream"
+}
