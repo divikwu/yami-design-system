@@ -277,7 +277,7 @@ describe("Codex-native generated Topic visuals", () => {
     expect(requests[1]).not.toHaveProperty("referenceImageUrl");
   });
 
-  it("allows environmental vessels in brand banners without semantic rejection", () => {
+  it("uses optional same-brand product references without forcing packaging or a logo", async () => {
     const run = visualRun();
     const task = {
       ...run.context.tasks[0]!,
@@ -288,17 +288,87 @@ describe("Codex-native generated Topic visuals", () => {
       targetAspectRatio: "111:40",
       minimumWidth: 1110,
       minimumHeight: 400,
-      products: [],
+      brand: "Matcha House",
+      products: [
+        ...run.context.tasks[0]!.products.map((product) => ({
+          ...product,
+          brand: product.id === "product-3" ? "Other Brand" : "Matcha House",
+        })),
+        {
+          id: "product-5",
+          title: "Ceremonial Matcha",
+          brand: "Matcha House",
+          imageUrl: "https://cdn.yamibuy.net/item/product-5.webp",
+          categoryL3Name: "Matcha",
+        },
+      ],
+      sceneBrief: {
+        ...run.context.tasks[0]!.sceneBrief,
+        module: {
+          shoppingGoal: "Introduce the Matcha House assortment",
+          reason: "The assigned products share one catalog-backed brand.",
+        },
+        requirements: [
+          "Use up to three available product images assigned to the current brand as optional visual references.",
+          "Product packaging and logos are permitted but optional.",
+          "Do not invent or alter unsupported brand assets.",
+        ],
+      },
+    };
+    const brandRun = {
+      ...run,
+      context: {
+        ...run.context,
+        tasks: [task],
+      },
     };
     const prompt = generatedImageTaskPrompt(
-      run.context as unknown as GeneratedVisualContext,
+      brandRun.context as unknown as GeneratedVisualContext,
       task as unknown as GeneratedVisualTask,
       "generated.png",
     );
 
+    expect(prompt).toContain("Brand binding: Matcha House");
+    expect(prompt).toContain("attached assigned product images are optional visual references");
+    expect(prompt).toContain("Packaging and logos are permitted but optional");
+    expect(prompt).toContain("do not require either to appear");
+    expect(prompt).toContain("visible brand name and logo, key label text");
+    expect(prompt).toContain("A deliberate packshot or small product grouping is valid");
     expect(prompt).toContain("Environmental vessels and category-relevant containers may appear");
-    expect(prompt).toContain("Do not perform semantic visual rejection");
+    expect(prompt).toContain("Do not perform semantic visual rejection for the BrandProductRail banner");
+    expect(prompt).toContain("unsupported or altered logo");
+    expect(prompt).not.toContain("generated packaging, labels, logos, brand marks");
     expect(prompt).not.toMatch(/\b(?:bottles|jars|tubes|pumps|droppers|sachets|boxes)\b/i);
+
+    const source = await sharp({
+      create: {
+        width: 1110,
+        height: 400,
+        channels: 3,
+        background: { r: 211, g: 220, b: 202 },
+      },
+    }).png().toBuffer();
+    const requests: Array<{
+      referenceImageUrl?: string;
+      referenceImageUrls?: string[];
+    }> = [];
+    const response = await compileGeneratedImageVisualResponse(brandRun, async (request) => {
+      requests.push(request);
+      return source;
+    });
+
+    expect(requests[0]).toMatchObject({
+      referenceImageUrls: [
+        "https://cdn.yamibuy.net/item/product-1.webp",
+        "https://cdn.yamibuy.net/item/product-4.webp",
+        "https://cdn.yamibuy.net/item/product-5.webp",
+      ],
+    });
+    expect(requests[0]).not.toHaveProperty("referenceImageUrl");
+    expect(response.proposal.assets[0]?.direction).toMatchObject({
+      referenceProductIds: ["product-1", "product-3", "product-4", "product-5"],
+      attachedReferenceProductIds: ["product-1", "product-4", "product-5"],
+    });
   });
 
   it("uses current-scene products as flexible references for a responsive editorial scene", async () => {

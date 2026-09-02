@@ -63,6 +63,17 @@ colors, silhouette, closure, and material as faithfully as the image model allow
 canvases, or studio props as part of a product. When the output file exists, Hero bypasses semantic
 visual rejection and proceeds directly to deterministic byte, MIME, ratio, dimension, and digest
 validation. No placement recovery, source-layer composition, or Hero visual fallback runs.
+A BrandProductRail task attaches up to three available catalog images assigned to its exact brand
+binding as optional visual references. Packaging and logos are permitted but neither is required to
+appear. A product-led banner, a logo-led scene, or an atmosphere-led banner without packaging or a
+logo is valid when it follows the module brief. Any visible referenced package must preserve its brand
+name, logo, label hierarchy, layout, colors, silhouette, closure, and material as faithfully as the
+image model allows. A logo or wordmark may appear clearly only when an attached reference visibly
+supports it; the Agent must not invent, approximate, alter, translate, or borrow a brand asset. When no
+referenced brand asset appears, the scene remains category-relevant without claiming a distinct visual
+identity inferred from the brand name or product mix. Packaging use, logo use, reference coverage,
+brand-asset fidelity, and wide-crop composition remain review signals rather than deterministic
+rejection gates.
 A Shortcut may use a source-backed lifestyle fallback only after its bounded technical retries fail;
 semantic or visual differences never trigger fallback. This task-level fallback must not discard other
 completed assets or block the page.
@@ -79,7 +90,7 @@ in those fields are normalized rather than rejected.
 | `ThemeHero` | `hero-image` | one visible Hero | `16:9` | 1200×675 | required | required |
 | `ShortcutRail` | `shortcut-image` | one source-backed product lifestyle image per assigned shortcut | `1:1` | 512×512 | `null` (decorative) | optional |
 | `ThemeProductList` | `scene-image` | one per PagePlan scene | `1:1` | 1024×1024 | required | required |
-| `BrandProductRail` | `brand-banner` | one per unique assigned brand | `111:40` | 888×320 | required | optional |
+| `BrandProductRail` | `brand-banner` | one per unique assigned brand, with up to three optional same-brand product references | `111:40` | 888×320 | required | optional |
 
 `ProductList` and `ReviewList` do not declare generated image tasks in this contract. Product cards
 continue to use catalog image identities.

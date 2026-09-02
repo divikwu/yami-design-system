@@ -582,8 +582,18 @@ describe("TopicPageVisual", () => {
         "Keep the scene and activity primary, and do not introduce products assigned to another scene.",
       ]),
     });
-    expect(run.context.tasks[3]!.sceneBrief.requirements).toContain(
-      "Environmental vessels and category-relevant containers may appear when they support the scene.",
+    expect(run.context.tasks[3]!.sceneBrief.requirements).toEqual(
+      expect.arrayContaining([
+        "Treat each non-empty brand binding as an independent wide brand-expression task; never borrow products or brand identity from another brand.",
+        "Use up to three available product images assigned to the current brand as optional visual references.",
+        "Product packaging and logos are permitted but optional; do not require either unless the task explicitly makes it required.",
+        "For every referenced product or package that appears, reproduce the visible brand name and logo, key label text, typography hierarchy, layout, primary colors, silhouette, closure, and material as faithfully as the image model allows.",
+        "Do not force packaging or a logo into the image merely because a reference is available; their absence is not a defect unless the task makes them required.",
+        "Keep any visible packaging or logo recognizable in the wide crop and clear of the component's lower title overlay.",
+      ]),
+    );
+    expect(run.context.tasks[3]!.sceneBrief.requirements).not.toContain(
+      "Do not generate or alter packaging, labels, logos, or product claims.",
     );
     expect(run.context.tasks[3]!.sceneBrief.requirements.join(" ")).not.toMatch(
       /do not depict bottles|exclude bottles/i,

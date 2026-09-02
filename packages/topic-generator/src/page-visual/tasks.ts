@@ -85,6 +85,21 @@ const SCENE_IMAGE_REQUIREMENTS = [
   "Do not bake text, a gradient, a text panel, or a scrim into the image.",
 ] as const;
 
+const BRAND_BANNER_REQUIREMENTS = [
+  "Treat each non-empty brand binding as an independent wide brand-expression task; never borrow products or brand identity from another brand.",
+  "Use up to three available product images assigned to the current brand as optional visual references.",
+  "Product packaging and logos are permitted but optional; do not require either unless the task explicitly makes it required.",
+  "Reference availability does not require reference visibility; product-led, logo-led, and atmosphere-led banners are all valid when supported by the brief.",
+  "For every referenced product or package that appears, reproduce the visible brand name and logo, key label text, typography hierarchy, layout, primary colors, silhouette, closure, and material as faithfully as the image model allows.",
+  "Do not invent, redraw, restyle, merge, translate, complete, or substitute a logo, wordmark, package design, label, brand mark, or marketing claim.",
+  "Do not force packaging or a logo into the image merely because a reference is available; their absence is not a defect unless the task makes them required.",
+  "When no referenced brand asset appears, keep the scene category-relevant and do not infer a distinct visual identity from the brand name or product mix alone.",
+  "Compose any visible product, packaging, supported logo, environment, and light as one coherent wide banner.",
+  "Keep any visible packaging or logo recognizable in the wide crop and clear of the component's lower title overlay.",
+  "Avoid an unrequested grid, montage, shelf lineup, repeated logo pattern, or arbitrary product collection; a deliberate packshot or small product grouping is valid when it serves the module goal.",
+  "Environmental vessels and category-relevant containers may appear when they support the scene.",
+] as const;
+
 const PRODUCT_FIRST_SHORTCUT_REQUIREMENTS = [
   "Use the assigned representative product image as a visual reference for a single-product lifestyle scene.",
   "Favor a clear product subject near the center with enough margin for a circular crop.",
@@ -111,7 +126,7 @@ const KIND_REQUIREMENT: Record<TopicPageVisualAssetKind, string> = {
   "hero-image": "Establish the page theme through a broad lifestyle setting with a clear focal area.",
   "shortcut-image": "Represent the assigned category through a compact contextual micro-scene.",
   "scene-image": "Show the activity, environment, and props implied by the PagePlan scene and accepted copy.",
-  "brand-banner": "Express the module theme and brand atmosphere without turning the banner into a product lineup.",
+  "brand-banner": "Express the exact brand binding through an evidence-supported wide banner; packaging and a logo are optional.",
 };
 
 function contentTexts(
@@ -201,6 +216,8 @@ function sceneBrief(options: {
             ? HERO_GENERATION_REQUIREMENTS
             : options.kind === "scene-image"
             ? SCENE_IMAGE_REQUIREMENTS
+            : options.kind === "brand-banner"
+            ? BRAND_BANNER_REQUIREMENTS
             : SCENE_FIRST_REQUIREMENTS),
           KIND_REQUIREMENT[options.kind],
         ],

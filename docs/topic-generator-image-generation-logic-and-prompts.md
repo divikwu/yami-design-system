@@ -1,8 +1,8 @@
 # Topic Generator 图片生成逻辑与提示词 · 完整版
 
-核对日期：2026-08-27。源码基线：`4acc42baae407b46ac5d3cce04710c13c5f234f2`。
+核对日期：2026-09-02。源码基线：本文所在提交。
 
-本文说明当前本地版本的实际实现，不是未来方案。范围覆盖图片任务派生、提示词、商品参考图、原生生成、重试、兜底、缓存、存储和质量检查。本次只整理文档与导出提示词，没有发起新的图片生成。
+本文说明当前本地版本的实际实现，不是未来方案。范围覆盖图片任务派生、提示词、商品参考图、原生生成、重试、兜底、缓存、存储和质量检查。本次同步了 Brand 任务实现、Visual Skill、合同、测试与导出提示词，没有发起新的图片生成。
 
 ## 1. 先看结论
 
@@ -11,7 +11,7 @@
 - **Hero**：用已分配商品图作参考，一次生成完整生活场景；商品与环境一起重画，不抠图、不锁定商品图层、不输出 placementPlan。
 - **分类入口 Shortcut**：以一个代表商品为主角生成生活场景，优先居中、完整、适合圆形裁切。
 - **场景图 Scene**：围绕当前购物场景和文案生成；最多附三张当前场景的商品图，商品可以不出现。
-- **品牌横幅 Brand**：生成宽幅生活氛围，当前不附商品图，也不制作品牌 Logo 或品牌包装设计。
+- **品牌横幅 Brand**：最多附三张同品牌商品图作为可选参考；包装和有参考证据的 Logo 可以出现，但都不是必选项。
 - **质量政策**：包装、构图、商品数量和参考图覆盖率属于生成指导及审阅信号，不是自动拒绝门槛。真实图片字节、身份、绑定关系、格式和尺寸等属于硬校验。
 
 “默认用于正式场景图”不等于“图片已获人工批准”，也不保证包装文字像素级准确。
@@ -64,7 +64,7 @@ flowchart TD
 | ThemeHero / `hero-image` | 每个可见 Hero 一张；`asset-<moduleId>` | 模块分配的前 5 个商品中所有有 URL 的图，最多 5 张 | 1600×900，16:9 | 1200×675 |
 | ShortcutRail / `shortcut-image` | 每个已声明的 shortcut assignment 一张；`asset-<moduleId>-<index+1>` | 该 assignment 的单一代表商品，最多 1 张 | 1024×1024，1:1 | 512×512 |
 | ThemeProductList / `scene-image` | 每个 PagePlan scene 一张；`asset-<moduleId>-<sceneId>` | 只取当前 scene assignments；从有 URL 的商品里取前 3 张 | 1024×1024，1:1 | 1024×1024 |
-| BrandProductRail / `brand-banner` | 按非空 brand 字符串分组，每品牌一张；`asset-<moduleId>-<index+1>` | 当前不附商品图 | 1776×640，111:40 | 888×320 |
+| BrandProductRail / `brand-banner` | 按非空 brand 字符串分组，每品牌一张；`asset-<moduleId>-<index+1>` | 当前品牌中有 URL 的商品图，最多 3 张；均为可选参考 | 1776×640，111:40 | 888×320 |
 
 品牌分组按去除首尾空格后的字符串，保持首次出现顺序；这里不做品牌别名合并。
 
@@ -72,7 +72,7 @@ flowchart TD
 
 ### 3.1 缺图与下载失败不是同一情况
 
-缺少 `imageUrl` 不会阻止 Hero、Shortcut 或 Scene 进入原生生成：可以只依赖主题、分类和已确认文案。URL 存在但下载失败则属于技术错误，进入任务重试；当前没有自动删掉这个失败附件再继续的分支。
+缺少 `imageUrl` 不会阻止 Hero、Shortcut、Scene 或 Brand 进入原生生成：可以只依赖主题、分类、品牌绑定和已确认文案。URL 存在但下载失败则属于技术错误，进入任务重试；当前没有自动删掉这个失败附件再继续的分支。
 
 商品参考图仅允许无凭据的 `https://cdn.yamibuy.net` 地址，重定向的每个目标仍要通过相同检查。默认最多 2 次重定向、单张来源图片 8 MiB、下载超时 15 秒。附件先自动旋转并转换为 PNG；正式生成不抠图、不擦除包装。
 
@@ -291,43 +291,57 @@ isolated product packshot, product grid, product montage, shelf lineup, unassign
 
 完整的参考附件说明、接受规则与返回协议见 [scene.template.txt](topic-generator-image-prompts/scene.template.txt)。
 
-### 5.4 Brand：品牌模块的宽幅氛围图
+### 5.4 Brand：品牌绑定的可选包装与 Logo 横幅
 
-目的：表达模块主题与生活方式氛围，避免商品陈列、虚构 Logo 或可读营销字。当前不附商品图片。
+目的：为每个非空 brand 独立生成宽幅横幅。最多附三张当前品牌的商品图作为可选视觉参考；包装和 Logo 可以出现，但不强制出现。商品主导、Logo 主导和纯氛围三种方向都有效，只要符合模块目标和已有证据。
 
-注意，这不是独立的品牌视觉识别生成器：任务虽然按 brand 分组，但现有提示词没有单独注入该 brand 名称，也没有品牌手册或 Logo 附件。因此不能保证不同品牌的横幅会得到不同品牌风格。
+当前任务合同只有已分配商品的图片 URL，没有独立 Logo 文件字段。因此 Logo 或 wordmark 只能在附件中有可见依据时使用；不能根据品牌名、商品组合或其他品牌素材猜测、补全或重画品牌资产。不使用包装或 Logo 也不是缺陷，此时画面应保持品类相关且不声称独特品牌视觉身份。
 
 **direction（英文原文，仅按句换行）**
 
 ```text
-Create a naturalistic editorial commerce scene for the {{keyword}} topic.
+Create a naturalistic wide editorial commerce banner for the {{keyword}} topic.
+Brand binding: {{brand}}.
 Module goal: {{module_shopping_goal}}.
 Module rationale: {{module_reason}}.
 Theme goal: {{theme_shopping_goal}}.
 Accepted copy theme: {{accepted_copy_first_six}}.
 Needs and conditions: {{needs_and_conditions_first_six}}.
-Scene, environment, activity, and atmosphere must be the primary visual subject.
-Assigned products are semantic references only and do not need to appear.
+Current brand product references: reference 1: {{assigned_product_category}}.
+Use up to three attached assigned product images as optional visual references for this exact brand binding.
+Packaging and logos are permitted but optional; do not require either to appear.
+Reference availability does not require visibility. A product-led banner with recognizable packaging, a logo-led brand scene, or an atmosphere-led banner without packaging or a logo is valid when supported by the brief.
+For every referenced product or package that appears, reproduce the visible brand name and logo, key label text, typography hierarchy, layout, primary colors, silhouette, closure, and material as faithfully as the image model allows.
+A logo or wordmark visibly supported by an attached reference may appear clearly. Do not invent, redraw, restyle, merge, translate, complete, or substitute a logo, wordmark, package design, label, brand mark, or marketing claim.
+Do not force packaging or a logo into the image merely because a reference is attached. When neither appears, keep the scene category-relevant and do not infer a distinct visual identity from the brand name or product mix alone.
+Compose any visible product, packaging, supported logo, environment, and light as one coherent wide banner.
+Keep visible packaging and logos recognizable in the 111:40 crop and clear of the component's lower title overlay.
 Environmental vessels and category-relevant containers may appear when they support the scene.
-Avoid isolated or fabricated product packaging, labels, logos, and claims.
+Avoid an unrequested grid, montage, shelf lineup, repeated logo pattern, or arbitrary product collection. A deliberate packshot or small product grouping is valid when it serves the module goal.
 Use realistic materials, natural light, credible scale, and a calm product-first YAMI tone.
-Use a wide lifestyle-category atmosphere without inventing brand artwork.
 ```
 
 **negativePrompt（英文原文）**
 
 ```text
-isolated product packshot, product grid, product montage, shelf lineup, generated packaging, labels, logos, brand marks, marketing claims, readable text, watermark, illustration, collage
+cross-brand product or brand asset, invented or substituted packaging, altered packaging layout, unsupported or altered logo, distorted wordmark, repeated logo pattern, fabricated label, fabricated marketing claim, unrelated readable text, unrequested product grid, unrequested product montage, unrequested shelf lineup, watermark, illustration, collage
 ```
 
 **requirements（随任务附加的英文原文）**
 
-- Depict a coherent, naturalistic scene that expresses this module's shopping goal.
-- Treat assigned products as visual references only; they do not need to appear.
-- Do not use isolated product packshots, tiled product grids, or product montages as the primary visual.
+- Treat each non-empty brand binding as an independent wide brand-expression task; never borrow products or brand identity from another brand.
+- Use up to three available product images assigned to the current brand as optional visual references.
+- Product packaging and logos are permitted but optional; do not require either unless the task explicitly makes it required.
+- Reference availability does not require reference visibility; product-led, logo-led, and atmosphere-led banners are all valid when supported by the brief.
+- For every referenced product or package that appears, reproduce the visible brand name and logo, key label text, typography hierarchy, layout, primary colors, silhouette, closure, and material as faithfully as the image model allows.
+- Do not invent, redraw, restyle, merge, translate, complete, or substitute a logo, wordmark, package design, label, brand mark, or marketing claim.
+- Do not force packaging or a logo into the image merely because a reference is available; their absence is not a defect unless the task makes them required.
+- When no referenced brand asset appears, keep the scene category-relevant and do not infer a distinct visual identity from the brand name or product mix alone.
+- Compose any visible product, packaging, supported logo, environment, and light as one coherent wide banner.
+- Keep any visible packaging or logo recognizable in the wide crop and clear of the component's lower title overlay.
+- Avoid an unrequested grid, montage, shelf lineup, repeated logo pattern, or arbitrary product collection; a deliberate packshot or small product grouping is valid when it serves the module goal.
 - Environmental vessels and category-relevant containers may appear when they support the scene.
-- Do not generate or alter packaging, labels, logos, or product claims.
-- Express the module theme and brand atmosphere without turning the banner into a product lineup.
+- Express the exact brand binding through an evidence-supported wide banner; packaging and a logo are optional.
 
 完整的参考附件说明、接受规则与返回协议见 [brand-banner.template.txt](topic-generator-image-prompts/brand-banner.template.txt)。
 
@@ -573,7 +587,7 @@ generated scene, generated packaging, altered labels, unsupported claims, added 
 | 容易误读的说法 | 当前实际行为 |
 | --- | --- |
 | Hero 先生成背景，再抠图拼接 | 正式生成已改成整张重画；没有 placementPlan、位置恢复或源图层 Hero 兜底 |
-| 所有图片绝对不能出现包装文字 | Hero/Shortcut/Scene 要尽量保留参考图可见包装；不能编造文字与声明。Brand 氛围图另有避免标签和文字的要求 |
+| 所有图片绝对不能出现包装文字 | Hero/Shortcut/Scene 要尽量保留参考图可见包装；Brand 也允许包装和有依据的 Logo，但都不是必选项。所有类型都不能编造文字、声明或品牌资产 |
 | 包装不准确就自动拒绝重试 | 目前不会；包装忠实度是强提示词指导，仍需人审 |
 | 默认并发就是 3 | Runner 内层为 3；当前 Web 同批单图请求并发为 2 |
 | 只有配置了缓存路径才有重启复用 | 当前已有仓库内默认磁盘缓存 |
@@ -586,16 +600,16 @@ generated scene, generated packaging, altered labels, unsupported claims, added 
 
 ## 14. 核验与源码索引
 
-已运行现有测试：Runner 7 个测试文件、60 项通过；Topic Generator 35 个测试文件、391 项通过。测试证明现有代码合同与覆盖场景，不证明某一主题的实际新图视觉质量。本次没有调用原生生图，也没有新增测试代码。
+已运行聚焦测试：Runner 7 个测试文件、61 项通过；Topic Generator 35 个测试文件、398 项通过。新增用例覆盖 Brand 同品牌参考附件、包装与 Logo 可选、品牌资产忠实度及禁止跨品牌借用。测试证明代码合同与覆盖场景，不证明某一主题的实际新图视觉质量；本次没有调用原生生图。
 
 四份模板已与同一组占位输入下的实际拼装函数返回值逐字核对（文件末尾增加一个换行）；各自包含完整技能和引用合同。模板文件 SHA-256：
 
 | 文件 | SHA-256 |
 | --- | --- |
-| hero.template.txt | `03f3a0c58d99304ee4e1d7c01050bacf42253a7a1730c32afcefbac7468d2ba8` |
-| shortcut.template.txt | `87ebe0cea5945e172e985069915bde87af2b87f84dc4d98781f1deb8b9a6234f` |
-| scene.template.txt | `8670148f1472e97b317236aa3f9543a46c74c84eba13a471c90c900a93d0bc70` |
-| brand-banner.template.txt | `c049f933bef7bd18bfd429c616b739dce99ffaafba565f5773ed7c97b0ebd312` |
+| hero.template.txt | `23b6ff676dc4435e9a76cca86e7d0b38aa9d3f8a8d6d91040f14f9fabd2a0930` |
+| shortcut.template.txt | `956adad2f930d4d474770d2bf31eb351d4ae1aa3140b796bd07771e744c3fc85` |
+| scene.template.txt | `3aca2979de8de400a14fb8f8e37808f549cbc25baba81e4e631e3f2cddc371f3` |
+| brand-banner.template.txt | `062c59f820ab7f0d597030a3e8fa4cc5891639c8f5d47ac19aac31cea8fcd988` |
 
 | 内容 | 源码 |
 | --- | --- |

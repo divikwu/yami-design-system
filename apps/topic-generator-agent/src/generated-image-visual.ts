@@ -244,6 +244,12 @@ function compactList(values: string[]) {
   return values.filter(Boolean).slice(0, 6).join("; ");
 }
 
+function brandReferenceProducts(task: GeneratedVisualTask) {
+  return task.products.filter(({ imageUrl, brand }) =>
+    Boolean(imageUrl) && (!task.brand || brand === task.brand)
+  ).slice(0, 3);
+}
+
 function artDirection(context: GeneratedVisualContext, task: GeneratedVisualTask) {
   const brief = task.sceneBrief;
   const scene = brief.scene
@@ -312,6 +318,32 @@ function artDirection(context: GeneratedVisualContext, task: GeneratedVisualTask
       "Make the activity and setting specific enough that the image could not credibly illustrate a sibling scene after only swapping the title.",
       "Use realistic materials, natural light, credible scale, and a calm product-first YAMI tone.",
       "Do not invent extra products, unsupported packaging claims, overlay text, unrelated logos, or watermarks.",
+    ].filter(Boolean).join(" ");
+  }
+  if (task.kind === "brand-banner") {
+    const brandProductMix = brandReferenceProducts(task).map((product, index) =>
+      `reference ${index + 1}: ${product.categoryL3Name || "assigned category"}`
+    ).join("; ");
+    return [
+      `Create a naturalistic wide editorial commerce banner for the ${context.keyword} topic.`,
+      task.brand ? `Brand binding: ${task.brand}.` : "",
+      `Module goal: ${brief.module.shoppingGoal}.`,
+      `Module rationale: ${brief.module.reason}.`,
+      `Theme goal: ${brief.theme.shoppingGoal}.`,
+      acceptedCopyTheme ? `Accepted copy theme: ${acceptedCopyTheme}.` : "",
+      `Needs and conditions: ${compactList([...brief.theme.needs, ...brief.theme.conditions])}.`,
+      brandProductMix ? `Current brand product references: ${brandProductMix}.` : "",
+      "Use up to three attached assigned product images as optional visual references for this exact brand binding.",
+      "Packaging and logos are permitted but optional; do not require either to appear.",
+      "Reference availability does not require visibility. A product-led banner with recognizable packaging, a logo-led brand scene, or an atmosphere-led banner without packaging or a logo is valid when supported by the brief.",
+      "For every referenced product or package that appears, reproduce the visible brand name and logo, key label text, typography hierarchy, layout, primary colors, silhouette, closure, and material as faithfully as the image model allows.",
+      "A logo or wordmark visibly supported by an attached reference may appear clearly. Do not invent, redraw, restyle, merge, translate, complete, or substitute a logo, wordmark, package design, label, brand mark, or marketing claim.",
+      "Do not force packaging or a logo into the image merely because a reference is attached. When neither appears, keep the scene category-relevant and do not infer a distinct visual identity from the brand name or product mix alone.",
+      "Compose any visible product, packaging, supported logo, environment, and light as one coherent wide banner.",
+      "Keep visible packaging and logos recognizable in the 111:40 crop and clear of the component's lower title overlay.",
+      "Environmental vessels and category-relevant containers may appear when they support the scene.",
+      "Avoid an unrequested grid, montage, shelf lineup, repeated logo pattern, or arbitrary product collection. A deliberate packshot or small product grouping is valid when it serves the module goal.",
+      "Use realistic materials, natural light, credible scale, and a calm product-first YAMI tone.",
     ].filter(Boolean).join(" ");
   }
   return [
@@ -416,6 +448,24 @@ const HERO_GENERATIVE_NEGATIVE_PROMPT = [
   "collage",
 ].join(", ");
 
+const BRAND_BANNER_NEGATIVE_PROMPT = [
+  "cross-brand product or brand asset",
+  "invented or substituted packaging",
+  "altered packaging layout",
+  "unsupported or altered logo",
+  "distorted wordmark",
+  "repeated logo pattern",
+  "fabricated label",
+  "fabricated marketing claim",
+  "unrelated readable text",
+  "unrequested product grid",
+  "unrequested product montage",
+  "unrequested shelf lineup",
+  "watermark",
+  "illustration",
+  "collage",
+].join(", ");
+
 const SOURCE_PRODUCT_FALLBACK_PALETTES = [
   { base: "#f2eee7", light: "#fffaf1", accent: "#cad8c4", platform: "#ddd0be" },
   { base: "#eef2ef", light: "#ffffff", accent: "#c8dce0", platform: "#d7ded8" },
@@ -426,6 +476,7 @@ const SOURCE_PRODUCT_FALLBACK_PALETTES = [
 function negativePrompt(task: GeneratedVisualTask) {
   if (task.kind === "hero-image") return HERO_GENERATIVE_NEGATIVE_PROMPT;
   if (task.kind === "scene-image") return EDITORIAL_SCENE_NEGATIVE_PROMPT;
+  if (task.kind === "brand-banner") return BRAND_BANNER_NEGATIVE_PROMPT;
   return task.kind === "shortcut-image" ? PRODUCT_NEGATIVE_PROMPT : SCENE_NEGATIVE_PROMPT;
 }
 
@@ -575,6 +626,7 @@ export function generatedImageTaskPrompt(
   const productLed = task.kind === "shortcut-image";
   const heroGenerative = task.kind === "hero-image";
   const editorialScene = task.kind === "scene-image";
+  const brandBanner = task.kind === "brand-banner";
   return `Execute one bounded TOPIC GENERATOR visual task.
 
 ${instructions.agentInstructions
@@ -591,6 +643,8 @@ ${heroGenerative
     ? "The attached representative product image is a visual reference for one product-led lifestyle scene. Favor one clear product subject near the center with safe margin for circular cropping, while keeping the environment secondary. Reproduce its source packaging as faithfully as the image model allows, including visible brand name and logo, key label text, typography hierarchy, layout, colors, silhouette, closure, and material; never replace it with blank or generic packaging. Copy only packaging text visible in the reference and do not invent claims. Packaging fidelity remains a generation priority rather than an acceptance gate."
     : editorialScene
     ? "The attached current-scene product images are optional visual references for one complete ThemeProductList lifestyle scene; a product-free result is valid. For every referenced product that appears, reproduce its source packaging as faithfully as the image model allows, including visible brand name and logo, key label text, typography hierarchy, layout, colors, silhouette, closure, and material; never replace it with blank or generic packaging. Copy only packaging text visible in the references and do not invent claims. Do not enforce exact product quantity or one-to-one placement; packaging fidelity remains a strong generation priority rather than an acceptance gate. Regenerate products and environment together so lighting, shadows, depth, and materials feel native to one photograph. Do not copy source backdrops, swatches, discs, badges, white canvases, or studio props. Preserve the upper-right action area and quiet lower-left copy-safe area across centered wide and card crops, and do not bake text, a gradient, a text panel, or a scrim into the image."
+    : brandBanner
+    ? "The attached assigned product images are optional visual references for one BrandProductRail banner and belong only to its exact brand binding. Packaging and logos are permitted but optional; do not require either to appear. If a referenced product, package, logo, or wordmark appears, preserve its visible identity, wording, letterforms, layout, colors, silhouette, closure, and material as faithfully as the image model allows. A logo visibly supported by an attached reference may appear clearly, but never invent or approximate a missing brand asset. Product-led, logo-led, and atmosphere-led directions are valid when supported by the brief. Keep important brand assets recognizable in the wide crop and clear of the component's lower title overlay. Do not force product usage or exact reference coverage."
     : "Scene and module-theme fidelity are the primary criteria; assigned products are reference-only. Create exactly one realistic image for the declared aspect ratio. Do not create an isolated product packshot, tiled product grid, shelf lineup, or product montage. Environmental vessels and category-relevant containers may appear when they support the scene. Avoid fabricated product packaging, labels, logos, claims, watermarks, or readable text."}
 Save the generated image as exactly "${outputFilename}" inside the current working directory. Do not leave the only copy outside the working directory.
 ${heroGenerative
@@ -599,6 +653,8 @@ ${heroGenerative
     ? "Do not perform semantic visual rejection for the Shortcut. If the image file was saved, return status accepted; product identity, placement, packaging, and composition are soft guidance. Do not retry inside this Agent task; the Host owns bounded technical retries."
     : editorialScene
     ? "Do not perform semantic visual rejection for the ThemeProductList scene. If the image file was saved, return status accepted; composition and product-reference usage are soft guidance. Do not retry inside this Agent task; the Host owns only bounded technical retries."
+    : brandBanner
+    ? "Do not perform semantic visual rejection for the BrandProductRail banner. If the image file was saved, return status accepted; the choice to show packaging or a logo, reference coverage, brand-asset fidelity, and composition are soft guidance. Do not retry inside this Agent task; the Host owns bounded technical retries."
     : "Do not perform semantic visual rejection. If the image file was saved, return status accepted; scene fidelity, container choice, packaging, and composition are soft guidance. Do not retry inside this Agent task; the Host owns bounded technical retries."}
 Return one JSON object only, with schemaVersion "topic-page-native-image-task-result/v1", the exact taskId, status "accepted" or "rejected", relativePath "${outputFilename}", scenePrompt containing the concise scene prompt actually used, and an issues string array. Do not use Markdown.
 
@@ -751,6 +807,8 @@ export async function compileGeneratedImageVisualResponse(
       ? task.products.slice(0, 1).filter(({ imageUrl }) => Boolean(imageUrl))
       : task.kind === "scene-image"
       ? task.products.filter(({ imageUrl }) => Boolean(imageUrl)).slice(0, 3)
+      : task.kind === "brand-banner"
+      ? brandReferenceProducts(task)
       : [];
     const shortcutReferenceImageUrl = task.kind === "shortcut-image"
       ? task.products[0]?.imageUrl
@@ -761,7 +819,7 @@ export async function compileGeneratedImageVisualResponse(
       outputFilename,
       ...(shortcutReferenceImageUrl
         ? { referenceImageUrl: shortcutReferenceImageUrl }
-        : task.kind === "hero-image" || task.kind === "scene-image"
+        : task.kind === "hero-image" || task.kind === "scene-image" || task.kind === "brand-banner"
           ? {
               referenceImageUrls: attachedProducts
                 .map(({ imageUrl }) => imageUrl)
