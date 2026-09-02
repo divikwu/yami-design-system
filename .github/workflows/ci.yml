@@ -118,6 +118,10 @@ jobs:
         run: pnpm test:docsite:e2e
         env:
           PLAYWRIGHT_USE_EXISTING_BUILD: "1"
+      - name: configure-lighthouse-browser
+        run: |
+          browser_path=$(node -p "require('@playwright/test').chromium.executablePath()")
+          echo "CHROME_PATH=$browser_path" >> "$GITHUB_ENV"
       - name: lighthouse-budgets
         run: pnpm test:docsite:lighthouse
       - name: repository-validation
