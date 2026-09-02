@@ -1,7 +1,7 @@
 .prose {
   padding-top: var(--space-300);
   color: var(--text-primary);
-  font-size: var(--font-size-body-xl);
+  font-size: var(--font-size-body-md);
   line-height: var(--line-height-heading-xl);
 }
 
@@ -26,6 +26,18 @@
   margin: var(--space-400) 0 var(--space-150);
   scroll-margin-top: calc(var(--docsite-header-height-mobile) + var(--space-800));
 }
+
+.prose :is(h2, h3) {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-100);
+}
+
+.headingText { min-width: 0; }
+
+.headingAction { flex: none; align-self: center; }
+
+.headingAction button { color: var(--text-secondary); background: transparent; }
 
 .prose h3 {
   font-size: var(--font-size-heading-xl);
@@ -114,9 +126,9 @@
 
 .prose th {
   color: var(--text-secondary);
-  font-size: var(--font-size-body-xl);
+  font-size: var(--font-size-body-md);
   line-height: var(--line-height-body-xl);
-  font-weight: var(--font-weight-emphasize);
+  font-weight: var(--font-weight-normal);
 }
 
 .prose tbody tr:last-child td {

@@ -24,17 +24,22 @@ describe("YAMI serif typography", () => {
   it("publishes the approved serif family and semibold weight tokens", () => {
     const tokensCss = readFileSync("generated/tokens.css", "utf8")
 
-    expect(tokensCss).toContain("--font-family-serif: 'Source Serif 4', 'Source Han Serif SC', serif;")
+    expect(tokensCss).toContain("--font-family-serif: 'Source Serif 4 Variable', 'Noto Serif SC', serif;")
     expect(tokensCss).toContain("--font-weight-semibold: 600;")
   })
 
-  it("self-hosts Source Serif 4 at the two approved weights", () => {
+  it("self-hosts optical Source Serif 4 and Noto Serif SC", () => {
     const fontsCss = readFileSync("styles/fonts.css", "utf8")
 
-    expect(fontsCss).toContain("font-family: 'Source Serif 4';")
-    expect(fontsCss).toContain("font-weight: 400;")
-    expect(fontsCss).toContain("font-weight: 600;")
-    expect(() => readFileSync("assets/fonts/SourceSerif4-Display-400.woff2")).not.toThrow()
-    expect(() => readFileSync("assets/fonts/SourceSerif4-Subhead-600.woff2")).not.toThrow()
+    expect(fontsCss).toContain('@import "@fontsource-variable/source-serif-4/opsz.css";')
+    expect(fontsCss).toContain('@import "@fontsource/noto-serif-sc/400.css";')
+    expect(fontsCss).toContain('@import "@fontsource/noto-serif-sc/600.css";')
+
+    const packageJson = JSON.parse(readFileSync("package.json", "utf8"))
+    expect(packageJson.dependencies).toMatchObject({
+      "@fontsource-variable/source-serif-4": "5.3.0",
+      "@fontsource/noto-serif-sc": "5.3.0",
+    })
+    expect(packageJson.dependencies).not.toHaveProperty("@fontsource/noto-serif")
   })
 })

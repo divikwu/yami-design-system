@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 
+import { AdaptiveImageScrim } from "../AdaptiveImageScrim";
 import { RailNavigationButton } from "../Button/RailNavigation";
 import {
   handleProgressiveImageError,
@@ -22,6 +23,22 @@ import type { ShortcutRailProps } from "./ShortcutRail.types";
 
 function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
+}
+
+function ShortcutRailImageCardOverlay({ label }: {
+  label: ShortcutRailProps["items"][number]["label"];
+}) {
+  return (
+    <span
+      className={styles.imageCardOverlay}
+      data-slot="shortcut-rail-image-card-overlay"
+    >
+      <AdaptiveImageScrim data-slot="shortcut-rail-image-card-scrim" />
+      <span className={styles.label} data-slot="shortcut-rail-label">
+        {label}
+      </span>
+    </span>
+  );
 }
 
 function getPageDistance(rail: HTMLUListElement) {
@@ -42,6 +59,7 @@ function getPageDistance(rail: HTMLUListElement) {
 export function ShortcutRail({
   items,
   surface = "plain",
+  presentation = "compact",
   title,
   ariaLabel = "Featured shortcuts",
   previousLabel = "Previous shortcuts",
@@ -62,6 +80,10 @@ export function ShortcutRail({
     items.every((item) => item.imagePresentation === "full-bleed")
       ? "full-bleed"
       : "icon";
+  const desktopPresentation =
+    presentation === "image-card" && items.length <= 6
+      ? "image-card"
+      : "compact";
 
   const updateEdges = useCallback(() => {
     const rail = railRef.current;
@@ -109,6 +131,8 @@ export function ShortcutRail({
       aria-labelledby={title ? titleId : undefined}
       data-slot="shortcut-rail"
       data-lines={lines}
+      data-presentation={presentation}
+      data-desktop-presentation={desktopPresentation}
       data-rail-presentation={imagePresentation}
       data-has-title={title ? "true" : undefined}
       data-surface={surface}
@@ -164,7 +188,9 @@ export function ShortcutRail({
                       data-image-presentation={
                         item.imagePresentation ?? "icon"
                       }
-                      aria-hidden="true"
+                      aria-hidden={
+                        desktopPresentation === "compact" ? "true" : undefined
+                      }
                     >
                       <ResponsiveImage
                         ref={prepareProgressiveImage}
@@ -177,6 +203,11 @@ export function ShortcutRail({
                         onLoad={handleProgressiveImageLoad}
                         onError={handleProgressiveImageError}
                       />
+                      {desktopPresentation === "image-card" ? (
+                        <ShortcutRailImageCardOverlay
+                          label={item.label}
+                        />
+                      ) : null}
                     </span>
                     <span
                       className={styles.label}

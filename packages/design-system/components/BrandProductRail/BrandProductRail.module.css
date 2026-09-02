@@ -108,7 +108,7 @@
 .panel {
   position: relative;
   min-width: 280px;
-  flex: 0 0 calc((100% - var(--space-600)) / 4);
+  flex: 1 0 calc((100% - var(--space-600)) / 4);
   overflow: hidden;
   border-radius: var(--radius-component-default);
   scroll-snap-align: start;

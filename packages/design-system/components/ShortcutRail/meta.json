@@ -3,8 +3,8 @@
   "name": "ShortcutRail",
   "category": "navigation",
   "status": "stable",
-  "version": "0.2.0",
-  "description": "Responsive YAMI shortcut navigation rail with circular image icons, localized labels, native scrolling, overflow-aware paging controls, optional card or plain section surfaces, and an optional left-aligned titled gray treatment.",
+  "version": "0.3.0",
+  "description": "Responsive YAMI shortcut navigation with compact circular entries, an optional desktop image-card presentation, localized labels, native scrolling, overflow-aware paging controls, and card or plain section surfaces.",
   "figma": {
     "nodeId": null,
     "componentKey": null,
@@ -13,6 +13,7 @@
   "exports": [
     "ShortcutRail",
     "ShortcutRailItem",
+    "ShortcutRailPresentation",
     "ShortcutRailProps",
     "ShortcutRailSurface"
   ],
@@ -28,6 +29,12 @@
       "required": false,
       "default": "plain",
       "description": "Section surface. Card uses the shared homepage inset, surface radius, compact padding, and primary background without a border or shadow; plain spans the available width."
+    },
+    "presentation": {
+      "type": "\"compact\" | \"image-card\"",
+      "required": false,
+      "default": "compact",
+      "description": "Visual treatment. Image card presents up to six PC entries as equal-width 4:3 scene tiles with naturally sized white labels over a 60% black translucent image scrim, capped at two lines. Larger PC sets fall back to compact circular entries. Below 1024px it retains the current compact rail treatment regardless of item count."
     },
     "title": {
       "type": "ReactNode",
@@ -87,10 +94,6 @@
     "motion": {
       "ruleId": "elevation-on-press",
       "note": "Native rail paging respects prefers-reduced-motion."
-    },
-    "gradient": {
-      "ruleId": "no-gradient",
-      "note": "The white-to-transparent edge mask is a functional overflow affordance matching the existing Header category rail."
     }
   },
   "tokens": [
@@ -110,11 +113,11 @@
     "--font-weight-semibold",
     "--font-size-caption-sm",
     "--font-size-caption-md",
-    "--font-size-heading-xl",
+    "--font-size-heading-sm",
     "--font-size-heading-2xl",
     "--line-height-caption-sm",
     "--line-height-caption-md",
-    "--line-height-heading-xl",
+    "--line-height-heading-sm",
     "--line-height-heading-2xl",
     "--layout-page-margin-default",
     "--layout-page-margin-card",

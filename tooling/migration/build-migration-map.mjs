@@ -8,9 +8,15 @@ const check = process.argv.includes("--check");
 const sourceHashPath = path.join(root, "docs/migration/source-files.sha256");
 const target = path.join(root, "docs/migration/migration-map.json");
 const generatedTokenFiles = new Set(["tokens.css", "tokens.flat.json", "tokens.json", "tokens.md", "tokens.ts"]);
+const retiredRuleFiles = new Set([
+  "principles/runtime/__tests__/no-gradient.test.ts",
+  "principles/runtime/validators/no-gradient.ts",
+  "principles/validators/no-gradient.ts",
+]);
 
 function classify(source) {
   if (source === "readiness-baseline.json") return { disposition: "excluded", reason: "Design Labs evaluation output" };
+  if (retiredRuleFiles.has(source)) return { disposition: "excluded", reason: "Retired no-gradient rule" };
   if (source === "design-system.meta.json") return { disposition: "rebuilt", destination: "packages/design-system/design-system.meta.json" };
   if (source === "figma.meta.json") return { disposition: "rebuilt", destination: "packages/design-system/figma.meta.json" };
   if (source === "package.json") return { disposition: "rebuilt", destination: "packages/design-system/package.json" };

@@ -1382,9 +1382,9 @@ export const Pc: Story = {
       pageTitles.length !== 6 ||
       pageTitles.some((title) =>
         titleFontFamily === "serif"
-          ? !getComputedStyle(title).fontFamily.includes("Source Serif 4") ||
+          ? !getComputedStyle(title).fontFamily.includes("Noto Serif") ||
             getComputedStyle(title).fontWeight !== "600"
-          : getComputedStyle(title).fontFamily.includes("Source Serif 4") ||
+          : getComputedStyle(title).fontFamily.includes("Noto Serif") ||
             getComputedStyle(title).fontWeight !== "400",
       )
     ) {

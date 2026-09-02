@@ -88,4 +88,4 @@ Fork 的 `main` 保持干净，用来接收上游的已确认更新。页面内�
 
 ## 下一步
 
-第一次加入团队，请继续[创建自己的 Fork](/zh/docs/fork-project)。已有工作副本时，直接[开始与管理一个任务](/zh/docs/manage-tasks)。
+第一次加入团队，请先完成[快速开始](/zh/docs/fork-project)。已有工作副本时，直接[开始与管理一个任务](/zh/docs/manage-tasks)。

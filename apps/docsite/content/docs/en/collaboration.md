@@ -88,4 +88,4 @@ The packages are currently consumed as workspace source. This workflow is not a 
 
 ## Next step
 
-New team members should [Create their own fork](/en/docs/fork-project). If your working copy is ready, [Start and manage a task](/en/docs/manage-tasks).
+New team members should complete [Getting Started](/en/docs/fork-project). If your working copy is ready, [Start and manage a task](/en/docs/manage-tasks).

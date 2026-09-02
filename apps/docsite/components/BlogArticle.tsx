@@ -55,7 +55,13 @@ export function BlogArticle({
 
         <div className={styles.tags} aria-label={locale === "zh" ? "标签" : "Tags"}>
           {post.frontmatter.tags.map((tag) => (
-            <Tag key={tag} tone="dark">
+            <Tag
+              key={tag}
+              context="content"
+              mode="light"
+              size="m"
+              variant="filled"
+            >
               {tag}
             </Tag>
           ))}

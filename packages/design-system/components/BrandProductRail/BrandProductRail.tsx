@@ -156,7 +156,7 @@ export function BrandProductRail({
             actionsClassName={styles.actions}
             viewAllHref={viewAllHref}
             viewAllLabel={viewAllLabel}
-            actions={
+            actions={!edges.atStart || !edges.atEnd ? (
               <RailNavigation
                 className={styles.railActions}
                 buttonClassName={styles.railButton}
@@ -167,7 +167,7 @@ export function BrandProductRail({
                 onPrevious={() => scrollRail(-1)}
                 onNext={() => scrollRail(1)}
               />
-            }
+            ) : undefined}
           />
 
           {tabs && tabs.length > 0 && (

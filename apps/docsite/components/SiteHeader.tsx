@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  BookOpen01Icon,
   Github01Icon,
   LanguageSquareIcon,
   Menu01Icon,
@@ -18,7 +17,7 @@ import type { Locale } from "../lib/locales";
 import { localizedPath, swapLocalePathname } from "../lib/locales";
 import type { SearchEntry } from "../lib/search";
 import { githubUrl, storybookUrl } from "../lib/site-config";
-import { brandIcon } from "./assets";
+import { brandIcon, logoAssets } from "./assets";
 import { DocsSidebarNav } from "./DocsSidebarNav";
 import type { DocNavItem } from "./DocsMobileControls";
 import { NavigationDrawer } from "./NavigationDrawer";
@@ -26,7 +25,7 @@ import { SearchPanel } from "./SearchPanel";
 import { ThemeToggle } from "./ThemeToggle";
 import styles from "./SiteHeader.module.css";
 
-type HeaderCopy = Pick<SiteCopy, "nav" | "utilities" | "docs">;
+type HeaderCopy = Pick<SiteCopy, "nav" | "utilities" | "home" | "docs">;
 
 interface SiteHeaderProps {
   locale: Locale;
@@ -132,8 +131,9 @@ export function SiteHeader({ locale, copy, searchEntries, docNavigation }: SiteH
         </a>
         <div className={styles.inner}>
           <Link className={styles.brand} href={localizedPath(locale)} aria-label="YAMI Design System">
-            <img className={styles.brandMark} src={brandIcon} alt="" />
-            <span className={styles.brandText} aria-hidden="true">YDS</span>
+            <img className={styles.brandMark} src={brandIcon} alt="YAMI" />
+            <img className={`${styles.logo} ${styles.logoLight}`} src={logoAssets[locale].mobile.light} alt="YAMI" />
+            <img className={`${styles.logo} ${styles.logoDark}`} src={logoAssets[locale].mobile.dark} alt="YAMI" />
           </Link>
 
           <nav className={styles.desktopNav} aria-label={copy.nav.label}>
@@ -166,46 +166,50 @@ export function SiteHeader({ locale, copy, searchEntries, docNavigation }: SiteH
                 aria-hidden="true"
               />
             </Button>
-            <div className={styles.desktopUtilities}>
-              <Link
-                className={styles.utilityIconLink}
-                href={languageHref}
-                hrefLang={otherLocale}
-                aria-label={copy.utilities.language}
-                title={copy.utilities.language}
-                onClick={preserveHash}
-              >
-                <HugeiconsIcon
-                  className={styles.actionIcon}
-                  icon={LanguageSquareIcon}
-                  size={20}
-                  strokeWidth={1.5}
-                  aria-hidden="true"
-                />
-              </Link>
-              <ThemeToggle
-                compact
-                lightLabel={copy.utilities.lightMode}
-                darkLabel={copy.utilities.darkMode}
-                themeLabel={copy.utilities.theme}
+            <Link
+              className={styles.utilityIconLink}
+              href={languageHref}
+              hrefLang={otherLocale}
+              aria-label={copy.utilities.language}
+              title={copy.utilities.language}
+              onClick={preserveHash}
+            >
+              <HugeiconsIcon
+                className={styles.actionIcon}
+                icon={LanguageSquareIcon}
+                size={20}
+                strokeWidth={1.5}
+                aria-hidden="true"
               />
-              <a
-                className={styles.utilityIconLink}
-                href={githubUrl}
-                target="_blank"
-                rel="noreferrer"
-                aria-label={copy.utilities.github}
-                title={copy.utilities.github}
-              >
-                <HugeiconsIcon
-                  className={styles.actionIcon}
-                  icon={Github01Icon}
-                  size={20}
-                  strokeWidth={1.5}
-                  aria-hidden="true"
-                />
-              </a>
-            </div>
+            </Link>
+            <ThemeToggle
+              compact
+              lightLabel={copy.utilities.lightMode}
+              darkLabel={copy.utilities.darkMode}
+              themeLabel={copy.utilities.theme}
+            />
+            <a
+              className={styles.utilityIconLink}
+              href={githubUrl}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={copy.utilities.github}
+              title={copy.utilities.github}
+            >
+              <HugeiconsIcon
+                className={styles.actionIcon}
+                icon={Github01Icon}
+                size={20}
+                strokeWidth={1.5}
+                aria-hidden="true"
+              />
+            </a>
+            <Link
+              className={styles.headerAction}
+              href={localizedPath(locale, "/docs/getting-started")}
+            >
+              {copy.home.primaryAction}
+            </Link>
             <Button
               className={styles.menuButton}
               variant="tertiary"
@@ -276,60 +280,15 @@ export function SiteHeader({ locale, copy, searchEntries, docNavigation }: SiteH
           </div>
         ) : null}
         <div className={styles.mobileUtilities}>
-          <Link
-            className={styles.utilityIconLink}
-            href={languageHref}
-            hrefLang={otherLocale}
-            aria-label={copy.utilities.language}
-            title={copy.utilities.language}
-            onClick={preserveHash}
-          >
-            <HugeiconsIcon
-              className={styles.actionIcon}
-              icon={LanguageSquareIcon}
-              size={20}
-              strokeWidth={1.5}
-              aria-hidden="true"
-            />
-          </Link>
+          <Link className={styles.mobileNavLink} href={languageHref} onClick={preserveHash}>{copy.utilities.language}</Link>
           <ThemeToggle
             compact
             lightLabel={copy.utilities.lightMode}
             darkLabel={copy.utilities.darkMode}
             themeLabel={copy.utilities.theme}
           />
-          <a
-            className={styles.utilityIconLink}
-            href={storybookUrl}
-            target="_blank"
-            rel="noreferrer"
-            aria-label={copy.utilities.storybook}
-            title={copy.utilities.storybook}
-          >
-            <HugeiconsIcon
-              className={styles.actionIcon}
-              icon={BookOpen01Icon}
-              size={20}
-              strokeWidth={1.5}
-              aria-hidden="true"
-            />
-          </a>
-          <a
-            className={styles.utilityIconLink}
-            href={githubUrl}
-            target="_blank"
-            rel="noreferrer"
-            aria-label={copy.utilities.github}
-            title={copy.utilities.github}
-          >
-            <HugeiconsIcon
-              className={styles.actionIcon}
-              icon={Github01Icon}
-              size={20}
-              strokeWidth={1.5}
-              aria-hidden="true"
-            />
-          </a>
+          <a className={styles.mobileNavLink} href={storybookUrl} target="_blank" rel="noreferrer">{copy.utilities.storybook}</a>
+          <a className={styles.mobileNavLink} href={githubUrl} target="_blank" rel="noreferrer">{copy.utilities.github}</a>
         </div>
       </NavigationDrawer>
     </>

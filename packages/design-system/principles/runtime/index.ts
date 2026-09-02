@@ -20,7 +20,6 @@ import { elevationOnPress } from './validators/elevation-on-press'
 import { emphasisLimit } from './validators/emphasis-limit'
 import { focusStyle } from './validators/focus-style'
 import { noCustomRadii } from './validators/no-custom-radii'
-import { noGradient } from './validators/no-gradient'
 import { noOpacityDisabled } from './validators/no-opacity-disabled'
 import { numeralsFont } from './validators/numerals-font'
 import { redUsage } from './validators/red-usage'
@@ -45,7 +44,6 @@ export { elevationOnPress } from './validators/elevation-on-press'
 export { emphasisLimit } from './validators/emphasis-limit'
 export { focusStyle } from './validators/focus-style'
 export { noCustomRadii } from './validators/no-custom-radii'
-export { noGradient } from './validators/no-gradient'
 export { noOpacityDisabled } from './validators/no-opacity-disabled'
 export { numeralsFont } from './validators/numerals-font'
 export { redUsage } from './validators/red-usage'
@@ -66,7 +64,7 @@ const STUB_RULE_IDS = new Set([
 ])
 
 /**
- * All 13 runtime validators in priority order (P0 → P1 → P2).
+ * All 12 runtime validators in priority order (P0 → P1 → P2).
  * 3 rules excluded from runtime (no-emoji, no-decorative-media, token-exists)
  * because they have no additional value over AST checks.
  */
@@ -77,7 +75,6 @@ export const runtimeValidators: readonly RuntimeValidator[] = [
   // P1 — should have real implementation
   numeralsFont,
   typeHierarchy,
-  noGradient,
   focusStyle,
   noOpacityDisabled,
   // P2 — stubs (Phase 8.5)

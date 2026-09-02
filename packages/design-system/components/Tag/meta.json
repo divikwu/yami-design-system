@@ -3,24 +3,53 @@
   "name": "Tag",
   "category": "display",
   "status": "experimental",
-  "version": "0.2.0",
-  "description": "Static 28px full-pill label for short descriptive keywords, with translucent filled and transparent 1px-outline dark and light tones.",
+  "version": "0.4.0",
+  "description": "Static responsive full-pill label with M and L sizes, optional leading artwork, independent content or overlay context, light or dark surface mode, and filled or outline variant.",
   "figma": {
     "nodeId": null,
     "componentKey": null,
     "notes": "Code-defined informational tag. It is distinct from the smaller status and promotion Badge component."
   },
   "variants": {
-    "tone": ["dark", "light", "dark-outline", "light-outline"]
+    "context": ["content", "overlay"],
+    "mode": ["light", "dark"],
+    "size": ["m", "l"],
+    "variant": ["filled", "outline"]
   },
-  "exports": ["Tag", "TagProps", "TagTone"],
+  "exports": ["Tag", "TagContext", "TagImage", "TagMode", "TagProps", "TagSize", "TagVariant"],
   "props": {
-    "tone": {
+    "context": {
       "type": "enum",
-      "values": ["dark", "light", "dark-outline", "light-outline"],
+      "values": ["content", "overlay"],
       "required": false,
-      "default": "dark",
-      "description": "dark/light use translucent fills; dark-outline/light-outline use a transparent background with a 1px black or white stroke."
+      "default": "content",
+      "description": "Placement context: ordinary content or a visual background such as imagery or color."
+    },
+    "mode": {
+      "type": "enum",
+      "values": ["light", "dark"],
+      "required": false,
+      "default": "light",
+      "description": "Mode of the underlying surface. Light mode uses a dark Tag; dark mode uses a light Tag."
+    },
+    "size": {
+      "type": "enum",
+      "values": ["m", "l"],
+      "required": false,
+      "default": "m",
+      "description": "Responsive size. M is 28px on mobile and PC; L is 32px on mobile and 36px on PC."
+    },
+    "variant": {
+      "type": "enum",
+      "values": ["filled", "outline"],
+      "required": false,
+      "default": "filled",
+      "description": "Filled container or transparent container with a 1px current-color stroke."
+    },
+    "image": {
+      "type": "TagImage",
+      "required": false,
+      "description": "Optional leading artwork with an ImageSource and alt text. Use an empty alt when the artwork repeats the visible label."
     },
     "children": {
       "type": "ReactNode",
@@ -35,52 +64,75 @@
     },
     "radius": {
       "ruleId": "no-custom-radii",
-      "note": "Uses --radius-full; do not override the pill geometry."
+      "note": "Uses --radius-button-primary; do not override the pill geometry."
     },
-    "contrast": {
+    "context-and-mode": {
       "ruleId": "semantic-color-only",
-      "note": "Choose dark variants for light or mixed backgrounds and light variants for dark backgrounds. Outline tones rely directly on the underlying surface."
+      "note": "Use content for ordinary surfaces and overlay for visual backgrounds. Choose light mode on light surfaces and dark mode on dark surfaces."
+    },
+    "responsive-size": {
+      "ruleId": "responsive-size",
+      "note": "M remains 28px across breakpoints. At 1024px, L steps from 32px to 36px. The optional image slot remains 4px smaller than the Tag and its artwork remains 8px smaller."
     }
   },
   "tokens": [
-    "--color-black-600",
+    "--color-black-900",
     "--color-black-1000",
-    "--color-white-700",
+    "--color-black-100",
+    "--color-black-200",
+    "--color-white-200",
     "--color-white-1000",
     "--font-family-ios",
     "--font-size-body-md",
     "--font-weight-normal",
     "--line-height-body-md",
+    "--radius-button-primary",
     "--radius-full",
+    "--space-025",
     "--space-050",
+    "--space-200",
     "--space-150",
     "--space-300",
+    "--space-400",
+    "--surface-primary",
     "--stroke-default"
   ],
   "tokenBindings": {
-    "--color-black-600": {
+    "--color-black-100": {
       "property": "background-color",
-      "selector": ".tag[data-tone='dark']"
+      "selector": ".tag[data-variant='filled'][data-mode='light']"
     },
     "--color-white-1000": {
       "property": "color / border-color",
-      "selector": ".tag[data-tone='dark'], .tag[data-tone='light-outline']"
+      "selector": ".tag[data-mode='dark']"
     },
-    "--color-white-700": {
-      "property": "background-color",
-      "selector": ".tag[data-tone='light']"
+    "--color-white-200": {
+      "property": "background-color / border-color",
+      "selector": ".tag[data-variant='filled'][data-mode='dark'], .tag[data-variant='outline'][data-mode='dark']"
+    },
+    "--color-black-200": {
+      "property": "border-color",
+      "selector": ".tag[data-variant='outline'][data-mode='light']"
+    },
+    "--color-black-900": {
+      "property": "color",
+      "selector": ".tag[data-variant='filled'][data-mode='light']"
     },
     "--color-black-1000": {
       "property": "color / border-color",
-      "selector": ".tag[data-tone='light'], .tag[data-tone='dark-outline']"
+      "selector": ".tag[data-mode='light']"
     },
-    "--radius-full": {
+    "--radius-button-primary": {
       "property": "border-radius",
       "selector": ".tag"
     },
     "--space-150": {
       "property": "padding-inline",
       "selector": ".tag"
+    },
+    "--surface-primary": {
+      "property": "background-color",
+      "selector": ".image"
     },
     "--stroke-default": {
       "property": "border-width",
@@ -93,7 +145,7 @@
     "tapTargetMin": 0,
     "keyboardNav": [],
     "ariaPattern": "plain text",
-    "notes": "Non-interactive content. Keep labels concise and select the tone that contrasts with the rendered background; outline variants have no contrast-providing fill."
+    "notes": "Non-interactive content. Keep labels concise and select the mode that suits the rendered background; outline variants have no contrast-providing fill."
   },
   "dependencies": {
     "runtime": ["react"],
@@ -102,9 +154,10 @@
   },
   "usageRef": "./usage.md",
   "examples": [
-    "./examples.tsx#DarkTagExample",
-    "./examples.tsx#LightTagExample",
-    "./examples.tsx#DarkOutlineTagExample",
-    "./examples.tsx#LightOutlineTagExample"
+    "./examples.tsx#ContentFilledTagExample",
+    "./examples.tsx#ContentOutlineTagExample",
+    "./examples.tsx#ImageTagExample",
+    "./examples.tsx#OverlayFilledTagExample",
+    "./examples.tsx#OverlayOutlineTagExample"
   ]
 }

@@ -1,6 +1,6 @@
 ---
 version: 0.5.0-alpha.1
-updated: 2026-08-20
+updated: 2026-09-02
 audience: ai-agent
 roles: [spec, rules-ssot]
 name: YAMI
@@ -18,6 +18,8 @@ typography:
   brand: "GT Walsheim"
   cn_ios: "PingFang SC"
   cn_android: "Noto Sans SC"
+  serif_en: "Source Serif 4 Variable"
+  serif_cn: "Noto Serif SC"
   weights: [400, 500, 600] # normal 400; emphasis EN 500 / CN 600; serif 600 preserved
 status:
   success: "#27812B" # emerald-700 — WCAG-AA on white
@@ -43,7 +45,7 @@ tokens_source: ./tokens.css
 
 **Surface:** web · **Category:** E-Commerce — Chinese-American Asian grocery, U.S. market · **Voice:** bilingual CN + EN, CN-primary · **Mode:** Light + Dark
 
-In Light, YAMI's product surfaces sit on a pure white canvas (`#FFFFFF`) with near-black ink. In Dark, page and component surfaces use neutral-950/900 with light reading colors. The operational red ramp carries action, promotion, and error semantics in both themes; brand red (`#FF0000`) remains Logo-only. **No decorative gradients; ProductList campaign artwork transitions and loading skeleton shimmer are documented functional exceptions.** **No box-shadow growth on hover.** **No emoji in product UI.** Numerals — every price, every count, every SKU — always render in **GT Walsheim**; CJK body text is **PingFang SC** on iOS / web and **Noto Sans SC** on Android, with embedded digits and Latin characters staying in GT Walsheim. The rhythm is dense but never noisy: an 8px base grid, five semantic radius slots (`4 / 8 / 8 / 12 / 9999`) covering every container, and a hard cap of **one emphasis button per screen** keeping conversion priority unambiguous.
+In Light, YAMI's product surfaces sit on a pure white canvas (`#FFFFFF`) with near-black ink. In Dark, page and component surfaces use neutral-950/900 with light reading colors. The operational red ramp carries action, promotion, and error semantics in both themes; brand red (`#FF0000`) remains Logo-only. **No box-shadow growth on hover.** **No emoji in product UI.** Numerals — every price, every count, every SKU — always render in **GT Walsheim**; CJK body text is **PingFang SC** on iOS / web and **Noto Sans SC** on Android, with embedded digits and Latin characters staying in GT Walsheim. The rhythm is dense but never noisy: an 8px base grid, five semantic radius slots (`4 / 8 / 8 / 12 / 9999`) covering every container, and a hard cap of **one emphasis button per screen** keeping conversion priority unambiguous.
 
 > **Two-file projection model**: this file (`DESIGN.md`) is the comprehensive spec + rules SSOT. For a 30-second brand entry (designers / PMs / stakeholders), read [`DESIGN.compact.md`](./DESIGN.compact.md) instead. Repository CI validates the migrated sources with `pnpm test`, `pnpm check:generated`, and `pnpm check:boundaries`.
 
@@ -52,10 +54,9 @@ In Light, YAMI's product surfaces sit on a pure white canvas (`#FFFFFF`) with ne
 ## Tokens — Colors
 
 <!-- rule-id: red-usage -->
-<!-- rule-id: no-gradient -->
 <!-- rule-id: semantic-color-only -->
 
-> **Rules governing this section** — `red-usage` (two reds, never mixed), `no-gradient` (no decorative gradients; ProductList campaign transitions, skeleton shimmer, and the modal scrim are documented exceptions), `semantic-color-only` (non-red hues only in status + badge palette). Full bilingual prose: [Hard Rules summary](#hard-rules-validator-linked).
+> **Rules governing this section** — `red-usage` (two reds, never mixed), `semantic-color-only` (non-red hues only in status + badge palette). Full bilingual prose: [Hard Rules summary](#hard-rules-validator-linked).
 
 ### Theme and surface polarity
 
@@ -142,6 +143,7 @@ In Light, YAMI's product surfaces sit on a pure white canvas (`#FFFFFF`) with ne
 | `--font-family-ios`     | `GT Walsheim` + `Noto Sans SC` | Brand Latin, numerals, prices, and CN fallback for iOS / web surfaces. |
 | `--font-family-android` | `GT Walsheim` + `Noto Sans SC` | Android typography stack from Figma.                                   |
 | `--font-family-win`     | `GT Walsheim` + `Noto Sans SC` | Windows typography stack from Figma.                                   |
+| `--font-family-serif`   | `Source Serif 4 Variable` + `Noto Serif SC` | Approved editorial display and heading variants only; Latin uses optical sizing; never body or functional text. |
 
 ### Weights
 
@@ -415,7 +417,7 @@ YAMI's current inventory is generated in [`generated/catalog.json`](./generated/
 
 ### Tag — `components/Tag/`
 
-Static full-pill label for short descriptive keywords. Dark, light, and outlined tones use YAMI semantic text, fill, and border tokens; Tag is display-only and never substitutes for an interactive FilterChip.
+Static full-pill label for short descriptive keywords. Its three independent color axes are placement `context` (`content` or `overlay`), surface `mode` (`light` or `dark`), and container `variant` (`filled` or `outline`). M remains 28px on mobile and PC; L is 32px on mobile and 36px on PC, switching at 1024px. Optional leading artwork follows Search geometry: a 2px leading inset, 4px label gap, an image slot 4px smaller than the Tag, and artwork 8px smaller. Filled uses transparent black at 4% with dark text in light mode and transparent white at 8% with light text in dark mode. Outline remains transparent with an 8% black stroke in light mode or 8% white stroke in dark mode. Tag is display-only and never substitutes for an interactive FilterChip.
 
 ### Input — `components/Input/`
 
@@ -672,11 +674,11 @@ Functional, not decorative. State feedback uses **color shift first** (the `-act
 <!-- rule-id: no-emoji -->
 <!-- rule-id: no-decorative-media -->
 
-> **Rules governing this section** — `no-emoji` (no emoji in product UI; UGC excepted), `no-decorative-media` (no glassmorphism / gradients / hand-drawn / unregistered serif or decorative fonts / patterns / pastels / colored-left-border alerts; approved serif typography uses `--font-family-serif`). Full bilingual prose: [Hard Rules summary](#hard-rules-validator-linked).
+> **Rules governing this section** — `no-emoji` (no emoji in product UI; UGC excepted), `no-decorative-media` (no glassmorphism / hand-drawn / unregistered serif or decorative fonts / patterns / pastels / colored-left-border alerts; approved serif typography uses `--font-family-serif`). Full bilingual prose: [Hard Rules summary](#hard-rules-validator-linked).
 
 - **Product photography** — naturalistic, warm, product-forward. Pure white or a neutral gray background; avoid branded pink behind catalog imagery.
 - **No moody, no stylized, no hand-drawn.** Food photography that looks like a real product, not a magazine cover.
-- **Missing image fallback** — `--fill-tertiary` neutral gray with a quiet, compact 8px-spaced diagonal SVG pattern; no icon, gradient, text, or spinner.
+- **Missing image fallback** — `--fill-tertiary` neutral gray with a quiet, compact 8px-spaced diagonal SVG pattern; no icon, text, or spinner.
 - **No decorative illustration** in the chrome. Empty states are short copy + a single product hint, not a mascot.
 
 ---
@@ -715,14 +717,13 @@ These rules are the canonical source-of-truth for this design system. Each `<!--
 
 For the **why** behind each rule (trade-offs, history, edge cases), see [`decisions.md`](./decisions.md).
 
-> **Versioning convention**: all 16 rules listed below were introduced in **v0.1.0** (initial DS release, recorded in [`decisions.md → 2026-04-initial-principles`](./decisions.md)). Any rule added in a later release will be tagged inline as `(since v0.x.y)`.
+> **Versioning convention**: 15 rules are currently active. Rule additions and retirements—including the retired `no-gradient` rule—are recorded in [`decisions.md`](./decisions.md). Any rule added in a later release will be tagged inline as `(since v0.x.y)`.
 
 <!-- rule-id: token-exists -->
 
 | Rule                      | EN                                                                                                                                                                                        | 中文                                                                                                                                       |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | **`red-usage`**           | Two reds, never mixed. `--color-brand-red` is **Logo only**. `--color-red-500` is the **only** red allowed on buttons, badges, promo, and error.                                          | 双红互斥。`--color-brand-red` 只用于 Logo；`--color-red-500` 是唯一可出现在按钮、徽章、促销、错误状态上的红。                              |
-| **`no-gradient`**         | No decorative linear / radial / conic gradients. Exceptions: ProductList campaign artwork-to-surface transitions, loading skeleton shimmer, and the modal scrim `rgba(0,0,0,0.68)`.                                                                     | 禁用装饰性渐变。例外：ProductList 活动图片与底色的过渡、加载骨架的 shimmer，以及模态遮罩 `rgba(0,0,0,0.68)`。                                |
 | **`semantic-color-only`** | Blue / green / purple / yellow live in (1) semantic status (info / success / warning / promotion), (2) the 6-color Badge palette. Nowhere else.                                           | 蓝/绿/紫/黄只能用于 (1) 语义状态（信息/成功/警示/促销），(2) 6 色徽章调色板。其他场景一律禁用。                                            |
 | **`numerals-font`**       | Every digit renders in GT Walsheim, including inside mixed CN strings.                                                                                                                    | 所有数字一律 GT Walsheim——包括中文字符串中嵌入的数字与拉丁字符。                                                                           |
 | **`type-hierarchy`**      | Max 4 type levels per page. If you need a 5th, the page has a hierarchy problem.                                                                                                          | 每页最多 4 个字号层级。若需要第 5 级，是页面层级有问题，不是字号问题。                                                                     |
@@ -735,13 +736,13 @@ For the **why** behind each rule (trade-offs, history, edge cases), see [`decisi
 | **`card-no-border`**      | Cards default to no border. Opt-in `bordered` only for dense listing grids.                                                                                                               | 卡片默认无边框。仅在密集列表网格中可显式 `bordered`。                                                                                      |
 | **`tap-target`**          | iOS 44pt, Android 48dp minimum hit area. Padding-expand the touch region without growing the visible affordance.                                                                          | 触屏可点击区域：iOS 44pt / Android 48dp。用 padding 扩大命中区，不要放大可见尺寸。                                                         |
 | **`no-emoji`**            | No emoji in product UI (buttons, nav, status, empty states). UGC excepted.                                                                                                                | 产品 UI 内禁用 emoji（按钮、导航、状态、空态）。UGC 内容例外。                                                                             |
-| **`no-decorative-media`** | No glassmorphism, gradients, hand-drawn illustration, unregistered serif/decorative fonts, patterns / noise / grain, pastel palettes, colored-left-border alert cards. Approved serif typography must use `--font-family-serif`. | 不用毛玻璃、渐变、手绘插画、未注册的衬线/装饰字体、纹理/噪点/颗粒、粉彩色板、左侧色条警示卡；批准的衬线样式必须使用 `--font-family-serif`。 |
+| **`no-decorative-media`** | No glassmorphism, hand-drawn illustration, unregistered serif/decorative fonts, patterns / noise / grain, pastel palettes, colored-left-border alert cards. Approved serif typography must use `--font-family-serif`. | 不用毛玻璃、手绘插画、未注册的衬线/装饰字体、纹理/噪点/颗粒、粉彩色板、左侧色条警示卡；批准的衬线样式必须使用 `--font-family-serif`。 |
 | **`token-exists`**        | Every `var(--name)` reference must exist in `tokens.css`. AI generators commonly fabricate plausible-but-fake tokens; CI's `check:tokens-in-docs` catches this on the documentation side. | 每个 `var(--name)` 引用必须真实存在于 `tokens.css`。AI 常见错误是捏造看似合理的 token；CI 的 `check:tokens-in-docs` 在文档层拦截这类问题。 |
 
 Decisions of note (selected):
 
 - [`2026-04-red-scope`](./decisions.md) — Why two reds, not one.
-- [`2026-04-no-gradient`](./decisions.md) — Why no gradients at all.
+- [`2026-09-gradients-permitted`](./decisions.md) — Why gradients are no longer a prohibited medium.
 - [`2026-04-type-hierarchy-commerce-exception`](./decisions.md) — Why commerce templates (Cart / PDP) get a per-file pragma.
 - [`2026-04-tap-target-self-contradiction`](./decisions.md) — Why the tap-target validator's warning text is itself unsatisfying.
 
@@ -881,7 +882,7 @@ Rating star:        #FA8005                (--color-amber-500)
 
 **Promo banner (limited-time sale)**
 
-> Full-width, background `--fill-promotion-secondary` (`#FBF1EF`). Heading in GT Walsheim 500 `--font-size-heading-xl`, text `--text-emphasis` (red). Body in PingFang SC 400 `--font-size-body-md` `--text-primary`. Countdown digits in GT Walsheim 500 `--font-size-price-md` `--text-emphasis`. **No gradient. No decorative pattern.** CTA: emphasis button.
+> Full-width, background `--fill-promotion-secondary` (`#FBF1EF`). Heading in GT Walsheim 500 `--font-size-heading-xl`, text `--text-emphasis` (red). Body in PingFang SC 400 `--font-size-body-md` `--text-primary`. Countdown digits in GT Walsheim 500 `--font-size-price-md` `--text-emphasis`. **No decorative pattern.** CTA: emphasis button.
 
 **Form field (with error)**
 
@@ -897,7 +898,6 @@ Rating star:        #FA8005                (--color-amber-500)
 
 | EN — refuse this                                         | 中文 — 拒绝输出               | Violates              |
 | -------------------------------------------------------- | ----------------------------- | --------------------- |
-| `background: linear-gradient(...)`                       | 任何渐变背景                  | `no-gradient`         |
 | `opacity: 0.5` on a disabled button                      | 用 `opacity` 让禁用按钮变透明 | `no-opacity-disabled` |
 | A second emphasis button on the same screen              | 同一屏 2 个强调按钮           | `emphasis-limit`      |
 | `box-shadow: 0 8px 24px rgba(0,0,0,0.2)` on `:hover`     | 悬浮时放大 `box-shadow`       | `elevation-on-press`  |

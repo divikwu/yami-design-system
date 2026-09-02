@@ -54,7 +54,7 @@ results, and known issues.
 Do not commit, push, merge, or deploy unless I separately request it.
 ```
 
-For your first attempt, follow [Build your first page](/en/docs/first-page) instead of asking AI to guess component paths in an empty project.
+For your first attempt, choose a component or page prompt in [Start creating](/en/docs/prepare-environment), then continue to [Check the page](/en/docs/review-checklist).
 
 ## Change feedback
 
@@ -93,7 +93,7 @@ Release status: [Not deployed / authorized by whom, deployed where]
 Rollback version:
 ```
 
-Use the [shared acceptance checklist](/en/docs/review-checklist#use-the-shared-acceptance-checklist) rather than maintaining a competing standard. Label screenshots alone as “static review material,” not a completed interaction review. Prefer a fixed Snapshot for formal review and record its identifier.
+After completing the page, use the [page-check prompt](/en/docs/review-checklist#copy-the-page-check-prompt) to have AI inspect the rendered result and interactions. If you only have local screenshots, state that real interactions remain unverified.
 
 ## Shared capability contribution
 

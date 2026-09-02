@@ -46,6 +46,10 @@ const meta = {
     },
   },
   argTypes: {
+    presentation: {
+      control: "inline-radio",
+      options: ["compact", "image-card"],
+    },
     surface: {
       control: "inline-radio",
       options: ["card", "plain"],

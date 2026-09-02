@@ -51,7 +51,7 @@ sourceRefs:
 不要提交、推送、合并或发布，除非我另外明确要求。
 ```
 
-第一次使用时，优先跟随[创建第一个页面](/zh/docs/first-page)，不要从空白项目猜测组件路径。
+第一次使用时，先在[开始创建](/zh/docs/prepare-environment)选择组件或页面提示词，完成后进入[检查页面](/zh/docs/review-checklist)。
 
 ## 修改反馈
 
@@ -90,7 +90,7 @@ Scenario／Snapshot／Live：
 回退版本：
 ```
 
-使用[共用验收清单](/zh/docs/review-checklist#use-the-shared-acceptance-checklist)，不要另起一套标准。只有本地截图时，标明“静态审阅材料”，不能称为同事已体验交互。正式评审优先使用固定 Snapshot，并记录其标识。
+页面完成后，使用[页面检查提示词](/zh/docs/review-checklist#copy-the-page-check-prompt)让 AI 检查实际渲染与交互。只有本地截图时，应注明未验证真实交互。
 
 ## 公共能力贡献
 

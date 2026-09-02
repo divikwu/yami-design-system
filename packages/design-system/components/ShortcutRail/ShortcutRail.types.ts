@@ -8,6 +8,7 @@ import type { SectionDividerProps } from "../sectionDivider.types";
 import type { ImageLoadingStrategy, ImageSource } from "../image.types";
 
 export type ShortcutRailSurface = "card" | "plain";
+export type ShortcutRailPresentation = "compact" | "image-card";
 
 export interface ShortcutRailItem {
   /** Stable identity for React and analytics hooks. */
@@ -31,6 +32,8 @@ export interface ShortcutRailProps
   items: ShortcutRailItem[];
   /** Section surface. Card is inset and rounded; plain spans the available width. */
   surface?: ShortcutRailSurface;
+  /** Visual treatment. Image card expands up to six PC entries into equal media tiles and falls back to compact PC entries for larger sets; mobile keeps its compact treatment. */
+  presentation?: ShortcutRailPresentation;
   /** Optional visible section title. When present, the rail uses the titled gray-surface treatment. */
   title?: ReactNode;
   /** Localized accessible name for the navigation region. */

@@ -13,7 +13,9 @@
 }
 
 .header h1 {
+  font-family: var(--font-family-serif);
   font-size: var(--font-size-heading-4xl);
+  font-weight: var(--font-weight-normal);
   line-height: var(--line-height-heading-4xl);
 }
 

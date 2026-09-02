@@ -1,6 +1,5 @@
 /**
- * no-decorative-media — forbids glassmorphism, gradients (covered by
- * no-gradient), unregistered serif display fonts, soft
+ * no-decorative-media — forbids glassmorphism, unregistered serif display fonts, soft
  * pastel palettes, patterns/textures/grain.
  *
  * Status: SKELETON — most of these are visual / asset-level concerns
@@ -11,7 +10,6 @@
  *   - Pastel palettes → requires color analysis
  *
  * What's statically checkable AND covered elsewhere:
- *   - Gradients → no-gradient validator
  *   - Custom color refs → semantic-color-only validator
  *
  * What we add here: backdrop-filter detection (glassmorphism signature).

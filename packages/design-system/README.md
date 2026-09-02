@@ -22,7 +22,7 @@ The design system package for **YAMI 亚米** — a Chinese-American Asian groce
 - **Name**: YAMI / 亚米 — reads as "yummy" and "rice (米)". Marketing often pairs both in the wordmark
 - **Product**: E-commerce (Asian groceries, snacks, beauty, home). Heavy use of product cards, prices, strike-through originals, coupons, loyalty rewards
 - **Platforms**: iOS, Android, Web (PC + mobile web). Mobile is the primary surface
-- **Visual identity**: Two reds — brand red `#FF0000` (`--color-brand-red`, Logo only) and operational red (`--color-red-*`, CTA / promo / error). Light uses black-on-white content chrome; Dark uses light text on neutral-950/900 surfaces. No gradients, no heavy shadows, no decorative flourishes
+- **Visual identity**: Two reds — brand red `#FF0000` (`--color-brand-red`, Logo only) and operational red (`--color-red-*`, CTA / promo / error). Light uses black-on-white content chrome; Dark uses light text on neutral-950/900 surfaces. No heavy shadows or decorative flourishes
 
 ## What's in this package
 
@@ -119,7 +119,6 @@ Full specs in `design.md` (with rule-ids).
 
 ## What this brand is NOT
 
-- ❌ Bluish-purple gradients
 - ❌ Glassmorphism / heavy blur
 - ❌ Rounded-corner + colored-left-border "alert" cards
 - ❌ Emoji-driven UI (emoji appear only in authoring docs as ✅ ❌ markers)

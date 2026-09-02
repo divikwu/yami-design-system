@@ -1,4 +1,3 @@
-/* yami-validate-disable: no-gradient */
 /* The edge gradient is functional overflow affordance behind the paging
  * control, matching the existing Header category rail treatment. */
 
@@ -209,6 +208,10 @@
   white-space: normal;
 }
 
+.imageCardOverlay {
+  display: none;
+}
+
 .edge {
   position: absolute;
   top: 0;
@@ -259,6 +262,116 @@
 @media (min-width: 1024px) {
   .container {
     padding-inline: var(--space-600);
+  }
+
+  .root[data-desktop-presentation="image-card"] .container {
+    gap: var(--space-300);
+  }
+
+  .root[data-presentation="image-card"][data-desktop-presentation="compact"]
+    .item {
+    width: calc(var(--space-800) + var(--space-400));
+  }
+
+  .root[data-presentation="image-card"][data-desktop-presentation="compact"]
+    .iconSurface {
+    width: calc(var(--space-800) + var(--space-400));
+    height: calc(var(--space-800) + var(--space-400));
+  }
+
+  .root[data-desktop-presentation="image-card"] .list {
+    display: grid;
+    grid-auto-columns: max(
+      160px,
+      calc((100% - 5 * var(--space-200)) / 6)
+    );
+    grid-auto-flow: column;
+    gap: var(--space-200);
+    justify-content: start;
+    overflow-x: auto;
+  }
+
+  .root[data-desktop-presentation="image-card"] .item {
+    width: auto;
+    min-width: 0;
+  }
+
+  .root[data-desktop-presentation="image-card"] .edge {
+    z-index: 3;
+    align-items: center;
+  }
+
+  .root[data-desktop-presentation="image-card"] .control {
+    margin-top: 0;
+  }
+
+  .root[data-desktop-presentation="image-card"] .link {
+    position: relative;
+    justify-items: stretch;
+    gap: 0;
+  }
+
+  .root[data-desktop-presentation="image-card"] .iconSurface {
+    position: relative;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    border-radius: var(--radius-component-default);
+  }
+
+  .root[data-desktop-presentation="image-card"] .icon {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    object-fit: cover;
+    object-position: center center;
+    transform: translateY(-50%);
+  }
+
+  .root[data-desktop-presentation="image-card"] .link > .label {
+    display: none;
+  }
+
+  .root[data-desktop-presentation="image-card"] .imageCardOverlay {
+    --adaptive-image-scrim-opacity: 60%;
+
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 2;
+    display: flex;
+    box-sizing: border-box;
+    align-items: flex-end;
+    overflow: hidden;
+    padding: var(--space-400) var(--space-100) var(--space-100);
+    color: var(--color-white-1000);
+    pointer-events: none;
+  }
+
+  .root[data-desktop-presentation="image-card"]
+    .imageCardOverlay
+    > :not([data-adaptive-image-scrim]) {
+    position: relative;
+    z-index: 1;
+  }
+
+  .root[data-desktop-presentation="image-card"] .imageCardOverlay .label {
+    width: 100%;
+    font-size: var(--font-size-heading-sm);
+    font-weight: var(--font-weight-normal);
+    line-height: var(--line-height-heading-sm);
+    text-align: left;
+  }
+
+}
+
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  .root[data-desktop-presentation="image-card"] .iconSurface:hover .icon {
+    transform: translateY(-50%);
   }
 }
 
@@ -372,11 +485,16 @@
     border-radius: var(--radius-sm);
   }
 
-  /* 56 and 36 are literal: the spacing scale steps 48 -> 64 -> 80 and carries
-   * no 56, and these are icon canvas sizes rather than spacing. */
+  /* 56 and 36 are literal icon-canvas sizes; the image-card fallback uses the
+   * available 64px spacing token to give editorial imagery more presence. */
   .iconSurface {
     width: 56px;
     height: 56px;
+  }
+
+  .root[data-presentation="image-card"] .iconSurface {
+    width: var(--space-800);
+    height: var(--space-800);
   }
 
   .icon {

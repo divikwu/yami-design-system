@@ -1,5 +1,4 @@
 import type { Preview } from "@storybook/react-vite";
-import React from "react";
 import "@yami/design-system/styles/fonts.css";
 import "@yami/design-system/tokens.css";
 import "@yami/design-system/styles/base.css";
@@ -70,14 +69,14 @@ const preview: Preview = {
   decorators: [
     (Story, context) => {
       if (typeof document !== "undefined") {
-        document.documentElement.classList.toggle("dark", context.globals.theme === "dark");
+        const root = document.documentElement;
+        root.classList.toggle("dark", context.globals.theme === "dark");
+        root.lang = context.globals.locale;
+        root.dataset.theme = context.globals.theme;
+        root.dataset.locale = context.globals.locale;
       }
 
-      return (
-        <div lang={context.globals.locale} data-theme={context.globals.theme} data-locale={context.globals.locale} className="yami-story-root">
-          <Story />
-        </div>
-      );
+      return <Story />;
     }
   ]
 };

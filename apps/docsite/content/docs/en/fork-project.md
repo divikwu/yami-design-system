@@ -1,89 +1,106 @@
 ---
 slug: fork-project
-title: Create your own fork
-description: "Create an authorized team fork, connect an independent local working copy, and verify the upstream source."
-group: collaboration
-order: 90
-keywords: ["fork", "permissions", "working copy", "origin", "upstream"]
-updatedAt: "2026-08-31"
+title: Getting Started
+description: "Fork the main repository into your own downstream project, create an independent local copy, and verify that Storybook renders real UI."
+group: start
+order: 10
+keywords: ["GitHub", "Fork", "downstream project", "origin", "upstream", "Storybook"]
+updatedAt: "2026-09-02"
 sourceRefs:
   - README.md
-  - packages/design-system/package.json
-  - docs/adr/003-public-production-and-manual-deployments.md
-  - docs/deployment/vercel-protection.md
+  - package.json
+  - apps/storybook/package.json
+  - packages/design-system/SKILL.md
 ---
 
-A fork is a separate repository connected to an upstream project you are authorized to access. A local working copy is a folder on your computer; creating a fork does not create that folder.
+When you first use YAMI locally, Codex or Kiro can help fork and clone the project, install dependencies, and verify Storybook. The process should use an independent directory without affecting the main project, existing files, or services owned by other tasks.
 
-This guide assumes the team has approved a private upstream with authorized forks. It does not mean administrators have finished configuration. Start from the owner's link, not another project with a similar name.
+## Choose how to start
 
-## Before you start
+| Your goal | How to begin | Download required |
+| --- | --- | --- |
+| Inspect components, standards, or page examples | Open the Storybook provided by your team | No |
+| Create or edit a page with AI | Complete the one-time setup below | Yes |
 
-Ask the administrator for:
+The following workflow is for people who need to build pages locally. You do not need to fork and install the project again for every new task.
 
-- The confirmed upstream URL and the GitHub account you should use.
-- The personal account or organization that should own your fork; do not choose an unapproved location.
-- The team allowed to access the code and assets, and a contact for permission issues.
+## Prepare before you begin
 
-Private fork availability and access depend on upstream and organization settings and the account plan. A private fork is not a personal vault visible only to its creator. Have an administrator check inherited access. See [GitHub's fork permission reference](https://docs.github.com/en/pull-requests/reference/forks).
+Have these three details ready:
 
-If the Fork button or approved organization is unavailable, check policy first. Do not bypass the restriction by making a public copy.
+- Main YAMI project: `https://github.com/divikwu/yami-design-system`.
+- The GitHub account or organization you are authorized to use.
+- A full path to a new local directory, such as `/Users/<your-name>/workspace/yami-design-system`.
 
-## Create the team fork
+Do not put a GitHub password, access token, or other secret in the prompt. Sign in and authorize access through GitHub or another team-approved method. If you cannot fork the repository or select the intended owner, contact an administrator instead of creating a public copy to bypass the restriction.
 
-1. Open the upstream URL with the approved account and check its owner and name.
-2. Confirm that its visibility matches the administrator-approved private arrangement.
-3. Select **Fork** and choose the approved **Owner**.
-4. Follow the team's naming agreement; the default branch `main` is usually enough to start.
-5. Confirm that the new repository identifies the correct upstream project.
-6. Record the fork URL in your task notes; it is not a page preview URL.
+## Copy the prompt
 
-For current interface details, use [GitHub's fork creation guide](https://docs.github.com/en/pull-requests/how-tos/work-with-forks/fork-a-repo). Do not upload business assets if visibility differs from the team's agreement.
-
-## Connect a local working copy
-
-You can ask Codex or an engineering partner to handle this step:
+Replace `<full path to a new local directory>` with the location you intend to use, then send the prompt to Codex or Kiro:
 
 ```text
-Help me connect a team-authorized fork.
-Upstream URL: <address provided by the administrator>
-My fork: <address of the fork I created>
-Local location: <a new working directory reserved for me>
-Check for existing files or Git changes first; do not overwrite them.
-Confirm that origin points to my fork and upstream to the upstream project.
-Only prepare the connection. Do not change business files, commit, push, or deploy.
+Fork the following main YAMI Design System repository into my downstream project:
+
+https://github.com/divikwu/yami-design-system
+
+New local directory: <full path to a new local directory>
+
+Please complete these steps:
+
+1. Confirm the GitHub account currently signed in, without displaying access tokens or other credentials.
+2. Fork the repository into my GitHub account without changing the project name.
+3. If the fork already exists, do not create another one.
+4. Clone my fork into the specified new local directory without overwriting an existing directory.
+5. Confirm that my fork is origin and the original main project is upstream.
+6. Install project dependencies without deleting or rewriting the lockfile to bypass errors.
+7. Run pnpm generate.
+8. Start only Storybook. Do not start Canvas, Docsite, or other applications.
+9. Open Storybook in a browser and verify that a page and real components render correctly, not only that the server returns HTTP 200.
+10. Do not change unrelated files, commit, push, or publish.
+
+When finished, report:
+
+- Downstream GitHub repository URL
+- Full local project path
+- origin and upstream URLs
+- Storybook URL
+- Command to start Storybook later
+- Story or component that was actually opened
+- Page-rendering and browser-console verification results
+
+If you encounter an existing fork, directory conflict, permission issue, dependency error, or occupied port, report it first.
+Do not overwrite or delete files, and do not stop services whose owner is unknown or that belong to another task.
 ```
 
-Replace placeholders with actual addresses and a directory. Never paste access tokens or passwords into the prompt. Authenticate through the team's approved method.
+Always provide an explicit local directory. Phrases such as "download it to the project folder" or "put it on the desktop" do not give AI enough information to avoid overwriting existing work.
 
-If a directory already exists, check which project owns it. Do not treat a colleague's folder as your fork or erase existing files to start again.
+## Check the result
 
-`origin` names your remote fork; `upstream` names the source of shared updates. A remote name does not prove that its URL is correct: check the actual owner and repository.
+Do not accept only "the service is healthy," an HTTP 200 response, or a Storybook URL. The completion report should include:
 
-## Verify the setup
+| Check | Expected result |
+| --- | --- |
+| GitHub | Current account, fork URL, and confirmation that the fork comes from the correct main project |
+| Local copy | Full new directory path, starting commit, and uncommitted-change status |
+| Remotes | `origin` points to your fork and `upstream` points to `divikwu/yami-design-system` |
+| Generation | `pnpm generate` succeeds without deleting the lockfile to bypass an error |
+| Storybook | Actual listener address and the command to start it later |
+| Browser | A specific YAMI Story is open, its preview content renders, and no error prevents use |
 
-Ask your collaborator to summarize these read-only checks. Do not post terminal records containing credentials in team conversations:
+Also confirm that the Storybook listener belongs to the newly cloned directory rather than another working copy. To start it again later, run this command from the repository root:
 
 ```bash
-git status --short --branch
-git remote -v
-git rev-parse HEAD
+pnpm dev:storybook
 ```
 
-You should have the correct folder, no unexplained changes, the correct remote addresses, and a recorded starting commit SHA.
+These results prove only that the environment is usable. They do not mean the code has been reviewed, committed, merged, or published.
 
-If existing work appears, confirm who owns it and how it will be preserved. Do not switch or overwrite branches before resolving that question.
+## Troubleshooting and next steps
 
-Completing this page does not mean the app runs or that shared previews are available. Follow [Prepare your environment](/en/docs/prepare-environment) for installation and startup.
+- **The fork already exists**: reuse it and verify its upstream instead of creating another one.
+- **The destination directory exists**: stop and report the path; do not overwrite, empty, or silently choose another directory.
+- **Permissions or dependencies fail**: preserve the original error and check the account, repository policy, and the project's Node.js, pnpm, and lockfile requirements.
+- **The port is occupied**: identify which directory owns the process before acting; do not stop another task's service.
+- **The page is blank or components do not render**: inspect the Storybook preview, asset requests, and browser console instead of treating HTTP 200 as completion.
 
-## When something goes wrong
-
-- **You can read upstream but cannot fork it**: ask the administrator to check policy and the target owner; do not change access settings yourself.
-- **The fork exists but no files are on your computer**: clone it into an independent folder.
-- **origin points upstream**: pause pushes and have your collaborator verify and correct the remote configuration.
-- **A colleague cannot access the fork**: ask the administrator to check authorization; preview access is a separate check.
-- **You need to change accounts or leave the team**: arrange handoff and local data handling with the owner; remote access changes do not automatically clean your computer.
-
-## Next step
-
-Continue to [Prepare your environment](/en/docs/prepare-environment), or [Start and manage a task](/en/docs/manage-tasks) if your environment is ready.
+Next, read [Storybook basics](/en/docs/getting-started), then [explore components and pages](/en/docs/browse-components). When you are ready to create a component or page, [start creating](/en/docs/prepare-environment) and choose the matching path.

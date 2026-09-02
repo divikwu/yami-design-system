@@ -10,11 +10,6 @@
   display: none;
 }
 
-.contentShell {
-  min-width: 0;
-  width: 100%;
-}
-
 .article {
   min-width: 0;
   width: 100%;
@@ -25,13 +20,15 @@
 }
 
 .articleHeader h1 {
+  font-family: var(--font-family-serif);
   font-size: var(--font-size-heading-4xl);
+  font-weight: var(--font-weight-normal);
   line-height: var(--line-height-heading-4xl);
 }
 
 .articleHeader {
   display: grid;
-  padding-bottom: var(--space-200);
+  padding-bottom: var(--space-300);
   gap: var(--space-150);
 }
 
@@ -248,7 +245,7 @@
 }
 
 /* The reference introduces its left rail independently of the right TOC. */
-@media (min-width: 1024px) {
+@media (min-width: 769px) {
   .layout {
     width: 100%;
     padding: var(--space-150) 0 var(--space-1000);
@@ -266,27 +263,27 @@
     background: var(--surface-primary);
   }
 
-  .contentShell {
-    grid-column: 2;
-  }
-
   .article {
+    grid-column: 2;
     box-sizing: border-box;
     margin-top: calc(var(--space-600) + var(--space-150));
     padding-inline: var(--space-300);
   }
 
   .toc {
+    grid-column: 4;
     box-sizing: border-box;
     margin-top: calc(var(--space-400) + var(--space-050));
+    padding-inline-start: var(--space-400);
   }
 
   .sidebar > nav {
-    position: sticky;
+    position: fixed;
     top: var(--docsite-header-height-desktop);
+    inset-inline-start: 0;
     display: block;
     box-sizing: border-box;
-    width: 100%;
+    width: calc(var(--space-1000) * 3 + var(--space-250));
     height: calc(100dvh - var(--docsite-header-height-desktop));
     max-height: calc(100dvh - var(--docsite-header-height-desktop));
     padding: var(--space-100);
@@ -295,33 +292,22 @@
 
 }
 
-@media (min-width: 1280px) {
+@media (min-width: 1025px) {
   .layout {
+    /* Center the capped article and TOC together, after the fixed sidebar. */
     grid-template-columns:
       calc(var(--space-1000) * 3 + var(--space-250))
+      minmax(0, 1fr)
+      minmax(0, calc(var(--space-1000) * 10))
+      calc(var(--space-1000) * 3 + var(--space-300))
       minmax(0, 1fr);
   }
 
-  .contentShell {
-    display: flex;
-    width: 100%;
-    max-width: calc(var(--space-1000) * 13 + var(--space-300));
-    margin-inline: auto;
-    align-items: flex-start;
-    gap: var(--space-400);
-  }
-
   .article {
-    width: auto;
-    margin-inline: 0;
-    flex: 1 1 auto;
+    grid-column: 3;
     margin-top: calc(var(--space-400) + var(--space-050));
   }
   .breadcrumbs { display: flex; }
   .articleHeader { border-bottom: var(--stroke-default) solid var(--divider-default); }
-  .toc {
-    display: block;
-    width: calc(var(--space-1000) * 3 - var(--space-100));
-    flex: 0 0 calc(var(--space-1000) * 3 - var(--space-100));
-  }
+  .toc { display: block; }
 }

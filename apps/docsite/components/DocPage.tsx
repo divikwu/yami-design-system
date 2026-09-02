@@ -52,60 +52,59 @@ export function DocPage({
           <DocsSidebarNav label={copy.docs.label} groups={copy.docs.groups} items={navItems} />
         </aside>
 
-        <div className={styles.contentShell}>
-          <article className={styles.article}>
-            <header className={styles.articleHeader}>
-              <nav className={styles.breadcrumbs} aria-label="Breadcrumb">
-                <Link href={localizedPath(locale, "/docs/getting-started")}>{copy.nav.docs}</Link>
-                <span aria-hidden="true">/</span>
-                <span aria-current="page">{document.frontmatter.title}</span>
-              </nav>
-              <h1>{document.frontmatter.title}</h1>
-              <p>{document.frontmatter.description}</p>
-            </header>
-
-            <DocsMobileControls
-              headings={document.headings}
-              copy={{ onThisPage: copy.docs.onThisPage }}
-            />
-
-            <MarkdownContent markdown={document.content} locale={locale} headings={document.headings} />
-
-            <section className={styles.sources} aria-labelledby="source-references">
-              <h2 id="source-references">{locale === "zh" ? "事实来源" : "Source References"}</h2>
-              <ul>
-                {document.frontmatter.sourceRefs.map((source) => (
-                  <li key={source}>
-                    <a href={`${githubUrl}/blob/main/${source}`} target="_blank" rel="noreferrer">{source}</a>
-                  </li>
-                ))}
-              </ul>
-            </section>
-
-            <time className={styles.updatedAt} dateTime={document.frontmatter.updatedAt}>
-              {copy.docs.updated} {formatDate(document.frontmatter.updatedAt, locale)}
-            </time>
-
-            <nav className={styles.pagination} aria-label={locale === "zh" ? "文档翻页" : "Documentation Pagination"}>
-              {previous ? (
-                <Link href={localizedPath(locale, `/docs/${previous.frontmatter.slug}`)} rel="prev">
-                  <span>{copy.docs.previous}</span>
-                  <strong>{previous.frontmatter.title}</strong>
-                </Link>
-              ) : null}
-              {next ? (
-                <Link href={localizedPath(locale, `/docs/${next.frontmatter.slug}`)} rel="next">
-                  <span>{copy.docs.next}</span>
-                  <strong>{next.frontmatter.title}</strong>
-                </Link>
-              ) : null}
+        <article className={styles.article}>
+          <header className={styles.articleHeader}>
+            <nav className={styles.breadcrumbs} aria-label="Breadcrumb">
+              <Link href={localizedPath(locale, "/docs/getting-started")}>{copy.nav.docs}</Link>
+              <span aria-hidden="true">/</span>
+              <span aria-current="page">{document.frontmatter.title}</span>
             </nav>
-          </article>
+            <h1>{document.frontmatter.title}</h1>
+            <p>{document.frontmatter.description}</p>
+          </header>
 
-          <aside className={styles.toc} aria-label={copy.docs.onThisPage}>
-            <TableOfContents headings={document.headings} label={copy.docs.onThisPage} />
-          </aside>
-        </div>
+          <DocsMobileControls
+            headings={document.headings}
+            copy={{ onThisPage: copy.docs.onThisPage }}
+          />
+
+          <MarkdownContent markdown={document.content} locale={locale} headings={document.headings} />
+
+          <section className={styles.sources} aria-labelledby="source-references">
+            <h2 id="source-references">{locale === "zh" ? "事实来源" : "Source References"}</h2>
+            <ul>
+              {document.frontmatter.sourceRefs.map((source) => (
+                <li key={source}>
+                  <a href={`${githubUrl}/blob/main/${source}`} target="_blank" rel="noreferrer">{source}</a>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <time className={styles.updatedAt} dateTime={document.frontmatter.updatedAt}>
+            {copy.docs.updated} {formatDate(document.frontmatter.updatedAt, locale)}
+          </time>
+
+          <nav className={styles.pagination} aria-label={locale === "zh" ? "文档翻页" : "Documentation Pagination"}>
+            {previous ? (
+              <Link href={localizedPath(locale, `/docs/${previous.frontmatter.slug}`)} rel="prev">
+                <span>{copy.docs.previous}</span>
+                <strong>{previous.frontmatter.title}</strong>
+              </Link>
+            ) : null}
+            {next ? (
+              <Link href={localizedPath(locale, `/docs/${next.frontmatter.slug}`)} rel="next">
+                <span>{copy.docs.next}</span>
+                <strong>{next.frontmatter.title}</strong>
+              </Link>
+            ) : null}
+          </nav>
+
+        </article>
+
+        <aside className={styles.toc} aria-label={copy.docs.onThisPage}>
+          <TableOfContents headings={document.headings} label={copy.docs.onThisPage} />
+        </aside>
       </div>
     </main>
   );

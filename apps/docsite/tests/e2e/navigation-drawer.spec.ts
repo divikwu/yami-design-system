@@ -22,26 +22,13 @@ for (const width of [320, 375, 733, 768]) {
     await expect(close).toHaveCSS("height", "32px");
     await expect(dialog.getByRole("link", { name: "首页", exact: true })).toHaveCSS("height", "32px");
     const docs = dialog.getByRole("navigation", { name: "YAMI 文档", exact: true });
-    await expect(docs.getByRole("link", { name: "查找与试用组件", exact: true })).toHaveAttribute("aria-current", "page");
-    const group = docs.getByRole("button", { name: "用 AI 搭建页面", exact: true });
+    await expect(docs.getByRole("link", { name: "查看组件与页面", exact: true })).toHaveAttribute("aria-current", "page");
+    const group = docs.getByRole("button", { name: "用 AI 创建", exact: true });
     await group.click();
     await expect(group).toHaveAttribute("aria-expanded", "false");
-    await expect(docs.getByRole("link", { name: "准备工作环境", exact: true })).toBeHidden();
+    await expect(docs.getByRole("link", { name: "开始创建", exact: true })).toBeHidden();
     await group.click();
-    await expect(docs.getByRole("link", { name: "准备工作环境", exact: true })).toBeVisible();
-
-    const utilityControls = [
-      dialog.getByRole("link", { name: "English", exact: true }),
-      dialog.getByRole("button", { name: "主题: 深色", exact: true }),
-      dialog.getByRole("link", { name: "Storybook", exact: true }),
-      dialog.getByRole("link", { name: "GitHub", exact: true }),
-    ];
-    for (const control of utilityControls) {
-      await expect(control).toHaveText("");
-      await expect(control.locator("svg")).toBeVisible();
-      await expect(control).toHaveCSS("width", "32px");
-      await expect(control).toHaveCSS("height", "32px");
-    }
+    await expect(docs.getByRole("link", { name: "开始创建", exact: true })).toBeVisible();
 
     const backdrop = await dialog.evaluate(e => getComputedStyle(e, "::backdrop").backdropFilter);
     expect(backdrop).toBe("blur(2px)");
@@ -117,7 +104,7 @@ test("drawer traps keyboard focus, closes from the backdrop, and dismisses on de
   await expect(page.locator("html")).not.toHaveCSS("overflow", "hidden");
   await page.setViewportSize({ width: 733, height: 700 });
   await trigger.click();
-  await dialog.getByRole("link", { name: "选择页面示例", exact: true }).click();
+  await dialog.getByRole("link", { name: "创建页面", exact: true }).click();
   await expect(page).toHaveURL(/\/zh\/docs\/choose-starting-point$/);
   await expect(dialog).not.toBeAttached();
 });

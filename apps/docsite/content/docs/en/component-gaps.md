@@ -88,4 +88,4 @@ The output is an agreed problem record, not a promise that a new component must 
 
 ## Next step
 
-Once the direction is agreed, continue to [Extend or create components](/en/docs/create-components). Use [Task and prompt templates](/en/docs/templates) to prepare your request.
+Once the direction is agreed, continue to [Create a component](/en/docs/create-components). Use the prompts in [Start creating](/en/docs/prepare-environment) to prepare the request.

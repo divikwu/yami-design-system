@@ -1,11 +1,11 @@
 ---
 slug: choose-starting-point
-title: Choose a page example
-description: "Find the closest maintained example before deciding whether to change content, compose modules, or request a component extension."
+title: Create a page
+description: "Use the page goal and available references to reuse the closest maintained example or compose a new page from existing components."
 group: ai
-order: 45
+order: 50
 keywords: ["Page examples","Reuse","Prototypes","Landing page"]
-updatedAt: "2026-08-31"
+updatedAt: "2026-09-02"
 sourceRefs:
   - packages/prototypes/pages/EcommerceHome/EcommerceHome.stories.tsx
   - packages/prototypes/pages/SearchResultsPage/SearchResultsPage.stories.tsx
@@ -13,7 +13,67 @@ sourceRefs:
   - packages/design-system/SKILL.md
 ---
 
-For teammates who have a page goal and are ready to brief AI. Start with a requirement, screenshot, or reference page. Explain what the user needs to accomplish rather than only asking for visual similarity.
+Use this workflow when the page goal is clear and the task is ready for AI implementation. First check whether a page reference exists, then use the matching prompt and define the structure, content ownership, reuse scope, and acceptance requirements.
+
+## Check the available references
+
+| Available input | Page starting point |
+| --- | --- |
+| A close YAMI Page Story | Reuse its structure, types, and public components; replace content in the task's own Story and fixture |
+| Component references only | List page modules from the user task, then compose the smallest page from existing components |
+| A design, screenshot, or webpage | Separate structure, content, components, responsive behavior, and interaction; do not treat visual similarity as the full requirement |
+| No page or component reference | Start from the user task and content hierarchy, search YAMI Pages and Components, then propose a new structure |
+
+Always state what the user needs to accomplish. A reference determines where to begin; it does not replace real content, interaction, or acceptance criteria.
+
+## Copy a page prompt
+
+### With a page reference
+
+```text
+Create an independent page version in the current YAMI project.
+
+Page goal: <task the page needs to support>
+Target users: <people who will ultimately use the page>
+Page reference: <Page Story, design, screenshot, or approved webpage>
+Content and assets: <bilingual copy, products, images, data, and sources>
+Preserve: <reference structure, components, or interactions>
+Change: <specific changes for this page>
+Required interactions: <buttons, links, filters, dialogs, or submission results>
+Acceptance criteria: <locales, themes, viewports, states, and interactions to verify>
+Optional context: <asset permissions, data version, and out-of-scope items; use “to confirm” when unknown>
+
+Inspect the closest pages and components. Explain what can be reused directly,
+what belongs in the page, and what requires a new capability before creating it.
+Handle only this requirement. Do not overwrite defaults or change unrelated files.
+For an external reference, use only approved structure, content, and assets.
+
+Verify the real page and primary interactions in Storybook.
+Report how the reference was used, changed files, Story URL,
+verification results, and open issues. Do not commit, push, or publish.
+```
+
+### Without a page reference
+
+```text
+Create a page in the current YAMI project.
+
+Page goal: <task the page needs to support>
+Target users: <people who will ultimately use the page>
+Content and assets: <bilingual copy, products, images, data, and sources>
+Required interactions: <buttons, links, filters, dialogs, or submission results>
+Acceptance criteria: <locales, themes, viewports, states, and interactions to verify>
+Optional context: <asset permissions, data version, and out-of-scope items; use “to confirm” when unknown>
+
+Search the existing pages and components and list the closest starting points.
+Reuse a suitable structure; propose the smallest new page structure only when none fits.
+Handle only this requirement. Do not change unrelated files or invent prices,
+inventory, claims, or missing business rules.
+
+Verify real content, responsive behavior, and primary interactions in Storybook.
+Report the selected page structure, component list, changed files, Story URL,
+verification results, and open questions. Do not commit, push, or publish.
+```
 
 ## Find the closest page
 
@@ -45,23 +105,21 @@ For example, a page may supply product data and handlers to ProductCard. It shou
 
 Keep project-specific work in your Fork. Once an improvement is reusable across tasks and has usage guidance and verification, propose a focused PR through [Contribute upstream](/en/docs/contribute-upstream).
 
-## Write a page brief
+## Continue refining a page
 
-Use this outline before starting:
+Use this prompt when an existing page needs another revision:
 
 ```text
-Target user and task:
-Reference: Specific Storybook URL or screenshot
-Structure to preserve:
-Content to change:
-Required interactions:
-Languages and viewport range:
-Asset sources, usage permissions, and data version:
-Out of scope:
-Reviewer and acceptance criteria:
-```
+Continue refining the current page.
 
-Mark unknowns as “needs confirmation.” Do not let AI invent prices, product claims, licensing information, or button behavior the page cannot deliver.
+Change: <specific content, layout, or interaction>
+Preserve: <structure, content, and behavior that must remain unchanged>
+Acceptance criteria: <locales, themes, viewports, states, and interactions to recheck>
+
+Confirm the change scope first. Handle only this revision and do not change unrelated files.
+Recheck the page in Storybook, then report changed files, the Story URL, verification results, and open issues.
+Do not commit, push, or publish.
+```
 
 ## Check that the starting point fits
 
@@ -69,6 +127,17 @@ Open the reference at your target viewport and follow its main path. Can its str
 
 When uncertain, ask AI to separate “reuse directly / implement in the page / confirm with a maintainer” before proceeding. More generated files are not a substitute for this decision.
 
+## Check the page result
+
+Confirm that AI reports:
+
+1. Which Pages, Components, Stories, and rules it inspected.
+2. Why it reused a page, recomposed one, or created a new page structure.
+3. Which Stories, fixtures, assets, and implementation files changed, and whether shared components were affected.
+4. Which page Story was actually opened in Storybook.
+5. Which locales, themes, viewports, states, and primary interactions were checked.
+6. Which commands passed, were skipped, or failed, plus remaining questions.
+
 ## Next step
 
-With a brief ready, go to [Build your first page](/en/docs/first-page). If setup is incomplete, [prepare your environment](/en/docs/prepare-environment) first. For a genuine missing capability, [report a component gap](/en/docs/component-gaps).
+After completing the page, continue to [Check the page](/en/docs/review-checklist). If the task type or prompt is still unclear, return to [Start creating](/en/docs/prepare-environment). For a genuine missing capability, [report a component gap](/en/docs/component-gaps).

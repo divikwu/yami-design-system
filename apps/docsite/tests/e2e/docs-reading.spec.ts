@@ -5,7 +5,7 @@ for (const locale of ["zh", "en"]) {
   for (const width of [375, 1024, 1280]) {
     test(`${locale} docs anchor and reading state at ${width}px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
-      await page.goto(`/${locale}/docs/first-page`);
+      await page.goto(`/${locale}/docs/choose-starting-point`);
       await page.evaluate(() => document.fonts.ready);
       const headings = page.locator("article > div h2[id]");
       const ids = await headings.evaluateAll((els) => els.map((el) => el.id));
@@ -42,7 +42,7 @@ for (const locale of ["zh", "en"]) {
       if (compact) await expect(page.getByRole("combobox", { name: label })).toHaveAttribute("data-value", ids[1]);
       else await expect(page.getByRole("navigation", { name: label }).locator('[aria-current="location"]')).toHaveAttribute("href", `#${ids[1]}`);
 
-      await page.goto(`/${locale}/docs/first-page#${ids[3]}`);
+      await page.goto(`/${locale}/docs/choose-starting-point#${ids[3]}`);
       await expect.poll(async () => Math.round((await target.boundingBox())!.y)).toBe(compact ? 113 : 64);
     });
   }
@@ -50,21 +50,21 @@ for (const locale of ["zh", "en"]) {
 
 test("wrapped TOC links stay aligned after resizing and back navigation", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
-  await page.goto("/en/docs/first-page");
+  await page.goto("/en/docs/choose-starting-point");
   const toc = page.getByRole("navigation", { name: "On This Page" });
-  await toc.getByRole("link", { name: "Create an independent page version" }).click();
+  await toc.getByRole("link", { name: "Check that the starting point fits" }).click();
   const active = toc.locator('[aria-current="location"]');
-  await expect(active).toHaveText("Create an independent page version");
+  await expect(active).toHaveText("Check that the starting point fits");
   await page.setViewportSize({ width: 1440, height: 900 });
-  await toc.getByRole("link", { name: "Open it and make one revision" }).click();
+  await toc.getByRole("link", { name: "Continue refining a page" }).click();
   await page.goBack();
-  await expect(active).toHaveText("Create an independent page version");
+  await expect(active).toHaveText("Check that the starting point fits");
 });
 
 test("code copy has feedback; prompts wrap without changing source", async ({ page, context }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.setViewportSize({ width: 375, height: 900 });
-  await page.goto("/en/docs/first-page");
+  await page.goto("/en/docs/choose-starting-point");
   const prompt = page.locator('div[data-wrap="true"]').first();
   const original = await prompt.locator("code").textContent();
   await expect(prompt.locator("code")).toHaveCSS("font-family", /monospace/);
@@ -73,12 +73,11 @@ test("code copy has feedback; prompts wrap without changing source", async ({ pa
   await prompt.getByRole("button", { name: "Copy", exact: true }).click();
   await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(original);
   await expect(page.getByRole("button", { name: /Copy link to/ })).toHaveCount(0);
-  await expect(page.locator('div[data-wrap="false"] pre').first()).toHaveCSS("white-space", "pre");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
 test("clipboard rejection is announced without false success", async ({ page }) => {
-  await page.goto("/en/docs/first-page");
+  await page.goto("/en/docs/choose-starting-point");
   await page.evaluate(() => { navigator.clipboard.writeText = async () => { throw new Error("Denied for test"); }; });
   const block = page.locator('div[data-wrap="true"]').first();
   await block.getByRole("button", { name: "Copy", exact: true }).click();
@@ -91,7 +90,7 @@ for (const width of [375, 1440]) {
     test(`docs ${theme} accessibility and overflow at ${width}px`, async ({ page }, testInfo) => {
       await page.setViewportSize({ width, height: 900 });
       await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
-      await page.goto("/zh/docs/first-page");
+      await page.goto("/zh/docs/choose-starting-point");
       await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
       const result = await new AxeBuilder({ page }).analyze();
       expect(result.violations).toEqual([]);

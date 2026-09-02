@@ -2795,10 +2795,6 @@
           "motion": {
             "ruleId": "elevation-on-press",
             "note": "Paging respects prefers-reduced-motion and does not animate card geometry."
-          },
-          "gradient": {
-            "ruleId": "no-gradient",
-            "note": "The 24px gradient is a functional Figma-specified artwork-to-campaign-surface transition using the sampled bottom-edge image color."
           }
         },
         "tokens": [
@@ -4814,8 +4810,8 @@
         "name": "ShortcutRail",
         "category": "navigation",
         "status": "stable",
-        "version": "0.2.0",
-        "description": "Responsive YAMI shortcut navigation rail with circular image icons, localized labels, native scrolling, overflow-aware paging controls, optional card or plain section surfaces, and an optional left-aligned titled gray treatment.",
+        "version": "0.3.0",
+        "description": "Responsive YAMI shortcut navigation with compact circular entries, an optional desktop image-card presentation, localized labels, native scrolling, overflow-aware paging controls, and card or plain section surfaces.",
         "figma": {
           "nodeId": null,
           "componentKey": null,
@@ -4824,6 +4820,7 @@
         "exports": [
           "ShortcutRail",
           "ShortcutRailItem",
+          "ShortcutRailPresentation",
           "ShortcutRailProps",
           "ShortcutRailSurface"
         ],
@@ -4841,6 +4838,12 @@
             "required": false,
             "default": "plain",
             "description": "Section surface. Card uses the shared homepage inset, surface radius, compact padding, and primary background without a border or shadow; plain spans the available width."
+          },
+          "presentation": {
+            "type": "\"compact\" | \"image-card\"",
+            "required": false,
+            "default": "compact",
+            "description": "Visual treatment. Image card presents up to six PC entries as equal-width 4:3 scene tiles with naturally sized white labels over a 60% black translucent image scrim, capped at two lines. Larger PC sets fall back to compact circular entries. Below 1024px it retains the current compact rail treatment regardless of item count."
           },
           "title": {
             "type": "ReactNode",
@@ -4900,10 +4903,6 @@
           "motion": {
             "ruleId": "elevation-on-press",
             "note": "Native rail paging respects prefers-reduced-motion."
-          },
-          "gradient": {
-            "ruleId": "no-gradient",
-            "note": "The white-to-transparent edge mask is a functional overflow affordance matching the existing Header category rail."
           }
         },
         "tokens": [
@@ -4923,11 +4922,11 @@
           "--font-weight-semibold",
           "--font-size-caption-sm",
           "--font-size-caption-md",
-          "--font-size-heading-xl",
+          "--font-size-heading-sm",
           "--font-size-heading-2xl",
           "--line-height-caption-sm",
           "--line-height-caption-md",
-          "--line-height-heading-xl",
+          "--line-height-heading-sm",
           "--line-height-heading-2xl",
           "--layout-page-margin-default",
           "--layout-page-margin-card",
@@ -5099,10 +5098,6 @@
           "radius": {
             "ruleId": "no-custom-radii",
             "note": "Gallery, video cards, product images, and account marks consume semantic radius tokens."
-          },
-          "gradient": {
-            "ruleId": "no-gradient",
-            "note": "Media gradients are functional contrast layers from the Figma video-card specification."
           },
           "motion": {
             "ruleId": "elevation-on-press",
@@ -5557,38 +5552,85 @@
         "name": "Tag",
         "category": "display",
         "status": "experimental",
-        "version": "0.2.0",
-        "description": "Static 28px full-pill label for short descriptive keywords, with translucent filled and transparent 1px-outline dark and light tones.",
+        "version": "0.4.0",
+        "description": "Static responsive full-pill label with M and L sizes, optional leading artwork, independent content or overlay context, light or dark surface mode, and filled or outline variant.",
         "figma": {
           "nodeId": null,
           "componentKey": null,
           "notes": "Code-defined informational tag. It is distinct from the smaller status and promotion Badge component."
         },
         "variants": {
-          "tone": [
-            "dark",
+          "context": [
+            "content",
+            "overlay"
+          ],
+          "mode": [
             "light",
-            "dark-outline",
-            "light-outline"
+            "dark"
+          ],
+          "size": [
+            "m",
+            "l"
+          ],
+          "variant": [
+            "filled",
+            "outline"
           ]
         },
         "exports": [
           "Tag",
+          "TagContext",
+          "TagImage",
+          "TagMode",
           "TagProps",
-          "TagTone"
+          "TagSize",
+          "TagVariant"
         ],
         "props": {
-          "tone": {
+          "context": {
             "type": "enum",
             "values": [
-              "dark",
-              "light",
-              "dark-outline",
-              "light-outline"
+              "content",
+              "overlay"
             ],
             "required": false,
-            "default": "dark",
-            "description": "dark/light use translucent fills; dark-outline/light-outline use a transparent background with a 1px black or white stroke."
+            "default": "content",
+            "description": "Placement context: ordinary content or a visual background such as imagery or color."
+          },
+          "mode": {
+            "type": "enum",
+            "values": [
+              "light",
+              "dark"
+            ],
+            "required": false,
+            "default": "light",
+            "description": "Mode of the underlying surface. Light mode uses a dark Tag; dark mode uses a light Tag."
+          },
+          "size": {
+            "type": "enum",
+            "values": [
+              "m",
+              "l"
+            ],
+            "required": false,
+            "default": "m",
+            "description": "Responsive size. M is 28px on mobile and PC; L is 32px on mobile and 36px on PC."
+          },
+          "variant": {
+            "type": "enum",
+            "values": [
+              "filled",
+              "outline"
+            ],
+            "required": false,
+            "default": "filled",
+            "description": "Filled container or transparent container with a 1px current-color stroke."
+          },
+          "image": {
+            "type": "TagImage",
+            "required": false,
+            "description": "Optional leading artwork with an ImageSource and alt text. Use an empty alt when the artwork repeats the visible label."
           },
           "children": {
             "type": "ReactNode",
@@ -5603,52 +5645,75 @@
           },
           "radius": {
             "ruleId": "no-custom-radii",
-            "note": "Uses --radius-full; do not override the pill geometry."
+            "note": "Uses --radius-button-primary; do not override the pill geometry."
           },
-          "contrast": {
+          "context-and-mode": {
             "ruleId": "semantic-color-only",
-            "note": "Choose dark variants for light or mixed backgrounds and light variants for dark backgrounds. Outline tones rely directly on the underlying surface."
+            "note": "Use content for ordinary surfaces and overlay for visual backgrounds. Choose light mode on light surfaces and dark mode on dark surfaces."
+          },
+          "responsive-size": {
+            "ruleId": "responsive-size",
+            "note": "M remains 28px across breakpoints. At 1024px, L steps from 32px to 36px. The optional image slot remains 4px smaller than the Tag and its artwork remains 8px smaller."
           }
         },
         "tokens": [
-          "--color-black-600",
+          "--color-black-900",
           "--color-black-1000",
-          "--color-white-700",
+          "--color-black-100",
+          "--color-black-200",
+          "--color-white-200",
           "--color-white-1000",
           "--font-family-ios",
           "--font-size-body-md",
           "--font-weight-normal",
           "--line-height-body-md",
+          "--radius-button-primary",
           "--radius-full",
+          "--space-025",
           "--space-050",
+          "--space-200",
           "--space-150",
           "--space-300",
+          "--space-400",
+          "--surface-primary",
           "--stroke-default"
         ],
         "tokenBindings": {
-          "--color-black-600": {
+          "--color-black-100": {
             "property": "background-color",
-            "selector": ".tag[data-tone='dark']"
+            "selector": ".tag[data-variant='filled'][data-mode='light']"
           },
           "--color-white-1000": {
             "property": "color / border-color",
-            "selector": ".tag[data-tone='dark'], .tag[data-tone='light-outline']"
+            "selector": ".tag[data-mode='dark']"
           },
-          "--color-white-700": {
-            "property": "background-color",
-            "selector": ".tag[data-tone='light']"
+          "--color-white-200": {
+            "property": "background-color / border-color",
+            "selector": ".tag[data-variant='filled'][data-mode='dark'], .tag[data-variant='outline'][data-mode='dark']"
+          },
+          "--color-black-200": {
+            "property": "border-color",
+            "selector": ".tag[data-variant='outline'][data-mode='light']"
+          },
+          "--color-black-900": {
+            "property": "color",
+            "selector": ".tag[data-variant='filled'][data-mode='light']"
           },
           "--color-black-1000": {
             "property": "color / border-color",
-            "selector": ".tag[data-tone='light'], .tag[data-tone='dark-outline']"
+            "selector": ".tag[data-mode='light']"
           },
-          "--radius-full": {
+          "--radius-button-primary": {
             "property": "border-radius",
             "selector": ".tag"
           },
           "--space-150": {
             "property": "padding-inline",
             "selector": ".tag"
+          },
+          "--surface-primary": {
+            "property": "background-color",
+            "selector": ".image"
           },
           "--stroke-default": {
             "property": "border-width",
@@ -5661,7 +5726,7 @@
           "tapTargetMin": 0,
           "keyboardNav": [],
           "ariaPattern": "plain text",
-          "notes": "Non-interactive content. Keep labels concise and select the tone that contrasts with the rendered background; outline variants have no contrast-providing fill."
+          "notes": "Non-interactive content. Keep labels concise and select the mode that suits the rendered background; outline variants have no contrast-providing fill."
         },
         "dependencies": {
           "runtime": [
@@ -5674,10 +5739,11 @@
         },
         "usageRef": "./usage.md",
         "examples": [
-          "./examples.tsx#DarkTagExample",
-          "./examples.tsx#LightTagExample",
-          "./examples.tsx#DarkOutlineTagExample",
-          "./examples.tsx#LightOutlineTagExample"
+          "./examples.tsx#ContentFilledTagExample",
+          "./examples.tsx#ContentOutlineTagExample",
+          "./examples.tsx#ImageTagExample",
+          "./examples.tsx#OverlayFilledTagExample",
+          "./examples.tsx#OverlayOutlineTagExample"
         ]
       }
     },

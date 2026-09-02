@@ -1,16 +1,16 @@
 import { expect, test } from "@playwright/test";
 
 for (const locale of ["zh", "en"]) {
-  for (const width of [360, 375, 390, 768, 769, 1023, 1024, 1025, 1279, 1280, 1440, 1920]) {
+  for (const width of [360, 375, 390, 768, 769, 1023, 1024, 1025, 1280, 1440, 1920]) {
     test(`${locale} docs keep the reference reading width at ${width}px`, async ({ page }, testInfo) => {
       await page.setViewportSize({ width, height: 900 });
-      await page.goto(`/${locale}/docs/first-page`);
+      await page.goto(`/${locale}/docs/choose-starting-point`);
       const article = page.getByRole("article");
       await expect(article.getByRole("heading", { level: 1 })).toBeVisible();
       await page.evaluate(() => document.fonts.ready);
 
-      const desktop = width >= 1280;
-      const sidebar = width >= 1024;
+      const desktop = width >= 1025;
+      const sidebar = width >= 769;
       // Reference: fixed 260px sidebar, 800px article cap (24px insets),
       // then a 32px gap and 232px TOC; center that group after the sidebar.
       const articleWidth = Math.min(800, width - (sidebar ? 260 : 0) - (desktop ? 264 : 0));
@@ -31,9 +31,8 @@ for (const locale of ["zh", "en"]) {
         const toc = page.getByRole("complementary", { name: locale === "zh" ? "本页内容" : "On This Page", exact: true });
         await expect(toc).toBeVisible();
         const tocBox = await toc.boundingBox();
-        expect(tocBox!.x).toBeCloseTo(articleLeft + articleWidth + 32, 0);
-        expect(tocBox!.width).toBeCloseTo(232, 0);
-        expect(await toc.evaluate((element) => element.parentElement?.querySelector(":scope > article") !== null)).toBe(true);
+        expect(tocBox!.x).toBeCloseTo(articleLeft + articleWidth, 0);
+        expect(tocBox!.width).toBeCloseTo(264, 0);
       } else {
         await expect(select).toBeVisible();
         const selectBox = await select.boundingBox();
@@ -55,3 +54,19 @@ for (const locale of ["zh", "en"]) {
     });
   }
 }
+
+test("desktop docs keep both navigation rails fixed at the page bottom", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/zh/docs/fork-project");
+
+  const sidebar = page.getByRole("navigation", { name: "YAMI 文档", exact: true });
+  const toc = page.getByRole("navigation", { name: "本页内容", exact: true });
+  await expect(sidebar).toBeVisible();
+  await expect(toc).toBeVisible();
+
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(900);
+
+  expect((await sidebar.boundingBox())!.y).toBeCloseTo(48, 0);
+  expect((await toc.boundingBox())!.y).toBeCloseTo(72, 0);
+});

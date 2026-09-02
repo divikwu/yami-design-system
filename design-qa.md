@@ -231,3 +231,204 @@ No actionable P0, P1, or P2 differences remain for the requested structural chan
 No P3 follow-up is required for the requested scope.
 
 final result: passed
+
+---
+
+# Shortcut Rail PC image-card design QA
+
+- Source visual truth: `/Users/divikwu/.codex/visualizations/2026/09/02/01a06227-eaa1-7363-9849-f7df70b1169d/category-module-audit/01-figma-reference.png`
+- Storybook implementation: `http://127.0.0.1:6006/iframe.html?id=yami-pages-topic-landing-page-topic--pc-image-card-categories&viewMode=story&globals=locale%3Aen`
+- Focused implementation evidence: `/Users/divikwu/.codex/visualizations/2026/09/02/01a06227-eaa1-7363-9849-f7df70b1169d/category-module-audit/31-storybook-image-card-row-gap-24-focus.jpg`
+- Combined comparison: `/Users/divikwu/.codex/visualizations/2026/09/02/01a06227-eaa1-7363-9849-f7df70b1169d/category-module-audit/32-reference-vs-storybook-row-gap-24.jpg`
+- Mobile implementation evidence: `/Users/divikwu/.codex/visualizations/2026/09/02/01a06227-eaa1-7363-9849-f7df70b1169d/category-module-audit/33-storybook-mobile-image-card-64.png`
+- PC minimum-width evidence: `/Users/divikwu/.codex/visualizations/2026/09/02/01a06227-eaa1-7363-9849-f7df70b1169d/category-module-audit/34-storybook-pc-image-card-min-width-160.png`
+- PC six-item evidence: `/Users/divikwu/.codex/visualizations/2026/09/02/01a06227-eaa1-7363-9849-f7df70b1169d/category-module-audit/35-storybook-pc-six-image-cards.png`
+- PC six-item paging and mask evidence: `/Users/divikwu/.codex/visualizations/2026/09/02/01a06227-eaa1-7363-9849-f7df70b1169d/category-module-audit/39-storybook-pc-six-image-card-mask-layer.png`
+- PC six-item centered-control evidence: `/Users/divikwu/.codex/visualizations/2026/09/02/01a06227-eaa1-7363-9849-f7df70b1169d/category-module-audit/40-storybook-pc-six-image-card-control-centered.png`
+- PC seven-item fallback evidence: `/Users/divikwu/.codex/visualizations/2026/09/02/01a06227-eaa1-7363-9849-f7df70b1169d/category-module-audit/36-storybook-pc-seven-compact-entries.png`
+- Viewport and state: desktop, `1455 x 1257` CSS px, light theme, English locale, five categories
+- Intentional source change: the image remains in the shortened `4:3` frame with its square source centered vertically. The section title keeps the existing Topic page typography.
+
+## Findings
+
+No actionable P0, P1, or P2 differences remain for the requested variant.
+
+- Typography: category labels render over the lower image edge at `16px / 20px`, weight `400`, left aligned, and size naturally to one or two lines.
+- Spacing and layout: the title-to-card row gap is `24px`; the five items use the first five tracks of a six-column `1344px` grid. Each visible frame is approximately `211 x 158px` at a `4:3` ratio with a `16px` column gap and `8px` radius, leaving one intentional track after the final entry.
+- Colors and tokens: the titled module keeps the existing `--surface-secondary` light-gray background. Every image uses white label text over a fixed 60% black translucent `64px` masked scrim with `16px` backdrop blur.
+- Image and asset fidelity: the first five existing Matcha category scene assets are reused as approximately `211 x 211px` square images, vertically centered behind the approximately `211 x 158px` visible frame; no placeholders or generated substitutes were introduced.
+- Copy and content: the localized category labels remain sourced from the existing Topic fixture.
+
+## Interaction and runtime evidence
+
+- The full tile remains the link target.
+- The five-item row has zero horizontal overflow, so edge navigation controls are absent.
+- Keyboard focus renders a `2px` solid semantic outline with a `4px` offset.
+- Focused Storybook interaction tests passed: `13/13` across the Shortcut Rail and Topic page stories, including the five-, six-, seven-, and Mobile seven-item boundaries.
+- Browser console errors and warnings: none.
+
+## Comparison history
+
+- Pass 1 used five equal tracks with `256px` imagery; user feedback identified the module as too large.
+- Pass 2 moved to six-column sizing at approximately `211px`; user requested one more reduction.
+- Pass 3 uses seven-column sizing at approximately `178px` with `18px / 24px` labels. The normalized comparison now closely matches the source card scale while preserving the requested below-image labels.
+- Pass 4 changes only the category-label typography to `16px / 20px` at weight `400`, following the final annotation; card geometry and spacing remain unchanged.
+- Pass 5 restores the titled Shortcut Rail's existing light-gray surface for the image-card presentation; card and label geometry remain unchanged.
+- Pass 6 changes the PC grid to six equal columns and lowers the image height to a `4:3` ratio. At the verified viewport each tile renders at approximately `211 x 158px`; gray surface and `16px / 20px / 400` labels remain unchanged.
+- Pass 7 explicitly centers each covered image within its `4:3` frame using `object-position: 50% 50%`; frame geometry and surrounding layout remain unchanged.
+- Pass 8 fixes the crop implementation itself: the inner image previously remained approximately `211 x 211px` and was clipped from the top; it now absolutely fills the approximately `211 x 158px` frame, so `object-fit: cover` and `object-position: 50% 50%` produce a true centered crop.
+- Pass 9 follows the clarified geometry: the inner image is restored to approximately `211 x 211px` (`1:1`) while its vertical center is aligned to the approximately `211 x 158px` frame center, producing equal top and bottom clipping.
+- Pass 10 removes the image-card label's fixed two-line height. Current one-line labels render at `20px` high, while the shared clamp still allows longer labels to grow naturally to two lines.
+- Pass 11 moves the desktop image-card labels onto the lower image edge and reuses the existing `AdaptiveImageScrim` treatment from ThemeProductList. Labels remain adaptive up to two lines; the below-image label stays available only for the compact mobile presentation.
+- Pass 12 completes the ThemeProductList behavior rather than only its CSS: every category image now samples its own bottom color, feeds that color into the shared scrim, and switches between dark and light label text through the same `heroBannerPalette` calculation.
+- Pass 13 replaces the adaptive color sampling with the final fixed treatment: every label is white and every image uses the shared scrim's default 80% black-to-transparent gradient.
+- Pass 14 lowers only the Shortcut Rail image-card scrim from the shared 80% default to 60%; ThemeProductList and other consumers retain 80%.
+- Pass 15 reduces the overlaid label's inline and bottom padding from 16px to 8px while retaining the 32px top fade space.
+- Pass 16 increases only the PC image-card title-to-card row gap from 16px to 24px using `--space-300`; compact and mobile presentations remain unchanged.
+- Pass 17 increases only the Mobile image-card fallback artwork from 56px to 64px using `--space-800`; its 68px item width, below-image label, native scrolling, and hidden paging controls remain unchanged. The standard compact presentation stays at 56px.
+- Pass 18 gives PC image-card entries a 160px minimum width while retaining one-sixth fluid sizing above that floor. At the 1024px desktop boundary, five 160px entries and four 16px gaps fit within the 928px content area without overflow or paging controls.
+- Pass 19 makes the image-card presentation count-aware on PC only: one to six entries use the large 4:3 treatment, while seven or more fall back to the original compact circular rail. Mobile keeps its current 68px item and 64px image geometry at every item count.
+- Pass 20 restores the shared Shortcut Rail horizontal paging behavior when six 160px-minimum cards overflow at the 1024px PC boundary. The full-height 128px edge mask now sits above the label scrim (`z-index: 3` over `2`), so its fade covers the complete card height instead of leaving the dark lower scrim visible. Wide PC, the seven-item compact fallback, and Mobile remain unchanged.
+- Pass 21 vertically centers the PC image-card paging control against the complete `4:3` rail height instead of retaining the compact 80px-icon offset. Browser geometry confirms a `0px` center delta; compact PC and Mobile alignment remain unchanged.
+- Pass 22 increases only the seven-or-more PC image-card fallback from `80 x 80px` to `96 x 96px` for visual comparison. The standard homepage Shortcut Rail remains `80px`, while Mobile remains `64px`.
+
+## Final result
+
+passed
+# Blog related-documents Astryx style QA
+
+## Comparison target
+
+- Source visual truth: `/Users/divikwu/.codex/visualizations/2026/09/01/01a05a4b-6c49-7fa1-9562-0928563efcfb/blog-related-audit/01-astryx-related-reference.png`
+- Browser-rendered implementation: `/Users/divikwu/.codex/visualizations/2026/09/01/01a05a4b-6c49-7fa1-9562-0928563efcfb/blog-related-audit/02-yami-related-after.png`
+- Responsive implementation evidence: `/Users/divikwu/.codex/visualizations/2026/09/01/01a05a4b-6c49-7fa1-9562-0928563efcfb/blog-related-audit/03-yami-related-mobile.png`
+- Combined comparison: `/Users/divikwu/.codex/visualizations/2026/09/01/01a05a4b-6c49-7fa1-9562-0928563efcfb/blog-related-audit/04-related-comparison.png`
+
+## Viewport and normalization
+
+- Source and desktop implementation: `1448 x 1257` CSS px and image pixels, light theme, device density `1`.
+- Mobile implementation: `375 x 812` CSS px and image pixels, light theme, device density `1`.
+- Both desktop captures place the article-end related section in the same viewport state. No density normalization was required.
+
+## Full-view and focused comparison evidence
+
+- The combined comparison verifies the shared `752px` content track, leading divider, section title, two-column link grid, muted filled link surfaces, compact arrow affordances, and footer transition.
+- Runtime measurements verify `372px + 8px + 372px` desktop columns and `48px` link rows. At `375px`, links become one `343px` column with no horizontal overflow.
+
+## Findings
+
+No actionable P0, P1, or P2 differences remain for the requested related-document style.
+
+- Fonts and typography: link titles use YAMI's existing `16px` body tier. The section heading intentionally retains YAMI's `20/28px` article hierarchy rather than copying Astryx's `29/36px` display size.
+- Spacing and layout rhythm: the divider, `24px` section gaps, `8px` card gap, two-column desktop grid, single-column mobile grid, and compact link height match the reference structure. YAMI's `12px` surface radius is intentionally retained instead of Astryx's `16px` radius.
+- Colors and visual tokens: link backgrounds, text, hover feedback, and divider use existing semantic YAMI tokens.
+- Image quality and asset fidelity: this section contains no raster assets. The shipped Hugeicons arrow is used; no custom SVG, text glyph, or CSS drawing was introduced.
+- Copy and content: the three existing localized related documents are preserved; only their presentation changed. The separate previous/next Blog navigation was removed at the user's request.
+
+## Interaction and runtime evidence
+
+- The first related-document link navigated to `/zh/docs/getting-started` successfully.
+- Blog pagination count: `0`.
+- Browser console errors: `0`.
+- `pnpm validate`: passed, including lint, content checks, workspace type checks, generated and boundary checks, and all package tests.
+
+## Comparison history
+
+1. Initial YAMI implementation used three full-width editorial rows with descriptions and no directional affordance; a separate next-article card remained below them.
+2. Fix applied: changed related documents to compact muted cards with title and arrow, two desktop columns and one mobile column, and removed Blog previous/next navigation.
+3. Post-fix desktop and mobile evidence shows the reference structure with YAMI tokens and no remaining P0/P1/P2 issue.
+
+final result: passed
+
+---
+
+# Blog detail Astryx layout QA
+
+## Comparison target
+
+- Source visual truth: `/Users/divikwu/.codex/visualizations/2026/09/01/01a05a4b-6c49-7fa1-9562-0928563efcfb/blog-detail-audit/01-astryx-detail-viewport.png`
+- Browser-rendered implementation: `/Users/divikwu/.codex/visualizations/2026/09/01/01a05a4b-6c49-7fa1-9562-0928563efcfb/blog-detail-audit/13-yami-detail-after-desktop.png`
+- Responsive implementation evidence: `/Users/divikwu/.codex/visualizations/2026/09/01/01a05a4b-6c49-7fa1-9562-0928563efcfb/blog-detail-audit/14-yami-detail-after-mobile.png`
+- Combined comparison: `/Users/divikwu/.codex/visualizations/2026/09/01/01a05a4b-6c49-7fa1-9562-0928563efcfb/blog-detail-audit/15-detail-after-comparison.png`
+
+## Viewport and normalization
+
+- Source and desktop implementation: `1448 x 1257` CSS px and `1448 x 1257` image pixels, light theme, device density `1`.
+- Mobile implementation: `375 x 812` CSS px and `375 x 812` image pixels, light theme, device density `1`.
+- Both desktop captures use the first Blog article detail state and the same viewport. No density or crop normalization was needed before the side-by-side comparison.
+
+## Full-view and focused comparison evidence
+
+- The combined comparison verifies the shared centered `752px` article track, header-to-cover sequence, metadata divider, `752 x 423px` 16:9 cover geometry, and editorial body flow.
+- Runtime focused checks verify an `18/24px` description, `20/28px` article h2 with `32px` top and `12px` bottom margins, and `44 x 44px` heading-link controls. The breadcrumb link also has a `44px` target height.
+- At `375px`, the cover is `343 x 192.94px`, the document width remains `375px`, and there is no horizontal overflow.
+
+## Findings
+
+No actionable P0, P1, or P2 differences remain for the requested Blog detail scope.
+
+- Fonts and typography: YAMI's existing `40/48px` article title and `16/28px` Chinese body are intentionally retained. The description now provides a clearer `18/24px` lead, and article h2 headings use the existing `20/28px` tier for a denser editorial rhythm.
+- Spacing and layout rhythm: the duplicate category label is removed, the header closes with a semantic divider, the empty cover remains 16:9, and related documents are compact separated link rows rather than stacked filled cards.
+- Colors and visual tokens: all surfaces, dividers, text colors, hover states, and radii use existing YAMI semantic tokens.
+- Image quality and asset fidelity: the cover intentionally remains empty at the user's request. No generated, substituted, or code-drawn artwork was introduced.
+- Copy and content: the Chinese and English introductions now state the reader payoff and the concrete rule-to-verification path while preserving equivalent structure. Publisher identity remains omitted.
+- Accessibility: the breadcrumb landmark is localized, the active category is announced once, and breadcrumb and heading-copy interactions meet the `44px` target size.
+
+## Interaction and runtime evidence
+
+- The heading copy-link control was exercised in the in-app browser and remained operable.
+- Browser console errors: none; only React DevTools and HMR development informational messages were present.
+- `pnpm validate`: passed, including lint, localized content checks, all workspace type checks, generated-file and boundary checks, and all package tests.
+
+## Comparison history
+
+1. Initial evidence showed a duplicated category label, undersized lead text, loose `24/32px` article h2 headings, heavy related-document cards, and 20–32px interactive targets.
+2. Fix applied: removed the duplicate category, added the header divider, promoted the lead to `18/24px`, set article h2 headings to `20/28px` with tighter margins, converted related documents to separated editorial rows, expanded targets to `44px`, and rewrote the bilingual opening around reader payoff and evidence flow.
+3. Post-fix desktop and mobile evidence shows the source-aligned composition, preserved empty-cover requirement, no overflow, and no remaining P0/P1/P2 issue.
+
+final result: passed
+
+---
+
+# Blog index Astryx layout QA
+
+## Comparison target
+
+- Source visual truth: `/Users/divikwu/.codex/visualizations/2026/09/01/01a05a4b-6c49-7fa1-9562-0928563efcfb/blog-reference/astryx-blog-1448.png`
+- Browser-rendered implementation: `/Users/divikwu/.codex/visualizations/2026/09/01/01a05a4b-6c49-7fa1-9562-0928563efcfb/blog-reference/yami-blog-final-1448.png`
+- Combined comparison: `/Users/divikwu/.codex/visualizations/2026/09/01/01a05a4b-6c49-7fa1-9562-0928563efcfb/blog-reference/blog-comparison-1448.png`
+
+## Viewport and normalization
+
+- Source and implementation: `1448 x 1257` CSS px and `1448 x 1257` image pixels, light theme, device density `1`.
+- Both captures use the Blog index, default `All/全部` filter, and the same browser viewport. No density or crop normalization was needed before the side-by-side comparison.
+
+## Full-view and focused comparison evidence
+
+- The combined comparison verifies the centered `752px` content track, `752 x 423px` featured cover, two `366 x 206px` secondary covers, centered filter row, vertical featured article, and two-column secondary grid.
+- A separate focused crop was unnecessary because runtime geometry and the full-size combined image make the selected Tab, type hierarchy, cover radii, and metadata legible.
+
+## Findings
+
+No actionable P0, P1, or P2 differences remain for the requested Blog index scope.
+
+- Fonts and typography: YAMI type tokens remain in use; the featured title is visually stronger than secondary titles, and descriptions and metadata retain the reference hierarchy.
+- Spacing and layout rhythm: content width, cover sizes, grid tracks, and primary vertical positions match the source. YAMI's existing `12px` surface radius is intentionally retained.
+- Colors and visual tokens: YAMI semantic foreground, background, focus, and active Tab tokens remain unchanged.
+- Image quality and asset fidelity: cover areas intentionally remain empty at the user's request. No generated or substitute artwork was added.
+- Copy and content: YAMI localized copy is preserved. Publisher avatar and name are intentionally removed; date and reading time remain.
+- Responsiveness and accessibility: at `375 x 812`, covers remain `16:9`, the list becomes one column, the Tab retains its native `48px` touch target, and document width remains `375px` with no horizontal overflow.
+
+## Interaction and runtime evidence
+
+- Category Tab filtering and Blog article navigation passed in the focused Playwright suite.
+- TypeScript check passed; focused Docsite Blog suite passed `5/5`.
+- Browser console errors: none; only development HMR and React DevTools informational messages were present.
+
+## Comparison history
+
+1. Initial layout used a wide horizontal featured card, oversized content track, non-reference cover sizes, category overlays, and publisher identity.
+2. First fix established the source layout and exact cover dimensions, removed publisher identity, and kept covers empty. The selected Tab then exposed a P2 compressed active background because the component's outer height had been overridden.
+3. Final fix restored the native `48px` Tab trigger and its `36px` rendered active background while reducing the following section gap. Post-fix evidence keeps the featured cover at `y = 264px` and found no remaining P0/P1/P2 issue.
+
+final result: passed

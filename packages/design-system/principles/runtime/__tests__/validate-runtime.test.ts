@@ -91,7 +91,7 @@ describe('validateRuntime (integration)', () => {
   })
 
   it('registers 13 runtime validators', () => {
-    expect(runtimeValidators.length).toBe(13)
+    expect(runtimeValidators.length).toBe(12)
   })
 
   it('reports timing information', () => {

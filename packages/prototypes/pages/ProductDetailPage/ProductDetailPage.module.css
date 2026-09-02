@@ -634,7 +634,7 @@
   }
 }
 
-.purchaseTags [data-slot="tag"] {
+.purchaseTags [data-slot="tag"][data-variant="outline"] {
   height: var(--space-400);
   color: var(--text-emphasis);
   border-width: var(--stroke-thick);

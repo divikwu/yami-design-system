@@ -1,7 +1,12 @@
 import type { CSSProperties, ReactNode } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Tag } from "./Tag";
+import { Tag, type TagContext, type TagMode } from "./Tag";
+
+const matchaImage = new URL(
+  "../Header/assets/search-suggestions/matcha.png",
+  import.meta.url,
+).href;
 
 const meta = {
   title: "YAMI/Components/Data Display/Tag",
@@ -11,19 +16,34 @@ const meta = {
     docs: {
       description: {
         component:
-          "A static 28px pill for short descriptive keywords, with translucent filled and transparent 1px-outline treatments for opposite-polarity backgrounds.",
+          "A static responsive pill with M and L sizes, optional leading artwork, independent placement context, light or dark surface mode, and filled or outline treatment.",
       },
     },
   },
   argTypes: {
-    tone: {
+    context: {
       control: "inline-radio",
-      options: ["dark", "light", "dark-outline", "light-outline"],
+      options: ["content", "overlay"],
+    },
+    mode: {
+      control: "inline-radio",
+      options: ["light", "dark"],
+    },
+    size: {
+      control: "inline-radio",
+      options: ["m", "l"],
+    },
+    variant: {
+      control: "inline-radio",
+      options: ["filled", "outline"],
     },
   },
   args: {
     children: "Gentle Daily Formulas",
-    tone: "dark",
+    context: "content",
+    mode: "light",
+    size: "m",
+    variant: "filled",
   },
 } satisfies Meta<typeof Tag>;
 
@@ -40,9 +60,22 @@ const showcaseStyle: CSSProperties = {
 const panelStyle: CSSProperties = {
   display: "flex",
   alignItems: "center",
+  gap: "var(--space-150)",
+  flexWrap: "wrap",
   minHeight: "96px",
   padding: "var(--space-300)",
   borderRadius: "var(--radius-surface-default)",
+};
+
+const backgrounds: Record<TagContext, Record<TagMode, string>> = {
+  content: {
+    light: "var(--color-neutral-50)",
+    dark: "var(--color-black-900)",
+  },
+  overlay: {
+    light: "var(--color-neutral-50)",
+    dark: "var(--color-black-900)",
+  },
 };
 
 function Panel({
@@ -69,79 +102,180 @@ function Panel({
   );
 }
 
+function Variants({ context, mode }: { context: TagContext; mode: TagMode }) {
+  return (
+    <div
+      data-showcase-context={context}
+      data-showcase-mode={mode}
+      style={{ display: "flex", gap: "var(--space-150)" }}
+    >
+      <Tag context={context} mode={mode} variant="filled">
+        Filled
+      </Tag>
+      <Tag context={context} mode={mode} variant="outline">
+        Outline
+      </Tag>
+    </div>
+  );
+}
+
+function SizesAndImages() {
+  return (
+    <div
+      data-size-showcase
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "var(--space-150)",
+        flexWrap: "wrap",
+      }}
+    >
+      <Tag size="m">M</Tag>
+      <Tag size="m" image={{ src: matchaImage, alt: "" }}>
+        M · image
+      </Tag>
+      <Tag size="l">L</Tag>
+      <Tag size="l" image={{ src: matchaImage, alt: "" }}>
+        L · image
+      </Tag>
+    </div>
+  );
+}
+
 export const Showcase: Story = {
   parameters: { layout: "padded" },
-  render: () => (
+  render: (args) => (
     <div style={showcaseStyle}>
       <Panel
-        label="Dark translucent tone · light or mixed background"
-        background="var(--surface-secondary)"
+        label="Selected configuration"
+        background={backgrounds[args.context][args.mode]}
       >
-        <Tag tone="dark">Heartleaf Botanical</Tag>
+        <Tag {...args} />
       </Panel>
       <Panel
-        label="Light translucent tone · dark background"
-        background="var(--color-black-900)"
+        label="Responsive sizes · optional image"
+        background={backgrounds.content.light}
       >
-        <Tag tone="light">Targeted Active Care</Tag>
+        <SizesAndImages />
       </Panel>
-      <Panel
-        label="Dark 1px outline · light background"
-        background="var(--surface-primary)"
-      >
-        <Tag tone="dark-outline">Gentle Daily Formulas</Tag>
+      <Panel label="Content · light mode" background={backgrounds.content.light}>
+        <Variants context="content" mode="light" />
       </Panel>
-      <Panel
-        label="Light 1px outline · dark background"
-        background="var(--color-black-900)"
-      >
-        <Tag tone="light-outline">Barrier Support</Tag>
+      <Panel label="Content · dark mode" background={backgrounds.content.dark}>
+        <Variants context="content" mode="dark" />
+      </Panel>
+      <Panel label="Overlay · light mode" background={backgrounds.overlay.light}>
+        <Variants context="overlay" mode="light" />
+      </Panel>
+      <Panel label="Overlay · dark mode" background={backgrounds.overlay.dark}>
+        <Variants context="overlay" mode="dark" />
       </Panel>
     </div>
   ),
   play: async ({ canvasElement }) => {
     const tags = Array.from(
-      canvasElement.querySelectorAll<HTMLElement>('[data-slot="tag"]'),
-    );
-    const darkTag = tags.find((tag) => tag.dataset.tone === "dark");
-    const lightTag = tags.find((tag) => tag.dataset.tone === "light");
-    const darkOutlineTag = tags.find(
-      (tag) => tag.dataset.tone === "dark-outline",
-    );
-    const lightOutlineTag = tags.find(
-      (tag) => tag.dataset.tone === "light-outline",
+      canvasElement.querySelectorAll<HTMLElement>(
+        "[data-showcase-context] [data-slot='tag']",
+      ),
     );
 
-    if (!darkTag || !lightTag || !darkOutlineTag || !lightOutlineTag) {
-      throw new Error("Tag Showcase must render all four tones");
+    if (tags.length !== 8) {
+      throw new Error("Tag Showcase must render all eight configurations");
     }
 
+    const isPc = window.matchMedia("(min-width: 1024px)").matches;
     for (const tag of tags) {
       const style = getComputedStyle(tag);
-      if (style.height !== "28px" || style.borderRadius !== "9999px") {
-        throw new Error("Tag must use the 28px full-pill size contract");
+      const expectedHeight = "28px";
+      if (style.height !== expectedHeight || style.borderRadius !== "9999px") {
+        throw new Error("Tag M must use the responsive full-pill size contract");
       }
     }
 
-    if (
-      getComputedStyle(darkTag).backgroundColor !== "rgba(0, 0, 0, 0.55)" ||
-      getComputedStyle(lightTag).backgroundColor !==
-        "rgba(255, 255, 255, 0.68)"
-    ) {
-      throw new Error("Tag tones must retain their token-backed transparency");
+    const sizeTags = Array.from(
+      canvasElement.querySelectorAll<HTMLElement>(
+        "[data-size-showcase] [data-slot='tag']",
+      ),
+    );
+    if (sizeTags.length !== 4) {
+      throw new Error("Tag Showcase must render M and L with and without images");
     }
 
-    for (const tag of [darkOutlineTag, lightOutlineTag]) {
-      const style = getComputedStyle(tag);
+    for (const tag of sizeTags) {
+      const size = tag.dataset.size;
+      const expectedHeight =
+        size === "l" ? (isPc ? "36px" : "32px") : "28px";
+      if (getComputedStyle(tag).height !== expectedHeight) {
+        throw new Error(`Tag ${size} must use its responsive height contract`);
+      }
+
+      const imageSlot = tag.querySelector<HTMLElement>(
+        "[data-slot='tag-image']",
+      );
+      if (!imageSlot) continue;
+      const image = imageSlot.querySelector<HTMLImageElement>("img");
+      const slotSize = `${Number.parseInt(expectedHeight, 10) - 4}px`;
+      const imageSize = `${Number.parseInt(expectedHeight, 10) - 8}px`;
       if (
-        style.backgroundColor !== "rgba(0, 0, 0, 0)" ||
-        style.borderTopWidth !== "1px" ||
-        style.borderTopStyle !== "solid" ||
-        style.borderTopColor !== style.color
+        !image ||
+        getComputedStyle(imageSlot).width !== slotSize ||
+        getComputedStyle(imageSlot).height !== slotSize ||
+        getComputedStyle(image).width !== imageSize ||
+        getComputedStyle(image).height !== imageSize ||
+        getComputedStyle(tag).paddingLeft !== "2px" ||
+        getComputedStyle(tag).paddingRight !== "12px"
       ) {
-        throw new Error(
-          "Outline Tag tones must use a transparent surface and 1px currentColor stroke",
+        throw new Error("Image Tags must match the Search image geometry");
+      }
+    }
+
+    for (const context of ["content", "overlay"] as const) {
+      for (const mode of ["light", "dark"] as const) {
+        const matches = tags.filter(
+          (tag) =>
+            tag.dataset.context === context && tag.dataset.mode === mode,
         );
+        const filledTag = matches.find(
+          (tag) => tag.dataset.variant === "filled",
+        );
+        const outlineTag = matches.find(
+          (tag) => tag.dataset.variant === "outline",
+        );
+
+        if (!filledTag || !outlineTag) {
+          throw new Error(`Tag Showcase is missing ${context} ${mode}`);
+        }
+
+        const expectedFill = {
+          content: {
+            light: "rgba(0, 0, 0, 0.04)",
+            dark: "rgba(255, 255, 255, 0.08)",
+          },
+          overlay: {
+            light: "rgba(0, 0, 0, 0.04)",
+            dark: "rgba(255, 255, 255, 0.08)",
+          },
+        }[context][mode];
+
+        if (getComputedStyle(filledTag).backgroundColor !== expectedFill) {
+          throw new Error(`Tag must use the correct ${context} fill`);
+        }
+
+        const outlineStyle = getComputedStyle(outlineTag);
+        const expectedOutline =
+          mode === "light"
+            ? "rgba(0, 0, 0, 0.08)"
+            : "rgba(255, 255, 255, 0.08)";
+        if (
+          outlineStyle.backgroundColor !== "rgba(0, 0, 0, 0)" ||
+          outlineStyle.borderTopWidth !== "1px" ||
+          outlineStyle.borderTopStyle !== "solid" ||
+          outlineStyle.borderTopColor !== expectedOutline
+        ) {
+          throw new Error(
+            "Outline Tags must use a transparent surface and subtle stroke",
+          );
+        }
       }
     }
   },
