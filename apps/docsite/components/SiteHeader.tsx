@@ -127,6 +127,9 @@ export function SiteHeader({ locale, copy, searchEntries, docNavigation }: SiteH
         data-surface={isHome ? (homeSurfaceMode ? "page" : "hero") : undefined}
         data-testid="site-header"
       >
+        <a className="skip-link" href="#main-content">
+          {locale === "zh" ? "跳至正文" : "Skip to Content"}
+        </a>
         <div className={styles.inner}>
           <Link className={styles.brand} href={localizedPath(locale)} aria-label="YAMI Design System">
             <img className={styles.brandMark} src={brandIcon} alt="" />
