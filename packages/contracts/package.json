@@ -9,6 +9,6 @@
     "test": "vitest run",
     "build": "tsc -p tsconfig.json"
   },
-  "dependencies": { "zod": "4.4.3" },
+  "dependencies": { "zod": "4.5.4" },
   "devDependencies": { "typescript": "6.0.3", "vitest": "4.1.10" }
 }
