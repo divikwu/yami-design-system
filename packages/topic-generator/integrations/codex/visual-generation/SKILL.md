@@ -82,7 +82,18 @@ For each task:
    referenced product that appears, reproduce visible packaging text, brand identity, layout, colors,
    silhouette, closure, and material as faithfully as the image model allows. Never simplify it into blank
    or generic packaging. Do not require one-to-one placement, and do not copy source-image
-   backdrops, discs, white canvases, or studio props as part of a product.
+   backdrops, discs, white canvases, or studio props as part of a product. For a BrandProductRail
+   `scene-first` / `reference-only` task, attach up to three available product images assigned to the
+   exact brand binding as optional visual references. Packaging and logos are permitted but optional;
+   do not require either to appear. Product-led banners with recognizable packaging, logo-led scenes,
+   and atmosphere-led banners without packaging or a logo are all valid when supported by the brief.
+   For every referenced product or package that appears, preserve visible packaging and brand identity
+   as faithfully as the image model allows. A logo or wordmark visibly supported by an attached
+   reference may appear clearly, but never invent, approximate, or alter a missing brand asset. Keep
+   visible brand assets recognizable in the wide crop and clear of the component's lower title overlay.
+   Never borrow a product or visual identity from another brand binding. When no referenced asset
+   appears, keep the scene category-relevant and do not infer a distinct visual identity from the brand
+   name or product mix alone.
 3. Build art direction only from its ThemeIntent evidence, selected categories, assigned products,
    scene, and accepted content task. Product image URLs are visual references, not permission to
    infer ingredients, benefits, popularity, ratings, inventory, discounts, or customer outcomes.
@@ -103,7 +114,9 @@ For each task:
    extract product pixels, composite source layers, enforce product count, or fall back to source-image compositing. Attach the
    representative product image to a product-first Shortcut task when it exists and generate one product-led
    lifestyle scene. Exact SKU identity and packaging reproduction are not acceptance
-   requirements. For `source-product-images`, preserve the assigned Yami
+   requirements. For a BrandProductRail task, attach up to three available same-brand product images
+   to the same generation request as optional visual references. Do not force packaging, a logo, or
+   exact reference coverage into the result. For `source-product-images`, preserve the assigned Yami
    product images and return only the explicit draft reference composition.
 6. Treat `compositionGuidance` as a preference, not a hard crop. When present, favor its subject
    area and lower-area usage unless the scene clearly benefits from a different composition.
@@ -119,6 +132,10 @@ For each task:
    missing products, product count, packaging differences, or which references were used. Packaging fidelity is strong
    generation guidance even though it is not a rejection gate. For other scene-first tasks, likewise
    accept any saved decodable image; container choice and packaging-like props are review signals only.
+   For BrandProductRail banners, likewise accept any saved decodable image; whether packaging or a
+   supported logo appears, reference coverage, brand-asset fidelity, wide-crop safety, and composition
+   remain review signals. Unsupported or cross-brand assets remain prohibited generation direction,
+   not permission to fabricate a replacement.
    For product-first Shortcuts, likewise accept any saved decodable image;
    product identity, placement, packaging, and circular-crop safety remain review signals; packaging fidelity is strong
    generation guidance even though a saved decodable image is accepted.
