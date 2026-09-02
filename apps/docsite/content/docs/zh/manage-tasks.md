@@ -19,7 +19,7 @@ sourceRefs:
 
 ## 开始前
 
-- 已完成[创建自己的 Fork](/zh/docs/fork-project)和[准备环境](/zh/docs/prepare-environment)。
+- 已完成[快速开始](/zh/docs/fork-project)和[准备环境](/zh/docs/prepare-environment)。
 - 已找到[最接近的页面示例](/zh/docs/choose-starting-point)。
 - 已确认需求负责人、素材来源和本次允许修改的范围。
 - 知道自己的项目目录，没有与另一位同事共用正在编辑的工作副本。
@@ -89,4 +89,4 @@ SHA 是某次 Git 提交的唯一标识，用来说明“这一版代码是哪�
 
 ## 下一步
 
-继续[第一个页面实操](/zh/docs/first-page)，或在自检后进入[共享预览与评审](/zh/docs/review-preview)。
+继续[创建页面](/zh/docs/choose-starting-point)，或在自检后进入[共享预览与评审](/zh/docs/review-preview)。

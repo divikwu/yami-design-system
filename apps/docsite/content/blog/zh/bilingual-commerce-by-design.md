@@ -6,7 +6,7 @@ date: "2026-08-29"
 category: design
 authors: ["YAMI Design System Team"]
 tags: ["Bilingual", "Content", "Typography", "Accessibility"]
-relatedDocs: ["edit-pages", "browse-components", "review-checklist"]
+relatedDocs: ["choose-starting-point", "browse-components", "review-checklist"]
 coverAlt: "YAMI Design System 标识与 Design 分类"
 draft: true
 ---

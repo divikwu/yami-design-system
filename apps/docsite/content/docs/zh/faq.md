@@ -24,7 +24,7 @@ sourceRefs:
 
 通常意味着对应地址没有服务在监听，也可能是端口或主机地址不一致。确认终端仍在运行正确应用，并使用终端实际输出的地址。
 
-在仓库根目录使用 `pnpm dev:storybook` 启动 Storybook，文档站使用 `pnpm dev:docsite`。它们是不同服务；文档站可以打开，不代表 Storybook 已启动。启动要求见[准备工作环境](/zh/docs/prepare-environment)。
+在仓库根目录使用 `pnpm dev:storybook` 启动 Storybook，文档站使用 `pnpm dev:docsite`。它们是不同服务；文档站可以打开，不代表 Storybook 已启动。首次安装与启动见[快速开始](/zh/docs/fork-project)。
 
 端口被占用时先确认占用者，不要让 AI 批量结束 Node 进程。服务启动后，还要检查页面真实渲染和浏览器错误，不能只看 HTTP 状态。
 
@@ -36,7 +36,7 @@ sourceRefs:
 
 ## Controls 的改动为什么没有保存
 
-Controls 只改变示例的当前参数，并不把修改写回业务页面。需要保留时，让 AI 在自己的任务 Story 或数据文件中保存配置，具体见[调整页面与内容](/zh/docs/edit-pages)。
+Controls 只改变示例的当前参数，并不把修改写回业务页面。需要保留时，让 AI 在自己的任务 Story 或数据文件中保存配置，具体见[继续调整页面](/zh/docs/choose-starting-point#continue-refining-a-page)。
 
 Canvas 的本地草稿也不是团队云端协作记录。需要共享时，保存约定的文件、代码版本和评审材料；不要把本机浏览器中的状态当作同事可以恢复的版本。
 
@@ -56,7 +56,7 @@ Canvas 的本地草稿也不是团队云端协作记录。需要共享时，保�
 
 当前入门路径是获取仓库 Fork，使用 monorepo 中的 workspace 源码包。不要把 `@yami/design-system` 当作已经公开发布的 npm 包安装，也不要把 Registry 元数据当作已经配置好的远程安装服务。
 
-按[创建自己的 Fork](/zh/docs/fork-project)和[准备工作环境](/zh/docs/prepare-environment)操作即可。需要独立仓库消费发布包时，先与维护者确认分发方式和兼容性约定。
+按[快速开始](/zh/docs/fork-project)建立自己的工作副本即可。需要独立仓库消费发布包时，先与维护者确认分发方式和兼容性约定。
 
 ## 检查通过、PR 合并后就上线了吗
 

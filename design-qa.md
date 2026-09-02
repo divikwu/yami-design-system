@@ -231,3 +231,67 @@ No actionable P0, P1, or P2 differences remain for the requested structural chan
 No P3 follow-up is required for the requested scope.
 
 final result: passed
+
+---
+
+# Shortcut Rail PC image-card design QA
+
+- Source visual truth: `/Users/divikwu/.codex/visualizations/2026/09/02/01a06227-eaa1-7363-9849-f7df70b1169d/category-module-audit/01-figma-reference.png`
+- Storybook implementation: `http://127.0.0.1:6006/iframe.html?id=yami-pages-topic-landing-page-topic--pc-image-card-categories&viewMode=story&globals=locale%3Aen`
+- Focused implementation evidence: `/Users/divikwu/.codex/visualizations/2026/09/02/01a06227-eaa1-7363-9849-f7df70b1169d/category-module-audit/31-storybook-image-card-row-gap-24-focus.jpg`
+- Combined comparison: `/Users/divikwu/.codex/visualizations/2026/09/02/01a06227-eaa1-7363-9849-f7df70b1169d/category-module-audit/32-reference-vs-storybook-row-gap-24.jpg`
+- Mobile implementation evidence: `/Users/divikwu/.codex/visualizations/2026/09/02/01a06227-eaa1-7363-9849-f7df70b1169d/category-module-audit/33-storybook-mobile-image-card-64.png`
+- PC minimum-width evidence: `/Users/divikwu/.codex/visualizations/2026/09/02/01a06227-eaa1-7363-9849-f7df70b1169d/category-module-audit/34-storybook-pc-image-card-min-width-160.png`
+- PC six-item evidence: `/Users/divikwu/.codex/visualizations/2026/09/02/01a06227-eaa1-7363-9849-f7df70b1169d/category-module-audit/35-storybook-pc-six-image-cards.png`
+- PC six-item paging and mask evidence: `/Users/divikwu/.codex/visualizations/2026/09/02/01a06227-eaa1-7363-9849-f7df70b1169d/category-module-audit/39-storybook-pc-six-image-card-mask-layer.png`
+- PC six-item centered-control evidence: `/Users/divikwu/.codex/visualizations/2026/09/02/01a06227-eaa1-7363-9849-f7df70b1169d/category-module-audit/40-storybook-pc-six-image-card-control-centered.png`
+- PC seven-item fallback evidence: `/Users/divikwu/.codex/visualizations/2026/09/02/01a06227-eaa1-7363-9849-f7df70b1169d/category-module-audit/36-storybook-pc-seven-compact-entries.png`
+- Viewport and state: desktop, `1455 x 1257` CSS px, light theme, English locale, five categories
+- Intentional source change: the image remains in the shortened `4:3` frame with its square source centered vertically. The section title keeps the existing Topic page typography.
+
+## Findings
+
+No actionable P0, P1, or P2 differences remain for the requested variant.
+
+- Typography: category labels render over the lower image edge at `16px / 20px`, weight `400`, left aligned, and size naturally to one or two lines.
+- Spacing and layout: the title-to-card row gap is `24px`; the five items use the first five tracks of a six-column `1344px` grid. Each visible frame is approximately `211 x 158px` at a `4:3` ratio with a `16px` column gap and `8px` radius, leaving one intentional track after the final entry.
+- Colors and tokens: the titled module keeps the existing `--surface-secondary` light-gray background. Every image uses white label text over a fixed 60% black translucent `64px` masked scrim with `16px` backdrop blur.
+- Image and asset fidelity: the first five existing Matcha category scene assets are reused as approximately `211 x 211px` square images, vertically centered behind the approximately `211 x 158px` visible frame; no placeholders or generated substitutes were introduced.
+- Copy and content: the localized category labels remain sourced from the existing Topic fixture.
+
+## Interaction and runtime evidence
+
+- The full tile remains the link target.
+- The five-item row has zero horizontal overflow, so edge navigation controls are absent.
+- Keyboard focus renders a `2px` solid semantic outline with a `4px` offset.
+- Focused Storybook interaction tests passed: `13/13` across the Shortcut Rail and Topic page stories, including the five-, six-, seven-, and Mobile seven-item boundaries.
+- Browser console errors and warnings: none.
+
+## Comparison history
+
+- Pass 1 used five equal tracks with `256px` imagery; user feedback identified the module as too large.
+- Pass 2 moved to six-column sizing at approximately `211px`; user requested one more reduction.
+- Pass 3 uses seven-column sizing at approximately `178px` with `18px / 24px` labels. The normalized comparison now closely matches the source card scale while preserving the requested below-image labels.
+- Pass 4 changes only the category-label typography to `16px / 20px` at weight `400`, following the final annotation; card geometry and spacing remain unchanged.
+- Pass 5 restores the titled Shortcut Rail's existing light-gray surface for the image-card presentation; card and label geometry remain unchanged.
+- Pass 6 changes the PC grid to six equal columns and lowers the image height to a `4:3` ratio. At the verified viewport each tile renders at approximately `211 x 158px`; gray surface and `16px / 20px / 400` labels remain unchanged.
+- Pass 7 explicitly centers each covered image within its `4:3` frame using `object-position: 50% 50%`; frame geometry and surrounding layout remain unchanged.
+- Pass 8 fixes the crop implementation itself: the inner image previously remained approximately `211 x 211px` and was clipped from the top; it now absolutely fills the approximately `211 x 158px` frame, so `object-fit: cover` and `object-position: 50% 50%` produce a true centered crop.
+- Pass 9 follows the clarified geometry: the inner image is restored to approximately `211 x 211px` (`1:1`) while its vertical center is aligned to the approximately `211 x 158px` frame center, producing equal top and bottom clipping.
+- Pass 10 removes the image-card label's fixed two-line height. Current one-line labels render at `20px` high, while the shared clamp still allows longer labels to grow naturally to two lines.
+- Pass 11 moves the desktop image-card labels onto the lower image edge and reuses the existing `AdaptiveImageScrim` treatment from ThemeProductList. Labels remain adaptive up to two lines; the below-image label stays available only for the compact mobile presentation.
+- Pass 12 completes the ThemeProductList behavior rather than only its CSS: every category image now samples its own bottom color, feeds that color into the shared scrim, and switches between dark and light label text through the same `heroBannerPalette` calculation.
+- Pass 13 replaces the adaptive color sampling with the final fixed treatment: every label is white and every image uses the shared scrim's default 80% black-to-transparent gradient.
+- Pass 14 lowers only the Shortcut Rail image-card scrim from the shared 80% default to 60%; ThemeProductList and other consumers retain 80%.
+- Pass 15 reduces the overlaid label's inline and bottom padding from 16px to 8px while retaining the 32px top fade space.
+- Pass 16 increases only the PC image-card title-to-card row gap from 16px to 24px using `--space-300`; compact and mobile presentations remain unchanged.
+- Pass 17 increases only the Mobile image-card fallback artwork from 56px to 64px using `--space-800`; its 68px item width, below-image label, native scrolling, and hidden paging controls remain unchanged. The standard compact presentation stays at 56px.
+- Pass 18 gives PC image-card entries a 160px minimum width while retaining one-sixth fluid sizing above that floor. At the 1024px desktop boundary, five 160px entries and four 16px gaps fit within the 928px content area without overflow or paging controls.
+- Pass 19 makes the image-card presentation count-aware on PC only: one to six entries use the large 4:3 treatment, while seven or more fall back to the original compact circular rail. Mobile keeps its current 68px item and 64px image geometry at every item count.
+- Pass 20 restores the shared Shortcut Rail horizontal paging behavior when six 160px-minimum cards overflow at the 1024px PC boundary. The full-height 128px edge mask now sits above the label scrim (`z-index: 3` over `2`), so its fade covers the complete card height instead of leaving the dark lower scrim visible. Wide PC, the seven-item compact fallback, and Mobile remain unchanged.
+- Pass 21 vertically centers the PC image-card paging control against the complete `4:3` rail height instead of retaining the compact 80px-icon offset. Browser geometry confirms a `0px` center delta; compact PC and Mobile alignment remain unchanged.
+- Pass 22 increases only the seven-or-more PC image-card fallback from `80 x 80px` to `96 x 96px` for visual comparison. The standard homepage Shortcut Rail remains `80px`, while Mobile remains `64px`.
+
+## Final result
+
+passed

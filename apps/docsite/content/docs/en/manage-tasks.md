@@ -19,7 +19,7 @@ Task branches and independent directories isolate work; they are not an automati
 
 ## Before you start
 
-- You have [Created your fork](/en/docs/fork-project) and [Prepared your environment](/en/docs/prepare-environment).
+- You have completed [Getting Started](/en/docs/fork-project) and [Prepared your environment](/en/docs/prepare-environment).
 - You have found the [closest page example](/en/docs/choose-starting-point).
 - You have confirmed the requirements owner, asset sources, and allowed change scope.
 - You know your project directory and are not sharing an actively edited working copy with a colleague.
@@ -89,4 +89,4 @@ You should now know where the result is, which version can be reviewed, and what
 
 ## Next step
 
-Continue with [Your first page](/en/docs/first-page), or move to [Share a preview for review](/en/docs/review-preview) after completing self-checks.
+Continue with [Create a page](/en/docs/choose-starting-point), or move to [Share a preview for review](/en/docs/review-preview) after completing self-checks.

@@ -85,8 +85,9 @@
 .heroCenter h1 {
   max-width: 19ch;
   margin: 0;
+  font-family: var(--font-family-serif);
   font-size: var(--font-size-heading-3xl);
-  font-weight: var(--font-weight-emphasize);
+  font-weight: var(--font-weight-normal);
   line-height: var(--line-height-heading-3xl);
 }
 
@@ -471,6 +472,7 @@
 .sectionHeader h2,
 .discoverHeader h2 {
   margin: 0;
+  font-family: var(--font-family-serif);
   font-weight: var(--font-weight-normal);
 }
 
@@ -607,6 +609,7 @@
 
 .aboutItemCopy h3 {
   font-size: var(--font-size-heading-sm);
+  font-weight: var(--font-weight-normal);
   line-height: var(--line-height-heading-sm);
 }
 

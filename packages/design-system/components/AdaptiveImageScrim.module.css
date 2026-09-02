@@ -10,7 +10,8 @@
     transparent 0,
     color-mix(
         in srgb,
-        var(--adaptive-image-scrim-surface-color, rgb(0 0 0)) 80%,
+        var(--adaptive-image-scrim-surface-color, rgb(0 0 0))
+          var(--adaptive-image-scrim-opacity, 80%),
         transparent
       )
       64px

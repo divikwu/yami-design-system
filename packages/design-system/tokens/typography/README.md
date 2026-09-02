@@ -17,7 +17,9 @@ Ordinary emphasis does vary by language: the primitive's EN value is Medium 500
 and CN is SemiBold 600. `tooling/tokens/build.mjs` emits `locale-en` and `locale-zh`
 contexts for differing language weights, including CSS selectors that follow
 inherited `lang` and reset on nested language switches. Regular and explicit serif
-weights stay language-independent. Never hard-code per-page language overrides.
+weights stay language-independent. The approved serif stack is optical
+`Source Serif 4 Variable` for Latin + `Noto Serif SC` for Chinese through
+`--font-family-serif`. Never hard-code per-page language overrides.
 
 But `sync-tokens-ci` (the Figma ↔ code drift checker) still needs to know the authored intent for every scale at every mode. Putting cross-mode invariants in `_base.tokens.json` is the canonical answer to "what is `display-xl.font-weight` in Figma's typography-mobile collection?" without repeating it 20× per mode file.
 

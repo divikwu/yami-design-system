@@ -45,6 +45,8 @@ for (const target of pages) {
           hero.evaluate(element => getComputedStyle(element).backgroundColor),
         ]);
         expect(mainBackground).toBe(heroBackground);
+        await expect(heroHeading).toHaveCSS("font-family", /Source Serif 4/);
+        await expect(heroHeading).toHaveCSS("font-weight", "400");
         await expect(heroHeading).toHaveCSS("font-size", scenario.width >= 1024 ? "56px" : "32px");
         await expect(heroHeading).toHaveCSS("line-height", scenario.width >= 1024 ? "64px" : "40px");
         await expect(showcase).toHaveCSS("border-radius", "32px 32px 0px 0px");
@@ -77,6 +79,7 @@ for (const target of pages) {
           "font-size",
           scenario.width < 768 ? "24px" : scenario.width < 1024 ? "28px" : "32px",
         );
+        await expect(aboutIntro.getByRole("heading")).toHaveCSS("font-family", /Source Serif 4/);
         await expect(aboutIntro.getByRole("heading")).toHaveCSS("font-weight", "400");
         await expect(aboutColumns).toHaveCSS("gap", scenario.width < 900 ? "8px" : "16px");
         await expect(aboutColumns).toHaveCSS("overflow-x", scenario.width < 900 ? "auto" : "visible");
@@ -127,6 +130,7 @@ for (const target of pages) {
           await expect(aboutItem).toHaveCSS("border-radius", "12px");
           await expect(aboutItem.getByRole("heading")).toHaveCSS("font-size", scenario.width >= 1024 ? "20px" : "16px");
           await expect(aboutItem.getByRole("heading")).toHaveCSS("line-height", scenario.width >= 1024 ? "28px" : "20px");
+          await expect(aboutItem.getByRole("heading")).toHaveCSS("font-weight", "400");
           const icon = aboutItem.locator(":scope > svg");
           await expect(icon).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
           const iconBox = (await icon.boundingBox())!;
@@ -166,6 +170,7 @@ for (const target of pages) {
           "font-size",
           scenario.width < 768 ? "24px" : scenario.width < 1024 ? "28px" : "32px",
         );
+        await expect(latestHeading).toHaveCSS("font-family", /Source Serif 4/);
         await expect(latestHeading).toHaveCSS("font-weight", "400");
         await expect(latestAction).toHaveCSS("font-weight", "400");
         await expect(blogTitle).toHaveCSS("font-weight", "400");
@@ -177,6 +182,7 @@ for (const target of pages) {
         await expect(blogGrid).toHaveCSS("column-gap", "16px");
         await expect(blogGrid).toHaveCSS("row-gap", scenario.width < 768 ? "24px" : "16px");
         const discoverHeading = page.getByRole("heading", { name: scenario.locale === "zh" ? "探索完整的 YAMI 设计系统" : "Discover the full YAMI Design System" });
+        await expect(discoverHeading).toHaveCSS("font-family", /Source Serif 4/);
         await expect(discoverHeading).toHaveCSS("font-weight", "400");
         await expect(discoverHeading.locator("img")).toHaveCount(0);
         await expect(discoverHeading.locator("..")).toHaveCSS("gap", "8px");

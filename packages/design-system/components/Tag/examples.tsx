@@ -1,45 +1,74 @@
 import { Tag } from "./Tag";
 
-export function DarkTagExample() {
+const matchaImage = new URL(
+  "../Header/assets/search-suggestions/matcha.png",
+  import.meta.url,
+).href;
+
+export function ContentFilledTagExample() {
   return (
-    <section data-example="DarkTagExample">
-      <Tag tone="dark">Heartleaf Botanical</Tag>
+    <section data-example="ContentFilledTagExample">
+      <Tag context="content" mode="light" variant="filled">
+        Heartleaf Botanical
+      </Tag>
     </section>
   );
 }
 
-export function LightTagExample() {
+export function ContentOutlineTagExample() {
+  return (
+    <section data-example="ContentOutlineTagExample">
+      <Tag context="content" mode="light" variant="outline">
+        Gentle Daily Formulas
+      </Tag>
+    </section>
+  );
+}
+
+export function ImageTagExample() {
+  return (
+    <section data-example="ImageTagExample">
+      <Tag
+        context="content"
+        image={{ src: matchaImage, alt: "" }}
+        mode="light"
+        size="l"
+        variant="filled"
+      >
+        Matcha
+      </Tag>
+    </section>
+  );
+}
+
+export function OverlayFilledTagExample() {
   return (
     <section
-      data-example="LightTagExample"
+      data-example="OverlayFilledTagExample"
       style={{
         padding: "var(--space-300)",
         background: "var(--color-black-900)",
       }}
     >
-      <Tag tone="light">Targeted Active Care</Tag>
+      <Tag context="overlay" mode="dark" variant="filled">
+        Targeted Active Care
+      </Tag>
     </section>
   );
 }
 
-export function DarkOutlineTagExample() {
-  return (
-    <section data-example="DarkOutlineTagExample">
-      <Tag tone="dark-outline">Gentle Daily Formulas</Tag>
-    </section>
-  );
-}
-
-export function LightOutlineTagExample() {
+export function OverlayOutlineTagExample() {
   return (
     <section
-      data-example="LightOutlineTagExample"
+      data-example="OverlayOutlineTagExample"
       style={{
         padding: "var(--space-300)",
         background: "var(--color-black-900)",
       }}
     >
-      <Tag tone="light-outline">Barrier Support</Tag>
+      <Tag context="overlay" mode="dark" variant="outline">
+        Barrier Support
+      </Tag>
     </section>
   );
 }

@@ -13,7 +13,7 @@ import { BlogCard, type BlogCardData } from "./BlogCard";
 import { arrowRightIcon } from "./assets";
 import styles from "./HomePage.module.css";
 
-const aboutRoutes = ["browse-components", "choose-starting-point", "first-page"] as const;
+const aboutRoutes = ["browse-components", "choose-starting-point", "review-checklist"] as const;
 const aboutIcons = [ColorsIcon, PuzzleIcon, AiProgrammingIcon] as const;
 const aboutCapabilityIndexes = [0, 1, 3] as const;
 

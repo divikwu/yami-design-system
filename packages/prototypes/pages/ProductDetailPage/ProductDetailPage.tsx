@@ -910,7 +910,7 @@ export function ProductDetailPage({
                               >
                                 {purchaseTags.map((tag) => (
                                   <li key={tag}>
-                                    <Tag tone="dark-outline">{tag}</Tag>
+                                    <Tag context="content" mode="light" variant="outline">{tag}</Tag>
                                   </li>
                                 ))}
                               </ul>

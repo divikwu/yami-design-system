@@ -1,6 +1,6 @@
 ---
 version: 0.5.0-alpha.1
-updated: 2026-08-20
+updated: 2026-09-02
 audience: ai-agent
 roles: [spec, rules-ssot]
 name: YAMI
@@ -18,6 +18,8 @@ typography:
   brand: "GT Walsheim"
   cn_ios: "PingFang SC"
   cn_android: "Noto Sans SC"
+  serif_en: "Source Serif 4 Variable"
+  serif_cn: "Noto Serif SC"
   weights: [400, 500, 600] # normal 400; emphasis EN 500 / CN 600; serif 600 preserved
 status:
   success: "#27812B" # emerald-700 — WCAG-AA on white
@@ -142,6 +144,7 @@ In Light, YAMI's product surfaces sit on a pure white canvas (`#FFFFFF`) with ne
 | `--font-family-ios`     | `GT Walsheim` + `Noto Sans SC` | Brand Latin, numerals, prices, and CN fallback for iOS / web surfaces. |
 | `--font-family-android` | `GT Walsheim` + `Noto Sans SC` | Android typography stack from Figma.                                   |
 | `--font-family-win`     | `GT Walsheim` + `Noto Sans SC` | Windows typography stack from Figma.                                   |
+| `--font-family-serif`   | `Source Serif 4 Variable` + `Noto Serif SC` | Approved editorial display and heading variants only; Latin uses optical sizing; never body or functional text. |
 
 ### Weights
 
@@ -415,7 +418,7 @@ YAMI's current inventory is generated in [`generated/catalog.json`](./generated/
 
 ### Tag — `components/Tag/`
 
-Static full-pill label for short descriptive keywords. Dark, light, and outlined tones use YAMI semantic text, fill, and border tokens; Tag is display-only and never substitutes for an interactive FilterChip.
+Static full-pill label for short descriptive keywords. Its three independent color axes are placement `context` (`content` or `overlay`), surface `mode` (`light` or `dark`), and container `variant` (`filled` or `outline`). M remains 28px on mobile and PC; L is 32px on mobile and 36px on PC, switching at 1024px. Optional leading artwork follows Search geometry: a 2px leading inset, 4px label gap, an image slot 4px smaller than the Tag, and artwork 8px smaller. Filled uses transparent black at 4% with dark text in light mode and transparent white at 8% with light text in dark mode. Outline remains transparent with an 8% black stroke in light mode or 8% white stroke in dark mode. Tag is display-only and never substitutes for an interactive FilterChip.
 
 ### Input — `components/Input/`
 

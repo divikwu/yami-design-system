@@ -95,8 +95,8 @@ export const Showcase: Story = {
     if (copyStyle.rowGap !== "12px") {
       throw new Error("Desktop ThemeHero copy must use a 12px vertical gap");
     }
-    if (!titleStyle.fontFamily.includes("Source Serif 4") || titleStyle.fontWeight !== "600") {
-      throw new Error("ThemeHero display title must use the Source Serif 4 600 contract");
+    if (!titleStyle.fontFamily.includes("Source Serif 4 Variable") || titleStyle.fontWeight !== "600") {
+      throw new Error("ThemeHero display title must use the Source Serif 4 Variable 600 contract");
     }
     const descriptionStyle = getComputedStyle(description);
     const descriptionTextStyle = getComputedStyle(descriptionText);

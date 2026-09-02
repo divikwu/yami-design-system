@@ -12,10 +12,10 @@ test("opens search with the keyboard and supports full keyboard selection", asyn
 
   const input = dialog.getByRole("combobox", { name: "搜索" });
   await expect(input).toBeFocused();
-  await input.fill("创建第一个页面");
-  await expect(dialog.getByRole("option").first()).toContainText("创建第一个页面");
+  await input.fill("创建页面");
+  await expect(dialog.getByRole("option").first()).toContainText("创建页面");
   await input.press("Enter");
-  await expect(page).toHaveURL(/\/zh\/docs\/first-page$/);
+  await expect(page).toHaveURL(/\/zh\/docs\/choose-starting-point$/);
 
   await page.getByRole("button", { name: "搜索" }).click();
   await dialog.getByRole("combobox", { name: "搜索" }).fill("没有这个结果");

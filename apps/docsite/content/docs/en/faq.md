@@ -24,7 +24,7 @@ No. Open [Storybook](https://yami-design-system-storybook.vercel.app/?path=/stor
 
 It usually means no service is listening at that address, although a mismatched port or hostname may also be responsible. Confirm the correct app is still running in the terminal and use the address it actually reports.
 
-From the repository root, `pnpm dev:storybook` starts Storybook and `pnpm dev:docsite` starts Docsite. They are separate services: a working Docsite does not mean Storybook is running. See [Prepare your environment](/en/docs/prepare-environment) for requirements.
+From the repository root, `pnpm dev:storybook` starts Storybook and `pnpm dev:docsite` starts Docsite. They are separate services: a working Docsite does not mean Storybook is running. See [Getting Started](/en/docs/fork-project) for initial installation and startup.
 
 If a port is busy, identify its owner first. Do not ask AI to stop every Node process. After startup, inspect actual rendering and browser errors rather than relying only on an HTTP response.
 
@@ -36,7 +36,7 @@ If a public component fits, use its public import. If a capability is genuinely 
 
 ## Why were my Controls changes not saved
 
-Controls change the current example parameters, not business-page source. To keep the configuration, ask AI to save it in your task Story or data file. See [Edit pages and content](/en/docs/edit-pages).
+Controls change the current example parameters, not business-page source. To keep the configuration, ask AI to save it in your task Story or data file. See [Continue refining a page](/en/docs/choose-starting-point#continue-refining-a-page).
 
 Local Canvas drafts are not a team cloud record either. Share agreed files, code versions, and review material instead of assuming a teammate can restore state held only in your browser.
 
@@ -56,7 +56,7 @@ Do not force-overwrite the working branch or roll back an entire shared reposito
 
 The current onboarding path uses a repository Fork and workspace source packages inside the monorepo. Do not assume `@yami/design-system` is a publicly published npm package or that registry metadata provides a configured remote installation service.
 
-Follow [Create your own Fork](/en/docs/fork-project) and [Prepare your environment](/en/docs/prepare-environment). If another repository needs a published package, agree on distribution and compatibility with maintainers first.
+Follow [Getting Started](/en/docs/fork-project) to create your own working copy. If another repository needs a published package, agree on distribution and compatibility with maintainers first.
 
 ## Does passing checks or merging a PR mean it is live
 

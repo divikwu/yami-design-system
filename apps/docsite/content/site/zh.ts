@@ -64,11 +64,11 @@ export const zh: SiteCopy = {
     updated: "更新于",
     previous: "上一篇",
     next: "下一篇",
-    groups: { start: "使用组件库", ai: "用 AI 搭建页面", collaboration: "多人协作", maintenance: "扩展与维护", resources: "资源与帮助" },
+    groups: { start: "使用组件库", ai: "用 AI 创建", collaboration: "多人协作", maintenance: "扩展与维护", resources: "资源与帮助" },
     resources: { components: "浏览组件", foundations: "查看设计规范", pages: "查看页面示例" },
   },
   blog: {
-    title: "Blog",
+    title: "文章",
     description: "记录 YAMI 设计系统的版本、设计方法和工程实践。",
     all: "全部",
     categories: { update: "更新", design: "设计", engineering: "工程" },

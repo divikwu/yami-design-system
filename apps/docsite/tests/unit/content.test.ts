@@ -18,8 +18,8 @@ describe("repository content", () => {
   it("keeps all documents paired with stable structural metadata", () => {
     const zh = getAllDocs("zh");
     const en = getAllDocs("en");
-    expect(zh).toHaveLength(19);
-    expect(en).toHaveLength(19);
+    expect(zh).toHaveLength(17);
+    expect(en).toHaveLength(17);
     expect(en.map((item) => item.frontmatter.slug)).toEqual(
       zh.map((item) => item.frontmatter.slug),
     );
@@ -28,7 +28,7 @@ describe("repository content", () => {
     );
     expect(zh.every((item) => item.frontmatter.draft === false)).toBe(true);
     expect([...new Set(zh.map((item) => item.frontmatter.group))]).toEqual(docGroups);
-    expect(zh[0]?.frontmatter.title).toBe("如何使用组件库");
+    expect(zh[0]?.frontmatter.title).toBe("快速开始");
     for (const [index, document] of zh.entries()) {
       expect(document.headings.map(({ id, level }) => ({ id, level }))).toEqual(
         en[index]?.headings.map(({ id, level }) => ({ id, level })),
@@ -57,22 +57,29 @@ describe("repository content", () => {
     }
   });
 
-  it("places page example selection between environment setup and the first AI page", () => {
+  it("places component and page creation routes inside the AI workflow", () => {
     for (const locale of ["zh", "en"] as const) {
       const documents = getAllDocs(locale);
       expect(documents.filter(({ frontmatter }) => frontmatter.group === "start").map(({ frontmatter }) => frontmatter.slug)).toEqual([
+        "fork-project",
         "getting-started",
         "browse-components",
       ]);
-      expect(documents.slice(0, 5).map(({ frontmatter }) => frontmatter.slug)).toEqual([
+      expect(documents.slice(0, 7).map(({ frontmatter }) => frontmatter.slug)).toEqual([
+        "fork-project",
         "getting-started",
         "browse-components",
         "prepare-environment",
+        "create-components",
         "choose-starting-point",
-        "first-page",
+        "review-checklist",
       ]);
-      const title = locale === "zh" ? "选择页面示例" : "Choose a page example";
+      const title = locale === "zh" ? "创建页面" : "Create a page";
       expect(getDoc(locale, "choose-starting-point")?.frontmatter).toMatchObject({ title, group: "ai" });
+      expect(getDoc(locale, "create-components")?.frontmatter).toMatchObject({
+        title: locale === "zh" ? "创建组件" : "Create a component",
+        group: "ai",
+      });
       expect(getSearchEntries(locale).find(({ id }) => id === "doc:choose-starting-point")).toMatchObject({
         title,
         href: `/${locale}/docs/choose-starting-point`,

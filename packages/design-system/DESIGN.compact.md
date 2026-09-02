@@ -40,7 +40,7 @@ Beyond these five anchors: a 50→950 neutral ramp (`#FAFAFA → #0A0A0A`) for c
 
 ## Typography — 4 levels, GT Walsheim numerals
 
-- **GT Walsheim** — every digit, every price, every Latin character. Normal text uses 400; ordinary emphasis uses `--font-weight-emphasize`: EN 500 / CN 600 via `lang`, at every breakpoint. Medium glyphs cover CSS 500–600 for Latin text within Chinese runs; 700 is not a semantic emphasis weight. Explicit serif titles keep their existing weight.
+- **GT Walsheim** — every digit, every price, every Latin character. Normal text uses 400; ordinary emphasis uses `--font-weight-emphasize`: EN 500 / CN 600 via `lang`, at every breakpoint. Medium glyphs cover CSS 500–600 for Latin text within Chinese runs; 700 is not a semantic emphasis weight. Explicit serif titles use optical `Source Serif 4 Variable` + `Noto Serif SC` through `--font-family-serif` and keep their existing weight.
 - **PingFang SC** (iOS / web) / **Noto Sans SC** (Android) — CJK body. Mixed strings keep digits and Latin in GT Walsheim.
 - **Max 4 levels per page**: display / heading / body / caption (or equivalent). If you need a 5th, the page has a hierarchy problem.
 
@@ -94,7 +94,7 @@ These have validators; violations fail `validate_design`. Full reasoning lives i
 12. **card-no-border** — opt-in border only for dense grids.
 13. **tap-target** — iOS 44pt / Android 48dp minimum.
 14. **no-emoji** — none in product UI (UGC excepted).
-15. **no-decorative-media** — no glassmorphism, gradients, hand-drawn illustration, unregistered serif/decorative fonts, pastels, alert-bar cards; approved serif typography uses `--font-family-serif`.
+15. **no-decorative-media** — no glassmorphism, gradients, hand-drawn illustration, unregistered serif/decorative fonts, pastels, alert-bar cards; approved serif typography uses optical `Source Serif 4 Variable` + `Noto Serif SC` through `--font-family-serif`.
 16. **token-exists** — every `var(--x)` reference must exist in `tokens.css`.
 
 ---

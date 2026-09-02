@@ -15,7 +15,7 @@ test("redirects to Chinese and exposes exactly three primary navigation links", 
 
   await navigation.getByRole("link", { name: "文档" }).click();
   await expect(page).toHaveURL(/\/zh\/docs\/getting-started$/);
-  await expect(page.getByRole("heading", { level: 1, name: "如何使用组件库" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Storybook 入门" })).toBeVisible();
 });
 
 test("switches language without losing the document or stable anchor", async ({ page }) => {

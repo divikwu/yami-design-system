@@ -1,65 +1,76 @@
 ---
 slug: getting-started
-title: How to use the library
-description: "Find reusable components, build a page with AI, then review, deliver, and maintain it with your team."
+title: Storybook basics
+description: "Understand what Storybook is, what it contains, and where its responsibilities end before exploring components and pages."
 group: start
-order: 10
+order: 20
 keywords: ["Getting started","Component library","Storybook","AI","Fork"]
-updatedAt: "2026-08-31"
+updatedAt: "2026-09-02"
 sourceRefs:
   - packages/design-system/SKILL.md
   - packages/design-system/README.md
+  - packages/design-system/generated/catalog.json
   - apps/storybook/.storybook/preview.tsx
   - docs/ai-workflow.md
 ---
 
-This guide helps designers, product teammates, and developers use YAMI to create a page they can demonstrate, interact with, and review. You do not need to understand the entire repository before starting.
+Storybook is the entry point for inspecting YAMI's real components, page patterns, and usage rules. It runs the actual implementation in a browser, so teammates who do not edit code can still find references, try states, and check behavior across viewport sizes.
 
-YAMI provides design standards, public components, and page examples. You define the goal, supply content, and approve the result; AI can help find components, compose pages, and run checks.
+You do not need to download the project just to browse. [Open YAMI Storybook](https://yami-design-system-storybook.vercel.app/) directly. Complete [Getting Started](/en/docs/fork-project) and use your own local copy when you need to save changes, add a Story, or run validation.
 
-## Choose your path
+## What Storybook is
 
-| Your goal | Start here | What you leave with |
+Storybook presents components and pages as isolated, runnable examples. Each Story records a specific state or scenario, such as default, Loading, Disabled, a narrow viewport, or English content.
+
+It supports four common tasks:
+
+- **Find:** Locate design rules, brand assets, components, or complete pages.
+- **Understand:** Inspect purpose, parameters, states, interactions, and usage boundaries.
+- **Compare:** Check the same implementation across languages, themes, and viewport sizes.
+- **Verify:** Exercise real interactions and share an exact Story URL for review.
+
+Storybook is not a production site or a business-data editor. Changing Controls only affects the current preview; it does not automatically save or publish a new version.
+
+## Why start with Storybook
+
+| What you need to confirm | Static design | Storybook |
 | --- | --- | --- |
-| Explore components, standards, and page behavior | [Find and try components](/en/docs/browse-components) | Reusable components and reference links |
-| Build your own page with AI | [Prepare your environment](/en/docs/prepare-environment) → [Choose a page example](/en/docs/choose-starting-point) → [Create your first page](/en/docs/first-page) | An independent, interactive practice version |
-| Create and review work with teammates | [Team collaboration](/en/docs/collaboration) | Task ownership, a preview, and recorded feedback |
-| Contribute reusable improvements | [Report a component gap](/en/docs/component-gaps) | A focused proposal the team can review |
+| Component states | Requires separate frames or written notes | Lets you try Hover, Focus, Loading, and Disabled directly |
+| Responsive behavior | Depends on several frames and annotations | Shows layout and content changes at real widths |
+| Locales and themes | Often covers only one combination | Lets you switch and compare within the same example |
+| Interaction | Requires prototype links or verbal explanation | Lets you operate real components and pages |
+| Collaboration | Feedback may point only to a screenshot location | A URL can identify a specific component, state, or page |
 
-You can browse components without downloading the project. Prepare a local environment when you are ready to build.
+The tools are complementary. Figma remains useful for open exploration, visual directions, and early critique. Storybook is better suited to confirming real components, interactions, and implementation boundaries once the direction has converged.
 
-## Your first-page checklist
+## What is in Storybook
 
-1. **Once:** Get project access, [create your own Fork](/en/docs/fork-project), and connect it to upstream.
-2. **Once:** [Prepare your environment](/en/docs/prepare-environment), start Storybook, and check that an example renders and responds.
-3. **For each task:** [Choose a page example](/en/docs/choose-starting-point) as your reference, then [start and manage a task](/en/docs/manage-tasks), recording its goal, change scope, and owner.
-4. **Follow along:** Use the content and prompts in [Build your first page](/en/docs/first-page).
-5. **Before sharing:** Complete the [self-check](/en/docs/review-checklist), save your version, and follow [Share a preview and review](/en/docs/review-preview).
+| Section | What it contains | Use it to |
+| --- | --- | --- |
+| [Foundations](https://yami-design-system-storybook.vercel.app/?path=/story/yami-foundations-color--overview) | Color, typography, layout, radius, and responsive rules | Confirm the foundational rules an interface should follow |
+| [Primitives](https://yami-design-system-storybook.vercel.app/?path=/story/yami-primitives-color-primitives--overview) | Base values for dimensions, color, and typography | Perform advanced standards checks, not ordinary page building |
+| [Assets](https://yami-design-system-storybook.vercel.app/?path=/story/yami-assets-logos--overview) | Reusable brand assets such as logos and icons | Select the right version and confirm color, size, and background requirements |
+| [Components](https://yami-design-system-storybook.vercel.app/?path=/story/yami-components-actions-button--showcase) | Real components such as Button, Header, ProductCard, and ProductList | Inspect component states, interactions, parameters, and usage |
+| [Pages](https://yami-design-system-storybook.vercel.app/?path=/story/yami-pages-ecommerce-home--pc) | Complete pages such as home, topic, search, and product detail | Find references for page structure and module composition |
 
-The collaboration model assumes a private upstream with authorized Forks. An administrator must confirm permissions first; this guide does not configure repository or preview access automatically.
+When building a page, start in Pages with the closest complete page, then move to Components to confirm the states and usage of the components it contains.
 
-## Three tools, three responsibilities
+## Know the three workspaces
 
 | Place | Use it for | What it does not mean |
 | --- | --- | --- |
-| Docsite | Learn workflows, copy prompts, and use acceptance checklists | It does not duplicate every component API |
-| Storybook | Inspect, understand, try, and verify real components and page examples | Controls do not save or publish business pages |
-| Local project and AI tool | Edit content, compose pages, run checks, and save code | An AI completion message is not review or launch approval |
+| Docsite | Learn workflows, standards, and acceptance criteria | It does not show every component state and API |
+| Storybook | Inspect, try, and verify real components and page examples | Controls do not save or publish a new version |
+| Local project | Edit content, compose pages, run checks, and save code | A working local result is not review or release approval |
 
-Open [components](https://yami-design-system-storybook.vercel.app/?path=/story/yami-components-actions-button--showcase), [design standards](https://yami-design-system-storybook.vercel.app/?path=/story/yami-foundations-color--overview), or [page examples](https://yami-design-system-storybook.vercel.app/?path=/story/yami-pages-ecommerce-home--pc). If your team's entry point requires sign-in, request access from a maintainer rather than making a public copy.
+Storybook is for inspection, understanding, and verification. Save new content, page compositions, and component capabilities in your own local project before they enter code review and release workflows.
 
-## Reuse before changing
+## Choose your next step
 
-Find the closest page first, then identify its components. Prefer replacing copy, products, and images before changing module composition. Extend a public component only when an actual requirement cannot be met.
+| What you need to do | Continue with |
+| --- | --- |
+| Find a component, inspect its states, or explore a complete page | [Explore components and pages](/en/docs/browse-components) |
+| Create a component or page with AI | [Start creating](/en/docs/prepare-environment) |
+| An existing component cannot meet a real requirement | [Report a component gap](/en/docs/component-gaps) |
 
-Ask AI to read `packages/design-system/SKILL.md` and follow its reading order for standards, component contracts, and page examples. Do not ask it to recreate existing components from a screenshot.
-
-## What counts as finished
-
-You should be able to explain where the page is saved, how to open it, what changed, and which checks support the result. A teammate should be able to reproduce it with the agreed language, theme, viewport, and data version.
-
-Self-checking, teammate review, and authorized release are separate steps. A merge or working local preview does not mean the page is deployed. For delivery, continue to [Deliver and publish a page](/en/docs/deliver-publish).
-
-## Next step
-
-Want to explore available components? [Find and try components](/en/docs/browse-components). Ready to build? [Prepare your environment](/en/docs/prepare-environment), then [choose a page example](/en/docs/choose-starting-point).
+The next guide owns the detailed methods for finding, reading, checking, and sharing components and pages.

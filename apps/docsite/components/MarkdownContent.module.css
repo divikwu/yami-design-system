@@ -114,9 +114,9 @@
 
 .prose th {
   color: var(--text-secondary);
-  font-size: var(--font-size-body-xl);
+  font-size: var(--font-size-body-md);
   line-height: var(--line-height-body-xl);
-  font-weight: var(--font-weight-emphasize);
+  font-weight: var(--font-weight-normal);
 }
 
 .prose tbody tr:last-child td {

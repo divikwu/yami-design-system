@@ -88,4 +88,4 @@ sourceRefs:
 
 ## 下一步
 
-方向确认后进入[扩展或创建组件](/zh/docs/create-components)；整理提需求内容时可使用[任务与提示词模板](/zh/docs/templates)。
+方向确认后进入[创建组件](/zh/docs/create-components)；整理提需求内容时可使用[开始创建](/zh/docs/prepare-environment)中的提示词。

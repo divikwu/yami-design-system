@@ -1,11 +1,11 @@
 ---
 slug: create-components
-title: Extend or create components
-description: "Define the responsibility, then ship implementation, contracts, Storybook examples, and checks that other pages can rely on."
-group: maintenance
-order: 150
+title: Create a component
+description: "Decide whether to reuse, extend, or create a component, then complete its implementation, contract, Storybook examples, and checks."
+group: ai
+order: 45
 keywords: ["create components", "variants", "meta", "Storybook", "public exports"]
-updatedAt: "2026-08-31"
+updatedAt: "2026-09-02"
 sourceRefs:
   - packages/design-system/SKILL.md
   - packages/design-system/DESIGN.md
@@ -18,7 +18,74 @@ sourceRefs:
   - package.json
 ---
 
-For component authors and maintainers. Start with an agreed capability gap, owner, reproducible scenario, and acceptance criteria. If the shared-component need is unclear, [report the gap first](/en/docs/component-gaps).
+Use this workflow to reuse, extend, or create a shared component. First check whether a component reference exists, then use the matching prompt and follow the implementation, Storybook, and acceptance requirements below. If the shared-component need is unclear, [report the gap first](/en/docs/component-gaps).
+
+## Check the component reference
+
+| Available input | What AI should do first |
+| --- | --- |
+| A YAMI component or code reference | Inspect its Story, `meta.json`, `usage.md`, source, and tests; decide whether to reuse or extend it |
+| A design, screenshot, or webpage | Extract responsibility, structure, states, and interaction; do not copy comment markers, temporary state, third-party branding, or restricted assets |
+| No component reference | Search the YAMI Catalog, Components, and Storybook from the user task; propose a new component only after confirming no suitable capability exists |
+
+“No reference” does not mean generating freely from a blank canvas. List reusable or composable capabilities before deciding that a shared component is necessary.
+
+## Copy a component prompt
+
+### With a component reference
+
+```text
+Create or extend a component in the current YAMI project.
+
+Component goal: <problem to solve>
+Target users: <people who will ultimately see or operate it>
+Usage context: <pages or flows where it appears>
+Required behavior: <states, content, and interactions>
+Component reference: <Storybook URL, component name, design, or screenshot>
+
+Inspect the existing capabilities and reference. Explain whether to reuse,
+extend, or create a component before implementing it.
+Handle only this requirement. Do not duplicate a component or change unrelated files.
+
+Verify real rendering and interaction in Storybook.
+Report the final decision, changed files, Story URL, verification results,
+and open issues. Do not commit, push, or publish.
+```
+
+### Without a component reference
+
+```text
+Handle this component requirement in the current YAMI project:
+
+Component goal: <problem to solve>
+Target users: <people who will ultimately see or operate it>
+Usage context: <pages or flows where it appears>
+Required behavior: <states, content, and interactions>
+
+Search the existing components and list candidates that can be reused or composed.
+Do not create a component when an existing capability is sufficient. Create one
+only when it has a distinct, reusable responsibility that existing composition lacks.
+Handle only this requirement. Do not change unrelated files or invent missing design values or business data.
+
+Verify real rendering and interaction in Storybook.
+Report the search results, final decision, changed files, Story URL,
+verification results, and open issues. Do not commit, push, or publish.
+```
+
+## Fill in the component task
+
+Prepare at least the following before copying a prompt. Mark missing information as “to confirm”:
+
+- Component goal: what problem it needs to solve.
+- Target users: who will ultimately see or operate it.
+- Responsibility boundary: what the component owns and explicitly does not own.
+- Usage contexts: which pages or flows should reuse it.
+- Inputs and states: props, content, interaction outcomes, and applicable loading, empty, error, and disabled states.
+- Reference scope: what to follow, what to preserve, and what must not be copied.
+- Change scope: allowed changes, compatibility requirements, and files or behavior that must remain untouched.
+- Acceptance scope: Story, locales, themes, viewports, keyboard behavior, and primary interactions.
+
+Do not provide passwords, access tokens, customer information, or unapproved assets to AI.
 
 ## Choose the smallest extension
 
@@ -30,78 +97,12 @@ For component authors and maintainers. Start with an agreed capability gap, owne
 
 Record the choice and reasoning in the task. Do not copy a shared component merely because one page needs a different appearance.
 
-## Read the implementation sources
-
-1. Read `packages/design-system/SKILL.md` and the full `DESIGN.md`.
-2. Inspect the closest component's implementation, `meta.json`, `usage.md`, Story, and tests.
-3. Check `generated/catalog.json` and public package exports for the currently available capabilities.
-4. List props, defaults, required states, and the impact on existing calls before implementing.
-
-For example, the [AspectRatio Storybook example](https://yami-design-system-storybook.vercel.app/?path=/story/yami-components-layout-aspectratio--showcase) is the `Showcase` export under `YAMI/Components/Layout/AspectRatio`. It illustrates a focused primitive, not a mandatory file template for every component.
-
-## Complete the component bundle
-
-Follow a nearby component's existing structure under `packages/design-system/components/<Name>/`:
-
-- Component source and styles: consume semantic tokens and implement the agreed states and accessibility behavior.
-- `meta.json`: document props, status, version, dependencies, token bindings, and accessibility contracts accurately.
-- `usage.md`: explain when to use it, what it does not own, a minimal example, and common misuse.
-- Story: maintain a `Showcase`; add prop exploration, edge states, and interaction cases as needed.
-- Examples and tests: cover defaults, the new capability, and compatibility with existing calls.
-- The component's `index.ts`: export the public component and types without exposing implementation details.
-
-A new component also needs a root export in `packages/design-system/components/index.ts`. A directory-level `index.ts` alone does not guarantee a package-root import.
-
-Verify the public entry from a real consumer, following the existing import pattern:
-
-```tsx
-import { AspectRatio } from "@yami/design-system";
-```
-
-Update Figma references when a real design mapping exists. Do not invent node IDs or design links to satisfy a check.
-
-## Keep the shared package independent
-
-Shared components receive consumer-provided data and callbacks. Business APIs, authentication, project routing, campaign copy, and assets remain with the consumer.
-
-Do not introduce Next.js, Motion, Zod, Design Labs, or Astryx runtimes into `packages/design-system`. Keep page composition in the appropriate page or prototype layer rather than copying application dependencies into the component package.
-
-Token sources live in `tokens/**/*.tokens.json`. Scripts update generated tokens, Catalog, and Registry. Do not edit generated files by hand or treat registry metadata as an already deployed remote installation service.
-
-## Generate and verify
-
-Run these commands from the repository root. Generation updates affected derived files, so inspect their changes as part of the work:
-
-```bash
-pnpm generate
-pnpm validate
-pnpm test:storybook
-pnpm --filter @yami/storybook build
-pnpm check:docgen
-git diff --check
-```
-
-`pnpm validate` covers static and unit checks but does not replace the separate Storybook browser tests or visual inspection. After the Storybook build, `check:docgen` checks stories, documentation, and the index.
-
-Open Storybook and inspect relevant Chinese and English content, light and dark themes, keyboard interaction, and viewport sizes. Record combinations actually tested; one default example does not prove every state.
-
 ## Check the delivery
 
-- Implementation, types, `meta.json`, Usage, and Story describe the same capability.
-- The package root exports the component and types; existing pages do not require newly mandatory props to work.
-- New or changed interactions have tests, with defined behavior for long content and empty data.
-- Generated files are current, and verification results and limits are recorded.
-- Shared content contains no project data, secrets, or unapproved assets.
-
-The output is reusable source, a usage contract, examples, and verification evidence—not only a screenshot.
-
-## Common questions
-
-**It works in the page but is missing from Storybook.** Check the Story title, exports, collection scope, and build output rather than changing only a navigation label.
-
-**Generated-file checks fail.** Inspect the source metadata, regenerate, and review the diff. Do not patch the Catalog by hand or disable the check.
-
-**Existing props or defaults must change.** Describe affected consumers and migration steps first. Ask the maintainer to agree on compatibility before implementation.
+- The report explains the search results and the decision to reuse, extend, or create a component.
+- Real rendering and primary interactions were verified in a specific Story.
+- Changed files, verification results, and open issues are listed.
+- No unrelated files, project data, secrets, or unapproved assets were added.
 
 ## Next step
 

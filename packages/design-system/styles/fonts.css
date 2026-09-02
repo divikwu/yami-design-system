@@ -1,7 +1,11 @@
 /* YAMI design system font declarations for non-Next.js hosts.
- * GT Walsheim remains a private asset. Source Serif 4 is distributed under
- * the SIL Open Font License in ../assets/fonts/SourceSerif4-OFL.txt.
+ * GT Walsheim remains a private asset. Source Serif 4 Variable (with optical
+ * sizing) and Noto Serif SC are provided by pinned @fontsource packages.
  */
+
+@import "@fontsource-variable/source-serif-4/opsz.css";
+@import "@fontsource/noto-serif-sc/400.css";
+@import "@fontsource/noto-serif-sc/600.css";
 
 @font-face {
   font-family: 'GT Walsheim';
@@ -21,21 +25,5 @@
   font-family: 'GT Walsheim';
   src: url('../assets/fonts/GT-Walsheim-Regular.woff2') format('woff2');
   font-weight: 400;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Source Serif 4';
-  src: url('../assets/fonts/SourceSerif4-Display-400.woff2') format('woff2');
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Source Serif 4';
-  src: url('../assets/fonts/SourceSerif4-Subhead-600.woff2') format('woff2');
-  font-style: normal;
-  font-weight: 600;
   font-display: swap;
 }

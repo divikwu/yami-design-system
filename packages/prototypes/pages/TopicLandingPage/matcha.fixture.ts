@@ -780,24 +780,6 @@ export function createMatchaBrandCampaigns(
       },
       products: ["marukyuIsuzu", "marukyuYugen", "marukyuAyame"],
     },
-    {
-      brand: "tsujiri",
-      banner: matchaImages.sweets,
-      bannerAlt: {
-        en: "Matcha sweets arranged for afternoon tea",
-        zh: "下午茶抹茶甜点组合",
-      },
-      products: ["tsujiriUji", "tsujiriMatchaMilk", "tsujiriPoundCake"],
-    },
-    {
-      brand: "glico",
-      banner: matchaImages.hero,
-      bannerAlt: {
-        en: "Matcha tea and sweets on a stone table",
-        zh: "石桌上的抹茶与甜点",
-      },
-      products: ["glicoPejoy", "glicoPocky", "glicoDarkPocky"],
-    },
   ];
 
   return definitions.map((definition) => ({

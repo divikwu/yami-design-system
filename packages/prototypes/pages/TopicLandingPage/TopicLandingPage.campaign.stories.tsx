@@ -52,9 +52,9 @@ function assertBrandRailTitleFont(canvasElement: HTMLElement) {
     !main ||
     !style ||
     (main.dataset.titleFontFamily === "serif"
-      ? !style.fontFamily.includes("Source Serif 4") ||
+      ? !style.fontFamily.includes("Noto Serif") ||
         style.fontWeight !== "600"
-      : style.fontFamily.includes("Source Serif 4") ||
+      : style.fontFamily.includes("Noto Serif") ||
         style.fontWeight !== "400")
   ) {
     throw new Error(

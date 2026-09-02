@@ -64,7 +64,7 @@ export const en: SiteCopy = {
     updated: "Updated",
     previous: "Previous",
     next: "Next",
-    groups: { start: "Use the library", ai: "Build with AI", collaboration: "Team collaboration", maintenance: "Extend and maintain", resources: "Resources and help" },
+    groups: { start: "Use the library", ai: "Create with AI", collaboration: "Team collaboration", maintenance: "Extend and maintain", resources: "Resources and help" },
     resources: { components: "Browse components", foundations: "Design standards", pages: "Page examples" },
   },
   blog: {

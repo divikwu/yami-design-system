@@ -9,13 +9,13 @@ for (const locale of ["zh", "en"]) {
         await page.emulateMedia({ colorScheme, reducedMotion: "reduce" });
         await page.goto(`/${locale}/docs/browse-components#design-standards`);
         await page.evaluate(() => document.fonts.ready);
-        const table = page.getByRole("table");
+        const table = page.getByRole("table").last();
         const wrapper = table.locator("..");
         const header = table.getByRole("columnheader").first();
         const cell = table.getByRole("cell").first();
-        await expect(header).toHaveCSS("font-size", "16px");
+        await expect(header).toHaveCSS("font-size", "14px");
         await expect(header).toHaveCSS("line-height", "20px");
-        await expect(header).toHaveCSS("font-weight", locale === "zh" ? "600" : "500");
+        await expect(header).toHaveCSS("font-weight", "400");
         await expect(header).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
         await expect(cell).toHaveCSS("font-size", "14px");
         await expect(cell).toHaveCSS("line-height", "24px");
@@ -61,8 +61,10 @@ for (const locale of ["zh", "en"]) {
 for (const locale of ["zh", "en"]) {
   test(`${locale} long three-column tables wrap within the scroll container`, async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 900 });
-    await page.goto(`/${locale}/docs/edit-pages`);
-    const table = page.getByRole("table").first();
+    await page.goto(`/${locale}/docs/choose-starting-point`);
+    const table = page.getByRole("table").filter({
+      has: page.getByRole("columnheader", { name: locale === "zh" ? "避免" : "Avoid", exact: true }),
+    });
     await expect(table.getByRole("columnheader")).toHaveCount(3);
     const overflow = await table.locator("th, td").evaluateAll(cells => cells.some(el => el.scrollWidth > el.clientWidth + 1));
     expect(overflow).toBe(false);

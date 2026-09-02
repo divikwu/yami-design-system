@@ -4,20 +4,23 @@ test("renders the desktop documentation shell, stable table of contents, and pag
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/zh/docs/getting-started");
 
+  const articleTitle = page.getByRole("heading", { level: 1, name: "Storybook 入门" });
+  await expect(articleTitle).toHaveCSS("font-family", /Source Serif 4/);
+  await expect(articleTitle).toHaveCSS("font-weight", "400");
   await expect(page.getByRole("navigation", { name: "YAMI 文档", exact: true })).toBeVisible();
   await expect(page.getByRole("navigation", { name: "本页内容" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "如何使用组件库", exact: true }).last()).toHaveAttribute(
+  await expect(page.getByRole("link", { name: "Storybook 入门", exact: true }).last()).toHaveAttribute(
     "aria-current",
     "page",
   );
 
-  await page.getByRole("navigation", { name: "本页内容" }).getByRole("link", { name: "选择你的路径" }).click();
-  await expect(page).toHaveURL(/#choose-your-path$/);
-  await expect(page.locator("#choose-your-path")).toBeVisible();
+  await page.getByRole("navigation", { name: "本页内容" }).getByRole("link", { name: "Storybook 是什么" }).click();
+  await expect(page).toHaveURL(/#what-storybook-is$/);
+  await expect(page.locator("#what-storybook-is")).toBeVisible();
 
-  await page.getByRole("navigation", { name: "文档翻页" }).getByRole("link").click();
+  await page.getByRole("navigation", { name: "文档翻页" }).getByRole("link").last().click();
   await expect(page).toHaveURL(/\/zh\/docs\/browse-components$/);
-  await expect(page.getByRole("heading", { level: 1, name: "查找与试用组件" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "查看组件与页面" })).toBeVisible();
 });
 
 test("uses the global mobile menu for documentation and keeps a single sticky page jump", async ({ page }) => {
@@ -29,7 +32,7 @@ test("uses the global mobile menu for documentation and keeps a single sticky pa
   await expect(menu).toBeVisible();
   await menu.click();
   const dialog = page.getByRole("dialog", { name: "菜单", exact: true });
-  await expect(dialog.getByRole("link", { name: "查找与试用组件" })).toHaveAttribute("aria-current", "page");
+  await expect(dialog.getByRole("link", { name: "查看组件与页面" })).toHaveAttribute("aria-current", "page");
   await expect(dialog.getByRole("navigation", { name: "YAMI 文档", exact: true }).getByRole("heading", { level: 2 })).toHaveCount(5);
   await dialog.getByRole("button", { name: "关闭" }).click();
   await expect(dialog).not.toBeAttached();
@@ -42,17 +45,20 @@ test("uses the global mobile menu for documentation and keeps a single sticky pa
 
 test("copies a fenced code block", async ({ context, page }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.goto("/en/docs/first-page");
+  await page.goto("/en/docs/choose-starting-point");
 
   const copyButton = page.locator("pre").first().locator("..").getByRole("button");
   await copyButton.click();
 
   await expect(copyButton).toHaveAccessibleName("Copied");
-  await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toContain("packages/design-system/SKILL.md");
+  await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toContain("Target users:");
 });
 
 test("filters Blog categories and opens a complete article", async ({ page }) => {
   await page.goto("/zh/blog");
+  const blogHeading = page.getByRole("heading", { level: 1, name: "文章" });
+  await expect(blogHeading).toHaveCSS("font-family", /Source Serif 4/);
+  await expect(blogHeading).toHaveCSS("font-weight", "400");
   const tabs = page.getByRole("tablist");
   await expect(tabs.getByRole("tab")).toHaveCount(4);
   await tabs.getByRole("tab", { name: "工程" }).click();
@@ -60,7 +66,10 @@ test("filters Blog categories and opens a complete article", async ({ page }) =>
   await page.getByRole("link", { name: /用 Storybook 构建、测试和记录组件/ }).click();
 
   await expect(page).toHaveURL(/\/zh\/blog\/build-test-document-components-with-storybook$/);
-  await expect(page.getByRole("heading", { level: 1, name: "用 Storybook 构建、测试和记录组件" })).toBeVisible();
+  const articleTitle = page.getByRole("heading", { level: 1, name: "用 Storybook 构建、测试和记录组件" });
+  await expect(articleTitle).toBeVisible();
+  await expect(articleTitle).toHaveCSS("font-family", /Source Serif 4/);
+  await expect(articleTitle).toHaveCSS("font-weight", "400");
   await expect(page.getByText("YAMI Design System Team", { exact: true })).toHaveCount(0);
   const cover = page.locator("article > div").first();
   await expect(cover).toHaveText("");
@@ -86,6 +95,14 @@ test("filters Blog categories and opens a complete article", async ({ page }) =>
   await expect(firstSectionHeading).toHaveCSS("font-size", "20px");
   await expect(firstSectionHeading).toHaveCSS("line-height", "28px");
   await expect(page.getByRole("button", { name: "复制“Story 是组件状态的可复现记录”链接" })).toHaveCount(0);
+
+  const articleTags = page.locator('[aria-label="标签"] [data-slot="tag"]');
+  await expect(articleTags).toHaveCount(4);
+  for (const tag of await articleTags.all()) {
+    await expect(tag).toHaveAttribute("data-size", "m");
+    await expect(tag).toHaveCSS("height", "28px");
+    await expect(tag).toHaveCSS("background-color", "rgba(0, 0, 0, 0.04)");
+  }
 
   await expect(page.getByRole("navigation", { name: "Blog 翻页" })).toHaveCount(0);
   const related = page.locator("section[aria-labelledby='related-docs']");

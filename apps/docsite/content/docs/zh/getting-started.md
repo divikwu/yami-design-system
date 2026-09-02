@@ -1,65 +1,76 @@
 ---
 slug: getting-started
-title: 如何使用组件库
-description: "从查看组件开始，使用 AI 搭建页面，再与同事一起评审、交付和维护。"
+title: Storybook 入门
+description: "了解 Storybook 的作用、内容结构和使用边界，再进入组件与页面。"
 group: start
-order: 10
+order: 20
 keywords: ["入门","组件库","Storybook","AI","Fork"]
-updatedAt: "2026-08-31"
+updatedAt: "2026-09-02"
 sourceRefs:
   - packages/design-system/SKILL.md
   - packages/design-system/README.md
+  - packages/design-system/generated/catalog.json
   - apps/storybook/.storybook/preview.tsx
   - docs/ai-workflow.md
 ---
 
-这份指南帮助设计师、产品同事和开发者使用 YAMI 组件库，完成一个可以展示、操作和评审的页面。你不必先学会整个项目的代码结构。
+Storybook 是 YAMI 查看真实组件、页面模式和使用规则的入口。它在浏览器中运行真实实现；不会编辑代码的同事，也可以用它查找参考、体验状态并检查多端表现。
 
-YAMI 提供设计规范、公共组件和页面示例。你负责说明目标、准备内容和确认结果；AI 可以协助查找组件、编写页面和运行检查。
+只查看时不需要下载项目。可以直接[打开 YAMI Storybook](https://yami-design-system-storybook.vercel.app/)；需要保存修改、新建 Story 或运行验证时，再完成[快速开始](/zh/docs/fork-project)并使用自己的本地副本。
 
-## 选择你的路径
+## Storybook 是什么
 
-| 你想做什么 | 从哪里开始 | 完成后得到什么 |
+Storybook 把组件和页面以独立、可运行的示例展示出来。每个 Story 记录一种具体状态或场景，例如默认、Loading、Disabled、窄屏或英文内容。
+
+它适合完成四类任务：
+
+- **找到：** 定位设计规则、品牌资产、组件或完整页面。
+- **理解：** 查看用途、参数、状态、交互和使用边界。
+- **比较：** 在不同语言、主题和屏幕尺寸下检查同一实现。
+- **验证：** 操作真实交互，并把准确的 Story 链接交给同事评审。
+
+Storybook 不是生产站点，也不是业务数据管理工具。在 Controls 中调整参数只会改变当前预览，不会自动保存或发布新版本。
+
+## 为什么先看 Storybook
+
+| 需要确认 | 静态设计稿 | Storybook |
 | --- | --- | --- |
-| 查看组件、规范和页面效果 | [查找与试用组件](/zh/docs/browse-components) | 确认可复用的组件和参考链接 |
-| 用 AI 制作自己的页面 | [准备工作环境](/zh/docs/prepare-environment) → [选择页面示例](/zh/docs/choose-starting-point) → [创建第一个页面](/zh/docs/first-page) | 一个独立、可操作的页面练习版本 |
-| 与同事共同制作和评审 | [多人协作方式](/zh/docs/collaboration) | 明确的任务分工、预览和反馈记录 |
-| 把通用能力贡献给团队 | [反馈组件能力缺口](/zh/docs/component-gaps) | 范围清楚、可以评审的公共能力提案 |
+| 组件状态 | 需要逐张补充或文字说明 | 可以直接体验 Hover、Focus、Loading 和 Disabled |
+| 响应式 | 依赖多个画板与标注 | 可以在真实宽度下检查布局和内容变化 |
+| 中英文与主题 | 容易只覆盖一个组合 | 可以在同一示例切换并比较 |
+| 交互 | 需要原型连线或口头说明 | 可以直接操作真实组件和页面 |
+| 协作 | 反馈容易停留在截图位置 | 链接可以对应具体组件、状态或页面 |
 
-只查看组件不需要下载项目。需要搭页时，再准备自己的工作环境。
+两者不是二选一。Figma 适合自由探索、视觉发散和早期评议；Storybook 更适合在方向收敛后，确认真实组件、交互和实现边界。
 
-## 第一次搭页的清单
+## Storybook 里有什么
 
-1. **只做一次：** 获取项目访问权限，按照[创建自己的 Fork](/zh/docs/fork-project)建立独立副本并关联上游。
-2. **只做一次：** 按[准备工作环境](/zh/docs/prepare-environment)启动 Storybook，确认示例可见、可操作。
-3. **每个任务：** 按[选择页面示例](/zh/docs/choose-starting-point)确定参考，再在[开始与管理一个任务](/zh/docs/manage-tasks)中确认目标、允许修改的范围和负责人。
-4. **跟着完成：** 用[创建第一个页面](/zh/docs/first-page)的素材与提示词制作一个练习版本。
-5. **交给同事前：** 完成[自查](/zh/docs/review-checklist)，保存版本，并按[共享预览与评审](/zh/docs/review-preview)提供结果。
+| 目录 | 包含内容 | 适合用来做什么 |
+| --- | --- | --- |
+| [Foundations](https://yami-design-system-storybook.vercel.app/?path=/story/yami-foundations-color--overview) | 颜色、字体、布局、圆角和响应式规则 | 确认界面应呈现的基础规则 |
+| [Primitives](https://yami-design-system-storybook.vercel.app/?path=/story/yami-primitives-color-primitives--overview) | 尺寸、颜色和字体的底层值 | 进行进阶规范检查，不作为普通搭页的起点 |
+| [Assets](https://yami-design-system-storybook.vercel.app/?path=/story/yami-assets-logos--overview) | Logo、图标等可复用品牌资产 | 选择正确版本，并确认颜色、尺寸和背景要求 |
+| [Components](https://yami-design-system-storybook.vercel.app/?path=/story/yami-components-actions-button--showcase) | Button、Header、ProductCard、ProductList 等真实组件 | 查看组件状态、交互、参数和用法 |
+| [Pages](https://yami-design-system-storybook.vercel.app/?path=/story/yami-pages-ecommerce-home--pc) | 首页、专题页、搜索页和商品详情页等完整页面 | 寻找页面结构和模块组合的参考 |
 
-团队协作按私密上游与授权 Fork 设计。管理员需要先确认相关权限；这份教程不会自动配置仓库或预览的访问控制。
+目标是搭建页面时，先从 Pages 找最接近的完整页面，再进入 Components 确认其中组件的状态和用法。
 
-## 三个工具，各有职责
+## 认识三个工作入口
 
 | 入口 | 用它做什么 | 不代表什么 |
 | --- | --- | --- |
-| 文档站 | 学习步骤、复制提示词、查看验收清单 | 不重复维护每个组件的 API |
-| Storybook | 查看、理解、试用和验证真实组件及页面示例 | 调整 Controls 不会保存或发布业务页面 |
-| 本地项目与 AI 工具 | 修改内容、组合页面、运行检查并保存代码 | AI 说完成不等于已经评审或上线 |
+| 文档站 | 了解工作步骤、规范和验收要求 | 不展示每个组件的全部状态和 API |
+| Storybook | 查看、试用和验证真实组件及页面示例 | 调整 Controls 不会保存或发布新版本 |
+| 本地项目 | 修改内容、组合页面、运行检查并保存代码 | 本地可用不代表已经评审或发布 |
 
-直接打开 [组件](https://yami-design-system-storybook.vercel.app/?path=/story/yami-components-actions-button--showcase)、[设计规范](https://yami-design-system-storybook.vercel.app/?path=/story/yami-foundations-color--overview)或[页面示例](https://yami-design-system-storybook.vercel.app/?path=/story/yami-pages-ecommerce-home--pc)。如果团队入口要求登录，请向维护者申请访问，不要自行公开副本。
+Storybook 负责查看、理解和验证。需要保存新的内容、页面组合或组件能力时，在自己的本地项目中完成，再进入代码评审和发布流程。
 
-## 先复用，再调整
+## 选择下一步
 
-先找最接近的页面，再确认它用到哪些组件。优先替换文案、商品和图片，其次调整模块组合；只有真实需求无法满足时才扩展公共组件。
+| 你要做什么 | 继续阅读 |
+| --- | --- |
+| 查找组件、确认状态或查看完整页面 | [查看组件与页面](/zh/docs/browse-components) |
+| 使用 AI 创建组件或页面 | [开始创建](/zh/docs/prepare-environment) |
+| 现有组件不能满足真实需求 | [反馈组件能力缺口](/zh/docs/component-gaps) |
 
-AI 必须读取项目的 `packages/design-system/SKILL.md`，并按其中的顺序查阅规范、组件契约和页面示例。不要让 AI 通过截图重新手写已经存在的组件。
-
-## 怎样算完成
-
-你应该能够说明页面保存在哪里、如何打开、哪些内容被修改，以及用什么检查确认结果。同事应能在约定的语言、主题、屏幕尺寸和数据版本下复现页面。
-
-自查、同事评审与负责人发布是三个不同环节。代码合并或本地预览成功，不代表已经部署。需要实际交付时，继续阅读[页面交付与发布](/zh/docs/deliver-publish)。
-
-## 下一步
-
-想先了解可用组件？进入[查找与试用组件](/zh/docs/browse-components)。准备开始搭页？先[准备工作环境](/zh/docs/prepare-environment)，再[选择页面示例](/zh/docs/choose-starting-point)。
+组件和页面的具体寻找、阅读、检查与分享方法，统一放在下一篇文档。

@@ -292,8 +292,8 @@ export const Overview: Story = {
     for (const element of serifStyles) {
       const style = getComputedStyle(element)
       const expectedWeight = "600"
-      if (!style.fontFamily.includes("Source Serif 4") || style.fontWeight !== expectedWeight) {
-        throw new Error(`${element.dataset.typographySerif} must use Source Serif 4 ${expectedWeight}`)
+      if (!style.fontFamily.includes("Source Serif 4 Variable") || style.fontWeight !== expectedWeight) {
+        throw new Error(`${element.dataset.typographySerif} must use Source Serif 4 Variable ${expectedWeight}`)
       }
     }
   },

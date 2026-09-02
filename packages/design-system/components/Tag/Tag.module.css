@@ -3,10 +3,10 @@
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  height: calc(var(--space-300) + var(--space-050));
+  gap: var(--space-050);
   padding-inline: var(--space-150);
   border: var(--stroke-default) solid transparent;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-button-primary);
   font-family: var(--font-family-ios);
   font-size: var(--font-size-body-md);
   font-weight: var(--font-weight-normal);
@@ -14,24 +14,85 @@
   white-space: nowrap;
 }
 
-.tag[data-tone="dark"] {
-  color: var(--color-white-1000);
-  background-color: var(--color-black-600);
+.tag[data-size="m"] {
+  height: calc(var(--space-300) + var(--space-050));
 }
 
-.tag[data-tone="light"] {
+.tag[data-size="l"] {
+  height: var(--space-400);
+}
+
+.tag[data-has-image="true"] {
+  padding: var(--space-025) var(--space-150) var(--space-025) var(--space-025);
+}
+
+.image {
+  display: inline-flex;
+  width: var(--space-300);
+  height: var(--space-300);
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: var(--radius-full);
+  background: var(--surface-primary);
+}
+
+.image img {
+  display: block;
+  width: calc(var(--space-200) + var(--space-050));
+  height: calc(var(--space-200) + var(--space-050));
+  object-fit: contain;
+}
+
+.tag[data-size="l"] .image {
+  width: calc(var(--space-300) + var(--space-050));
+  height: calc(var(--space-300) + var(--space-050));
+}
+
+.tag[data-size="l"] .image img {
+  width: var(--space-300);
+  height: var(--space-300);
+}
+
+@media (min-width: 1024px) {
+  .tag[data-size="l"] {
+    height: calc(var(--space-400) + var(--space-050));
+  }
+
+  .tag[data-size="l"] .image {
+    width: var(--space-400);
+    height: var(--space-400);
+  }
+
+  .tag[data-size="l"] .image img {
+    width: calc(var(--space-300) + var(--space-050));
+    height: calc(var(--space-300) + var(--space-050));
+  }
+}
+
+.tag[data-mode="light"] {
   color: var(--color-black-1000);
-  background-color: var(--color-white-700);
 }
 
-.tag[data-tone="dark-outline"] {
-  color: var(--color-black-1000);
-  background-color: transparent;
-  border-color: currentColor;
-}
-
-.tag[data-tone="light-outline"] {
+.tag[data-mode="dark"] {
   color: var(--color-white-1000);
-  background-color: transparent;
-  border-color: currentColor;
+}
+
+.tag[data-variant="filled"][data-mode="light"] {
+  color: var(--color-black-900);
+  background-color: var(--color-black-100);
+}
+
+.tag[data-variant="filled"][data-mode="dark"] {
+  color: var(--color-white-1000);
+  background-color: var(--color-white-200);
+}
+
+.tag[data-variant="outline"][data-mode="light"] {
+  border-color: var(--color-black-200);
+}
+
+.tag[data-variant="outline"][data-mode="dark"] {
+  border-color: var(--color-white-200);
 }

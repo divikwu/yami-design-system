@@ -6,7 +6,7 @@ date: "2026-08-29"
 category: engineering
 authors: ["YAMI Design System Team"]
 tags: ["Figma", "Components", "Storybook", "Validation"]
-relatedDocs: ["first-page", "create-components", "contribute-upstream"]
+relatedDocs: ["choose-starting-point", "create-components", "contribute-upstream"]
 coverAlt: "YAMI Design System 标识与 Engineering 分类"
 draft: true
 ---

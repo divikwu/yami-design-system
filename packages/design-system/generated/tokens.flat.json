@@ -1329,10 +1329,10 @@
   "font-family.serif": {
     "$type": "fontFamily",
     "$value": {
-      "EN": "Source Serif 4",
-      "CN": "Source Han Serif SC"
+      "EN": "Source Serif 4 Variable",
+      "CN": "Noto Serif SC"
     },
-    "$description": "衬线展示字体，适用于 display 与 heading-md serif 变体，不用于正文或功能性文字。"
+    "$description": "衬线展示字体：英文使用支持 optical sizing 的 Source Serif 4 Variable，中文使用 Noto Serif SC。适用于 display 与 heading-md serif 变体，不用于正文或功能性文字。"
   },
   "font-family.win": {
     "$type": "fontFamily",

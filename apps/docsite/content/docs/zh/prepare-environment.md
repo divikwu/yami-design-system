@@ -1,101 +1,36 @@
 ---
 slug: prepare-environment
-title: 准备工作环境
-description: "在自己的工作副本中启动 Storybook，让 AI 读到项目规范，并确认页面预览可以正常使用。"
+title: 开始创建
+description: "先选择要创建组件还是页面，再进入对应流程准备参考、提示词和验收要求。"
 group: ai
 order: 40
-keywords: ["环境", "Node", "pnpm", "Storybook", "AI", "预览"]
-updatedAt: "2026-08-31"
+keywords: ["创建组件", "创建页面", "参考", "提示词", "AI", "验收"]
+updatedAt: "2026-09-02"
 sourceRefs:
-  - package.json
-  - apps/storybook/package.json
-  - apps/storybook/.storybook/preview.tsx
+  - docs/ai-workflow.md
   - packages/design-system/SKILL.md
-  - packages/design-system/package.json
+  - packages/design-system/generated/catalog.json
+  - packages/prototypes/pages/TopicLandingPage/TopicLandingPage.stories.tsx
 ---
 
-适用于准备第一次用 AI 搭页的同事。你不需要先掌握项目架构，但需要一个有权限访问的工作副本，以及能够读取、修改本地文件的 AI 编程工具。
+这里是“用 AI 创建”的分流入口。先判断任务需要公共组件还是完整页面，再进入对应页面准备参考、提示词和验收要求。仓库、依赖和 Storybook 尚未准备好时，先完成[快速开始](/zh/docs/fork-project)。
 
-## 开始前准备
+## 选择创建对象
 
-先完成[创建自己的 Fork](/zh/docs/fork-project)，获得自己的本地副本。以下命令都在自己的仓库根目录运行，而不是在同事的工作目录或某个组件目录里运行。环境确认可用后，再按[开始与管理一个任务](/zh/docs/manage-tasks)建立任务；本篇只准备环境，不修改页面。
+| 目标 | 什么时候选择 | 下一步 |
+| --- | --- | --- |
+| 创建组件 | 需要一个职责明确、可被多个页面复用的交互或展示能力 | 进入[创建组件](/zh/docs/create-components) |
+| 创建页面 | 需要完成一个用户任务，并组合内容、数据和多个组件 | 进入[创建页面](/zh/docs/choose-starting-point) |
 
-| 准备项 | 怎么确认 |
-| --- | --- |
-| 项目权限 | 能访问团队授权的仓库；私密仓库、Fork 和预览权限按团队实际配置确认 |
-| 本地副本 | AI 打开的目录包含根目录 `package.json`、`apps/` 和 `packages/` |
-| 任务范围 | 知道本次要做哪个页面，以及不能修改哪些公共内容 |
-| 素材 | 使用已获准用于本次评审的文案、图片和样例数据；不要传入密钥或客户隐私 |
+如果需求只是替换某个页面的文案、商品、图片或模块顺序，它通常属于页面任务，不需要新建公共组件。现有组件缺少可复用能力时，先记录[组件能力缺口](/zh/docs/component-gaps)。
 
-## 检查运行版本
+## 进入对应流程
 
-当前根目录 `package.json` 要求 Node.js 24.x，并指定 pnpm 11.20.0。运行：
+- **创建组件：** 在[创建组件](/zh/docs/create-components)中判断是否有参考，选择提示词，并完成组件契约、Story 与验证。
+- **创建页面：** 在[创建页面](/zh/docs/choose-starting-point)中判断是否有参考，填写提示词，并完成实现与验证。
 
-```bash
-node --version
-pnpm --version
-```
+参考可以是 Storybook 示例、现有代码、设计稿、截图或已获准使用的网页。没有参考时，也应先搜索现有 Components 与 Pages，而不是从空白随意生成。
 
-应分别显示 `v24.x.x` 和 `11.20.0`。以后更新项目时，以该版本的 `engines` 和 `packageManager` 字段为准，不要为了安装成功随意改掉它们。
+## 开始前
 
-版本不一致时，可让 AI 或技术同事协助准备相应版本；完成后再运行上述两条命令确认。不要在版本错误时删除锁文件来绕过问题。
-
-## 安装依赖并打开预览
-
-首次获取项目，或同步更新后依赖发生变化时，运行：
-
-```bash
-pnpm install --frozen-lockfile
-pnpm dev:storybook
-```
-
-Storybook 默认使用 `http://localhost:6006`。保持运行它的终端开启，在浏览器中打开该地址。终端出现启动成功不等于页面可用：还要打开一个组件或页面，确认画布、文字和图片确实渲染。
-
-本教程从 Storybook 开始，不要求同时启动所有应用。如果还需要查看本地使用指南，在另一个终端运行：
-
-```bash
-pnpm dev:docsite
-```
-
-文档网站使用 `http://localhost:3400/zh`，不是页面 Story 的预览地址。团队托管的 Storybook 也不会因为本地保存文件而自动更新。
-
-如果端口已经被占用，先确认是否就是自己已启动的项目。不要停止不明进程或同事的预览服务；由 AI 或技术同事确认现有实例，或选择一个未占用的端口并记录实际地址。
-
-## 让 AI 先读项目规范
-
-把下面这段发给能访问项目文件的 AI：
-
-```text
-我准备在当前 YAMI 仓库中创建一个独立的页面练习。
-先确认工作目录、分支、未提交改动，以及 Node / pnpm 版本。
-读取当前目录适用的 AGENTS.md 和 packages/design-system/SKILL.md，
-按 Skill 读取设计规范，并找到最接近需求的现有页面、Story 和 fixture。
-本次先检查环境，不修改组件、不升级依赖、不删除锁文件。
-检查 Storybook 是否已运行；不要占用或终止其他任务的服务。
-请报告：实际预览地址、打开的页面、是否有渲染错误，以及下一步。
-```
-
-项目里的 Skill 说明读取顺序与验证要求；它不是把 AI 自动接入业务数据或自动发布页面的开关。每次换仓库、换任务或缺失上下文时，都要让 AI 重新确认适用规则。
-
-## 确认环境已经可用
-
-只有以下结果都确认后，才开始搭页：
-
-1. Storybook 能显示一个真实组件或页面，而不只是空白外壳。
-2. 语言、主题和视口工具可用；目标 Story 没有锁定选项时，切换后画布正常变化。
-3. AI 能指出将复用的源文件，而不是凭空生成另一套同名组件。
-4. 当前改动属于自己的任务，原有公共页面与同事改动保持完整。
-
-后续运行浏览器测试时，如果提示缺少 Chromium，可先执行 `pnpm exec playwright install chromium`。这会下载测试浏览器，不是安装项目依赖的替代步骤。
-
-## 常见问题与下一步
-
-| 现象 | 处理方式 |
-| --- | --- |
-| 找不到 `node` 或 `pnpm` | 先准备要求的运行版本，再重新打开终端检查 |
-| 锁文件检查失败 | 确认分支与依赖文件完整，把原始错误交给 AI 分析，不直接改锁文件 |
-| 浏览器显示拒绝连接 | 检查终端服务是否仍运行、实际端口是否与网址一致 |
-| 图片或字体缺失 | 检查资源请求和控制台；先确认仓库文件齐全，不用外链临时替代 |
-| 页面打开但修改没出现 | 确认打开的是本地 Story、正确分支和正确工作目录 |
-
-环境可用后，继续[选择页面示例](/zh/docs/choose-starting-point)，确定可复用的参考与改动范围。
+只向 AI 提供任务所需的内容和已获授权的素材，不要提供密码、访问令牌或客户隐私。组件和页面各自需要的输入、提示词与完成检查都放在对应页面中。
