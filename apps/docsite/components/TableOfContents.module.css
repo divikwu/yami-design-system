@@ -1,0 +1,72 @@
+.root {
+  position: sticky;
+  top: calc(var(--docsite-header-height-desktop) + var(--space-300));
+  display: flex;
+  min-width: 0;
+  max-height: calc(100dvh - var(--docsite-header-height-desktop) - var(--space-600));
+  overflow-y: auto;
+}
+
+.root ol {
+  display: flex;
+  width: calc(100% - var(--space-050));
+  margin: 0 0 0 var(--space-050);
+  padding: 0;
+  flex-direction: column;
+  gap: var(--space-025);
+  list-style: none;
+}
+
+.root li[data-level="3"] {
+  padding-inline-start: var(--space-150);
+}
+
+.root a {
+  position: relative;
+  display: flex;
+  min-height: calc(var(--line-height-body-md) + var(--space-100));
+  padding: var(--space-050) var(--space-100) var(--space-050) var(--space-150);
+  align-items: center;
+  color: var(--text-secondary);
+  font-size: var(--font-size-body-md);
+  line-height: var(--line-height-body-md);
+  text-decoration: none;
+}
+
+.root a[aria-current="location"] {
+  color: var(--text-primary);
+  font-weight: var(--font-weight-emphasize);
+}
+
+.track {
+  position: absolute;
+  left: 0;
+  width: var(--space-025);
+  border-radius: var(--radius-full);
+}
+
+.track {
+  top: 0;
+  bottom: 0;
+  background: var(--divider-default);
+}
+
+.root a[aria-current="location"]::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  left: calc(var(--space-050) * -1);
+  width: var(--space-025);
+  z-index: 1;
+  background: var(--text-primary);
+  border-radius: var(--radius-full);
+}
+
+.root li[data-level="3"] a[aria-current="location"]::before {
+  left: calc((var(--space-050) + var(--space-150)) * -1);
+}
+
+.root a:focus-visible {
+  outline: var(--stroke-thick) solid var(--border-focus);
+  outline-offset: var(--space-025);
+}

@@ -1,0 +1,36 @@
+.main {
+  display: grid;
+  min-height: calc(100vh - var(--docsite-header-height-mobile));
+  padding: var(--space-1000) var(--layout-page-margin-default);
+  align-content: center;
+  justify-items: start;
+  gap: var(--space-200);
+}
+
+.description {
+  max-width: 52ch;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--font-size-body-xl);
+  line-height: var(--line-height-body-xl);
+}
+
+.action {
+  display: inline-flex;
+  min-height: var(--space-600);
+  padding-inline: var(--space-300);
+  align-items: center;
+  border-radius: var(--radius-button-primary);
+  background: var(--button-primary);
+  color: var(--text-primary-inverse);
+  font-size: var(--font-size-body-md);
+  font-weight: var(--font-weight-emphasize);
+  line-height: var(--line-height-body-md);
+  text-decoration: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .action:hover {
+    background: var(--button-primary-active);
+  }
+}

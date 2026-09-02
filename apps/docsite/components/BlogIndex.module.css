@@ -1,0 +1,31 @@
+.tabs {
+  max-width: calc(var(--docsite-prose-max) - var(--space-100));
+  margin-inline: auto;
+  gap: var(--space-300);
+}
+
+.tabsList {
+  align-self: center;
+  justify-content: center;
+}
+
+.panel {
+  display: grid;
+  gap: var(--space-500);
+}
+
+.panel[hidden] {
+  display: none;
+}
+
+.grid {
+  display: grid;
+  gap: var(--space-500);
+}
+
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--space-250);
+  }
+}

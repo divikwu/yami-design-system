@@ -1,0 +1,26 @@
+.main {
+  width: min(100%, var(--docsite-content-max));
+  margin-inline: auto;
+  padding: var(--space-300) var(--layout-page-margin-default) var(--space-1000);
+}
+
+.header {
+  display: grid;
+  max-width: calc(var(--docsite-prose-max) - var(--space-100));
+  margin: 0 auto calc(var(--space-500) + var(--space-050));
+  justify-items: center;
+  gap: var(--space-100);
+  text-align: center;
+}
+
+.header h1 {
+  font-size: var(--font-size-heading-4xl);
+  line-height: var(--line-height-heading-4xl);
+}
+
+.header p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--font-size-body-xl);
+  line-height: var(--line-height-body-xl);
+}

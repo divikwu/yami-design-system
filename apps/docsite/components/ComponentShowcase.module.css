@@ -1,0 +1,114 @@
+.demo {
+  min-height: 100%;
+  background: var(--background-secondary);
+}
+
+.demo > :global([data-slot="card-content"]) {
+  height: 100%;
+}
+
+.stack,
+.copy {
+  display: grid;
+}
+
+.stack {
+  height: 100%;
+  gap: var(--space-200);
+}
+
+.copy {
+  gap: var(--space-050);
+}
+
+.copy h3,
+.copy p,
+.catalog p {
+  margin: 0;
+}
+
+.copy h3 {
+  font-size: var(--font-size-heading-xl);
+  line-height: var(--line-height-heading-xl);
+}
+
+.copy p,
+.actionRow > span,
+.catalog span,
+.catalog p {
+  color: var(--text-secondary);
+  font-size: var(--font-size-body-md);
+  line-height: var(--line-height-body-md);
+}
+
+.componentStrip,
+.actionRow,
+.catalog,
+.catalogMeta,
+.swatches,
+.checkboxSample {
+  display: flex;
+  align-items: center;
+}
+
+.componentStrip,
+.actionRow {
+  flex-wrap: wrap;
+  gap: var(--space-100);
+}
+
+.checkboxSample {
+  color: var(--text-secondary);
+  font-size: var(--font-size-caption-sm);
+  line-height: var(--line-height-caption-sm);
+  gap: var(--space-050);
+}
+
+.catalog {
+  margin-top: auto;
+  padding-top: var(--space-200);
+  justify-content: space-between;
+  border-top: var(--stroke-default) solid var(--divider-default);
+  gap: var(--space-200);
+}
+
+.catalog > div:first-child {
+  display: grid;
+  gap: var(--space-025);
+}
+
+.catalog strong {
+  font-size: var(--font-size-heading-xl);
+  font-weight: var(--font-weight-emphasize);
+  line-height: var(--line-height-heading-xl);
+}
+
+.catalogMeta {
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-100);
+  text-align: right;
+}
+
+.swatches {
+  gap: var(--space-050);
+}
+
+.swatches span {
+  width: var(--space-200);
+  height: var(--space-200);
+  border: var(--stroke-default) solid var(--border-default);
+  border-radius: var(--radius-component-default);
+}
+
+.swatches [data-tone="primary"] {
+  background: var(--surface-primary);
+}
+
+.swatches [data-tone="secondary"] {
+  background: var(--surface-secondary);
+}
+
+.swatches [data-tone="inverse"] {
+  background: var(--surface-inverse);
+}

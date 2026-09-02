@@ -1,0 +1,119 @@
+.footer {
+  position: relative;
+  z-index: 1;
+  padding-top: calc(var(--space-1000) + var(--space-250));
+  background: var(--background-primary);
+}
+
+.inner {
+  display: grid;
+  width: 100%;
+  margin-inline: auto;
+  box-sizing: border-box;
+  padding: var(--space-300);
+  background: var(--background-primary);
+  gap: var(--space-200);
+}
+
+.topRow,
+.bottomRow {
+  display: grid;
+  align-items: center;
+}
+
+.topRow {
+  grid-template-columns: minmax(0, 1fr) auto;
+  justify-items: stretch;
+  gap: var(--space-400);
+}
+
+.links,
+.externalLinks {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.links {
+  justify-content: flex-start;
+  gap: var(--space-200);
+}
+
+.externalLinks {
+  justify-content: flex-end;
+  gap: var(--space-100);
+}
+
+.links a,
+.externalLinks a {
+  display: inline-flex;
+  min-height: var(--space-400);
+  align-items: center;
+  color: var(--text-secondary);
+  font-size: var(--font-size-caption-sm);
+  line-height: var(--line-height-caption-sm);
+  text-decoration: none;
+}
+
+.externalLinks a {
+  width: var(--space-400);
+  height: var(--space-400);
+  justify-content: center;
+  border-radius: var(--radius-button-primary);
+  background: var(--button-secondary);
+  color: var(--text-primary);
+}
+
+.divider {
+  height: var(--stroke-default);
+  background: var(--divider-default);
+}
+
+.bottomRow {
+  justify-items: start;
+  gap: var(--space-100);
+  text-align: start;
+}
+
+.bottomRow p {
+  margin: 0;
+  font-size: var(--font-size-caption-sm);
+  line-height: var(--line-height-caption-sm);
+}
+
+.bottomRow p {
+  color: var(--text-secondary);
+}
+
+.links a:focus-visible,
+.externalLinks a:focus-visible {
+  outline: var(--stroke-thick) solid var(--border-focus);
+  outline-offset: var(--space-025);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .links a:hover {
+    color: var(--text-primary);
+  }
+
+  .externalLinks a:hover {
+    background: var(--button-secondary-active);
+  }
+}
+
+@media (min-width: 1024px) {
+  .topRow {
+    min-height: var(--space-400);
+  }
+
+  .bottomRow {
+    grid-template-columns: minmax(0, 1fr) auto;
+    justify-items: stretch;
+    gap: var(--space-400);
+  }
+
+  .bottomRow p:last-child {
+    text-align: end;
+  }
+}

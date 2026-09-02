@@ -4515,35 +4515,35 @@
       "sourceSha256": "1e1030503608d7c47b4e6edb029a29a97ffbb167c8533ccf32bf3a0fe1b9dc34",
       "disposition": "regenerated",
       "destination": "packages/design-system/generated/tokens.css",
-      "destinationSha256": "0c4239c764ca260f253f2117b265213e4a6b371999b5d84804c6e9b3ba508ed4"
+      "destinationSha256": "b3b303360bea0131d701a9399acde0309655cea601d51add56c593a66ef0bf1b"
     },
     {
       "source": "tokens.flat.json",
       "sourceSha256": "4c836302814c3c77c0d0c34276a0649a89cf662f9de2f079e409ac1bc3524652",
       "disposition": "regenerated",
       "destination": "packages/design-system/generated/tokens.flat.json",
-      "destinationSha256": "cdce13f0366c921d0fd2e5782173a84ebadb6359e55f6e882f2baf8a12cfad50"
+      "destinationSha256": "5be5838fc2433854b78e2df3e22c9a64f18b3d8c7554a1bf70aed8187699fffe"
     },
     {
       "source": "tokens.json",
       "sourceSha256": "698f28a1c76c0a7feda6e5a3a7f168c068309b73fa5d61dea98b4d1e2eeb3010",
       "disposition": "regenerated",
       "destination": "packages/design-system/generated/tokens.json",
-      "destinationSha256": "97b812288eeaf6fc9f0594e64fb631efa08e95bcaa093cd1245216697f61012e"
+      "destinationSha256": "6739626daacf40233cc7d59a80209e096a9f4e81d92c4968dbab0c371e726a9e"
     },
     {
       "source": "tokens.md",
       "sourceSha256": "ce6f00f7b5fe84128570b4787d85dc072cb188b708e596a5e3a50c7a1986aea8",
       "disposition": "regenerated",
       "destination": "packages/design-system/generated/tokens.md",
-      "destinationSha256": "fd7c9dff594e55beb876e28487d7c51062d518b297d924527eb542dda407e51c"
+      "destinationSha256": "5dea397659d2e241b600b54af35405b3a6056de521a25b2d34b796e595b489fa"
     },
     {
       "source": "tokens.ts",
       "sourceSha256": "2029a9ddf284555fa53997ae5abbd7c7a3900beceb5f7c777fde0ade4d3bbb79",
       "disposition": "regenerated",
       "destination": "packages/design-system/generated/tokens.ts",
-      "destinationSha256": "b7c03ea1b408db02288881c0db0ae3ea78d1ba8d53a7b0355528e3a58e118ef3"
+      "destinationSha256": "0b48617283272a5940bace79ae3c2b9197dedc94183237e30a3fa3b3752ca75f"
     },
     {
       "source": "tokens/primitives/breakpoints.tokens.json",

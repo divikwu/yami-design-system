@@ -1,0 +1,72 @@
+.cover {
+  position: relative;
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: var(--radius-surface-default);
+  background: var(--background-secondary);
+}
+
+.cover img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.copy {
+  position: relative;
+  display: flex;
+  width: 100%;
+  padding: var(--space-400);
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: var(--space-100);
+  color: var(--text-on-emphasis);
+}
+
+.eyebrow {
+  font-size: var(--font-size-caption-sm);
+  font-weight: var(--font-weight-emphasize);
+  line-height: var(--line-height-caption-sm);
+  letter-spacing: 0.08em;
+}
+
+.title {
+  max-width: 14ch;
+  font-size: var(--font-size-display-xl);
+  font-weight: var(--font-weight-emphasize);
+  line-height: var(--line-height-display-xl);
+  letter-spacing: -0.02em;
+}
+
+.cornerLabel {
+  position: absolute;
+  inset-inline-end: var(--space-300);
+  inset-block-end: var(--space-300);
+  color: var(--text-secondary);
+  font-size: var(--font-size-body-md);
+  font-weight: var(--font-weight-emphasize);
+  line-height: var(--line-height-body-md);
+}
+
+.cover[data-image] .cornerLabel {
+  color: var(--text-on-emphasis);
+}
+
+@media (min-width: 768px) {
+  .copy {
+    padding: var(--space-600);
+  }
+
+  .title {
+    font-size: var(--font-size-heading-4xl);
+    line-height: var(--line-height-heading-4xl);
+  }
+}

@@ -2,7 +2,8 @@
 
 ## Status
 
-Accepted by the repository owner on 2026-08-07.
+Accepted by the repository owner on 2026-08-07. Extended to the Docsite target
+on 2026-08-29 as part of the approved phase-one implementation plan.
 
 ## Context
 
@@ -17,7 +18,8 @@ separate rights boundary.
 
 ## Decision
 
-- Canvas and Storybook may run as public Vercel Production deployments.
+- Canvas, Storybook and Docsite may run as separate public Vercel Production
+  deployments.
 - Automatic Git deployments remain disabled.
 - The Vercel projects are linked to `divikwu/yami-design-system` for repository
   provenance and monorepo source selection. The link does not authorize or
@@ -25,11 +27,14 @@ separate rights boundary.
 - Preview and Production deployments remain manual and require separate user
   authorization.
 - A deployment must identify the source commit and pass the repository CI suite.
-- Neither Vercel project receives `OPENAI_API_KEY` or another model-provider
+- None of the Vercel projects receives `OPENAI_API_KEY` or another model-provider
   secret. Direction manifests are generated in Codex or Kiro and imported by
   the user.
 - Public availability is not asset-rights clearance. The restrictions in
   `docs/migration/asset-rights.csv` and asset-specific notices remain active.
+- Docsite uses the Vercel project name `yami-design-system-docsite` with Root
+  Directory `apps/docsite`. Adding this configuration does not itself authorize
+  project creation, domain changes, Preview deployment or Production promotion.
 
 ## Unresolved release risk
 

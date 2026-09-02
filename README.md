@@ -9,6 +9,7 @@ corepack pnpm install
 pnpm generate
 pnpm dev
 pnpm dev:storybook
+pnpm dev:docsite
 ```
 
 ## AI workflow
@@ -25,6 +26,7 @@ and import contract.
 - Canvas Workbench: http://localhost:3200/workbench
 - Canvas Preview: http://localhost:3200/preview?locale=en
 - Storybook: http://localhost:6006
+- Docsite: http://localhost:3400/zh
 
 ## Hosted environments
 
@@ -32,9 +34,14 @@ and import contract.
 - Canvas Preview: https://yami-design-system.vercel.app/preview?locale=en
 - Storybook: https://yami-design-system-storybook.vercel.app
 
+Docsite is configured as a separate manual Vercel target at
+`apps/docsite`. This repository change does not create or deploy that project;
+its public URL must be recorded only after an authorized Preview and Production
+promotion.
+
 The source repository and the manually promoted Vercel production deployments
-are public. Automatic Git deployments remain disabled, and neither Vercel
-project receives an AI secret. See
+are public. Automatic Git deployments remain disabled, and no Vercel project
+receives an AI secret. See
 [`ADR 003`](docs/adr/003-public-production-and-manual-deployments.md) for the
 current release policy.
 

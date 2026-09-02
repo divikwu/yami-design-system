@@ -407,6 +407,8 @@ Generated from DTCG sources. Contextual values are listed separately.
 | `heading-xl.line-height` | root | dimension | `28px` |
 | `heading-xs.font-size` | root | dimension | `14px` |
 | `heading-xs.line-height` | root | dimension | `20px` |
+| `home-hero-desktop.font-size` | root | dimension | `56px` |
+| `home-hero-desktop.line-height` | root | dimension | `64px` |
 | `layout.page-margin-card` | root | dimension | `var(--space-100)` |
 | `layout.page-margin-card` | desktop | dimension | `var(--space-600)` |
 | `layout.page-margin-default` | root | dimension | `var(--space-200)` |

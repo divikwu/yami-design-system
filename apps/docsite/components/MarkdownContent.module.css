@@ -1,0 +1,146 @@
+.prose {
+  padding-top: var(--space-300);
+  color: var(--text-primary);
+  font-size: var(--font-size-body-xl);
+  line-height: var(--line-height-heading-xl);
+}
+
+.prose p,
+.prose li {
+  font-size: var(--font-size-body-xl);
+  line-height: inherit;
+}
+
+.prose > *:first-child {
+  margin-top: 0;
+}
+
+.prose h2 {
+  margin: var(--space-500) 0 var(--space-200);
+  font-size: var(--font-size-display-sm);
+  line-height: var(--line-height-display-sm);
+  scroll-margin-top: calc(var(--docsite-header-height-mobile) + var(--space-800));
+}
+
+.prose h3 {
+  margin: var(--space-400) 0 var(--space-150);
+  scroll-margin-top: calc(var(--docsite-header-height-mobile) + var(--space-800));
+}
+
+.prose h3 {
+  font-size: var(--font-size-heading-xl);
+  line-height: var(--line-height-heading-xl);
+}
+
+.prose p,
+.prose ul,
+.prose ol,
+.prose blockquote,
+.prose table {
+  margin-block: var(--space-200);
+}
+
+.prose ul,
+.prose ol {
+  padding-inline-start: var(--space-300);
+}
+
+.prose li + li {
+  margin-top: var(--space-100);
+}
+
+.prose a {
+  color: var(--text-primary);
+  text-decoration-thickness: var(--stroke-default);
+  text-underline-offset: var(--space-050);
+}
+
+.prose code:not(pre code) {
+  padding: var(--space-025) var(--space-050);
+  border-radius: var(--radius-tag-primary);
+  background: var(--surface-secondary);
+  color: var(--text-primary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: var(--font-size-body-md);
+}
+
+.prose blockquote {
+  padding: var(--space-200);
+  border: var(--stroke-default) solid var(--border-default);
+  border-radius: var(--radius-component-default);
+  background: var(--surface-secondary);
+}
+
+.prose blockquote > :first-child {
+  margin-top: 0;
+}
+
+.prose blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: var(--font-size-body-md);
+  line-height: var(--line-height-heading-md);
+}
+
+.tableScroll {
+  max-width: 100%;
+  margin-block: var(--space-200);
+  overflow-x: auto;
+  border: var(--stroke-default) solid var(--border-default);
+  border-radius: var(--radius-surface-default);
+  background: var(--surface-primary);
+}
+
+.tableScroll table { min-width: calc(var(--space-1000) * 4 + var(--space-500)); margin: 0; }
+
+.tableScroll:focus-visible {
+  outline: var(--stroke-thick) solid var(--border-focus);
+  outline-offset: var(--space-025);
+}
+
+.prose th,
+.prose td {
+  padding: var(--space-150) var(--space-200);
+  border-bottom: var(--stroke-default) solid var(--divider-default);
+  text-align: start;
+  vertical-align: middle;
+  overflow-wrap: anywhere;
+}
+
+.prose th {
+  color: var(--text-secondary);
+  font-size: var(--font-size-body-xl);
+  line-height: var(--line-height-body-xl);
+  font-weight: var(--font-weight-emphasize);
+}
+
+.prose tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.prose img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-block: var(--space-300);
+  border-radius: var(--radius-surface-default);
+}
+
+.prose hr {
+  height: var(--stroke-default);
+  margin-block: var(--space-800);
+  border: 0;
+  background: var(--divider-default);
+}
+
+@media (min-width: 1024px) {
+  .prose h2,
+  .prose h3 {
+    scroll-margin-top: calc(var(--docsite-header-height-desktop) + var(--space-300));
+  }
+}

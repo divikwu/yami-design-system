@@ -1,0 +1,164 @@
+.root {
+  position: sticky;
+  z-index: 20;
+  top: var(--docsite-header-height-mobile);
+  display: grid;
+  padding: var(--space-025) 0;
+  border-bottom: var(--stroke-default) solid var(--divider-default);
+  background: var(--background-primary);
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.tocSelect {
+  position: relative;
+  display: grid;
+  min-width: 0;
+}
+
+/* Keep the 32px surface inside a 44px hit area. */
+.tocSelect::before {
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: var(--space-400);
+  border: var(--stroke-default) solid var(--border-default);
+  border-radius: var(--radius-component-default);
+  background: var(--surface-primary);
+  content: "";
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.trigger {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-100);
+  width: 100%;
+  min-width: 0;
+  height: calc(var(--space-600) - var(--space-050));
+  padding-inline: var(--space-150);
+  border: 0;
+  border-radius: var(--radius-component-default);
+  background: transparent;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: var(--font-size-body-md);
+  line-height: var(--line-height-body-md);
+  text-align: start;
+  cursor: pointer;
+}
+
+/* Move the keyboard ring to the visible surface, avoiding a second outer box. */
+.trigger:focus-visible {
+  outline: none;
+}
+
+.tocSelect:has(.trigger:focus-visible)::before {
+  outline: var(--stroke-thick) solid var(--border-focus);
+  outline-offset: var(--space-025);
+}
+
+.value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevron,
+.indicator {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.chevron {
+  transition: transform 150ms ease-out;
+}
+
+.trigger[data-popup-open] .chevron {
+  transform: rotate(180deg);
+}
+
+.positioner {
+  z-index: 30;
+  width: var(--anchor-width);
+  max-width: var(--available-width);
+}
+
+.popup {
+  overflow: hidden;
+  border: var(--stroke-default) solid var(--border-default);
+  border-radius: var(--radius-surface-default);
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  /* User-requested elevation; matches the shared FilterChip menu popup. */
+  /* yami-visual-exception:start(docsite-chapter-menu-shadow) */
+  box-shadow: 0 8px 16px -8px rgb(0 0 0 / 24%);
+  /* yami-visual-exception:end(docsite-chapter-menu-shadow) */
+  transition: transform 150ms ease-out;
+}
+
+.popup[data-starting-style] {
+  transform: translateY(calc(-1 * var(--space-050)));
+}
+
+.popup[data-starting-style][data-side="top"] {
+  transform: translateY(var(--space-050));
+}
+
+.list {
+  max-height: min(calc(var(--space-800) * 5), calc(var(--available-height) - var(--stroke-default) * 2));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--space-050);
+  scroll-padding-block: var(--space-050);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-150);
+  min-height: var(--space-400);
+  padding: calc(var(--space-050) + var(--space-025)) var(--space-150);
+  border-radius: var(--radius-component-default);
+  font-size: var(--font-size-body-md);
+  line-height: var(--line-height-body-md);
+  cursor: pointer;
+}
+
+.itemText {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.item[data-selected] {
+  background: var(--surface-secondary);
+  font-weight: var(--font-weight-emphasize);
+}
+
+.item:focus-visible {
+  outline: var(--stroke-thick) solid var(--border-focus);
+  outline-offset: calc(-1 * var(--stroke-thick));
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .item:hover {
+    background: var(--surface-secondary);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chevron,
+  .popup {
+    transition-duration: 0ms;
+  }
+}
+
+@media (min-width: 1280px) {
+  .root {
+    display: none;
+  }
+}

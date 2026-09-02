@@ -1437,6 +1437,16 @@ export const tokens = {
     "$value": "20px",
     "$description": "用于最小层级标题与强调型标签。适用于列表项标题、表单标签或紧凑卡片标题，不用于正文或展示型文案。"
   },
+  "home-hero-desktop.font-size": {
+    "$type": "dimension",
+    "$value": "56px",
+    "$description": "Docsite 首页 PC Hero 主标题字号，仅供首页首屏标题使用。"
+  },
+  "home-hero-desktop.line-height": {
+    "$type": "dimension",
+    "$value": "64px",
+    "$description": "Docsite 首页 PC Hero 主标题行高，仅供首页首屏标题使用。"
+  },
   "layout.page-margin-card": {
     "$type": "dimension",
     "$value": "{space.100}"

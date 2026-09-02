@@ -326,6 +326,8 @@
   --line-height-heading-xl: 28px;
   --font-size-heading-xs: 14px;
   --line-height-heading-xs: 20px;
+  --font-size-home-hero-desktop: 56px;
+  --line-height-home-hero-desktop: 64px;
   --layout-page-margin-card: var(--space-100);
   --layout-page-margin-default: var(--space-200);
   --letter-spacing-normal: 0;

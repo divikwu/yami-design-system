@@ -94,3 +94,42 @@ jobs:
             test-results
           if-no-files-found: ignore
           retention-days: 7
+
+  docsite:
+    name: docsite
+    runs-on: ubuntu-latest
+    container: mcr.microsoft.com/playwright:v1.61.1-noble
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/setup@v2
+        with:
+          runtime: node@24
+          cache: true
+          install: false
+      - name: install
+        run: pnpm install --frozen-lockfile
+      - name: content-and-token-validation
+        run: pnpm check:docsite-content
+      - name: typecheck-and-unit-tests
+        run: pnpm --filter @yami/docsite typecheck && pnpm test:docsite
+      - name: production-build
+        run: pnpm build:docsite
+      - name: browser-and-accessibility-tests
+        run: pnpm test:docsite:e2e
+        env:
+          PLAYWRIGHT_USE_EXISTING_BUILD: "1"
+      - name: lighthouse-budgets
+        run: pnpm test:docsite:lighthouse
+      - name: repository-validation
+        run: pnpm validate
+      - name: docsite-browser-artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: docsite-playwright-results
+          path: |
+            apps/docsite/playwright-report
+            apps/docsite/test-results
+            apps/docsite/.lighthouseci
+          if-no-files-found: ignore
+          retention-days: 7
