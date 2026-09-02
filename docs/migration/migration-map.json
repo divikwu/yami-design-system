@@ -3445,7 +3445,7 @@
       "sourceSha256": "04300b44a2f1200caaa5b1d2f57762885bff80b88d2c06751ef0bca43b10aea9",
       "disposition": "rebuilt",
       "destination": "packages/design-system/package.json",
-      "destinationSha256": "9d982a4ead1b87a39e15a09fcdbc5307e1dc5446029d4d901587f049fdf83d54"
+      "destinationSha256": "a3cb358eef6e5f60b69031e0f4ae6d0b302533262aa8fc7fdf9d8eb829653655"
     },
     {
       "source": "pages/EcommerceHome/EcommerceHome.module.css",
