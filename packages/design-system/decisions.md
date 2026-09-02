@@ -91,6 +91,18 @@ Each decision uses a structured block:
 
 ---
 
+<!-- decision-id: 2026-09-gradients-permitted -->
+## Gradients are permitted
+
+- **Date**: 2026-09-01
+- **Decision**: Retire the `no-gradient` hard rule and remove gradients from the scope of `no-decorative-media`. Gradients may be used when they support the intended composition; their colors must still follow the active semantic-color rules.
+- **Context**: The blanket prohibition prevented intentional gradient-backed modules and required exception pragmas for several maintained components. The design direction now treats gradients as a medium to evaluate in context instead of an automatic violation.
+- **Trade-offs**: Removing the validator increases design-review responsibility. Existing color semantics, text contrast, performance, reduced-motion, and token-existence requirements still apply, so permission to use gradients is not permission to introduce arbitrary colors or illegible surfaces.
+- **Related rule-id(s)**: semantic-color-only, token-exists
+- **Supersedes**: `2026-04-no-gradient`
+
+---
+
 <!-- decision-id: 2026-04-pragma-is-runner-level -->
 ## Validator pragma is honored at the runner, not in each validator
 

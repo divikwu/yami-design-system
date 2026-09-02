@@ -20,7 +20,6 @@ import { focusStyle } from './validators/focus-style'
 import { noCustomRadii } from './validators/no-custom-radii'
 import { noDecorativeMedia } from './validators/no-decorative-media'
 import { noEmoji } from './validators/no-emoji'
-import { noGradient } from './validators/no-gradient'
 import { noOpacityDisabled } from './validators/no-opacity-disabled'
 import { numeralsFont } from './validators/numerals-font'
 import { redUsage } from './validators/red-usage'
@@ -44,13 +43,6 @@ const principlesData = [
     severity: 'error',
     description: '两个红：#FF0000 (--color-brand-red) 仅用于 Logo / brand mark；#E00000 (--color-red-500) 仅用于 Emphasis CTA / promo & urgency / error。两者不可互换，禁止装饰用途',
     validator: redUsage,
-  },
-  {
-    ruleId: 'no-gradient',
-    title: '渐变禁用',
-    severity: 'error',
-    description: '禁止任何渐变（唯一例外: modal scrim rgba(0,0,0,0.68)）',
-    validator: noGradient,
   },
   {
     ruleId: 'semantic-color-only',

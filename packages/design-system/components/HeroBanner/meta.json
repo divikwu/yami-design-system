@@ -93,10 +93,6 @@
     "motion": {
       "ruleId": "elevation-on-press",
       "note": "Paging respects prefers-reduced-motion and does not animate card geometry."
-    },
-    "gradient": {
-      "ruleId": "no-gradient",
-      "note": "The 24px gradient is a functional Figma-specified artwork-to-campaign-surface transition using the sampled bottom-edge image color."
     }
   },
   "tokens": [

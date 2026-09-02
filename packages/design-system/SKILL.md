@@ -34,7 +34,7 @@ It tells you in one screen:
 - The 5 radius slots, the 8px spacing grid.
 - The font story (GT Walsheim for numerals, PingFang SC for CN body).
 - The maintained component families and what they do.
-- The 16 hard rules as one-liners.
+- The 15 hard rules as one-liners.
 
 Stop after this if the user just wants a description or onboarding answer.
 
@@ -55,11 +55,11 @@ Open [`DESIGN.md`](./DESIGN.md) (~860 lines). It is the **comprehensive spec + r
 
 ---
 
-## Hard rules (the 16 that fail CI)
+## Hard rules (the 15 that fail CI)
 
 Rule markers live inline in `DESIGN.md` topic sections; full bilingual prose is in the Hard Rules summary table. Each `<!-- rule-id: X -->` marker is wired to [`principles/principles.ts`](./principles/principles.ts) and an AST validator at `principles/validators/X.ts`. The rule names alone:
 
-`red-usage`, `no-gradient`, `semantic-color-only`, `numerals-font`, `type-hierarchy`, `no-custom-radii`, `elevation-on-press`, `no-opacity-disabled`, `focus-style`, `border-strength`, `emphasis-limit`, `card-no-border`, `tap-target`, `no-emoji`, `no-decorative-media`, `token-exists`.
+`red-usage`, `semantic-color-only`, `numerals-font`, `type-hierarchy`, `no-custom-radii`, `elevation-on-press`, `no-opacity-disabled`, `focus-style`, `border-strength`, `emphasis-limit`, `card-no-border`, `tap-target`, `no-emoji`, `no-decorative-media`, `token-exists`.
 
 **Three rules cause most AI failures**:
 - `emphasis-limit` — 1 emphasis Button per screen. Output 2 → instant fail.

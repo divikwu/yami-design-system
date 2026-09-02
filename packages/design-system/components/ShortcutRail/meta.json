@@ -94,10 +94,6 @@
     "motion": {
       "ruleId": "elevation-on-press",
       "note": "Native rail paging respects prefers-reduced-motion."
-    },
-    "gradient": {
-      "ruleId": "no-gradient",
-      "note": "The white-to-transparent edge mask is a functional overflow affordance matching the existing Header category rail."
     }
   },
   "tokens": [

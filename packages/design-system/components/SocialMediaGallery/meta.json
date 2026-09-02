@@ -76,10 +76,6 @@
       "ruleId": "no-custom-radii",
       "note": "Gallery, video cards, product images, and account marks consume semantic radius tokens."
     },
-    "gradient": {
-      "ruleId": "no-gradient",
-      "note": "Media gradients are functional contrast layers from the Figma video-card specification."
-    },
     "motion": {
       "ruleId": "elevation-on-press",
       "note": "Native rail paging respects prefers-reduced-motion."

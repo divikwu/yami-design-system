@@ -1,4 +1,4 @@
-/* yami-validate-disable: no-gradient, token-exists */
+/* yami-validate-disable: token-exists */
 /* ProductList campaign surfaces intentionally blend supplied artwork into its
  * caller-provided dominant color, and skeletons use a loading shimmer.
  * The product-list custom properties are runtime inputs, not system tokens. */

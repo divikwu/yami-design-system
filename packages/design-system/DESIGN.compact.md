@@ -18,9 +18,9 @@ projection: compact
 **Surface:** web · **Category:** E-Commerce — Chinese-American Asian grocery, U.S. market · **Voice:** bilingual CN + EN, CN-primary · **Mode:** Light + Dark
 **载体**：Web · **品类**：电商——华人亚洲食品，面向美国市场 · **语言**：中英双语，中文为主 · **主题**：浅色 + 深色
 
-**EN.** YAMI uses a white canvas with near-black ink in Light, and neutral-950/900 surfaces with light ink in Dark. One operational red ramp carries emphasis. No decorative gradients; ProductList campaign transitions and skeleton shimmer are functional exceptions. No shadows that grow on hover. ProductCard media may zoom within fixed card geometry. No emoji in product UI. Numerals — every digit, every price — render in GT Walsheim; CN body text uses PingFang SC. Theme and `inverse` are independent: inverse means the opposite surface polarity inside either Theme.
+**EN.** YAMI uses a white canvas with near-black ink in Light, and neutral-950/900 surfaces with light ink in Dark. One operational red ramp carries emphasis. No shadows that grow on hover. ProductCard media may zoom within fixed card geometry. No emoji in product UI. Numerals — every digit, every price — render in GT Walsheim; CN body text uses PingFang SC. Theme and `inverse` are independent: inverse means the opposite surface polarity inside either Theme.
 
-**中文。** 浅色主题使用纯白画布与近黑文字；深色主题使用 neutral-950/900 表面与浅色文字。操作红色阶承担强调语义。主题与 `inverse` 相互独立：inverse 表示当前主题内的反向表面，而不是深色模式。无渐变、悬浮不放大阴影、产品 UI 内不用 emoji。**所有数字都用 GT Walsheim**——价格、计数、SKU 无一例外；中文正文用苹方 (PingFang SC)。
+**中文。** 浅色主题使用纯白画布与近黑文字；深色主题使用 neutral-950/900 表面与浅色文字。操作红色阶承担强调语义。主题与 `inverse` 相互独立：inverse 表示当前主题内的反向表面，而不是深色模式。悬浮不放大阴影、产品 UI 内不用 emoji。**所有数字都用 GT Walsheim**——价格、计数、SKU 无一例外；中文正文用苹方 (PingFang SC)。
 
 ---
 
@@ -81,21 +81,20 @@ Price format: `$12.99` (USD-leading). Discount: `$12.99  $19.99` (current red, o
 These have validators; violations fail `validate_design`. Full reasoning lives in [DESIGN.md](./DESIGN.md):
 
 1. **red-usage** — two reds, never interchanged.
-2. **no-gradient** — exceptions are ProductList campaign artwork transitions, skeleton shimmer, and modal scrim `rgba(0,0,0,0.68)`.
-3. **semantic-color-only** — non-red hues live in badge palette only.
-4. **numerals-font** — every digit in GT Walsheim.
-5. **type-hierarchy** — max 4 levels per page.
-6. **no-custom-radii** — use the 5 semantic slots, no raw values like `8.5px` / `16px` / `50%`, no primitive `--radius-sm/md/lg/xl`.
-7. **elevation-on-press** — color shift, not shadow.
-8. **no-opacity-disabled** — use `--button-disabled` + `--text-disabled`, never CSS `opacity`.
-9. **focus-style** — 2px black outline, 2px offset.
-10. **border-strength** — 3 strengths only (default 8% / focus 87% / attention red).
-11. **emphasis-limit** — 1 emphasis button per screen.
-12. **card-no-border** — opt-in border only for dense grids.
-13. **tap-target** — iOS 44pt / Android 48dp minimum.
-14. **no-emoji** — none in product UI (UGC excepted).
-15. **no-decorative-media** — no glassmorphism, gradients, hand-drawn illustration, unregistered serif/decorative fonts, pastels, alert-bar cards; approved serif typography uses optical `Source Serif 4 Variable` + `Noto Serif SC` through `--font-family-serif`.
-16. **token-exists** — every `var(--x)` reference must exist in `tokens.css`.
+2. **semantic-color-only** — non-red hues live in badge palette only.
+3. **numerals-font** — every digit in GT Walsheim.
+4. **type-hierarchy** — max 4 levels per page.
+5. **no-custom-radii** — use the 5 semantic slots, no raw values like `8.5px` / `16px` / `50%`, no primitive `--radius-sm/md/lg/xl`.
+6. **elevation-on-press** — color shift, not shadow.
+7. **no-opacity-disabled** — use `--button-disabled` + `--text-disabled`, never CSS `opacity`.
+8. **focus-style** — 2px black outline, 2px offset.
+9. **border-strength** — 3 strengths only (default 8% / focus 87% / attention red).
+10. **emphasis-limit** — 1 emphasis button per screen.
+11. **card-no-border** — opt-in border only for dense grids.
+12. **tap-target** — iOS 44pt / Android 48dp minimum.
+13. **no-emoji** — none in product UI (UGC excepted).
+14. **no-decorative-media** — no glassmorphism, hand-drawn illustration, unregistered serif/decorative fonts, pastels, alert-bar cards; approved serif typography uses optical `Source Serif 4 Variable` + `Noto Serif SC` through `--font-family-serif`.
+15. **token-exists** — every `var(--x)` reference must exist in `tokens.css`.
 
 ---
 
