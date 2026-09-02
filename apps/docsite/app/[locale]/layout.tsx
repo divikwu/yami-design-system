@@ -98,9 +98,6 @@ export default async function LocaleLayout({
     >
       <body>
         <Script id="yami-theme" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: themeScript }} />
-        <a className="skip-link" href="#main-content">
-          {locale === "zh" ? "跳至正文" : "Skip to Content"}
-        </a>
         <SiteHeader
           locale={locale}
           copy={{ nav: copy.nav, utilities: copy.utilities, docs: copy.docs }}
