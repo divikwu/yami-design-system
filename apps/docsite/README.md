@@ -79,9 +79,10 @@ consume YAMI semantic aliases in both themes.
 
 The intended Vercel project is `yami-design-system-docsite`, with Root Directory
 `apps/docsite`. `SITE_URL` supplies canonical, sitemap, and RSS origins. Git
-deployments are disabled in `vercel.json`; every Preview and Production release
-requires separate authorization and must record its commit SHA, CI result,
-domain, and manual desktop/mobile, language, and theme sampling.
+deployments are enabled in `vercel.json`: pull requests create Preview
+deployments and updates to `main` create Production deployments. Vercel records
+the commit SHA and domain; release verification covers CI plus desktop/mobile,
+language, and theme sampling.
 
 This application reuses existing YAMI fonts, logos, and icons. Public deployment
 does not establish redistribution rights. Review

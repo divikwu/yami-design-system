@@ -1,9 +1,10 @@
-# ADR 003 — Public Production and manual deployments
+# ADR 003 — Public Production and deployment policies
 
 ## Status
 
 Accepted by the repository owner on 2026-08-07. Extended to the Docsite target
-on 2026-08-29 as part of the approved phase-one implementation plan.
+on 2026-08-29 as part of the approved phase-one implementation plan, then
+updated on 2026-09-02 to enable automatic Git deployments for Docsite.
 
 ## Context
 
@@ -20,21 +21,23 @@ separate rights boundary.
 
 - Canvas, Storybook and Docsite may run as separate public Vercel Production
   deployments.
-- Automatic Git deployments remain disabled.
+- Automatic Git deployments remain disabled for Canvas and Storybook. Docsite
+  enables Git deployments.
 - The Vercel projects are linked to `divikwu/yami-design-system` for repository
-  provenance and monorepo source selection. The link does not authorize or
-  trigger a deployment while each app keeps `git.deploymentEnabled: false`.
-- Preview and Production deployments remain manual and require separate user
-  authorization.
-- A deployment must identify the source commit and pass the repository CI suite.
+  provenance and monorepo source selection. For Docsite, pull requests create
+  Preview deployments and updates to `main` create Production deployments.
+- Canvas and Storybook Preview and Production deployments remain manual and
+  require separate user authorization.
+- Vercel must identify the source commit. Changes merged to `main` must pass the
+  repository's required CI checks.
 - None of the Vercel projects receives `OPENAI_API_KEY` or another model-provider
   secret. Direction manifests are generated in Codex or Kiro and imported by
   the user.
 - Public availability is not asset-rights clearance. The restrictions in
   `docs/migration/asset-rights.csv` and asset-specific notices remain active.
 - Docsite uses the Vercel project name `yami-design-system-docsite` with Root
-  Directory `apps/docsite`. Adding this configuration does not itself authorize
-  project creation, domain changes, Preview deployment or Production promotion.
+  Directory `apps/docsite` and the public Production alias
+  `yami-design-system-docsite.vercel.app`.
 
 ## Unresolved release risk
 
