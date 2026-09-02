@@ -169,6 +169,16 @@ export function getAllBlogPosts(locale: Locale, includeDrafts = false): BlogDocu
   return stablePosts.filter((document) => includeDrafts || !document.frontmatter.draft);
 }
 
+export function sortBlogPostsByUpdatedAt(posts: BlogDocument[]): BlogDocument[] {
+  return [...posts].sort((a, b) => {
+    const aUpdatedAt = a.frontmatter.updatedAt ?? a.frontmatter.date;
+    const bUpdatedAt = b.frontmatter.updatedAt ?? b.frontmatter.date;
+    const updatedAtOrder = bUpdatedAt.localeCompare(aUpdatedAt);
+    if (updatedAtOrder !== 0) return updatedAtOrder;
+    return b.frontmatter.date.localeCompare(a.frontmatter.date);
+  });
+}
+
 export function getBlogPost(locale: Locale, slug: string): BlogDocument | undefined {
   return getAllBlogPosts(locale).find((document) => document.frontmatter.slug === slug);
 }

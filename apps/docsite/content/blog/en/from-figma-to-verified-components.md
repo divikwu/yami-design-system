@@ -8,6 +8,7 @@ authors: ["YAMI Design System Team"]
 tags: ["Figma", "Components", "Storybook", "Validation"]
 relatedDocs: ["choose-starting-point", "create-components", "contribute-upstream"]
 coverAlt: "YAMI Design System mark with the Engineering category"
+draft: true
 ---
 
 Delivering a component from Figma is often misunderstood as translating visuals into code. Visual fidelity matters, but a production component must also explain how props combine, how states appear, how keyboards operate it, how themes change, and how consumers know it is ready.

@@ -1,7 +1,10 @@
 .main {
-  width: min(100%, var(--docsite-prose-max));
+  width: min(
+    calc(100% - var(--layout-page-margin-default) - var(--layout-page-margin-default)),
+    calc(var(--docsite-prose-max) - var(--space-100))
+  );
   margin-inline: auto;
-  padding: var(--space-600) var(--layout-page-margin-default) var(--space-1000);
+  padding-block: var(--space-600) var(--space-1000);
 }
 
 .header {
@@ -20,15 +23,20 @@
   margin: 0;
   color: var(--text-secondary);
   font-size: var(--font-size-body-xl);
-  line-height: var(--line-height-body-xl);
+  line-height: var(--line-height-heading-xl);
 }
 
 .breadcrumbs,
-.breadcrumbs a,
-.byline {
+.breadcrumbs a {
   color: var(--text-secondary);
   font-size: var(--font-size-body-md);
   line-height: var(--line-height-body-md);
+}
+
+.byline {
+  color: var(--text-secondary);
+  font-size: var(--font-size-body-xl);
+  line-height: var(--line-height-heading-xl);
 }
 
 .breadcrumbs,
@@ -40,31 +48,56 @@
 }
 
 .breadcrumbs a {
+  display: inline-flex;
+  min-height: calc(var(--space-500) + var(--space-050));
+  align-items: center;
   text-decoration: none;
 }
 
-.byline span + time::before,
+.currentCategory {
+  font-weight: var(--font-weight-emphasize);
+}
+
+.headerDivider {
+  margin-top: var(--space-100);
+}
+
 .byline time + span::before {
   margin-inline-end: var(--space-100);
   content: "·";
 }
 
 .cover {
-  display: flex;
-  min-height: calc(var(--space-1000) * 4 + var(--space-500));
-  margin-block: var(--space-600);
-  padding: var(--space-400);
-  align-items: flex-end;
-  justify-content: space-between;
-  border-radius: var(--radius-surface-default);
-  background: var(--background-secondary);
+  margin: var(--space-500) 0 var(--space-200);
 }
 
-.cover span {
-  color: var(--text-secondary);
-  font-size: var(--font-size-body-md);
-  font-weight: var(--font-weight-emphasize);
-  line-height: var(--line-height-body-md);
+.body h2 {
+  margin: var(--space-300) 0 var(--space-150);
+  font-size: var(--font-size-heading-xl);
+  line-height: var(--line-height-heading-xl);
+}
+
+.body h3 {
+  margin: var(--space-300) 0 var(--space-100);
+}
+
+.body p,
+.body ul,
+.body ol {
+  margin-block: var(--space-150);
+}
+
+.body th,
+.body td {
+  padding: var(--space-100) var(--space-150);
+}
+
+.body img {
+  margin-block: var(--space-200);
+}
+
+.body hr {
+  margin-block: var(--space-300);
 }
 
 .tags {
@@ -77,74 +110,48 @@
 .related {
   display: grid;
   margin-top: var(--space-800);
-  padding-top: var(--space-400);
+  padding-top: var(--space-300);
   gap: var(--space-300);
   border-top: var(--stroke-default) solid var(--divider-default);
 }
 
 .related > div {
   display: grid;
-  gap: var(--space-150);
+  gap: var(--space-100);
 }
 
 .related a {
-  display: grid;
-  min-height: var(--space-1000);
-  padding: var(--space-200);
-  align-content: center;
-  gap: var(--space-050);
+  display: flex;
+  min-height: var(--space-600);
+  padding: var(--space-150);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-100);
   border-radius: var(--radius-surface-default);
   background: var(--surface-secondary);
   color: var(--text-primary);
   text-decoration: none;
 }
 
-.related a span {
+.related a strong {
+  font-size: var(--font-size-body-xl);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-heading-md);
+}
+
+.relatedIcon {
+  flex: none;
   color: var(--text-secondary);
-  font-size: var(--font-size-body-md);
-  line-height: var(--line-height-body-md);
-}
-
-.pagination {
-  display: grid;
-  margin-top: var(--space-800);
-  padding-top: var(--space-400);
-  border-top: var(--stroke-default) solid var(--divider-default);
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-200);
-}
-
-.pagination a {
-  display: grid;
-  min-height: var(--space-1000);
-  padding: var(--space-200);
-  align-content: center;
-  gap: var(--space-050);
-  border-radius: var(--radius-surface-default);
-  background: var(--surface-secondary);
-  color: var(--text-primary);
-  text-decoration: none;
-}
-
-.pagination a:last-child {
-  text-align: end;
-}
-
-.pagination span {
-  color: var(--text-secondary);
-  font-size: var(--font-size-body-md);
-  line-height: var(--line-height-body-md);
-}
-
-.pagination strong {
-  font-size: var(--font-size-body-md);
-  font-weight: var(--font-weight-emphasize);
-  line-height: var(--line-height-body-md);
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .related a:hover,
-  .pagination a:hover {
+  .related a:hover {
     background: var(--button-secondary-active);
+  }
+}
+
+@media (min-width: 768px) {
+  .related > div {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

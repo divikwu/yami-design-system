@@ -5,9 +5,7 @@
 
 .link {
   display: grid;
-  overflow: hidden;
-  border-radius: var(--radius-surface-default);
-  background: var(--surface-primary);
+  gap: var(--space-200);
   color: var(--text-primary);
   text-decoration: none;
 }
@@ -24,28 +22,12 @@
 }
 
 .cover {
-  display: flex;
-  box-sizing: border-box;
-  width: 100%;
-  min-width: 0;
-  min-height: calc(var(--space-1000) * 3);
-  padding: var(--space-300);
-  align-items: flex-end;
-  justify-content: space-between;
-  background: var(--background-secondary);
-}
-
-.cover span {
-  color: var(--text-secondary);
-  font-size: var(--font-size-body-md);
-  font-weight: var(--font-weight-emphasize);
-  line-height: var(--line-height-body-md);
+  flex: none;
 }
 
 .content {
   display: grid;
   min-width: 0;
-  padding: var(--space-300);
   gap: var(--space-100);
 }
 
@@ -59,7 +41,7 @@
 
 .article[data-landing] .cover {
   overflow: hidden;
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-surface-default);
 }
 
 .article[data-landing="feature"] .cover {
@@ -80,36 +62,30 @@
 }
 
 .content h2 {
-  font-size: var(--font-size-heading-xl);
-  line-height: var(--line-height-heading-xl);
+  font-size: var(--font-size-heading-md);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-heading-md);
 }
 
+.article[data-feature] .content h2,
 .article[data-landing="feature"] .content h2 {
   font-size: var(--font-size-display-sm);
   line-height: var(--line-height-display-sm);
 }
 
 .article[data-landing="compact"] .content h2 {
-  font-size: var(--font-size-heading-md);
-  line-height: var(--line-height-heading-md);
+  font-size: var(--font-size-heading-sm);
+  line-height: var(--line-height-heading-sm);
 }
 
 .byline {
   display: flex;
   min-width: 0;
-  min-height: var(--space-300);
   align-items: center;
   color: var(--text-secondary);
-  font-size: var(--font-size-body-md);
-  line-height: var(--line-height-body-md);
+  font-size: var(--font-size-caption-sm);
+  line-height: var(--line-height-caption-sm);
   gap: var(--space-100);
-}
-
-.byline img {
-  display: block;
-  width: var(--space-250);
-  height: var(--space-250);
-  flex: none;
 }
 
 .article[data-landing] .content {
@@ -122,18 +98,36 @@
 
 .landingDate {
   color: var(--text-secondary);
-  font-size: var(--font-size-caption-sm);
-  line-height: var(--line-height-caption-sm);
+  font-size: var(--font-size-caption-md);
+  line-height: var(--line-height-caption-md);
 }
 
 .description {
   display: -webkit-box;
   overflow: hidden;
   color: var(--text-secondary);
-  font-size: var(--font-size-body-xl);
-  line-height: var(--line-height-body-xl);
+  font-size: var(--font-size-body-md);
+  line-height: var(--line-height-body-md);
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+}
+
+.article[data-feature] .description {
+  font-size: var(--font-size-body-xl);
+  line-height: var(--line-height-body-xl);
+}
+
+@media (max-width: 767px) {
+  .content h2,
+  .article[data-feature] .content h2 {
+    font-size: var(--font-size-heading-sm);
+    line-height: var(--line-height-heading-sm);
+  }
+
+  .article[data-feature] .description {
+    font-size: var(--font-size-body-md);
+    line-height: var(--line-height-body-md);
+  }
 }
 
 .link:focus-visible {
@@ -142,36 +136,7 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .link:hover {
-    background: var(--surface-secondary);
-  }
-
-  .article[data-landing] .link:hover {
-    background: transparent;
-  }
-
-  .article[data-landing] .link:hover h2 {
+  .link:hover h2 {
     text-decoration: underline;
-    text-underline-offset: var(--space-050);
-  }
-}
-
-@media (min-width: 768px) {
-  .article[data-feature] .link {
-    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
-  }
-
-  .article[data-feature] .cover {
-    min-height: calc(var(--space-1000) * 4 + var(--space-500));
-  }
-
-  .article[data-feature] .content {
-    padding: var(--space-600);
-    align-content: center;
-  }
-
-  .article[data-feature] .content h2 {
-    font-size: var(--font-size-heading-xl);
-    line-height: var(--line-height-heading-xl);
   }
 }

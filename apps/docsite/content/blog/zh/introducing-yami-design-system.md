@@ -8,11 +8,14 @@ authors: ["YAMI Design System Team"]
 tags: ["Design System", "Token", "Storybook", "Workflow"]
 relatedDocs: ["getting-started", "collaboration", "contribute-upstream"]
 coverAlt: "YAMI Design System 标识与 Update 分类"
+draft: true
 ---
 
-YAMI Design System 服务于亚洲食品电商体验，也服务于设计师、开发者和使用 Agent 的协作者。它的目标不是提供一套可以随意拼接的视觉素材，而是让品牌规则、代码实现和交付证据保持一致。
+这篇文章说明 YAMI Design System 如何把品牌规则、组件实现和验证证据连接成一条可执行的交付链。读完后，你会知道规则存放在哪里、应用如何消费，以及一项变更如何被验证。
 
-今天发布的 Docsite 第一期补上了其中的解释层：它说明系统为什么这样工作、应用应该如何消费，以及完成一项变更需要哪些验证。组件 API 和交互示例仍然由 Storybook 维护。
+第一期 Docsite 提供解释入口，Storybook 继续维护组件 API 和真实交互，Catalog、Registry 与 CI 则把组件状态、依赖和交付证据串起来。
+
+实际路径是：`DESIGN.md` 定义规则，DTCG JSON 生成 Token，公共组件消费语义 Token，Storybook 验证状态，CI 检查生成漂移、边界、类型和测试。
 
 ## 从静态规范到可执行契约
 

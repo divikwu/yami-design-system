@@ -2795,10 +2795,6 @@
           "motion": {
             "ruleId": "elevation-on-press",
             "note": "Paging respects prefers-reduced-motion and does not animate card geometry."
-          },
-          "gradient": {
-            "ruleId": "no-gradient",
-            "note": "The 24px gradient is a functional Figma-specified artwork-to-campaign-surface transition using the sampled bottom-edge image color."
           }
         },
         "tokens": [
@@ -4907,10 +4903,6 @@
           "motion": {
             "ruleId": "elevation-on-press",
             "note": "Native rail paging respects prefers-reduced-motion."
-          },
-          "gradient": {
-            "ruleId": "no-gradient",
-            "note": "The white-to-transparent edge mask is a functional overflow affordance matching the existing Header category rail."
           }
         },
         "tokens": [
@@ -5106,10 +5098,6 @@
           "radius": {
             "ruleId": "no-custom-radii",
             "note": "Gallery, video cards, product images, and account marks consume semantic radius tokens."
-          },
-          "gradient": {
-            "ruleId": "no-gradient",
-            "note": "Media gradients are functional contrast layers from the Figma video-card specification."
           },
           "motion": {
             "ruleId": "elevation-on-press",

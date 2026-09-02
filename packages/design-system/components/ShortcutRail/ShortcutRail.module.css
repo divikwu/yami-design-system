@@ -367,6 +367,9 @@
     text-align: left;
   }
 
+}
+
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
   .root[data-desktop-presentation="image-card"] .iconSurface:hover .icon {
     transform: translateY(-50%);
   }

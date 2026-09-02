@@ -1,20 +1,16 @@
-import { AiProgrammingIcon, ColorsIcon, PuzzleIcon } from "@hugeicons/core-free-icons";
+import { AiProgrammingIcon, ArrowRight02Icon, ColorsIcon, PuzzleIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Card } from "@yami/design-system";
 import Link from "next/link";
 
 import type { SiteCopy } from "../content/site";
 import type { BlogDocument } from "../lib/content";
-import { formatDate } from "../lib/content";
+import { formatDate, sortBlogPostsByUpdatedAt } from "../lib/content";
 import type { Locale } from "../lib/locales";
 import { localizedPath } from "../lib/locales";
 import { storybookUrl } from "../lib/site-config";
 import { BlogCard, type BlogCardData } from "./BlogCard";
-import { DiscoverReveal } from "./DiscoverReveal";
-import {
-  arrowRightIcon,
-  brandIcon,
-} from "./assets";
+import { arrowRightIcon } from "./assets";
 import styles from "./HomePage.module.css";
 
 const aboutRoutes = ["browse-components", "choose-starting-point", "review-checklist"] as const;
@@ -31,11 +27,13 @@ function toBlogCard(post: BlogDocument, locale: Locale, copy: SiteCopy): BlogCar
     dateLabel: formatDate(post.frontmatter.date, locale),
     readingTimeLabel: copy.blog.readingTime(post.readingTimeMinutes),
     authorLabel: post.frontmatter.authors[0] ?? "YAMI Design System Team",
+    cover: post.frontmatter.cover,
+    coverAlt: post.frontmatter.coverAlt,
   };
 }
 
 function ArrowIcon() {
-  return <img className={styles.arrowIcon} src={arrowRightIcon} alt="" width={16} height={16} />;
+  return <HugeiconsIcon className={styles.arrowIcon} icon={ArrowRight02Icon} size={16} strokeWidth={1.5} aria-hidden="true" />;
 }
 
 export function HomePage({
@@ -47,7 +45,7 @@ export function HomePage({
   copy: SiteCopy;
   posts: BlogDocument[];
 }) {
-  const cards = posts.slice(0, 3).map((post) => toBlogCard(post, locale, copy));
+  const cards = sortBlogPostsByUpdatedAt(posts).slice(0, 3).map((post) => toBlogCard(post, locale, copy));
   const aboutItems = aboutCapabilityIndexes.map((index, itemIndex) => ({
     ...copy.home.capabilities[index],
     href: localizedPath(locale, `/docs/${aboutRoutes[itemIndex]}`),
@@ -151,14 +149,16 @@ export function HomePage({
               <div className={styles.aboutColumns}>
                 {aboutItems.map((item) => (
                   <article className={styles.aboutItem} key={item.title}>
-                    <HugeiconsIcon className={styles.aboutIcon} icon={item.icon} size={24} strokeWidth={1.5} aria-hidden="true" />
+                      <HugeiconsIcon className={styles.aboutIcon} icon={item.icon} size={40} strokeWidth={1.5} aria-hidden="true" />
                     <div className={styles.aboutItemCopy}>
-                      <h3>{item.title}</h3>
-                      <p>{item.description}</p>
+                      <div className={styles.aboutItemText}>
+                        <h3>{item.title}</h3>
+                        <p>{item.description}</p>
+                      </div>
+                      <Link className={styles.textLink} href={item.href}>
+                        {copy.home.learnMore}<ArrowIcon />
+                      </Link>
                     </div>
-                    <Link className={styles.textLink} href={item.href}>
-                      {copy.home.learnMore}<ArrowIcon />
-                    </Link>
                   </article>
                 ))}
               </div>
@@ -171,15 +171,12 @@ export function HomePage({
             <div className={styles.sectionHeader}>
               <h2 id="latest-title">{copy.home.latestTitle}</h2>
               <Link className={styles.textLink} href={localizedPath(locale, "/blog")}>
-                {copy.home.latestAction}<ArrowIcon />
+                {copy.home.latestAction}
               </Link>
             </div>
             {cards.length > 0 ? (
               <div className={styles.blogGrid}>
-                <BlogCard post={cards[0]} landing="feature" />
-                <div className={styles.blogSide}>
-                  {cards.slice(1).map((post) => <BlogCard key={post.slug} post={post} landing="compact" />)}
-                </div>
+                {cards.map((post) => <BlogCard key={post.slug} post={post} landing="compact" />)}
               </div>
             ) : null}
           </div>
@@ -187,33 +184,12 @@ export function HomePage({
 
         <section className={styles.discover} aria-labelledby="discover-title">
           <div className={styles.homeContainer}>
-            <DiscoverReveal className={styles.discoverCard}>
-              <div className={`${styles.discoverPreview} ${styles.discoverPreviewTopLeading}`} aria-hidden="true">
-                <div className={styles.previewHeader}><img src={brandIcon} alt="" /><span>YAMI</span></div>
-                <div className={styles.previewRows}><span /><span /><span /></div>
-              </div>
-              <div className={`${styles.discoverPreview} ${styles.discoverPreviewTopTrailing}`} aria-hidden="true">
-                <span className={styles.previewLabel}>Token</span>
-                <div className={styles.previewSwatches}><span /><span /><span /></div>
-              </div>
-              <div className={`${styles.discoverPreview} ${styles.discoverPreviewBottomLeading}`} aria-hidden="true">
-                <span className={styles.previewLabel}>Docs</span>
-                <div className={styles.previewDoc}><span /><span /></div>
-              </div>
-              <div className={`${styles.discoverPreview} ${styles.discoverPreviewBottomTrailing}`} aria-hidden="true">
-                <span className={styles.previewLabel}>Storybook</span>
-                <div className={styles.previewComponent}><span />Button</div>
-              </div>
+            <div className={styles.discoverCard}>
               <div className={styles.discoverContent}>
-                <h2 id="discover-title">
-                  {locale === "zh" ? "探索完整的" : "Discover the full"}{" "}
-                  <span className={styles.discoverWordmark} aria-label="YAMI">
-                    <img src={brandIcon} alt="" />
-                    <span>YAMI</span>
-                  </span>{" "}
-                  {locale === "zh" ? "设计系统" : "Design System"}
-                </h2>
-                <p>{copy.home.discoverDescription}</p>
+                <div className={styles.discoverHeader}>
+                  <h2 id="discover-title">{copy.home.discoverTitle}</h2>
+                  <p>{copy.home.discoverDescription}</p>
+                </div>
                 <div className={styles.heroActions}>
                   <Link className={styles.primaryAction} href={localizedPath(locale, "/docs/getting-started")}>
                     {copy.home.primaryAction}
@@ -223,7 +199,7 @@ export function HomePage({
                   </a>
                 </div>
               </div>
-            </DiscoverReveal>
+            </div>
           </div>
         </section>
       </div>

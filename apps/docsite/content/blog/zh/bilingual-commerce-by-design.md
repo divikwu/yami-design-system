@@ -8,6 +8,7 @@ authors: ["YAMI Design System Team"]
 tags: ["Bilingual", "Content", "Typography", "Accessibility"]
 relatedDocs: ["choose-starting-point", "browse-components", "review-checklist"]
 coverAlt: "YAMI Design System 标识与 Design 分类"
+draft: true
 ---
 
 亚洲食品电商天然面对多语言商品名、品牌名、规格、数字和文化语境。只在发布前替换界面文字，通常会留下路由丢失、布局溢出、操作含义不对等和读屏名称不一致等问题。

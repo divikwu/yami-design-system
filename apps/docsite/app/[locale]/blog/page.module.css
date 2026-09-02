@@ -1,15 +1,15 @@
 .main {
   width: min(100%, var(--docsite-content-max));
   margin-inline: auto;
-  padding: var(--space-800) var(--layout-page-margin-default) var(--space-1000);
+  padding: var(--space-300) var(--layout-page-margin-default) var(--space-1000);
 }
 
 .header {
   display: grid;
-  max-width: var(--docsite-prose-max);
-  margin: 0 auto var(--space-600);
+  max-width: calc(var(--docsite-prose-max) - var(--space-100));
+  margin: 0 auto calc(var(--space-500) + var(--space-050));
   justify-items: center;
-  gap: var(--space-150);
+  gap: var(--space-100);
   text-align: center;
 }
 

@@ -33,6 +33,11 @@ const blogSchema = z.object({
   authors: z.array(z.string().min(1)).min(1),
   tags: z.array(z.string().min(1)).max(4),
   relatedDocs: z.array(slugSchema).optional().default([]),
+  cover: z.object({
+    src: z.string().startsWith("/"),
+    eyebrow: z.string().min(1).optional(),
+    title: z.string().min(1).optional(),
+  }).optional(),
   coverAlt: z.string().min(1).optional(),
   draft: z.boolean().optional().default(false),
 });
@@ -252,7 +257,7 @@ const docs = Object.fromEntries(locales.map((locale) => [locale, readCollection(
 const blogs = Object.fromEntries(locales.map((locale) => [locale, readCollection("blog", locale, blogSchema)]));
 
 comparePaired("document", docs.zh, docs.en, ["slug", "group", "order", "updatedAt", "sourceRefs", "draft"]);
-comparePaired("Blog post", blogs.zh, blogs.en, ["slug", "date", "updatedAt", "category", "authors", "relatedDocs", "draft"]);
+comparePaired("Blog post", blogs.zh, blogs.en, ["slug", "date", "updatedAt", "category", "authors", "relatedDocs", "cover", "draft"]);
 
 for (const locale of locales) {
   const docSlugs = new Set(docs[locale].map((item) => item.frontmatter.slug));

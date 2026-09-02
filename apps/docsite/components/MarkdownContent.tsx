@@ -7,7 +7,6 @@ import type { ContentHeading } from "../lib/content";
 import type { Locale } from "../lib/locales";
 import { slugifyHeading } from "../lib/content";
 import { CodeBlock } from "./CodeBlock";
-import { CopyButton } from "./CopyButton";
 import styles from "./MarkdownContent.module.css";
 
 function textFromNode(node: ReactNode): string {
@@ -41,10 +40,7 @@ export function MarkdownContent({
     const Heading = level === 2 ? "h2" : "h3";
     return (
       <Heading id={id} aria-labelledby={`${id}-text`}>
-        <span id={`${id}-text`} className={styles.headingText}>{children}</span>
-        <span className={styles.headingAction}>
-          <CopyButton kind="link" value={id} label={locale === "zh" ? `复制“${textFromNode(children)}”链接` : `Copy link to "${textFromNode(children)}"`} copiedLabel={copiedLabel} errorLabel={errorLabel} />
-        </span>
+        <span id={`${id}-text`}>{children}</span>
       </Heading>
     );
   }
