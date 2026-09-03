@@ -61,7 +61,7 @@ Storybook 原来的 `pnpm dev:storybook` 是本地组件开发服务，不执行
 - 正确登录后回到原页面，Docsite 导航、搜索、语言切换以及 Storybook 预览与 Controls 均正常。
 - 密码页右上角可切换语言与亮暗模式；首次跟随系统，手动选择后在当前站点保留。Docsite 与正文共用主题偏好。
 - HTTPS 会话使用 `Secure`、`HttpOnly`、`SameSite=Lax` 和不带 Domain 的 `__Host-` Cookie。
-- Storybook 工具栏的“退出 / Sign out”进入退出确认页；确认后，重新加载内容需要密码。
+- Docsite 与 Storybook 的页面工具栏均不显示退出入口。
 - 修改密码并重新部署后，旧 Cookie 不能继续访问。两站密码要同步修改。
 - 检查受保护响应的浏览器和 CDN 缓存策略为 `no-store`；发布后用新窗口复查旧的公共缓存入口。
 
