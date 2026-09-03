@@ -91,7 +91,7 @@ export const PcV1Text: Story = {
       const currentMenu = canvasElement.querySelector('[data-slot="header-category-menu"]');
       expect(currentMenu).toBe(openMenu);
       expect(currentMenu?.getBoundingClientRect().left).toBeCloseTo(
-        snackCategory.getBoundingClientRect().left,
+        trigger.getBoundingClientRect().left,
         1,
       );
       expect(

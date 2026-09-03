@@ -54,9 +54,10 @@ export function HeaderCategoryMenu({ id, data, headerRef, anchorRef, triggerElem
       if (!header || !anchor) return
       const trigger = triggerElement?.getBoundingClientRect() ?? anchor
       const top = Math.max(0, header.bottom)
+      // Align the second column after the 248px root column and 1px menu border.
       const left = Math.max(
         anchor.left,
-        Math.min(trigger.left, window.innerWidth - positioningWidth - anchor.left),
+        Math.min(trigger.left - 249, window.innerWidth - positioningWidth - anchor.left),
       )
       setPosition({ top, left, scrimTop: Math.max(0, header.bottom) })
     }
