@@ -40,6 +40,7 @@ export default defineConfig({
       },
       {
         plugins: [react()],
+        optimizeDeps: { include: ["@storybook/react-vite", "storybook/test"] },
         test: {
           name: "browser",
           include: ["tests/**/*.browser.test.tsx"],
