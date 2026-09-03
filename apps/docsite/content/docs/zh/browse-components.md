@@ -19,8 +19,8 @@ sourceRefs:
 
 ## 找到组件或页面
 
-1. 直接[打开 YAMI Storybook](https://yami-design-system-storybook.vercel.app/)。
-2. 要查看完整用户流程或搭建新页面时，先进入 [Pages](https://yami-design-system-storybook.vercel.app/?path=/story/yami-pages-ecommerce-home--pc)；只确认局部能力时，进入 [Components](https://yami-design-system-storybook.vercel.app/?path=/story/yami-components-actions-button--showcase)。
+1. 直接[打开 YAMI Storybook](https://yds-storybook.vercel.app/)。
+2. 要查看完整用户流程或搭建新页面时，先进入 [Pages](https://yds-storybook.vercel.app/?path=/story/yami-pages-ecommerce-home--pc)；只确认局部能力时，进入 [Components](https://yds-storybook.vercel.app/?path=/story/yami-components-actions-button--showcase)。
 3. 在左侧搜索框输入英文名称或业务场景，例如 Product Detail、Button、ProductCard 或 Search。
 4. 展开目标并选择一个具体 Story。名称不确定时，先从相近的 Page 反查它使用的组件。
 5. 保留地址栏中的具体 Story 链接，不要只记录 Storybook 首页。
@@ -52,7 +52,7 @@ sourceRefs:
 
 不要用外观相似的组件替代不同的用户任务或交互语义。例如，链接和按钮可能外观相似，但承担的语义和键盘行为不同。
 
-以 Button 为例，可以在 [Playground](https://yami-design-system-storybook.vercel.app/?path=/story/yami-components-actions-button--playground) 的 Controls 中一次改变一个参数，再查看 [Loading](https://yami-design-system-storybook.vercel.app/?path=/story/yami-components-actions-button--loading) 和 [Disabled](https://yami-design-system-storybook.vercel.app/?path=/story/yami-components-actions-button--disabled) 比较状态。
+以 Button 为例，可以在 [Playground](https://yds-storybook.vercel.app/?path=/story/yami-components-actions-button--playground) 的 Controls 中一次改变一个参数，再查看 [Loading](https://yds-storybook.vercel.app/?path=/story/yami-components-actions-button--loading) 和 [Disabled](https://yds-storybook.vercel.app/?path=/story/yami-components-actions-button--disabled) 比较状态。
 
 ## 如何查看一个页面
 
@@ -80,11 +80,11 @@ Page Story 是维护中的页面示例，不等于可直接发布的业务项目
 
 | 想确认什么 | 打开哪里 |
 | --- | --- |
-| 颜色、状态与表面 | [色彩](https://yami-design-system-storybook.vercel.app/?path=/story/yami-foundations-color--overview) |
-| 字体、数字与文字层级 | [排版](https://yami-design-system-storybook.vercel.app/?path=/story/yami-foundations-typography--overview) |
-| 间距与页面结构 | [布局](https://yami-design-system-storybook.vercel.app/?path=/story/yami-foundations-layout--overview) |
-| 圆角 | [圆角规范](https://yami-design-system-storybook.vercel.app/?path=/story/yami-foundations-rounded--overview) |
-| 响应式检查范围 | [响应式](https://yami-design-system-storybook.vercel.app/?path=/story/yami-foundations-responsive--overview) |
+| 颜色、状态与表面 | [色彩](https://yds-storybook.vercel.app/?path=/story/yami-foundations-color--overview) |
+| 字体、数字与文字层级 | [排版](https://yds-storybook.vercel.app/?path=/story/yami-foundations-typography--overview) |
+| 间距与页面结构 | [布局](https://yds-storybook.vercel.app/?path=/story/yami-foundations-layout--overview) |
+| 圆角 | [圆角规范](https://yds-storybook.vercel.app/?path=/story/yami-foundations-rounded--overview) |
+| 响应式检查范围 | [响应式](https://yds-storybook.vercel.app/?path=/story/yami-foundations-responsive--overview) |
 
 视觉规范不代替无障碍、动效、内容和真实交互检查。
 

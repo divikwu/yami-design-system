@@ -18,8 +18,8 @@ Docsite 和 Storybook 保持独立部署，共用访问密码，各自保存登�
 
 目标项目和根目录：
 
-- Docsite：`yami-design-system-docsite`，`apps/docsite`。
-- Storybook：`yami-design-system-storybook`，`apps/storybook`。
+- Docsite：`yds-docsite`，`apps/docsite`。
+- Storybook：`yds-storybook`，`apps/storybook`。
 
 变量配置完成后，将本次改动部署到两个项目。Docsite 使用 Next.js Proxy；
 Storybook 的 `vercel.json` 注册 Node.js Routing Middleware。

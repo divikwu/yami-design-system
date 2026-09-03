@@ -75,10 +75,10 @@ Optional context: <asset permissions, data version, and out-of-scope items; use 
 
 | Task | Reference | What to inspect |
 | --- | --- | --- |
-| Storefront home and discovery | [Ecommerce Home](https://yami-design-system-storybook.vercel.app/?path=/story/yami-pages-ecommerce-home--pc) | Product modules, navigation, and content order |
-| Search and filtering | [Search Results](https://yami-design-system-storybook.vercel.app/?path=/story/yami-pages-search-results--results) | Filters, empty results, and the product list |
-| Product details | [Product Detail](https://yami-design-system-storybook.vercel.app/?path=/story/yami-pages-product-detail-beauty--pdp) | Product information, options, and detail interactions |
-| Brand campaigns and editorial topics | [Topic Landing Page](https://yami-design-system-storybook.vercel.app/?path=/story/yami-pages-topic-landing-page-brand--pc) | Hero, categories, and product collections |
+| Storefront home and discovery | [Ecommerce Home](https://yds-storybook.vercel.app/?path=/story/yami-pages-ecommerce-home--pc) | Product modules, navigation, and content order |
+| Search and filtering | [Search Results](https://yds-storybook.vercel.app/?path=/story/yami-pages-search-results--results) | Filters, empty results, and the product list |
+| Product details | [Product Detail](https://yds-storybook.vercel.app/?path=/story/yami-pages-product-detail-beauty--pdp) | Product information, options, and detail interactions |
+| Brand campaigns and editorial topics | [Topic Landing Page](https://yds-storybook.vercel.app/?path=/story/yami-pages-topic-landing-page-brand--pc) | Hero, categories, and product collections |
 
 These are maintained compositions, not business projects ready for launch. Check imagery, destinations, prices, and interaction feedback against your task. Hosted Storybook and local source may differ; record your source baseline before building.
 

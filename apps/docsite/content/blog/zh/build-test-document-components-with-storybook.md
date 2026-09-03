@@ -45,7 +45,7 @@ Storybook 在与应用业务逻辑相对隔离的环境中渲染组件。开发�
 2. **Components**：查看真实组件的变体、状态和公共属性。
 3. **Pages**：在页面组合中检查组件如何共同工作。
 
-以 Button 为例，可以先打开 [Showcase](https://yami-design-system-storybook.vercel.app/?path=/story/yami-components-actions-button--showcase) 浏览主要变体，再进入 [Playground](https://yami-design-system-storybook.vercel.app/?path=/story/yami-components-actions-button--playground) 调整属性。需要长期复查的状态，应保存为单独的 Story，而不是只停留在一次临时调整中。
+以 Button 为例，可以先打开 [Showcase](https://yds-storybook.vercel.app/?path=/story/yami-components-actions-button--showcase) 浏览主要变体，再进入 [Playground](https://yds-storybook.vercel.app/?path=/story/yami-components-actions-button--playground) 调整属性。需要长期复查的状态，应保存为单独的 Story，而不是只停留在一次临时调整中。
 
 ## 把 Story 变成测试用例
 

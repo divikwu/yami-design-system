@@ -30,10 +30,10 @@ and import contract.
 
 ## Hosted environments
 
-- Canvas Workbench: https://yami-design-system.vercel.app/workbench
-- Canvas Preview: https://yami-design-system.vercel.app/preview?locale=en
-- Storybook: https://yami-design-system-storybook.vercel.app
-- Docsite: https://yami-design-system-docsite.vercel.app/zh
+- Canvas Workbench: https://yds-prototype.vercel.app/workbench
+- Canvas Preview: https://yds-prototype.vercel.app/preview?locale=en
+- Storybook: https://yds-storybook.vercel.app
+- Docsite: https://yds-docsite.vercel.app/zh
 
 Docsite is a separate Vercel target at `apps/docsite`. Pull requests create
 Preview deployments and updates to `main` create Production deployments.
