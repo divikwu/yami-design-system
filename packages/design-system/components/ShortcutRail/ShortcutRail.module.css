@@ -485,6 +485,10 @@
     border-radius: var(--radius-sm);
   }
 
+  .root[data-presentation="image-card"] .link {
+    gap: var(--space-100);
+  }
+
   /* 56 and 36 are literal icon-canvas sizes; the image-card fallback uses the
    * available 64px spacing token to give editorial imagery more presence. */
   .iconSurface {

@@ -576,7 +576,11 @@ export function TopicLandingPage({
             data-motion-reveal="scroll"
             data-slot="topic-landing-shortcut-rail"
           >
-            <ShortcutRail {...shortcutRail} items={linkedShortcutItems} />
+            <ShortcutRail
+              {...shortcutRail}
+              presentation="image-card"
+              items={linkedShortcutItems}
+            />
           </div>
         )}
         {standardRail && !hiddenModules.includes("start-here") && (
