@@ -60,6 +60,7 @@ export function StandalonePreviewSurface({ preview }: { preview: StandalonePrevi
   const router = useRouter();
   const locale = params.get("locale") === "zh" ? "zh" : "en";
   const theme = params.get("theme") === "dark" ? "dark" : "light";
+  const categoryMenuPresentation = params.get("categoryMenu") === "images" ? "images" : "text";
   const homeFixture = preview === "ecommerce-home" ? createEcommerceHomeFixture(locale) : null;
 
   function searchHref(query?: string) {
@@ -79,7 +80,10 @@ export function StandalonePreviewSurface({ preview }: { preview: StandalonePrevi
         {...homeFixture}
         header={{
           ...homeFixture.header,
-          homeHref: `/preview/ecommerce-home?${new URLSearchParams({ locale, theme }).toString()}`,
+          categoryMenu: homeFixture.header.categoryMenu
+            ? { ...homeFixture.header.categoryMenu, presentation: categoryMenuPresentation }
+            : undefined,
+          homeHref: `/preview/ecommerce-home?${new URLSearchParams({ locale, theme, ...(categoryMenuPresentation === "images" ? { categoryMenu: "images" } : {}) }).toString()}`,
           mobileSearchHref: searchHref(),
           onSearchSubmit: (query) => router.push(searchHref(query)),
           searchPanel,

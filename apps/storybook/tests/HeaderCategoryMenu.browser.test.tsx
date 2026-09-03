@@ -301,7 +301,7 @@ test.each(['text', 'images'] as const)('%s Categories opens on mouse hover witho
     expect(document.activeElement).toBe(after);
     const homeTrigger = container.querySelector<HTMLAnchorElement>('[data-category-id="home"]')!;
     await page.elementLocator(homeTrigger).hover();
-    await expect.poll(() => menu()!.getBoundingClientRect().left).toBeCloseTo(homeTrigger.getBoundingClientRect().left, 0);
+    await expect.poll(() => menu()!.querySelector('[data-level="1"]')!.getBoundingClientRect().left).toBeCloseTo(homeTrigger.getBoundingClientRect().left, 0);
     await expect.poll(() => menu()!.dataset.columns).toBe('3');
     expect(menu()!.getBoundingClientRect().left).toBeGreaterThan(triggerElement.getBoundingClientRect().left);
     await page.getByRole('button', { name: 'Beauty', exact: true }).hover();
@@ -313,6 +313,9 @@ test.each(['text', 'images'] as const)('%s Categories opens on mouse hover witho
     expect(menu()!.getBoundingClientRect().right).toBeLessThanOrEqual(
       window.innerWidth - triggerElement.getBoundingClientRect().left,
     );
+    const snackTrigger = container.querySelector<HTMLAnchorElement>('[data-category-id="snack"]')!;
+    await page.elementLocator(snackTrigger).hover();
+    await expect.poll(() => menu()!.getBoundingClientRect().left).toBe(48);
     await trigger.click();
     expect(menu()).not.toBeNull();
     expect(document.activeElement).toBe(menu()!.querySelector('button'));
