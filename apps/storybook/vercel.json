@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "proxy": { "entrypoint": "proxy.ts" },
+  "proxy": { "entrypoint": "vercel-proxy.js" },
   "rewrites": [
     {
       "source": "/email/topic-landing",
