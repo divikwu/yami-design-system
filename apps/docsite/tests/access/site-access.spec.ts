@@ -78,7 +78,8 @@ for (const site of sites) {
       await frame.getByRole("button").first().click();
       await expect(page.getByRole("tab", { name: /Controls/ }).first()).toBeVisible();
       expect((await context.request.get(site.base + "/index.json")).status()).toBe(200);
-      await page.getByRole("button", { name: "退出 / Sign out", exact: true }).click();
+      await expect(page.getByRole("button", { name: "退出 / Sign out", exact: true })).toHaveCount(0);
+      await page.goto(site.base + "/__access/logout?lang=zh");
     }
     const authenticated = await context.request.get(site.base + "/");
     expect(authenticated.headers()["cache-control"]).toContain("no-store");
