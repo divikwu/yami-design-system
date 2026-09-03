@@ -74,10 +74,10 @@ sourceRefs:
 
 | 任务 | 参考入口 | 重点观察 |
 | --- | --- | --- |
-| 电商首页和内容发现 | [Ecommerce Home](https://yami-design-system-storybook.vercel.app/?path=/story/yami-pages-ecommerce-home--pc) | 商品模块、导航和内容顺序 |
-| 搜索与筛选 | [Search Results](https://yami-design-system-storybook.vercel.app/?path=/story/yami-pages-search-results--results) | 筛选、空结果和结果列表 |
-| 商品详情 | [Product Detail](https://yami-design-system-storybook.vercel.app/?path=/story/yami-pages-product-detail-beauty--pdp) | 商品信息、规格和详情交互 |
-| 品牌活动与内容专题 | [Topic Landing Page](https://yami-design-system-storybook.vercel.app/?path=/story/yami-pages-topic-landing-page-brand--pc) | 主视觉、分类和商品集合 |
+| 电商首页和内容发现 | [Ecommerce Home](https://yds-storybook.vercel.app/?path=/story/yami-pages-ecommerce-home--pc) | 商品模块、导航和内容顺序 |
+| 搜索与筛选 | [Search Results](https://yds-storybook.vercel.app/?path=/story/yami-pages-search-results--results) | 筛选、空结果和结果列表 |
+| 商品详情 | [Product Detail](https://yds-storybook.vercel.app/?path=/story/yami-pages-product-detail-beauty--pdp) | 商品信息、规格和详情交互 |
+| 品牌活动与内容专题 | [Topic Landing Page](https://yds-storybook.vercel.app/?path=/story/yami-pages-topic-landing-page-brand--pc) | 主视觉、分类和商品集合 |
 
 这些是维护中的页面组合，不是可以直接发布的业务项目。图片、链接、价格和交互反馈需要按任务核对。线上 Storybook 与本地版本也可能不同，制作前记录采用的代码基线。
 

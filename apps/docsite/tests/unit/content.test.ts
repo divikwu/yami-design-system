@@ -54,7 +54,7 @@ describe("repository content", () => {
           expect(target).toBeDefined();
           if (anchor) expect(target?.headings.map(({ id }) => id)).toContain(anchor);
         } else {
-          expect(new URL(destination).hostname).toBe("yami-design-system-storybook.vercel.app");
+          expect(new URL(destination).hostname).toBe("yds-storybook.vercel.app");
         }
       }
     }

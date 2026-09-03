@@ -12,7 +12,7 @@ type Viewport = "402" | "768" | "1440";
 const CANVAS_HISTORY_INDEX = "__yamiCanvasHistoryIndex";
 const STORYBOOK_URL = process.env.NEXT_PUBLIC_STORYBOOK_URL
   ?? (process.env.NODE_ENV === "production"
-    ? "https://yami-design-system-storybook.vercel.app"
+    ? "https://yds-storybook.vercel.app"
     : "http://localhost:6006");
 const STORYBOOK_PAGE_PREFIX = "YAMI/Pages/";
 

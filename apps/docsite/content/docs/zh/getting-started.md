@@ -16,7 +16,7 @@ sourceRefs:
 
 Storybook 是 YAMI 查看真实组件、页面模式和使用规则的入口。它在浏览器中运行真实实现；不会编辑代码的同事，也可以用它查找参考、体验状态并检查多端表现。
 
-只查看时不需要下载项目。可以直接[打开 YAMI Storybook](https://yami-design-system-storybook.vercel.app/)；需要保存修改、新建 Story 或运行验证时，再完成[快速开始](/zh/docs/fork-project)并使用自己的本地副本。
+只查看时不需要下载项目。可以直接[打开 YAMI Storybook](https://yds-storybook.vercel.app/)；需要保存修改、新建 Story 或运行验证时，再完成[快速开始](/zh/docs/fork-project)并使用自己的本地副本。
 
 ## Storybook 是什么
 
@@ -47,11 +47,11 @@ Storybook 不是生产站点，也不是业务数据管理工具。在 Controls 
 
 | 目录 | 包含内容 | 适合用来做什么 |
 | --- | --- | --- |
-| [Foundations](https://yami-design-system-storybook.vercel.app/?path=/story/yami-foundations-color--overview) | 颜色、字体、布局、圆角和响应式规则 | 确认界面应呈现的基础规则 |
-| [Primitives](https://yami-design-system-storybook.vercel.app/?path=/story/yami-primitives-color-primitives--overview) | 尺寸、颜色和字体的底层值 | 进行进阶规范检查，不作为普通搭页的起点 |
-| [Assets](https://yami-design-system-storybook.vercel.app/?path=/story/yami-assets-logos--overview) | Logo、图标等可复用品牌资产 | 选择正确版本，并确认颜色、尺寸和背景要求 |
-| [Components](https://yami-design-system-storybook.vercel.app/?path=/story/yami-components-actions-button--showcase) | Button、Header、ProductCard、ProductList 等真实组件 | 查看组件状态、交互、参数和用法 |
-| [Pages](https://yami-design-system-storybook.vercel.app/?path=/story/yami-pages-ecommerce-home--pc) | 首页、专题页、搜索页和商品详情页等完整页面 | 寻找页面结构和模块组合的参考 |
+| [Foundations](https://yds-storybook.vercel.app/?path=/story/yami-foundations-color--overview) | 颜色、字体、布局、圆角和响应式规则 | 确认界面应呈现的基础规则 |
+| [Primitives](https://yds-storybook.vercel.app/?path=/story/yami-primitives-color-primitives--overview) | 尺寸、颜色和字体的底层值 | 进行进阶规范检查，不作为普通搭页的起点 |
+| [Assets](https://yds-storybook.vercel.app/?path=/story/yami-assets-logos--overview) | Logo、图标等可复用品牌资产 | 选择正确版本，并确认颜色、尺寸和背景要求 |
+| [Components](https://yds-storybook.vercel.app/?path=/story/yami-components-actions-button--showcase) | Button、Header、ProductCard、ProductList 等真实组件 | 查看组件状态、交互、参数和用法 |
+| [Pages](https://yds-storybook.vercel.app/?path=/story/yami-pages-ecommerce-home--pc) | 首页、专题页、搜索页和商品详情页等完整页面 | 寻找页面结构和模块组合的参考 |
 
 目标是搭建页面时，先从 Pages 找最接近的完整页面，再进入 Components 确认其中组件的状态和用法。
 

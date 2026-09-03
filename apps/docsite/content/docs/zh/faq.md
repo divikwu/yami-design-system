@@ -18,7 +18,7 @@ sourceRefs:
 
 ## 只想看组件和页面，需要安装项目吗
 
-不需要。直接打开 [Storybook](https://yami-design-system-storybook.vercel.app/?path=/story/yami-components-actions-button--showcase) 就能浏览和试用组件与页面示例。需要自己创建或修改时，再按[快速开始](/zh/docs/fork-project)准备本地项目。
+不需要。直接打开 [Storybook](https://yds-storybook.vercel.app/?path=/story/yami-components-actions-button--showcase) 就能浏览和试用组件与页面示例。需要自己创建或修改时，再按[快速开始](/zh/docs/fork-project)准备本地项目。
 
 ## 本地页面打不开，怎么办
 

@@ -18,7 +18,7 @@ When something goes wrong, give AI the page link, error, or screenshot and expla
 
 ## Do I need to install the project to browse components and pages
 
-No. Open [Storybook](https://yami-design-system-storybook.vercel.app/?path=/story/yami-components-actions-button--showcase) to browse and try components and page examples. Follow [Getting Started](/en/docs/fork-project) to prepare a local project when you want to create or edit your own.
+No. Open [Storybook](https://yds-storybook.vercel.app/?path=/story/yami-components-actions-button--showcase) to browse and try components and page examples. Follow [Getting Started](/en/docs/fork-project) to prepare a local project when you want to create or edit your own.
 
 ## What if a local page will not open
 

@@ -9,9 +9,9 @@ See [password setup and deployment verification](./site-password.md).
 
 | Project | Root directory | Production alias | Release policy |
 | --- | --- | --- | --- |
-| `yami-design-system` | `apps/canvas` | `yami-design-system.vercel.app` | Public, automatic Git deployment |
-| `yami-design-system-storybook` | `apps/storybook` | `yami-design-system-storybook.vercel.app` | Password gate after rollout, automatic Git deployment |
-| `yami-design-system-docsite` | `apps/docsite` | `yami-design-system-docsite.vercel.app` | Password gate after rollout, automatic Git deployment |
+| `yds-prototype` | `apps/canvas` | `yds-prototype.vercel.app` | Public, automatic Git deployment |
+| `yds-storybook` | `apps/storybook` | `yds-storybook.vercel.app` | Password gate after rollout, automatic Git deployment |
+| `yds-docsite` | `apps/docsite` | `yds-docsite.vercel.app` | Password gate after rollout, automatic Git deployment |
 
 Each Vercel project is connected to `divikwu/yami-design-system`, with root
 directories matching the table above. Each application enables automatic Git

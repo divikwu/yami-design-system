@@ -19,8 +19,8 @@ sourceRefs:
 
 ## Find a component or page
 
-1. [Open YAMI Storybook](https://yami-design-system-storybook.vercel.app/) directly.
-2. To inspect a complete user flow or build a new page, start in [Pages](https://yami-design-system-storybook.vercel.app/?path=/story/yami-pages-ecommerce-home--pc). To inspect a local capability, start in [Components](https://yami-design-system-storybook.vercel.app/?path=/story/yami-components-actions-button--showcase).
+1. [Open YAMI Storybook](https://yds-storybook.vercel.app/) directly.
+2. To inspect a complete user flow or build a new page, start in [Pages](https://yds-storybook.vercel.app/?path=/story/yami-pages-ecommerce-home--pc). To inspect a local capability, start in [Components](https://yds-storybook.vercel.app/?path=/story/yami-components-actions-button--showcase).
 3. Search the sidebar by English name or business context, such as Product Detail, Button, ProductCard, or Search.
 4. Expand the target and select a specific Story. If you do not know a component name, begin with a related Page and work backward from its composition.
 5. Keep the exact Story URL from the address bar instead of recording only the Storybook homepage.
@@ -52,7 +52,7 @@ Do not begin with code properties. First confirm the problem the component solve
 
 Do not substitute a visually similar component when it serves a different user task or interaction meaning. A link and a button may look similar while carrying different semantics and keyboard behavior.
 
-For Button, change one parameter at a time in [Playground](https://yami-design-system-storybook.vercel.app/?path=/story/yami-components-actions-button--playground), then compare [Loading](https://yami-design-system-storybook.vercel.app/?path=/story/yami-components-actions-button--loading) and [Disabled](https://yami-design-system-storybook.vercel.app/?path=/story/yami-components-actions-button--disabled).
+For Button, change one parameter at a time in [Playground](https://yds-storybook.vercel.app/?path=/story/yami-components-actions-button--playground), then compare [Loading](https://yds-storybook.vercel.app/?path=/story/yami-components-actions-button--loading) and [Disabled](https://yds-storybook.vercel.app/?path=/story/yami-components-actions-button--disabled).
 
 ## How to inspect a page
 
@@ -80,11 +80,11 @@ Check components and pages against the corresponding Foundations examples:
 
 | What to check | Where to go |
 | --- | --- |
-| Colors, states, and surfaces | [Color](https://yami-design-system-storybook.vercel.app/?path=/story/yami-foundations-color--overview) |
-| Fonts, numerals, and text hierarchy | [Typography](https://yami-design-system-storybook.vercel.app/?path=/story/yami-foundations-typography--overview) |
-| Spacing and page structure | [Layout](https://yami-design-system-storybook.vercel.app/?path=/story/yami-foundations-layout--overview) |
-| Corner radii | [Rounded](https://yami-design-system-storybook.vercel.app/?path=/story/yami-foundations-rounded--overview) |
-| Responsive verification ranges | [Responsive](https://yami-design-system-storybook.vercel.app/?path=/story/yami-foundations-responsive--overview) |
+| Colors, states, and surfaces | [Color](https://yds-storybook.vercel.app/?path=/story/yami-foundations-color--overview) |
+| Fonts, numerals, and text hierarchy | [Typography](https://yds-storybook.vercel.app/?path=/story/yami-foundations-typography--overview) |
+| Spacing and page structure | [Layout](https://yds-storybook.vercel.app/?path=/story/yami-foundations-layout--overview) |
+| Corner radii | [Rounded](https://yds-storybook.vercel.app/?path=/story/yami-foundations-rounded--overview) |
+| Responsive verification ranges | [Responsive](https://yds-storybook.vercel.app/?path=/story/yami-foundations-responsive--overview) |
 
 Visual standards do not replace accessibility, motion, content, and real-interaction checks.
 

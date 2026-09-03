@@ -45,7 +45,7 @@ YAMI Storybook organizes entries by their level:
 2. **Components** renders real component variants, states, and public props.
 3. **Pages** shows how components work together in composed experiences.
 
-For Button, start with the [Showcase](https://yami-design-system-storybook.vercel.app/?path=/story/yami-components-actions-button--showcase) to scan the main variants, then use the [Playground](https://yami-design-system-storybook.vercel.app/?path=/story/yami-components-actions-button--playground) to adjust props. A state that needs repeated review should become its own story instead of remaining a one-time Controls configuration.
+For Button, start with the [Showcase](https://yds-storybook.vercel.app/?path=/story/yami-components-actions-button--showcase) to scan the main variants, then use the [Playground](https://yds-storybook.vercel.app/?path=/story/yami-components-actions-button--playground) to adjust props. A state that needs repeated review should become its own story instead of remaining a one-time Controls configuration.
 
 ## Turn stories into tests
 

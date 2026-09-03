@@ -16,7 +16,7 @@ sourceRefs:
 
 Storybook is the entry point for inspecting YAMI's real components, page patterns, and usage rules. It runs the actual implementation in a browser, so teammates who do not edit code can still find references, try states, and check behavior across viewport sizes.
 
-You do not need to download the project just to browse. [Open YAMI Storybook](https://yami-design-system-storybook.vercel.app/) directly. Complete [Getting Started](/en/docs/fork-project) and use your own local copy when you need to save changes, add a Story, or run validation.
+You do not need to download the project just to browse. [Open YAMI Storybook](https://yds-storybook.vercel.app/) directly. Complete [Getting Started](/en/docs/fork-project) and use your own local copy when you need to save changes, add a Story, or run validation.
 
 ## What Storybook is
 
@@ -47,11 +47,11 @@ The tools are complementary. Figma remains useful for open exploration, visual d
 
 | Section | What it contains | Use it to |
 | --- | --- | --- |
-| [Foundations](https://yami-design-system-storybook.vercel.app/?path=/story/yami-foundations-color--overview) | Color, typography, layout, radius, and responsive rules | Confirm the foundational rules an interface should follow |
-| [Primitives](https://yami-design-system-storybook.vercel.app/?path=/story/yami-primitives-color-primitives--overview) | Base values for dimensions, color, and typography | Perform advanced standards checks, not ordinary page building |
-| [Assets](https://yami-design-system-storybook.vercel.app/?path=/story/yami-assets-logos--overview) | Reusable brand assets such as logos and icons | Select the right version and confirm color, size, and background requirements |
-| [Components](https://yami-design-system-storybook.vercel.app/?path=/story/yami-components-actions-button--showcase) | Real components such as Button, Header, ProductCard, and ProductList | Inspect component states, interactions, parameters, and usage |
-| [Pages](https://yami-design-system-storybook.vercel.app/?path=/story/yami-pages-ecommerce-home--pc) | Complete pages such as home, topic, search, and product detail | Find references for page structure and module composition |
+| [Foundations](https://yds-storybook.vercel.app/?path=/story/yami-foundations-color--overview) | Color, typography, layout, radius, and responsive rules | Confirm the foundational rules an interface should follow |
+| [Primitives](https://yds-storybook.vercel.app/?path=/story/yami-primitives-color-primitives--overview) | Base values for dimensions, color, and typography | Perform advanced standards checks, not ordinary page building |
+| [Assets](https://yds-storybook.vercel.app/?path=/story/yami-assets-logos--overview) | Reusable brand assets such as logos and icons | Select the right version and confirm color, size, and background requirements |
+| [Components](https://yds-storybook.vercel.app/?path=/story/yami-components-actions-button--showcase) | Real components such as Button, Header, ProductCard, and ProductList | Inspect component states, interactions, parameters, and usage |
+| [Pages](https://yds-storybook.vercel.app/?path=/story/yami-pages-ecommerce-home--pc) | Complete pages such as home, topic, search, and product detail | Find references for page structure and module composition |
 
 When building a page, start in Pages with the closest complete page, then move to Components to confirm the states and usage of the components it contains.
 
