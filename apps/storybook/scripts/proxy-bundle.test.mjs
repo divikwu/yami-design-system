@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { copyFileSync, mkdtempSync, rmSync } from "node:fs";
+import { copyFileSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
@@ -7,9 +7,17 @@ import { pathToFileURL } from "node:url";
 
 test("deployed proxy runs without workspace packages or a TypeScript loader", () => {
   const directory = mkdtempSync(join(tmpdir(), "yami-proxy-bundle-"));
-  const entrypoint = join(directory, "proxy.mjs");
+  const app = join(directory, "apps/storybook");
+  const entrypoint = join(app, "dist/proxy.js");
   try {
+    mkdirSync(join(app, "dist"), { recursive: true });
+    writeFileSync(join(app, "package.json"), '{"type":"module"}');
     copyFileSync("dist/proxy.js", entrypoint);
+    for (const asset of ["generated/tokens.css", "assets/fonts/GT-Walsheim-Regular.woff2"]) {
+      const target = join(directory, "packages/design-system", asset);
+      mkdirSync(join(target, ".."), { recursive: true });
+      copyFileSync(join("../../packages/design-system", asset), target);
+    }
     execFileSync(process.execPath, ["--input-type=module", "-e", `
       import assert from "node:assert/strict";
       const { default: proxy } = await import(${JSON.stringify(pathToFileURL(entrypoint).href)});
@@ -30,6 +38,7 @@ test("deployed proxy runs without workspace packages or a TypeScript loader", ()
       assert.equal(allowed.headers.get("x-middleware-next"), "1");
       assert.match(allowed.headers.get("cache-control"), /no-store/);
     `], {
+      cwd: directory,
       env: { ...process.env, NODE_ENV: "production", VERCEL: "1",
         YAMI_SITE_PASSWORD: "bundle-test-password", YAMI_SESSION_SECRET: "bundle-test-secret-".repeat(4) },
       stdio: "pipe",

@@ -9,5 +9,7 @@ await build({
   platform: "node",
   target: "node24",
   format: "esm",
-  banner: { js: 'import { createRequire } from "node:module"; const require = createRequire(import.meta.url);' },
+  // The shared gate reads traced brand assets relative to apps/storybook.
+  // Vercel starts plain Node proxies at the deployment root instead.
+  banner: { js: 'import { createRequire } from "node:module"; const require = createRequire(import.meta.url); process.chdir(new URL("../", import.meta.url));' },
 });
