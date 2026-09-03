@@ -74,7 +74,7 @@ Docsite 的保护不涵盖其他部署项目或 GitHub 仓库。
 
 - `packages/site-access`: shared Web Request/Response gate, localized standalone form, encrypted sessions.
 - `apps/docsite/proxy.ts`: every request, including framework and content routes.
-- `apps/storybook/proxy.ts`: all static Storybook requests via Vercel Routing Middleware.
+- `apps/storybook/proxy.ts`: all static Storybook requests via Vercel Routing Middleware. The Storybook build bundles this entrypoint to `dist/proxy.js` so Vercel does not resolve workspace TypeScript exports at runtime; a standalone Node smoke test verifies the bundle before the static site builds.
 - `apps/storybook/scripts/preview-protected.ts`: loopback-only production-preview adapter.
 - `pnpm --filter @yami/site-access test`: access boundary, cookie rotation/expiry, CSRF, redirects and attempt limits.
 - After building both apps, `pnpm --filter @yami/docsite test:access` starts isolated local
