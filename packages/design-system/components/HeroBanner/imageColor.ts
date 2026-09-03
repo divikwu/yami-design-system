@@ -173,6 +173,7 @@ async function sampleImageBottomColor(
     image.src = src;
   }
 
+  let bitmap: ImageBitmap | undefined;
   try {
     await loaded;
     const canvas = document.createElement("canvas");
@@ -183,12 +184,15 @@ async function sampleImageBottomColor(
       return undefined;
     }
 
-    const sourceHeight = Math.max(1, Math.round(image.naturalHeight * 0.12));
+    // srcset density-corrects naturalWidth/Height; crop decoded pixels instead
+    // so responsive layout cannot move the sampled strip into the artwork.
+    bitmap = await createImageBitmap(image);
+    const sourceHeight = Math.max(1, Math.round(bitmap.height * 0.12));
     context.drawImage(
-      image,
+      bitmap,
       0,
-      image.naturalHeight - sourceHeight,
-      image.naturalWidth,
+      bitmap.height - sourceHeight,
+      bitmap.width,
       sourceHeight,
       0,
       0,
@@ -201,6 +205,8 @@ async function sampleImageBottomColor(
     );
   } catch {
     return undefined;
+  } finally {
+    bitmap?.close();
   }
 }
 

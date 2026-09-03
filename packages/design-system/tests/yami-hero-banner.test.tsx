@@ -645,6 +645,11 @@ describe("YAMI HeroBanner image color extraction", () => {
       }
     }
     vi.stubGlobal("Image", FakeImage)
+    vi.stubGlobal("createImageBitmap", vi.fn().mockResolvedValue({
+      width: 100,
+      height: 100,
+      close: vi.fn(),
+    }))
 
     const originalCreateElement = document.createElement.bind(document)
     vi.spyOn(document, "createElement").mockImplementation((tagName: string) => {
