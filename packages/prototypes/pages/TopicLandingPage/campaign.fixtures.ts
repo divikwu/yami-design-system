@@ -5,15 +5,26 @@ import {
   type TopicLandingPageLocale,
 } from "./fixtures";
 
-/**
- * Starts as a deliberate copy of Brand. Specialize Campaign content here when
- * its maintained copy diverges.
- */
+/** Campaign keeps four skincare categories from the Brand fixture. */
 export function createCampaignTopicLandingPageFixture(
   locale: TopicLandingPageLocale = "en",
 ) {
+  const fixture = createTopicLandingPageFixture(locale);
+  fixture.shortcutRail.items = fixture.shortcutRail.items.slice(0, 4);
+  if (fixture.standardRail) {
+    fixture.standardRail.themes = fixture.standardRail.themes?.slice(0, 4);
+  }
+  fixture.productRail.tabs = fixture.productRail.tabs?.slice(0, 5);
+  const removedCategories = ["sunscreens", "face-masks", "makeup"];
+  fixture.waterfall.tabs = fixture.waterfall.tabs?.filter(
+    (tab) => !removedCategories.includes(tab.value),
+  );
+  for (const category of removedCategories) {
+    delete fixture.waterfall.productsByTab?.[category];
+  }
+
   return {
-    ...createTopicLandingPageFixture(locale),
+    ...fixture,
     brandRail: {
       ...createBrandProductRailProps(locale, "#all-brands"),
       mobileSurface: "plain" as const,

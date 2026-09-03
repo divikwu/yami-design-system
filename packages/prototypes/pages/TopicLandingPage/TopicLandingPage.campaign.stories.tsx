@@ -12,7 +12,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "The campaign presentation of Topic Landing Page. It currently copies Brand content and has an independent fixture entry for later maintenance.",
+          "The campaign presentation of Topic Landing Page, with four skincare categories and an independent fixture for campaign content.",
       },
       story: { inline: false, height: "2400px" },
     },
@@ -38,6 +38,18 @@ const meta = {
 
 export default meta;
 type Story = StoryObj<typeof meta>;
+
+function assertCampaignShortcuts(canvasElement: HTMLElement) {
+  const rail = canvasElement.querySelector<HTMLElement>(
+    '#explore [data-slot="shortcut-rail"]',
+  );
+  if (
+    rail?.dataset.presentation !== "image-card" ||
+    rail.querySelectorAll('[data-slot="shortcut-rail-list"] > li').length !== 4
+  ) {
+    throw new Error("Campaign must enable count-aware image cards for its four categories");
+  }
+}
 
 function assertBrandRailTitleFont(canvasElement: HTMLElement) {
   const main = canvasElement.querySelector<HTMLElement>(
@@ -104,6 +116,7 @@ function assertCampaignBrandTitlesAreVisible(canvasElement: HTMLElement) {
 export const Pc: Story = {
   name: "Campaign — PC",
   play: async ({ canvasElement }) => {
+    assertCampaignShortcuts(canvasElement);
     assertBrandRailTitleFont(canvasElement);
     assertCampaignBrandTitlesAreVisible(canvasElement);
   },
@@ -115,6 +128,7 @@ export const Mobile: Story = {
     viewport: { value: "yamiMobile", isRotated: false },
   },
   play: async ({ canvasElement }) => {
+    assertCampaignShortcuts(canvasElement);
     assertBrandRailTitleFont(canvasElement);
     assertCampaignBrandTitlesAreVisible(canvasElement);
     const popularPicks = canvasElement.querySelector<HTMLElement>(

@@ -2759,7 +2759,7 @@
       "sourceSha256": "4ada8d2f91410d5876d9b50f4dda0c7b5e224230b744a429cc21dc19bf300d15",
       "disposition": "migrated",
       "destination": "packages/design-system/components/ShortcutRail/ShortcutRail.module.css",
-      "destinationSha256": "7451737fc970154c719864a276cd44ccdd3bdea84d7e2302bf52baf9bc150b7f"
+      "destinationSha256": "53d8d983687fdb28ea7f6206d270ca8e72ab18447cb1948115304001bf972734"
     },
     {
       "source": "components/ShortcutRail/ShortcutRail.stories.module.css",
@@ -2773,7 +2773,7 @@
       "sourceSha256": "d0acd22474b96d0628ae362f1999b85674c85067d17be8a6098228778bcfacf1",
       "disposition": "migrated",
       "destination": "packages/design-system/components/ShortcutRail/ShortcutRail.stories.tsx",
-      "destinationSha256": "b6195d8c3817cb6b09fbf524ecacb210f988ff9b9d12a47a7a657669449bf675"
+      "destinationSha256": "b4d65849d84bfd1036becbf20aef38fb4d12334f1519571db740f49b3e1d9ee9"
     },
     {
       "source": "components/ShortcutRail/ShortcutRail.tsx",

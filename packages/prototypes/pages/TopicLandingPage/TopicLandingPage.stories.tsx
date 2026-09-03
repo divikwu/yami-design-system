@@ -552,6 +552,17 @@ export const Pc: Story = {
     const shortcutContainer = shortcutRail?.querySelector<HTMLElement>(
       '[data-slot="shortcut-rail-container"]',
     );
+    const shortcutRoot = shortcutRail?.querySelector<HTMLElement>(
+      '[data-slot="shortcut-rail"]',
+    );
+    if (
+      shortcutRoot?.dataset.presentation !== "image-card" ||
+      shortcutRoot.dataset.desktopPresentation !== "compact"
+    ) {
+      throw new Error(
+        "Brand must automatically use compact shortcuts for its seven categories",
+      );
+    }
     if (
       !shortcutRail ||
       !themeProductList ||
