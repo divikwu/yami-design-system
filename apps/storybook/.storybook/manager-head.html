@@ -1,0 +1,7 @@
+<script>
+  const entryUrl = new URL(window.location.href);
+  if ((entryUrl.pathname === "/" || entryUrl.pathname === "/index.html") && !entryUrl.searchParams.get("path")) {
+    entryUrl.searchParams.set("path", "/story/yami-pages-ecommerce-home--pc");
+    window.history.replaceState(window.history.state, "", entryUrl);
+  }
+</script>
