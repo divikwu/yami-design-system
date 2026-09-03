@@ -2,6 +2,8 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": { "types": ["vite/client"] },
   "files": [
+    "proxy.ts",
+    "scripts/preview-protected.ts",
     ".storybook/component-docs.tsx",
     ".storybook/main.ts",
     ".storybook/manager.ts",

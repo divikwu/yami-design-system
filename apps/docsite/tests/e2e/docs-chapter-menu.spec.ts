@@ -116,7 +116,7 @@ test("chapter menu supports keyboard navigation, typeahead, Escape, and outside 
 
 for (const theme of ["light", "dark"] as const) {
   test(`short touch viewport chapter menu is scrollable and accessible in ${theme}`, async ({ browser }, testInfo) => {
-    const context = await browser.newContext({ viewport: { width: 375, height: 320 }, hasTouch: true, colorScheme: theme, reducedMotion: "reduce" });
+    const context = await browser.newContext({ viewport: { width: 375, height: 320 }, hasTouch: true, colorScheme: theme, reducedMotion: "reduce", storageState: testInfo.project.use.storageState });
     const page = await context.newPage();
     await page.goto("/en/docs/choose-starting-point");
     const trigger = page.getByRole("combobox", { name: "On This Page" });

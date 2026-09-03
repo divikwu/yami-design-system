@@ -1,6 +1,6 @@
 import { storybookUrl } from "./site-config";
 
-export const docGroups = ["start", "ai", "collaboration", "maintenance", "resources"] as const;
+export const docGroups = ["start", "ai", "collaboration", "resources"] as const;
 export type DocGroup = (typeof docGroups)[number];
 
 export const storybookResources = {

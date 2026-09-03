@@ -8,6 +8,7 @@ for (const locale of ["zh", "en"]) {
       await page.goto(`/${locale}/docs/browse-components`);
       const header = page.getByTestId("site-header");
       await expect(header).toBeVisible();
+      await expect(header.getByRole("link", { name: locale === "zh" ? "开始构建" : "Start Building", exact: true })).toHaveCount(0);
       await page.evaluate(() => document.fonts.ready);
 
       const compact = width <= 768;
@@ -15,6 +16,7 @@ for (const locale of ["zh", "en"]) {
       const navigation = header.getByRole("navigation");
       const logo = header.locator("img:visible");
       await expect(logo).toHaveCount(1);
+      await expect(logo).toHaveAttribute("src", /yami-ui-en-mobile-fill/);
       await expect(logo).toHaveCSS("height", compact ? "24px" : "32px");
       if (compact) {
         await expect(menu).toBeVisible();
@@ -31,7 +33,6 @@ for (const locale of ["zh", "en"]) {
         header.getByRole("link", { name: locale === "zh" ? "English" : "中文", exact: true }),
         header.getByTestId("theme-toggle"),
         header.getByRole("link", { name: "GitHub", exact: true }),
-        header.getByRole("link", { name: locale === "zh" ? "开始构建" : "Start Building", exact: true }),
         ...(compact ? [menu] : []),
       ]) {
         await expect(control).toBeVisible();

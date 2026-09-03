@@ -1,69 +1,57 @@
 ---
 slug: faq
 title: Frequently asked questions
-description: "Resolve common issues with setup, reuse, previews, synchronization, and delivery."
+description: "Ask AI to help with pages that will not open, unsaved changes, preview access, and other common issues."
 group: resources
 order: 190
 keywords: ["FAQ","Startup","Preview","Sync","Troubleshooting"]
-updatedAt: "2026-08-31"
+updatedAt: "2026-09-03"
 sourceRefs:
   - package.json
   - apps/storybook/package.json
-  - apps/canvas/app/lib/drafts.ts
+  - apps/storybook/vercel.json
   - docs/deployment/vercel-protection.md
   - packages/design-system/package.json
 ---
 
-Before investigating, record the directory, branch, code version, startup command, and full error. If a process or file may belong to another task, confirm ownership before overwriting or cleaning it up.
+When something goes wrong, give AI the page link, error, or screenshot and explain what you just did and what you expected. AI identifies the project, version, and running state; you do not need to assemble technical records yourself.
 
-## Do I need to install the project to browse components
+## Do I need to install the project to browse components and pages
 
-No. Open [Storybook](https://yami-design-system-storybook.vercel.app/?path=/story/yami-components-actions-button--showcase). Request access from a maintainer if required. Prepare a Fork and local environment only when you need to edit or create a page.
+No. Open [Storybook](https://yami-design-system-storybook.vercel.app/?path=/story/yami-components-actions-button--showcase) to browse and try components and page examples. Follow [Getting Started](/en/docs/fork-project) to prepare a local project when you want to create or edit your own.
 
-## What if the page says connection refused
+## What if a local page will not open
 
-It usually means no service is listening at that address, although a mismatched port or hostname may also be responsible. Confirm the correct app is still running in the terminal and use the address it actually reports.
+Give AI the failing URL and an error screenshot. Ask it to check whether the correct project is running, verify the address, and open the page to confirm it works. Docsite and Storybook run separately; one being available does not mean the other has started.
 
-From the repository root, `pnpm dev:storybook` starts Storybook and `pnpm dev:docsite` starts Docsite. They are separate services: a working Docsite does not mean Storybook is running. See [Getting Started](/en/docs/fork-project) for initial installation and startup.
+If a port is occupied, ask AI to identify the project using it and choose an available address without stopping other tasks. See [Getting Started](/en/docs/fork-project) for the first startup.
 
-If a port is busy, identify its owner first. Do not ask AI to stop every Node process. After startup, inspect actual rendering and browser errors rather than relying only on an HTTP response.
+## What if AI did not reuse existing components
 
-## What if AI did not use public components
+Give AI the component or page example you want to use. Ask it to check reuse against the project guidelines, prefer existing capabilities, and preserve accepted content.
 
-Ask AI to list the page's import paths and reuse sources. Have it reread `packages/design-system/SKILL.md` and compare the implementation with the catalog, usage documentation, and closest maintained page.
-
-If a public component fits, use its public import. If a capability is genuinely missing, [report the gap](/en/docs/component-gaps) rather than hiding a modified copy of the shared component in your project.
+If an existing component cannot meet the need, [report the component issue](/en/docs/create-components#report-a-component-issue) with the scenario before deciding whether to extend or create a component. You do not need to inspect code import paths yourself.
 
 ## Why were my Controls changes not saved
 
-Controls change the current example parameters, not business-page source. To keep the configuration, ask AI to save it in your task Story or data file. See [Continue refining a page](/en/docs/choose-starting-point#continue-refining-a-page).
+Storybook Controls let you try parameters temporarily; they do not save those changes to your page. Give AI the desired result or a screenshot and ask it to apply and save the changes in your project.
 
-Local Canvas drafts are not a team cloud record either. Share agreed files, code versions, and review material instead of assuming a teammate can restore state held only in your browser.
+See [Continue refining a page](/en/docs/choose-starting-point#continue-refining-a-page). To share the saved result, use [Deploy and hand off](/en/docs/deliver-publish) to create an online link.
 
-## Why can a teammate not open my preview
+## Why can a team member not open my preview
 
-`localhost` refers to the viewer's own computer. Sending that address does not share the service running on yours.
+First check whether the link contains `localhost` or `127.0.0.1`. These addresses refer to the local computer and cannot directly share your preview with a team member. Use [Deploy and hand off](/en/docs/deliver-publish) to get an online preview link.
 
-Use [Share a preview and review](/en/docs/review-preview) to arrange a team-accessible preview or agreed local reproduction. Check repository and preview-site access separately. If hosting is not configured, screenshots and recordings can support static discussion, but interaction acceptance remains incomplete.
+For an online link, ask AI to check deployment success, the URL, and the team member's access. GitHub repository access and website access are separate; do not simply make the site public to resolve an access problem.
 
-## Why did my page change after synchronizing
+## What if my page changes after an update
 
-Record upstream and project versions before and after the update, then identify whether data, composition, or a shared component caused the change. Follow [Sync upstream and resolve conflicts](/en/docs/sync-upstream) on an isolated task branch and rerun the shared acceptance checklist.
+Give AI before-and-after screenshots or the affected page location and explain which behavior to preserve. Ask it to compare versions and handle differences on a separate branch without overwriting current work.
 
-Do not force-overwrite the working branch or roll back an entire shared repository without agreement. Ask a maintainer about ambiguous shared behavior changes. Keep the previous review version available when needed.
-
-## Where are npm installation and automatic upgrades
-
-The current onboarding path uses a repository Fork and workspace source packages inside the monorepo. Do not assume `@yami/design-system` is a publicly published npm package or that registry metadata provides a configured remote installation service.
-
-Follow [Getting Started](/en/docs/fork-project) to create your own working copy. If another repository needs a published package, agree on distribution and compatibility with maintainers first.
+You do not need to update a page under review just to stay current. Use [Update components and pages](/en/docs/sync-upstream) when you need a new component, page example, or fix. Ask a maintainer about changes you cannot confidently assess.
 
 ## Does passing checks or merging a PR mean it is live
 
-No. Automated checks, teammate review, code merge, and site deployment are separate events. A successful command proves only the checks it covers. Browser or theme combinations not actually tested must not be marked as passed.
+Not necessarily. Passing checks means the relevant validation was completed. A PR proposes code changes; whether merging it triggers deployment depends on the target branch and project settings.
 
-A release needs an explicit target, authorization, code version, and post-deployment verification. See [Deliver and publish a page](/en/docs/deliver-publish). A private repository does not automatically make its preview site private.
-
-## What should I provide if I am still blocked
-
-Copy the [change feedback template](/en/docs/templates#change-feedback). Include the full error, reproduction steps, expected result, code version, and what you already tried. Remove secrets and sensitive data before sending it to an owner or maintainer.
+With automatic deployments connected, non-production branches usually update previews, while production-branch updates trigger a production deployment. Ask AI to confirm deployment succeeded and open the live URL to check the corresponding version before calling the release complete. See [Deploy and hand off](/en/docs/deliver-publish).

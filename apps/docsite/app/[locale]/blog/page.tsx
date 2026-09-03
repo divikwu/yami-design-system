@@ -43,7 +43,7 @@ export default async function Page({ params }: { params: Promise<{ locale: strin
         <h1>{copy.blog.title}</h1>
         <p>{copy.blog.description}</p>
       </header>
-      <BlogIndex posts={posts} labels={{ all: copy.blog.all, categories: copy.blog.categories }} />
+      <BlogIndex posts={posts} labels={{ all: copy.blog.all, categories: copy.blog.categories, empty: copy.blog.empty }} />
     </main>
   );
 }

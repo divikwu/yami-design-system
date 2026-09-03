@@ -33,7 +33,7 @@ test("uses the global mobile menu for documentation and keeps a single sticky pa
   await menu.click();
   const dialog = page.getByRole("dialog", { name: "菜单", exact: true });
   await expect(dialog.getByRole("link", { name: "查看组件与页面" })).toHaveAttribute("aria-current", "page");
-  await expect(dialog.getByRole("navigation", { name: "YAMI 文档", exact: true }).getByRole("heading", { level: 2 })).toHaveCount(5);
+  await expect(dialog.getByRole("navigation", { name: "YAMI 文档", exact: true }).getByRole("heading", { level: 2 })).toHaveCount(4);
   await dialog.getByRole("button", { name: "关闭" }).click();
   await expect(dialog).not.toBeAttached();
 
@@ -60,8 +60,12 @@ test("filters Blog categories and opens a complete article", async ({ page }) =>
   await expect(blogHeading).toHaveCSS("font-family", /Source Serif 4/);
   await expect(blogHeading).toHaveCSS("font-weight", "400");
   const tabs = page.getByRole("tablist");
-  await expect(tabs.getByRole("tab")).toHaveCount(4);
+  await expect(tabs.getByRole("tab")).toHaveCount(3);
+  await expect(tabs.getByRole("tab", { name: "更新", exact: true })).toHaveCount(0);
+  await tabs.getByRole("tab", { name: "设计", exact: true }).click();
+  await expect(page.getByRole("status")).toHaveText("暂无文章，可以看看其他分类");
   await tabs.getByRole("tab", { name: "工程" }).click();
+  await expect(page.getByRole("status")).toHaveCount(0);
   await expect(page.locator("article:visible")).toHaveCount(3);
   await page.getByRole("link", { name: /用 Storybook 构建、测试和记录组件/ }).click();
 

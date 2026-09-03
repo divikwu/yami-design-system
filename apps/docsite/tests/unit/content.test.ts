@@ -1,3 +1,6 @@
+import fs from "node:fs";
+import path from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -18,8 +21,8 @@ describe("repository content", () => {
   it("keeps all documents paired with stable structural metadata", () => {
     const zh = getAllDocs("zh");
     const en = getAllDocs("en");
-    expect(zh).toHaveLength(17);
-    expect(en).toHaveLength(17);
+    expect(zh).toHaveLength(13);
+    expect(en).toHaveLength(13);
     expect(en.map((item) => item.frontmatter.slug)).toEqual(
       zh.map((item) => item.frontmatter.slug),
     );
@@ -57,6 +60,18 @@ describe("repository content", () => {
     }
   });
 
+  it("provides localized Skill source for copying without exposing its headings as page anchors", () => {
+    for (const locale of ["zh", "en"] as const) {
+      const filename = locale === "zh" ? "SKILL.zh-CN.md" : "SKILL.md";
+      const source = fs.readFileSync(path.join(process.cwd(), "../../packages/design-system", filename), "utf8");
+      const document = getDoc(locale, "using-yami-with-ai")!;
+      expect(document.sourceMarkdown).toBe(source);
+      expect(document.content).toContain(`/${locale}/yami-skill.md`);
+      expect(document.headings).toEqual([{ id: "full-skill", text: locale === "zh" ? "完整 Skill" : "Full Skill", level: 2 }]);
+      expect(getSearchEntries(locale).find(({ id }) => id === "doc:using-yami-with-ai")?.body).toContain(locale === "zh" ? "AI Skill 规范" : "AI Skill Manifest");
+    }
+  });
+
   it("places component and page creation routes inside the AI workflow", () => {
     for (const locale of ["zh", "en"] as const) {
       const documents = getAllDocs(locale);
@@ -65,10 +80,11 @@ describe("repository content", () => {
         "getting-started",
         "browse-components",
       ]);
-      expect(documents.slice(0, 7).map(({ frontmatter }) => frontmatter.slug)).toEqual([
+      expect(documents.slice(0, 8).map(({ frontmatter }) => frontmatter.slug)).toEqual([
         "fork-project",
         "getting-started",
         "browse-components",
+        "using-yami-with-ai",
         "prepare-environment",
         "create-components",
         "choose-starting-point",

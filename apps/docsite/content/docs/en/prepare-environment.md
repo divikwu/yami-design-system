@@ -15,6 +15,8 @@ sourceRefs:
 
 This is the routing page for “Create with AI.” Decide whether the task needs a shared component or a complete page, then continue to the matching workflow for references, prompts, and acceptance criteria. Complete [Getting Started](/en/docs/fork-project) first if the repository, dependencies, or Storybook are not ready.
 
+Before your first AI building task, use [Skill](/en/docs/using-yami-with-ai) to confirm it can read the project guidelines.
+
 ## Choose what to create
 
 | Goal | When to choose it | Next step |
@@ -22,7 +24,7 @@ This is the routing page for “Create with AI.” Decide whether the task needs
 | Create a component | You need a focused interaction or display capability that multiple pages can reuse | Go to [Create a component](/en/docs/create-components) |
 | Create a page | You need to complete a user task by combining content, data, and multiple components | Go to [Create a page](/en/docs/choose-starting-point) |
 
-Replacing copy, products, images, or module order in one page is usually page work, not a new shared component. When an existing component lacks a reusable capability, [report the component gap](/en/docs/component-gaps) first.
+Replacing copy, products, images, or module order in one page is usually page work, not a new shared component. When an existing component lacks a reusable capability, [report the component gap](/en/docs/create-components#report-a-component-issue) first.
 
 ## Continue to the matching workflow
 

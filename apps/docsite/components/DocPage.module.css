@@ -260,7 +260,7 @@
     grid-column: 1;
     box-sizing: border-box;
     margin-top: calc(var(--space-150) * -1);
-    background: var(--surface-primary);
+    background: var(--background-primary);
   }
 
   .article {

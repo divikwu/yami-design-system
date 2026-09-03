@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { notFound } from "next/navigation";
-import Script from "next/script";
 import type { ReactNode } from "react";
 
 import "@yami/design-system/styles/base.css";
@@ -11,6 +10,7 @@ import "../globals.css";
 
 import { SiteFooter } from "../../components/SiteFooter";
 import { SiteHeader } from "../../components/SiteHeader";
+import { ThemeScript } from "../../components/ThemeScript";
 import { getSiteCopy } from "../../content/site";
 import { getAllDocs, getSearchEntries } from "../../lib/content";
 import { storybookResources } from "../../lib/docs-navigation";
@@ -35,8 +35,6 @@ const yamiFont = localFont({
   variable: "--font-yami",
   display: "swap",
 });
-
-const themeScript = `(function(){try{var k="yami-docsite-theme";var s=localStorage.getItem(k);var d=s==="dark"||(s!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);var r=document.documentElement;r.classList.toggle("dark",d);r.dataset.theme=d?"dark":"light";r.style.colorScheme=d?"dark":"light"}catch(e){}})()`;
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -97,10 +95,10 @@ export default async function LocaleLayout({
       suppressHydrationWarning
     >
       <body>
-        <Script id="yami-theme" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <ThemeScript />
         <SiteHeader
           locale={locale}
-          copy={{ nav: copy.nav, utilities: copy.utilities, home: copy.home, docs: copy.docs }}
+          copy={{ nav: copy.nav, utilities: copy.utilities, docs: copy.docs }}
           searchEntries={searchEntries}
           docNavigation={docNavigation}
         />

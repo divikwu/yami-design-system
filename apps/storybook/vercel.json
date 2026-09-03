@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "proxy": { "entrypoint": "proxy.ts" },
   "rewrites": [
     {
       "source": "/email/topic-landing",
@@ -7,6 +8,6 @@
     }
   ],
   "git": {
-    "deploymentEnabled": false
+    "deploymentEnabled": true
   }
 }

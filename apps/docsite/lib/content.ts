@@ -13,6 +13,7 @@ import {
 import type { Locale } from "./locales";
 import { localizedPath } from "./locales";
 import type { SearchEntry } from "./search";
+import { readYamiSkill } from "./yami-skill";
 
 export interface ContentHeading {
   id: string;
@@ -27,7 +28,7 @@ export interface ContentDocument<T> {
   readingTimeMinutes: number;
 }
 
-export type DocDocument = ContentDocument<DocFrontmatter>;
+export type DocDocument = ContentDocument<DocFrontmatter> & { sourceMarkdown?: string };
 export type BlogDocument = ContentDocument<BlogFrontmatter>;
 
 const contentRoot = path.join(process.cwd(), "content");
@@ -95,11 +96,14 @@ function readDocs(locale: Locale): DocDocument[] {
     .map((file) => {
       const parsed = readMarkdown(path.join(directory, file));
       const frontmatter = docFrontmatterSchema.parse(parsed.data);
+      const sourceMarkdown = frontmatter.slug === "using-yami-with-ai" ? readYamiSkill(locale) : undefined;
+      const content = parsed.content;
       return {
         frontmatter,
-        content: parsed.content,
-        headings: extractHeadings(parsed.content),
-        readingTimeMinutes: estimateReadingTime(parsed.content),
+        content,
+        sourceMarkdown,
+        headings: extractHeadings(content),
+        readingTimeMinutes: estimateReadingTime(`${content}\n${sourceMarkdown ?? ""}`),
       };
     })
     .sort((a, b) => a.frontmatter.order - b.frontmatter.order);
@@ -208,7 +212,7 @@ export function getSearchEntries(locale: Locale): SearchEntry[] {
     href: localizedPath(locale, `/docs/${document.frontmatter.slug}`),
     keywords: document.frontmatter.keywords,
     headings: document.headings.map(({ id, text }) => ({ id, text })),
-    body: markdownToPlainText(document.content),
+    body: markdownToPlainText(`${document.content}\n${document.sourceMarkdown ?? ""}`),
   }));
 
   const blog = getAllBlogPosts(locale).map<SearchEntry>((document) => ({

@@ -28,7 +28,6 @@ export function DocsSidebarNav({
     start: true,
     ai: true,
     collaboration: true,
-    maintenance: true,
     resources: true,
   });
   const entryItem = items.find((item) => item.group === "start");

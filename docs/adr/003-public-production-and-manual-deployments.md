@@ -5,6 +5,8 @@
 Accepted by the repository owner on 2026-08-07. Extended to the Docsite target
 on 2026-08-29 as part of the approved phase-one implementation plan, then
 updated on 2026-09-02 to enable automatic Git deployments for Docsite.
+Extended on 2026-09-03 at the owner's request to enable automatic Git
+deployments for Canvas and Storybook as well.
 
 ## Context
 
@@ -21,13 +23,21 @@ separate rights boundary.
 
 - Canvas, Storybook and Docsite may run as separate public Vercel Production
   deployments.
-- Automatic Git deployments remain disabled for Canvas and Storybook. Docsite
-  enables Git deployments.
+- Canvas, Storybook and Docsite enable automatic Git deployments through each
+  application's `vercel.json`. The change takes effect when the configuration
+  reaches the connected repository; a local edit alone does not activate hosted
+  deployments.
 - The Vercel projects are linked to `divikwu/yami-design-system` for repository
-  provenance and monorepo source selection. For Docsite, pull requests create
-  Preview deployments and updates to `main` create Production deployments.
-- Canvas and Storybook Preview and Production deployments remain manual and
-  require separate user authorization.
+  provenance and monorepo source selection. Non-production branch pushes and
+  pull requests can create Preview deployments; updates to production branch
+  `main` can create Production deployments for each application.
+- Approval for publishing belongs before the push or merge that triggers it.
+  Once that action is authorized, the automatic build needs no separate manual
+  deployment. Report the deployment status and source commit before declaring
+  the site updated.
+- A downstream Fork needs its own hosting connection. External-fork PRs may
+  require maintainer approval under Vercel's Git integration policy; automatic
+  deployment does not bypass that control.
 - Vercel must identify the source commit. Changes merged to `main` must pass the
   repository's required CI checks.
 - None of the Vercel projects receives `OPENAI_API_KEY` or another model-provider

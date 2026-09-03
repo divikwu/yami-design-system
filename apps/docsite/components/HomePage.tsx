@@ -13,7 +13,7 @@ import { BlogCard, type BlogCardData } from "./BlogCard";
 import { arrowRightIcon } from "./assets";
 import styles from "./HomePage.module.css";
 
-const aboutRoutes = ["browse-components", "choose-starting-point", "review-checklist"] as const;
+const aboutRoutes = ["browse-components#design-standards", "browse-components", "prepare-environment"] as const;
 const aboutIcons = [ColorsIcon, PuzzleIcon, AiProgrammingIcon] as const;
 const aboutCapabilityIndexes = [0, 1, 3] as const;
 
@@ -50,6 +50,7 @@ export function HomePage({
     ...copy.home.capabilities[index],
     href: localizedPath(locale, `/docs/${aboutRoutes[itemIndex]}`),
     icon: aboutIcons[itemIndex],
+    action: copy.home.aboutActions[itemIndex],
   }));
 
   return (
@@ -156,7 +157,7 @@ export function HomePage({
                         <p>{item.description}</p>
                       </div>
                       <Link className={styles.textLink} href={item.href}>
-                        {copy.home.learnMore}<ArrowIcon />
+                        {item.action}<ArrowIcon />
                       </Link>
                     </div>
                   </article>

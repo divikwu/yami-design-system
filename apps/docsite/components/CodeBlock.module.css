@@ -33,7 +33,7 @@
   color: inherit;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: var(--font-size-body-md);
-  line-height: var(--line-height-body-md);
+  line-height: var(--line-height-heading-md);
 }
 
 .root[data-wrap="true"] pre {
@@ -46,4 +46,16 @@
 .root pre:focus-visible {
   outline: var(--stroke-thick) solid var(--border-focus);
   outline-offset: calc(var(--stroke-thick) * -1);
+}
+
+.root[data-collapsed="true"] pre {
+  max-height: min(calc(var(--space-1000) * 6), 60vh);
+  overflow-y: auto;
+}
+
+.footer {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-100);
+  border-top: var(--stroke-default) solid var(--divider-default);
 }

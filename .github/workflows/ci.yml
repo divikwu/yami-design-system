@@ -114,6 +114,8 @@ jobs:
         run: pnpm --filter @yami/docsite typecheck && pnpm test:docsite
       - name: production-build
         run: pnpm build:docsite
+      - name: password-access-boundaries
+        run: pnpm --filter @yami/site-access test && pnpm --filter @yami/storybook build && pnpm --filter @yami/docsite test:access
       - name: browser-and-accessibility-tests
         run: pnpm test:docsite:e2e
         env:

@@ -48,25 +48,23 @@
   text-decoration: none;
 }
 
-.brandMark {
+.logo {
   display: block;
-  width: var(--space-300);
+  width: auto;
   height: var(--space-300);
   margin-inline: var(--space-100);
 }
 
-.logo {
-  display: none;
-  width: auto;
-  height: var(--space-400);
-}
-
 .logoDark,
-.desktopNav {
+:global(.dark) .logoLight {
   display: none;
 }
 
-:global(.dark) .logoLight {
+:global(.dark) .logoDark {
+  display: block;
+}
+
+.desktopNav {
   display: none;
 }
 
@@ -93,8 +91,7 @@
 
 .navLink,
 .utilityIconLink,
-.mobileNavLink,
-.headerAction {
+.mobileNavLink {
   color: var(--text-primary);
   font-size: var(--font-size-body-md);
   line-height: var(--line-height-body-md);
@@ -136,30 +133,6 @@
 .utilityIconLink:active,
 .tools :global([data-slot="button"]):active {
   background-color: var(--button-secondary-active);
-}
-
-.headerAction {
-  position: relative;
-  display: inline-flex;
-  min-height: var(--space-400);
-  padding-inline: var(--space-150);
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-button-primary);
-  background: var(--button-primary);
-  color: var(--text-primary-inverse);
-  font-weight: var(--font-weight-emphasize);
-  white-space: nowrap;
-}
-
-.headerAction::before {
-  position: absolute;
-  top: 50%;
-  right: 0;
-  left: 0;
-  height: calc(var(--space-500) + var(--space-050));
-  content: "";
-  transform: translateY(-50%);
 }
 
 .utilityIconLink {
@@ -227,7 +200,6 @@
 .navLink:focus-visible,
 .utilityIconLink:focus-visible,
 .mobileNavLink:focus-visible,
-.headerAction:focus-visible,
 .brand:focus-visible {
   outline: var(--stroke-thick) solid var(--border-focus);
   outline-offset: var(--space-025);
@@ -250,21 +222,11 @@
   .tools :global([data-slot="button"]):hover {
     background-color: var(--button-secondary);
   }
-
-  .headerAction:hover {
-    background: var(--button-primary-active);
-  }
 }
 
 @media (max-width: 401px) {
   .tools {
     gap: 0;
-  }
-
-  .headerAction {
-    padding-inline: var(--space-100);
-    font-size: var(--font-size-caption-sm);
-    line-height: var(--line-height-caption-sm);
   }
 }
 
@@ -288,14 +250,13 @@
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   }
 
-  .brandMark,
   .menuButton {
     display: none;
   }
 
-  .logoLight,
-  :global(.dark) .logoDark {
-    display: block;
+  .logo {
+    height: var(--space-400);
+    margin-inline: 0;
   }
 
   .desktopNav {

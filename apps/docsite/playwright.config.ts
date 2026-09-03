@@ -2,6 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 const useProductionServer = process.env.PLAYWRIGHT_USE_PRODUCTION === "1";
 const useExistingProductionBuild = process.env.PLAYWRIGHT_USE_EXISTING_BUILD === "1";
+const protectedProduction = useProductionServer || useExistingProductionBuild;
 
 export default defineConfig({
   testDir: "tests/e2e",
@@ -9,9 +10,11 @@ export default defineConfig({
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
   reporter: "html",
+  globalSetup: "./tests/setup-production-access.ts",
   use: {
     baseURL: "http://127.0.0.1:3400",
     trace: "on-first-retry",
+    storageState: protectedProduction ? "test-results/.auth/docsite.json" : undefined,
   },
   webServer: {
     command: useExistingProductionBuild
@@ -19,7 +22,12 @@ export default defineConfig({
       : useProductionServer
         ? "pnpm build && pnpm start"
         : "pnpm dev",
-    url: "http://127.0.0.1:3400/zh",
+    url: protectedProduction ? "http://127.0.0.1:3400/__access/login" : "http://127.0.0.1:3400/zh",
+    env: protectedProduction ? {
+      YAMI_SITE_PASSWORD: "yami-local-preview-only",
+      YAMI_SESSION_SECRET: "local-preview-session-secret-not-for-production-2026",
+      VERCEL: "",
+    } : undefined,
     reuseExistingServer: !process.env.CI && !useProductionServer && !useExistingProductionBuild,
     timeout: 180_000,
   },

@@ -43,7 +43,7 @@ export interface SiteCopy {
     docsAction: string;
     aboutTitle: string;
     aboutDescription: string;
-    learnMore: string;
+    aboutActions: [string, string, string];
     latestAction: string;
     discoverTitle: string;
     discoverDescription: string;
@@ -64,6 +64,7 @@ export interface SiteCopy {
     description: string;
     all: string;
     categories: Record<"update" | "design" | "engineering", string>;
+    empty: string;
     readingTime: (minutes: number) => string;
     related: string;
     previous: string;

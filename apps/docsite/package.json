@@ -10,7 +10,8 @@
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
     "test:e2e": "playwright test -c playwright.config.ts",
-    "test:lighthouse": "lhci autorun --config=lighthouserc.json",
+    "test:access": "playwright test -c playwright.access.config.ts",
+    "test:lighthouse": "node scripts/lighthouse.mjs",
     "check:content": "node scripts/check-content.mjs",
     "generate:blog-covers": "node scripts/generate-blog-covers.mjs"
   },
@@ -19,6 +20,7 @@
     "@hugeicons/core-free-icons": "4.3.0",
     "@hugeicons/react": "1.1.10",
     "@yami/design-system": "workspace:*",
+    "@yami/site-access": "workspace:*",
     "gray-matter": "4.0.3",
     "next": "16.3.4",
     "react": "19.2.8",
@@ -35,6 +37,7 @@
     "@types/react-dom": "19.2.5",
     "playwright": "1.62.1",
     "playwright-core": "1.62.1",
+    "puppeteer-core": "25.9.0",
     "typescript": "6.0.3",
     "vitest": "4.1.11"
   }

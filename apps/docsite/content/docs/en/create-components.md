@@ -5,7 +5,7 @@ description: "Decide whether to reuse, extend, or create a component, then compl
 group: ai
 order: 45
 keywords: ["create components", "variants", "meta", "Storybook", "public exports"]
-updatedAt: "2026-09-02"
+updatedAt: "2026-09-03"
 sourceRefs:
   - packages/design-system/SKILL.md
   - packages/design-system/DESIGN.md
@@ -18,7 +18,7 @@ sourceRefs:
   - package.json
 ---
 
-Use this workflow to reuse, extend, or create a shared component. First check whether a component reference exists, then use the matching prompt and follow the implementation, Storybook, and acceptance requirements below. If the shared-component need is unclear, [report the gap first](/en/docs/component-gaps).
+Use this workflow to reuse, extend, or create a shared component. First check whether a component reference exists, then use the matching prompt and follow the implementation, Storybook, and acceptance requirements below. If the shared-component need is unclear, [report the gap first](/en/docs/create-components#report-a-component-issue).
 
 ## Check the component reference
 
@@ -43,13 +43,11 @@ Usage context: <pages or flows where it appears>
 Required behavior: <states, content, and interactions>
 Component reference: <Storybook URL, component name, design, or screenshot>
 
-Inspect the existing capabilities and reference. Explain whether to reuse,
-extend, or create a component before implementing it.
-Handle only this requirement. Do not duplicate a component or change unrelated files.
-
-Verify real rendering and interaction in Storybook.
-Report the final decision, changed files, Story URL, verification results,
-and open issues. Do not commit, push, or publish.
+- Inspect the existing capabilities and reference. Explain whether to reuse, extend, or create a component before implementing it.
+- Handle only this requirement. Do not duplicate a component or change unrelated files.
+- Verify real rendering and interaction in Storybook.
+- Report the final decision, changed files, Story URL, verification results, and open issues.
+- Do not commit, push, or publish.
 ```
 
 ### Without a component reference
@@ -62,14 +60,12 @@ Target users: <people who will ultimately see or operate it>
 Usage context: <pages or flows where it appears>
 Required behavior: <states, content, and interactions>
 
-Search the existing components and list candidates that can be reused or composed.
-Do not create a component when an existing capability is sufficient. Create one
-only when it has a distinct, reusable responsibility that existing composition lacks.
-Handle only this requirement. Do not change unrelated files or invent missing design values or business data.
-
-Verify real rendering and interaction in Storybook.
-Report the search results, final decision, changed files, Story URL,
-verification results, and open issues. Do not commit, push, or publish.
+- Search the existing components and list candidates that can be reused or composed.
+- Do not create a component when an existing capability is sufficient. Create one only when it has a distinct, reusable responsibility that existing composition lacks.
+- Handle only this requirement. Do not change unrelated files or invent missing design values or business data.
+- Verify real rendering and interaction in Storybook.
+- Report the search results, final decision, changed files, Story URL, verification results, and open issues.
+- Do not commit, push, or publish.
 ```
 
 ## Fill in the component task
@@ -97,6 +93,26 @@ Do not provide passwords, access tokens, customer information, or unapproved ass
 
 Record the choice and reasoning in the task. Do not copy a shared component merely because one page needs a different appearance.
 
+## Report a component issue
+
+If a component behaves unexpectedly or lacks a capability you need, ask AI to investigate the scenario first. You do not need to decide whether it is a usage issue, a defect, or a new component requirement.
+
+```text
+Investigate this component issue and prepare feedback for the maintainer.
+Page or component: <Story URL, component name, or project location>
+Observed behavior: <what I did and what happened>
+Expected result: <what should happen>
+Reference: <screenshot or recording, optional>
+
+- Inspect existing usage and props, then reproduce with the same content and viewport.
+- Explain whether existing props or composition can solve it; propose improvements only for a real defect or missing capability.
+- Fill in the version, reproduction steps, attempted approaches, and impact on this task.
+- Prepare a short report for me to share with the maintainer.
+- Do not create a component or submit a ticket automatically.
+```
+
+If an existing capability is sufficient, continue with the usage AI explains. Agree on the direction with a maintainer before changing a shared component. After implementation and verification, [Share components and pages](/en/docs/contribute-upstream).
+
 ## Check the delivery
 
 - The report explains the search results and the decision to reuse, extend, or create a component.
@@ -106,4 +122,4 @@ Record the choice and reasoning in the task. Do not copy a shared component mere
 
 ## Next step
 
-After local completion, continue to [Contribute shared capabilities upstream](/en/docs/contribute-upstream). Passing checks does not automatically authorize committing, merging, or publishing.
+After local completion, continue to [Share components and pages](/en/docs/contribute-upstream). Passing checks does not automatically authorize committing, merging, or publishing.

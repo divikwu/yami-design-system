@@ -1,20 +1,4 @@
----
-slug: maintain-releases
-title: Maintain upstream versions
-description: "Review shared changes, document compatibility, verify the result, and manage merges, deployments, and Fork updates separately."
-group: maintenance
-order: 170
-keywords: ["versions", "maintainers", "Changeset", "compatibility", "rollback"]
-updatedAt: "2026-08-31"
-sourceRefs:
-  - package.json
-  - packages/design-system/package.json
-  - .changeset/config.json
-  - .changeset/category-navigation-versions.md
-  - .github/workflows/ci.yml
-  - docs/deployment/vercel-protection.md
-  - docs/adr/003-public-production-and-manual-deployments.md
----
+# Maintain upstream versions
 
 For upstream maintainers and release owners. Start with a focused, verified PR. Deliver a traceable shared revision, change notes, and update instructions that Fork owners can follow.
 
@@ -70,7 +54,7 @@ An authorized maintainer merges after review, diff confirmation, and merge appro
 
 ## Arrange deployment separately
 
-The existing policy requires manual, separately authorized Preview and Production deployments. Git pushes or merges do not automatically update the sites.
+Storybook, Canvas, and Docsite all configure automatic Git deployments. Once the configuration takes effect in the connected repository, non-production pushes or PRs can trigger Preview, and updates to production branch main can trigger Production. Approve the release before the triggering push or merge; AI must still wait for deployment and verify the live page. A fork needs its own hosting connection rather than automatically receiving a preview environment.
 
 Before deployment, confirm the project, environment, source commit, owner, access scope, asset permissions, and rollback version. Afterwards, open the real page, verify rendering and key interactions, and record the URL and running revision.
 
@@ -112,4 +96,4 @@ Do not default to force synchronization or rewriting shared history. Record the 
 
 ## Next step
 
-Give project owners the update notes so they can [sync upstream and resolve conflicts](/en/docs/sync-upstream). For project-page deployment, continue to [Hand off and publish pages](/en/docs/deliver-publish).
+Give project owners the update notes so they can [sync upstream and resolve conflicts](../../../apps/docsite/content/docs/en/sync-upstream.md). For project-page deployment, continue to [Deploy and hand off](../../../apps/docsite/content/docs/en/deliver-publish.md).

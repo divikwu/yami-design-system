@@ -106,4 +106,4 @@ Still needed: <what the page task must implement>
 
 If you cannot find a page or component, search its English name or related business scenario. If the hosted example differs from your Fork, check the source baseline and deployment version before replacing code. Ask a maintainer to verify the address and access policy if the entry point is unavailable.
 
-If you only need to provide a design reference, share the specific Story URL and the checks you performed. When you are ready to build, [start creating](/en/docs/prepare-environment). If the existing component cannot meet a real requirement, [report a component gap](/en/docs/component-gaps).
+If you only need to provide a design reference, share the specific Story URL and the checks you performed. When you are ready to build, [start creating](/en/docs/prepare-environment). If the existing component cannot meet a real requirement, [report a component gap](/en/docs/create-components#report-a-component-issue).

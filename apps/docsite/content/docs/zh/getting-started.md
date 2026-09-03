@@ -71,6 +71,6 @@ Storybook 负责查看、理解和验证。需要保存新的内容、页面组�
 | --- | --- |
 | 查找组件、确认状态或查看完整页面 | [查看组件与页面](/zh/docs/browse-components) |
 | 使用 AI 创建组件或页面 | [开始创建](/zh/docs/prepare-environment) |
-| 现有组件不能满足真实需求 | [反馈组件能力缺口](/zh/docs/component-gaps) |
+| 现有组件不能满足真实需求 | [反馈组件能力缺口](/zh/docs/create-components#report-a-component-issue) |
 
 组件和页面的具体寻找、阅读、检查与分享方法，统一放在下一篇文档。
