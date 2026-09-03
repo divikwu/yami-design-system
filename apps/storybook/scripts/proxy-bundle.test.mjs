@@ -8,11 +8,12 @@ import { pathToFileURL } from "node:url";
 test("deployed proxy runs without workspace packages or a TypeScript loader", () => {
   const directory = mkdtempSync(join(tmpdir(), "yami-proxy-bundle-"));
   const app = join(directory, "apps/storybook");
-  const entrypoint = join(app, "dist/proxy.js");
+  const entrypoint = join(app, "vercel-proxy.js");
   try {
     mkdirSync(join(app, "dist"), { recursive: true });
     writeFileSync(join(app, "package.json"), '{"type":"module"}');
-    copyFileSync("dist/proxy.js", entrypoint);
+    copyFileSync("vercel-proxy.js", entrypoint);
+    copyFileSync("dist/proxy.js", join(app, "dist/proxy.js"));
     for (const asset of ["generated/tokens.css", "assets/fonts/GT-Walsheim-Regular.woff2"]) {
       const target = join(directory, "packages/design-system", asset);
       mkdirSync(join(target, ".."), { recursive: true });
