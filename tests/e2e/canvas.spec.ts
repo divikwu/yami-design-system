@@ -36,6 +36,26 @@ async function seedTestDirection(page: Page) {
   });
 }
 
+for (const presentation of ["text", "images"] as const) {
+  test(`opens the ${presentation} category prototype from its direct link`, async ({ page }) => {
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await page.goto(`/preview/ecommerce-home?locale=zh${presentation === "images" ? "&categoryMenu=images" : ""}`);
+    const trigger = page.locator('[data-category-id="beauty"]');
+    await trigger.hover();
+    const menu = page.locator('[data-slot="header-category-menu"]');
+    await expect(menu).toHaveAttribute("data-presentation", presentation);
+    await expect(menu.locator('[data-level="2"]')).toBeVisible();
+    const images = menu.locator('[data-level="2"] img');
+    if (presentation === "images") await expect(images.first()).toBeVisible();
+    else await expect(images).toHaveCount(0);
+    await page.keyboard.press("Escape");
+    await expect(menu).toBeHidden();
+    if (presentation === "images") {
+      await expect(page.locator('[data-slot="header-brand"]')).toHaveAttribute("href", /categoryMenu=images/);
+    }
+  });
+}
+
 test("groups standalone prototype routes under the Preview Module", async ({ page, request }) => {
   const redirects = [
     ["/", "/preview?locale=en"],
