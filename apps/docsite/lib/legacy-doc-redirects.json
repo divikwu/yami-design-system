@@ -1,4 +1,9 @@
 {
+  "templates": "/docs/review-checklist#change-feedback",
+  "component-gaps": "/docs/create-components#report-a-component-issue",
+  "maintain-releases": "/docs/contribute-upstream#maintainer-reference",
+  "review-preview": "/docs/deliver-publish",
+  "manage-tasks": "/docs/prepare-environment",
   "overview": "/docs/getting-started#what-storybook-is",
   "brand-principles": "/docs/browse-components#design-standards",
   "color": "https://yami-design-system-storybook.vercel.app/?path=/story/yami-foundations-color--overview",

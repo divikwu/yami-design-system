@@ -17,7 +17,7 @@ import type { Locale } from "../lib/locales";
 import { localizedPath, swapLocalePathname } from "../lib/locales";
 import type { SearchEntry } from "../lib/search";
 import { githubUrl, storybookUrl } from "../lib/site-config";
-import { brandIcon, logoAssets } from "./assets";
+import { logoAssets } from "./assets";
 import { DocsSidebarNav } from "./DocsSidebarNav";
 import type { DocNavItem } from "./DocsMobileControls";
 import { NavigationDrawer } from "./NavigationDrawer";
@@ -25,7 +25,7 @@ import { SearchPanel } from "./SearchPanel";
 import { ThemeToggle } from "./ThemeToggle";
 import styles from "./SiteHeader.module.css";
 
-type HeaderCopy = Pick<SiteCopy, "nav" | "utilities" | "home" | "docs">;
+type HeaderCopy = Pick<SiteCopy, "nav" | "utilities" | "docs">;
 
 interface SiteHeaderProps {
   locale: Locale;
@@ -131,9 +131,8 @@ export function SiteHeader({ locale, copy, searchEntries, docNavigation }: SiteH
         </a>
         <div className={styles.inner}>
           <Link className={styles.brand} href={localizedPath(locale)} aria-label="YAMI Design System">
-            <img className={styles.brandMark} src={brandIcon} alt="YAMI" />
-            <img className={`${styles.logo} ${styles.logoLight}`} src={logoAssets[locale].mobile.light} alt="YAMI" />
-            <img className={`${styles.logo} ${styles.logoDark}`} src={logoAssets[locale].mobile.dark} alt="YAMI" />
+            <img className={`${styles.logo} ${styles.logoLight}`} src={logoAssets.en.mobile.light} alt="YAMI" />
+            <img className={`${styles.logo} ${styles.logoDark}`} src={logoAssets.en.mobile.dark} alt="YAMI" />
           </Link>
 
           <nav className={styles.desktopNav} aria-label={copy.nav.label}>
@@ -204,12 +203,6 @@ export function SiteHeader({ locale, copy, searchEntries, docNavigation }: SiteH
                 aria-hidden="true"
               />
             </a>
-            <Link
-              className={styles.headerAction}
-              href={localizedPath(locale, "/docs/getting-started")}
-            >
-              {copy.home.primaryAction}
-            </Link>
             <Button
               className={styles.menuButton}
               variant="tertiary"

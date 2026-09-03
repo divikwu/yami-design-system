@@ -124,7 +124,7 @@ for (const target of pages) {
           );
           await expect(aboutItem).toHaveCSS(
             "background-color",
-            scenario.theme === "dark" ? "rgb(57, 57, 57)" : "rgb(245, 245, 245)",
+            scenario.theme === "dark" ? "rgb(34, 34, 34)" : "rgb(245, 245, 245)",
           );
           await expect(aboutItem).toHaveCSS("padding", scenario.width < 900 ? "16px" : "24px");
           await expect(aboutItem).toHaveCSS("border-radius", "12px");

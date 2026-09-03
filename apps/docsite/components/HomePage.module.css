@@ -569,6 +569,10 @@
   scroll-snap-stop: always;
 }
 
+:global(.dark) .aboutItem {
+  background: var(--background-secondary);
+}
+
 .aboutItem .textLink,
 .sectionHeader .textLink {
   position: relative;

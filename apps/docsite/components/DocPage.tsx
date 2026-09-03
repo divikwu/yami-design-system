@@ -10,6 +10,7 @@ import { githubUrl } from "../lib/site-config";
 import { DocsMobileControls, type DocNavItem } from "./DocsMobileControls";
 import { DocsSidebarNav } from "./DocsSidebarNav";
 import { MarkdownContent } from "./MarkdownContent";
+import { CodeBlock } from "./CodeBlock";
 import { TableOfContents } from "./TableOfContents";
 import styles from "./DocPage.module.css";
 
@@ -69,6 +70,20 @@ export function DocPage({
           />
 
           <MarkdownContent markdown={document.content} locale={locale} headings={document.headings} />
+
+          {document.sourceMarkdown ? (
+            <CodeBlock
+              code={document.sourceMarkdown}
+              language={locale === "zh" ? "SKILL.zh-CN.md" : "SKILL.md"}
+              copyLabel={locale === "zh" ? "复制完整 Skill 内容" : "Copy full Skill content"}
+              copiedLabel={locale === "zh" ? "已复制完整内容" : "Full content copied"}
+              errorLabel={locale === "zh" ? "复制失败，请重试或手动复制" : "Copy failed. Retry or copy manually."}
+              collapsible={{
+                expandLabel: locale === "zh" ? "展开完整内容" : "Expand full content",
+                collapseLabel: locale === "zh" ? "收起内容" : "Collapse content",
+              }}
+            />
+          ) : null}
 
           <section className={styles.sources} aria-labelledby="source-references">
             <h2 id="source-references">{locale === "zh" ? "事实来源" : "Source References"}</h2>

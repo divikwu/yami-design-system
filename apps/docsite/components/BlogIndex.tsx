@@ -18,10 +18,10 @@ export function BlogIndex({
   labels,
 }: {
   posts: BlogListPost[];
-  labels: { all: string; categories: Record<BlogFrontmatter["category"], string> };
+  labels: { all: string; categories: Record<BlogFrontmatter["category"], string>; empty: string };
 }) {
   const [filter, setFilter] = useState<Filter>("all");
-  const filters: Filter[] = ["all", "update", "design", "engineering"];
+  const filters: Filter[] = ["all", "design", "engineering"];
 
   return (
     <Tabs className={styles.tabs} value={filter} onValueChange={(value) => setFilter(value as Filter)}>
@@ -37,7 +37,7 @@ export function BlogIndex({
         const [feature, ...rest] = filtered;
         return (
           <TabsContent key={value} value={value} className={styles.panel}>
-            {feature ? <BlogCard post={feature} feature /> : null}
+            {feature ? <BlogCard post={feature} feature /> : <p className={styles.empty} role="status">{labels.empty}</p>}
             {rest.length > 0 ? (
               <div className={styles.grid}>
                 {rest.map((post) => <BlogCard key={post.slug} post={post} />)}

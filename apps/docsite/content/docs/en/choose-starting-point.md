@@ -43,14 +43,12 @@ Required interactions: <buttons, links, filters, dialogs, or submission results>
 Acceptance criteria: <locales, themes, viewports, states, and interactions to verify>
 Optional context: <asset permissions, data version, and out-of-scope items; use “to confirm” when unknown>
 
-Inspect the closest pages and components. Explain what can be reused directly,
-what belongs in the page, and what requires a new capability before creating it.
-Handle only this requirement. Do not overwrite defaults or change unrelated files.
-For an external reference, use only approved structure, content, and assets.
-
-Verify the real page and primary interactions in Storybook.
-Report how the reference was used, changed files, Story URL,
-verification results, and open issues. Do not commit, push, or publish.
+- Inspect the closest pages and components. Explain what can be reused directly, what belongs in the page, and what requires a new capability before creating it.
+- Handle only this requirement. Do not overwrite defaults or change unrelated files.
+- For an external reference, use only approved structure, content, and assets.
+- Verify the real page and primary interactions in Storybook.
+- Report how the reference was used, changed files, Story URL, verification results, and open issues.
+- Do not commit, push, or publish.
 ```
 
 ### Without a page reference
@@ -65,14 +63,12 @@ Required interactions: <buttons, links, filters, dialogs, or submission results>
 Acceptance criteria: <locales, themes, viewports, states, and interactions to verify>
 Optional context: <asset permissions, data version, and out-of-scope items; use “to confirm” when unknown>
 
-Search the existing pages and components and list the closest starting points.
-Reuse a suitable structure; propose the smallest new page structure only when none fits.
-Handle only this requirement. Do not change unrelated files or invent prices,
-inventory, claims, or missing business rules.
-
-Verify real content, responsive behavior, and primary interactions in Storybook.
-Report the selected page structure, component list, changed files, Story URL,
-verification results, and open questions. Do not commit, push, or publish.
+- Search the existing pages and components and list the closest starting points.
+- Reuse a suitable structure; propose the smallest new page structure only when none fits.
+- Handle only this requirement. Do not change unrelated files or invent prices, inventory, claims, or missing business rules.
+- Verify real content, responsive behavior, and primary interactions in Storybook.
+- Report the selected page structure, component list, changed files, Story URL, verification results, and open questions.
+- Do not commit, push, or publish.
 ```
 
 ## Find the closest page
@@ -103,7 +99,7 @@ Your project owns products, business destinations, copy, and state. Public compo
 
 For example, a page may supply product data and handlers to ProductCard. It should not create a copied ProductCard for a campaign or change shared tokens to affect unrelated pages.
 
-Keep project-specific work in your Fork. Once an improvement is reusable across tasks and has usage guidance and verification, propose a focused PR through [Contribute upstream](/en/docs/contribute-upstream).
+Keep project-specific work in your Fork. Once an improvement is reusable across tasks and has usage guidance and verification, propose a focused PR through [Share components and pages](/en/docs/contribute-upstream).
 
 ## Continue refining a page
 
@@ -116,9 +112,9 @@ Change: <specific content, layout, or interaction>
 Preserve: <structure, content, and behavior that must remain unchanged>
 Acceptance criteria: <locales, themes, viewports, states, and interactions to recheck>
 
-Confirm the change scope first. Handle only this revision and do not change unrelated files.
-Recheck the page in Storybook, then report changed files, the Story URL, verification results, and open issues.
-Do not commit, push, or publish.
+- Confirm the change scope first. Handle only this revision and do not change unrelated files.
+- Recheck the page in Storybook, then report changed files, the Story URL, verification results, and open issues.
+- Do not commit, push, or publish.
 ```
 
 ## Check that the starting point fits
@@ -140,4 +136,4 @@ Confirm that AI reports:
 
 ## Next step
 
-After completing the page, continue to [Check the page](/en/docs/review-checklist). If the task type or prompt is still unclear, return to [Start creating](/en/docs/prepare-environment). For a genuine missing capability, [report a component gap](/en/docs/component-gaps).
+After completing the page, continue to [Check the page](/en/docs/review-checklist). If the task type or prompt is still unclear, return to [Start creating](/en/docs/prepare-environment). For a genuine missing capability, [report a component gap](/en/docs/create-components#report-a-component-issue).

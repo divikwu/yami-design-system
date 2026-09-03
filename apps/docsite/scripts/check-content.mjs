@@ -16,7 +16,7 @@ const docSchema = z.object({
   slug: slugSchema,
   title: z.string().min(1),
   description: z.string().min(1),
-  group: z.enum(["start", "ai", "collaboration", "maintenance", "resources"]),
+  group: z.enum(["start", "ai", "collaboration", "resources"]),
   order: z.number().int().nonnegative(),
   keywords: z.array(z.string().min(1)).min(1),
   updatedAt: dateSchema,
@@ -290,6 +290,7 @@ function validateInternalLinks() {
     routes.set(`/${locale}`, new Set(["preview-title", "capabilities", "foundations", "latest"]));
     routes.set(`/${locale}/docs`, new Set());
     routes.set(`/${locale}/blog`, new Set());
+    routes.set(`/${locale}/yami-skill.md`, new Set());
 
     const englishDocs = indexBySlug(docs.en);
     const englishBlogs = indexBySlug(blogs.en);

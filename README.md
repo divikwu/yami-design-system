@@ -38,8 +38,10 @@ and import contract.
 Docsite is a separate Vercel target at `apps/docsite`. Pull requests create
 Preview deployments and updates to `main` create Production deployments.
 
-The source repository and Vercel Production deployments are public. Canvas and
-Storybook keep automatic Git deployments disabled, while Docsite enables them.
+The source repository and Vercel Production deployments are public. Canvas,
+Storybook and Docsite all configure automatic Git deployments. The configuration
+takes effect when it reaches the connected repository; verify the resulting
+deployment before reporting a site update.
 No Vercel project receives an AI secret. See
 [`ADR 003`](docs/adr/003-public-production-and-manual-deployments.md) for the
 current release policy.

@@ -1,20 +1,4 @@
----
-slug: maintain-releases
-title: 维护上游版本
-description: "由维护者审核公共改动、记录兼容性影响、组织验证，并把合并、部署与 Fork 同步分别管理。"
-group: maintenance
-order: 170
-keywords: ["版本", "维护者", "Changeset", "兼容性", "回退"]
-updatedAt: "2026-08-31"
-sourceRefs:
-  - package.json
-  - packages/design-system/package.json
-  - .changeset/config.json
-  - .changeset/category-navigation-versions.md
-  - .github/workflows/ci.yml
-  - docs/deployment/vercel-protection.md
-  - docs/adr/003-public-production-and-manual-deployments.md
----
+# 维护上游版本
 
 适用于上游维护者与发布负责人。输入是一项范围清楚、经过验证的 PR；输出是可追溯的公共版本、更新说明，以及各 Fork 可以执行的同步建议。
 
@@ -70,7 +54,7 @@ pnpm changeset:status
 
 ## 单独安排部署
 
-现有策略要求 Preview 与 Production 部署手动执行并获得单独授权，Git 推送或合并不会自动更新站点。
+Storybook、Canvas 和 Docsite 均配置自动 Git 部署。配置在已连接的仓库生效后，非生产分支推送或 PR 可触发 Preview，生产分支 main 的更新可触发 Production。发布确认应放在触发部署的推送或合并之前，AI 仍需等待部署完成并核对正式页面。自己的 Fork 需要单独连接部署项目，不能假定自动获得预览环境。
 
 发布前确认目标项目、环境、源 commit、负责人、访问范围、资产使用权限和回退版本。部署后打开真实页面验证渲染与关键交互，记录 URL 及实际运行版本。
 
@@ -112,4 +96,4 @@ pnpm changeset:status
 
 ## 下一步
 
-将更新说明交给各项目负责人，按[同步上游与处理冲突](/zh/docs/sync-upstream)吸收更新；项目页面的发布继续参考[页面交付与发布](/zh/docs/deliver-publish)。
+将更新说明交给各项目负责人，按[同步上游与处理冲突](../../../apps/docsite/content/docs/zh/sync-upstream.md)吸收更新；项目页面的发布继续参考[部署与交付](../../../apps/docsite/content/docs/zh/deliver-publish.md)。

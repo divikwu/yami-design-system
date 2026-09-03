@@ -18,6 +18,13 @@
   display: none;
 }
 
+.empty {
+  margin: 0;
+  padding: var(--space-1000) var(--space-300);
+  color: var(--text-secondary);
+  text-align: center;
+}
+
 .grid {
   display: grid;
   gap: var(--space-500);

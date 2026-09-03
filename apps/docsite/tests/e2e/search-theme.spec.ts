@@ -58,3 +58,26 @@ test("continues following system changes until a choice is stored", async ({ pag
   await expect(page.locator("html")).toHaveClass(/dark/);
   await expect.poll(() => page.evaluate(() => localStorage.getItem("yami-docsite-theme"))).toBeNull();
 });
+
+test("preserves the theme across locale navigation without script errors", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("console", (message) => {
+    if (message.type() === "error") errors.push(message.text());
+  });
+  page.on("pageerror", (error) => errors.push(error.message));
+
+  await page.emulateMedia({ colorScheme: "light" });
+  await page.goto("/zh/docs/collaboration");
+  await page.locator('[data-testid="theme-toggle"]:visible').click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+
+  for (const [language, locale] of [["English", "en"], ["中文", "zh"]]) {
+    await page.getByTestId("site-header").getByRole("link", { name: language, exact: true }).click();
+    await expect(page).toHaveURL(new RegExp(`/${locale}/docs/collaboration$`));
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  }
+
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  expect(errors).toEqual([]);
+});

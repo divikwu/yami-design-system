@@ -71,6 +71,6 @@ Storybook is for inspection, understanding, and verification. Save new content, 
 | --- | --- |
 | Find a component, inspect its states, or explore a complete page | [Explore components and pages](/en/docs/browse-components) |
 | Create a component or page with AI | [Start creating](/en/docs/prepare-environment) |
-| An existing component cannot meet a real requirement | [Report a component gap](/en/docs/component-gaps) |
+| An existing component cannot meet a real requirement | [Report a component gap](/en/docs/create-components#report-a-component-issue) |
 
 The next guide owns the detailed methods for finding, reading, checking, and sharing components and pages.

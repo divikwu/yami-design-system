@@ -1,99 +1,66 @@
 ---
 slug: contribute-upstream
-title: Contribute shared capabilities upstream
-description: "Extract a stable, business-independent capability from a project Fork and contribute it through a focused upstream PR."
-group: maintenance
-order: 160
-keywords: ["upstream", "Fork", "contribution", "PR", "reuse"]
-updatedAt: "2026-08-31"
+title: Share components and pages
+description: "Ask AI to prepare verified components, page examples, and improvements for review in the shared repository."
+group: collaboration
+order: 140
+keywords: ["component", "page", "improvement", "sharing", "upstream", "PR"]
+updatedAt: "2026-09-03"
 sourceRefs:
   - packages/design-system/SKILL.md
-  - packages/design-system/components/index.ts
+  - packages/prototypes/package.json
   - tooling/migration/check-boundaries.mjs
   - .github/workflows/ci.yml
-  - .changeset/config.json
-  - package.json
+  - docs/maintainers/zh/maintain-releases.md
+  - docs/maintainers/en/maintain-releases.md
 ---
 
-For contributors who have verified a shared capability in their own Fork. This workflow assumes a private upstream and authorized team Forks. Repository and preview access must actually be configured by the owner; this guide does not enable them.
+If you create a reusable component or page, or improve an existing example, you can submit it to the shared repository. Explain its purpose; AI extracts the files, verifies the result, and prepares it for review.
 
-## Agree on the contribution scope
+Keep each submission focused on one component, page, or clearly scoped improvement so the team can review and reuse it. To let another team member continue unfinished work, use [Deploy and hand off](/en/docs/deliver-publish#hand-off-to-a-team-member).
 
-Confirm the problem, its value to other pages, and the maintenance scope with the upstream maintainer first.
+## Which improvements to share
 
-Suitable contributions include reusable components or variants, general interaction and accessibility fixes, clear usage documentation, and page patterns with business coupling removed.
+- Components or new states that multiple pages can use.
+- Reusable complete pages, page templates, and structural or interaction improvements to existing page examples.
+- General interaction, responsive behavior, or accessibility fixes.
+- Examples and usage guidance that help the team use components and pages correctly.
 
-One-off campaign copy, product data, private APIs, project routes, and unverified experiments stay in the Fork by default. Contribute one stable capability at a time; do not wait for the entire business project or submit its whole branch upstream.
+When sharing a page, include its reusable layout, module composition, and interactions, with approved example copy, images, and data. Campaign-specific content, private APIs, and account configuration stay in your project. If the need for a component change is unclear, ask AI to [investigate the component issue](/en/docs/create-components#report-a-component-issue), then agree on the direction with a maintainer.
 
-## Prepare a separate contribution branch
+## Ask AI to prepare and submit it
 
-1. Save current project work and confirm that no uncommitted content will be overwritten.
-2. Follow [Sync upstream and resolve conflicts](/en/docs/sync-upstream) to obtain the agreed upstream baseline and record its commit.
-3. Create a separate contribution branch or worktree from that baseline, not a PR from a branch mixed with business changes.
-4. Bring over only the implementation, documentation, tests, and generated files needed for this capability.
-5. Inspect the diff again for unrelated tasks and personal environment configuration.
-
-Colleagues unfamiliar with Git can ask AI or an engineer to perform these steps. Name the target repository, baseline, permitted files, and protected scope explicitly.
+After agreeing on the direction, fill in these details. A pull request (PR) proposes a change to the shared repository; a maintainer reviews it and decides whether to accept it.
 
 ```text
-Prepare a separate branch for an upstream contribution.
-Upstream and baseline: [repository and commit]
-Shared capability: [agreed scope]
-Source task: [project branch or saved revision]
-Extract only required implementation, usage, examples, tests, and generated files.
-Keep business content, APIs, routes, and other tasks unchanged.
-List the proposed diff first. Do not automatically push, open a PR, merge, or deploy.
+Prepare this component or page and submit it to the shared repository for review.
+Project location: <local directory>
+Target shared repository: <GitHub repository URL>
+Contribution: <component or page to share and its purpose>
+
+- Use a separate directory and branch, extract only this contribution, and preserve existing project changes.
+- Follow the target repository's conventions, include dependencies, examples, and usage guidance, and ensure it works independently without private data.
+- Run checks and open the result; report unclear scope, an uncertain submission target, or failed checks before proceeding.
+- Once checks pass, you are authorized to push to my fork and open a PR against the target repository, describing changes, check results, and known issues.
+- Return the PR and result links.
+- Do not merge or deploy.
 ```
 
-## Remove business coupling
+You do not need to list code files or enter version identifiers manually; AI fills them in from the actual changes. If the PR includes many unrelated pages or business files, ask AI to extract only this improvement again.
 
-Replace business data with approved fixed examples. Keep APIs and authentication in the consumer, expressing component needs through props and callbacks.
+## Continue after review
 
-Check that the component package does not depend on an application or prototype layer. Page patterns remain in the appropriate composition layer; upstream contribution does not mean everything moves into `packages/design-system`.
+The maintainer checks whether the component or page belongs in the shared repository, affects existing consumers, or needs changes. Give clear review feedback to AI, continue in the same PR, and recheck the result.
 
-Verify that the example runs outside the original project context. If it requires private environment variables or a project-specific API, the contribution is not yet independent.
+After acceptance, ask AI to record the merged version and [update components and pages](/en/docs/sync-upstream) in your project. Other projects must also adopt the update explicitly. A merged PR does not mean every project or hosted site has updated.
 
-## Verify and describe compatibility
+Improvements not yet accepted can stay in your project with their reasons and limits recorded.
 
-Verify the final contribution-branch diff rather than reusing results from the original business branch:
+## Check the result
 
-```bash
-pnpm validate
-pnpm test:storybook
-git diff --check
-```
+- Submitted for review: the PR contains only this improvement, with a visible result and verification notes.
+- Accepted: AI identifies the merged version and explains whether the original project has adopted it.
 
-For Storybook documentation or component-directory changes, also build Storybook and run `pnpm check:docgen`. For new metadata or tokens, run `pnpm generate` first and inspect the generated diff.
+## Maintainer reference
 
-Explain changes to props, defaults, interactions, visual dimensions, or token meaning. A page can change visually or behaviorally even when TypeScript reports no errors.
-
-For shared-package changes, agree on the Changeset entry and change level with the maintainer. This does not authorize a release.
-
-## Submit and review the PR
-
-After receiving submission authorization, push the separate contribution branch to your Fork and open a PR against the agreed upstream baseline. Verify the source, target, and file diff.
-
-Include the problem and scope, upstream baseline, related task, before-and-after evidence, Storybook or preview entry, verification results, compatibility impact, migration instructions, and known limits.
-
-Keep review changes within the contribution scope. If upstream has moved, reconcile and reverify. Do not hide conflicts with force overwrites or include unrelated new business features.
-
-The upstream maintainer reviews design, API, tests, asset permissions, and CI before deciding whether to merge. A contribution is a proposal for review, not a guaranteed upstream change.
-
-## Finish after the merge
-
-- Record the actual upstream merge commit and connect it to the original task.
-- Let the original project adopt upstream through normal synchronization, resolving duplicated local implementation or conflicts.
-- Tell other Fork owners what is available, whether migration is needed, and how to verify it.
-- Distinguish “merged” from “deployed to Storybook or another site”; deployment follows a separate workflow.
-
-## Common questions
-
-**The PR contains many business files.** Pause submission and extract the smallest capability from a clean upstream baseline. Do not ask maintainers to guess which parts of a whole project to merge.
-
-**Why have other Forks not updated immediately?** They must synchronize explicitly, integrate the changes into their project branches, and check their pages.
-
-**Upstream is not accepting the capability yet.** Keep it project-scoped and record the reason and limitations. Do not label it as a maintained shared component.
-
-## Next step
-
-Maintainers can continue to [Maintain upstream versions](/en/docs/maintain-releases). Page owners can [sync upstream and resolve conflicts](/en/docs/sync-upstream) to adopt merged capabilities.
+Team members responsible for review, version records, and releases can read [Maintain upstream versions](https://github.com/divikwu/yami-design-system/blob/main/docs/maintainers/en/maintain-releases.md) in the repository. Regular building tasks do not need to follow those maintenance steps.

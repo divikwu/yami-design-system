@@ -47,16 +47,16 @@ New local directory: <full path to a new local directory>
 
 Please complete these steps:
 
-1. Confirm the GitHub account currently signed in, without displaying access tokens or other credentials.
-2. Fork the repository into my GitHub account without changing the project name.
-3. If the fork already exists, do not create another one.
-4. Clone my fork into the specified new local directory without overwriting an existing directory.
-5. Confirm that my fork is origin and the original main project is upstream.
-6. Install project dependencies without deleting or rewriting the lockfile to bypass errors.
-7. Run pnpm generate.
-8. Start only Storybook. Do not start Canvas, Docsite, or other applications.
-9. Open Storybook in a browser and verify that a page and real components render correctly, not only that the server returns HTTP 200.
-10. Do not change unrelated files, commit, push, or publish.
+- Confirm the GitHub account currently signed in, without displaying access tokens or other credentials.
+- Fork the repository into my GitHub account without changing the project name.
+- If the fork already exists, do not create another one.
+- Clone my fork into the specified new local directory without overwriting an existing directory.
+- Confirm that my fork is origin and the original main project is upstream.
+- Install project dependencies without deleting or rewriting the lockfile to bypass errors.
+- Run pnpm generate.
+- Start only Storybook. Do not start Canvas, Docsite, or other applications.
+- Open Storybook in a browser and verify that a page and real components render correctly, not only that the server returns HTTP 200.
+- Do not change unrelated files, commit, push, or publish.
 
 When finished, report:
 
@@ -68,8 +68,8 @@ When finished, report:
 - Story or component that was actually opened
 - Page-rendering and browser-console verification results
 
-If you encounter an existing fork, directory conflict, permission issue, dependency error, or occupied port, report it first.
-Do not overwrite or delete files, and do not stop services whose owner is unknown or that belong to another task.
+- If you encounter an existing fork, directory conflict, permission issue, dependency error, or occupied port, report it first.
+- Do not overwrite or delete files, and do not stop services whose owner is unknown or that belong to another task.
 ```
 
 Always provide an explicit local directory. Phrases such as "download it to the project folder" or "put it on the desktop" do not give AI enough information to avoid overwriting existing work.

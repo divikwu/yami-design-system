@@ -7,8 +7,8 @@ for (const locale of ["zh", "en"]) {
       for (const { slug, directions, destinations } of [
         { slug: "fork-project", directions: ["next"], destinations: ["getting-started"] },
         { slug: "getting-started", directions: ["prev", "next"], destinations: ["fork-project", "browse-components"] },
-        { slug: "browse-components", directions: ["prev", "next"], destinations: ["getting-started", "prepare-environment"] },
-        { slug: "faq", directions: ["prev"], destinations: ["templates"] },
+        { slug: "browse-components", directions: ["prev", "next"], destinations: ["getting-started", "using-yami-with-ai"] },
+        { slug: "faq", directions: ["prev"], destinations: ["contribute-upstream"] },
       ]) {
         await page.goto(`/${locale}/docs/${slug}`);
         const pagination = page.getByRole("navigation", { name: locale === "zh" ? "文档翻页" : "Documentation Pagination", exact: true });

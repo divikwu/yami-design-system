@@ -106,4 +106,4 @@ Story：<具体 Story 名称>
 
 找不到页面或组件时，先用英文名称或所属业务场景查找。线上示例与自己的 Fork 不一致时，核对代码基线和部署版本，不要直接覆盖本地实现。入口打不开时，请维护者确认地址和访问权限。
 
-只提供设计参考时，分享具体 Story 链接和实际检查结果。准备开始制作时，进入[开始创建](/zh/docs/prepare-environment)；现有组件仍无法满足真实需求时，使用[能力缺口反馈](/zh/docs/component-gaps)。
+只提供设计参考时，分享具体 Story 链接和实际检查结果。准备开始制作时，进入[开始创建](/zh/docs/prepare-environment)；现有组件仍无法满足真实需求时，使用[能力缺口反馈](/zh/docs/create-components#report-a-component-issue)。
