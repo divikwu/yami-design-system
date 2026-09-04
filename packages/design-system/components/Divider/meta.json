@@ -1,5 +1,5 @@
 {
-  "$schema": "../../../schema/component.json",
+  "$schema": "../../schema/component.json",
   "name": "Divider",
   "category": "layout",
   "status": "stable",
@@ -8,6 +8,13 @@
   "description": "Hairline separator (1px). 3 strengths per design.md border-strength rule, plus inverse variants for opposite-polarity surfaces. Horizontal renders as <hr>, vertical as <span role=\"separator\">.",
 
   "figma": { "nodeId": null, "componentKey": null },
+
+  "exports": ["Divider", "DividerOrientation", "DividerProps", "DividerStrength"],
+
+  "testing": {
+    "interaction": "not-applicable",
+    "rationale": "Semantic separator with no interactive behavior."
+  },
 
   "variants": {
     "strength": [

@@ -1,14 +1,110 @@
 {
-  "schemaVersion": 1,
+  "$schema": "../../schema/registry-item.json",
+  "schemaVersion": 2,
   "name": "dialog",
   "title": "Dialog",
   "type": "component",
   "status": "experimental",
+  "version": "0.1.0",
+  "description": "Centered modal for confirmation, alerts, and short tasks on mobile and desktop.",
   "source": "components/Dialog",
   "files": [
-    "components/Dialog/Dialog.module.css",
-    "components/Dialog/Dialog.stories.module.css",
-    "components/Dialog/Dialog.tsx",
-    "components/Dialog/index.ts"
-  ]
+    {
+      "source": "components/Dialog/Dialog.module.css",
+      "target": "components/Dialog/Dialog.module.css"
+    },
+    {
+      "source": "components/Dialog/Dialog.stories.module.css",
+      "target": "components/Dialog/Dialog.stories.module.css"
+    },
+    {
+      "source": "components/Dialog/Dialog.tsx",
+      "target": "components/Dialog/Dialog.tsx"
+    },
+    {
+      "source": "components/Dialog/index.ts",
+      "target": "components/Dialog/index.ts"
+    }
+  ],
+  "exports": [
+    "Dialog",
+    "DialogProps"
+  ],
+  "composes": [
+    "Button"
+  ],
+  "dependencies": {
+    "runtime": [
+      "react"
+    ],
+    "peer": [],
+    "devOnly": []
+  },
+  "documentation": {
+    "usage": "components/Dialog/usage.md",
+    "stories": [
+      "components/Dialog/Dialog.stories.tsx"
+    ],
+    "examples": [
+      "components/Dialog/examples.tsx#DialogExample"
+    ]
+  },
+  "design": {
+    "tokens": [
+      "--divider-default",
+      "--font-size-heading-sm",
+      "--font-weight-emphasize",
+      "--overlay-scrim",
+      "--radius-surface-default",
+      "--space-100",
+      "--space-150",
+      "--space-200",
+      "--space-400",
+      "--space-600",
+      "--surface-primary",
+      "--text-primary",
+      "--text-secondary"
+    ],
+    "rules": [
+      "focus-style",
+      "no-custom-radii",
+      "tap-target"
+    ],
+    "tokenBindings": {
+      "--surface-primary": {
+        "property": "background",
+        "selector": ".dialog"
+      },
+      "--overlay-scrim": {
+        "property": "background",
+        "selector": ".dialog::backdrop"
+      },
+      "--radius-surface-default": {
+        "property": "border-radius",
+        "selector": ".dialog"
+      },
+      "--font-size-heading-sm": {
+        "property": "font-size",
+        "selector": ".title"
+      }
+    }
+  },
+  "quality": {
+    "accessibility": {
+      "role": "dialog",
+      "wcagLevel": "AA",
+      "tapTargetMin": 44,
+      "keyboardNav": [
+        "tab",
+        "shift+tab",
+        "escape",
+        "enter",
+        "space"
+      ],
+      "ariaPattern": "Native modal dialog labelled by its visible h2; alertdialog is an explicit variant.",
+      "interaction": "showModal makes the background inert. Focus starts on Close for default dialogs or the first control for confirmation dialogs, remains inside, and returns to the opener."
+    },
+    "interactionCoverage": "missing"
+  },
+  "contentDigest": "06507b21a8697b8b7320b1de807b1a971da70373a12d7f648d02673ad36b48d7"
 }

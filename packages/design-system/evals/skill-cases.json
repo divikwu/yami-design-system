@@ -1,0 +1,186 @@
+{
+  "$schema": "./skill-cases.schema.json",
+  "schemaVersion": "design-system-skill-cases/v1",
+  "cases": [
+    {
+      "id": "button-selection",
+      "prompts": {
+        "zh": "为结算页选择并实现唯一的主要提交按钮。",
+        "en": "Select and implement the single primary submit action for checkout."
+      },
+      "expectedStartingPoints": ["component:Button", "registry:button", "token:--button-emphasis"],
+      "requiredRuleIds": ["emphasis-limit", "focus-style", "tap-target"],
+      "forbiddenRuleIds": ["card-no-border"],
+      "expectedOutcome": "pass",
+      "fixture": {
+        "path": "packages/design-system/evals/fixtures/valid-button.tsx",
+        "expectedPass": true,
+        "expectedViolationRuleIds": []
+      }
+    },
+    {
+      "id": "product-card-selection",
+      "prompts": {
+        "zh": "为商品列表选择标准商品卡片，并保留独立加购操作。",
+        "en": "Select the canonical product card for a list and keep quick add independent."
+      },
+      "expectedStartingPoints": ["component:ProductCard", "registry:product-card", "token:--text-emphasis"],
+      "requiredRuleIds": ["card-no-border", "tap-target", "type-hierarchy"],
+      "forbiddenRuleIds": ["no-decorative-media"],
+      "expectedOutcome": "pass",
+      "fixture": {
+        "path": "packages/design-system/evals/fixtures/valid-product-card.tsx",
+        "expectedPass": true,
+        "expectedViolationRuleIds": []
+      }
+    },
+    {
+      "id": "ecommerce-home-start",
+      "prompts": {
+        "zh": "从现有页面开始制作中英文电商首页，不重新发明页面结构。",
+        "en": "Start a bilingual commerce home page from the maintained page composition."
+      },
+      "expectedStartingPoints": ["page:EcommerceHome", "component:ProductList", "registry:product-list"],
+      "requiredRuleIds": ["emphasis-limit", "type-hierarchy"],
+      "forbiddenRuleIds": ["no-emoji"],
+      "expectedOutcome": "pass",
+      "fixture": {
+        "path": "packages/design-system/evals/fixtures/valid-page-start.tsx",
+        "expectedPass": true,
+        "expectedViolationRuleIds": []
+      }
+    },
+    {
+      "id": "search-results-start",
+      "prompts": {
+        "zh": "实现移动端和桌面端搜索结果页及筛选状态。",
+        "en": "Implement mobile and desktop search results with filter states."
+      },
+      "expectedStartingPoints": ["page:SearchResultsPage", "component:ProductList", "registry:product-list"],
+      "requiredRuleIds": ["focus-style", "tap-target"],
+      "forbiddenRuleIds": ["red-usage"],
+      "expectedOutcome": "pass",
+      "fixture": {
+        "path": "packages/design-system/evals/fixtures/valid-page-start.tsx",
+        "expectedPass": true,
+        "expectedViolationRuleIds": []
+      }
+    },
+    {
+      "id": "product-detail-maturity",
+      "prompts": {
+        "zh": "从现有 PDP 开始实现商品详情，并说明 Beta 和 Experimental 依赖。",
+        "en": "Start from the maintained PDP and disclose beta and experimental dependencies."
+      },
+      "expectedStartingPoints": ["page:ProductDetailPage", "component:ProductMediaGallery", "component:RadioGroup", "registry:product-media-gallery", "registry:radio-group"],
+      "requiredRuleIds": ["tap-target", "type-hierarchy"],
+      "forbiddenRuleIds": ["no-emoji"],
+      "expectedOutcome": "needs-review"
+    },
+    {
+      "id": "topic-landing-start",
+      "prompts": {
+        "zh": "基于现有专题页制作品牌专题，不改写已确认的商品集合结构。",
+        "en": "Build a brand topic from the maintained landing page without replacing its product-list structure."
+      },
+      "expectedStartingPoints": ["page:TopicLandingPage", "component:ProductList", "registry:product-list"],
+      "requiredRuleIds": ["emphasis-limit", "no-decorative-media"],
+      "forbiddenRuleIds": ["no-opacity-disabled"],
+      "expectedOutcome": "pass",
+      "fixture": {
+        "path": "packages/design-system/evals/fixtures/valid-page-start.tsx",
+        "expectedPass": true,
+        "expectedViolationRuleIds": []
+      }
+    },
+    {
+      "id": "fabricated-token-reject",
+      "prompts": {
+        "zh": "使用 heading-lg Token 设置标题字号。",
+        "en": "Use a heading-lg token for the title size."
+      },
+      "expectedStartingPoints": ["token:--font-size-heading-xl"],
+      "requiredRuleIds": ["token-exists"],
+      "forbiddenRuleIds": [],
+      "expectedOutcome": "reject",
+      "missingReferences": ["token:--font-size-heading-lg"],
+      "fixture": {
+        "path": "packages/design-system/evals/fixtures/invalid-token.css",
+        "expectedPass": false,
+        "expectedViolationRuleIds": ["token-exists"]
+      }
+    },
+    {
+      "id": "emphasis-limit-reject",
+      "prompts": {
+        "zh": "同一屏放两个红色强调按钮。",
+        "en": "Place two red emphasis buttons on the same screen."
+      },
+      "expectedStartingPoints": ["component:Button", "registry:button", "token:--button-emphasis"],
+      "requiredRuleIds": ["emphasis-limit"],
+      "forbiddenRuleIds": [],
+      "expectedOutcome": "reject",
+      "fixture": {
+        "path": "packages/design-system/evals/fixtures/invalid-emphasis.tsx",
+        "expectedPass": false,
+        "expectedViolationRuleIds": ["emphasis-limit"]
+      }
+    },
+    {
+      "id": "disabled-opacity-reject",
+      "prompts": {
+        "zh": "用 opacity 实现禁用按钮。",
+        "en": "Implement a disabled button by lowering opacity."
+      },
+      "expectedStartingPoints": ["component:Button", "token:--button-disabled", "token:--text-disabled"],
+      "requiredRuleIds": ["no-opacity-disabled"],
+      "forbiddenRuleIds": [],
+      "expectedOutcome": "reject",
+      "fixture": {
+        "path": "packages/design-system/evals/fixtures/invalid-disabled.css",
+        "expectedPass": false,
+        "expectedViolationRuleIds": ["no-opacity-disabled"]
+      }
+    },
+    {
+      "id": "component-gap-report",
+      "prompts": {
+        "zh": "使用设计系统 CheckoutPage 直接交付结算页。",
+        "en": "Deliver checkout directly with a design-system CheckoutPage."
+      },
+      "expectedStartingPoints": ["registry:yami-design-system"],
+      "requiredRuleIds": ["token-exists"],
+      "forbiddenRuleIds": [],
+      "expectedOutcome": "needs-review",
+      "missingReferences": ["component:CheckoutPage"]
+    },
+    {
+      "id": "registry-story-missing",
+      "prompts": {
+        "zh": "安装并使用 Registry 中的 checkout-page Story。",
+        "en": "Install and use the checkout-page Story from Registry."
+      },
+      "expectedStartingPoints": ["registry:yami-design-system"],
+      "requiredRuleIds": [],
+      "forbiddenRuleIds": [],
+      "expectedOutcome": "reject",
+      "missingReferences": ["registry:checkout-page"]
+    },
+    {
+      "id": "preserve-confirmed-ui",
+      "prompts": {
+        "zh": "只调整按钮尺寸，保留已确认的位置、颜色、图标与卡片结构。",
+        "en": "Change only button sizing and preserve the confirmed position, color, icon, and card structure."
+      },
+      "expectedStartingPoints": ["page:EcommerceHome", "component:Button", "registry:button", "token:--radius-component-default"],
+      "requiredRuleIds": ["no-custom-radii", "token-exists"],
+      "forbiddenRuleIds": ["no-decorative-media"],
+      "expectedOutcome": "pass",
+      "fixture": {
+        "path": "packages/design-system/evals/fixtures/valid-preserved-ui.css",
+        "expectedPass": true,
+        "expectedViolationRuleIds": []
+      }
+    }
+  ]
+}

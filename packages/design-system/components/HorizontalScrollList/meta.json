@@ -1,5 +1,5 @@
 {
-  "$schema": "../../../schema/component.json",
+  "$schema": "../../schema/component.json",
   "name": "HorizontalScrollList",
   "category": "layout",
   "status": "experimental",
@@ -38,11 +38,11 @@
   },
   "rules": {
     "nativeScrolling": {
-      "ruleId": "horizontal-list-native-scroll",
+      "contractId": "horizontal-list-native-scroll",
       "note": "Finite rails use native horizontal scrolling; callers do not translate the list with transforms."
     },
     "itemGeometry": {
-      "ruleId": "horizontal-list-caller-geometry",
+      "contractId": "horizontal-list-caller-geometry",
       "note": "The list owns scrolling while callers own item width, gap, and edge padding."
     }
   },

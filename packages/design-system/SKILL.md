@@ -1,7 +1,7 @@
 ---
 name: yami-design-system
-version: 0.5.0-alpha.1
-updated: 2026-08-20
+version: 0.6.0-alpha.1
+updated: 2026-09-04
 audience: ai-agent
 purpose: Entry point for AI agents producing UI under the YAMI brand.
 ---
@@ -92,14 +92,17 @@ Each `meta.json` declares props, variants, `tokenBindings` (which property of wh
 ## Storybook + registry consumption contract
 
 For AI prototype generation, Storybook is the maintained visual source of truth
-and the local registry is the shadcn-compatible distribution contract.
+and Registry v2 is the deterministic internal source-distribution contract. It is
+not a generated shadcn registry; the future adapter mapping is documented in
+[`ADR 009`](../../docs/adr/009-agent-ready-contracts-and-distribution.md).
 
 - First consume the injected `Storybook Catalog Source of Truth` section. Its
   titles and canonical exports tell you which YAMI assets/components are
   actively maintained for generation.
 - Then consume [`generated/registry.json`](./generated/registry.json) and
-  [`generated/registry-items/`](./generated/registry-items/) for installable item names, file
-  targets, dependencies, and the design-system base package.
+  [`generated/registry-items/`](./generated/registry-items/) for item names,
+  source/target files, dependencies, design rules, quality evidence, content
+  digests, and the design-system base package.
 - Only claim catalog-backed output for components that have both a catalog
   contract and a maintained Storybook story. Components documented in
   `DESIGN.md` but not yet listed in Storybook are available as design guidance,
@@ -167,5 +170,5 @@ When the user asks for a YAMI page or component:
 | [`generated/tokens.css`](./generated/tokens.css) | Auto-generated CSS Custom Properties (source: `tokens/*.tokens.json` DTCG JSON) |
 | [`principles/`](./principles/) | AST validators + sync checks |
 | [`generated/catalog.json`](./generated/catalog.json) | Maintained Storybook component inventory |
-| [`generated/registry.json`](./generated/registry.json) | Installable component registry |
+| [`generated/registry.json`](./generated/registry.json) | Deterministic internal source registry |
 | [`../prototypes/pages/`](../prototypes/pages/) | Maintained page compositions and Storybook stories |

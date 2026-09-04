@@ -1,41 +1,263 @@
 {
-  "schemaVersion": 1,
+  "$schema": "../../schema/registry-item.json",
+  "schemaVersion": 2,
   "name": "brand-product-rail",
   "title": "BrandProductRail",
   "type": "component",
   "status": "stable",
+  "version": "0.3.0",
+  "description": "Responsive brand-led commerce rail composed from ProductList, compact ProductCard, and shared rail navigation controls.",
   "source": "components/BrandProductRail",
   "files": [
-    "components/BrandProductRail/assets/bb-lab-banner.webp",
-    "components/BrandProductRail/assets/bb-lab-biotin.webp",
-    "components/BrandProductRail/assets/bb-lab-glutathione.webp",
-    "components/BrandProductRail/assets/bb-lab-jelly.webp",
-    "components/BrandProductRail/assets/biodance-banner.webp",
-    "components/BrandProductRail/assets/biodance-cream.webp",
-    "components/BrandProductRail/assets/biodance-mask.webp",
-    "components/BrandProductRail/assets/biodance-pads.webp",
-    "components/BrandProductRail/assets/glow-banner.webp",
-    "components/BrandProductRail/assets/glow-bb.webp",
-    "components/BrandProductRail/assets/glow-concealer.webp",
-    "components/BrandProductRail/assets/glow-patches.webp",
-    "components/BrandProductRail/assets/maogeping-banner.webp",
-    "components/BrandProductRail/assets/maogeping-concealer.webp",
-    "components/BrandProductRail/assets/maogeping-cushion.webp",
-    "components/BrandProductRail/assets/maogeping-highlighter.webp",
-    "components/BrandProductRail/assets/official-partnership.svg",
-    "components/BrandProductRail/assets/teabless-banner.webp",
-    "components/BrandProductRail/assets/teabless-lotion.webp",
-    "components/BrandProductRail/assets/teabless-rose.webp",
-    "components/BrandProductRail/assets/teabless-wash.webp",
-    "components/BrandProductRail/assets/voolga-ampoule.webp",
-    "components/BrandProductRail/assets/voolga-banner.webp",
-    "components/BrandProductRail/assets/voolga-gel.webp",
-    "components/BrandProductRail/assets/voolga-mask.webp",
-    "components/BrandProductRail/BrandProductRail.module.css",
-    "components/BrandProductRail/BrandProductRail.stories.module.css",
-    "components/BrandProductRail/BrandProductRail.tsx",
-    "components/BrandProductRail/BrandProductRail.types.ts",
-    "components/BrandProductRail/fixtures.ts",
-    "components/BrandProductRail/index.ts"
-  ]
+    {
+      "source": "components/BrandProductRail/assets/bb-lab-banner.webp",
+      "target": "components/BrandProductRail/assets/bb-lab-banner.webp"
+    },
+    {
+      "source": "components/BrandProductRail/assets/bb-lab-biotin.webp",
+      "target": "components/BrandProductRail/assets/bb-lab-biotin.webp"
+    },
+    {
+      "source": "components/BrandProductRail/assets/bb-lab-glutathione.webp",
+      "target": "components/BrandProductRail/assets/bb-lab-glutathione.webp"
+    },
+    {
+      "source": "components/BrandProductRail/assets/bb-lab-jelly.webp",
+      "target": "components/BrandProductRail/assets/bb-lab-jelly.webp"
+    },
+    {
+      "source": "components/BrandProductRail/assets/biodance-banner.webp",
+      "target": "components/BrandProductRail/assets/biodance-banner.webp"
+    },
+    {
+      "source": "components/BrandProductRail/assets/biodance-cream.webp",
+      "target": "components/BrandProductRail/assets/biodance-cream.webp"
+    },
+    {
+      "source": "components/BrandProductRail/assets/biodance-mask.webp",
+      "target": "components/BrandProductRail/assets/biodance-mask.webp"
+    },
+    {
+      "source": "components/BrandProductRail/assets/biodance-pads.webp",
+      "target": "components/BrandProductRail/assets/biodance-pads.webp"
+    },
+    {
+      "source": "components/BrandProductRail/assets/glow-banner.webp",
+      "target": "components/BrandProductRail/assets/glow-banner.webp"
+    },
+    {
+      "source": "components/BrandProductRail/assets/glow-bb.webp",
+      "target": "components/BrandProductRail/assets/glow-bb.webp"
+    },
+    {
+      "source": "components/BrandProductRail/assets/glow-concealer.webp",
+      "target": "components/BrandProductRail/assets/glow-concealer.webp"
+    },
+    {
+      "source": "components/BrandProductRail/assets/glow-patches.webp",
+      "target": "components/BrandProductRail/assets/glow-patches.webp"
+    },
+    {
+      "source": "components/BrandProductRail/assets/maogeping-banner.webp",
+      "target": "components/BrandProductRail/assets/maogeping-banner.webp"
+    },
+    {
+      "source": "components/BrandProductRail/assets/maogeping-concealer.webp",
+      "target": "components/BrandProductRail/assets/maogeping-concealer.webp"
+    },
+    {
+      "source": "components/BrandProductRail/assets/maogeping-cushion.webp",
+      "target": "components/BrandProductRail/assets/maogeping-cushion.webp"
+    },
+    {
+      "source": "components/BrandProductRail/assets/maogeping-highlighter.webp",
+      "target": "components/BrandProductRail/assets/maogeping-highlighter.webp"
+    },
+    {
+      "source": "components/BrandProductRail/assets/official-partnership.svg",
+      "target": "components/BrandProductRail/assets/official-partnership.svg"
+    },
+    {
+      "source": "components/BrandProductRail/assets/teabless-banner.webp",
+      "target": "components/BrandProductRail/assets/teabless-banner.webp"
+    },
+    {
+      "source": "components/BrandProductRail/assets/teabless-lotion.webp",
+      "target": "components/BrandProductRail/assets/teabless-lotion.webp"
+    },
+    {
+      "source": "components/BrandProductRail/assets/teabless-rose.webp",
+      "target": "components/BrandProductRail/assets/teabless-rose.webp"
+    },
+    {
+      "source": "components/BrandProductRail/assets/teabless-wash.webp",
+      "target": "components/BrandProductRail/assets/teabless-wash.webp"
+    },
+    {
+      "source": "components/BrandProductRail/assets/voolga-ampoule.webp",
+      "target": "components/BrandProductRail/assets/voolga-ampoule.webp"
+    },
+    {
+      "source": "components/BrandProductRail/assets/voolga-banner.webp",
+      "target": "components/BrandProductRail/assets/voolga-banner.webp"
+    },
+    {
+      "source": "components/BrandProductRail/assets/voolga-gel.webp",
+      "target": "components/BrandProductRail/assets/voolga-gel.webp"
+    },
+    {
+      "source": "components/BrandProductRail/assets/voolga-mask.webp",
+      "target": "components/BrandProductRail/assets/voolga-mask.webp"
+    },
+    {
+      "source": "components/BrandProductRail/BrandProductRail.module.css",
+      "target": "components/BrandProductRail/BrandProductRail.module.css"
+    },
+    {
+      "source": "components/BrandProductRail/BrandProductRail.stories.module.css",
+      "target": "components/BrandProductRail/BrandProductRail.stories.module.css"
+    },
+    {
+      "source": "components/BrandProductRail/BrandProductRail.tsx",
+      "target": "components/BrandProductRail/BrandProductRail.tsx"
+    },
+    {
+      "source": "components/BrandProductRail/BrandProductRail.types.ts",
+      "target": "components/BrandProductRail/BrandProductRail.types.ts"
+    },
+    {
+      "source": "components/BrandProductRail/fixtures.ts",
+      "target": "components/BrandProductRail/fixtures.ts"
+    },
+    {
+      "source": "components/BrandProductRail/index.ts",
+      "target": "components/BrandProductRail/index.ts"
+    }
+  ],
+  "exports": [
+    "BrandProductCampaign",
+    "BrandProductRail",
+    "BrandProductRailMobileSurface",
+    "BrandProductRailProps"
+  ],
+  "composes": [
+    "Button",
+    "ProductCard",
+    "ProductList",
+    "Tabs"
+  ],
+  "dependencies": {
+    "runtime": [
+      "react",
+      "./ProductList",
+      "./ProductCard",
+      "./Button",
+      "./Tabs"
+    ],
+    "peer": [],
+    "devOnly": []
+  },
+  "documentation": {
+    "usage": "components/BrandProductRail/usage.md",
+    "stories": [
+      "components/BrandProductRail/BrandProductRail.stories.tsx"
+    ],
+    "examples": [
+      "components/BrandProductRail/examples.tsx#BrandProductRailExample"
+    ]
+  },
+  "design": {
+    "tokens": [
+      "--border-default",
+      "--border-focus",
+      "--button-secondary",
+      "--color-black-0",
+      "--color-black-400",
+      "--color-white-1000",
+      "--divider-default",
+      "--divider-emphasis",
+      "--font-family-ios",
+      "--font-family-serif",
+      "--font-size-display-sm",
+      "--font-size-heading-xl",
+      "--font-size-link-md",
+      "--font-weight-normal",
+      "--font-weight-semibold",
+      "--layout-page-margin-card",
+      "--line-height-display-sm",
+      "--line-height-heading-xl",
+      "--line-height-link-md",
+      "--overlay-default",
+      "--overlay-scrim",
+      "--radius-button-primary",
+      "--radius-component-default",
+      "--radius-full",
+      "--radius-surface-default",
+      "--space-025",
+      "--space-050",
+      "--space-100",
+      "--space-1000",
+      "--space-150",
+      "--space-200",
+      "--space-300",
+      "--space-400",
+      "--space-500",
+      "--space-600",
+      "--space-800",
+      "--stroke-default",
+      "--stroke-thick",
+      "--surface-primary",
+      "--text-primary",
+      "--text-primary-inverse"
+    ],
+    "rules": [
+      "elevation-on-press",
+      "focus-style",
+      "no-custom-radii",
+      "tap-target"
+    ],
+    "tokenBindings": {
+      "--surface-primary": {
+        "property": "background",
+        "selector": ".root and composed ProductList panels"
+      },
+      "--color-white-1000": {
+        "property": "color and background-color",
+        "selector": "brand banner title and compact ProductCard image surfaces"
+      },
+      "--layout-page-margin-card": {
+        "property": "card mobile outer margin",
+        "selector": ".root[data-mobile-surface=card] below 1024px"
+      },
+      "--space-600": {
+        "property": "desktop section padding and responsive panel gap calculation",
+        "selector": ".container and .panel"
+      },
+      "--radius-component-default": {
+        "property": "border-radius",
+        "selector": ".panel and composed ProductList"
+      },
+      "--overlay-scrim": {
+        "property": "background gradient",
+        "selector": "brand banner ::after"
+      }
+    }
+  },
+  "quality": {
+    "accessibility": {
+      "role": "labelled section containing a horizontally scrollable list of brand campaigns",
+      "wcagLevel": "AA",
+      "tapTargetMin": 44,
+      "keyboardNav": [
+        "tab",
+        "shift+tab",
+        "enter"
+      ],
+      "ariaPattern": "section with heading, list/listitem campaign panels, links, and previous/next buttons",
+      "structure": "The visible heading labels the section. Each campaign composes a labelled ProductList containing ProductCard articles.",
+      "interaction": "Native horizontal scrolling remains available; desktop paging buttons report disabled edge states."
+    },
+    "interactionCoverage": "covered"
+  },
+  "contentDigest": "167dece42a451af3b62da674fbda3e046a2ec5aa6f2ba6977cbaea25fc3eabb8"
 }

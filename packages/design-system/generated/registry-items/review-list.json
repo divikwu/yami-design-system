@@ -1,23 +1,150 @@
 {
-  "schemaVersion": 1,
+  "$schema": "../../schema/registry-item.json",
+  "schemaVersion": 2,
   "name": "review-list",
   "title": "ReviewList",
   "type": "component",
   "status": "experimental",
+  "version": "0.1.0",
+  "description": "Responsive customer-review rail that reuses the ProductList section heading and composes ReviewCard children.",
   "source": "components/ReviewList",
   "files": [
-    "components/ReviewList/assets/anua-heartleaf-77-toner.png",
-    "components/ReviewList/assets/anua-heartleaf-77-toner.webp",
-    "components/ReviewList/assets/anua-heartleaf-cleansing-foam.png",
-    "components/ReviewList/assets/anua-heartleaf-cleansing-foam.webp",
-    "components/ReviewList/assets/anua-niacinamide-txa.png",
-    "components/ReviewList/assets/anua-niacinamide-txa.webp",
-    "components/ReviewList/fixtures.ts",
-    "components/ReviewList/index.ts",
-    "components/ReviewList/ReviewCard.tsx",
-    "components/ReviewList/ReviewList.module.css",
-    "components/ReviewList/ReviewList.stories.module.css",
-    "components/ReviewList/ReviewList.tsx",
-    "components/ReviewList/ReviewList.types.ts"
-  ]
+    {
+      "source": "components/ReviewList/assets/anua-heartleaf-77-toner.png",
+      "target": "components/ReviewList/assets/anua-heartleaf-77-toner.png"
+    },
+    {
+      "source": "components/ReviewList/assets/anua-heartleaf-77-toner.webp",
+      "target": "components/ReviewList/assets/anua-heartleaf-77-toner.webp"
+    },
+    {
+      "source": "components/ReviewList/assets/anua-heartleaf-cleansing-foam.png",
+      "target": "components/ReviewList/assets/anua-heartleaf-cleansing-foam.png"
+    },
+    {
+      "source": "components/ReviewList/assets/anua-heartleaf-cleansing-foam.webp",
+      "target": "components/ReviewList/assets/anua-heartleaf-cleansing-foam.webp"
+    },
+    {
+      "source": "components/ReviewList/assets/anua-niacinamide-txa.png",
+      "target": "components/ReviewList/assets/anua-niacinamide-txa.png"
+    },
+    {
+      "source": "components/ReviewList/assets/anua-niacinamide-txa.webp",
+      "target": "components/ReviewList/assets/anua-niacinamide-txa.webp"
+    },
+    {
+      "source": "components/ReviewList/fixtures.ts",
+      "target": "components/ReviewList/fixtures.ts"
+    },
+    {
+      "source": "components/ReviewList/index.ts",
+      "target": "components/ReviewList/index.ts"
+    },
+    {
+      "source": "components/ReviewList/ReviewCard.tsx",
+      "target": "components/ReviewList/ReviewCard.tsx"
+    },
+    {
+      "source": "components/ReviewList/ReviewList.module.css",
+      "target": "components/ReviewList/ReviewList.module.css"
+    },
+    {
+      "source": "components/ReviewList/ReviewList.stories.module.css",
+      "target": "components/ReviewList/ReviewList.stories.module.css"
+    },
+    {
+      "source": "components/ReviewList/ReviewList.tsx",
+      "target": "components/ReviewList/ReviewList.tsx"
+    },
+    {
+      "source": "components/ReviewList/ReviewList.types.ts",
+      "target": "components/ReviewList/ReviewList.types.ts"
+    }
+  ],
+  "exports": [
+    "ReviewCard",
+    "ReviewCardProps",
+    "ReviewList",
+    "ReviewListMobileSurface",
+    "ReviewListProps",
+    "ReviewProduct"
+  ],
+  "composes": [
+    "RailNavigation",
+    "SectionHeading"
+  ],
+  "dependencies": {
+    "runtime": [
+      "react",
+      "./SectionHeading",
+      "./Button/RailNavigation"
+    ],
+    "peer": [],
+    "devOnly": []
+  },
+  "documentation": {
+    "usage": "components/ReviewList/usage.md",
+    "stories": [
+      "components/ReviewList/ReviewList.stories.tsx"
+    ],
+    "examples": [
+      "components/ReviewList/examples.tsx#ReviewListExample"
+    ]
+  },
+  "design": {
+    "tokens": [
+      "--border-default",
+      "--border-focus",
+      "--divider-emphasis",
+      "--fill-disabled",
+      "--font-family-ios",
+      "--font-size-body-md",
+      "--font-size-caption-md",
+      "--font-weight-normal",
+      "--layout-page-margin-card",
+      "--line-height-body-md",
+      "--line-height-caption-md",
+      "--radius-component-default",
+      "--radius-surface-default",
+      "--radius-tag-primary",
+      "--space-025",
+      "--space-050",
+      "--space-100",
+      "--space-150",
+      "--space-200",
+      "--space-300",
+      "--space-400",
+      "--space-600",
+      "--stroke-default",
+      "--stroke-thick",
+      "--surface-primary",
+      "--surface-secondary",
+      "--text-emphasis",
+      "--text-primary",
+      "--text-secondary"
+    ],
+    "rules": [
+      "elevation-on-press",
+      "focus-style",
+      "no-custom-radii"
+    ],
+    "tokenBindings": {}
+  },
+  "quality": {
+    "accessibility": {
+      "wcagLevel": "AA",
+      "tapTargetMin": 44,
+      "keyboardNav": [
+        "tab",
+        "enter",
+        "arrow keys"
+      ],
+      "ariaPattern": "Labelled review rail with accessible rating images and native product links.",
+      "structure": "The shared SectionHeading labels the rail; each list item contains one ReviewCard article.",
+      "interaction": "Product footers are keyboard-reachable links when href is supplied, and rail controls respect reduced motion."
+    },
+    "interactionCoverage": "covered"
+  },
+  "contentDigest": "5ad7dd59d7631c7902af3e09176f1cc0e31be17c50b255a4167b712dda79b94d"
 }

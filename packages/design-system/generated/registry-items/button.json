@@ -1,15 +1,254 @@
 {
-  "schemaVersion": 1,
+  "$schema": "../../schema/registry-item.json",
+  "schemaVersion": 2,
   "name": "button",
   "title": "Button",
   "type": "component",
   "status": "stable",
+  "version": "0.2.0",
+  "description": "YAMI primary interactive element. 4 hierarchies (emphasis / primary / secondary / tertiary) × 3 form modes (full / inline / icon) × 3 sizes (sm / md / lg) × default & inverse surfaces. Mirrors the YAMI UI/UX Guidelines Figma file (Mobile v2 + PC v2).",
   "source": "components/Button",
   "files": [
-    "components/Button/Button.module.css",
-    "components/Button/Button.tsx",
-    "components/Button/index.ts",
-    "components/Button/RailNavigation.module.css",
-    "components/Button/RailNavigation.tsx"
-  ]
+    {
+      "source": "components/Button/Button.module.css",
+      "target": "components/Button/Button.module.css"
+    },
+    {
+      "source": "components/Button/Button.tsx",
+      "target": "components/Button/Button.tsx"
+    },
+    {
+      "source": "components/Button/index.ts",
+      "target": "components/Button/index.ts"
+    },
+    {
+      "source": "components/Button/RailNavigation.module.css",
+      "target": "components/Button/RailNavigation.module.css"
+    },
+    {
+      "source": "components/Button/RailNavigation.tsx",
+      "target": "components/Button/RailNavigation.tsx"
+    }
+  ],
+  "exports": [
+    "Button",
+    "ButtonForm",
+    "ButtonProps",
+    "ButtonSize",
+    "ButtonVariant"
+  ],
+  "composes": [],
+  "dependencies": {
+    "runtime": [
+      "react"
+    ],
+    "peer": [],
+    "devOnly": []
+  },
+  "documentation": {
+    "usage": "components/Button/usage.md",
+    "stories": [
+      "components/Button/Button.stories.tsx"
+    ],
+    "examples": [
+      "components/Button/examples.tsx#EmphasisExample",
+      "components/Button/examples.tsx#PrimaryExample",
+      "components/Button/examples.tsx#SecondaryExample",
+      "components/Button/examples.tsx#TertiaryExample",
+      "components/Button/examples.tsx#WithLeftIconExample",
+      "components/Button/examples.tsx#IconOnlyExample",
+      "components/Button/examples.tsx#LoadingExample",
+      "components/Button/examples.tsx#FullWidthExample",
+      "components/Button/examples.tsx#AllSizesExample",
+      "components/Button/examples.tsx#CheckoutCTARowExample",
+      "components/Button/examples.tsx#InverseExample"
+    ]
+  },
+  "design": {
+    "tokens": [
+      "--border-focus",
+      "--border-focus-inverse",
+      "--button-disabled",
+      "--button-disabled-inverse",
+      "--button-emphasis",
+      "--button-emphasis-active",
+      "--button-emphasis-active-inverse",
+      "--button-emphasis-inverse",
+      "--button-primary",
+      "--button-primary-active",
+      "--button-primary-active-inverse",
+      "--button-primary-inverse",
+      "--button-secondary",
+      "--button-secondary-active",
+      "--button-secondary-active-inverse",
+      "--button-secondary-inverse",
+      "--button-tertiary",
+      "--button-tertiary-active",
+      "--button-tertiary-active-inverse",
+      "--button-tertiary-inverse",
+      "--font-family-ios",
+      "--font-size-body-md",
+      "--font-size-body-xl",
+      "--font-size-button-lg-desktop",
+      "--font-weight-emphasize",
+      "--line-height-body-md",
+      "--line-height-body-xl",
+      "--radius-button-emphasis",
+      "--radius-button-primary",
+      "--radius-component-default",
+      "--space-050",
+      "--space-150",
+      "--space-200",
+      "--space-250",
+      "--text-disabled",
+      "--text-disabled-inverse",
+      "--text-on-emphasis",
+      "--text-primary",
+      "--text-primary-inverse"
+    ],
+    "rules": [
+      "emphasis-limit",
+      "focus-style",
+      "no-custom-radii",
+      "no-opacity-disabled",
+      "tap-target"
+    ],
+    "tokenBindings": {
+      "--button-emphasis": {
+        "property": "background-color",
+        "selector": ".emphasis"
+      },
+      "--button-emphasis-active": {
+        "property": "background-color",
+        "selector": ".emphasis:hover, .emphasis:active"
+      },
+      "--button-primary": {
+        "property": "background-color",
+        "selector": ".primary"
+      },
+      "--button-primary-active": {
+        "property": "background-color",
+        "selector": ".primary:hover, .primary:active"
+      },
+      "--button-secondary": {
+        "property": "background-color",
+        "selector": ".secondary"
+      },
+      "--button-secondary-active": {
+        "property": "background-color",
+        "selector": ".secondary:hover, .secondary:active"
+      },
+      "--button-tertiary": {
+        "property": "background-color",
+        "selector": ".tertiary"
+      },
+      "--button-tertiary-active": {
+        "property": "background-color",
+        "selector": ".tertiary:hover, .tertiary:active"
+      },
+      "--button-disabled": {
+        "property": "background-color",
+        "selector": ".button[aria-disabled='true']"
+      },
+      "--text-primary": {
+        "property": "color",
+        "selector": ".secondary, .tertiary"
+      },
+      "--text-on-emphasis": {
+        "property": "color",
+        "selector": ".emphasis"
+      },
+      "--text-primary-inverse": {
+        "property": "color",
+        "selector": ".primary"
+      },
+      "--text-disabled": {
+        "property": "color",
+        "selector": ".button[aria-disabled='true']"
+      },
+      "--border-focus": {
+        "property": "outline-color",
+        "selector": ".button:focus-visible"
+      },
+      "--radius-button-emphasis": {
+        "property": "border-radius",
+        "selector": ".emphasis.iconOnly"
+      },
+      "--radius-button-primary": {
+        "property": "border-radius",
+        "selector": ".button:not(.fullWidth):not(.iconOnly), .primary.iconOnly, .secondary.iconOnly, .tertiary.iconOnly"
+      },
+      "--radius-component-default": {
+        "property": "border-radius",
+        "selector": ".button.fullWidth"
+      },
+      "--font-family-ios": {
+        "property": "font-family",
+        "selector": ".button"
+      },
+      "--font-weight-emphasize": {
+        "property": "font-weight",
+        "selector": ".button"
+      },
+      "--font-size-body-md": {
+        "property": "font-size",
+        "selector": ".sm, .md"
+      },
+      "--font-size-body-xl": {
+        "property": "font-size",
+        "selector": ".lg"
+      },
+      "--font-size-button-lg-desktop": {
+        "property": "font-size",
+        "selector": ".lg:not(.iconOnly)",
+        "media": "(min-width: 1024px)"
+      },
+      "--line-height-body-md": {
+        "property": "line-height",
+        "selector": ".sm, .md"
+      },
+      "--line-height-body-xl": {
+        "property": "line-height",
+        "selector": ".lg"
+      },
+      "--space-050": {
+        "property": "gap",
+        "selector": ".button"
+      },
+      "--space-150": {
+        "property": "padding-inline",
+        "selector": ".sm"
+      },
+      "--space-200": {
+        "property": "padding-inline",
+        "selector": ".md"
+      },
+      "--space-250": {
+        "property": "padding-inline",
+        "selector": ".lg"
+      }
+    }
+  },
+  "quality": {
+    "accessibility": {
+      "role": "button",
+      "wcagLevel": "AA",
+      "tapTargetMin": 44,
+      "keyboardNav": [
+        "tab",
+        "enter",
+        "space"
+      ],
+      "ariaPattern": "button",
+      "tapTarget": {
+        "ios": 44,
+        "android": 48
+      },
+      "requiresAriaLabel": "when iconOnly=true",
+      "focusVisible": "2px solid var(--border-focus), 2px offset",
+      "loadingAnnounces": "aria-busy=true"
+    },
+    "interactionCoverage": "covered"
+  },
+  "contentDigest": "6a59430379d9f247a4610293ecf5a4428a02cb8b7c33f35fee678f74cd9be4d4"
 }

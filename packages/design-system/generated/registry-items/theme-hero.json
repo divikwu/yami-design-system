@@ -1,18 +1,170 @@
 {
-  "schemaVersion": 1,
+  "$schema": "../../schema/registry-item.json",
+  "schemaVersion": 2,
   "name": "theme-hero",
   "title": "ThemeHero",
   "type": "component",
   "status": "experimental",
+  "version": "0.8.1",
+  "description": "Responsive theme storytelling hero with a two-column desktop composition, a localized expandable three-line desktop and two-line mobile description, optional size-configurable descriptive Badges, one or two configurable actions and full-bleed mobile artwork.",
   "source": "components/ThemeHero",
   "files": [
-    "components/ThemeHero/assets/anua-hero-atmosphere.webp",
-    "components/ThemeHero/assets/anua-hero.png",
-    "components/ThemeHero/assets/anua-hero.webp",
-    "components/ThemeHero/fixtures.ts",
-    "components/ThemeHero/index.ts",
-    "components/ThemeHero/ThemeHero.module.css",
-    "components/ThemeHero/ThemeHero.tsx",
-    "components/ThemeHero/ThemeHero.types.ts"
-  ]
+    {
+      "source": "components/ThemeHero/assets/anua-hero-atmosphere.webp",
+      "target": "components/ThemeHero/assets/anua-hero-atmosphere.webp"
+    },
+    {
+      "source": "components/ThemeHero/assets/anua-hero.png",
+      "target": "components/ThemeHero/assets/anua-hero.png"
+    },
+    {
+      "source": "components/ThemeHero/assets/anua-hero.webp",
+      "target": "components/ThemeHero/assets/anua-hero.webp"
+    },
+    {
+      "source": "components/ThemeHero/fixtures.ts",
+      "target": "components/ThemeHero/fixtures.ts"
+    },
+    {
+      "source": "components/ThemeHero/index.ts",
+      "target": "components/ThemeHero/index.ts"
+    },
+    {
+      "source": "components/ThemeHero/ThemeHero.module.css",
+      "target": "components/ThemeHero/ThemeHero.module.css"
+    },
+    {
+      "source": "components/ThemeHero/ThemeHero.tsx",
+      "target": "components/ThemeHero/ThemeHero.tsx"
+    },
+    {
+      "source": "components/ThemeHero/ThemeHero.types.ts",
+      "target": "components/ThemeHero/ThemeHero.types.ts"
+    }
+  ],
+  "exports": [
+    "ThemeHero",
+    "ThemeHeroCta",
+    "ThemeHeroImage",
+    "ThemeHeroProps"
+  ],
+  "composes": [
+    "Badge",
+    "Button"
+  ],
+  "dependencies": {
+    "runtime": [
+      "react",
+      "Badge",
+      "Button"
+    ],
+    "peer": [],
+    "devOnly": []
+  },
+  "documentation": {
+    "usage": "components/ThemeHero/usage.md",
+    "stories": [
+      "components/ThemeHero/ThemeHero.stories.tsx"
+    ],
+    "examples": [
+      "components/ThemeHero/examples.tsx#ThemeHeroExample"
+    ]
+  },
+  "design": {
+    "tokens": [
+      "--color-black-1000",
+      "--color-neutral-100",
+      "--color-white-0",
+      "--color-white-100",
+      "--color-white-1000",
+      "--font-family-ios",
+      "--font-size-body-xl",
+      "--font-size-display-xl",
+      "--font-size-heading-sm",
+      "--font-size-heading-xs",
+      "--font-weight-normal",
+      "--font-weight-semibold",
+      "--layout-page-margin-default",
+      "--line-height-body-xl",
+      "--line-height-display-xl",
+      "--line-height-heading-sm",
+      "--line-height-heading-xs",
+      "--radius-full",
+      "--radius-md",
+      "--space-100",
+      "--space-200",
+      "--space-300",
+      "--space-600",
+      "--stroke-default",
+      "--surface-secondary"
+    ],
+    "rules": [
+      "focus-style",
+      "no-custom-radii",
+      "type-hierarchy"
+    ],
+    "tokenBindings": {
+      "--space-600": {
+        "property": "padding-inline",
+        "selector": ".container from 1024px"
+      },
+      "--font-size-display-xl": {
+        "property": "font-size",
+        "selector": ".title"
+      },
+      "--font-size-heading-sm": {
+        "property": "font-size",
+        "selector": ".description"
+      },
+      "--font-size-heading-xs": {
+        "property": "font-size",
+        "selector": ".description below 1024px"
+      },
+      "--line-height-heading-sm": {
+        "property": "line-height",
+        "selector": ".description"
+      },
+      "--line-height-heading-xs": {
+        "property": "line-height",
+        "selector": ".description below 1024px"
+      },
+      "--space-100": {
+        "property": "gap / padding-block",
+        "selector": ".copy and .actions gap / .tags and mobile .actions padding-block"
+      },
+      "--space-200": {
+        "property": "padding / padding-block",
+        "selector": ".copy below 1024px / .actions from 1024px"
+      },
+      "--stroke-default": {
+        "property": "border-width",
+        "selector": ".secondaryActionButton"
+      },
+      "--radius-full": {
+        "property": "border-radius",
+        "selector": ".actionButton"
+      },
+      "--surface-secondary": {
+        "property": "background",
+        "selector": ".root before artwork loads"
+      }
+    }
+  },
+  "quality": {
+    "accessibility": {
+      "role": "section with heading, descriptive copy, optional keyword list, image and optional action group",
+      "wcagLevel": "AA",
+      "tapTargetMin": 44,
+      "keyboardNav": [
+        "tab",
+        "enter",
+        "space"
+      ],
+      "ariaPattern": "decorative atmosphere hidden from assistive technology; meaningful foreground image alt; native heading and buttons with optional aria-controls relationships",
+      "structure": "The visible h2 introduces selectable supporting copy, an optional list of non-interactive keyword Badges and up to two actions. The blurred duplicate is decorative; the foreground image is semantic.",
+      "interaction": "Both optional CTAs compose the shared Button and inherit its keyboard, disabled and focus behavior."
+    },
+    "interactionCoverage": "covered"
+  },
+  "contentDigest": "064acf2bb6ec6d1bdb5bd40fca9780ace6c338ceccf60a02687cafcbf8775698"
 }

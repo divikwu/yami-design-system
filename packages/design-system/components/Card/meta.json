@@ -1,5 +1,5 @@
 {
-  "$schema": "../../../schema/component.json",
+  "$schema": "../../schema/component.json",
   "name": "Card",
   "category": "layout",
   "status": "stable",
@@ -8,6 +8,13 @@
   "description": "Surface primitive for grouping related content. No border by default (rule card-no-border), 12px radius, no shadow. Polymorphic via `as` prop (div / a / button) for link and button cards.",
 
   "figma": { "nodeId": null, "componentKey": null },
+
+  "exports": ["Card", "CardPadding", "CardProps", "CardSurface"],
+
+  "testing": {
+    "interaction": "not-applicable",
+    "rationale": "The primitive owns surface geometry; interactive semantics and behavior belong to the selected host element."
+  },
 
   "variants": {
     "padding": ["none", "sm", "md", "lg"],

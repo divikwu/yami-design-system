@@ -1,0 +1,6 @@
+.confirmedButton {
+  min-height: var(--space-600);
+  border-radius: var(--radius-component-default);
+  background: var(--button-primary);
+  color: var(--text-primary-inverse);
+}

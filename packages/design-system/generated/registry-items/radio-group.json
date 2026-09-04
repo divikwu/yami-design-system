@@ -1,13 +1,123 @@
 {
-  "schemaVersion": 1,
+  "$schema": "../../schema/registry-item.json",
+  "schemaVersion": 2,
   "name": "radio-group",
   "title": "RadioGroup",
   "type": "component",
   "status": "beta",
+  "version": "0.1.0",
+  "description": "YAMI exclusive-selection group. RadioGroupItem mirrors the Forms Figma Radio Button while Base UI supplies group state, roving focus, ARIA, and native form participation.",
   "source": "components/RadioGroup",
   "files": [
-    "components/RadioGroup/index.ts",
-    "components/RadioGroup/RadioGroup.module.css",
-    "components/RadioGroup/RadioGroup.tsx"
-  ]
+    {
+      "source": "components/RadioGroup/index.ts",
+      "target": "components/RadioGroup/index.ts"
+    },
+    {
+      "source": "components/RadioGroup/RadioGroup.module.css",
+      "target": "components/RadioGroup/RadioGroup.module.css"
+    },
+    {
+      "source": "components/RadioGroup/RadioGroup.tsx",
+      "target": "components/RadioGroup/RadioGroup.tsx"
+    }
+  ],
+  "exports": [
+    "RadioGroupItem"
+  ],
+  "composes": [],
+  "dependencies": {
+    "runtime": [
+      "react",
+      "@base-ui/react"
+    ],
+    "peer": [
+      "@base-ui/react"
+    ],
+    "devOnly": []
+  },
+  "documentation": {
+    "usage": "components/RadioGroup/usage.md",
+    "stories": [
+      "components/RadioGroup/RadioGroup.stories.tsx"
+    ],
+    "examples": [
+      "components/RadioGroup/examples.tsx#PaymentMethodRadioGroup",
+      "components/RadioGroup/examples.tsx#DisabledRadioGroup",
+      "components/RadioGroup/examples.tsx#ControlledRadioGroup"
+    ]
+  },
+  "design": {
+    "tokens": [
+      "--background-primary",
+      "--background-secondary",
+      "--border-default",
+      "--border-focus",
+      "--fill-disabled",
+      "--radius-button-primary",
+      "--space-025",
+      "--space-100",
+      "--space-150",
+      "--space-300",
+      "--stroke-thick",
+      "--surface-secondary",
+      "--text-primary"
+    ],
+    "rules": [
+      "focus-style",
+      "no-custom-radii",
+      "no-opacity-disabled",
+      "semantic-color-only",
+      "tap-target"
+    ],
+    "tokenBindings": {
+      "--background-primary": {
+        "property": "background",
+        "selector": ".item::before"
+      },
+      "--surface-secondary": {
+        "property": "background",
+        "selector": ".item:hover:not([data-disabled])::before"
+      },
+      "--text-primary": {
+        "property": "border-color/background",
+        "selector": ".item[data-checked]::before, .dot"
+      },
+      "--border-default": {
+        "property": "border-color",
+        "selector": ".item::before"
+      },
+      "--fill-disabled": {
+        "property": "border-color/background",
+        "selector": ".item[data-disabled]::before, .item[data-disabled] .dot"
+      },
+      "--border-focus": {
+        "property": "outline-color",
+        "selector": ".item:focus-visible"
+      },
+      "--radius-button-primary": {
+        "property": "border-radius",
+        "selector": ".item::before, .dot"
+      }
+    }
+  },
+  "quality": {
+    "accessibility": {
+      "role": "radiogroup with radio children",
+      "wcagLevel": "AA",
+      "tapTargetMin": 24,
+      "keyboardNav": [
+        "tab",
+        "shift+tab",
+        "arrow-left",
+        "arrow-right",
+        "arrow-up",
+        "arrow-down"
+      ],
+      "ariaPattern": "radiogroup",
+      "notes": "Base UI preserves exclusive selection, roving focus, and hidden native form inputs. Name both the group and every item."
+    },
+    "interactionCoverage": "covered"
+  },
+  "contentDigest": "9c67defc6a1de7d43a78ab44bba4970a0a8bbb262b748b16f51963fb04fb9af0"
 }

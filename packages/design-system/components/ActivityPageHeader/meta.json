@@ -1,5 +1,5 @@
 {
-  "$schema": "../../../schema/component.json",
+  "$schema": "../../schema/component.json",
   "name": "ActivityPageHeader",
   "category": "navigation",
   "status": "experimental",
@@ -46,7 +46,7 @@
   },
   "rules": {
     "brand": {
-      "ruleId": "brand-assets",
+      "contractId": "brand-assets",
       "note": "Consumes the locked Mobile Logo-UI assets; the mark and wordmark are never assembled in code."
     },
     "focus": {

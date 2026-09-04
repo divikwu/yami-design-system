@@ -1,20 +1,169 @@
 {
-  "schemaVersion": 1,
+  "$schema": "../../schema/registry-item.json",
+  "schemaVersion": 2,
   "name": "product-list",
   "title": "ProductList",
   "type": "component",
   "status": "stable",
+  "version": "0.3.0",
+  "description": "Responsive, data-driven YAMI product collection with rail and waterfall layouts, campaign appearances, and card or full-bleed mobile section surfaces.",
   "source": "components/ProductList",
   "files": [
-    "components/ProductList/assets/atmospheric-mobile.jpg",
-    "components/ProductList/assets/atmospheric-pc.jpg",
-    "components/ProductList/assets/campaign-banner-mobile.png",
-    "components/ProductList/assets/mega-saver-banner.webp",
-    "components/ProductList/fixtures.ts",
-    "components/ProductList/index.ts",
-    "components/ProductList/ProductList.module.css",
-    "components/ProductList/ProductList.stories.module.css",
-    "components/ProductList/ProductList.tsx",
-    "components/ProductList/ProductList.types.ts"
-  ]
+    {
+      "source": "components/ProductList/assets/atmospheric-mobile.jpg",
+      "target": "components/ProductList/assets/atmospheric-mobile.jpg"
+    },
+    {
+      "source": "components/ProductList/assets/atmospheric-pc.jpg",
+      "target": "components/ProductList/assets/atmospheric-pc.jpg"
+    },
+    {
+      "source": "components/ProductList/assets/campaign-banner-mobile.png",
+      "target": "components/ProductList/assets/campaign-banner-mobile.png"
+    },
+    {
+      "source": "components/ProductList/assets/mega-saver-banner.webp",
+      "target": "components/ProductList/assets/mega-saver-banner.webp"
+    },
+    {
+      "source": "components/ProductList/fixtures.ts",
+      "target": "components/ProductList/fixtures.ts"
+    },
+    {
+      "source": "components/ProductList/index.ts",
+      "target": "components/ProductList/index.ts"
+    },
+    {
+      "source": "components/ProductList/ProductList.module.css",
+      "target": "components/ProductList/ProductList.module.css"
+    },
+    {
+      "source": "components/ProductList/ProductList.stories.module.css",
+      "target": "components/ProductList/ProductList.stories.module.css"
+    },
+    {
+      "source": "components/ProductList/ProductList.tsx",
+      "target": "components/ProductList/ProductList.tsx"
+    },
+    {
+      "source": "components/ProductList/ProductList.types.ts",
+      "target": "components/ProductList/ProductList.types.ts"
+    }
+  ],
+  "exports": [
+    "ProductList",
+    "ProductListAppearance",
+    "ProductListItem",
+    "ProductListLayout",
+    "ProductListMobileSurface",
+    "ProductListProps",
+    "ProductListTab"
+  ],
+  "composes": [
+    "Button",
+    "ProductCard",
+    "Tabs"
+  ],
+  "dependencies": {
+    "runtime": [
+      "react",
+      "./ProductCard",
+      "./Tabs",
+      "./Button"
+    ],
+    "peer": [],
+    "devOnly": []
+  },
+  "documentation": {
+    "usage": "components/ProductList/usage.md",
+    "stories": [
+      "components/ProductList/ProductList.stories.tsx"
+    ],
+    "examples": [
+      "components/ProductList/examples.tsx#ProductRailExample",
+      "components/ProductList/examples.tsx#ProductWaterfallExample",
+      "components/ProductList/examples.tsx#LoadingProductListExample"
+    ]
+  },
+  "design": {
+    "tokens": [
+      "--border-default",
+      "--border-focus",
+      "--button-secondary",
+      "--button-secondary-active",
+      "--divider-default",
+      "--divider-emphasis",
+      "--fill-skeleton",
+      "--fill-skeleton-inverse",
+      "--font-family-ios",
+      "--font-size-display-sm",
+      "--font-size-heading-3xl",
+      "--font-size-heading-xl",
+      "--font-size-link-md",
+      "--layout-page-margin-default",
+      "--line-height-display-sm",
+      "--line-height-heading-3xl",
+      "--line-height-heading-xl",
+      "--line-height-link-md",
+      "--radius-component-default",
+      "--radius-tag-primary",
+      "--space-025",
+      "--space-050",
+      "--space-100",
+      "--space-200",
+      "--space-250",
+      "--space-300",
+      "--space-400",
+      "--stroke-default",
+      "--stroke-thick",
+      "--surface-primary",
+      "--surface-secondary",
+      "--text-primary"
+    ],
+    "rules": [
+      "elevation-on-press",
+      "focus-style",
+      "no-custom-radii",
+      "tap-target"
+    ],
+    "tokenBindings": {
+      "--surface-primary": {
+        "property": "background-color",
+        "selector": ".root, themed and atmospheric .item"
+      },
+      "--surface-secondary": {
+        "property": "background-color",
+        "selector": ".root[data-appearance='themed'], .root[data-appearance='atmospheric']"
+      },
+      "--fill-skeleton": {
+        "property": "background-color",
+        "selector": ".skeletonMedia, .skeletonLine, .skeletonPrice"
+      },
+      "--radius-component-default": {
+        "property": "border-radius",
+        "selector": ".item, .skeletonItem, .skeletonMedia"
+      },
+      "--layout-page-margin-default": {
+        "property": "padding-inline",
+        "selector": ".container"
+      }
+    }
+  },
+  "quality": {
+    "accessibility": {
+      "wcagLevel": "AA",
+      "tapTargetMin": 44,
+      "keyboardNav": [
+        "tab",
+        "enter",
+        "space",
+        "arrow keys"
+      ],
+      "ariaPattern": "labelled section containing a product list and optional tabs, links, and buttons",
+      "structure": "Visible heading labels the section. Products use list/listitem. Themed banner requires alt text; atmospheric art is decorative CSS.",
+      "interaction": "Product navigation and quick-add remain independent. Loading exposes aria-busy and localized status copy while skeletons are aria-hidden."
+    },
+    "interactionCoverage": "covered"
+  },
+  "contentDigest": "eb792cec8475bedc721e735fe299244c67abd1eda3f3c0840c2bb03a5ade0707"
 }

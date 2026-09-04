@@ -1,14 +1,107 @@
 {
-  "schemaVersion": 1,
+  "$schema": "../../schema/registry-item.json",
+  "schemaVersion": 2,
   "name": "sheet",
   "title": "Sheet",
   "type": "component",
   "status": "experimental",
+  "version": "0.1.0",
+  "description": "Shared modal shell: a mobile bottom sheet and centered desktop dialog, with a fixed header, scrolling content, optional footer, and child-view back navigation.",
   "source": "components/Sheet",
   "files": [
-    "components/Sheet/index.ts",
-    "components/Sheet/Sheet.module.css",
-    "components/Sheet/Sheet.stories.module.css",
-    "components/Sheet/Sheet.tsx"
-  ]
+    {
+      "source": "components/Sheet/index.ts",
+      "target": "components/Sheet/index.ts"
+    },
+    {
+      "source": "components/Sheet/Sheet.module.css",
+      "target": "components/Sheet/Sheet.module.css"
+    },
+    {
+      "source": "components/Sheet/Sheet.stories.module.css",
+      "target": "components/Sheet/Sheet.stories.module.css"
+    },
+    {
+      "source": "components/Sheet/Sheet.tsx",
+      "target": "components/Sheet/Sheet.tsx"
+    }
+  ],
+  "exports": [
+    "Sheet",
+    "SheetProps"
+  ],
+  "composes": [
+    "Button"
+  ],
+  "dependencies": {
+    "runtime": [
+      "react"
+    ],
+    "peer": [],
+    "devOnly": []
+  },
+  "documentation": {
+    "usage": "components/Sheet/usage.md",
+    "stories": [
+      "components/Sheet/Sheet.stories.tsx"
+    ],
+    "examples": [
+      "components/Sheet/examples.tsx#SheetExample"
+    ]
+  },
+  "design": {
+    "tokens": [
+      "--divider-default",
+      "--font-size-heading-2xl",
+      "--font-weight-emphasize",
+      "--overlay-scrim",
+      "--radius-surface-default",
+      "--space-100",
+      "--space-200",
+      "--space-600",
+      "--surface-primary",
+      "--text-primary"
+    ],
+    "rules": [
+      "focus-style",
+      "no-custom-radii",
+      "tap-target"
+    ],
+    "tokenBindings": {
+      "--surface-primary": {
+        "property": "background",
+        "selector": ".sheet"
+      },
+      "--overlay-scrim": {
+        "property": "background",
+        "selector": ".sheet::backdrop"
+      },
+      "--radius-surface-default": {
+        "property": "border-radius",
+        "selector": ".sheet"
+      },
+      "--font-size-heading-2xl": {
+        "property": "font-size",
+        "selector": ".title"
+      }
+    }
+  },
+  "quality": {
+    "accessibility": {
+      "role": "dialog",
+      "wcagLevel": "AA",
+      "tapTargetMin": 44,
+      "keyboardNav": [
+        "tab",
+        "shift+tab",
+        "escape",
+        "enter",
+        "space"
+      ],
+      "ariaPattern": "Native modal dialog labelled by its visible h2",
+      "interaction": "showModal makes the background inert. Close restores the opener; child views focus Back and use Escape to return."
+    },
+    "interactionCoverage": "missing"
+  },
+  "contentDigest": "834107ef8c47e774e1b32818c1ab801604521a5ddbe79d8ea1a715a8219618ad"
 }

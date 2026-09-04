@@ -1,16 +1,55 @@
 {
-  "schemaVersion": 1,
+  "$schema": "../../schema/registry-item.json",
+  "schemaVersion": 2,
   "name": "yami-design-system",
   "title": "Yami Design System",
   "type": "design-system",
+  "status": "alpha",
+  "version": "0.1.0",
+  "description": "Yami ecommerce design system shared by Canvas and Storybook.",
   "source": "design-system.meta.json",
   "files": [
-    "design-system.meta.json",
-    "manifest.json",
-    "DESIGN.compact.md",
-    "SKILL.md",
-    "styles/base.css",
-    "generated/tokens.css",
-    "generated/tokens.json"
-  ]
+    {
+      "source": "design-system.meta.json",
+      "target": "design-system.meta.json"
+    },
+    {
+      "source": "manifest.json",
+      "target": "manifest.json"
+    },
+    {
+      "source": "DESIGN.compact.md",
+      "target": "DESIGN.compact.md"
+    },
+    {
+      "source": "SKILL.md",
+      "target": "SKILL.md"
+    },
+    {
+      "source": "SKILL.zh-CN.md",
+      "target": "SKILL.zh-CN.md"
+    },
+    {
+      "source": "styles/base.css",
+      "target": "styles/base.css"
+    },
+    {
+      "source": "generated/tokens.css",
+      "target": "generated/tokens.css"
+    },
+    {
+      "source": "generated/tokens.json",
+      "target": "generated/tokens.json"
+    }
+  ],
+  "distribution": {
+    "package": "@yami/design-system",
+    "registry": "internal-source"
+  },
+  "documentation": {
+    "spec": "DESIGN.compact.md",
+    "skill": "SKILL.md",
+    "skillZh": "SKILL.zh-CN.md"
+  },
+  "contentDigest": "6e8d7b00d411399706900190721555899bebbb2b20c51a0d21ffdb4fed4fb631"
 }

@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://yami.local/schema/page-validation.json",
+  "title": "YAMI page validation manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "pages"],
+  "properties": {
+    "$schema": { "const": "./schema/page-validation.json" },
+    "schemaVersion": { "const": 1 },
+    "pages": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "items": { "$ref": "#/$defs/page" }
+    }
+  },
+  "$defs": {
+    "stringArray": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "fileFixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "path", "exportName"],
+      "properties": {
+        "mode": { "const": "file" },
+        "path": { "type": "string" },
+        "exportName": { "type": "string", "minLength": 1 }
+      }
+    },
+    "inlineFixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "path"],
+      "properties": {
+        "mode": { "const": "inline-story" },
+        "path": { "type": "string" }
+      }
+    },
+    "route": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "source"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^/" },
+        "source": { "type": "string" }
+      }
+    },
+    "visualCase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "test"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+        "test": { "type": "string" }
+      }
+    },
+    "page": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "tier", "source", "stories", "fixture", "route", "routeReason", "support", "evidence", "excluded", "knownLimits"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Z][A-Za-z0-9]+$" },
+        "tier": { "enum": ["core", "smoke"] },
+        "source": { "type": "string" },
+        "stories": { "$ref": "#/$defs/stringArray" },
+        "fixture": {
+          "oneOf": [
+            { "$ref": "#/$defs/fileFixture" },
+            { "$ref": "#/$defs/inlineFixture" }
+          ]
+        },
+        "route": {
+          "oneOf": [
+            { "$ref": "#/$defs/route" },
+            { "type": "null" }
+          ]
+        },
+        "routeReason": { "type": ["string", "null"] },
+        "support": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["locales", "themes", "viewports", "states"],
+          "properties": {
+            "locales": { "$ref": "#/$defs/stringArray" },
+            "themes": { "$ref": "#/$defs/stringArray" },
+            "viewports": { "$ref": "#/$defs/stringArray" },
+            "states": { "$ref": "#/$defs/stringArray" }
+          }
+        },
+        "evidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["storyPlay", "storybookA11y", "tests", "visual", "manual"],
+          "properties": {
+            "storyPlay": { "enum": ["covered", "not-covered"] },
+            "storybookA11y": { "type": "boolean" },
+            "tests": { "$ref": "#/$defs/stringArray" },
+            "visual": { "type": "array", "items": { "$ref": "#/$defs/visualCase" } },
+            "manual": { "type": "boolean" }
+          }
+        },
+        "excluded": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["combination", "reason"],
+            "properties": {
+              "combination": { "type": "string", "minLength": 1 },
+              "reason": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "knownLimits": { "$ref": "#/$defs/stringArray" }
+      }
+    }
+  }
+}

@@ -1,5 +1,5 @@
 {
-  "$schema": "../../../schema/component.json",
+  "$schema": "../../schema/component.json",
   "name": "Badge",
   "category": "display",
   "status": "stable",
@@ -24,6 +24,16 @@
     },
     "sizeDelta": "Badge sizes are breakpoint-independent: sm is 20px high with 12/16 type; md is 24px high with 14/20 type."
   },
+
+  "exports": [
+    "Badge",
+    "BadgeColor",
+    "BadgeEmphasis",
+    "BadgeProps",
+    "BadgeSize",
+    "BadgeTone",
+    "BadgeType"
+  ],
 
   "variants": {
     "color": ["red", "blue", "green", "purple", "yellow", "neutral"],

@@ -1,13 +1,238 @@
 {
-  "schemaVersion": 1,
+  "$schema": "../../schema/registry-item.json",
+  "schemaVersion": 2,
   "name": "badge",
   "title": "Badge",
   "type": "component",
   "status": "stable",
+  "version": "0.5.0",
+  "description": "Small label for product status, promotion, and counts. Supports sm and md sizes, abstract color × emphasis, four background-polarity tones, and semantic `type` shortcuts matching Figma.",
   "source": "components/Badge",
   "files": [
-    "components/Badge/Badge.module.css",
-    "components/Badge/Badge.tsx",
-    "components/Badge/index.ts"
-  ]
+    {
+      "source": "components/Badge/Badge.module.css",
+      "target": "components/Badge/Badge.module.css"
+    },
+    {
+      "source": "components/Badge/Badge.tsx",
+      "target": "components/Badge/Badge.tsx"
+    },
+    {
+      "source": "components/Badge/index.ts",
+      "target": "components/Badge/index.ts"
+    }
+  ],
+  "exports": [
+    "Badge",
+    "BadgeColor",
+    "BadgeEmphasis",
+    "BadgeProps",
+    "BadgeSize",
+    "BadgeTone",
+    "BadgeType"
+  ],
+  "composes": [],
+  "dependencies": {
+    "runtime": [
+      "react"
+    ],
+    "peer": [],
+    "devOnly": []
+  },
+  "documentation": {
+    "usage": "components/Badge/usage.md",
+    "stories": [
+      "components/Badge/Badge.stories.tsx"
+    ],
+    "examples": [
+      "components/Badge/examples.tsx#SaleBadge",
+      "components/Badge/examples.tsx#NewBadge",
+      "components/Badge/examples.tsx#DiscountBadge",
+      "components/Badge/examples.tsx#OutOfStockBadge",
+      "components/Badge/examples.tsx#LimitedBadge",
+      "components/Badge/examples.tsx#BestsellerBadge",
+      "components/Badge/examples.tsx#AllColorsRow",
+      "components/Badge/examples.tsx#AllEmphasisRow"
+    ]
+  },
+  "design": {
+    "tokens": [
+      "--badge-bg-primary-blue",
+      "--badge-bg-primary-green",
+      "--badge-bg-primary-neutral",
+      "--badge-bg-primary-purple",
+      "--badge-bg-primary-red",
+      "--badge-bg-primary-yellow",
+      "--badge-bg-secondary-blue",
+      "--badge-bg-secondary-green",
+      "--badge-bg-secondary-purple",
+      "--badge-bg-secondary-red",
+      "--badge-bg-secondary-yellow",
+      "--badge-bg-tertiary-neutral",
+      "--badge-fg-default",
+      "--badge-fg-default-inverse",
+      "--badge-fg-primary-red",
+      "--badge-fg-secondary-blue",
+      "--badge-fg-secondary-green",
+      "--badge-fg-secondary-purple",
+      "--badge-fg-secondary-red",
+      "--badge-fg-secondary-yellow",
+      "--color-black-1000",
+      "--color-black-200",
+      "--color-white-1000",
+      "--color-white-700",
+      "--font-family-ios",
+      "--font-weight-normal",
+      "--radius-tag-primary",
+      "--space-025",
+      "--space-100",
+      "--stroke-default",
+      "--text-primary"
+    ],
+    "rules": [
+      "no-custom-radii",
+      "no-emoji",
+      "numerals-font",
+      "red-usage",
+      "semantic-color-only"
+    ],
+    "tokenBindings": {
+      "--badge-bg-primary-red": {
+        "property": "background-color",
+        "selector": ".badge[data-emphasis='primary'][data-color='red']"
+      },
+      "--badge-fg-primary-red": {
+        "property": "color",
+        "selector": ".badge[data-emphasis='primary'][data-color='red']"
+      },
+      "--badge-bg-primary-blue": {
+        "property": "background-color",
+        "selector": ".badge[data-emphasis='primary'][data-color='blue']"
+      },
+      "--badge-bg-primary-green": {
+        "property": "background-color",
+        "selector": ".badge[data-emphasis='primary'][data-color='green']"
+      },
+      "--badge-bg-primary-purple": {
+        "property": "background-color",
+        "selector": ".badge[data-emphasis='primary'][data-color='purple']"
+      },
+      "--badge-bg-primary-yellow": {
+        "property": "background-color",
+        "selector": ".badge[data-emphasis='primary'][data-color='yellow']"
+      },
+      "--badge-bg-primary-neutral": {
+        "property": "background-color",
+        "selector": ".badge[data-emphasis='primary'][data-color='neutral']"
+      },
+      "--badge-fg-default-inverse": {
+        "property": "color",
+        "selector": ".badge[data-emphasis='primary']:not([data-color='red'])"
+      },
+      "--badge-bg-secondary-red": {
+        "property": "background-color",
+        "selector": ".badge[data-emphasis='secondary'][data-color='red']"
+      },
+      "--badge-fg-secondary-red": {
+        "property": "color",
+        "selector": ".badge[data-emphasis='secondary'][data-color='red']"
+      },
+      "--badge-bg-secondary-blue": {
+        "property": "background-color",
+        "selector": ".badge[data-emphasis='secondary'][data-color='blue']"
+      },
+      "--badge-fg-secondary-blue": {
+        "property": "color",
+        "selector": ".badge[data-emphasis='secondary'][data-color='blue']"
+      },
+      "--badge-bg-secondary-green": {
+        "property": "background-color",
+        "selector": ".badge[data-emphasis='secondary'][data-color='green']"
+      },
+      "--badge-fg-secondary-green": {
+        "property": "color",
+        "selector": ".badge[data-emphasis='secondary'][data-color='green']"
+      },
+      "--badge-bg-secondary-purple": {
+        "property": "background-color",
+        "selector": ".badge[data-emphasis='secondary'][data-color='purple']"
+      },
+      "--badge-fg-secondary-purple": {
+        "property": "color",
+        "selector": ".badge[data-emphasis='secondary'][data-color='purple']"
+      },
+      "--badge-bg-secondary-yellow": {
+        "property": "background-color",
+        "selector": ".badge[data-emphasis='secondary'][data-color='yellow']"
+      },
+      "--badge-fg-secondary-yellow": {
+        "property": "color",
+        "selector": ".badge[data-emphasis='secondary'][data-color='yellow']"
+      },
+      "--badge-bg-tertiary-neutral": {
+        "property": "background-color",
+        "selector": ".badge[data-emphasis='secondary'][data-color='neutral']"
+      },
+      "--badge-fg-default": {
+        "property": "color",
+        "selector": ".badge[data-emphasis='secondary'][data-color='neutral']"
+      },
+      "--text-primary": {
+        "property": "color",
+        "selector": ".badge[data-emphasis='secondary'][data-type='sale'], .badge[data-emphasis='secondary'][data-type='low-price'], .badge[data-emphasis='secondary'][data-type='discount'], .badge[data-emphasis='secondary'][data-type='new'], .badge[data-emphasis='secondary'][data-type='hot']"
+      },
+      "--font-family-ios": {
+        "property": "font-family",
+        "selector": ".badge"
+      },
+      "--font-weight-normal": {
+        "property": "font-weight",
+        "selector": ".badge"
+      },
+      "--radius-tag-primary": {
+        "property": "border-radius",
+        "selector": ".badge"
+      },
+      "--space-025": {
+        "property": "gap",
+        "selector": ".badge"
+      },
+      "--space-100": {
+        "property": "padding-inline",
+        "selector": ".badge"
+      },
+      "--color-black-200": {
+        "property": "background-color",
+        "selector": ".badge[data-tone='dark']"
+      },
+      "--color-white-700": {
+        "property": "background-color",
+        "selector": ".badge[data-tone='light']"
+      },
+      "--color-black-1000": {
+        "property": "color / box-shadow",
+        "selector": ".badge[data-tone='light'], .badge[data-tone='dark-outline']"
+      },
+      "--color-white-1000": {
+        "property": "color / box-shadow",
+        "selector": ".badge[data-tone='dark'], .badge[data-tone='light-outline']"
+      },
+      "--stroke-default": {
+        "property": "box-shadow spread radius",
+        "selector": ".badge[data-tone='dark-outline'], .badge[data-tone='light-outline']"
+      }
+    }
+  },
+  "quality": {
+    "accessibility": {
+      "role": "implicit (span)",
+      "wcagLevel": "AA",
+      "tapTargetMin": 0,
+      "keyboardNav": [],
+      "ariaPattern": "label",
+      "notes": "Badge is a visual label (non-interactive — tapTargetMin=0). If it conveys state not present in adjacent text (e.g. 'OUT OF STOCK' on an otherwise normal-looking product), ensure the state is also encoded in markup — e.g. aria-label on the parent product element."
+    },
+    "interactionCoverage": "covered"
+  },
+  "contentDigest": "acdce2a68a4317725995cb4a813221bef9fb4b68853148002f7ad35ec4041184"
 }

@@ -1,110 +1,582 @@
 {
-  "schemaVersion": 1,
+  "$schema": "../../schema/registry-item.json",
+  "schemaVersion": 2,
   "name": "header",
   "title": "Header",
   "type": "component",
   "status": "beta",
+  "version": "0.2.0",
+  "description": "YAMI global navigation band. At and above 1024px: brand lockup, storefront hall switcher, locale, deliver-to, search, account / cart, and a category rail whose entries are campaign artwork rather than icon components. Below 1024px it swaps to mobile chrome. The default variant uses a 56px brand bar over a 36px search field; the PDP variant uses a single 56px H5 row with lockup, deliver-to, search, and cart.",
   "source": "components/Header",
   "files": [
-    "components/Header/assets/baby-and-mom.png",
-    "components/Header/assets/beauty.png",
-    "components/Header/assets/best-sellers.png",
-    "components/Header/assets/beverage.png",
-    "components/Header/assets/brands.png",
-    "components/Header/assets/category-menu/api/067aad3319dd7d576f0f54a55cd45da5_0x0.png",
-    "components/Header/assets/category-menu/api/16dcd22e48a1516dabfd9a2e2cd5c8fa_0x0.png",
-    "components/Header/assets/category-menu/api/234b239b0b9e51400d367f00e63f57be_0x0.png",
-    "components/Header/assets/category-menu/api/26f9896085ce352e0e27ef2137b50544_0x0.png",
-    "components/Header/assets/category-menu/api/2dba3c64237b44e97b701af8dc515671_0x0.gif",
-    "components/Header/assets/category-menu/api/3abbe83cec295954df7691d64810f826_0x0.gif",
-    "components/Header/assets/category-menu/api/3c31ad371785a2911257cbd6b953fe74_0x0.png",
-    "components/Header/assets/category-menu/api/482e616808b611990cf38df1f16d8b08_0x0.gif",
-    "components/Header/assets/category-menu/api/4b0932ed6c7420f604b3ce472060c57f_0x0.png",
-    "components/Header/assets/category-menu/api/4c6237a0644dfcb3c42de7aeed5475bc_0x0.gif",
-    "components/Header/assets/category-menu/api/4fe37b58b9933a163de9f4df88d0341e_0x0.gif",
-    "components/Header/assets/category-menu/api/50699471e9082ba14b77c7400098e8fd_0x0.gif",
-    "components/Header/assets/category-menu/api/6290b534f3fcd5bfbd84c48e6e766834_0x0.gif",
-    "components/Header/assets/category-menu/api/6a876b0bc8955095d417183bb4b629c1_0x0.gif",
-    "components/Header/assets/category-menu/api/774f8675f4921588d5af61c0679c1e23_0x0.gif",
-    "components/Header/assets/category-menu/api/809a027a2dbcddc774c2d135e7d064cf_0x0.png",
-    "components/Header/assets/category-menu/api/824f2686b153b916dd3f9c2a3d303300_0x0.png",
-    "components/Header/assets/category-menu/api/8d9b5ddd9d314ec39b3b24494684748a_0x0.gif",
-    "components/Header/assets/category-menu/api/949813a42baa9ebbeb08cda7118e0683_0x0.png",
-    "components/Header/assets/category-menu/api/a8719878386294248a0dc0ff0ee6f96a_0x0.png",
-    "components/Header/assets/category-menu/api/afca0a4d14aeabe0646619ffb9339843_0x0.png",
-    "components/Header/assets/category-menu/api/b9cab0bb4dc4edade9437552ee188d0b_0x0.png",
-    "components/Header/assets/category-menu/api/be7eaae82b70a5efc989cf4c0f54178b_0x0.gif",
-    "components/Header/assets/category-menu/api/cbea8924435585c9332ba6486370457d_0x0.png",
-    "components/Header/assets/category-menu/api/d52212701cd2eee1b2aa8ff5bff182e2_0x0.png",
-    "components/Header/assets/category-menu/api/d7c44f84c58573f53485decf8c2eba18_0x0.png",
-    "components/Header/assets/category-menu/api/d7f0fd2071faa06b9d50f73dcefca25a_0x0.png",
-    "components/Header/assets/category-menu/api/dba9aa9a86ebe579c28ce4156d02edb0_0x0.gif",
-    "components/Header/assets/category-menu/api/e003cff1229cb950ecf2d3623a92cf62_0x0.gif",
-    "components/Header/assets/category-menu/api/ef92c9fe1c188f42cbfb5664599a1d70_0x0.png",
-    "components/Header/assets/category-menu/api/f54bfc7ce11b23799f4f393bec9ac3b2_0x0.png",
-    "components/Header/assets/category-menu/api/fa1a121c2d1b443e317f3e7f4eb5b471_0x0.gif",
-    "components/Header/assets/category-menu/api/README.md",
-    "components/Header/assets/category-menu/arrow-right.svg",
-    "components/Header/assets/category-menu/baby-and-mom.png",
-    "components/Header/assets/category-menu/beauty.png",
-    "components/Header/assets/category-menu/beverage.png",
-    "components/Header/assets/category-menu/clothing.png",
-    "components/Header/assets/category-menu/electronics.png",
-    "components/Header/assets/category-menu/gifts.png",
-    "components/Header/assets/category-menu/grocery.png",
-    "components/Header/assets/category-menu/health.png",
-    "components/Header/assets/category-menu/home.png",
-    "components/Header/assets/category-menu/k-trend.png",
-    "components/Header/assets/category-menu/personal-care.png",
-    "components/Header/assets/category-menu/README.md",
-    "components/Header/assets/category-menu/snack.png",
-    "components/Header/assets/clothing.png",
-    "components/Header/assets/electronics.png",
-    "components/Header/assets/gift-card.png",
-    "components/Header/assets/gifts.png",
-    "components/Header/assets/greater-china.png",
-    "components/Header/assets/grocery.png",
-    "components/Header/assets/health.png",
-    "components/Header/assets/home.png",
-    "components/Header/assets/influencer-picks.png",
-    "components/Header/assets/japan.png",
-    "components/Header/assets/k-trend.png",
-    "components/Header/assets/korea.png",
-    "components/Header/assets/new-arrivals.png",
-    "components/Header/assets/personal-care-zh.png",
-    "components/Header/assets/personal-care.png",
-    "components/Header/assets/README.md",
-    "components/Header/assets/sale.png",
-    "components/Header/assets/search-suggestions/mat.jpeg",
-    "components/Header/assets/search-suggestions/matcha-bowl.jpeg",
-    "components/Header/assets/search-suggestions/matcha-cake.png",
-    "components/Header/assets/search-suggestions/matcha-candy.png",
-    "components/Header/assets/search-suggestions/matcha-chocolate.jpeg",
-    "components/Header/assets/search-suggestions/matcha-cookie.jpeg",
-    "components/Header/assets/search-suggestions/matcha-latte.jpeg",
-    "components/Header/assets/search-suggestions/matcha-powder.jpeg",
-    "components/Header/assets/search-suggestions/matcha-set.jpeg",
-    "components/Header/assets/search-suggestions/matcha-snack.jpeg",
-    "components/Header/assets/search-suggestions/matcha-whisk.jpeg",
-    "components/Header/assets/search-suggestions/matcha.png",
-    "components/Header/assets/snack.png",
-    "components/Header/assets/southeast-asia.png",
-    "components/Header/assets/subscribe.png",
-    "components/Header/assets/summer-picks-zh.png",
-    "components/Header/assets/summer-picks.png",
-    "components/Header/category-menu.en.json",
-    "components/Header/category-menu.fixture.ts",
-    "components/Header/category-menu.images.ts",
-    "components/Header/category-menu.zh.json",
-    "components/Header/fixtures.ts",
-    "components/Header/Header.module.css",
-    "components/Header/Header.stories.module.css",
-    "components/Header/Header.tsx",
-    "components/Header/Header.types.ts",
-    "components/Header/HeaderCategoryMenu.module.css",
-    "components/Header/HeaderCategoryMenu.tsx",
-    "components/Header/HeaderCategoryRail.tsx",
-    "components/Header/HeaderSearch.tsx",
-    "components/Header/index.ts"
-  ]
+    {
+      "source": "components/Header/assets/baby-and-mom.png",
+      "target": "components/Header/assets/baby-and-mom.png"
+    },
+    {
+      "source": "components/Header/assets/beauty.png",
+      "target": "components/Header/assets/beauty.png"
+    },
+    {
+      "source": "components/Header/assets/best-sellers.png",
+      "target": "components/Header/assets/best-sellers.png"
+    },
+    {
+      "source": "components/Header/assets/beverage.png",
+      "target": "components/Header/assets/beverage.png"
+    },
+    {
+      "source": "components/Header/assets/brands.png",
+      "target": "components/Header/assets/brands.png"
+    },
+    {
+      "source": "components/Header/assets/category-menu/api/067aad3319dd7d576f0f54a55cd45da5_0x0.png",
+      "target": "components/Header/assets/category-menu/api/067aad3319dd7d576f0f54a55cd45da5_0x0.png"
+    },
+    {
+      "source": "components/Header/assets/category-menu/api/16dcd22e48a1516dabfd9a2e2cd5c8fa_0x0.png",
+      "target": "components/Header/assets/category-menu/api/16dcd22e48a1516dabfd9a2e2cd5c8fa_0x0.png"
+    },
+    {
+      "source": "components/Header/assets/category-menu/api/234b239b0b9e51400d367f00e63f57be_0x0.png",
+      "target": "components/Header/assets/category-menu/api/234b239b0b9e51400d367f00e63f57be_0x0.png"
+    },
+    {
+      "source": "components/Header/assets/category-menu/api/26f9896085ce352e0e27ef2137b50544_0x0.png",
+      "target": "components/Header/assets/category-menu/api/26f9896085ce352e0e27ef2137b50544_0x0.png"
+    },
+    {
+      "source": "components/Header/assets/category-menu/api/2dba3c64237b44e97b701af8dc515671_0x0.gif",
+      "target": "components/Header/assets/category-menu/api/2dba3c64237b44e97b701af8dc515671_0x0.gif"
+    },
+    {
+      "source": "components/Header/assets/category-menu/api/3abbe83cec295954df7691d64810f826_0x0.gif",
+      "target": "components/Header/assets/category-menu/api/3abbe83cec295954df7691d64810f826_0x0.gif"
+    },
+    {
+      "source": "components/Header/assets/category-menu/api/3c31ad371785a2911257cbd6b953fe74_0x0.png",
+      "target": "components/Header/assets/category-menu/api/3c31ad371785a2911257cbd6b953fe74_0x0.png"
+    },
+    {
+      "source": "components/Header/assets/category-menu/api/482e616808b611990cf38df1f16d8b08_0x0.gif",
+      "target": "components/Header/assets/category-menu/api/482e616808b611990cf38df1f16d8b08_0x0.gif"
+    },
+    {
+      "source": "components/Header/assets/category-menu/api/4b0932ed6c7420f604b3ce472060c57f_0x0.png",
+      "target": "components/Header/assets/category-menu/api/4b0932ed6c7420f604b3ce472060c57f_0x0.png"
+    },
+    {
+      "source": "components/Header/assets/category-menu/api/4c6237a0644dfcb3c42de7aeed5475bc_0x0.gif",
+      "target": "components/Header/assets/category-menu/api/4c6237a0644dfcb3c42de7aeed5475bc_0x0.gif"
+    },
+    {
+      "source": "components/Header/assets/category-menu/api/4fe37b58b9933a163de9f4df88d0341e_0x0.gif",
+      "target": "components/Header/assets/category-menu/api/4fe37b58b9933a163de9f4df88d0341e_0x0.gif"
+    },
+    {
+      "source": "components/Header/assets/category-menu/api/50699471e9082ba14b77c7400098e8fd_0x0.gif",
+      "target": "components/Header/assets/category-menu/api/50699471e9082ba14b77c7400098e8fd_0x0.gif"
+    },
+    {
+      "source": "components/Header/assets/category-menu/api/6290b534f3fcd5bfbd84c48e6e766834_0x0.gif",
+      "target": "components/Header/assets/category-menu/api/6290b534f3fcd5bfbd84c48e6e766834_0x0.gif"
+    },
+    {
+      "source": "components/Header/assets/category-menu/api/6a876b0bc8955095d417183bb4b629c1_0x0.gif",
+      "target": "components/Header/assets/category-menu/api/6a876b0bc8955095d417183bb4b629c1_0x0.gif"
+    },
+    {
+      "source": "components/Header/assets/category-menu/api/774f8675f4921588d5af61c0679c1e23_0x0.gif",
+      "target": "components/Header/assets/category-menu/api/774f8675f4921588d5af61c0679c1e23_0x0.gif"
+    },
+    {
+      "source": "components/Header/assets/category-menu/api/809a027a2dbcddc774c2d135e7d064cf_0x0.png",
+      "target": "components/Header/assets/category-menu/api/809a027a2dbcddc774c2d135e7d064cf_0x0.png"
+    },
+    {
+      "source": "components/Header/assets/category-menu/api/824f2686b153b916dd3f9c2a3d303300_0x0.png",
+      "target": "components/Header/assets/category-menu/api/824f2686b153b916dd3f9c2a3d303300_0x0.png"
+    },
+    {
+      "source": "components/Header/assets/category-menu/api/8d9b5ddd9d314ec39b3b24494684748a_0x0.gif",
+      "target": "components/Header/assets/category-menu/api/8d9b5ddd9d314ec39b3b24494684748a_0x0.gif"
+    },
+    {
+      "source": "components/Header/assets/category-menu/api/949813a42baa9ebbeb08cda7118e0683_0x0.png",
+      "target": "components/Header/assets/category-menu/api/949813a42baa9ebbeb08cda7118e0683_0x0.png"
+    },
+    {
+      "source": "components/Header/assets/category-menu/api/a8719878386294248a0dc0ff0ee6f96a_0x0.png",
+      "target": "components/Header/assets/category-menu/api/a8719878386294248a0dc0ff0ee6f96a_0x0.png"
+    },
+    {
+      "source": "components/Header/assets/category-menu/api/afca0a4d14aeabe0646619ffb9339843_0x0.png",
+      "target": "components/Header/assets/category-menu/api/afca0a4d14aeabe0646619ffb9339843_0x0.png"
+    },
+    {
+      "source": "components/Header/assets/category-menu/api/b9cab0bb4dc4edade9437552ee188d0b_0x0.png",
+      "target": "components/Header/assets/category-menu/api/b9cab0bb4dc4edade9437552ee188d0b_0x0.png"
+    },
+    {
+      "source": "components/Header/assets/category-menu/api/be7eaae82b70a5efc989cf4c0f54178b_0x0.gif",
+      "target": "components/Header/assets/category-menu/api/be7eaae82b70a5efc989cf4c0f54178b_0x0.gif"
+    },
+    {
+      "source": "components/Header/assets/category-menu/api/cbea8924435585c9332ba6486370457d_0x0.png",
+      "target": "components/Header/assets/category-menu/api/cbea8924435585c9332ba6486370457d_0x0.png"
+    },
+    {
+      "source": "components/Header/assets/category-menu/api/d52212701cd2eee1b2aa8ff5bff182e2_0x0.png",
+      "target": "components/Header/assets/category-menu/api/d52212701cd2eee1b2aa8ff5bff182e2_0x0.png"
+    },
+    {
+      "source": "components/Header/assets/category-menu/api/d7c44f84c58573f53485decf8c2eba18_0x0.png",
+      "target": "components/Header/assets/category-menu/api/d7c44f84c58573f53485decf8c2eba18_0x0.png"
+    },
+    {
+      "source": "components/Header/assets/category-menu/api/d7f0fd2071faa06b9d50f73dcefca25a_0x0.png",
+      "target": "components/Header/assets/category-menu/api/d7f0fd2071faa06b9d50f73dcefca25a_0x0.png"
+    },
+    {
+      "source": "components/Header/assets/category-menu/api/dba9aa9a86ebe579c28ce4156d02edb0_0x0.gif",
+      "target": "components/Header/assets/category-menu/api/dba9aa9a86ebe579c28ce4156d02edb0_0x0.gif"
+    },
+    {
+      "source": "components/Header/assets/category-menu/api/e003cff1229cb950ecf2d3623a92cf62_0x0.gif",
+      "target": "components/Header/assets/category-menu/api/e003cff1229cb950ecf2d3623a92cf62_0x0.gif"
+    },
+    {
+      "source": "components/Header/assets/category-menu/api/ef92c9fe1c188f42cbfb5664599a1d70_0x0.png",
+      "target": "components/Header/assets/category-menu/api/ef92c9fe1c188f42cbfb5664599a1d70_0x0.png"
+    },
+    {
+      "source": "components/Header/assets/category-menu/api/f54bfc7ce11b23799f4f393bec9ac3b2_0x0.png",
+      "target": "components/Header/assets/category-menu/api/f54bfc7ce11b23799f4f393bec9ac3b2_0x0.png"
+    },
+    {
+      "source": "components/Header/assets/category-menu/api/fa1a121c2d1b443e317f3e7f4eb5b471_0x0.gif",
+      "target": "components/Header/assets/category-menu/api/fa1a121c2d1b443e317f3e7f4eb5b471_0x0.gif"
+    },
+    {
+      "source": "components/Header/assets/category-menu/api/README.md",
+      "target": "components/Header/assets/category-menu/api/README.md"
+    },
+    {
+      "source": "components/Header/assets/category-menu/arrow-right.svg",
+      "target": "components/Header/assets/category-menu/arrow-right.svg"
+    },
+    {
+      "source": "components/Header/assets/category-menu/baby-and-mom.png",
+      "target": "components/Header/assets/category-menu/baby-and-mom.png"
+    },
+    {
+      "source": "components/Header/assets/category-menu/beauty.png",
+      "target": "components/Header/assets/category-menu/beauty.png"
+    },
+    {
+      "source": "components/Header/assets/category-menu/beverage.png",
+      "target": "components/Header/assets/category-menu/beverage.png"
+    },
+    {
+      "source": "components/Header/assets/category-menu/clothing.png",
+      "target": "components/Header/assets/category-menu/clothing.png"
+    },
+    {
+      "source": "components/Header/assets/category-menu/electronics.png",
+      "target": "components/Header/assets/category-menu/electronics.png"
+    },
+    {
+      "source": "components/Header/assets/category-menu/gifts.png",
+      "target": "components/Header/assets/category-menu/gifts.png"
+    },
+    {
+      "source": "components/Header/assets/category-menu/grocery.png",
+      "target": "components/Header/assets/category-menu/grocery.png"
+    },
+    {
+      "source": "components/Header/assets/category-menu/health.png",
+      "target": "components/Header/assets/category-menu/health.png"
+    },
+    {
+      "source": "components/Header/assets/category-menu/home.png",
+      "target": "components/Header/assets/category-menu/home.png"
+    },
+    {
+      "source": "components/Header/assets/category-menu/k-trend.png",
+      "target": "components/Header/assets/category-menu/k-trend.png"
+    },
+    {
+      "source": "components/Header/assets/category-menu/personal-care.png",
+      "target": "components/Header/assets/category-menu/personal-care.png"
+    },
+    {
+      "source": "components/Header/assets/category-menu/README.md",
+      "target": "components/Header/assets/category-menu/README.md"
+    },
+    {
+      "source": "components/Header/assets/category-menu/snack.png",
+      "target": "components/Header/assets/category-menu/snack.png"
+    },
+    {
+      "source": "components/Header/assets/clothing.png",
+      "target": "components/Header/assets/clothing.png"
+    },
+    {
+      "source": "components/Header/assets/electronics.png",
+      "target": "components/Header/assets/electronics.png"
+    },
+    {
+      "source": "components/Header/assets/gift-card.png",
+      "target": "components/Header/assets/gift-card.png"
+    },
+    {
+      "source": "components/Header/assets/gifts.png",
+      "target": "components/Header/assets/gifts.png"
+    },
+    {
+      "source": "components/Header/assets/greater-china.png",
+      "target": "components/Header/assets/greater-china.png"
+    },
+    {
+      "source": "components/Header/assets/grocery.png",
+      "target": "components/Header/assets/grocery.png"
+    },
+    {
+      "source": "components/Header/assets/health.png",
+      "target": "components/Header/assets/health.png"
+    },
+    {
+      "source": "components/Header/assets/home.png",
+      "target": "components/Header/assets/home.png"
+    },
+    {
+      "source": "components/Header/assets/influencer-picks.png",
+      "target": "components/Header/assets/influencer-picks.png"
+    },
+    {
+      "source": "components/Header/assets/japan.png",
+      "target": "components/Header/assets/japan.png"
+    },
+    {
+      "source": "components/Header/assets/k-trend.png",
+      "target": "components/Header/assets/k-trend.png"
+    },
+    {
+      "source": "components/Header/assets/korea.png",
+      "target": "components/Header/assets/korea.png"
+    },
+    {
+      "source": "components/Header/assets/new-arrivals.png",
+      "target": "components/Header/assets/new-arrivals.png"
+    },
+    {
+      "source": "components/Header/assets/personal-care-zh.png",
+      "target": "components/Header/assets/personal-care-zh.png"
+    },
+    {
+      "source": "components/Header/assets/personal-care.png",
+      "target": "components/Header/assets/personal-care.png"
+    },
+    {
+      "source": "components/Header/assets/README.md",
+      "target": "components/Header/assets/README.md"
+    },
+    {
+      "source": "components/Header/assets/sale.png",
+      "target": "components/Header/assets/sale.png"
+    },
+    {
+      "source": "components/Header/assets/search-suggestions/mat.jpeg",
+      "target": "components/Header/assets/search-suggestions/mat.jpeg"
+    },
+    {
+      "source": "components/Header/assets/search-suggestions/matcha-bowl.jpeg",
+      "target": "components/Header/assets/search-suggestions/matcha-bowl.jpeg"
+    },
+    {
+      "source": "components/Header/assets/search-suggestions/matcha-cake.png",
+      "target": "components/Header/assets/search-suggestions/matcha-cake.png"
+    },
+    {
+      "source": "components/Header/assets/search-suggestions/matcha-candy.png",
+      "target": "components/Header/assets/search-suggestions/matcha-candy.png"
+    },
+    {
+      "source": "components/Header/assets/search-suggestions/matcha-chocolate.jpeg",
+      "target": "components/Header/assets/search-suggestions/matcha-chocolate.jpeg"
+    },
+    {
+      "source": "components/Header/assets/search-suggestions/matcha-cookie.jpeg",
+      "target": "components/Header/assets/search-suggestions/matcha-cookie.jpeg"
+    },
+    {
+      "source": "components/Header/assets/search-suggestions/matcha-latte.jpeg",
+      "target": "components/Header/assets/search-suggestions/matcha-latte.jpeg"
+    },
+    {
+      "source": "components/Header/assets/search-suggestions/matcha-powder.jpeg",
+      "target": "components/Header/assets/search-suggestions/matcha-powder.jpeg"
+    },
+    {
+      "source": "components/Header/assets/search-suggestions/matcha-set.jpeg",
+      "target": "components/Header/assets/search-suggestions/matcha-set.jpeg"
+    },
+    {
+      "source": "components/Header/assets/search-suggestions/matcha-snack.jpeg",
+      "target": "components/Header/assets/search-suggestions/matcha-snack.jpeg"
+    },
+    {
+      "source": "components/Header/assets/search-suggestions/matcha-whisk.jpeg",
+      "target": "components/Header/assets/search-suggestions/matcha-whisk.jpeg"
+    },
+    {
+      "source": "components/Header/assets/search-suggestions/matcha.png",
+      "target": "components/Header/assets/search-suggestions/matcha.png"
+    },
+    {
+      "source": "components/Header/assets/snack.png",
+      "target": "components/Header/assets/snack.png"
+    },
+    {
+      "source": "components/Header/assets/southeast-asia.png",
+      "target": "components/Header/assets/southeast-asia.png"
+    },
+    {
+      "source": "components/Header/assets/subscribe.png",
+      "target": "components/Header/assets/subscribe.png"
+    },
+    {
+      "source": "components/Header/assets/summer-picks-zh.png",
+      "target": "components/Header/assets/summer-picks-zh.png"
+    },
+    {
+      "source": "components/Header/assets/summer-picks.png",
+      "target": "components/Header/assets/summer-picks.png"
+    },
+    {
+      "source": "components/Header/category-menu.en.json",
+      "target": "components/Header/category-menu.en.json"
+    },
+    {
+      "source": "components/Header/category-menu.fixture.ts",
+      "target": "components/Header/category-menu.fixture.ts"
+    },
+    {
+      "source": "components/Header/category-menu.images.ts",
+      "target": "components/Header/category-menu.images.ts"
+    },
+    {
+      "source": "components/Header/category-menu.zh.json",
+      "target": "components/Header/category-menu.zh.json"
+    },
+    {
+      "source": "components/Header/fixtures.ts",
+      "target": "components/Header/fixtures.ts"
+    },
+    {
+      "source": "components/Header/Header.module.css",
+      "target": "components/Header/Header.module.css"
+    },
+    {
+      "source": "components/Header/Header.stories.module.css",
+      "target": "components/Header/Header.stories.module.css"
+    },
+    {
+      "source": "components/Header/Header.tsx",
+      "target": "components/Header/Header.tsx"
+    },
+    {
+      "source": "components/Header/Header.types.ts",
+      "target": "components/Header/Header.types.ts"
+    },
+    {
+      "source": "components/Header/HeaderCategoryMenu.module.css",
+      "target": "components/Header/HeaderCategoryMenu.module.css"
+    },
+    {
+      "source": "components/Header/HeaderCategoryMenu.tsx",
+      "target": "components/Header/HeaderCategoryMenu.tsx"
+    },
+    {
+      "source": "components/Header/HeaderCategoryRail.tsx",
+      "target": "components/Header/HeaderCategoryRail.tsx"
+    },
+    {
+      "source": "components/Header/HeaderSearch.tsx",
+      "target": "components/Header/HeaderSearch.tsx"
+    },
+    {
+      "source": "components/Header/index.ts",
+      "target": "components/Header/index.ts"
+    }
+  ],
+  "exports": [
+    "Header",
+    "HeaderAccount",
+    "HeaderCart",
+    "HeaderCategory",
+    "HeaderCategoryMenuData",
+    "HeaderCategoryMenuItem",
+    "HeaderCategoryRail",
+    "HeaderCategoryRailProps",
+    "HeaderHall",
+    "HeaderImage",
+    "HeaderInbox",
+    "HeaderLocale",
+    "HeaderProps",
+    "HeaderSearch",
+    "HeaderSearchProps",
+    "HeaderZipcode"
+  ],
+  "composes": [],
+  "dependencies": {
+    "runtime": [
+      "react"
+    ],
+    "peer": [],
+    "devOnly": []
+  },
+  "documentation": {
+    "usage": "components/Header/usage.md",
+    "stories": [
+      "components/Header/Header.stories.tsx"
+    ],
+    "examples": [
+      "components/Header/examples.tsx#PcHeader"
+    ]
+  },
+  "design": {
+    "tokens": [
+      "--background-secondary",
+      "--border-default",
+      "--border-focus",
+      "--button-primary",
+      "--button-primary-active",
+      "--button-secondary",
+      "--button-secondary-active",
+      "--button-tertiary-active",
+      "--color-black-400",
+      "--divider-emphasis",
+      "--divider-subtle",
+      "--fill-secondary",
+      "--font-family-ios",
+      "--font-size-body-md",
+      "--font-size-caption-sm",
+      "--font-size-heading-sm",
+      "--font-size-link-md",
+      "--font-size-link-sm",
+      "--font-weight-emphasize",
+      "--font-weight-normal",
+      "--line-height-body-md",
+      "--line-height-caption-sm",
+      "--line-height-heading-sm",
+      "--line-height-link-md",
+      "--line-height-link-sm",
+      "--radius-button-primary",
+      "--radius-component-default",
+      "--radius-full",
+      "--radius-xl",
+      "--space-025",
+      "--space-050",
+      "--space-100",
+      "--space-150",
+      "--space-200",
+      "--space-300",
+      "--space-400",
+      "--space-600",
+      "--stroke-default",
+      "--stroke-thick",
+      "--surface-primary",
+      "--text-emphasis",
+      "--text-primary",
+      "--text-primary-inverse",
+      "--text-secondary"
+    ],
+    "rules": [
+      "border-strength",
+      "elevation-on-press",
+      "focus-style",
+      "no-custom-radii",
+      "no-opacity-disabled",
+      "numerals-font",
+      "red-usage",
+      "semantic-color-only",
+      "tap-target",
+      "type-hierarchy"
+    ],
+    "tokenBindings": {
+      "--surface-primary": {
+        "property": "background",
+        "selector": ".root fallback, .search, .railControl"
+      },
+      "--space-600": {
+        "property": "padding-inline / left / right",
+        "selector": ".utilityRow, .rail, .railControl edge inset"
+      },
+      "--divider-emphasis": {
+        "property": "background",
+        "selector": ".root::after viewport-wide closing rule at --stroke-thick"
+      },
+      "--border-default": {
+        "property": "background / border-color",
+        "selector": ".utilityRow::after row rule, .cart, .railControl"
+      },
+      "--border-focus": {
+        "property": "border-color",
+        "selector": ".search ring at --stroke-thick; outline-color on every focusable slot"
+      },
+      "--divider-subtle": {
+        "property": "background",
+        "selector": ".hallDivider, .railGroupDivider"
+      },
+      "--radius-button-primary": {
+        "property": "border-radius",
+        "selector": ".search, .searchSubmit, .zipcode, .account, .locale, .cart, .railControl"
+      },
+      "--radius-component-default": {
+        "property": "border-radius",
+        "selector": ".brand, .category, .hallButton"
+      },
+      "--button-primary": {
+        "property": "background",
+        "selector": ".searchSubmit"
+      },
+      "--text-emphasis": {
+        "property": "color",
+        "selector": ".categoryBadge"
+      },
+      "--font-size-caption-sm": {
+        "property": "font-size",
+        "selector": ".categoryLabel, .categoryBadge"
+      },
+      "--font-size-link-md": {
+        "property": "font-size",
+        "selector": ".hallButton, .zipcode, .account"
+      },
+      "--font-weight-emphasize": {
+        "property": "font-weight",
+        "selector": ".hallButton[data-selected], .categoryBadge"
+      }
+    }
+  },
+  "quality": {
+    "accessibility": {
+      "role": "banner landmark containing a search landmark and a category navigation region",
+      "wcagLevel": "AA",
+      "tapTargetMin": 44,
+      "keyboardNav": [
+        "tab",
+        "shift+tab",
+        "enter",
+        "space",
+        "escape"
+      ],
+      "ariaPattern": "header banner + role=search form with an optional labelled suggestion dialog + nav with a list of category links; halls form an exclusive radiogroup",
+      "structure": "Category artwork carries the category name as alt and repeats it as a visible label. The leading Categories entry uses a decorative glyph and relies on its visible label. The account control shows its label visibly. The locale control names itself via aria-label and hides the short code from assistive technology. The cart folds its item count into aria-label because the chrome shows no visible count.",
+      "interaction": "The PC search panel opens on focus, switches from discovery tags to image suggestions after input, closes on its scrim, submit, or Escape, and leaves mobile unchanged. The category rail scrolls natively; paging controls page by one viewport minus a single anchor entry and unmount at the boundaries. Reduced motion switches paging to immediate scrolling. Promotion badges sit in the category entry's top-right corner and are clipped to one line so a multi-badge entry cannot change the row height.",
+      "notes": "PC only. Below 1024px the rail scrolls rather than reflowing — the mobile header is a separate component."
+    },
+    "interactionCoverage": "covered"
+  },
+  "contentDigest": "681c5ab81fa60556b7d88daa097663e9001fd97d211281de0bc9540cbd81703b"
 }

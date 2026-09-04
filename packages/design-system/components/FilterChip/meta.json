@@ -1,5 +1,5 @@
 {
-  "$schema": "../../../schema/component.json",
+  "$schema": "../../schema/component.json",
   "name": "FilterChip",
   "category": "form",
   "status": "experimental",
@@ -56,7 +56,7 @@
   },
   "rules": {
     "interaction": {
-      "ruleId": "native-semantics",
+      "contractId": "native-semantics",
       "note": "FilterChip renders a button; FilterChipMenu uses Base UI Popover with Checkbox or RadioGroup semantics."
     },
     "focus": {

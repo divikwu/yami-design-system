@@ -1,14 +1,99 @@
 {
-  "schemaVersion": 1,
+  "$schema": "../../schema/registry-item.json",
+  "schemaVersion": 2,
   "name": "activity-page-header",
   "title": "ActivityPageHeader",
   "type": "component",
   "status": "experimental",
+  "version": "0.1.0",
+  "description": "Compact mobile navigation for campaign and editorial landing pages with the approved YAMI lockup, a page title, search and cart actions.",
   "source": "components/ActivityPageHeader",
   "files": [
-    "components/ActivityPageHeader/ActivityPageHeader.module.css",
-    "components/ActivityPageHeader/ActivityPageHeader.tsx",
-    "components/ActivityPageHeader/ActivityPageHeader.types.ts",
-    "components/ActivityPageHeader/index.ts"
-  ]
+    {
+      "source": "components/ActivityPageHeader/ActivityPageHeader.module.css",
+      "target": "components/ActivityPageHeader/ActivityPageHeader.module.css"
+    },
+    {
+      "source": "components/ActivityPageHeader/ActivityPageHeader.tsx",
+      "target": "components/ActivityPageHeader/ActivityPageHeader.tsx"
+    },
+    {
+      "source": "components/ActivityPageHeader/ActivityPageHeader.types.ts",
+      "target": "components/ActivityPageHeader/ActivityPageHeader.types.ts"
+    },
+    {
+      "source": "components/ActivityPageHeader/index.ts",
+      "target": "components/ActivityPageHeader/index.ts"
+    }
+  ],
+  "exports": [
+    "ActivityPageHeader",
+    "ActivityPageHeaderLocale",
+    "ActivityPageHeaderProps"
+  ],
+  "composes": [],
+  "dependencies": {
+    "runtime": [
+      "react"
+    ],
+    "peer": [],
+    "devOnly": []
+  },
+  "documentation": {
+    "usage": "components/ActivityPageHeader/usage.md",
+    "stories": [
+      "components/ActivityPageHeader/ActivityPageHeader.stories.tsx"
+    ],
+    "examples": [
+      "components/ActivityPageHeader/examples.tsx#ActivityPageHeaderExample"
+    ]
+  },
+  "design": {
+    "tokens": [
+      "--brand-secondary",
+      "--font-family-ios",
+      "--font-size-heading-md",
+      "--font-weight-emphasize",
+      "--layout-page-margin-card",
+      "--line-height-heading-md",
+      "--space-050",
+      "--space-100",
+      "--surface-primary"
+    ],
+    "rules": [
+      "focus-style",
+      "tap-target"
+    ],
+    "tokenBindings": {
+      "--layout-page-margin-card": {
+        "property": "padding-inline",
+        "selector": ".root and .branding"
+      },
+      "--font-size-heading-md": {
+        "property": "font-size",
+        "selector": ".title"
+      },
+      "--surface-primary": {
+        "property": "background",
+        "selector": ".root"
+      }
+    }
+  },
+  "quality": {
+    "accessibility": {
+      "role": "banner with page heading and two named actions",
+      "wcagLevel": "AA",
+      "tapTargetMin": 44,
+      "keyboardNav": [
+        "tab",
+        "enter",
+        "space"
+      ],
+      "ariaPattern": "native h1 plus named search and cart buttons",
+      "structure": "The one-line visible title is the page h1. Icons are decorative inside explicitly named buttons.",
+      "interaction": "Search and cart are native buttons with visible focus treatment."
+    },
+    "interactionCoverage": "covered"
+  },
+  "contentDigest": "1adc5811025e84763ec5bb0d5938268c987ef61fdaf6a99aaa11e87155ab5a61"
 }

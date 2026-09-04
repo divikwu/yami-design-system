@@ -1,13 +1,105 @@
 {
-  "schemaVersion": 1,
+  "$schema": "../../schema/registry-item.json",
+  "schemaVersion": 2,
   "name": "divider",
   "title": "Divider",
   "type": "component",
   "status": "stable",
+  "version": "0.1.0",
+  "description": "Hairline separator (1px). 3 strengths per design.md border-strength rule, plus inverse variants for opposite-polarity surfaces. Horizontal renders as <hr>, vertical as <span role=\"separator\">.",
   "source": "components/Divider",
   "files": [
-    "components/Divider/Divider.module.css",
-    "components/Divider/Divider.tsx",
-    "components/Divider/index.ts"
-  ]
+    {
+      "source": "components/Divider/Divider.module.css",
+      "target": "components/Divider/Divider.module.css"
+    },
+    {
+      "source": "components/Divider/Divider.tsx",
+      "target": "components/Divider/Divider.tsx"
+    },
+    {
+      "source": "components/Divider/index.ts",
+      "target": "components/Divider/index.ts"
+    }
+  ],
+  "exports": [
+    "Divider",
+    "DividerOrientation",
+    "DividerProps",
+    "DividerStrength"
+  ],
+  "composes": [],
+  "dependencies": {
+    "runtime": [
+      "react"
+    ],
+    "peer": [],
+    "devOnly": []
+  },
+  "documentation": {
+    "usage": "components/Divider/usage.md",
+    "stories": [
+      "components/Divider/Divider.stories.tsx"
+    ],
+    "examples": [
+      "components/Divider/examples.tsx#DefaultDivider",
+      "components/Divider/examples.tsx#SubtleDivider",
+      "components/Divider/examples.tsx#EmphasisDivider",
+      "components/Divider/examples.tsx#VerticalDivider",
+      "components/Divider/examples.tsx#InverseDivider",
+      "components/Divider/examples.tsx#BetweenSectionsExample",
+      "components/Divider/examples.tsx#InlineInfoRowExample"
+    ]
+  },
+  "design": {
+    "tokens": [
+      "--divider-default",
+      "--divider-default-inverse",
+      "--divider-emphasis",
+      "--divider-emphasis-inverse",
+      "--divider-subtle",
+      "--divider-subtle-inverse"
+    ],
+    "rules": [
+      "border-strength"
+    ],
+    "tokenBindings": {
+      "--divider-default": {
+        "property": "border-color",
+        "selector": ".horizontal.default, .vertical.default"
+      },
+      "--divider-default-inverse": {
+        "property": "border-color",
+        "selector": ".horizontal.default-inverse, .vertical.default-inverse"
+      },
+      "--divider-subtle": {
+        "property": "border-color",
+        "selector": ".horizontal.subtle, .vertical.subtle"
+      },
+      "--divider-subtle-inverse": {
+        "property": "border-color",
+        "selector": ".horizontal.subtle-inverse, .vertical.subtle-inverse"
+      },
+      "--divider-emphasis": {
+        "property": "border-color",
+        "selector": ".horizontal.emphasis, .vertical.emphasis"
+      },
+      "--divider-emphasis-inverse": {
+        "property": "border-color",
+        "selector": ".horizontal.emphasis-inverse, .vertical.emphasis-inverse"
+      }
+    }
+  },
+  "quality": {
+    "accessibility": {
+      "role": "separator",
+      "wcagLevel": "AA",
+      "tapTargetMin": 0,
+      "keyboardNav": [],
+      "ariaPattern": "separator",
+      "notes": "Non-interactive — tapTargetMin=0, keyboardNav=[]. <hr> is inherently role=separator. Vertical variant sets role+aria-orientation manually."
+    },
+    "interactionCoverage": "not-applicable"
+  },
+  "contentDigest": "080101861f55caa701699162b2f2624025be413a4e270226d4a5295a324fa90f"
 }

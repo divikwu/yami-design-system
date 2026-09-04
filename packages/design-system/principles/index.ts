@@ -5,9 +5,8 @@
  * runner that executes every principle's validator against a code string.
  *
  * Consumers:
- *   @yami/mcp-server — validate_design MCP tool (Phase 7)
+ *   design-system Skill offline evaluation
  *   repository checks — principles and runtime-validator consistency
- *   @yami/harness — scorers/deterministic/validate-design (Phase 7.5)
  */
 
 import { principles, principlesById, ruleIds } from './principles'

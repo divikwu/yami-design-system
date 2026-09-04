@@ -6,7 +6,7 @@
       "id": "ActivityPageHeader",
       "source": "components/ActivityPageHeader",
       "meta": {
-        "$schema": "../../../schema/component.json",
+        "$schema": "../../schema/component.json",
         "name": "ActivityPageHeader",
         "category": "navigation",
         "status": "experimental",
@@ -53,7 +53,7 @@
         },
         "rules": {
           "brand": {
-            "ruleId": "brand-assets",
+            "contractId": "brand-assets",
             "note": "Consumes the locked Mobile Logo-UI assets; the mark and wordmark are never assembled in code."
           },
           "focus": {
@@ -120,7 +120,7 @@
       "id": "AspectRatio",
       "source": "components/AspectRatio",
       "meta": {
-        "$schema": "../../../schema/component.json",
+        "$schema": "../../schema/component.json",
         "name": "AspectRatio",
         "category": "layout",
         "status": "stable",
@@ -129,6 +129,14 @@
         "figma": {
           "nodeId": null,
           "componentKey": null
+        },
+        "exports": [
+          "AspectRatio",
+          "AspectRatioProps"
+        ],
+        "testing": {
+          "interaction": "not-applicable",
+          "rationale": "Geometry-only wrapper with no component-owned interaction."
         },
         "props": {
           "ratio": {
@@ -172,7 +180,7 @@
       "id": "Badge",
       "source": "components/Badge",
       "meta": {
-        "$schema": "../../../schema/component.json",
+        "$schema": "../../schema/component.json",
         "name": "Badge",
         "category": "display",
         "status": "stable",
@@ -195,6 +203,15 @@
           },
           "sizeDelta": "Badge sizes are breakpoint-independent: sm is 20px high with 12/16 type; md is 24px high with 14/20 type."
         },
+        "exports": [
+          "Badge",
+          "BadgeColor",
+          "BadgeEmphasis",
+          "BadgeProps",
+          "BadgeSize",
+          "BadgeTone",
+          "BadgeType"
+        ],
         "variants": {
           "color": [
             "red",
@@ -515,7 +532,7 @@
       "id": "Billboard",
       "source": "components/Billboard",
       "meta": {
-        "$schema": "../../../schema/component.json",
+        "$schema": "../../schema/component.json",
         "name": "Billboard",
         "category": "composite",
         "status": "stable",
@@ -628,7 +645,7 @@
       "id": "BrandProductRail",
       "source": "components/BrandProductRail",
       "meta": {
-        "$schema": "../../../schema/component.json",
+        "$schema": "../../schema/component.json",
         "name": "BrandProductRail",
         "category": "composite",
         "status": "stable",
@@ -861,7 +878,7 @@
       "id": "Button",
       "source": "components/Button",
       "meta": {
-        "$schema": "../../../schema/component.json",
+        "$schema": "../../schema/component.json",
         "name": "Button",
         "category": "action",
         "status": "stable",
@@ -893,6 +910,13 @@
           "sizeDelta": "Per-form size coverage in Figma: Full + Inline ship Size=Medium (40) and Size=Large (Mobile 48 / PC 56). Icon ships Size=Small (32) / Medium (40) / Large (48 on both Mobile + PC — does NOT bump to 56). Code unifies the size axis to sm/md/lg across all forms; Full/Inline 'sm' is a YAMI-product extension beyond Figma. CSS scopes the lg→56 desktop bump to :not(.iconOnly) so Icon Large stays 48×48.",
           "stateMapping": "Figma 'Hover / Active' collapses to two CSS states (:hover + :active) which already share the same `-active` token. Figma omits :focus-visible (a11y-only) and code adds it per rule `focus-style`."
         },
+        "exports": [
+          "Button",
+          "ButtonForm",
+          "ButtonProps",
+          "ButtonSize",
+          "ButtonVariant"
+        ],
         "variants": {
           "variant": [
             "emphasis",
@@ -1251,7 +1275,7 @@
       "id": "Card",
       "source": "components/Card",
       "meta": {
-        "$schema": "../../../schema/component.json",
+        "$schema": "../../schema/component.json",
         "name": "Card",
         "category": "layout",
         "status": "stable",
@@ -1260,6 +1284,16 @@
         "figma": {
           "nodeId": null,
           "componentKey": null
+        },
+        "exports": [
+          "Card",
+          "CardPadding",
+          "CardProps",
+          "CardSurface"
+        ],
+        "testing": {
+          "interaction": "not-applicable",
+          "rationale": "The primitive owns surface geometry; interactive semantics and behavior belong to the selected host element."
         },
         "variants": {
           "padding": [
@@ -1421,7 +1455,7 @@
       "id": "Checkbox",
       "source": "components/Checkbox",
       "meta": {
-        "$schema": "../../../schema/component.json",
+        "$schema": "../../schema/component.json",
         "name": "Checkbox",
         "category": "form",
         "status": "beta",
@@ -1592,7 +1626,7 @@
       "id": "Dialog",
       "source": "components/Dialog",
       "meta": {
-        "$schema": "../../../schema/component.json",
+        "$schema": "../../schema/component.json",
         "name": "Dialog",
         "category": "layout",
         "status": "experimental",
@@ -1750,7 +1784,7 @@
       "id": "Divider",
       "source": "components/Divider",
       "meta": {
-        "$schema": "../../../schema/component.json",
+        "$schema": "../../schema/component.json",
         "name": "Divider",
         "category": "layout",
         "status": "stable",
@@ -1759,6 +1793,16 @@
         "figma": {
           "nodeId": null,
           "componentKey": null
+        },
+        "exports": [
+          "Divider",
+          "DividerOrientation",
+          "DividerProps",
+          "DividerStrength"
+        ],
+        "testing": {
+          "interaction": "not-applicable",
+          "rationale": "Semantic separator with no interactive behavior."
         },
         "variants": {
           "strength": [
@@ -1870,7 +1914,7 @@
       "id": "FilterChip",
       "source": "components/FilterChip",
       "meta": {
-        "$schema": "../../../schema/component.json",
+        "$schema": "../../schema/component.json",
         "name": "FilterChip",
         "category": "form",
         "status": "experimental",
@@ -1941,7 +1985,7 @@
         },
         "rules": {
           "interaction": {
-            "ruleId": "native-semantics",
+            "contractId": "native-semantics",
             "note": "FilterChip renders a button; FilterChipMenu uses Base UI Popover with Checkbox or RadioGroup semantics."
           },
           "focus": {
@@ -2040,7 +2084,7 @@
       "id": "Footer",
       "source": "components/Footer",
       "meta": {
-        "$schema": "../../../schema/component.json",
+        "$schema": "../../schema/component.json",
         "name": "Footer",
         "category": "composite",
         "semanticCategories": [
@@ -2325,7 +2369,7 @@
       "id": "Header",
       "source": "components/Header",
       "meta": {
-        "$schema": "../../../schema/component.json",
+        "$schema": "../../schema/component.json",
         "name": "Header",
         "category": "composite",
         "semanticCategories": [
@@ -2699,7 +2743,7 @@
       "id": "HeroBanner",
       "source": "components/HeroBanner",
       "meta": {
-        "$schema": "../../../schema/component.json",
+        "$schema": "../../schema/component.json",
         "name": "HeroBanner",
         "category": "composite",
         "status": "stable",
@@ -2885,7 +2929,7 @@
       "id": "HorizontalScrollList",
       "source": "components/HorizontalScrollList",
       "meta": {
-        "$schema": "../../../schema/component.json",
+        "$schema": "../../schema/component.json",
         "name": "HorizontalScrollList",
         "category": "layout",
         "status": "experimental",
@@ -2936,11 +2980,11 @@
         },
         "rules": {
           "nativeScrolling": {
-            "ruleId": "horizontal-list-native-scroll",
+            "contractId": "horizontal-list-native-scroll",
             "note": "Finite rails use native horizontal scrolling; callers do not translate the list with transforms."
           },
           "itemGeometry": {
-            "ruleId": "horizontal-list-caller-geometry",
+            "contractId": "horizontal-list-caller-geometry",
             "note": "The list owns scrolling while callers own item width, gap, and edge padding."
           }
         },
@@ -2982,7 +3026,7 @@
       "id": "Input",
       "source": "components/Input",
       "meta": {
-        "$schema": "../../../schema/component.json",
+        "$schema": "../../schema/component.json",
         "name": "Input",
         "category": "form",
         "status": "stable",
@@ -2996,6 +3040,12 @@
             "mobileInputField": "3387:24708"
           }
         },
+        "exports": [
+          "Input",
+          "InputProps",
+          "InputSize",
+          "InputState"
+        ],
         "variants": {
           "platform": [
             "mobile",
@@ -3116,11 +3166,11 @@
             "note": "Visible control is 48px on mobile and 56px on PC."
           },
           "assetSource": {
-            "ruleId": "asset-source",
+            "contractId": "asset-source",
             "note": "Clear and error icons are currentColor SVG paths from packages/design-system/assets/icons/action."
           },
           "nativeSync": {
-            "ruleId": "native-input-sync",
+            "contractId": "native-input-sync",
             "note": "Uncontrolled visual state resyncs from native input/change and form reset events."
           }
         },
@@ -3263,7 +3313,7 @@
       "id": "ProductCard",
       "source": "components/ProductCard",
       "meta": {
-        "$schema": "../../../schema/component.json",
+        "$schema": "../../schema/component.json",
         "name": "ProductCard",
         "category": "composite",
         "status": "stable",
@@ -3619,7 +3669,7 @@
       "id": "ProductList",
       "source": "components/ProductList",
       "meta": {
-        "$schema": "../../../schema/component.json",
+        "$schema": "../../schema/component.json",
         "name": "ProductList",
         "category": "composite",
         "status": "stable",
@@ -3911,7 +3961,7 @@
       "id": "ProductMediaGallery",
       "source": "components/ProductMediaGallery",
       "meta": {
-        "$schema": "../../../schema/component.json",
+        "$schema": "../../schema/component.json",
         "name": "ProductMediaGallery",
         "category": "composite",
         "status": "experimental",
@@ -4139,7 +4189,7 @@
       "id": "ProductReviewSection",
       "source": "components/ProductReviewSection",
       "meta": {
-        "$schema": "../../../schema/component.json",
+        "$schema": "../../schema/component.json",
         "name": "ProductReviewSection",
         "category": "composite",
         "status": "experimental",
@@ -4296,7 +4346,7 @@
       "id": "RadioGroup",
       "source": "components/RadioGroup",
       "meta": {
-        "$schema": "../../../schema/component.json",
+        "$schema": "../../schema/component.json",
         "name": "RadioGroup",
         "category": "form",
         "status": "beta",
@@ -4487,7 +4537,7 @@
       "id": "ReviewList",
       "source": "components/ReviewList",
       "meta": {
-        "$schema": "../../../schema/component.json",
+        "$schema": "../../schema/component.json",
         "name": "ReviewList",
         "category": "composite",
         "status": "experimental",
@@ -4644,7 +4694,7 @@
       "id": "Sheet",
       "source": "components/Sheet",
       "meta": {
-        "$schema": "../../../schema/component.json",
+        "$schema": "../../schema/component.json",
         "name": "Sheet",
         "category": "layout",
         "status": "experimental",
@@ -4806,7 +4856,7 @@
       "id": "ShortcutRail",
       "source": "components/ShortcutRail",
       "meta": {
-        "$schema": "../../../schema/component.json",
+        "$schema": "../../schema/component.json",
         "name": "ShortcutRail",
         "category": "navigation",
         "status": "stable",
@@ -5020,7 +5070,7 @@
       "id": "SocialMediaGallery",
       "source": "components/SocialMediaGallery",
       "meta": {
-        "$schema": "../../../schema/component.json",
+        "$schema": "../../schema/component.json",
         "name": "SocialMediaGallery",
         "category": "composite",
         "status": "stable",
@@ -5192,7 +5242,7 @@
       "id": "Tabs",
       "source": "components/Tabs",
       "meta": {
-        "$schema": "../../../schema/component.json",
+        "$schema": "../../schema/component.json",
         "name": "Tabs",
         "category": "navigation",
         "status": "beta",
@@ -5382,7 +5432,7 @@
         },
         "rules": {
           "levels": {
-            "ruleId": "navigation-depth",
+            "contractId": "navigation-depth",
             "note": "Primary for major content groups, Secondary for sub-sections, Tertiary for compact category filters. Do not mix levels in the same list."
           },
           "focus": {
@@ -5399,7 +5449,7 @@
             "note": "Disabled tabs use --text-disabled / --text-disabled-inverse and are skipped by arrow-key navigation."
           },
           "icons": {
-            "ruleId": "asset-source",
+            "contractId": "asset-source",
             "note": "When icon slots are used, pass currentColor SVGs from packages/design-system/assets/icons; do not use ad-hoc glyphs."
           }
         },
@@ -5548,7 +5598,7 @@
       "id": "Tag",
       "source": "components/Tag",
       "meta": {
-        "$schema": "../../../schema/component.json",
+        "$schema": "../../schema/component.json",
         "name": "Tag",
         "category": "display",
         "status": "experimental",
@@ -5640,7 +5690,7 @@
         },
         "rules": {
           "interaction": {
-            "ruleId": "display-only",
+            "contractId": "display-only",
             "note": "Tag is non-interactive. Use a shared interactive primitive for filters, navigation, or dismissal."
           },
           "radius": {
@@ -5652,7 +5702,7 @@
             "note": "Use content for ordinary surfaces and overlay for visual backgrounds. Choose light mode on light surfaces and dark mode on dark surfaces."
           },
           "responsive-size": {
-            "ruleId": "responsive-size",
+            "contractId": "responsive-size",
             "note": "M remains 28px across breakpoints. At 1024px, L steps from 32px to 36px. The optional image slot remains 4px smaller than the Tag and its artwork remains 8px smaller."
           }
         },
@@ -5751,7 +5801,7 @@
       "id": "ThemeHero",
       "source": "components/ThemeHero",
       "meta": {
-        "$schema": "../../../schema/component.json",
+        "$schema": "../../schema/component.json",
         "name": "ThemeHero",
         "category": "composite",
         "status": "experimental",
@@ -5958,7 +6008,7 @@
       "id": "ThemeProductList",
       "source": "components/ThemeProductList",
       "meta": {
-        "$schema": "../../../schema/component.json",
+        "$schema": "../../schema/component.json",
         "name": "ThemeProductList",
         "category": "composite",
         "status": "experimental",
@@ -6103,7 +6153,7 @@
       "id": "TrendingSearches",
       "source": "components/TrendingSearches",
       "meta": {
-        "$schema": "../../../schema/component.json",
+        "$schema": "../../schema/component.json",
         "name": "TrendingSearches",
         "category": "composite",
         "status": "stable",
