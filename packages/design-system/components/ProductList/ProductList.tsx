@@ -3,6 +3,7 @@
 import {
   type CSSProperties,
   useId,
+  useLayoutEffect,
   useMemo,
 } from "react";
 
@@ -146,6 +147,13 @@ export function ProductList(props: ProductListProps) {
     () => tabs?.find((tab) => !tab.disabled)?.value,
     [tabs],
   );
+  const firstProductId = products[0]?.id;
+  useLayoutEffect(() => {
+    if (layout !== "rail" || !railRef.current) return;
+    railRef.current.scrollLeft = 0;
+    updateRailState();
+  }, [firstProductId, layout, products.length, updateRailState, value]);
+
   const handleTabValueChange = (nextValue: string) => {
     if (layout === "rail" && railRef.current) {
       railRef.current.scrollLeft = 0;

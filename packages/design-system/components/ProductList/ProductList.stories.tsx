@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { ProductList } from "./ProductList";
@@ -148,9 +148,33 @@ export const Showcase: Story = {
   },
 };
 
+function TabChangingProductsShowcase() {
+  const allProducts = createProductListProducts("en");
+  const productsByTab = {
+    all: allProducts,
+    category: allProducts.slice(-4),
+  };
+  const [value, setValue] = useState<keyof typeof productsByTab>("all");
+
+  return (
+    <ProductList
+      {...getProps("en")}
+      products={productsByTab[value]}
+      tabs={[
+        { value: "all", label: "All" },
+        { value: "category", label: "Category" },
+      ]}
+      value={value}
+      onValueChange={(nextValue) =>
+        setValue(nextValue as keyof typeof productsByTab)
+      }
+    />
+  );
+}
+
 export const TabChangeResetsRailPosition: Story = {
   tags: ["!dev", "!autodocs"],
-  render: Showcase.render,
+  render: () => <TabChangingProductsShowcase />,
   play: async ({ canvasElement }) => {
     const list = canvasElement.querySelector<HTMLElement>(
       '[data-slot="product-list-items"]',
@@ -158,22 +182,36 @@ export const TabChangeResetsRailPosition: Story = {
     const tabs = canvasElement.querySelectorAll<HTMLButtonElement>(
       '[data-slot="tabs-trigger"]',
     );
+    const previousButton = canvasElement.querySelector<HTMLButtonElement>(
+      '[aria-label="Previous products"]',
+    );
+    const firstTab = tabs[0];
     const nextTab = tabs[1];
-    if (!list || !nextTab || list.scrollWidth <= list.clientWidth) {
+    if (
+      !list ||
+      !previousButton ||
+      !firstTab ||
+      !nextTab ||
+      list.scrollWidth <= list.clientWidth
+    ) {
       throw new Error("Tabbed Product List must render a scrollable rail");
-    }
-
-    list.scrollLeft = Math.min(200, list.scrollWidth - list.clientWidth);
-    list.dispatchEvent(new Event("scroll"));
-    if (list.scrollLeft <= 0) {
-      throw new Error("Tabbed Product List could not establish a scrolled state");
     }
 
     nextTab.click();
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    firstTab.click();
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+    );
 
-    if (nextTab.dataset.state !== "active" || list.scrollLeft !== 0) {
-      throw new Error("Product List tab changes must reset the rail to its start");
+    if (
+      firstTab.dataset.state !== "active" ||
+      list.scrollLeft !== 0 ||
+      previousButton.getAttribute("aria-disabled") !== "true"
+    ) {
+      throw new Error(
+        "Product List tab changes with replacement products must reset the rail to its start",
+      );
     }
   },
 };

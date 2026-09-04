@@ -180,7 +180,7 @@
       "status": "stable",
       "version": "0.3.0",
       "path": "registry-items/product-list.json",
-      "digest": "eb792cec8475bedc721e735fe299244c67abd1eda3f3c0840c2bb03a5ade0707"
+      "digest": "90779a8bcb9e22769d1608c5f171034a21d11a072cb5092245331b000a02f032"
     },
     {
       "name": "product-media-gallery",
@@ -270,7 +270,7 @@
       "status": "experimental",
       "version": "0.8.1",
       "path": "registry-items/theme-hero.json",
-      "digest": "064acf2bb6ec6d1bdb5bd40fca9780ace6c338ceccf60a02687cafcbf8775698"
+      "digest": "34bfe5819bd195d2ef27621f70fb3bdb09cdbb685b04af77913d11c5587d1d42"
     },
     {
       "name": "theme-product-list",

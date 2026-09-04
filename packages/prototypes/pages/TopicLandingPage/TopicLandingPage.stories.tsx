@@ -1271,6 +1271,21 @@ export const Pc: Story = {
     const shortcutTitle = page.querySelector<HTMLElement>(
       '[data-slot="shortcut-rail-title"]',
     );
+    const expectedModuleTitlePadding =
+      page.getBoundingClientRect().width >= 1024 ? "2px" : "0px";
+    if (
+      Array.from(moduleTitles).some((title) => {
+        const style = getComputedStyle(title);
+        return (
+          style.paddingTop !== expectedModuleTitlePadding ||
+          style.paddingBottom !== expectedModuleTitlePadding
+        );
+      })
+    ) {
+      throw new Error(
+        "Shared section titles must use 2px block padding on PC and remain unpadded on mobile",
+      );
+    }
     const primaryTabLabels = Array.from(
       primaryTabs.querySelectorAll<HTMLElement>('[data-slot="tabs-trigger"]'),
       (tab) => normalize(tab.textContent),
