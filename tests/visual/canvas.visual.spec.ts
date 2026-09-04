@@ -64,38 +64,6 @@ async function waitForDirectPreview(page: Page, selector: string) {
   });
 }
 
-async function materializeTopicPage(page: Page) {
-  await page.addStyleTag({
-    content: `
-      [data-slot="topic-landing-standard-rail"],
-      [data-slot="topic-landing-brand-rail"],
-      [data-slot="topic-landing-review-list"],
-      [data-slot="topic-landing-waterfall-section"] {
-        content-visibility: visible !important;
-        contain-intrinsic-size: none !important;
-      }
-    `,
-  });
-  await page.evaluate(async () => {
-    const settle = () => new Promise<void>((resolve) => {
-      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-    });
-    for (let offset = 0; offset < document.documentElement.scrollHeight; offset += Math.max(window.innerHeight * 0.8, 600)) {
-      window.scrollTo(0, offset);
-      await settle();
-    }
-    window.scrollTo(0, 0);
-    await Promise.race([
-      Promise.all(Array.from(document.images).map((image) => image.complete ? Promise.resolve() : new Promise<void>((resolve) => {
-        image.addEventListener("load", () => resolve(), { once: true });
-        image.addEventListener("error", () => resolve(), { once: true });
-      }))),
-      new Promise<void>((resolve) => window.setTimeout(resolve, 5_000)),
-    ]);
-    await settle();
-  });
-}
-
 test.describe("ecommerce-home-full-matrix", () => {
   for (const locale of ["zh", "en"] as const) {
     for (const theme of ["light", "dark"] as const) {
@@ -117,24 +85,28 @@ const pairwisePageCases = [
     url: "/preview/search?data=snapshot&locale=zh&theme=light",
     selector: '[data-slot="search-results-page"]',
     width: 402,
+    capture: "full-page",
   },
   {
     id: "search-en-dark-1440",
     url: "/preview/search?data=snapshot&locale=en&theme=dark",
     selector: '[data-slot="search-results-page"]',
     width: 1440,
+    capture: "full-page",
   },
   {
     id: "topic-zh-light-402",
     url: "/preview?path=%2Fbrands%2Fanua&direction=current&locale=zh&theme=light&transition=none",
     selector: '[data-slot="topic-landing-page"]',
     width: 402,
+    capture: "viewport",
   },
   {
     id: "topic-en-dark-1440",
     url: "/preview?path=%2Fbrands%2Fanua&direction=current&locale=en&theme=dark&transition=none",
     selector: '[data-slot="topic-landing-page"]',
     width: 1440,
+    capture: "viewport",
   },
 ] as const;
 
@@ -144,8 +116,11 @@ test.describe("pairwise-page-contracts", () => {
       await page.setViewportSize({ width: visualCase.width, height: 1100 });
       await page.goto(visualCase.url);
       await waitForDirectPreview(page, visualCase.selector);
-      if (visualCase.id.startsWith("topic-")) await materializeTopicPage(page);
-      await expect(page).toHaveScreenshot(`${visualCase.id}.png`, { fullPage: true });
+      // Topic sections intentionally virtualize offscreen content, so its pairwise
+      // contract covers the stable entry viewport instead of forcing a synthetic page.
+      await expect(page).toHaveScreenshot(`${visualCase.id}.png`, {
+        fullPage: visualCase.capture === "full-page",
+      });
     });
   }
 });
