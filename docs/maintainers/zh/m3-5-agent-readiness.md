@@ -2,7 +2,9 @@
 
 日期：2026-09-04
 
-实施基线：`bda915d8cecc05785bbec7ef816de611186addf9`
+契约实施基线：`8bafeb54f1ff4e2d03316b04502193fb9787357e`
+
+客户端及生命周期彩排基线：`bda915d8cecc05785bbec7ef816de611186addf9`
 
 结论：**有条件就绪，尚未放行进入 M4 试用**
 
@@ -11,18 +13,18 @@ M3.5 建立的是确定性、可在本地校验的 Agent 契约；它没有增�
 
 ## 已实现能力
 
-| 范围 | 实施基线结果 |
+| 范围 | 契约实施基线结果 |
 | --- | --- |
-| 组件契约 | 30/30 组件元数据通过 JSON Schema 2020-12。14 个 Stable 组件全部通过导出、Usage、Story、Registry、源码、版本、Token、规则与交互证据的加强检查。 |
-| Registry v2 | 共 31 个确定性的内部源码项（含 base），记录源文件与目标文件、导出、依赖、文档、设计规则与 Token、质量证据及 SHA-256 内容摘要；连续生成字节一致。 |
-| 页面验证 | 7/7 页面族进入清单：5 个 Core、2 个 Smoke；源码、Story、fixture、路由及测试引用均由检查器验证。 |
-| Skill 评测 | 12/12 中英文离线用例通过，使用真实规则校验器与本地组件、页面、Token、Rule 和 Registry 引用；CI 不调用模型 API。 |
+| 组件契约 | 30/30 组件元数据通过 JSON Schema 2020-12。14 个 Stable 组件全部通过精确公共导出与 `Showcase` 检查，以及 Usage、Registry、源码、严格 SemVer、Token binding、规则与交互证据检查。 |
+| Registry v2 | 共 31 个确定性的内部源码项采用同一形状（含 base），记录源文件与目标文件、导出、依赖、文档、设计规则与 Token、质量证据及 SHA-256 内容摘要；连续生成字节一致。 |
+| 页面验证 | 7/7 页面族进入清单：5 个 Core、2 个 Smoke；仓库范围内的源码、Story、精确 fixture 导出、App Router 路由及测试引用均由检查器验证。 |
+| Skill 评测 | 12/12 中英文离线用例通过，使用真实规则校验器与本地组件、页面、Token、Rule、Registry 和具名 Story 导出引用；CI 不调用模型 API。 |
 | Skill 契约 | 中英文清单同步升级为 `0.6.0-alpha.1`，将 Registry v2 准确描述为内部源码契约，不宣称兼容 shadcn。 |
 | 发布记录 | 已为 `@yami/design-system`、`@yami/prototypes` 增加 minor Changeset；未升版本、未发包、未合并、未部署。 |
 
 ## 固定提交客户端彩排
 
-两个客户端在同一实施基线上收到相同的只读 Prompt；禁止修改文件、使用网络来源、运行生成，
+两个客户端在同一较早的彩排基线上收到相同的只读 Prompt；禁止修改文件、使用网络来源、运行生成，
 也禁止宣称执行过实际未运行的检查。
 
 ```text
@@ -49,7 +51,7 @@ Git 命令，所以其提交字段来自固定基线 Prompt，而非独立校验
 
 ## 干净工作树生命周期演练
 
-在实施基线创建一次性 detached worktree，完整执行了以下流程：
+在较早的彩排基线创建一次性 detached worktree，完整执行了以下流程：
 
 1. 发现并选择 Stable 的 `button` Registry 项，初始摘要为
    `6a59430379d9f247a4610293ecf5a4428a02cb8b7c33f35fee678f74cd9be4d4`。
@@ -84,7 +86,7 @@ pnpm validate
 | 命令或门槛 | 结果 |
 | --- | --- |
 | `pnpm validate` | 通过；包含 lint、Docsite 双语内容、类型、15 条原则同步、400 Token 引用、30 个组件、7 个页面、31 个 Registry 项、12/12 Skill 用例、边界、工具层及全仓单元测试 |
-| 契约负例夹具 | 通过；越界 Usage 引用、Stable 缺失导出、伪造 Token 均按要求导致 checker 失败 |
+| 契约负例夹具 | 通过；越界 Usage、仅 import 的公共导出、伪造 Token binding、非法 SemVer、缺失 `Showcase`、仓库越界和路由/源码不匹配均按要求失败 |
 | `pnpm test:a11y` | 6/6 通过 |
 | `pnpm test:e2e` | 13/13 通过 |
 | `pnpm check:docsite-content` | 通过；13 对文档、6 对 Blog、400 个生成 Token |

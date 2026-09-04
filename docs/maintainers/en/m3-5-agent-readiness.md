@@ -2,7 +2,9 @@
 
 Date: 2026-09-04
 
-Implementation baseline: `bda915d8cecc05785bbec7ef816de611186addf9`
+Contract implementation baseline: `8bafeb54f1ff4e2d03316b04502193fb9787357e`
+
+Client and lifecycle rehearsal baseline: `bda915d8cecc05785bbec7ef816de611186addf9`
 
 Decision: **conditionally ready; not yet cleared for the M4 pilot**
 
@@ -11,18 +13,18 @@ MCP product, shadcn output, npm release, hosted deployment, or evidence of team 
 
 ## Implemented capability
 
-| Area | Result at the implementation baseline |
+| Area | Result at the contract implementation baseline |
 | --- | --- |
-| Component contract | 30/30 component metadata files validate against the 2020-12 schema. All 14 stable components pass the stronger export, Usage, Story, Registry, source, version, token, rule, and interaction-evidence checks. |
-| Registry v2 | 31 deterministic internal source items, including the base item, expose source/target files, exports, dependencies, documentation, design rules and tokens, quality evidence, and SHA-256 content digests. Repeated generation is byte-identical. |
-| Page validation | 7/7 maintained page families are declared: five Core and two Smoke. References to sources, stories, fixtures, routes, and tests are checked. |
-| Skill evaluation | 12/12 bilingual offline cases pass using the real rule validator and local component, page, token, rule, and Registry references. CI does not call a model API. |
+| Component contract | 30/30 component metadata files validate against the 2020-12 schema. All 14 stable components pass exact public-export and `Showcase` checks plus Usage, Registry, source, strict SemVer, token-binding, rule, and interaction-evidence checks. |
+| Registry v2 | 31 deterministic internal source items use one unified shape, including the base item, and expose source/target files, exports, dependencies, documentation, design rules and tokens, quality evidence, and SHA-256 content digests. Repeated generation is byte-identical. |
+| Page validation | 7/7 maintained page families are declared: five Core and two Smoke. Repository-scoped sources, stories, exact fixture exports, App Router routes, and test references are checked. |
+| Skill evaluation | 12/12 bilingual offline cases pass using the real rule validator and local component, page, token, rule, Registry, and named Story-export references. CI does not call a model API. |
 | Skill contract | English and Chinese manifests are versioned `0.6.0-alpha.1` and describe Registry v2 as an internal source contract, not shadcn compatibility. |
 | Release record | A minor Changeset exists for `@yami/design-system` and `@yami/prototypes`; no version bump, package publication, merge, or deployment was performed. |
 
 ## Fixed-commit client rehearsal
 
-Both clients received the same read-only prompt at the implementation baseline. They were forbidden
+Both clients received the same read-only prompt at the earlier rehearsal baseline. They were forbidden
 from editing, using network sources, running generation, or claiming checks they had not executed.
 
 ```text
@@ -52,7 +54,7 @@ fixed baseline rather than an independent revision check.
 
 ## Clean-tree lifecycle rehearsal
 
-A disposable detached worktree at the implementation baseline exercised the complete lifecycle:
+A disposable detached worktree at the earlier rehearsal baseline exercised the complete lifecycle:
 
 1. Discovery selected the stable `button` Registry item at digest
    `6a59430379d9f247a4610293ecf5a4428a02cb8b7c33f35fee678f74cd9be4d4`.
@@ -89,7 +91,7 @@ Current results from this worktree:
 | Command or gate | Result |
 | --- | --- |
 | `pnpm validate` | pass; includes lint, paired Docsite content, typecheck, 15 principle sync, 400 Token references, 30 components, 7 pages, 31 Registry items, 12/12 Skill cases, boundaries, tooling, and all workspace unit tests |
-| Contract negative fixtures | pass; escaped Usage, missing stable export, and fabricated Token all caused the checker to fail as required |
+| Contract negative fixtures | pass; escaped Usage, import-only public export, fabricated Token binding, invalid SemVer, missing `Showcase`, repository escape, and route/source mismatch all fail as required |
 | `pnpm test:a11y` | 6/6 pass |
 | `pnpm test:e2e` | 13/13 pass |
 | `pnpm check:docsite-content` | pass; 13 paired documents, 6 paired Blog posts, and 400 generated Tokens |
