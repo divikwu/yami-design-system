@@ -252,6 +252,21 @@ export const Showcase: Story = {
       }
       const mediaStyle = getComputedStyle(media);
       const imageStyle = getComputedStyle(image);
+      const tokenProbe = document.createElement("span");
+      tokenProbe.style.backgroundColor = "var(--fill-tertiary)";
+      document.body.append(tokenProbe);
+      const placeholderColor = getComputedStyle(tokenProbe).backgroundColor;
+      tokenProbe.remove();
+      const originalImageState = image.dataset.imageState;
+      image.dataset.imageState = "pending";
+      const pendingMediaColor = getComputedStyle(media).backgroundColor;
+      if (originalImageState) image.dataset.imageState = originalImageState;
+      else delete image.dataset.imageState;
+      if (pendingMediaColor !== placeholderColor) {
+        throw new Error(
+          "Desktop ThemeHero media must show the tertiary gray fill while artwork is pending",
+        );
+      }
       if (mediaStyle.maxHeight !== "400px" || mediaStyle.overflow !== "hidden") {
         throw new Error("Desktop ThemeHero media must cap its height and hide overflow");
       }
@@ -377,6 +392,11 @@ export const Mobile: Story = {
       copyContentBox.width -
       Number.parseFloat(copyContentStyles.paddingLeft) -
       Number.parseFloat(copyContentStyles.paddingRight);
+    const originalImageState = image.dataset.imageState;
+    image.dataset.imageState = "pending";
+    const pendingMediaColor = getComputedStyle(media).backgroundColor;
+    if (originalImageState) image.dataset.imageState = originalImageState;
+    else delete image.dataset.imageState;
 
     if (
       heroBox.height < 359 ||
@@ -444,6 +464,7 @@ export const Mobile: Story = {
       secondaryButtonStyles.flexGrow !== "1" ||
       primaryButtonStyles.borderRadius !== "9999px" ||
       secondaryButtonStyles.borderRadius !== "9999px" ||
+      pendingMediaColor !== "rgba(0, 0, 0, 0)" ||
       mediaStyles.position !== "absolute" ||
       imageStyles.position !== "absolute" ||
       imageStyles.top !== "-40px" ||

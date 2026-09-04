@@ -209,6 +209,12 @@
 }
 
 @media (min-width: 1024px) {
+  .media:has(.image[data-image-state="pending"]),
+  .media:has(.image[data-image-state="error"]) {
+    border-radius: var(--radius-md);
+    background-color: var(--fill-tertiary);
+  }
+
   .image {
     border-radius: var(--radius-md);
   }

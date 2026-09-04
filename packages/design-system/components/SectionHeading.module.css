@@ -76,6 +76,7 @@
 
 @media (min-width: 1024px) {
   .title {
+    padding-block: var(--space-025);
     font-size: var(--font-size-display-sm);
     line-height: var(--line-height-display-sm);
   }

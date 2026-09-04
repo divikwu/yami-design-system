@@ -35,7 +35,11 @@ type BrandKey =
   | "nestle"
   | "uha"
   | "kanglepin"
-  | "kawasimaya";
+  | "kawasimaya"
+  | "aibana"
+  | "yue-home"
+  | "yamaki-ikai"
+  | "wing-hop-fung";
 
 interface MatchaProductSource {
   id: keyof typeof productImages;
@@ -165,6 +169,16 @@ const productImages = {
     "./assets/matcha/products/1029215511.webp",
     import.meta.url,
   ).href,
+  "5029205111":
+    "https://cdn.yamibuy.net/item/60cf9f1b97b7dfa2a7902e8b67e5d986_0x0.webp",
+  "1029217101":
+    "https://cdn.yamibuy.net/item/7a19c03ca1a6cb3331f0dfaae4c35a46_0x0.webp",
+  "1029217111":
+    "https://cdn.yamibuy.net/item/86257b1a62531182a05e72b85838344f_0x0.webp",
+  "1029040641":
+    "https://cdn.yamibuy.net/item/ed3ac51f0854deecbe216f91c9742908_0x0.webp",
+  "3029302901":
+    "https://cdn.yamibuy.net/item/7fc8742cbcf9252e8eb8766898154a75_0x0.webp",
 } as const;
 
 export const matchaImages = {
@@ -240,9 +254,22 @@ const brands = {
   uha: { name: "UHA", slug: "uha", id: "56" },
   kanglepin: { name: "KANGLEPIN", slug: "kanglepin", id: "16987" },
   kawasimaya: { name: "KAWASIMAYA", slug: "kawasimaya", id: "9836" },
+  aibana: { name: "AIBANA", slug: "aibana", id: "19934" },
+  "yue-home": { name: "Yue Home", slug: "yue-home", id: "18709" },
+  "yamaki-ikai": {
+    name: "YAMAKI IKAI",
+    slug: "yamaki-ikai",
+    id: "7315",
+  },
+  "wing-hop-fung": {
+    name: "Wing Hop Fung",
+    slug: "wing-hop-fung",
+    id: "24304",
+  },
 } as const;
 
-// Availability and prices were verified with Yami search on 2026-08-11.
+// Base availability and prices were verified with Yami search on 2026-08-11.
+// Added tea-tool entries were refreshed with YamiLiveCatalogAdapter on 2026-09-04.
 const products = {
   itoUnsweetened: {
     id: "1020051271",
@@ -541,6 +568,51 @@ const products = {
     price: 7.99,
     brand: "kawasimaya",
   },
+  yueHomeWhiskSet: {
+    id: "5029205111",
+    title: {
+      en: "Handmade Bamboo Matcha Whisk Set, 4 pieces",
+      zh: "日式竹制抹茶茶筅 4件套",
+    },
+    price: 14.99,
+    brand: "yue-home",
+  },
+  aibanaSakuraSet: {
+    id: "1029217101",
+    title: {
+      en: "Sakura Matcha Bowl, Whisk, Scoop and Whisk Stand Set",
+      zh: "樱花抹茶碗、茶筅、茶勺与茶筅架套装",
+    },
+    price: 56.99,
+    brand: "aibana",
+  },
+  aibanaWisteriaSet: {
+    id: "1029217111",
+    title: {
+      en: "Wisteria Matcha Bowl, Whisk, Scoop and Whisk Stand Set",
+      zh: "紫藤色抹茶碗、茶筅、茶勺与茶筅架套装",
+    },
+    price: 59.99,
+    brand: "aibana",
+  },
+  yamakiWhisk: {
+    id: "1029040641",
+    title: {
+      en: "Matcha Tea Whisk Tsuneho, 1 piece",
+      zh: "天然竹制手工百本立抹茶茶筅",
+    },
+    price: 26.49,
+    brand: "yamaki-ikai",
+  },
+  wingHopFungStarrySet: {
+    id: "3029302901",
+    title: {
+      en: "Starry Blue Matcha Bowl and Whisk Rest Set",
+      zh: "星空蓝抹茶碗与茶筅架套装",
+    },
+    price: 18.99,
+    brand: "wing-hop-fung",
+  },
 } satisfies Record<string, MatchaProductSource>;
 
 export type MatchaProductKey = keyof typeof products;
@@ -598,12 +670,27 @@ const categoryProductKeys: Record<
     "brownSugarSyrup",
     "glutinousRiceFlour",
   ],
-  powder: ["marukyuIsuzu", "tsujiriUji", "itoUnsweetened", "marukyuYugen"],
+  powder: [
+    "marukyuIsuzu",
+    "tsujiriUji",
+    "itoUnsweetened",
+    "marukyuYugen",
+    "marukyuAyame",
+  ],
   latte: ["ujiLatte", "itoAlmondLatte", "instantLatte", "royalMilkTea"],
   snacks: ["glicoPocky", "glicoPejoy", "turtleChips", "tsujiriPoundCake"],
   chocolate: ["hokkaidoChocolate", "ghanaSable", "darkChocolate", "kitkat"],
   sweets: ["filledMochi", "daifuku", "latteMochi", "matchaCandy"],
-  tools: ["teaSet", "greenTeaSet", "bambooWhisk", "marukyuAyame"],
+  tools: [
+    "teaSet",
+    "greenTeaSet",
+    "bambooWhisk",
+    "yueHomeWhiskSet",
+    "aibanaSakuraSet",
+    "aibanaWisteriaSet",
+    "yamakiWhisk",
+    "wingHopFungStarrySet",
+  ],
 };
 
 export function createMatchaProductsByCategory(locale: TopicLandingPageLocale) {

@@ -106,7 +106,8 @@ function createTabs(
 
 /**
  * Matcha topic fixture based on Yami's in-stock catalog snapshot from
- * 2026-08-11. Product availability and prices are intentionally kept in the
+ * 2026-08-11, with tea tools refreshed through the live catalog adapter on
+ * 2026-09-04. Product availability and prices are intentionally kept in the
  * fixture so future template maintenance can update one topic independently.
  */
 export function createTopicKeywordLandingPageFixture(
@@ -215,6 +216,12 @@ export function createTopicKeywordLandingPageFixture(
       ...base.productRail,
       title: localizedCopy.popularTitle,
       products: popularProducts,
+      productsByTab: {
+        "popular-all": popularProducts,
+        ...Object.fromEntries(
+          matchaCategoryValues.map((value) => [value, productsByCategory[value]]),
+        ),
+      },
       tabs: [
         { value: "popular-all", label: localizedCopy.popularAll },
         ...createTabs(matchaCategoryValues, localizedCopy.categoryLabels),
