@@ -4,9 +4,11 @@
 
 契约实施基线：`8bafeb54f1ff4e2d03316b04502193fb9787357e`
 
+发布验证基线：`99ef58f4f0780f922b2e6565d11529fce2069de9`
+
 客户端及生命周期彩排基线：`bda915d8cecc05785bbec7ef816de611186addf9`
 
-结论：**有条件就绪，尚未放行进入 M4 试用**
+结论：**M3.5 发布门槛已验证，具备进入 M4 的资格；M4 仍明确暂缓**
 
 M3.5 建立的是确定性、可在本地校验的 Agent 契约；它没有增加 CLI、MCP 产品、shadcn
 产物、npm 发布或托管部署，也不能证明团队已经采用。
@@ -20,7 +22,7 @@ M3.5 建立的是确定性、可在本地校验的 Agent 契约；它没有增�
 | 页面验证 | 7/7 页面族进入清单：5 个 Core、2 个 Smoke；仓库范围内的源码、Story、精确 fixture 导出、App Router 路由及测试引用均由检查器验证。 |
 | Skill 评测 | 12/12 中英文离线用例通过，使用真实规则校验器与本地组件、页面、Token、Rule、Registry 和具名 Story 导出引用；CI 不调用模型 API。 |
 | Skill 契约 | 中英文清单同步升级为 `0.6.0-alpha.1`，将 Registry v2 准确描述为内部源码契约，不宣称兼容 shadcn。 |
-| 发布记录 | 已为 `@yami/design-system`、`@yami/prototypes` 增加 minor Changeset；未升版本、未发包、未合并、未部署。 |
+| 发布记录 | 已为 `@yami/design-system`、`@yami/prototypes` 增加 minor Changeset；M3.5 不执行版本提升、发包或部署。 |
 
 ## 固定提交客户端彩排
 
@@ -81,32 +83,32 @@ pnpm test:docsite
 pnpm validate
 ```
 
-当前工作树的实际结果如下：
+发布验证基线及 PR CI run
+[`33836292187`](https://github.com/divikwu/yami-design-system/actions/runs/33836292187) 的实际结果如下：
 
 | 命令或门槛 | 结果 |
 | --- | --- |
-| `pnpm validate` | 通过；包含 lint、Docsite 双语内容、类型、15 条原则同步、400 Token 引用、30 个组件、7 个页面、31 个 Registry 项、12/12 Skill 用例、边界、工具层及全仓单元测试 |
+| `pnpm validate` | 在 Docsite 的 `repository-validation` 步骤通过；包含 lint、Docsite 双语内容、类型、15 条原则同步、400 Token 引用、30 个组件、7 个页面、31 个 Registry 项、12/12 Skill 用例、边界、工具层及全仓单元测试 |
 | 契约负例夹具 | 通过；越界 Usage、仅 import 的公共导出、伪造 Token binding、非法 SemVer、缺失 `Showcase`、仓库越界和路由/源码不匹配均按要求失败 |
 | `pnpm test:a11y` | 6/6 通过 |
 | `pnpm test:e2e` | 13/13 通过 |
 | `pnpm check:docsite-content` | 通过；13 对文档、6 对 Blog、400 个生成 Token |
 | `pnpm test:docsite` | 20/20 通过 |
-| `pnpm test:storybook` | **失败**；Storybook 主套件 306/306 通过，但 ProductMediaGallery 浏览器套件为 3/4：触摸缩略图轨道停在 5px，没有超过 85px；单独重跑一次仍复现 |
-| `pnpm test:visual` | macOS 命令正常退出，但 16/16 用例按仓库约束全部跳过；这不计作视觉通过 |
+| `pnpm test:storybook` | 在锁定 Linux CI 中通过，包含 ProductMediaGallery 浏览器测试 |
+| `pnpm test:visual` | 锁定 Linux CI 中 16/16 通过；4 张新增基线由 workflow run [`33835587543`](https://github.com/divikwu/yami-design-system/actions/runs/33835587543) 生成并经人工检查，随后在 PR CI 中完成比较 |
 
-失败的 ProductMediaGallery 测试及其运行时实现与 `origin/main` 一致；本分支只修改了对应元数据
-的 schema 引用。该问题不在本轮范围内，因此如实保留为项目门槛，不隐藏也不顺手扩大修复。
-未执行或本机跳过的命令不计为通过。
+ProductMediaGallery 触摸滚动断言在 macOS 实施主机失败，但在锁定 Linux PR 环境通过。以下继续
+保留这一宿主差异观察，不把它写成发布门槛失败，也不扩大本轮范围修复无关代码。未执行或本机
+跳过的命令不计为通过。
 
-## 已知限制与剩余门槛
+## 已知限制
 
 - EcommerceHome 既有 12 项视觉矩阵保持不变；Search 与 Topic 只增加要求的移动端中文浅色、
   桌面端英文深色成对覆盖，没有扩张为无意义的笛卡尔积。
-- 新增 4 个视觉用例必须由 Linux Playwright 生成基线。本机 macOS 没有 Docker、Podman、
-  Colima 或 Lima 运行时，仓库也会拒绝非 Linux 基线生成。Linux 基线尚未生成且对应视觉套件
-  尚未通过前，M3.5 退出门槛仍然开放。
-- 现有 ProductMediaGallery 移动端缩略图触摸滚动断言在当前基线上连续两次失败。虽然与本轮
-  M3.5 改动无关，进入 M4 前仍需让 `pnpm test:storybook` 转绿。
+- Search 使用完整页面截图；Topic 使用稳定的 1100px 入口视口，因为后续区块会主动虚拟化离屏
+  内容。其余 Topic 行为继续由 Story play、无障碍与人工证据覆盖，不强制制造合成全页渲染。
+- ProductMediaGallery 移动端缩略图触摸滚动断言在 macOS 实施主机连续两次失败，但在锁定
+  Linux CI 通过；如再次出现需跟踪平台差异，但它不是失败的 M3.5 PR 门槛。
 - ProductDetailPage、MobileSearchPage 保留 Story play、Storybook a11y 和人工证据，不人为
   添加重复 Canvas 路由；Categories、EmailTemplates 仍为 Smoke 范围。
 - 彩排只证明两个客户端能在 5 个固定任务中正确选择或拒绝，不能证明多人采用、生产正确性、
@@ -114,6 +116,6 @@ pnpm validate
 
 ## M4 进入条件
 
-只有上述命令都形成当前结果，且 Linux 视觉基线门槛转绿后，才进入 2–3 人、1–2 个真实任务
-的 M4 小范围试用。试用中记录发现、纠正、验证、更新和回滚的真实摩擦；CLI/MCP 优先级由
-重复出现的试用证据决定，不能因为已有 Registry v2 就提前产品化。
+M3.5 已满足仓库就绪门槛；合并本次改动不会自动启动 M4，M4 可以继续暂缓。后续另行授权时，
+再以 2–3 位非主要维护者和 1–2 个真实任务启动，记录发现、纠正、验证、更新和回滚的真实摩擦；
+CLI/MCP 优先级由重复出现的试用证据决定，不能因为已有 Registry v2 就提前产品化。
