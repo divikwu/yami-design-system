@@ -1,28 +1,194 @@
 {
-  "schemaVersion": 1,
+  "$schema": "../../schema/registry-item.json",
+  "schemaVersion": 2,
   "name": "social-media-gallery",
   "title": "SocialMediaGallery",
   "type": "component",
   "status": "stable",
+  "version": "0.1.0",
+  "description": "Responsive YAMI social video gallery with product and pure-video card variants across PC and mobile layouts.",
   "source": "components/SocialMediaGallery",
   "files": [
-    "components/SocialMediaGallery/assets/product-1.png",
-    "components/SocialMediaGallery/assets/product-2.png",
-    "components/SocialMediaGallery/assets/product-3.png",
-    "components/SocialMediaGallery/assets/product-4.png",
-    "components/SocialMediaGallery/assets/product-5.png",
-    "components/SocialMediaGallery/assets/social-1.jpg",
-    "components/SocialMediaGallery/assets/social-2.jpg",
-    "components/SocialMediaGallery/assets/social-3.jpg",
-    "components/SocialMediaGallery/assets/social-4.jpg",
-    "components/SocialMediaGallery/assets/social-5.jpg",
-    "components/SocialMediaGallery/assets/social-6.jpg",
-    "components/SocialMediaGallery/fixtures.ts",
-    "components/SocialMediaGallery/index.ts",
-    "components/SocialMediaGallery/SocialMediaGallery.module.css",
-    "components/SocialMediaGallery/SocialMediaGallery.stories.module.css",
-    "components/SocialMediaGallery/SocialMediaGallery.tsx",
-    "components/SocialMediaGallery/SocialMediaGallery.types.ts",
-    "components/SocialMediaGallery/SocialVideoCard.tsx"
-  ]
+    {
+      "source": "components/SocialMediaGallery/assets/product-1.png",
+      "target": "components/SocialMediaGallery/assets/product-1.png"
+    },
+    {
+      "source": "components/SocialMediaGallery/assets/product-2.png",
+      "target": "components/SocialMediaGallery/assets/product-2.png"
+    },
+    {
+      "source": "components/SocialMediaGallery/assets/product-3.png",
+      "target": "components/SocialMediaGallery/assets/product-3.png"
+    },
+    {
+      "source": "components/SocialMediaGallery/assets/product-4.png",
+      "target": "components/SocialMediaGallery/assets/product-4.png"
+    },
+    {
+      "source": "components/SocialMediaGallery/assets/product-5.png",
+      "target": "components/SocialMediaGallery/assets/product-5.png"
+    },
+    {
+      "source": "components/SocialMediaGallery/assets/social-1.jpg",
+      "target": "components/SocialMediaGallery/assets/social-1.jpg"
+    },
+    {
+      "source": "components/SocialMediaGallery/assets/social-2.jpg",
+      "target": "components/SocialMediaGallery/assets/social-2.jpg"
+    },
+    {
+      "source": "components/SocialMediaGallery/assets/social-3.jpg",
+      "target": "components/SocialMediaGallery/assets/social-3.jpg"
+    },
+    {
+      "source": "components/SocialMediaGallery/assets/social-4.jpg",
+      "target": "components/SocialMediaGallery/assets/social-4.jpg"
+    },
+    {
+      "source": "components/SocialMediaGallery/assets/social-5.jpg",
+      "target": "components/SocialMediaGallery/assets/social-5.jpg"
+    },
+    {
+      "source": "components/SocialMediaGallery/assets/social-6.jpg",
+      "target": "components/SocialMediaGallery/assets/social-6.jpg"
+    },
+    {
+      "source": "components/SocialMediaGallery/fixtures.ts",
+      "target": "components/SocialMediaGallery/fixtures.ts"
+    },
+    {
+      "source": "components/SocialMediaGallery/index.ts",
+      "target": "components/SocialMediaGallery/index.ts"
+    },
+    {
+      "source": "components/SocialMediaGallery/SocialMediaGallery.module.css",
+      "target": "components/SocialMediaGallery/SocialMediaGallery.module.css"
+    },
+    {
+      "source": "components/SocialMediaGallery/SocialMediaGallery.stories.module.css",
+      "target": "components/SocialMediaGallery/SocialMediaGallery.stories.module.css"
+    },
+    {
+      "source": "components/SocialMediaGallery/SocialMediaGallery.tsx",
+      "target": "components/SocialMediaGallery/SocialMediaGallery.tsx"
+    },
+    {
+      "source": "components/SocialMediaGallery/SocialMediaGallery.types.ts",
+      "target": "components/SocialMediaGallery/SocialMediaGallery.types.ts"
+    },
+    {
+      "source": "components/SocialMediaGallery/SocialVideoCard.tsx",
+      "target": "components/SocialMediaGallery/SocialVideoCard.tsx"
+    }
+  ],
+  "exports": [
+    "SocialMediaGallery",
+    "SocialMediaGalleryProps",
+    "SocialVideoCard",
+    "SocialVideoCardProps",
+    "SocialVideoProduct"
+  ],
+  "composes": [
+    "Button"
+  ],
+  "dependencies": {
+    "runtime": [
+      "react",
+      "./Button"
+    ],
+    "peer": [],
+    "devOnly": [
+      "@figma/code-connect",
+      "@storybook/react-vite"
+    ]
+  },
+  "documentation": {
+    "usage": "components/SocialMediaGallery/usage.md",
+    "stories": [
+      "components/SocialMediaGallery/SocialMediaGallery.stories.tsx"
+    ],
+    "examples": [
+      "components/SocialMediaGallery/examples.tsx#SocialMediaGalleryExample"
+    ]
+  },
+  "design": {
+    "tokens": [
+      "--border-focus",
+      "--border-focus-inverse",
+      "--color-white-1000",
+      "--divider-default",
+      "--font-family-ios",
+      "--font-size-body-md",
+      "--font-size-display-sm",
+      "--font-size-heading-xl",
+      "--font-size-link-sm",
+      "--font-weight-emphasize",
+      "--font-weight-normal",
+      "--line-height-body-md",
+      "--line-height-display-sm",
+      "--line-height-heading-xl",
+      "--line-height-link-sm",
+      "--radius-component-default",
+      "--radius-full",
+      "--radius-surface-default",
+      "--radius-tag-primary",
+      "--space-025",
+      "--space-050",
+      "--space-100",
+      "--space-150",
+      "--space-200",
+      "--space-300",
+      "--space-400",
+      "--space-500",
+      "--space-600",
+      "--stroke-default",
+      "--stroke-thick",
+      "--surface-primary",
+      "--surface-secondary",
+      "--text-primary",
+      "--text-primary-inverse",
+      "--text-secondary"
+    ],
+    "rules": [
+      "elevation-on-press",
+      "focus-style",
+      "no-custom-radii",
+      "tap-target"
+    ],
+    "tokenBindings": {
+      "--surface-primary": {
+        "property": "background-color",
+        "selector": ".root, .moreProducts"
+      },
+      "--surface-secondary": {
+        "property": "background-color",
+        "selector": ".card"
+      },
+      "--divider-default": {
+        "property": "border-color",
+        "selector": ".root at or above 1024px"
+      },
+      "--radius-component-default": {
+        "property": "border-radius",
+        "selector": ".card"
+      }
+    }
+  },
+  "quality": {
+    "accessibility": {
+      "wcagLevel": "AA",
+      "tapTargetMin": 44,
+      "keyboardNav": [
+        "tab",
+        "shift+tab",
+        "enter"
+      ],
+      "ariaPattern": "labelled section containing a horizontal list of article cards and optional links and paging buttons",
+      "structure": "The visible heading labels the section. Each video is an article; video and product destinations remain separate links.",
+      "interaction": "Mobile uses native horizontal scrolling. Desktop exposes overflow-aware previous and next controls."
+    },
+    "interactionCoverage": "covered"
+  },
+  "contentDigest": "a1932172abeffab3b1bb95595b5684dbfba32ddf8bc3de7ddfc4c8315f731d5d"
 }

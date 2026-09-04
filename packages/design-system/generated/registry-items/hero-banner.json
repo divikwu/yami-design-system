@@ -1,43 +1,266 @@
 {
-  "schemaVersion": 1,
+  "$schema": "../../schema/registry-item.json",
+  "schemaVersion": 2,
   "name": "hero-banner",
   "title": "HeroBanner",
   "type": "component",
   "status": "stable",
+  "version": "0.3.0",
+  "description": "Responsive YAMI homepage campaign rail composed from four explicit content cards: image only, image and text, image text and products, or products only.",
   "source": "components/HeroBanner",
   "files": [
-    "components/HeroBanner/assets/back-to-school.webp",
-    "components/HeroBanner/assets/buldak-snack.webp",
-    "components/HeroBanner/assets/freshippo-favorites.webp",
-    "components/HeroBanner/assets/glow-foundation.webp",
-    "components/HeroBanner/assets/glow-palette.webp",
-    "components/HeroBanner/assets/glow-patches.webp",
-    "components/HeroBanner/assets/glow-skin-like-makeup.webp",
-    "components/HeroBanner/assets/green-tea.webp",
-    "components/HeroBanner/assets/hokkaido-caramel-cookies.webp",
-    "components/HeroBanner/assets/japanese-summer-festival.webp",
-    "components/HeroBanner/assets/matcha-dango.webp",
-    "components/HeroBanner/assets/midnight-street-food.webp",
-    "components/HeroBanner/assets/sale-image.webp",
-    "components/HeroBanner/assets/skin-care.webp",
-    "components/HeroBanner/assets/summer-drink.webp",
-    "components/HeroBanner/assets/summer-skin-cool-down.webp",
-    "components/HeroBanner/assets/summer-snack.webp",
-    "components/HeroBanner/assets/trending-summer.webp",
-    "components/HeroBanner/assets/turtle-chips.webp",
-    "components/HeroBanner/assets/yuzu-chicken-ramen.webp",
-    "components/HeroBanner/assets/yuzu-chips.webp",
-    "components/HeroBanner/fixtures.ts",
-    "components/HeroBanner/HeroBanner.module.css",
-    "components/HeroBanner/HeroBanner.stories.module.css",
-    "components/HeroBanner/HeroBanner.tsx",
-    "components/HeroBanner/HeroBanner.types.ts",
-    "components/HeroBanner/HeroBannerImageOnlyCard.tsx",
-    "components/HeroBanner/HeroBannerImageTextCard.tsx",
-    "components/HeroBanner/HeroBannerImageTextProductsCard.tsx",
-    "components/HeroBanner/HeroBannerProductsOnlyCard.tsx",
-    "components/HeroBanner/imageColor.ts",
-    "components/HeroBanner/index.ts",
-    "components/HeroBanner/useImageBottomColor.ts"
-  ]
+    {
+      "source": "components/HeroBanner/assets/back-to-school.webp",
+      "target": "components/HeroBanner/assets/back-to-school.webp"
+    },
+    {
+      "source": "components/HeroBanner/assets/buldak-snack.webp",
+      "target": "components/HeroBanner/assets/buldak-snack.webp"
+    },
+    {
+      "source": "components/HeroBanner/assets/freshippo-favorites.webp",
+      "target": "components/HeroBanner/assets/freshippo-favorites.webp"
+    },
+    {
+      "source": "components/HeroBanner/assets/glow-foundation.webp",
+      "target": "components/HeroBanner/assets/glow-foundation.webp"
+    },
+    {
+      "source": "components/HeroBanner/assets/glow-palette.webp",
+      "target": "components/HeroBanner/assets/glow-palette.webp"
+    },
+    {
+      "source": "components/HeroBanner/assets/glow-patches.webp",
+      "target": "components/HeroBanner/assets/glow-patches.webp"
+    },
+    {
+      "source": "components/HeroBanner/assets/glow-skin-like-makeup.webp",
+      "target": "components/HeroBanner/assets/glow-skin-like-makeup.webp"
+    },
+    {
+      "source": "components/HeroBanner/assets/green-tea.webp",
+      "target": "components/HeroBanner/assets/green-tea.webp"
+    },
+    {
+      "source": "components/HeroBanner/assets/hokkaido-caramel-cookies.webp",
+      "target": "components/HeroBanner/assets/hokkaido-caramel-cookies.webp"
+    },
+    {
+      "source": "components/HeroBanner/assets/japanese-summer-festival.webp",
+      "target": "components/HeroBanner/assets/japanese-summer-festival.webp"
+    },
+    {
+      "source": "components/HeroBanner/assets/matcha-dango.webp",
+      "target": "components/HeroBanner/assets/matcha-dango.webp"
+    },
+    {
+      "source": "components/HeroBanner/assets/midnight-street-food.webp",
+      "target": "components/HeroBanner/assets/midnight-street-food.webp"
+    },
+    {
+      "source": "components/HeroBanner/assets/sale-image.webp",
+      "target": "components/HeroBanner/assets/sale-image.webp"
+    },
+    {
+      "source": "components/HeroBanner/assets/skin-care.webp",
+      "target": "components/HeroBanner/assets/skin-care.webp"
+    },
+    {
+      "source": "components/HeroBanner/assets/summer-drink.webp",
+      "target": "components/HeroBanner/assets/summer-drink.webp"
+    },
+    {
+      "source": "components/HeroBanner/assets/summer-skin-cool-down.webp",
+      "target": "components/HeroBanner/assets/summer-skin-cool-down.webp"
+    },
+    {
+      "source": "components/HeroBanner/assets/summer-snack.webp",
+      "target": "components/HeroBanner/assets/summer-snack.webp"
+    },
+    {
+      "source": "components/HeroBanner/assets/trending-summer.webp",
+      "target": "components/HeroBanner/assets/trending-summer.webp"
+    },
+    {
+      "source": "components/HeroBanner/assets/turtle-chips.webp",
+      "target": "components/HeroBanner/assets/turtle-chips.webp"
+    },
+    {
+      "source": "components/HeroBanner/assets/yuzu-chicken-ramen.webp",
+      "target": "components/HeroBanner/assets/yuzu-chicken-ramen.webp"
+    },
+    {
+      "source": "components/HeroBanner/assets/yuzu-chips.webp",
+      "target": "components/HeroBanner/assets/yuzu-chips.webp"
+    },
+    {
+      "source": "components/HeroBanner/fixtures.ts",
+      "target": "components/HeroBanner/fixtures.ts"
+    },
+    {
+      "source": "components/HeroBanner/HeroBanner.module.css",
+      "target": "components/HeroBanner/HeroBanner.module.css"
+    },
+    {
+      "source": "components/HeroBanner/HeroBanner.stories.module.css",
+      "target": "components/HeroBanner/HeroBanner.stories.module.css"
+    },
+    {
+      "source": "components/HeroBanner/HeroBanner.tsx",
+      "target": "components/HeroBanner/HeroBanner.tsx"
+    },
+    {
+      "source": "components/HeroBanner/HeroBanner.types.ts",
+      "target": "components/HeroBanner/HeroBanner.types.ts"
+    },
+    {
+      "source": "components/HeroBanner/HeroBannerImageOnlyCard.tsx",
+      "target": "components/HeroBanner/HeroBannerImageOnlyCard.tsx"
+    },
+    {
+      "source": "components/HeroBanner/HeroBannerImageTextCard.tsx",
+      "target": "components/HeroBanner/HeroBannerImageTextCard.tsx"
+    },
+    {
+      "source": "components/HeroBanner/HeroBannerImageTextProductsCard.tsx",
+      "target": "components/HeroBanner/HeroBannerImageTextProductsCard.tsx"
+    },
+    {
+      "source": "components/HeroBanner/HeroBannerProductsOnlyCard.tsx",
+      "target": "components/HeroBanner/HeroBannerProductsOnlyCard.tsx"
+    },
+    {
+      "source": "components/HeroBanner/imageColor.ts",
+      "target": "components/HeroBanner/imageColor.ts"
+    },
+    {
+      "source": "components/HeroBanner/index.ts",
+      "target": "components/HeroBanner/index.ts"
+    },
+    {
+      "source": "components/HeroBanner/useImageBottomColor.ts",
+      "target": "components/HeroBanner/useImageBottomColor.ts"
+    }
+  ],
+  "exports": [
+    "HeroBanner",
+    "HeroBannerImage",
+    "HeroBannerImageOnlyCard",
+    "HeroBannerImageOnlyCardProps",
+    "HeroBannerImageOnlyItem",
+    "HeroBannerImageTextCard",
+    "HeroBannerImageTextCardProps",
+    "HeroBannerImageTextItem",
+    "HeroBannerImageTextProductsCard",
+    "HeroBannerImageTextProductsCardProps",
+    "HeroBannerImageTextProductsItem",
+    "HeroBannerItem",
+    "HeroBannerProduct",
+    "HeroBannerProductsOnlyCard",
+    "HeroBannerProductsOnlyCardProps",
+    "HeroBannerProductsOnlyItem",
+    "HeroBannerProps"
+  ],
+  "composes": [
+    "Button"
+  ],
+  "dependencies": {
+    "runtime": [
+      "react",
+      "./Button"
+    ],
+    "peer": [],
+    "devOnly": []
+  },
+  "documentation": {
+    "usage": "components/HeroBanner/usage.md",
+    "stories": [
+      "components/HeroBanner/HeroBanner.stories.tsx"
+    ],
+    "examples": [
+      "components/HeroBanner/examples.tsx#ResponsiveHeroBanner"
+    ]
+  },
+  "design": {
+    "tokens": [
+      "--background-primary",
+      "--border-default",
+      "--border-focus",
+      "--color-white-1000",
+      "--divider-default",
+      "--divider-emphasis",
+      "--font-family-ios",
+      "--font-size-body-md",
+      "--font-size-heading-xl",
+      "--font-weight-emphasize",
+      "--font-weight-normal",
+      "--layout-page-margin-card",
+      "--line-height-body-md",
+      "--line-height-heading-xl",
+      "--radius-lg",
+      "--radius-md",
+      "--space-025",
+      "--space-050",
+      "--space-100",
+      "--space-150",
+      "--space-200",
+      "--space-300",
+      "--space-400",
+      "--space-600",
+      "--stroke-default",
+      "--stroke-thick",
+      "--surface-primary",
+      "--surface-secondary",
+      "--text-primary"
+    ],
+    "rules": [
+      "elevation-on-press",
+      "focus-style",
+      "no-custom-radii",
+      "tap-target"
+    ],
+    "tokenBindings": {
+      "--radius-lg": {
+        "property": "border-radius",
+        "selector": ".card"
+      },
+      "--radius-md": {
+        "property": "border-radius",
+        "selector": ".product"
+      },
+      "--font-size-heading-xl": {
+        "property": "font-size",
+        "selector": ".title"
+      },
+      "--font-size-body-md": {
+        "property": "font-size",
+        "selector": ".description, .progress"
+      },
+      "--layout-page-margin-card": {
+        "property": "padding-inline",
+        "selector": ".root below 1024px"
+      },
+      "--space-600": {
+        "property": "padding-inline",
+        "selector": ".root at or above 1024px"
+      }
+    }
+  },
+  "quality": {
+    "accessibility": {
+      "role": "region containing a list of campaign links",
+      "wcagLevel": "AA",
+      "tapTargetMin": 44,
+      "keyboardNav": [
+        "tab",
+        "shift+tab",
+        "enter"
+      ],
+      "ariaPattern": "labelled region with list/listitem campaign links and optional paging buttons",
+      "structure": "Campaign images require semantic alt text. Image-only cards use the image alt as the link accessible name.",
+      "interaction": "Mobile uses native horizontal scrolling. Desktop paging buttons reuse ProductList rail navigation and disable at boundaries, while the progress track and aria-live count report how many banners have been revealed through the current viewport against the total banner count."
+    },
+    "interactionCoverage": "covered"
+  },
+  "contentDigest": "9008edc1346abb477de48621ef3b8f9bd6ceb6f24d5247b1d8224872f0f5d07c"
 }

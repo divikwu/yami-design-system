@@ -1,2 +1,2 @@
 export { Billboard } from "./Billboard";
-export type { BillboardImage, BillboardProps } from "./Billboard.types";
+export type { BillboardArtwork, BillboardImage, BillboardProps } from "./Billboard.types";

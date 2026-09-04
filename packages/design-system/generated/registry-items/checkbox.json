@@ -1,13 +1,119 @@
 {
-  "schemaVersion": 1,
+  "$schema": "../../schema/registry-item.json",
+  "schemaVersion": 2,
   "name": "checkbox",
   "title": "Checkbox",
   "type": "component",
   "status": "beta",
+  "version": "0.1.0",
+  "description": "YAMI neutral multi-select control from the Forms Figma page. Uses Base UI for keyboard, ARIA, controlled/uncontrolled state, and native form participation.",
   "source": "components/Checkbox",
   "files": [
-    "components/Checkbox/Checkbox.module.css",
-    "components/Checkbox/Checkbox.tsx",
-    "components/Checkbox/index.ts"
-  ]
+    {
+      "source": "components/Checkbox/Checkbox.module.css",
+      "target": "components/Checkbox/Checkbox.module.css"
+    },
+    {
+      "source": "components/Checkbox/Checkbox.tsx",
+      "target": "components/Checkbox/Checkbox.tsx"
+    },
+    {
+      "source": "components/Checkbox/index.ts",
+      "target": "components/Checkbox/index.ts"
+    }
+  ],
+  "exports": [],
+  "composes": [],
+  "dependencies": {
+    "runtime": [
+      "react",
+      "@base-ui/react"
+    ],
+    "peer": [
+      "@base-ui/react"
+    ],
+    "devOnly": []
+  },
+  "documentation": {
+    "usage": "components/Checkbox/usage.md",
+    "stories": [
+      "components/Checkbox/Checkbox.stories.tsx"
+    ],
+    "examples": [
+      "components/Checkbox/examples.tsx#BasicCheckbox",
+      "components/Checkbox/examples.tsx#SelectedCheckbox",
+      "components/Checkbox/examples.tsx#DisabledCheckbox",
+      "components/Checkbox/examples.tsx#IndeterminateCheckbox"
+    ]
+  },
+  "design": {
+    "tokens": [
+      "--background-primary",
+      "--background-secondary",
+      "--border-default",
+      "--border-focus",
+      "--fill-disabled",
+      "--radius-tag-primary",
+      "--space-025",
+      "--space-100",
+      "--space-300",
+      "--stroke-thick",
+      "--surface-secondary",
+      "--text-primary",
+      "--text-primary-inverse"
+    ],
+    "rules": [
+      "focus-style",
+      "no-custom-radii",
+      "no-opacity-disabled",
+      "semantic-color-only",
+      "tap-target"
+    ],
+    "tokenBindings": {
+      "--background-primary": {
+        "property": "background",
+        "selector": ".root::before"
+      },
+      "--surface-secondary": {
+        "property": "background",
+        "selector": ".root:hover:not([data-disabled])::before"
+      },
+      "--text-primary": {
+        "property": "background/border-color",
+        "selector": ".root[data-checked]::before, .root[data-indeterminate]::before"
+      },
+      "--border-default": {
+        "property": "border-color",
+        "selector": ".root::before"
+      },
+      "--fill-disabled": {
+        "property": "background/border-color",
+        "selector": ".root[data-disabled]::before"
+      },
+      "--border-focus": {
+        "property": "outline-color",
+        "selector": ".root:focus-visible"
+      },
+      "--radius-tag-primary": {
+        "property": "border-radius",
+        "selector": ".root::before"
+      }
+    }
+  },
+  "quality": {
+    "accessibility": {
+      "role": "checkbox",
+      "wcagLevel": "AA",
+      "tapTargetMin": 24,
+      "keyboardNav": [
+        "tab",
+        "shift+tab",
+        "space"
+      ],
+      "ariaPattern": "checkbox",
+      "notes": "Base UI renders role=checkbox plus a hidden native form input. Provide a visible label or aria-label."
+    },
+    "interactionCoverage": "covered"
+  },
+  "contentDigest": "9aabcfec0724d38bb80128bd5aa5985e7ff056d058e5e8ba50253c15d8727305"
 }

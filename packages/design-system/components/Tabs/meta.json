@@ -1,5 +1,5 @@
 {
-  "$schema": "../../../schema/component.json",
+  "$schema": "../../schema/component.json",
   "name": "Tabs",
   "category": "navigation",
   "status": "beta",
@@ -146,7 +146,7 @@
 
   "rules": {
     "levels": {
-      "ruleId": "navigation-depth",
+      "contractId": "navigation-depth",
       "note": "Primary for major content groups, Secondary for sub-sections, Tertiary for compact category filters. Do not mix levels in the same list."
     },
     "focus": {
@@ -163,7 +163,7 @@
       "note": "Disabled tabs use --text-disabled / --text-disabled-inverse and are skipped by arrow-key navigation."
     },
     "icons": {
-      "ruleId": "asset-source",
+      "contractId": "asset-source",
       "note": "When icon slots are used, pass currentColor SVGs from packages/design-system/assets/icons; do not use ad-hoc glyphs."
     }
   },

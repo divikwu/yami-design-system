@@ -1,39 +1,265 @@
 {
-  "schemaVersion": 1,
+  "$schema": "../../schema/registry-item.json",
+  "schemaVersion": 2,
   "name": "shortcut-rail",
   "title": "ShortcutRail",
   "type": "component",
   "status": "stable",
+  "version": "0.3.0",
+  "description": "Responsive YAMI shortcut navigation with compact circular entries, an optional desktop image-card presentation, localized labels, native scrolling, overflow-aware paging controls, and card or plain section surfaces.",
   "source": "components/ShortcutRail",
   "files": [
-    "components/ShortcutRail/assets/01-trending.png",
-    "components/ShortcutRail/assets/02-celebrity-shops.png",
-    "components/ShortcutRail/assets/03-new-arrivals.png",
-    "components/ShortcutRail/assets/04-summer-festival.png",
-    "components/ShortcutRail/assets/05-family-wellness.png",
-    "components/ShortcutRail/assets/06-beach-living.png",
-    "components/ShortcutRail/assets/07-save-20.png",
-    "components/ShortcutRail/assets/08-hot-pot.png",
-    "components/ShortcutRail/assets/09-face-masks.png",
-    "components/ShortcutRail/assets/10-better-sleep.png",
-    "components/ShortcutRail/assets/11-baby-favorites.png",
-    "components/ShortcutRail/assets/12-seasonal-hair.png",
-    "components/ShortcutRail/assets/13-easy-meals.png",
-    "components/ShortcutRail/assets/14-travel-list.png",
-    "components/ShortcutRail/assets/15-flash-finds.png",
-    "components/ShortcutRail/assets/16-popular-shops.png",
-    "components/ShortcutRail/assets/17-stock-up.png",
-    "components/ShortcutRail/assets/18-korean-trends.png",
-    "components/ShortcutRail/assets/19-japan-finds.png",
-    "components/ShortcutRail/assets/20-thai-style.png",
-    "components/ShortcutRail/assets/21-weekly-picks.png",
-    "components/ShortcutRail/assets/22-popular-posts.png",
-    "components/ShortcutRail/assets/23-subscribe.png",
-    "components/ShortcutRail/fixtures.ts",
-    "components/ShortcutRail/index.ts",
-    "components/ShortcutRail/ShortcutRail.module.css",
-    "components/ShortcutRail/ShortcutRail.stories.module.css",
-    "components/ShortcutRail/ShortcutRail.tsx",
-    "components/ShortcutRail/ShortcutRail.types.ts"
-  ]
+    {
+      "source": "components/ShortcutRail/assets/01-trending.png",
+      "target": "components/ShortcutRail/assets/01-trending.png"
+    },
+    {
+      "source": "components/ShortcutRail/assets/02-celebrity-shops.png",
+      "target": "components/ShortcutRail/assets/02-celebrity-shops.png"
+    },
+    {
+      "source": "components/ShortcutRail/assets/03-new-arrivals.png",
+      "target": "components/ShortcutRail/assets/03-new-arrivals.png"
+    },
+    {
+      "source": "components/ShortcutRail/assets/04-summer-festival.png",
+      "target": "components/ShortcutRail/assets/04-summer-festival.png"
+    },
+    {
+      "source": "components/ShortcutRail/assets/05-family-wellness.png",
+      "target": "components/ShortcutRail/assets/05-family-wellness.png"
+    },
+    {
+      "source": "components/ShortcutRail/assets/06-beach-living.png",
+      "target": "components/ShortcutRail/assets/06-beach-living.png"
+    },
+    {
+      "source": "components/ShortcutRail/assets/07-save-20.png",
+      "target": "components/ShortcutRail/assets/07-save-20.png"
+    },
+    {
+      "source": "components/ShortcutRail/assets/08-hot-pot.png",
+      "target": "components/ShortcutRail/assets/08-hot-pot.png"
+    },
+    {
+      "source": "components/ShortcutRail/assets/09-face-masks.png",
+      "target": "components/ShortcutRail/assets/09-face-masks.png"
+    },
+    {
+      "source": "components/ShortcutRail/assets/10-better-sleep.png",
+      "target": "components/ShortcutRail/assets/10-better-sleep.png"
+    },
+    {
+      "source": "components/ShortcutRail/assets/11-baby-favorites.png",
+      "target": "components/ShortcutRail/assets/11-baby-favorites.png"
+    },
+    {
+      "source": "components/ShortcutRail/assets/12-seasonal-hair.png",
+      "target": "components/ShortcutRail/assets/12-seasonal-hair.png"
+    },
+    {
+      "source": "components/ShortcutRail/assets/13-easy-meals.png",
+      "target": "components/ShortcutRail/assets/13-easy-meals.png"
+    },
+    {
+      "source": "components/ShortcutRail/assets/14-travel-list.png",
+      "target": "components/ShortcutRail/assets/14-travel-list.png"
+    },
+    {
+      "source": "components/ShortcutRail/assets/15-flash-finds.png",
+      "target": "components/ShortcutRail/assets/15-flash-finds.png"
+    },
+    {
+      "source": "components/ShortcutRail/assets/16-popular-shops.png",
+      "target": "components/ShortcutRail/assets/16-popular-shops.png"
+    },
+    {
+      "source": "components/ShortcutRail/assets/17-stock-up.png",
+      "target": "components/ShortcutRail/assets/17-stock-up.png"
+    },
+    {
+      "source": "components/ShortcutRail/assets/18-korean-trends.png",
+      "target": "components/ShortcutRail/assets/18-korean-trends.png"
+    },
+    {
+      "source": "components/ShortcutRail/assets/19-japan-finds.png",
+      "target": "components/ShortcutRail/assets/19-japan-finds.png"
+    },
+    {
+      "source": "components/ShortcutRail/assets/20-thai-style.png",
+      "target": "components/ShortcutRail/assets/20-thai-style.png"
+    },
+    {
+      "source": "components/ShortcutRail/assets/21-weekly-picks.png",
+      "target": "components/ShortcutRail/assets/21-weekly-picks.png"
+    },
+    {
+      "source": "components/ShortcutRail/assets/22-popular-posts.png",
+      "target": "components/ShortcutRail/assets/22-popular-posts.png"
+    },
+    {
+      "source": "components/ShortcutRail/assets/23-subscribe.png",
+      "target": "components/ShortcutRail/assets/23-subscribe.png"
+    },
+    {
+      "source": "components/ShortcutRail/fixtures.ts",
+      "target": "components/ShortcutRail/fixtures.ts"
+    },
+    {
+      "source": "components/ShortcutRail/index.ts",
+      "target": "components/ShortcutRail/index.ts"
+    },
+    {
+      "source": "components/ShortcutRail/ShortcutRail.module.css",
+      "target": "components/ShortcutRail/ShortcutRail.module.css"
+    },
+    {
+      "source": "components/ShortcutRail/ShortcutRail.stories.module.css",
+      "target": "components/ShortcutRail/ShortcutRail.stories.module.css"
+    },
+    {
+      "source": "components/ShortcutRail/ShortcutRail.tsx",
+      "target": "components/ShortcutRail/ShortcutRail.tsx"
+    },
+    {
+      "source": "components/ShortcutRail/ShortcutRail.types.ts",
+      "target": "components/ShortcutRail/ShortcutRail.types.ts"
+    }
+  ],
+  "exports": [
+    "ShortcutRail",
+    "ShortcutRailItem",
+    "ShortcutRailPresentation",
+    "ShortcutRailProps",
+    "ShortcutRailSurface"
+  ],
+  "composes": [
+    "Button"
+  ],
+  "dependencies": {
+    "runtime": [
+      "react",
+      "./Button"
+    ],
+    "peer": [],
+    "devOnly": []
+  },
+  "documentation": {
+    "usage": "components/ShortcutRail/usage.md",
+    "stories": [
+      "components/ShortcutRail/ShortcutRail.stories.tsx"
+    ],
+    "examples": [
+      "components/ShortcutRail/examples.tsx#ShortcutRailExample"
+    ]
+  },
+  "design": {
+    "tokens": [
+      "--border-default",
+      "--border-focus",
+      "--divider-emphasis",
+      "--font-family-ios",
+      "--font-size-caption-md",
+      "--font-size-caption-sm",
+      "--font-size-heading-2xl",
+      "--font-size-heading-sm",
+      "--font-weight-normal",
+      "--font-weight-semibold",
+      "--layout-page-margin-card",
+      "--layout-page-margin-default",
+      "--line-height-caption-md",
+      "--line-height-caption-sm",
+      "--line-height-heading-2xl",
+      "--line-height-heading-sm",
+      "--radius-component-default",
+      "--radius-full",
+      "--radius-surface-default",
+      "--space-050",
+      "--space-100",
+      "--space-1000",
+      "--space-200",
+      "--space-300",
+      "--space-400",
+      "--space-600",
+      "--space-800",
+      "--stroke-default",
+      "--stroke-thick",
+      "--surface-primary",
+      "--surface-secondary",
+      "--text-primary"
+    ],
+    "rules": [
+      "elevation-on-press",
+      "focus-style",
+      "no-custom-radii",
+      "tap-target"
+    ],
+    "tokenBindings": {
+      "--surface-primary": {
+        "property": "background and edge gradient",
+        "selector": ".root, .mask, and titled .iconSurface"
+      },
+      "--surface-secondary": {
+        "property": "background",
+        "selector": ".iconSurface, .root[data-has-title='true'] and its edge mask"
+      },
+      "--radius-full": {
+        "property": "border-radius",
+        "selector": ".iconSurface"
+      },
+      "--radius-surface-default": {
+        "property": "border-radius",
+        "selector": ".root[data-surface='card']"
+      },
+      "--font-size-caption-md": {
+        "property": "font-size",
+        "selector": ".label at or above 1024px"
+      },
+      "--font-size-caption-sm": {
+        "property": "font-size",
+        "selector": ".label below 1024px"
+      },
+      "--line-height-caption-md": {
+        "property": "line-height",
+        "selector": ".label at or above 1024px"
+      },
+      "--line-height-caption-sm": {
+        "property": "line-height",
+        "selector": ".label below 1024px"
+      },
+      "--layout-page-margin-default": {
+        "property": "padding-inline and scroll-padding-inline",
+        "selector": ".list below 1024px"
+      },
+      "--layout-page-margin-card": {
+        "property": "width and max-width inset",
+        "selector": ".root[data-surface='card']"
+      },
+      "--space-1000": {
+        "property": "width / height",
+        "selector": ".iconSurface"
+      },
+      "--space-600": {
+        "property": "padding-inline and scroll-padding-inline",
+        "selector": ".list, .edgePrevious, .edgeNext at or above 1024px"
+      }
+    }
+  },
+  "quality": {
+    "accessibility": {
+      "role": "labelled navigation containing a list of shortcut links",
+      "wcagLevel": "AA",
+      "tapTargetMin": 44,
+      "keyboardNav": [
+        "tab",
+        "shift+tab",
+        "enter"
+      ],
+      "ariaPattern": "nav with list/listitem links, optional visible title, and optional previous/next buttons",
+      "structure": "A supplied title labels the navigation region; otherwise ariaLabel is used. Visible labels provide link names and decorative icon images use empty alt text.",
+      "interaction": "Mobile uses native horizontal scrolling without paging chrome. Desktop adds overflow-aware paging controls over functional edge masks."
+    },
+    "interactionCoverage": "covered"
+  },
+  "contentDigest": "dd2282a40e0d0dac5384da023b1205a04e71541092668e89af4127d5bfd63fb9"
 }

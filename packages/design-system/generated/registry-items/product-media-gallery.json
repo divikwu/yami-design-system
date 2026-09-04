@@ -1,14 +1,169 @@
 {
-  "schemaVersion": 1,
+  "$schema": "../../schema/registry-item.json",
+  "schemaVersion": 2,
   "name": "product-media-gallery",
   "title": "ProductMediaGallery",
   "type": "component",
   "status": "experimental",
+  "version": "0.1.0",
+  "description": "Accessible PDP media gallery with one square viewing window, thumbnail selection, previous and next controls, and responsive rail placement.",
   "source": "components/ProductMediaGallery",
   "files": [
-    "components/ProductMediaGallery/index.ts",
-    "components/ProductMediaGallery/ProductMediaGallery.module.css",
-    "components/ProductMediaGallery/ProductMediaGallery.tsx",
-    "components/ProductMediaGallery/ProductMediaPreview.tsx"
-  ]
+    {
+      "source": "components/ProductMediaGallery/index.ts",
+      "target": "components/ProductMediaGallery/index.ts"
+    },
+    {
+      "source": "components/ProductMediaGallery/ProductMediaGallery.module.css",
+      "target": "components/ProductMediaGallery/ProductMediaGallery.module.css"
+    },
+    {
+      "source": "components/ProductMediaGallery/ProductMediaGallery.tsx",
+      "target": "components/ProductMediaGallery/ProductMediaGallery.tsx"
+    },
+    {
+      "source": "components/ProductMediaGallery/ProductMediaPreview.tsx",
+      "target": "components/ProductMediaGallery/ProductMediaPreview.tsx"
+    }
+  ],
+  "exports": [
+    "ProductMediaGallery",
+    "ProductMediaGalleryHandle",
+    "ProductMediaGalleryItem",
+    "ProductMediaGalleryProps"
+  ],
+  "composes": [
+    "Button",
+    "ResponsiveImage"
+  ],
+  "dependencies": {
+    "runtime": [
+      "react",
+      "./Button",
+      "./ResponsiveImage"
+    ],
+    "peer": [],
+    "devOnly": []
+  },
+  "documentation": {
+    "usage": "components/ProductMediaGallery/usage.md",
+    "stories": [
+      "components/ProductMediaGallery/ProductMediaGallery.stories.tsx"
+    ],
+    "examples": [
+      "components/ProductMediaGallery/examples.tsx#BasicProductMediaGallery"
+    ]
+  },
+  "design": {
+    "tokens": [
+      "--border-default",
+      "--border-focus",
+      "--fill-tertiary",
+      "--font-family-ios",
+      "--font-size-caption-md",
+      "--line-height-caption-md",
+      "--product-card-add-border",
+      "--product-card-add-icon",
+      "--product-card-add-surface",
+      "--radius-component-default",
+      "--radius-full",
+      "--radius-surface-default",
+      "--radius-surface-none",
+      "--space-050",
+      "--space-100",
+      "--space-1000",
+      "--space-150",
+      "--space-200",
+      "--space-300",
+      "--space-400",
+      "--space-600",
+      "--space-800",
+      "--stroke-default",
+      "--stroke-thick",
+      "--surface-primary",
+      "--surface-secondary",
+      "--text-primary"
+    ],
+    "rules": [
+      "elevation-on-press",
+      "focus-style",
+      "no-custom-radii",
+      "tap-target"
+    ],
+    "tokenBindings": {
+      "--fill-tertiary": {
+        "property": "background-color",
+        "selector": ".stage, .thumbnailButton, .slide"
+      },
+      "--border-focus": {
+        "property": "border-color and outline-color",
+        "selector": ".thumbnailButton[data-selected='true'], .thumbnailButton:focus-visible"
+      },
+      "--stroke-thick": {
+        "property": "border-width",
+        "selector": ".thumbnailButton[data-selected='true']"
+      },
+      "--radius-surface-default": {
+        "property": "border-radius",
+        "selector": ".stage"
+      },
+      "--space-200": {
+        "property": "desktop control inset; wide-mobile stage bleed and counter inset",
+        "selector": ".previousButton, .nextButton, .stage, .counter"
+      },
+      "--space-100": {
+        "property": "thumbnail and mobile image gap; counter inset; wide-mobile outer padding",
+        "selector": ".thumbnails, .imageRail, .counter, .root"
+      },
+      "--space-150": {
+        "property": "vertical padding",
+        "selector": ".thumbnails"
+      },
+      "--product-card-add-surface": {
+        "property": "background-color",
+        "selector": ".counter"
+      },
+      "--product-card-add-border": {
+        "property": "border-color",
+        "selector": ".counter"
+      },
+      "--space-300": {
+        "property": "height",
+        "selector": ".counter"
+      },
+      "--radius-component-default": {
+        "property": "border-radius",
+        "selector": ".thumbnailButton, .slide"
+      },
+      "--space-400": {
+        "property": "mobile next-image preview reservation",
+        "selector": ".slide"
+      },
+      "--product-card-add-icon": {
+        "property": "color",
+        "selector": ".counter"
+      }
+    }
+  },
+  "quality": {
+    "accessibility": {
+      "wcagLevel": "AA",
+      "tapTargetMin": 44,
+      "keyboardNav": [
+        "tab",
+        "enter",
+        "space",
+        "arrow left",
+        "arrow right",
+        "arrow up",
+        "arrow down",
+        "escape"
+      ],
+      "ariaPattern": "labelled region containing a labelled thumbnail group, pressed-state buttons, and previous or next controls",
+      "structure": "The active product image retains meaningful alt text. Thumbnail images are decorative because each button announces position and image meaning.",
+      "interaction": "Native horizontal scrolling on mobile, thumbnail, previous, next, and ArrowLeft or ArrowRight selection all update the active image and polite counter. Opt-in previews use a native modal dialog, trap focus, and restore focus and scroll on close. Mobile preview has a single scrollable bottom thumbnail row. Escape closes the dialog; crossing into a disabled breakpoint also closes it."
+    },
+    "interactionCoverage": "covered"
+  },
+  "contentDigest": "5f9d8b9de3546089c9c91ef66061a8a50bf9d73b43b2ef02f546a3b55e6e302c"
 }

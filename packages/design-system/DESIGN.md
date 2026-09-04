@@ -775,7 +775,7 @@ Placeholder names (`--x`, `--name`, `--your-token`, `--foo`, etc.) in the PLACEH
 
 ## Known AI Failure Gallery
 
-Observed failures from real `validate_design` runs + audit findings in [`decisions.md`](./decisions.md). Each entry: the failure, why AI does it, the fix. Use these as prompt-injection material when briefing a new agent.
+Observed failures from real `validateDesign` runs + audit findings in [`decisions.md`](./decisions.md). Each entry: the failure, why AI does it, the fix. Use these as prompt-injection material when briefing a new agent.
 
 ### F1. Fabricated size token in a real scale family
 
@@ -786,7 +786,7 @@ Observed failures from real `validate_design` runs + audit findings in [`decisio
 <!-- /anti-pattern -->
 
 **Why it's wrong**: The `-lg` step doesn't exist in `tokens.css`. YAMI's heading scale is `-sm` (16) / `-md` (18) / `-xl` (20) / `-2xl` (28) / `-3xl` (32) / `-4xl` (40) — no `-lg` step.
-**Fix**: `font-size: var(--font-size-heading-xl);` (or call `list_tokens` MCP to enumerate the real scale).
+**Fix**: `font-size: var(--font-size-heading-xl);` (inspect `generated/tokens.css` to enumerate the real scale).
 **Catch**: `pnpm check:tokens-in-docs` on docs; `principles/validators/token-exists.ts` on code.
 
 ### F2. CSS `opacity` for disabled state
@@ -847,7 +847,7 @@ Observed failures from real `validate_design` runs + audit findings in [`decisio
 **Why it's wrong**: YAMI's positioning is "calm, disciplined, content-forward" — emoji clash with the brand's restraint discipline (rule `no-emoji`). The cart icon should be a proper SVG from `assets/icons/`, rendered consistently across platforms (emoji render differently iOS vs Android vs Windows).
 **Fix**: SVG icon component, or remove and rely on label-only.
 
-> **How to extend this gallery**: when `validate_design` MCP catches a recurring violation pattern in production, capture: (a) the exact code AI produced, (b) one-sentence "why" for AI's mistake, (c) the rule violated, (d) the canonical fix. Append as a new F# entry. A future `pnpm gen:failure-gallery` script will aggregate from `principles/runtime/` logs.
+> **How to extend this gallery**: when `validateDesign` catches a recurring violation pattern in production, capture: (a) the exact code AI produced, (b) one-sentence "why" for AI's mistake, (c) the rule violated, (d) the canonical fix. Append as a new F# entry. A future `pnpm gen:failure-gallery` script will aggregate from `principles/runtime/` logs.
 
 ---
 

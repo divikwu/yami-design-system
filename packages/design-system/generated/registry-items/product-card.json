@@ -1,19 +1,265 @@
 {
-  "schemaVersion": 1,
+  "$schema": "../../schema/registry-item.json",
+  "schemaVersion": 2,
   "name": "product-card",
   "title": "ProductCard",
   "type": "component",
   "status": "stable",
+  "version": "0.2.0",
+  "description": "Figma-backed YAMI product tile. Rich remains the default and preserves the existing DOM contract; minimal and compact presentations support image-first and horizontal list contexts.",
   "source": "components/ProductCard",
   "files": [
-    "components/ProductCard/index.ts",
-    "components/ProductCard/ProductCard.module.css",
-    "components/ProductCard/ProductCard.tsx",
-    "components/ProductCard/ProductCard.types.ts",
-    "components/ProductCard/ProductCardAddButton.module.css",
-    "components/ProductCard/ProductCardAddButton.tsx",
-    "components/ProductCard/ProductCardMedia.tsx",
-    "components/ProductCard/ProductCardOffer.tsx",
-    "components/ProductCard/ProductCardSummary.tsx"
-  ]
+    {
+      "source": "components/ProductCard/index.ts",
+      "target": "components/ProductCard/index.ts"
+    },
+    {
+      "source": "components/ProductCard/ProductCard.module.css",
+      "target": "components/ProductCard/ProductCard.module.css"
+    },
+    {
+      "source": "components/ProductCard/ProductCard.tsx",
+      "target": "components/ProductCard/ProductCard.tsx"
+    },
+    {
+      "source": "components/ProductCard/ProductCard.types.ts",
+      "target": "components/ProductCard/ProductCard.types.ts"
+    },
+    {
+      "source": "components/ProductCard/ProductCardAddButton.module.css",
+      "target": "components/ProductCard/ProductCardAddButton.module.css"
+    },
+    {
+      "source": "components/ProductCard/ProductCardAddButton.tsx",
+      "target": "components/ProductCard/ProductCardAddButton.tsx"
+    },
+    {
+      "source": "components/ProductCard/ProductCardMedia.tsx",
+      "target": "components/ProductCard/ProductCardMedia.tsx"
+    },
+    {
+      "source": "components/ProductCard/ProductCardOffer.tsx",
+      "target": "components/ProductCard/ProductCardOffer.tsx"
+    },
+    {
+      "source": "components/ProductCard/ProductCardSummary.tsx",
+      "target": "components/ProductCard/ProductCardSummary.tsx"
+    }
+  ],
+  "exports": [
+    "ProductCard",
+    "ProductCardAddButton",
+    "ProductCardPresentation",
+    "ProductCardSurface"
+  ],
+  "composes": [
+    "AspectRatio",
+    "Badge",
+    "Card",
+    "ProductCardAddButton"
+  ],
+  "dependencies": {
+    "runtime": [
+      "react",
+      "./Card",
+      "./AspectRatio",
+      "./Badge",
+      "./ProductCardAddButton"
+    ],
+    "peer": [],
+    "devOnly": []
+  },
+  "documentation": {
+    "usage": "components/ProductCard/usage.md",
+    "stories": [
+      "components/ProductCard/ProductCard.stories.tsx"
+    ],
+    "examples": [
+      "components/ProductCard/examples.tsx#BasicProductCard",
+      "components/ProductCard/examples.tsx#SaleProductCard",
+      "components/ProductCard/examples.tsx#MultiBadgeProductCard",
+      "components/ProductCard/examples.tsx#NoImageProductCard",
+      "components/ProductCard/examples.tsx#NoRatingProductCard",
+      "components/ProductCard/examples.tsx#LinkProductCard",
+      "components/ProductCard/examples.tsx#GridOfProductCardsExample"
+    ]
+  },
+  "design": {
+    "tokens": [
+      "--badge-bg-primary-red",
+      "--border-default",
+      "--border-focus",
+      "--border-focus-inverse",
+      "--button-disabled",
+      "--color-amber-100",
+      "--color-neutral-900",
+      "--fill-tertiary",
+      "--font-family-ios",
+      "--font-size-body-md",
+      "--font-size-caption-md",
+      "--font-size-caption-sm",
+      "--font-size-price-sm",
+      "--font-size-strike-sm",
+      "--font-weight-emphasize",
+      "--line-height-body-md",
+      "--line-height-caption-md",
+      "--line-height-caption-sm",
+      "--line-height-price-sm",
+      "--line-height-strike-sm",
+      "--product-card-add-border",
+      "--product-card-add-icon",
+      "--product-card-add-icon-active",
+      "--product-card-add-shadow",
+      "--product-card-add-surface",
+      "--product-card-add-surface-active-desktop",
+      "--product-card-add-surface-active-mobile",
+      "--radius-component-default",
+      "--radius-full",
+      "--space-050",
+      "--space-100",
+      "--stroke-default",
+      "--text-emphasis",
+      "--text-primary",
+      "--text-primary-inverse",
+      "--text-secondary"
+    ],
+    "rules": [
+      "card-no-border",
+      "no-emoji",
+      "numerals-font",
+      "red-usage",
+      "tap-target",
+      "type-hierarchy"
+    ],
+    "tokenBindings": {
+      "--fill-tertiary": {
+        "property": "background-color",
+        "selector": ".imageWrap"
+      },
+      "--border-default": {
+        "property": "color",
+        "selector": ".placeholderPattern"
+      },
+      "--text-primary": {
+        "property": "color",
+        "selector": ".brand, .title, .ratingRow, .promotion"
+      },
+      "--text-emphasis": {
+        "property": "color",
+        "selector": ".priceSale, .ratingStar, .promotion[data-tone='emphasis']"
+      },
+      "--text-secondary": {
+        "property": "color",
+        "selector": ".priceOriginal, .ratingCount, .sold, .unitPrice, .countdown, .imagePlaceholder"
+      },
+      "--product-card-add-surface": {
+        "property": "background-color",
+        "selector": ".root"
+      },
+      "--product-card-add-surface-active-mobile": {
+        "property": "background-color",
+        "selector": ".root:not(:disabled):hover, .root:not(:disabled):active"
+      },
+      "--product-card-add-surface-active-desktop": {
+        "property": "background-color",
+        "selector": ".root:not(:disabled):hover, .root:not(:disabled):active at desktop"
+      },
+      "--product-card-add-icon": {
+        "property": "color",
+        "selector": ".root"
+      },
+      "--product-card-add-icon-active": {
+        "property": "color",
+        "selector": ".root:not(:disabled):hover, .root:not(:disabled):active at desktop"
+      },
+      "--product-card-add-border": {
+        "property": "border-color",
+        "selector": ".root"
+      },
+      "--product-card-add-shadow": {
+        "property": "box-shadow",
+        "selector": ".root"
+      },
+      "--border-focus": {
+        "property": "outline-color",
+        "selector": ".brand:focus-visible, .mediaLink:focus-visible, .cardLink:focus-visible, .root:focus-visible"
+      },
+      "--button-disabled": {
+        "property": "background-color",
+        "selector": ".root:disabled"
+      },
+      "--font-family-ios": {
+        "property": "font-family",
+        "selector": ".brand, .title, .priceCurrent, .priceSale, .priceOriginal, .ratingSoldRow, .unitPrice, .promotion, .countdown"
+      },
+      "--font-weight-emphasize": {
+        "property": "font-weight",
+        "selector": ".priceCurrent, .priceSale, .campaignBadge"
+      },
+      "--font-size-caption-md": {
+        "property": "font-size",
+        "selector": ".ratingSoldRow, .unitPrice, .promotion, .countdown"
+      },
+      "--font-size-caption-sm": {
+        "property": "font-size",
+        "selector": ".brand"
+      },
+      "--font-size-body-md": {
+        "property": "font-size",
+        "selector": ".title"
+      },
+      "--font-size-price-sm": {
+        "property": "font-size",
+        "selector": ".priceCurrent, .priceSale"
+      },
+      "--font-size-strike-sm": {
+        "property": "font-size",
+        "selector": ".priceOriginal"
+      },
+      "--line-height-caption-md": {
+        "property": "line-height",
+        "selector": ".ratingSoldRow, .unitPrice, .promotion, .countdown"
+      },
+      "--line-height-caption-sm": {
+        "property": "line-height",
+        "selector": ".brand"
+      },
+      "--line-height-body-md": {
+        "property": "line-height",
+        "selector": ".title"
+      },
+      "--line-height-price-sm": {
+        "property": "line-height",
+        "selector": ".priceCurrent, .priceSale"
+      },
+      "--line-height-strike-sm": {
+        "property": "line-height",
+        "selector": ".priceOriginal"
+      },
+      "--space-050": {
+        "property": "gap",
+        "selector": ".badgeStack, .ratingSoldRow, .sold, .promotions"
+      },
+      "--space-100": {
+        "property": "padding",
+        "selector": ".content"
+      }
+    }
+  },
+  "quality": {
+    "accessibility": {
+      "wcagLevel": "AA",
+      "tapTargetMin": 44,
+      "keyboardNav": [
+        "tab",
+        "enter",
+        "space"
+      ],
+      "ariaPattern": "article containing media and title links to one product destination plus an independent optional quick-add button",
+      "structure": "Image with alt (required when src) or aria-hidden placeholder. Badges use semantic <span>. Rating has aria-label 'Rating X out of 5'.",
+      "interaction": "The media and title navigate to the same product destination. Brand and Add remain independent controls; Add has a required aria-label."
+    },
+    "interactionCoverage": "covered"
+  },
+  "contentDigest": "1a34213aeef94f7ab97281152f8f4421d9881ae3eb425aea46df5456f9059479"
 }

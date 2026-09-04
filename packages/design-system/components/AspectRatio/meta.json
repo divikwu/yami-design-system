@@ -1,11 +1,16 @@
 {
-  "$schema": "../../../schema/component.json",
+  "$schema": "../../schema/component.json",
   "name": "AspectRatio",
   "category": "layout",
   "status": "stable",
   "version": "0.1.0",
   "description": "Style-neutral layout primitive that constrains arbitrary content to a caller-provided width-to-height ratio.",
   "figma": { "nodeId": null, "componentKey": null },
+  "exports": ["AspectRatio", "AspectRatioProps"],
+  "testing": {
+    "interaction": "not-applicable",
+    "rationale": "Geometry-only wrapper with no component-owned interaction."
+  },
   "props": {
     "ratio": {
       "type": "number",

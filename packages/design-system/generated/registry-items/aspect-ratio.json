@@ -1,13 +1,65 @@
 {
-  "schemaVersion": 1,
+  "$schema": "../../schema/registry-item.json",
+  "schemaVersion": 2,
   "name": "aspect-ratio",
   "title": "AspectRatio",
   "type": "component",
   "status": "stable",
+  "version": "0.1.0",
+  "description": "Style-neutral layout primitive that constrains arbitrary content to a caller-provided width-to-height ratio.",
   "source": "components/AspectRatio",
   "files": [
-    "components/AspectRatio/AspectRatio.module.css",
-    "components/AspectRatio/AspectRatio.tsx",
-    "components/AspectRatio/index.ts"
-  ]
+    {
+      "source": "components/AspectRatio/AspectRatio.module.css",
+      "target": "components/AspectRatio/AspectRatio.module.css"
+    },
+    {
+      "source": "components/AspectRatio/AspectRatio.tsx",
+      "target": "components/AspectRatio/AspectRatio.tsx"
+    },
+    {
+      "source": "components/AspectRatio/index.ts",
+      "target": "components/AspectRatio/index.ts"
+    }
+  ],
+  "exports": [
+    "AspectRatio",
+    "AspectRatioProps"
+  ],
+  "composes": [],
+  "dependencies": {
+    "runtime": [
+      "react"
+    ],
+    "peer": [],
+    "devOnly": []
+  },
+  "documentation": {
+    "usage": "components/AspectRatio/usage.md",
+    "stories": [
+      "components/AspectRatio/AspectRatio.stories.tsx"
+    ],
+    "examples": [
+      "components/AspectRatio/examples.tsx#SquareAspectRatio",
+      "components/AspectRatio/examples.tsx#LandscapeAspectRatio",
+      "components/AspectRatio/examples.tsx#PortraitAspectRatio"
+    ]
+  },
+  "design": {
+    "tokens": [],
+    "rules": [],
+    "tokenBindings": {}
+  },
+  "quality": {
+    "accessibility": {
+      "role": "none",
+      "wcagLevel": "AA",
+      "tapTargetMin": 0,
+      "keyboardNav": [],
+      "ariaPattern": "none",
+      "notes": "Layout-only wrapper. Accessibility semantics belong to its children."
+    },
+    "interactionCoverage": "not-applicable"
+  },
+  "contentDigest": "adb60cddec99a79aadead121b523e3c2cc840d0801b285b95db32fc0c7a93d8f"
 }

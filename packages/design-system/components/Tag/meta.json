@@ -1,5 +1,5 @@
 {
-  "$schema": "../../../schema/component.json",
+  "$schema": "../../schema/component.json",
   "name": "Tag",
   "category": "display",
   "status": "experimental",
@@ -59,7 +59,7 @@
   },
   "rules": {
     "interaction": {
-      "ruleId": "display-only",
+      "contractId": "display-only",
       "note": "Tag is non-interactive. Use a shared interactive primitive for filters, navigation, or dismissal."
     },
     "radius": {
@@ -71,7 +71,7 @@
       "note": "Use content for ordinary surfaces and overlay for visual backgrounds. Choose light mode on light surfaces and dark mode on dark surfaces."
     },
     "responsive-size": {
-      "ruleId": "responsive-size",
+      "contractId": "responsive-size",
       "note": "M remains 28px across breakpoints. At 1024px, L steps from 32px to 36px. The optional image slot remains 4px smaller than the Tag and its artwork remains 8px smaller."
     }
   },

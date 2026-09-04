@@ -1,5 +1,5 @@
 {
-  "$schema": "../../../schema/component.json",
+  "$schema": "../../schema/component.json",
   "name": "ProductCard",
   "category": "composite",
   "status": "stable",

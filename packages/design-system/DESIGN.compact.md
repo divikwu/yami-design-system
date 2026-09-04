@@ -78,7 +78,7 @@ Price format: `$12.99` (USD-leading). Discount: `$12.99  $19.99` (current red, o
 
 ## Hard rules at a glance
 
-These have validators; violations fail `validate_design`. Full reasoning lives in [DESIGN.md](./DESIGN.md):
+These have validators; error-level violations fail `validateDesign`. Full reasoning lives in [DESIGN.md](./DESIGN.md):
 
 1. **red-usage** — two reds, never interchanged.
 2. **semantic-color-only** — non-red hues live in badge palette only.

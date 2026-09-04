@@ -1,13 +1,186 @@
 {
-  "schemaVersion": 1,
+  "$schema": "../../schema/registry-item.json",
+  "schemaVersion": 2,
   "name": "tabs",
   "title": "Tabs",
   "type": "component",
   "status": "beta",
+  "version": "0.1.0",
+  "description": "Navigation tabs for switching between related content panes. Implements YAMI Primary Style A/B, Secondary, and Tertiary variants from the YAMI UI UX Guidelines Tabs node, with default and inverse surfaces plus ARIA tab behavior.",
   "source": "components/Tabs",
   "files": [
-    "components/Tabs/index.ts",
-    "components/Tabs/Tabs.module.css",
-    "components/Tabs/Tabs.tsx"
-  ]
+    {
+      "source": "components/Tabs/index.ts",
+      "target": "components/Tabs/index.ts"
+    },
+    {
+      "source": "components/Tabs/Tabs.module.css",
+      "target": "components/Tabs/Tabs.module.css"
+    },
+    {
+      "source": "components/Tabs/Tabs.tsx",
+      "target": "components/Tabs/Tabs.tsx"
+    }
+  ],
+  "exports": [
+    "TabsContent",
+    "TabsList",
+    "TabsTrigger"
+  ],
+  "composes": [],
+  "dependencies": {
+    "runtime": [
+      "react"
+    ],
+    "peer": [],
+    "devOnly": []
+  },
+  "documentation": {
+    "usage": "components/Tabs/usage.md",
+    "stories": [
+      "components/Tabs/Tabs.stories.tsx"
+    ],
+    "examples": [
+      "components/Tabs/examples.tsx#PrimaryTabsExample",
+      "components/Tabs/examples.tsx#SegmentedTabsExample",
+      "components/Tabs/examples.tsx#SecondaryTabsExample",
+      "components/Tabs/examples.tsx#TertiaryTabsExample",
+      "components/Tabs/examples.tsx#InverseTabsExample",
+      "components/Tabs/examples.tsx#DisabledTabsExample",
+      "components/Tabs/examples.tsx#SkeletonTabsExample"
+    ]
+  },
+  "design": {
+    "tokens": [
+      "--border-default-inverse",
+      "--border-focus",
+      "--border-focus-inverse",
+      "--button-secondary",
+      "--button-secondary-inverse",
+      "--button-tertiary-active-inverse",
+      "--divider-default",
+      "--fill-skeleton",
+      "--fill-skeleton-inverse",
+      "--font-family-ios",
+      "--font-size-body-md",
+      "--font-size-body-xl",
+      "--font-size-caption-md",
+      "--font-size-heading-md",
+      "--font-weight-emphasize",
+      "--font-weight-normal",
+      "--line-height-body-md",
+      "--line-height-body-xl",
+      "--line-height-caption-md",
+      "--line-height-heading-md",
+      "--radius-component-none",
+      "--radius-full",
+      "--radius-surface-default",
+      "--space-0",
+      "--space-025",
+      "--space-050",
+      "--space-100",
+      "--space-150",
+      "--space-200",
+      "--space-250",
+      "--space-300",
+      "--space-400",
+      "--space-500",
+      "--space-600",
+      "--stroke-default",
+      "--stroke-thick",
+      "--surface-inverse",
+      "--surface-primary",
+      "--surface-secondary",
+      "--text-disabled",
+      "--text-disabled-inverse",
+      "--text-primary",
+      "--text-primary-inverse",
+      "--text-secondary",
+      "--text-secondary-inverse"
+    ],
+    "rules": [
+      "focus-style",
+      "no-opacity-disabled",
+      "tap-target"
+    ],
+    "tokenBindings": {
+      "--text-primary": {
+        "property": "color",
+        "selector": ".trigger[data-state='active'], .list[data-variant='tertiary'] .trigger"
+      },
+      "--text-secondary": {
+        "property": "color",
+        "selector": ".trigger"
+      },
+      "--text-primary-inverse": {
+        "property": "color",
+        "selector": ".list[data-inverse='true'][data-variant='primary'][data-style='a'] .trigger[data-state='active'], .list[data-inverse='true'][data-variant='secondary'] .trigger[data-state='active'], .list[data-variant='tertiary']:not([data-inverse='true']) .trigger[data-state='active']"
+      },
+      "--text-disabled": {
+        "property": "color",
+        "selector": ".trigger[aria-disabled='true']"
+      },
+      "--surface-secondary": {
+        "property": "background",
+        "selector": ".list[data-variant='primary'][data-style='b']"
+      },
+      "--surface-primary": {
+        "property": "background",
+        "selector": ".list[data-variant='primary'][data-style='b'] .trigger[data-state='active']::before"
+      },
+      "--button-secondary": {
+        "property": "background",
+        "selector": ".list[data-variant='tertiary'] .trigger[data-state='inactive']:hover::before"
+      },
+      "--button-secondary-inverse": {
+        "property": "background",
+        "selector": ".list[data-inverse='true'][data-variant='tertiary'] .trigger[data-state='inactive']:hover::before"
+      },
+      "--space-050": {
+        "property": "gap",
+        "selector": ".list[data-variant='tertiary']"
+      },
+      "--fill-skeleton": {
+        "property": "background",
+        "selector": ".skeletonItem"
+      },
+      "--border-focus": {
+        "property": "outline-color",
+        "selector": ".trigger:focus-visible, .content:focus-visible"
+      },
+      "--radius-full": {
+        "property": "border-radius",
+        "selector": ".trigger, .list[data-variant='primary'][data-style='b'], .skeletonItem"
+      },
+      "--font-family-ios": {
+        "property": "font-family",
+        "selector": ".root"
+      }
+    }
+  },
+  "quality": {
+    "accessibility": {
+      "role": "tablist / tab / tabpanel",
+      "wcagLevel": "AA",
+      "tapTargetMin": 44,
+      "keyboardNav": [
+        "tab",
+        "shift+tab",
+        "arrow-left",
+        "arrow-right",
+        "arrow-up",
+        "arrow-down",
+        "home",
+        "end",
+        "enter",
+        "space"
+      ],
+      "ariaPattern": "WAI-ARIA Tabs pattern",
+      "focusVisible": "2px solid var(--border-focus), inverse uses --border-focus-inverse",
+      "disabled": "Disabled triggers set aria-disabled=true, tabIndex=-1, and are skipped by arrow navigation.",
+      "labelling": "TabsTrigger id and TabsContent aria-labelledby/aria-controls are generated from useId + value."
+    },
+    "interactionCoverage": "covered"
+  },
+  "contentDigest": "101c63a392c6e6b5eec5a26416835c42d2887710e8a3d1813bcfb8925d02572a"
 }

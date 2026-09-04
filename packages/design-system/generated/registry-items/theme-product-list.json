@@ -1,21 +1,131 @@
 {
-  "schemaVersion": 1,
+  "$schema": "../../schema/registry-item.json",
+  "schemaVersion": 2,
   "name": "theme-product-list",
   "title": "ThemeProductList",
   "type": "component",
   "status": "experimental",
+  "version": "0.1.0",
+  "description": "StandardRail-based theme product list with a two-slot image-led content panel, overlay and description before the product cards.",
   "source": "components/ThemeProductList",
   "files": [
-    "components/ThemeProductList/assets/anua-cleanse-reset.png",
-    "components/ThemeProductList/assets/anua-heartleaf-cleansing-foam.png",
-    "components/ThemeProductList/assets/anua-heartleaf-cleansing-oil.jpeg",
-    "components/ThemeProductList/assets/anua-hyaluronic-foaming-cleanser.png",
-    "components/ThemeProductList/assets/anua-rice-enzyme-cleansing-powder.png",
-    "components/ThemeProductList/fixtures.ts",
-    "components/ThemeProductList/index.ts",
-    "components/ThemeProductList/ThemeProductList.module.css",
-    "components/ThemeProductList/ThemeProductList.stories.module.css",
-    "components/ThemeProductList/ThemeProductList.tsx",
-    "components/ThemeProductList/ThemeProductList.types.ts"
-  ]
+    {
+      "source": "components/ThemeProductList/assets/anua-cleanse-reset.png",
+      "target": "components/ThemeProductList/assets/anua-cleanse-reset.png"
+    },
+    {
+      "source": "components/ThemeProductList/assets/anua-heartleaf-cleansing-foam.png",
+      "target": "components/ThemeProductList/assets/anua-heartleaf-cleansing-foam.png"
+    },
+    {
+      "source": "components/ThemeProductList/assets/anua-heartleaf-cleansing-oil.jpeg",
+      "target": "components/ThemeProductList/assets/anua-heartleaf-cleansing-oil.jpeg"
+    },
+    {
+      "source": "components/ThemeProductList/assets/anua-hyaluronic-foaming-cleanser.png",
+      "target": "components/ThemeProductList/assets/anua-hyaluronic-foaming-cleanser.png"
+    },
+    {
+      "source": "components/ThemeProductList/assets/anua-rice-enzyme-cleansing-powder.png",
+      "target": "components/ThemeProductList/assets/anua-rice-enzyme-cleansing-powder.png"
+    },
+    {
+      "source": "components/ThemeProductList/fixtures.ts",
+      "target": "components/ThemeProductList/fixtures.ts"
+    },
+    {
+      "source": "components/ThemeProductList/index.ts",
+      "target": "components/ThemeProductList/index.ts"
+    },
+    {
+      "source": "components/ThemeProductList/ThemeProductList.module.css",
+      "target": "components/ThemeProductList/ThemeProductList.module.css"
+    },
+    {
+      "source": "components/ThemeProductList/ThemeProductList.stories.module.css",
+      "target": "components/ThemeProductList/ThemeProductList.stories.module.css"
+    },
+    {
+      "source": "components/ThemeProductList/ThemeProductList.tsx",
+      "target": "components/ThemeProductList/ThemeProductList.tsx"
+    },
+    {
+      "source": "components/ThemeProductList/ThemeProductList.types.ts",
+      "target": "components/ThemeProductList/ThemeProductList.types.ts"
+    }
+  ],
+  "exports": [
+    "ThemeProductList",
+    "ThemeProductListContent",
+    "ThemeProductListProps"
+  ],
+  "composes": [
+    "ProductCard",
+    "ProductList",
+    "Tabs"
+  ],
+  "dependencies": {
+    "runtime": [
+      "react",
+      "./ProductList",
+      "./ProductCard",
+      "./Tabs"
+    ],
+    "peer": [],
+    "devOnly": []
+  },
+  "documentation": {
+    "usage": "components/ThemeProductList/usage.md",
+    "stories": [
+      "components/ThemeProductList/ThemeProductList.stories.tsx"
+    ],
+    "examples": [
+      "components/ThemeProductList/examples.tsx#ThemeProductListExample"
+    ]
+  },
+  "design": {
+    "tokens": [
+      "--border-focus",
+      "--color-white-1000",
+      "--font-size-body-md",
+      "--font-size-heading-md",
+      "--font-weight-emphasize",
+      "--font-weight-normal",
+      "--line-height-body-md",
+      "--line-height-heading-md",
+      "--radius-component-default",
+      "--space-025",
+      "--space-050",
+      "--space-200",
+      "--space-300",
+      "--space-400",
+      "--space-600",
+      "--stroke-thick",
+      "--surface-primary",
+      "--surface-secondary"
+    ],
+    "rules": [
+      "elevation-on-press",
+      "focus-style",
+      "no-custom-radii"
+    ],
+    "tokenBindings": {}
+  },
+  "quality": {
+    "accessibility": {
+      "wcagLevel": "AA",
+      "tapTargetMin": 44,
+      "keyboardNav": [
+        "tab",
+        "enter",
+        "space",
+        "arrow keys"
+      ],
+      "ariaPattern": "Labelled product list with a semantic theme image panel, optional link and native product controls.",
+      "structure": "The content panel is the first list item and its image requires meaningful alt text; product cards remain independent list items.",
+      "interaction": "The optional content link and ProductList rail navigation remain keyboard reachable and respect reduced motion."
+    },
+    "interactionCoverage": "covered"
+  },
+  "contentDigest": "f8d9fdc1a12f6f3abf2da45d0ea7cf80a5e31684e70a8360c0a35261b6c40a8e"
 }

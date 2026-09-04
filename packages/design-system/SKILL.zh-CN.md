@@ -1,7 +1,7 @@
 ---
 name: yami-design-system
-version: 0.5.0-alpha.1
-updated: 2026-08-20
+version: 0.6.0-alpha.1
+updated: 2026-09-04
 audience: ai-agent
 purpose: 为使用 YAMI 品牌制作界面的 AI 提供规范入口。
 ---
@@ -93,10 +93,10 @@ purpose: 为使用 YAMI 品牌制作界面的 AI 提供规范入口。
 
 ## Storybook 与 Registry 使用约定
 
-为 AI 生成原型时，以维护中的 Storybook 作为视觉依据，本地 Registry 提供兼容 shadcn 的分发约定。
+为 AI 生成原型时，以维护中的 Storybook 作为视觉依据，Registry v2 提供确定性的内部源码分发契约。它不是已生成的 shadcn Registry；未来适配映射记录在 [`ADR 009`](../../docs/adr/009-agent-ready-contracts-and-distribution.md) 中。
 
 - 先读取注入的 `Storybook Catalog Source of Truth` 部分，通过标题和标准导出确认哪些 YAMI 素材与组件正用于生成任务。
-- 再读取 [`generated/registry.json`](./generated/registry.json) 和 [`generated/registry-items/`](./generated/registry-items/)，了解可安装条目名称、目标文件、依赖和设计系统基础包。
+- 再读取 [`generated/registry.json`](./generated/registry.json) 和 [`generated/registry-items/`](./generated/registry-items/)，了解条目名称、源码与目标文件、依赖、设计规则、质量证据、内容摘要和设计系统基础包。
 - 只有同时具有目录定义和维护中 Storybook Story 的组件，才能声明其产物基于组件目录。写在 `DESIGN.md` 中但尚未进入 Storybook 的组件可作为设计参考，不作为主要生成目标。
 - 启用检查要求所使用的目录组件具有本地 Registry 条目，并包含对应的 Storybook `Showcase`；否则产物仍为草稿，标记为 `registry_story_missing:<Component>`。
 - 基于目录交付时，优先使用 `renderRecipeArtifact`。自由编写的 HTML 仅供参考，并需说明未组件化的原因。
@@ -154,5 +154,5 @@ Canvas 和 Storybook 通过公开导出使用该包；页面原型负责页面�
 | [`generated/tokens.css`](./generated/tokens.css) | 自动生成的 CSS 自定义属性，来源为 DTCG JSON 格式的 `tokens/*.tokens.json` |
 | [`principles/`](./principles/) | AST 校验器和同步检查 |
 | [`generated/catalog.json`](./generated/catalog.json) | 维护中的 Storybook 组件清单 |
-| [`generated/registry.json`](./generated/registry.json) | 可安装组件的 Registry |
+| [`generated/registry.json`](./generated/registry.json) | 确定性的内部源码 Registry |
 | [`../prototypes/pages/`](../prototypes/pages/) | 维护中的页面组合和 Storybook Story |

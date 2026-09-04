@@ -1,13 +1,139 @@
 {
-  "schemaVersion": 1,
+  "$schema": "../../schema/registry-item.json",
+  "schemaVersion": 2,
   "name": "tag",
   "title": "Tag",
   "type": "component",
   "status": "experimental",
+  "version": "0.4.0",
+  "description": "Static responsive full-pill label with M and L sizes, optional leading artwork, independent content or overlay context, light or dark surface mode, and filled or outline variant.",
   "source": "components/Tag",
   "files": [
-    "components/Tag/index.ts",
-    "components/Tag/Tag.module.css",
-    "components/Tag/Tag.tsx"
-  ]
+    {
+      "source": "components/Tag/index.ts",
+      "target": "components/Tag/index.ts"
+    },
+    {
+      "source": "components/Tag/Tag.module.css",
+      "target": "components/Tag/Tag.module.css"
+    },
+    {
+      "source": "components/Tag/Tag.tsx",
+      "target": "components/Tag/Tag.tsx"
+    }
+  ],
+  "exports": [
+    "Tag",
+    "TagContext",
+    "TagImage",
+    "TagMode",
+    "TagProps",
+    "TagSize",
+    "TagVariant"
+  ],
+  "composes": [],
+  "dependencies": {
+    "runtime": [
+      "react"
+    ],
+    "peer": [],
+    "devOnly": [
+      "@storybook/react-vite"
+    ]
+  },
+  "documentation": {
+    "usage": "components/Tag/usage.md",
+    "stories": [
+      "components/Tag/Tag.stories.tsx"
+    ],
+    "examples": [
+      "components/Tag/examples.tsx#ContentFilledTagExample",
+      "components/Tag/examples.tsx#ContentOutlineTagExample",
+      "components/Tag/examples.tsx#ImageTagExample",
+      "components/Tag/examples.tsx#OverlayFilledTagExample",
+      "components/Tag/examples.tsx#OverlayOutlineTagExample"
+    ]
+  },
+  "design": {
+    "tokens": [
+      "--color-black-100",
+      "--color-black-1000",
+      "--color-black-200",
+      "--color-black-900",
+      "--color-white-1000",
+      "--color-white-200",
+      "--font-family-ios",
+      "--font-size-body-md",
+      "--font-weight-normal",
+      "--line-height-body-md",
+      "--radius-button-primary",
+      "--radius-full",
+      "--space-025",
+      "--space-050",
+      "--space-150",
+      "--space-200",
+      "--space-300",
+      "--space-400",
+      "--stroke-default",
+      "--surface-primary"
+    ],
+    "rules": [
+      "no-custom-radii",
+      "semantic-color-only"
+    ],
+    "tokenBindings": {
+      "--color-black-100": {
+        "property": "background-color",
+        "selector": ".tag[data-variant='filled'][data-mode='light']"
+      },
+      "--color-white-1000": {
+        "property": "color / border-color",
+        "selector": ".tag[data-mode='dark']"
+      },
+      "--color-white-200": {
+        "property": "background-color / border-color",
+        "selector": ".tag[data-variant='filled'][data-mode='dark'], .tag[data-variant='outline'][data-mode='dark']"
+      },
+      "--color-black-200": {
+        "property": "border-color",
+        "selector": ".tag[data-variant='outline'][data-mode='light']"
+      },
+      "--color-black-900": {
+        "property": "color",
+        "selector": ".tag[data-variant='filled'][data-mode='light']"
+      },
+      "--color-black-1000": {
+        "property": "color / border-color",
+        "selector": ".tag[data-mode='light']"
+      },
+      "--radius-button-primary": {
+        "property": "border-radius",
+        "selector": ".tag"
+      },
+      "--space-150": {
+        "property": "padding-inline",
+        "selector": ".tag"
+      },
+      "--surface-primary": {
+        "property": "background-color",
+        "selector": ".image"
+      },
+      "--stroke-default": {
+        "property": "border-width",
+        "selector": ".tag"
+      }
+    }
+  },
+  "quality": {
+    "accessibility": {
+      "role": "implicit span",
+      "wcagLevel": "AA",
+      "tapTargetMin": 0,
+      "keyboardNav": [],
+      "ariaPattern": "plain text",
+      "notes": "Non-interactive content. Keep labels concise and select the mode that suits the rendered background; outline variants have no contrast-providing fill."
+    },
+    "interactionCoverage": "covered"
+  },
+  "contentDigest": "42c9860f6415419e5a48dacb0ebc1d0aeb84ffe98d9f472688657dc8b81a67fe"
 }

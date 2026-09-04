@@ -37,7 +37,7 @@ import { findAll, result } from './_shared'
 // ─── Token set (lazy, one-shot) ──────────────────────────────────
 
 const THIS_FILE = fileURLToPath(import.meta.url)
-const TOKENS_CSS_PATH = resolve(dirname(THIS_FILE), '../../tokens.css')
+const TOKENS_CSS_PATH = resolve(dirname(THIS_FILE), '../../generated/tokens.css')
 
 // Match `--name:` declarations at the start of a line (ignoring whitespace).
 const TOKEN_DECL = /^\s*(--[a-z0-9-]+)\s*:/gim
@@ -152,8 +152,8 @@ export const tokenExists: Validator = {
       const suggestions = suggestNearest(name, valid)
       const suggestion =
         suggestions.length > 0
-          ? `Did you mean: ${suggestions.join(', ')}? Or list real tokens via MCP list_tokens.`
-          : 'Run MCP list_tokens to see real token names, or declare this as a local custom property if intentional.'
+          ? `Did you mean: ${suggestions.join(', ')}? Inspect generated/tokens.css for the canonical list.`
+          : 'Inspect generated/tokens.css for real token names, or declare this as a local custom property if intentional.'
 
       violations.push({
         ruleId: 'token-exists',

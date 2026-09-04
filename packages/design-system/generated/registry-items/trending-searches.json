@@ -1,16 +1,150 @@
 {
-  "schemaVersion": 1,
+  "$schema": "../../schema/registry-item.json",
+  "schemaVersion": 2,
   "name": "trending-searches",
   "title": "TrendingSearches",
   "type": "component",
   "status": "stable",
+  "version": "0.1.0",
+  "description": "Ranked search terms with the results behind each one — a rail of keyword cards on desktop, a ranked accordion on mobile.",
   "source": "components/TrendingSearches",
   "files": [
-    "components/TrendingSearches/fixtures.ts",
-    "components/TrendingSearches/index.ts",
-    "components/TrendingSearches/TrendingSearches.module.css",
-    "components/TrendingSearches/TrendingSearches.stories.module.css",
-    "components/TrendingSearches/TrendingSearches.tsx",
-    "components/TrendingSearches/TrendingSearches.types.ts"
-  ]
+    {
+      "source": "components/TrendingSearches/fixtures.ts",
+      "target": "components/TrendingSearches/fixtures.ts"
+    },
+    {
+      "source": "components/TrendingSearches/index.ts",
+      "target": "components/TrendingSearches/index.ts"
+    },
+    {
+      "source": "components/TrendingSearches/TrendingSearches.module.css",
+      "target": "components/TrendingSearches/TrendingSearches.module.css"
+    },
+    {
+      "source": "components/TrendingSearches/TrendingSearches.stories.module.css",
+      "target": "components/TrendingSearches/TrendingSearches.stories.module.css"
+    },
+    {
+      "source": "components/TrendingSearches/TrendingSearches.tsx",
+      "target": "components/TrendingSearches/TrendingSearches.tsx"
+    },
+    {
+      "source": "components/TrendingSearches/TrendingSearches.types.ts",
+      "target": "components/TrendingSearches/TrendingSearches.types.ts"
+    }
+  ],
+  "exports": [
+    "TrendingSearches",
+    "TrendingSearchesProps",
+    "TrendingSearchKeyword"
+  ],
+  "composes": [
+    "ProductCard",
+    "RailNavigation",
+    "SectionHeading"
+  ],
+  "dependencies": {
+    "runtime": [
+      "react"
+    ],
+    "peer": [],
+    "devOnly": []
+  },
+  "documentation": {
+    "usage": "components/TrendingSearches/usage.md",
+    "stories": [
+      "components/TrendingSearches/TrendingSearches.stories.tsx"
+    ],
+    "examples": [
+      "components/TrendingSearches/examples.tsx#TrendingSearchesExample"
+    ]
+  },
+  "design": {
+    "tokens": [
+      "--badge-bg-primary-purple",
+      "--badge-bg-secondary-purple",
+      "--border-focus",
+      "--divider-default",
+      "--fill-tertiary",
+      "--font-family-ios",
+      "--font-size-body-md",
+      "--font-size-caption-md",
+      "--font-size-heading-xl",
+      "--font-weight-emphasize",
+      "--layout-page-margin-card",
+      "--line-height-body-md",
+      "--line-height-caption-md",
+      "--line-height-heading-xl",
+      "--radius-component-default",
+      "--radius-sm",
+      "--radius-surface-default",
+      "--space-025",
+      "--space-050",
+      "--space-100",
+      "--space-150",
+      "--space-200",
+      "--space-300",
+      "--space-400",
+      "--space-600",
+      "--stroke-default",
+      "--stroke-thick",
+      "--surface-primary",
+      "--surface-secondary",
+      "--text-primary",
+      "--text-secondary"
+    ],
+    "rules": [
+      "focus-style",
+      "no-custom-radii",
+      "tap-target"
+    ],
+    "tokenBindings": {
+      "--surface-secondary": {
+        "property": "background",
+        "selector": ".item from 1024px, .explore below it"
+      },
+      "--badge-bg-secondary-purple": {
+        "property": "background",
+        "selector": ".tagline below 1024px"
+      },
+      "--radius-surface-default": {
+        "property": "border-radius",
+        "selector": ".container below 1024px, .item above it"
+      },
+      "--layout-page-margin-card": {
+        "property": "margin-inline",
+        "selector": ".container below 1024px"
+      },
+      "--space-600": {
+        "property": "padding-inline",
+        "selector": ".container from 1024px"
+      },
+      "--space-400": {
+        "property": "height",
+        "selector": ".explore below 1024px"
+      },
+      "--space-150": {
+        "property": "padding-inline",
+        "selector": ".explore below 1024px"
+      }
+    }
+  },
+  "quality": {
+    "accessibility": {
+      "role": "labelled region containing a ranked list",
+      "wcagLevel": "AA",
+      "tapTargetMin": 44,
+      "keyboardNav": [
+        "tab",
+        "enter",
+        "space"
+      ],
+      "ariaPattern": "section[aria-label] wrapping a list; below 1024px each row is a button with aria-expanded and aria-controls onto its panel",
+      "structure": "The mobile toggles and the desktop links are each display:none at the other breakpoint, so only one of the two structures reaches the accessibility tree. Rank numbers are aria-hidden — the list order already carries them.",
+      "interaction": "One term is open at a time on mobile; opening another closes it. Desktop shows every card open and pages the rail one card per press."
+    },
+    "interactionCoverage": "covered"
+  },
+  "contentDigest": "7250984fc8261205c4ccc4e05b188b7392a034290aad580e0e8d14814eb5258f"
 }

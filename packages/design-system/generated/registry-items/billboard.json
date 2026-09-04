@@ -1,17 +1,116 @@
 {
-  "schemaVersion": 1,
+  "$schema": "../../schema/registry-item.json",
+  "schemaVersion": 2,
   "name": "billboard",
   "title": "Billboard",
   "type": "component",
   "status": "stable",
+  "version": "0.1.0",
+  "description": "Full-bleed promotional band whose entire content is one campaign image, wrapped in a single link.",
   "source": "components/Billboard",
   "files": [
-    "components/Billboard/assets/new-user-offer.png",
-    "components/Billboard/assets/weekly-picks-zh-desktop.png",
-    "components/Billboard/Billboard.module.css",
-    "components/Billboard/Billboard.tsx",
-    "components/Billboard/Billboard.types.ts",
-    "components/Billboard/fixtures.ts",
-    "components/Billboard/index.ts"
-  ]
+    {
+      "source": "components/Billboard/assets/new-user-offer.png",
+      "target": "components/Billboard/assets/new-user-offer.png"
+    },
+    {
+      "source": "components/Billboard/assets/weekly-picks-zh-desktop.png",
+      "target": "components/Billboard/assets/weekly-picks-zh-desktop.png"
+    },
+    {
+      "source": "components/Billboard/Billboard.module.css",
+      "target": "components/Billboard/Billboard.module.css"
+    },
+    {
+      "source": "components/Billboard/Billboard.tsx",
+      "target": "components/Billboard/Billboard.tsx"
+    },
+    {
+      "source": "components/Billboard/Billboard.types.ts",
+      "target": "components/Billboard/Billboard.types.ts"
+    },
+    {
+      "source": "components/Billboard/fixtures.ts",
+      "target": "components/Billboard/fixtures.ts"
+    },
+    {
+      "source": "components/Billboard/index.ts",
+      "target": "components/Billboard/index.ts"
+    }
+  ],
+  "exports": [
+    "Billboard",
+    "BillboardArtwork",
+    "BillboardImage",
+    "BillboardProps"
+  ],
+  "composes": [],
+  "dependencies": {
+    "runtime": [
+      "react"
+    ],
+    "peer": [],
+    "devOnly": []
+  },
+  "documentation": {
+    "usage": "components/Billboard/usage.md",
+    "stories": [
+      "components/Billboard/Billboard.stories.tsx"
+    ],
+    "examples": [
+      "components/Billboard/examples.tsx#BillboardExample"
+    ]
+  },
+  "design": {
+    "tokens": [
+      "--border-focus",
+      "--font-family-ios",
+      "--layout-page-margin-card",
+      "--radius-surface-default",
+      "--space-025",
+      "--space-400",
+      "--space-600",
+      "--stroke-thick",
+      "--surface-primary"
+    ],
+    "rules": [
+      "focus-style",
+      "no-custom-radii",
+      "tap-target"
+    ],
+    "tokenBindings": {
+      "--surface-primary": {
+        "property": "background",
+        "selector": ".root"
+      },
+      "--radius-surface-default": {
+        "property": "border-radius",
+        "selector": ".link and .root below 1024px"
+      },
+      "--layout-page-margin-card": {
+        "property": "margin-inline",
+        "selector": ".root below 1024px"
+      },
+      "--space-600": {
+        "property": "padding-inline",
+        "selector": ".root from 1024px"
+      }
+    }
+  },
+  "quality": {
+    "accessibility": {
+      "role": "labelled region containing a single link",
+      "wcagLevel": "AA",
+      "tapTargetMin": 44,
+      "keyboardNav": [
+        "tab",
+        "enter"
+      ],
+      "ariaPattern": "section[aria-label] wrapping one a[aria-label] around decorative artwork",
+      "structure": "The label names both the region and the link inside it. Naming only the region leaves the link nameless, since its only content is artwork with empty alt and a link takes its name from its content.",
+      "interaction": "One link covers the band; there is no secondary target."
+    },
+    "interactionCoverage": "covered"
+  },
+  "contentDigest": "c31b406713d4f22ea34e824f85f7ddbea62ff27664cb07fbabbe83e6b0ffe2d3"
 }

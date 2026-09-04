@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://yami.local/schema/design-system-skill-eval.json",
+  "title": "YAMI Design System Skill evaluation cases",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "cases"],
+  "properties": {
+    "$schema": { "const": "./skill-cases.schema.json" },
+    "schemaVersion": { "const": "design-system-skill-cases/v1" },
+    "cases": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 12,
+      "items": { "$ref": "#/$defs/case" }
+    }
+  },
+  "$defs": {
+    "stringArray": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "prompts", "expectedStartingPoints", "requiredRuleIds", "forbiddenRuleIds", "expectedOutcome"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+        "prompts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["zh", "en"],
+          "properties": {
+            "zh": { "type": "string", "minLength": 1 },
+            "en": { "type": "string", "minLength": 1 }
+          }
+        },
+        "expectedStartingPoints": { "$ref": "#/$defs/stringArray" },
+        "requiredRuleIds": { "$ref": "#/$defs/stringArray" },
+        "forbiddenRuleIds": { "$ref": "#/$defs/stringArray" },
+        "expectedOutcome": { "enum": ["pass", "reject", "needs-review"] },
+        "missingReferences": { "$ref": "#/$defs/stringArray" },
+        "fixture": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "expectedPass", "expectedViolationRuleIds"],
+          "properties": {
+            "path": { "type": "string", "pattern": "^packages/design-system/evals/fixtures/" },
+            "expectedPass": { "type": "boolean" },
+            "expectedViolationRuleIds": { "$ref": "#/$defs/stringArray" }
+          }
+        }
+      }
+    }
+  }
+}

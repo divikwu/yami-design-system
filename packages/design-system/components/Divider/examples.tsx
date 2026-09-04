@@ -12,6 +12,14 @@ export const DefaultDivider = () => (
   </section>
 )
 
+export const SubtleDivider = () => (
+  <section data-example="SubtleDivider">
+    <div style={{ width: 240 }}>
+      <Divider strength="subtle" />
+    </div>
+  </section>
+)
+
 export const EmphasisDivider = () => (
   <section data-example="EmphasisDivider">
     <div style={{ width: 240 }}>

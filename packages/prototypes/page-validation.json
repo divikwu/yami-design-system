@@ -1,0 +1,203 @@
+{
+  "$schema": "./schema/page-validation.json",
+  "schemaVersion": 1,
+  "pages": [
+    {
+      "id": "Categories",
+      "tier": "smoke",
+      "source": "packages/prototypes/pages/Categories",
+      "stories": ["packages/prototypes/pages/Categories/Categories.stories.tsx"],
+      "fixture": { "mode": "inline-story", "path": "packages/prototypes/pages/Categories/Categories.stories.tsx" },
+      "route": null,
+      "routeReason": "The category-menu contract is maintained as a desktop Storybook surface; Canvas has no standalone category route.",
+      "support": {
+        "locales": ["en", "zh"],
+        "themes": ["light"],
+        "viewports": ["desktop-1440"],
+        "states": ["collapsed", "text-menu", "image-menu"]
+      },
+      "evidence": {
+        "storyPlay": "not-covered",
+        "storybookA11y": true,
+        "tests": [],
+        "visual": [],
+        "manual": true
+      },
+      "excluded": [
+        { "combination": "mobile or dark-theme matrix", "reason": "The maintained contract is the PC category menu on the light global Header." }
+      ],
+      "knownLimits": ["Hover and keyboard menu traversal remain manual smoke evidence in M3.5."]
+    },
+    {
+      "id": "EcommerceHome",
+      "tier": "core",
+      "source": "packages/prototypes/pages/EcommerceHome",
+      "stories": ["packages/prototypes/pages/EcommerceHome/EcommerceHome.stories.tsx"],
+      "fixture": { "mode": "file", "path": "packages/prototypes/pages/EcommerceHome/fixtures.ts", "exportName": "createEcommerceHomeFixture" },
+      "route": { "path": "/preview?path=%2F", "source": "apps/canvas/app/preview/page.tsx" },
+      "routeReason": null,
+      "support": {
+        "locales": ["en", "zh"],
+        "themes": ["dark", "light"],
+        "viewports": ["mobile-402", "tablet-768", "desktop-1440"],
+        "states": ["default", "rail-navigation", "tabs", "waterfall"]
+      },
+      "evidence": {
+        "storyPlay": "covered",
+        "storybookA11y": true,
+        "tests": ["tests/a11y/canvas-a11y.spec.ts", "tests/e2e/canvas.spec.ts"],
+        "visual": [{ "id": "ecommerce-home-full-matrix", "test": "tests/visual/canvas.visual.spec.ts" }],
+        "manual": true
+      },
+      "excluded": [],
+      "knownLimits": ["The global Footer intentionally drops out below 1024px because no mobile Footer is shipped."]
+    },
+    {
+      "id": "EmailTemplates",
+      "tier": "smoke",
+      "source": "packages/prototypes/pages/EmailTemplates",
+      "stories": ["packages/prototypes/pages/EmailTemplates/TopicLandingEmail.stories.tsx"],
+      "fixture": { "mode": "inline-story", "path": "packages/prototypes/pages/EmailTemplates/TopicLandingEmail.stories.tsx" },
+      "route": null,
+      "routeReason": "The email composition is rendered and reviewed in Storybook rather than Canvas.",
+      "support": {
+        "locales": ["en", "zh"],
+        "themes": ["light"],
+        "viewports": ["desktop-1440"],
+        "states": ["brand-topic-push"]
+      },
+      "evidence": {
+        "storyPlay": "covered",
+        "storybookA11y": true,
+        "tests": [],
+        "visual": [],
+        "manual": true
+      },
+      "excluded": [
+        { "combination": "dark theme or responsive web matrix", "reason": "Email client rendering is a fixed light-surface smoke contract, not a responsive web page." }
+      ],
+      "knownLimits": ["Cross-client email rendering remains outside the browser Storybook gate."]
+    },
+    {
+      "id": "MobileSearchPage",
+      "tier": "core",
+      "source": "packages/prototypes/pages/MobileSearchPage",
+      "stories": ["packages/prototypes/pages/MobileSearchPage/MobileSearchPage.stories.tsx"],
+      "fixture": { "mode": "file", "path": "packages/prototypes/pages/MobileSearchPage/fixtures.ts", "exportName": "recentSearches" },
+      "route": null,
+      "routeReason": "Canvas search routes render SearchResultsPage; search discovery remains a Storybook-owned page.",
+      "support": {
+        "locales": ["en", "zh"],
+        "themes": ["dark", "light"],
+        "viewports": ["mobile-402", "desktop-1440"],
+        "states": ["discovery", "query"]
+      },
+      "evidence": {
+        "storyPlay": "covered",
+        "storybookA11y": true,
+        "tests": [],
+        "visual": [],
+        "manual": true
+      },
+      "excluded": [
+        { "combination": "Canvas visual baseline", "reason": "M3.5 does not add a duplicate Canvas route solely for screenshot coverage." }
+      ],
+      "knownLimits": ["Visual evidence is Storybook plus manual rehearsal rather than Canvas screenshots."]
+    },
+    {
+      "id": "ProductDetailPage",
+      "tier": "core",
+      "source": "packages/prototypes/pages/ProductDetailPage",
+      "stories": [
+        "packages/prototypes/pages/ProductDetailPage/BeverageProductDetailPage.stories.tsx",
+        "packages/prototypes/pages/ProductDetailPage/FoodProductDetailPage.stories.tsx",
+        "packages/prototypes/pages/ProductDetailPage/ProductDetailPage.stories.tsx"
+      ],
+      "fixture": { "mode": "file", "path": "packages/prototypes/pages/ProductDetailPage/fixtures.ts", "exportName": "createProductDetailPageFixture" },
+      "route": null,
+      "routeReason": "Product detail variants are Storybook-owned and do not have a canonical Canvas route.",
+      "support": {
+        "locales": ["en", "zh"],
+        "themes": ["dark", "light"],
+        "viewports": ["mobile-402", "tablet-768", "desktop-1440"],
+        "states": ["available", "sold-out-option", "sold-out-product", "nutrition-sheet", "review-sheet"]
+      },
+      "evidence": {
+        "storyPlay": "covered",
+        "storybookA11y": true,
+        "tests": [
+          "packages/prototypes/tests/beverage-product-detail.test.ts",
+          "packages/prototypes/tests/food-product-detail.test.ts"
+        ],
+        "visual": [],
+        "manual": true
+      },
+      "excluded": [
+        { "combination": "Canvas visual baseline", "reason": "M3.5 preserves the existing Storybook contract instead of inventing a new runtime route." }
+      ],
+      "knownLimits": ["External product media remains dated source evidence and is not a live commerce guarantee."]
+    },
+    {
+      "id": "SearchResultsPage",
+      "tier": "core",
+      "source": "packages/prototypes/pages/SearchResultsPage",
+      "stories": ["packages/prototypes/pages/SearchResultsPage/SearchResultsPage.stories.tsx"],
+      "fixture": { "mode": "file", "path": "packages/prototypes/pages/SearchResultsPage/fixtures.ts", "exportName": "createSearchResultsFixture" },
+      "route": { "path": "/preview/search", "source": "apps/canvas/app/preview/search/page.tsx" },
+      "routeReason": null,
+      "support": {
+        "locales": ["en", "zh"],
+        "themes": ["dark", "light"],
+        "viewports": ["mobile-402", "desktop-1440"],
+        "states": ["results", "filters", "loading", "empty"]
+      },
+      "evidence": {
+        "storyPlay": "covered",
+        "storybookA11y": true,
+        "tests": ["packages/prototypes/pages/SearchResultsPage/SearchResultsPage.test.tsx", "tests/e2e/canvas.spec.ts"],
+        "visual": [
+          { "id": "search-zh-light-402", "test": "tests/visual/canvas.visual.spec.ts" },
+          { "id": "search-en-dark-1440", "test": "tests/visual/canvas.visual.spec.ts" }
+        ],
+        "manual": true
+      },
+      "excluded": [
+        { "combination": "full locale × theme × viewport screenshot matrix", "reason": "Pairwise coverage controls cost while Storybook exercises the remaining states." }
+      ],
+      "knownLimits": ["Visual tests use deterministic snapshot catalog data, never live upstream results."]
+    },
+    {
+      "id": "TopicLandingPage",
+      "tier": "core",
+      "source": "packages/prototypes/pages/TopicLandingPage",
+      "stories": [
+        "packages/prototypes/pages/TopicLandingPage/TopicLandingPage.campaign.stories.tsx",
+        "packages/prototypes/pages/TopicLandingPage/TopicLandingPage.stories.tsx",
+        "packages/prototypes/pages/TopicLandingPage/TopicLandingPage.topic.stories.tsx"
+      ],
+      "fixture": { "mode": "file", "path": "packages/prototypes/pages/TopicLandingPage/fixtures.ts", "exportName": "createTopicLandingPageFixture" },
+      "route": { "path": "/preview?path=%2Fbrands%2Fanua", "source": "apps/canvas/app/preview/page.tsx" },
+      "routeReason": null,
+      "support": {
+        "locales": ["en", "zh"],
+        "themes": ["dark", "light"],
+        "viewports": ["mobile-402", "desktop-1440"],
+        "states": ["brand", "topic", "campaign"]
+      },
+      "evidence": {
+        "storyPlay": "covered",
+        "storybookA11y": true,
+        "tests": ["packages/prototypes/pages/TopicLandingPage/TopicLandingPage.test.ts", "tests/a11y/canvas-a11y.spec.ts", "tests/e2e/canvas.spec.ts"],
+        "visual": [
+          { "id": "topic-zh-light-402", "test": "tests/visual/canvas.visual.spec.ts" },
+          { "id": "topic-en-dark-1440", "test": "tests/visual/canvas.visual.spec.ts" }
+        ],
+        "manual": true
+      },
+      "excluded": [
+        { "combination": "full locale × theme × viewport screenshot matrix", "reason": "Pairwise Canvas screenshots complement the richer Storybook play coverage." }
+      ],
+      "knownLimits": ["The Canvas route covers the Anua brand fixture; topic and campaign variants remain Storybook evidence."]
+    }
+  ]
+}

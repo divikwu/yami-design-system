@@ -1,14 +1,116 @@
 {
-  "schemaVersion": 1,
+  "$schema": "../../schema/registry-item.json",
+  "schemaVersion": 2,
   "name": "product-review-section",
   "title": "ProductReviewSection",
   "type": "component",
   "status": "experimental",
+  "version": "0.1.0",
+  "description": "Full PDP review section with aggregate rating, star distribution, filters, sorting, review cards, and progressive disclosure.",
   "source": "components/ProductReviewSection",
   "files": [
-    "components/ProductReviewSection/index.ts",
-    "components/ProductReviewSection/ProductReviewSection.module.css",
-    "components/ProductReviewSection/ProductReviewSection.tsx",
-    "components/ProductReviewSection/ProductReviewSection.types.ts"
-  ]
+    {
+      "source": "components/ProductReviewSection/index.ts",
+      "target": "components/ProductReviewSection/index.ts"
+    },
+    {
+      "source": "components/ProductReviewSection/ProductReviewSection.module.css",
+      "target": "components/ProductReviewSection/ProductReviewSection.module.css"
+    },
+    {
+      "source": "components/ProductReviewSection/ProductReviewSection.tsx",
+      "target": "components/ProductReviewSection/ProductReviewSection.tsx"
+    },
+    {
+      "source": "components/ProductReviewSection/ProductReviewSection.types.ts",
+      "target": "components/ProductReviewSection/ProductReviewSection.types.ts"
+    }
+  ],
+  "exports": [
+    "ProductReviewAvatar",
+    "ProductReviewFilter",
+    "ProductReviewItem",
+    "ProductReviewPhoto",
+    "ProductReviewRatingDistribution",
+    "ProductReviewSection",
+    "ProductReviewSectionCopy",
+    "ProductReviewSectionProps",
+    "ProductReviewSortOption"
+  ],
+  "composes": [
+    "Button",
+    "FilterChip",
+    "FilterChipGroup",
+    "FilterChipMenu"
+  ],
+  "dependencies": {
+    "runtime": [
+      "react",
+      "./Button",
+      "./FilterChip"
+    ],
+    "peer": [],
+    "devOnly": []
+  },
+  "documentation": {
+    "usage": "components/ProductReviewSection/usage.md",
+    "stories": [
+      "components/ProductReviewSection/ProductReviewSection.stories.tsx"
+    ],
+    "examples": [
+      "components/ProductReviewSection/examples.tsx#ProductReviewSectionExample"
+    ]
+  },
+  "design": {
+    "tokens": [
+      "--background-secondary",
+      "--border-default",
+      "--border-focus",
+      "--fill-disabled",
+      "--fill-tertiary",
+      "--font-family-ios",
+      "--radius-component-default",
+      "--radius-full",
+      "--radius-surface-default",
+      "--space-025",
+      "--space-050",
+      "--space-100",
+      "--space-150",
+      "--space-200",
+      "--space-250",
+      "--space-300",
+      "--space-400",
+      "--space-600",
+      "--stroke-default",
+      "--stroke-thick",
+      "--surface-primary",
+      "--surface-secondary",
+      "--text-emphasis",
+      "--text-primary",
+      "--text-secondary",
+      "--text-success"
+    ],
+    "rules": [
+      "focus-style",
+      "no-custom-radii"
+    ],
+    "tokenBindings": {}
+  },
+  "quality": {
+    "accessibility": {
+      "wcagLevel": "AA",
+      "tapTargetMin": 44,
+      "keyboardNav": [
+        "tab",
+        "enter",
+        "space",
+        "arrow keys"
+      ],
+      "ariaPattern": "Labelled review region with accessible rating image, five meter rows, shared filters, and a single-select sort menu.",
+      "structure": "The heading labels the section; every review is an article within a responsive grid.",
+      "interaction": "Filters and progressive disclosure update visible reviews without removing native focus behavior."
+    },
+    "interactionCoverage": "covered"
+  },
+  "contentDigest": "4bd23fd5248bc20c7efd793007a0b2149cd55ef0533a7d8f73d322ded630d878"
 }

@@ -1,13 +1,183 @@
 {
-  "schemaVersion": 1,
+  "$schema": "../../schema/registry-item.json",
+  "schemaVersion": 2,
   "name": "input",
   "title": "Input",
   "type": "component",
   "status": "stable",
+  "version": "0.2.0",
+  "description": "YAMI Input Field from Figma `↪ 表单输入 Forms`. Responsive single-line native input with embedded label, value row, clear action, helper/error supporting text, and accessible form semantics.",
   "source": "components/Input",
   "files": [
-    "components/Input/index.ts",
-    "components/Input/Input.module.css",
-    "components/Input/Input.tsx"
-  ]
+    {
+      "source": "components/Input/index.ts",
+      "target": "components/Input/index.ts"
+    },
+    {
+      "source": "components/Input/Input.module.css",
+      "target": "components/Input/Input.module.css"
+    },
+    {
+      "source": "components/Input/Input.tsx",
+      "target": "components/Input/Input.tsx"
+    }
+  ],
+  "exports": [
+    "Input",
+    "InputProps",
+    "InputSize",
+    "InputState"
+  ],
+  "composes": [],
+  "dependencies": {
+    "runtime": [
+      "react"
+    ],
+    "peer": [],
+    "devOnly": []
+  },
+  "documentation": {
+    "usage": "components/Input/usage.md",
+    "stories": [
+      "components/Input/Input.stories.tsx"
+    ],
+    "examples": [
+      "components/Input/examples.tsx#BasicInput",
+      "components/Input/examples.tsx#FocusedInput",
+      "components/Input/examples.tsx#TypingInput",
+      "components/Input/examples.tsx#CompleteInput",
+      "components/Input/examples.tsx#WithErrorInput",
+      "components/Input/examples.tsx#DisabledFilledInput",
+      "components/Input/examples.tsx#DisabledEmptyInput",
+      "components/Input/examples.tsx#SearchInput",
+      "components/Input/examples.tsx#RequiredInput",
+      "components/Input/examples.tsx#WithHelperTextInput",
+      "components/Input/examples.tsx#ResettableInput"
+    ]
+  },
+  "design": {
+    "tokens": [
+      "--background-primary",
+      "--border-attention",
+      "--border-default",
+      "--border-focus",
+      "--fill-tertiary",
+      "--font-family-ios",
+      "--font-size-body-md",
+      "--font-size-body-xl",
+      "--font-size-caption-md",
+      "--font-weight-normal",
+      "--letter-spacing-normal",
+      "--line-height-body-md",
+      "--line-height-body-xl",
+      "--line-height-caption-md",
+      "--radius-component-default",
+      "--space-0",
+      "--space-025",
+      "--space-050",
+      "--space-100",
+      "--space-150",
+      "--space-500",
+      "--space-600",
+      "--stroke-default",
+      "--stroke-thick",
+      "--text-emphasis",
+      "--text-primary",
+      "--text-secondary"
+    ],
+    "rules": [
+      "border-strength",
+      "focus-style",
+      "no-custom-radii",
+      "no-opacity-disabled",
+      "tap-target"
+    ],
+    "tokenBindings": {
+      "--background-primary": {
+        "property": "background",
+        "selector": ".field"
+      },
+      "--fill-tertiary": {
+        "property": "background",
+        "selector": ".root[data-state='disabled-filled'] .field, .root[data-state='disabled-empty'] .field"
+      },
+      "--border-default": {
+        "property": "box-shadow",
+        "selector": ".field"
+      },
+      "--border-focus": {
+        "property": "box-shadow",
+        "selector": ".root[data-state='focused'] .field, .root[data-state='typing'] .field"
+      },
+      "--border-attention": {
+        "property": "box-shadow",
+        "selector": ".root[data-state='error'] .field"
+      },
+      "--text-primary": {
+        "property": "color",
+        "selector": ".control, .root[data-state='focused'] .label, .root[data-state='typing'] .label, .root[data-state='error'] .label"
+      },
+      "--text-secondary": {
+        "property": "color",
+        "selector": ".label, .control::placeholder, .leading, .trailing, .helperText"
+      },
+      "--text-emphasis": {
+        "property": "color",
+        "selector": ".requiredMarker, .errorText"
+      },
+      "--radius-component-default": {
+        "property": "border-radius",
+        "selector": ".field"
+      },
+      "--font-family-ios": {
+        "property": "font-family",
+        "selector": ".root"
+      },
+      "--font-size-body-md": {
+        "property": "font-size",
+        "selector": ".label, .control"
+      },
+      "--font-size-body-xl": {
+        "property": "font-size",
+        "selector": "@media(min-width:1024px) .control"
+      },
+      "--font-size-caption-md": {
+        "property": "font-size",
+        "selector": ".root[data-floating='true'] .label, .helperText"
+      },
+      "--line-height-body-md": {
+        "property": "line-height",
+        "selector": ".label, .control"
+      },
+      "--line-height-body-xl": {
+        "property": "line-height",
+        "selector": "@media(min-width:1024px) .control"
+      },
+      "--line-height-caption-md": {
+        "property": "line-height",
+        "selector": ".root[data-floating='true'] .label, .helperText, .errorText"
+      }
+    }
+  },
+  "quality": {
+    "accessibility": {
+      "role": "implicit native input",
+      "wcagLevel": "AA",
+      "tapTargetMin": 44,
+      "keyboardNav": [
+        "tab",
+        "shift+tab",
+        "type",
+        "delete",
+        "escape when consumer wires it"
+      ],
+      "ariaPattern": "textbox/searchbox depending on input type",
+      "labelling": "Visible embedded label is <label htmlFor={id}>. If no visible label is provided, consumer must pass aria-label.",
+      "errorAnnouncement": "error renders role='alert' and is linked via aria-describedby",
+      "required": "required=true uses native required and an aria-hidden visual marker",
+      "disabled": "native disabled prevents focus and editing"
+    },
+    "interactionCoverage": "covered"
+  },
+  "contentDigest": "a55bd2e16bb72022b38df10af2cf32e7e46dd2166cc792d12b739fd073bf11bc"
 }

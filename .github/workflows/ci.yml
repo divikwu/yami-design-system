@@ -26,6 +26,12 @@ jobs:
             command: pnpm test
           - check: generated-drift
             command: pnpm check:generated
+          - check: design-system-contracts
+            command: pnpm check:design-system-contracts
+          - check: page-validation
+            command: pnpm check:page-validation
+          - check: skill-evaluation
+            command: pnpm evaluate:design-system-skill
           - check: package-boundaries
             command: pnpm check:boundaries
           - check: build

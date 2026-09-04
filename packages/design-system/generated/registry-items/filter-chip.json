@@ -1,13 +1,139 @@
 {
-  "schemaVersion": 1,
+  "$schema": "../../schema/registry-item.json",
+  "schemaVersion": 2,
   "name": "filter-chip",
   "title": "FilterChip",
   "type": "component",
   "status": "experimental",
+  "version": "0.1.0",
+  "description": "Interactive 36px filter-pill family with filled and outlined variants, optional icons, single-, multiple-, and hierarchical category popovers on desktop and shared mobile Sheets, and horizontally scrollable grouping.",
   "source": "components/FilterChip",
   "files": [
-    "components/FilterChip/FilterChip.module.css",
-    "components/FilterChip/FilterChip.tsx",
-    "components/FilterChip/index.ts"
-  ]
+    {
+      "source": "components/FilterChip/FilterChip.module.css",
+      "target": "components/FilterChip/FilterChip.module.css"
+    },
+    {
+      "source": "components/FilterChip/FilterChip.tsx",
+      "target": "components/FilterChip/FilterChip.tsx"
+    },
+    {
+      "source": "components/FilterChip/index.ts",
+      "target": "components/FilterChip/index.ts"
+    }
+  ],
+  "exports": [
+    "FilterChip",
+    "FilterChipCategoryMenu",
+    "FilterChipCategoryMenuProps",
+    "FilterChipCategoryOption",
+    "FilterChipGroup",
+    "FilterChipGroupProps",
+    "FilterChipMenu",
+    "FilterChipMenuOption",
+    "FilterChipMenuProps",
+    "FilterChipMultipleMenuProps",
+    "FilterChipProps",
+    "FilterChipSingleMenuProps",
+    "FilterChipVariant"
+  ],
+  "composes": [
+    "Button",
+    "Checkbox",
+    "RadioGroup",
+    "Sheet"
+  ],
+  "dependencies": {
+    "runtime": [
+      "react",
+      "@base-ui/react"
+    ],
+    "peer": [
+      "@base-ui/react"
+    ],
+    "devOnly": [
+      "@storybook/react-vite",
+      "storybook"
+    ]
+  },
+  "documentation": {
+    "usage": "components/FilterChip/usage.md",
+    "stories": [
+      "components/FilterChip/FilterChip.stories.tsx"
+    ],
+    "examples": [
+      "components/FilterChip/examples.tsx#FilterChipExample"
+    ]
+  },
+  "design": {
+    "tokens": [
+      "--border-default",
+      "--border-focus",
+      "--color-black-200",
+      "--fill-primary",
+      "--fill-secondary",
+      "--font-family-ios",
+      "--font-size-body-md",
+      "--font-weight-normal",
+      "--line-height-body-md",
+      "--radius-full",
+      "--radius-sm",
+      "--space-050",
+      "--space-100",
+      "--space-150",
+      "--space-300",
+      "--stroke-default",
+      "--text-primary",
+      "--text-secondary"
+    ],
+    "rules": [
+      "focus-style",
+      "no-custom-radii",
+      "semantic-color-only"
+    ],
+    "tokenBindings": {
+      "--fill-secondary": {
+        "property": "background-color",
+        "selector": ".filled"
+      },
+      "--fill-primary": {
+        "property": "background-color",
+        "selector": ".outlined, .filled[aria-pressed='true']"
+      },
+      "--border-default": {
+        "property": "border-color",
+        "selector": ".outlined"
+      },
+      "--border-focus": {
+        "property": "inset box-shadow / outline-color",
+        "selector": ".filled[aria-pressed='true'], :focus-visible"
+      },
+      "--color-black-200": {
+        "property": "background-color",
+        "selector": ".categoryToggle:hover"
+      },
+      "--radius-full": {
+        "property": "border-radius",
+        "selector": ".chip"
+      }
+    }
+  },
+  "quality": {
+    "accessibility": {
+      "role": "button / radio group / checkbox group supplied by consumer",
+      "wcagLevel": "AA",
+      "tapTargetMin": 36,
+      "keyboardNav": [
+        "tab",
+        "shift+tab",
+        "space",
+        "enter",
+        "arrow keys"
+      ],
+      "ariaPattern": "toggle button trigger with RadioGroup or Checkbox controls in popup",
+      "notes": "Provide accessible labels for chip groups and popup menus."
+    },
+    "interactionCoverage": "covered"
+  },
+  "contentDigest": "f429d34ccc5cdb6cf76cc1bddfd933e8cc4b2a7bf9b4747ec6d726aa7fd01e3d"
 }

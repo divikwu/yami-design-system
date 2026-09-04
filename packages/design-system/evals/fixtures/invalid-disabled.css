@@ -1,0 +1,5 @@
+.button:disabled {
+  background: var(--button-disabled);
+  color: var(--text-disabled);
+  opacity: 0.5;
+}
