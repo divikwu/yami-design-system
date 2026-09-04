@@ -85,10 +85,13 @@ async function materializeTopicPage(page: Page) {
       await settle();
     }
     window.scrollTo(0, 0);
-    await Promise.all(Array.from(document.images).map((image) => image.complete ? Promise.resolve() : new Promise<void>((resolve) => {
-      image.addEventListener("load", () => resolve(), { once: true });
-      image.addEventListener("error", () => resolve(), { once: true });
-    })));
+    await Promise.race([
+      Promise.all(Array.from(document.images).map((image) => image.complete ? Promise.resolve() : new Promise<void>((resolve) => {
+        image.addEventListener("load", () => resolve(), { once: true });
+        image.addEventListener("error", () => resolve(), { once: true });
+      }))),
+      new Promise<void>((resolve) => window.setTimeout(resolve, 5_000)),
+    ]);
     await settle();
   });
 }
