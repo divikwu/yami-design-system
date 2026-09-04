@@ -4,7 +4,9 @@ import process from "node:process";
 import Ajv2020 from "ajv/dist/2020.js";
 
 const root = process.cwd();
-const designSystemDir = path.join(root, "packages/design-system");
+const designSystemDir = process.env.YAMI_CONTRACTS_DESIGN_SYSTEM_DIR
+  ? path.resolve(process.env.YAMI_CONTRACTS_DESIGN_SYSTEM_DIR)
+  : path.join(root, "packages/design-system");
 const componentsDir = path.join(designSystemDir, "components");
 const schemaPath = path.join(designSystemDir, "schema/component.json");
 const tokensPath = path.join(designSystemDir, "generated/tokens.css");

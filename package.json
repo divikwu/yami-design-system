@@ -32,7 +32,7 @@
     "typecheck": "pnpm -r --if-present run typecheck",
     "lint": "eslint apps packages tests tooling --max-warnings 0",
     "test": "pnpm test:tooling && pnpm -r --if-present run test",
-    "test:tooling": "node --test tooling/registry/build.test.mjs",
+    "test:tooling": "node --test tooling/registry/build.test.mjs tooling/design-system/check-contracts.test.mjs",
     "test:images:ecommerce-home": "node tooling/performance/ecommerce-home-images.mjs",
     "generate": "pnpm generate:tokens && pnpm generate:catalog && pnpm generate:registry && pnpm generate:migration-map",
     "generate:tokens": "node tooling/tokens/build.mjs",
