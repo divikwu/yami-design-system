@@ -64,6 +64,35 @@ async function waitForDirectPreview(page: Page, selector: string) {
   });
 }
 
+async function materializeTopicPage(page: Page) {
+  await page.addStyleTag({
+    content: `
+      [data-slot="topic-landing-standard-rail"],
+      [data-slot="topic-landing-brand-rail"],
+      [data-slot="topic-landing-review-list"],
+      [data-slot="topic-landing-waterfall-section"] {
+        content-visibility: visible !important;
+        contain-intrinsic-size: none !important;
+      }
+    `,
+  });
+  await page.evaluate(async () => {
+    const settle = () => new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    });
+    for (let offset = 0; offset < document.documentElement.scrollHeight; offset += Math.max(window.innerHeight * 0.8, 600)) {
+      window.scrollTo(0, offset);
+      await settle();
+    }
+    window.scrollTo(0, 0);
+    await Promise.all(Array.from(document.images).map((image) => image.complete ? Promise.resolve() : new Promise<void>((resolve) => {
+      image.addEventListener("load", () => resolve(), { once: true });
+      image.addEventListener("error", () => resolve(), { once: true });
+    })));
+    await settle();
+  });
+}
+
 test.describe("ecommerce-home-full-matrix", () => {
   for (const locale of ["zh", "en"] as const) {
     for (const theme of ["light", "dark"] as const) {
@@ -112,6 +141,7 @@ test.describe("pairwise-page-contracts", () => {
       await page.setViewportSize({ width: visualCase.width, height: 1100 });
       await page.goto(visualCase.url);
       await waitForDirectPreview(page, visualCase.selector);
+      if (visualCase.id.startsWith("topic-")) await materializeTopicPage(page);
       await expect(page).toHaveScreenshot(`${visualCase.id}.png`, { fullPage: true });
     });
   }
