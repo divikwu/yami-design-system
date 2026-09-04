@@ -10,8 +10,8 @@
     "schemaVersion": { "const": 2 },
     "name": { "const": "yami" },
     "visibility": { "const": "private" },
-    "version": { "type": "string", "minLength": 1 },
-    "status": { "type": "string", "minLength": 1 },
+    "version": { "$ref": "#/$defs/semver" },
+    "status": { "enum": ["alpha", "stable", "beta", "experimental"] },
     "generatedFrom": { "type": "string", "minLength": 1 },
     "distribution": {
       "type": "object",
@@ -33,12 +33,18 @@
           "name": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
           "title": { "type": "string", "minLength": 1 },
           "type": { "enum": ["design-system", "component"] },
-          "status": { "type": "string", "minLength": 1 },
-          "version": { "type": "string", "minLength": 1 },
+          "status": { "enum": ["alpha", "stable", "beta", "experimental"] },
+          "version": { "$ref": "#/$defs/semver" },
           "path": { "type": "string", "pattern": "^registry-items/[a-z0-9-]+\\.json$" },
           "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
         }
       }
+    }
+  },
+  "$defs": {
+    "semver": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-(?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(?:\\.(?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$"
     }
   }
 }

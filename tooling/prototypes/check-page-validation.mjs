@@ -2,6 +2,8 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import Ajv2020 from "ajv/dist/2020.js";
+import { collectNamedExports } from "../design-system/typescript-exports.mjs";
+import { isRepositoryPath, routeMatchesSource } from "./contracts.mjs";
 
 const root = process.cwd();
 const manifestPath = path.join(root, "packages/prototypes/page-validation.json");
@@ -22,7 +24,7 @@ if ([...actualIds].sort().join("\n") !== expectedIds.sort().join("\n")) errors.p
 
 async function readReferencedFile(owner, relativePath) {
   const absolutePath = path.resolve(root, relativePath);
-  if (!absolutePath.startsWith(`${root}${path.sep}`)) {
+  if (!isRepositoryPath(root, relativePath)) {
     errors.push(`${owner}: path escapes repository: ${relativePath}`);
     return null;
   }
@@ -32,8 +34,17 @@ async function readReferencedFile(owner, relativePath) {
   });
 }
 
+async function readReferencedDirectory(owner, relativePath) {
+  if (!isRepositoryPath(root, relativePath)) {
+    errors.push(`${owner}: path escapes repository: ${relativePath}`);
+    return;
+  }
+  const stat = await fs.stat(path.resolve(root, relativePath)).catch(() => null);
+  if (!stat?.isDirectory()) errors.push(`${owner}: missing source directory ${relativePath}`);
+}
+
 for (const page of manifest.pages) {
-  await fs.access(path.resolve(root, page.source)).catch(() => errors.push(`${page.id}: missing source directory ${page.source}`));
+  await readReferencedDirectory(page.id, page.source);
   const storySources = [];
   for (const story of page.stories) {
     const source = await readReferencedFile(page.id, story);
@@ -43,11 +54,14 @@ for (const page of manifest.pages) {
   if (page.evidence.storyPlay === "covered" && !hasPlay) errors.push(`${page.id}: storyPlay is covered but no play function was found`);
 
   const fixtureSource = await readReferencedFile(page.id, page.fixture.path);
-  if (fixtureSource !== null && page.fixture.mode === "file" && !new RegExp(`\\b${page.fixture.exportName}\\b`).test(fixtureSource)) {
+  if (fixtureSource !== null && page.fixture.mode === "file" && !collectNamedExports(fixtureSource, page.fixture.path).has(page.fixture.exportName)) {
     errors.push(`${page.id}: fixture export ${page.fixture.exportName} was not found`);
   }
 
-  if (page.route) await readReferencedFile(page.id, page.route.source);
+  if (page.route) {
+    await readReferencedFile(page.id, page.route.source);
+    if (!routeMatchesSource(page.route.path, page.route.source)) errors.push(`${page.id}: route ${page.route.path} does not match App Router source ${page.route.source}`);
+  }
   else if (!page.routeReason) errors.push(`${page.id}: pages without a route require routeReason`);
   if (page.route && page.routeReason !== null) errors.push(`${page.id}: routed pages must set routeReason to null`);
 

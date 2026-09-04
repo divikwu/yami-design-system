@@ -3,6 +3,7 @@ import path from "node:path";
 import process from "node:process";
 import Ajv2020 from "ajv/dist/2020.js";
 import { ruleIds, validateDesign } from "../principles/index.ts";
+import { collectNamedExports } from "../../../tooling/design-system/typescript-exports.mjs";
 
 const root = process.cwd();
 const evalDir = path.join(root, "packages/design-system/evals");
@@ -31,6 +32,25 @@ function slug(value) {
   return value.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
 }
 
+async function componentRegistryItem(name) {
+  if (!catalogComponents.has(name)) return null;
+  const summary = registryItems.get(slug(name));
+  if (!summary) return null;
+  const item = JSON.parse(await fs.readFile(path.join(root, "packages/design-system/generated", summary.path), "utf8"));
+  return item.title === name && item.type === "component" ? item : null;
+}
+
+async function itemHasStoryExport(item, exportName) {
+  const stories = item.documentation?.stories;
+  if (!Array.isArray(stories) || stories.length === 0) return false;
+  for (const story of stories) {
+    const storyPath = path.join(root, "packages/design-system", story);
+    const source = await fs.readFile(storyPath, "utf8").catch(() => null);
+    if (source !== null && collectNamedExports(source, storyPath).has(exportName)) return true;
+  }
+  return false;
+}
+
 async function resolveReference(reference) {
   const separator = reference.indexOf(":");
   const kind = separator === -1 ? "" : reference.slice(0, separator);
@@ -38,15 +58,15 @@ async function resolveReference(reference) {
   if (kind === "token") return tokens.has(value);
   if (kind === "page") return pages.has(value);
   if (kind === "registry") return registryItems.has(value);
+  if (kind === "story") {
+    const [componentName, exportName] = value.split("#");
+    if (!componentName || !exportName) return false;
+    const item = await componentRegistryItem(componentName);
+    return item !== null && await itemHasStoryExport(item, exportName);
+  }
   if (kind !== "component") return false;
-
-  if (!catalogComponents.has(value)) return false;
-  const summary = registryItems.get(slug(value));
-  if (!summary) return false;
-  const item = JSON.parse(await fs.readFile(path.join(root, "packages/design-system/generated", summary.path), "utf8"));
-  if (item.title !== value || item.type !== "component") return false;
-  return Array.isArray(item.documentation?.stories) && item.documentation.stories.length > 0 &&
-    (await Promise.all(item.documentation.stories.map((story) => fs.access(path.join(root, "packages/design-system", story)).then(() => true, () => false)))).every(Boolean);
+  const item = await componentRegistryItem(value);
+  return item !== null && await itemHasStoryExport(item, "Showcase");
 }
 
 function unstableComponents(references) {

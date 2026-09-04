@@ -18,6 +18,7 @@ const itemSchema = JSON.parse(await fs.readFile(path.join(designSystemDir, "sche
 const validateComponent = ajv.compile(componentSchema);
 const validateRegistry = ajv.compile(registrySchema);
 const validateItem = ajv.compile(itemSchema);
+const designSystemPackage = JSON.parse(await fs.readFile(path.join(designSystemDir, "package.json"), "utf8"));
 
 function slug(value) {
   return value.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
@@ -109,14 +110,21 @@ for (const directory of directories) {
 const designSystemMeta = JSON.parse(await fs.readFile(path.join(designSystemDir, "design-system.meta.json"), "utf8"));
 const baseFiles = [
   "design-system.meta.json",
+  "package.json",
   "manifest.json",
   "DESIGN.compact.md",
   "SKILL.md",
   "SKILL.zh-CN.md",
+  "principles/principles.ts",
+  "components/index.ts",
   "styles/base.css",
   "generated/tokens.css",
   "generated/tokens.json",
 ];
+const baseTokenSource = await fs.readFile(path.join(designSystemDir, "generated/tokens.css"), "utf8");
+const basePrincipleSource = await fs.readFile(path.join(designSystemDir, "principles/principles.ts"), "utf8");
+const baseTokens = [...new Set([...baseTokenSource.matchAll(/(--[a-z0-9-]+)\s*:/g)].map((match) => match[1]))].sort((a, b) => a.localeCompare(b));
+const baseRules = [...new Set([...basePrincipleSource.matchAll(/ruleId:\s*['"]([^'"]+)['"]/g)].map((match) => match[1]))].sort((a, b) => a.localeCompare(b));
 const baseItem = {
   $schema: "../../schema/registry-item.json",
   schemaVersion: 2,
@@ -128,14 +136,28 @@ const baseItem = {
   description: designSystemMeta.description,
   source: "design-system.meta.json",
   files: baseFiles.map((file) => ({ source: file, target: file })),
-  distribution: {
-    package: "@yami/design-system",
-    registry: "internal-source",
+  exports: Object.keys(designSystemPackage.exports).sort((a, b) => a.localeCompare(b)),
+  composes: componentItems.map((item) => item.name).sort((a, b) => a.localeCompare(b)),
+  dependencies: {
+    runtime: Object.keys(designSystemPackage.dependencies ?? {}).sort((a, b) => a.localeCompare(b)),
+    peer: Object.keys(designSystemPackage.peerDependencies ?? {}).sort((a, b) => a.localeCompare(b)),
+    devOnly: Object.keys(designSystemPackage.devDependencies ?? {}).sort((a, b) => a.localeCompare(b)),
   },
   documentation: {
-    spec: "DESIGN.compact.md",
-    skill: "SKILL.md",
-    skillZh: "SKILL.zh-CN.md",
+    usage: "SKILL.md",
+    stories: [],
+    examples: ["DESIGN.compact.md", "SKILL.zh-CN.md"],
+  },
+  design: {
+    tokens: baseTokens,
+    rules: baseRules,
+  },
+  quality: {
+    accessibility: {
+      scope: "component-items",
+      statement: "Accessibility requirements and evidence are declared by each composed component item.",
+    },
+    interactionCoverage: "not-applicable",
   },
   contentDigest: contentDigest(await readEntries(baseFiles)),
 };

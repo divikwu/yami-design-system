@@ -2,6 +2,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import Ajv2020 from "ajv/dist/2020.js";
+import { collectNamedExports } from "./typescript-exports.mjs";
 
 const root = process.cwd();
 const designSystemDir = process.env.YAMI_CONTRACTS_DESIGN_SYSTEM_DIR
@@ -62,6 +63,10 @@ for (const directory of directories) {
   for (const token of meta.tokens ?? []) {
     if (!knownTokens.has(token)) report(directory, `unknown token ${token}`);
   }
+  for (const token of Object.keys(meta.tokenBindings ?? {})) {
+    if (!knownTokens.has(token)) report(directory, `unknown token binding ${token}`);
+    else if (!(meta.tokens ?? []).includes(token)) report(directory, `token binding ${token} must also be declared in tokens`);
+  }
   for (const ruleId of collectRuleIds(meta.rules)) {
     if (!knownRules.has(ruleId)) report(directory, `unknown rule ${ruleId}`);
   }
@@ -79,7 +84,7 @@ for (const directory of directories) {
     }
     const source = await fs.readFile(examplePath, "utf8").catch(() => null);
     if (source === null) report(directory, `missing example source ${relativePath}`);
-    else if (!new RegExp(`\\b${exportName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`).test(source)) report(directory, `missing example export ${exportName}`);
+    else if (!collectNamedExports(source, examplePath).has(exportName)) report(directory, `missing example export ${exportName}`);
   }
 
   if (meta.status !== "stable") continue;
@@ -88,15 +93,18 @@ for (const directory of directories) {
   if (!Array.isArray(meta.exports) || meta.exports.length === 0) {
     report(directory, "stable components must declare public exports");
   } else {
-    const indexSource = await fs.readFile(path.join(componentDir, "index.ts"), "utf8").catch(() => "");
+    const indexPath = path.join(componentDir, "index.ts");
+    const indexSource = await fs.readFile(indexPath, "utf8").catch(() => "");
+    const publicExports = collectNamedExports(indexSource, indexPath);
     for (const exportedName of meta.exports) {
-      if (!new RegExp(`\\b${exportedName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`).test(indexSource)) report(directory, `declared export ${exportedName} is missing from index.ts`);
+      if (!publicExports.has(exportedName)) report(directory, `declared export ${exportedName} is missing from index.ts`);
     }
   }
 
   const storyPath = path.join(componentDir, `${directory}.stories.tsx`);
   const storySource = await fs.readFile(storyPath, "utf8").catch(() => null);
   if (storySource === null) report(directory, `missing canonical story ${directory}.stories.tsx`);
+  else if (!collectNamedExports(storySource, storyPath).has("Showcase")) report(directory, "canonical story must export Showcase");
 
   const registryPath = path.join(registryItemsDir, `${slug(directory)}.json`);
   await fs.access(registryPath).catch(() => report(directory, `missing registry item ${slug(directory)}.json`));

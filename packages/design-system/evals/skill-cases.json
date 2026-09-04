@@ -8,7 +8,7 @@
         "zh": "为结算页选择并实现唯一的主要提交按钮。",
         "en": "Select and implement the single primary submit action for checkout."
       },
-      "expectedStartingPoints": ["component:Button", "registry:button", "token:--button-emphasis"],
+      "expectedStartingPoints": ["component:Button", "registry:button", "story:Button#Showcase", "token:--button-emphasis"],
       "requiredRuleIds": ["emphasis-limit", "focus-style", "tap-target"],
       "forbiddenRuleIds": ["card-no-border"],
       "expectedOutcome": "pass",
@@ -157,14 +157,14 @@
     {
       "id": "registry-story-missing",
       "prompts": {
-        "zh": "安装并使用 Registry 中的 checkout-page Story。",
-        "en": "Install and use the checkout-page Story from Registry."
+        "zh": "使用 Registry Button 中不存在的 MissingShowcase Story。",
+        "en": "Use the missing MissingShowcase Story from the Registry Button item."
       },
-      "expectedStartingPoints": ["registry:yami-design-system"],
+      "expectedStartingPoints": ["component:Button", "registry:button"],
       "requiredRuleIds": [],
       "forbiddenRuleIds": [],
       "expectedOutcome": "reject",
-      "missingReferences": ["registry:checkout-page"]
+      "missingReferences": ["story:Button#MissingShowcase"]
     },
     {
       "id": "preserve-confirmed-ui",
