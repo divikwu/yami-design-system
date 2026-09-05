@@ -14,7 +14,7 @@ Source: Figma `YAMI-UI-UX-Guidelines` (`6oOAy72DBff4P6NzJYc2hi`), Brand page `26
 `yami-icon-fill.svg` is the canonical brand mark declared by
 [`design-system.meta.json#/assets/logo`](../../design-system.meta.json).
 
-`logo-ui` — icon + wordmark horizontal lockup, for App / Web headers. Figma `2013:13691`. Icon 32px (mobile) / 52px (PC).
+`logo-ui` — icon + wordmark horizontal lockup, for App / Web headers. Figma `2013:13691`. Mobile renders its dedicated 32px asset; PC assets retain their source canvas and render at 48px high with `width: auto`.
 
 | Pattern | Variants |
 | --- | --- |

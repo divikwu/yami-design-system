@@ -2416,7 +2416,7 @@
           "logo": {
             "type": "HeaderImage",
             "required": true,
-            "description": "Brand lockup artwork. PC renders the assets/logos/yami-ui-<lang>-pc-fill.svg lockup at 52px tall."
+            "description": "Brand lockup artwork. PC renders the assets/logos/yami-ui-<lang>-pc-fill.svg lockup at 48px tall with its intrinsic aspect ratio."
           },
           "mobileLogo": {
             "type": "HeaderImage",

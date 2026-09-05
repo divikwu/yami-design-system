@@ -146,7 +146,7 @@ export interface HeaderSearchPanel {
 export interface HeaderProps extends Omit<ComponentProps<'header'>, 'children'> {
   /** Mobile chrome anatomy. `pdp` uses the single-row H5 PDP navigation below 1024px. */
   mobileVariant?: 'default' | 'pdp'
-  /** Brand lockup — `assets/logos/yami-ui-<lang>-pc-fill.svg`, 52px tall at PC. */
+  /** Brand lockup — `assets/logos/yami-ui-<lang>-pc-fill.svg`, rendered 48px tall at PC with its intrinsic aspect ratio. */
   logo: HeaderImage
   /**
    * Brand lockup below 1024px — `assets/logos/yami-ui-en-mobile-fill.svg`,

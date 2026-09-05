@@ -19,9 +19,9 @@
 .header > div { max-width: var(--campaign-content-max-width); height: var(--campaign-header-height); margin: auto; padding: 0 var(--space-400); display: flex; align-items: center; justify-content: space-between; }
 .logo { display: block; width: auto; height: 28px; object-fit: contain; }
 @media (min-width: 1024px) {
-  .logo { height: 52px; }
+  .logo { height: var(--space-600); }
 }
-.headerActions { display: flex; align-items: center; gap: var(--space-200); }
+.headerActions { display: flex; align-items: center; gap: var(--space-100); }
 .root .languageButton { column-gap: var(--space-100); }
 .flag { display: block; width: 20px; height: 20px; object-fit: contain; }
 .shopLink, .dealsLink, .stickyCta { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-100); min-height: 48px; padding: var(--space-150) var(--space-300); font-weight: var(--font-weight-emphasize); }
@@ -132,16 +132,40 @@
   .selectionProduct { flex-basis: calc((100% - 2 * var(--space-150)) / 2.25); }
 }
 @media (max-width: 1023px) {
+  .root { --campaign-header-height: 56px; }
   .header > div { padding: 0 var(--space-200); }
   .headerActions { gap: var(--space-100); }
-  .shopLink { padding: var(--space-150) var(--space-200); font-size: var(--font-size-caption-sm); }
+  .root .languageButton {
+    height: var(--space-400);
+    padding-inline: var(--space-150);
+  }
+  .root .shopLink {
+    height: var(--space-400);
+    min-height: var(--space-400);
+    padding: 0 var(--space-150);
+    font-size: var(--font-size-caption-sm);
+  }
   .hero { padding: var(--space-400) var(--space-200); }
+  .heroCopy {
+    padding-top: var(--space-400);
+    padding-bottom: 0;
+  }
+  .hero .downloadLinks, .bottom .downloadLinks {
+    padding-bottom: var(--space-400);
+  }
+  .bottom .heroHeading {
+    padding-top: var(--space-400);
+  }
   .hero h1 { font-size: var(--font-size-heading-2xl); line-height: var(--line-height-heading-2xl); letter-spacing: -1px; }
   .heroDescription { font-size: var(--font-size-body-md); line-height: var(--line-height-body-md); }
   .downloadLinks { flex-direction: column; gap: var(--space-150); }
   .downloadLinks .qr { display: none; }
   .root h2 { font-size: var(--font-size-heading-xl); line-height: var(--line-height-heading-xl); }
   .couponSection, .guideSection, .calculatorSection { padding: var(--space-400) var(--space-200); }
+  .video {
+    width: min(calc(100% - var(--space-600)), 380px);
+    margin-inline: var(--space-300);
+  }
   .couponPanel { padding: var(--space-300) var(--space-250); }
   .coupon { padding: var(--space-250) var(--space-300) var(--space-150); }
   .coupon h3 { font-size: var(--font-size-body-md); }
@@ -166,6 +190,22 @@
   .hero, .couponSection, .guideSection, .calculatorSection, .bottom {
     padding-block: var(--space-400);
     padding-inline: max(var(--space-600), calc((100% - var(--campaign-content-max-width)) / 2 + var(--space-600)));
+  }
+
+  .heroCopy {
+    padding-top: var(--space-800);
+  }
+
+  .hero .downloadLinks, .bottom .downloadLinks {
+    padding-bottom: var(--space-800);
+  }
+
+  .guideSection .video {
+    padding-left: 0;
+  }
+
+  .bottom .heroHeading {
+    padding-top: var(--space-800);
   }
 
   .header > div {

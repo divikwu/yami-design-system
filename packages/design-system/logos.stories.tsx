@@ -60,16 +60,16 @@ const logoSets: LogoSet[] = [
     id: "logo-ui",
     title: "UI Lockup",
     description:
-      "Mark + wordmark for App / Web headers. Icon is 32px tall on Mobile, 52px on PC. Pick one language per surface — never mix CN and EN.",
+      "Mark + wordmark for App / Web headers. Mobile uses its dedicated 32px asset; PC renders 48px tall at the source aspect ratio. Pick one language per surface — never mix CN and EN.",
     logos: [
       { file: "yami-ui-cn-mobile-fill.svg", width: 126, height: 32, style: "fill", lang: "CN", platform: "Mobile" },
       { file: "yami-ui-cn-mobile-line.svg", width: 126, height: 32, style: "line", lang: "CN", platform: "Mobile" },
-      { file: "yami-ui-cn-pc-fill.svg", width: 164, height: 52, style: "fill", lang: "CN", platform: "PC" },
-      { file: "yami-ui-cn-pc-line.svg", width: 164, height: 52, style: "line", lang: "CN", platform: "PC" },
+      { file: "yami-ui-cn-pc-fill.svg", width: 151.38, height: 48, style: "fill", lang: "CN", platform: "PC" },
+      { file: "yami-ui-cn-pc-line.svg", width: 151.38, height: 48, style: "line", lang: "CN", platform: "PC" },
       { file: "yami-ui-en-mobile-fill.svg", width: 84, height: 32, style: "fill", lang: "EN", platform: "Mobile" },
       { file: "yami-ui-en-mobile-line.svg", width: 84, height: 32, style: "line", lang: "EN", platform: "Mobile" },
-      { file: "yami-ui-en-pc-fill.svg", width: 124, height: 52, style: "fill", lang: "EN", platform: "PC" },
-      { file: "yami-ui-en-pc-line.svg", width: 124, height: 52, style: "line", lang: "EN", platform: "PC" },
+      { file: "yami-ui-en-pc-fill.svg", width: 114.46, height: 48, style: "fill", lang: "EN", platform: "PC" },
+      { file: "yami-ui-en-pc-line.svg", width: 114.46, height: 48, style: "line", lang: "EN", platform: "PC" },
     ],
   },
   {
@@ -80,9 +80,9 @@ const logoSets: LogoSet[] = [
       "Fill paints its wordmark #222222, which vanishes on a dark band. These are the same locked lockup with a white wordmark and a brand-red mark — swap the whole file, never rebuild the lockup from mark + wordmark to recolour the text. No Figma variant yet; the logo-ui set has no lightness axis.",
     logos: [
       { file: "yami-ui-cn-mobile-fill-inverse.svg", width: 126, height: 32, style: "fill-inverse", lang: "CN", platform: "Mobile" },
-      { file: "yami-ui-cn-pc-fill-inverse.svg", width: 164, height: 52, style: "fill-inverse", lang: "CN", platform: "PC" },
+      { file: "yami-ui-cn-pc-fill-inverse.svg", width: 151.38, height: 48, style: "fill-inverse", lang: "CN", platform: "PC" },
       { file: "yami-ui-en-mobile-fill-inverse.svg", width: 84, height: 32, style: "fill-inverse", lang: "EN", platform: "Mobile" },
-      { file: "yami-ui-en-pc-fill-inverse.svg", width: 124, height: 52, style: "fill-inverse", lang: "EN", platform: "PC" },
+      { file: "yami-ui-en-pc-fill-inverse.svg", width: 114.46, height: 48, style: "fill-inverse", lang: "EN", platform: "PC" },
     ],
   },
 ]
