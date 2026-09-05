@@ -42,6 +42,10 @@
       "target": "components/ProductList/ProductList.stories.module.css"
     },
     {
+      "source": "components/ProductList/ProductList.story-examples.tsx",
+      "target": "components/ProductList/ProductList.story-examples.tsx"
+    },
+    {
       "source": "components/ProductList/ProductList.tsx",
       "target": "components/ProductList/ProductList.tsx"
     },
@@ -165,5 +169,5 @@
     },
     "interactionCoverage": "covered"
   },
-  "contentDigest": "90779a8bcb9e22769d1608c5f171034a21d11a072cb5092245331b000a02f032"
+  "contentDigest": "7ebeeddf3672e4f954207673a52e1f334372671d1bdd9d00cb4439f0559a4bef"
 }

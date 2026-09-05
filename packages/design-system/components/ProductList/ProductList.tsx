@@ -5,6 +5,7 @@ import {
   useId,
   useLayoutEffect,
   useMemo,
+  useRef,
 } from "react";
 
 import { Button } from "../Button";
@@ -83,6 +84,7 @@ function ProductListSkeleton({
 export function ProductList(props: ProductListProps) {
   const {
     title,
+    headingAlign = "start",
     mobileTitleSize,
     description,
     introContent,
@@ -98,7 +100,7 @@ export function ProductList(props: ProductListProps) {
     backgroundImageMobile2x,
     layout = "rail",
     imageLoadingStrategy,
-    mobileSurface = "card",
+    mobileSurface = appearance === "background" || appearance === "themed-background" ? "plain" : "card",
     presentation: presentationOverride,
     tabs,
     value,
@@ -131,6 +133,7 @@ export function ProductList(props: ProductListProps) {
       : "plain";
   const productCardSurface =
     appearance === "standard" || isThemeProductList ? "plain" : "card";
+  const railFrameRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
   const listId = `${titleId}-products`;
   const {
@@ -154,6 +157,21 @@ export function ProductList(props: ProductListProps) {
     updateRailState();
   }, [firstProductId, layout, products.length, updateRailState, value]);
 
+  useLayoutEffect(() => {
+    const frame = railFrameRef.current;
+    const media = frame?.querySelector<HTMLElement>('[data-slot="product-card-media"]');
+    if (headingAlign !== "center" || layout !== "rail" || !frame || !media) return;
+    const updateArrowPosition = () => {
+      const imageRect = media.getBoundingClientRect();
+      frame.style.setProperty("--rail-arrow-top", `${imageRect.top - frame.getBoundingClientRect().top + imageRect.height / 2}px`);
+    };
+    updateArrowPosition();
+    const observer = new ResizeObserver(updateArrowPosition);
+    observer.observe(frame);
+    observer.observe(media);
+    return () => observer.disconnect();
+  }, [headingAlign, layout, loading, firstProductId, appearance]);
+
   const handleTabValueChange = (nextValue: string) => {
     if (layout === "rail" && railRef.current) {
       railRef.current.scrollLeft = 0;
@@ -164,17 +182,17 @@ export function ProductList(props: ProductListProps) {
 
   const mergedStyle = {
     ...style,
-    ...(appearance === "themed" && banner?.backgroundColor
+    ...((appearance === "themed" || appearance === "themed-background") && banner?.backgroundColor
       ? {
           "--product-list-theme-color": banner.backgroundColor,
         }
       : {}),
-    ...(appearance === "themed" && banner?.mobileBackgroundColor
+    ...((appearance === "themed" || appearance === "themed-background") && banner?.mobileBackgroundColor
       ? {
           "--product-list-theme-color-mobile": banner.mobileBackgroundColor,
         }
       : {}),
-    ...(appearance === "atmospheric" && backgroundColor
+    ...((appearance === "atmospheric" || appearance === "background") && backgroundColor
       ? {
           "--product-list-background-color": backgroundColor,
         }
@@ -218,7 +236,9 @@ export function ProductList(props: ProductListProps) {
       className={cx(styles.root, className)}
       style={mergedStyle}
       data-slot="product-list"
-      data-appearance={appearance}
+      data-heading-align={headingAlign}
+      data-appearance={appearance === "themed-background" ? "themed" : appearance}
+      data-plain-background={appearance === "themed-background" ? "true" : undefined}
       data-layout={layout}
       data-mobile-surface={mobileSurface}
       data-leading-content={leadingContent ? "true" : undefined}
@@ -269,10 +289,10 @@ export function ProductList(props: ProductListProps) {
           titleFontFamily={titleFontFamily}
           className={styles.heading}
           titleClassName={styles.title}
-          viewAllHref={viewAllHref}
+          viewAllHref={headingAlign === "center" ? undefined : viewAllHref}
           viewAllLabel={viewAllLabel}
           actions={
-            layout === "rail" && !loading && railState.canScroll ? (
+            headingAlign !== "center" && layout === "rail" && !loading && railState.canScroll ? (
               <RailNavigation
                 className={styles.railActions}
                 buttonClassName={styles.railButton}
@@ -323,6 +343,7 @@ export function ProductList(props: ProductListProps) {
           </div>
         )}
 
+        <div ref={railFrameRef} className={styles.railFrame}>
         <ImageLoadingWindow
           strategy={layout === "rail" ? imageLoadingStrategy : undefined}
           rootRef={layout === "rail" ? railRef : undefined}
@@ -371,6 +392,19 @@ export function ProductList(props: ProductListProps) {
           )}
           </HorizontalScrollList>
         </ImageLoadingWindow>
+        {headingAlign === "center" && layout === "rail" && !loading && railState.canScroll && (
+          <RailNavigation
+            className={styles.edgeNavigation}
+            buttonClassName={styles.railButton}
+            previousLabel={previousLabel}
+            nextLabel={nextLabel}
+            previousDisabled={railState.atStart}
+            nextDisabled={railState.atEnd}
+            onPrevious={() => scrollByPage(-1)}
+            onNext={() => scrollByPage(1)}
+          />
+        )}
+        </div>
 
         {loading && (
           <span className={styles.srOnly} role="status">

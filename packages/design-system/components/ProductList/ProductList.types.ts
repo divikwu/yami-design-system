@@ -13,7 +13,9 @@ import type { ImageLoadingStrategy, ImageSource } from "../image.types";
 
 export type ProductListAppearance =
   | "standard"
+  | "background"
   | "themed"
+  | "themed-background"
   | "atmospheric";
 
 export type ProductListLayout = "rail" | "waterfall";
@@ -38,6 +40,8 @@ interface ProductListBaseProps
     SectionDividerProps {
   "data-component"?: string;
   title: ReactNode;
+  /** Centered heading/tabs and edge rail navigation for plain section layouts. */
+  headingAlign?: "start" | "center";
   /** Below 1024px: 20px normal (default); 16px Chinese 600 / English 500 via lang. */
   mobileTitleSize?: 16 | 20;
   /** Optional supporting copy rendered alongside the section title. */
@@ -83,7 +87,7 @@ type StandardAppearanceProps = {
 };
 
 type ThemedAppearanceProps = {
-  appearance: "themed";
+  appearance: "themed" | "themed-background";
   banner: {
     src: ImageSource;
     mobileSrc?: ImageSource;
@@ -99,7 +103,7 @@ type ThemedAppearanceProps = {
 };
 
 type AtmosphericAppearanceProps = {
-  appearance: "atmospheric";
+  appearance: "atmospheric" | "background";
   banner?: never;
   backgroundColor?: string;
   backgroundImage?: string;

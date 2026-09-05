@@ -17,7 +17,7 @@ if (!validate(manifest)) {
   for (const issue of validate.errors ?? []) errors.push(`manifest${issue.instancePath || "/"} ${issue.message}`);
 }
 
-const expectedIds = ["Categories", "EcommerceHome", "EmailTemplates", "MobileSearchPage", "ProductDetailPage", "SearchResultsPage", "TopicLandingPage"];
+const expectedIds = ["AppDownloadPage", "Categories", "EcommerceHome", "EmailTemplates", "MobileSearchPage", "ProductDetailPage", "SearchResultsPage", "TopicLandingPage"];
 const actualIds = manifest.pages.map((page) => page.id);
 if (new Set(actualIds).size !== actualIds.length) errors.push("page ids must be unique");
 if ([...actualIds].sort().join("\n") !== expectedIds.sort().join("\n")) errors.push(`page ids must equal ${expectedIds.join(", ")}`);

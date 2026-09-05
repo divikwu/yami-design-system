@@ -432,3 +432,40 @@ No actionable P0, P1, or P2 differences remain for the requested Blog index scop
 3. Final fix restored the native `48px` Tab trigger and its `36px` rendered active background while reducing the following section gap. Post-fix evidence keeps the featured cover at `y = 264px` and found no remaining P0/P1/P2 issue.
 
 final result: passed
+
+
+# App Download Page — 2026-09-05
+
+## Scope and acceptance
+
+Source: https://yami-app-download.vercel.app/short. Implemented in `packages/prototypes/pages/AppDownloadPage` within the existing workspace, as requested. Acceptance is preservation of content, layout structure, responsive behavior, and interactions using current YAMI components and tokens; pixel identity of the source's custom controls is not the target.
+
+## Visual comparison
+
+Evidence directory: `/Users/divikwu/.codex/visualizations/2026/09/05/01a07015-da6f-7b92-845b-f0ebbe78d107/app-download-qa/`.
+
+Reviewed combined images with reference on the left and implementation on the right:
+
+- `comparison-desktop-top.jpg`: matching 1440 × 900 desktop viewports, scaled equally to fit the combined image.
+- `comparison-products.jpg`: matching desktop product sections.
+- `comparison-calculator.jpg`: matching desktop welcome-calculator sections.
+- `comparison-mobile-top.jpg`: matching 390 × 844 mobile viewports.
+
+Full-page captures produced stitching artifacts and are excluded from acceptance evidence. The comparisons above use ordinary viewport captures. Native ProductCard badge placement, Card corners, token typography/colors, black secondary shopping action, and native Tabs styling are intentional design-system adaptations. No remaining blocking visual defect was found in the compared views. This is not a claim of automated pixel-diff equality.
+
+## Behavior and runtime
+
+- Four categories retain all 75 captured products; next-arrow changes horizontal scroll position from 0 to 1232 on desktop.
+- Korean/English switching, category switching, and the 12 selectable featured products are functional.
+- Welcome calculation: $30 → $22.99; $12 → $6.79; $100 → $80.00. Discounted subtotal governs the $49 free-shipping boundary.
+- App calculation: no selection → $0.00; first featured device → $664.72; removing selection restores $0.00.
+- Tutorial links seek to 0, 23, and 12 seconds. The WELCOME26 jump was observed at 23.30 seconds while playing. Native controls permit manual playback.
+- Mobile footer expansion changes `aria-expanded` and shows its links.
+- Desktop/mobile document widths do not exceed viewport widths; mobile image inspection found no failed images.
+- Focused Storybook suite passed all 4 stories. Fixture tests cover totals, shipping boundaries, multiple selections, and catalog completeness.
+
+## Limits
+
+External checkout/app-store transactions were not performed. Prices and coupon copy are preserved snapshots of the reference, not independently validated offers. Visual evidence covers the named viewports and sections, not every possible browser/device combination.
+
+final result: passed (requested design-system adaptation scope)

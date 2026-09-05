@@ -6,6 +6,8 @@ import {
   useContext,
   useId,
   useMemo,
+  useRef,
+  useLayoutEffect,
   useState,
   type ButtonHTMLAttributes,
   type HTMLAttributes,
@@ -31,6 +33,9 @@ export interface TabsProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 export interface TabsListProps extends HTMLAttributes<HTMLDivElement> {
+  centerActiveTab?: boolean
+  align?: "start" | "center"
+  edgePadding?: boolean
   variant?: TabsVariant
   styleVariant?: TabsStyleVariant
   inverse?: boolean
@@ -193,6 +198,9 @@ export const TabsList = forwardRef<HTMLDivElement, TabsListProps>(function TabsL
     fullWidth = false,
     skeleton = false,
     skeletonCount = 4,
+    centerActiveTab = false,
+    align = "start",
+    edgePadding = false,
     className,
     children,
     onKeyDown,
@@ -202,6 +210,16 @@ export const TabsList = forwardRef<HTMLDivElement, TabsListProps>(function TabsL
 ) {
   const context = useTabsContext("TabsList")
   const isSegmented = variant === "primary" && styleVariant === "b"
+  const listRef = useRef<HTMLDivElement | null>(null)
+  useLayoutEffect(() => {
+    if (!centerActiveTab || skeleton) return
+    const frame = requestAnimationFrame(() => {
+      const active = listRef.current?.querySelector<HTMLButtonElement>('[role="tab"][aria-selected="true"]')
+      if (active) revealTab(active, context.orientation)
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [centerActiveTab, skeleton, context.value, context.orientation])
+
 
   function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     onKeyDown?.(event)
@@ -280,7 +298,13 @@ export const TabsList = forwardRef<HTMLDivElement, TabsListProps>(function TabsL
   return (
     <div
       {...rest}
-      ref={ref}
+      ref={(node) => {
+        listRef.current = node
+        if (typeof ref === "function") ref(node)
+        else if (ref) ref.current = node
+      }}
+      data-align={align}
+      data-edge-padding={edgePadding || undefined}
       role="tablist"
       aria-orientation={context.orientation}
       className={listClassName}
