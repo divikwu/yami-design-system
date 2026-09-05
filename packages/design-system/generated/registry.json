@@ -72,7 +72,7 @@
       "status": "stable",
       "version": "0.2.0",
       "path": "registry-items/button.json",
-      "digest": "6a59430379d9f247a4610293ecf5a4428a02cb8b7c33f35fee678f74cd9be4d4"
+      "digest": "462a56ed497b80176b3064eeaff327a87f459cb459a8a7d73a0bf2e0fff8cfd3"
     },
     {
       "name": "card",
@@ -153,7 +153,7 @@
       "status": "experimental",
       "version": "0.1.0",
       "path": "registry-items/horizontal-scroll-list.json",
-      "digest": "2a366e3be09be23b650087928e0d8f768ab11f1e020d21504d9bd482e6bcaf82"
+      "digest": "09b0e223fae7e6f755f5ef083444a683964f458e26365dfdbc1b5cb239ded98c"
     },
     {
       "name": "input",
@@ -180,7 +180,7 @@
       "status": "stable",
       "version": "0.3.0",
       "path": "registry-items/product-list.json",
-      "digest": "90779a8bcb9e22769d1608c5f171034a21d11a072cb5092245331b000a02f032"
+      "digest": "7ebeeddf3672e4f954207673a52e1f334372671d1bdd9d00cb4439f0559a4bef"
     },
     {
       "name": "product-media-gallery",
@@ -252,7 +252,7 @@
       "status": "beta",
       "version": "0.1.0",
       "path": "registry-items/tabs.json",
-      "digest": "101c63a392c6e6b5eec5a26416835c42d2887710e8a3d1813bcfb8925d02572a"
+      "digest": "ac58846d28f1ff22f4635c6713c90467cbed5e00b11d6d29ed26b45018a17888"
     },
     {
       "name": "tag",

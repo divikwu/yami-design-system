@@ -3,6 +3,59 @@
   "schemaVersion": 1,
   "pages": [
     {
+      "id": "AppDownloadPage",
+      "tier": "smoke",
+      "source": "packages/prototypes/pages/AppDownloadPage",
+      "stories": [
+        "packages/prototypes/pages/AppDownloadPage/AppDownloadPage.stories.tsx"
+      ],
+      "fixture": {
+        "mode": "file",
+        "path": "packages/prototypes/pages/AppDownloadPage/fixtures.ts",
+        "exportName": "campaignProducts"
+      },
+      "route": null,
+      "routeReason": "App-download campaign is a Storybook-owned page prototype.",
+      "support": {
+        "locales": [
+          "ko",
+          "en"
+        ],
+        "themes": [
+          "light"
+        ],
+        "viewports": [
+          "mobile-390",
+          "desktop-1440"
+        ],
+        "states": [
+          "welcome",
+          "categories",
+          "returning-selection",
+          "language-switch",
+          "footer-accordion"
+        ]
+      },
+      "evidence": {
+        "storyPlay": "covered",
+        "storybookA11y": true,
+        "tests": [
+          "packages/prototypes/pages/AppDownloadPage/fixtures.test.ts"
+        ],
+        "visual": [],
+        "manual": true
+      },
+      "excluded": [
+        {
+          "combination": "dark theme",
+          "reason": "The reference campaign is light-only."
+        }
+      ],
+      "knownLimits": [
+        "Prices and offers are a dated reference snapshot; external store and product destinations remain live."
+      ]
+    },
+    {
       "id": "Categories",
       "tier": "smoke",
       "source": "packages/prototypes/pages/Categories",

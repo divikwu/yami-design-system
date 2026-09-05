@@ -425,3 +425,6 @@
     inset-block: calc(var(--space-050) + var(--space-025));
   }
 }
+
+.list[data-align="center"] { justify-content: safe center; }
+.list[data-edge-padding="true"][data-variant] { box-sizing: border-box; padding-inline: var(--space-200); scroll-padding-inline: var(--space-200); }

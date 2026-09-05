@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react"
+import { useState, type CSSProperties, type ReactNode } from "react"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger, type TabsVariant } from "./Tabs"
@@ -701,4 +701,31 @@ function ArrowRightIcon() {
       />
     </svg>
   )
+}
+
+function CenteredScrollExample() {
+  const [value, setValue] = useState("0")
+  return <div style={{ width: 280 }}>
+    <button onClick={() => setValue("4")}>Select middle externally</button>
+    <Tabs value={value} onValueChange={setValue}>
+      <TabsList fullWidth centerActiveTab align="center" edgePadding>
+        {Array.from({ length: 9 }, (_, index) => <TabsTrigger key={index} value={String(index)}>Section {index + 1}</TabsTrigger>)}
+      </TabsList>
+    </Tabs>
+  </div>
+}
+
+export const CenteredScrolling: Story = {
+  render: () => <CenteredScrollExample />,
+  play: async ({ canvasElement }) => {
+    const list = canvasElement.querySelector<HTMLElement>('[role="tablist"]')!
+    const first = list.querySelector<HTMLElement>('[role="tab"]')!
+    if (Math.abs(first.getBoundingClientRect().left - list.getBoundingClientRect().left - 16) > 1) throw new Error("Overflow must begin at the leading gutter")
+    canvasElement.querySelector<HTMLButtonElement>('button')!.click()
+    await new Promise((resolve) => setTimeout(resolve, 600))
+    const active = list.querySelector<HTMLElement>('[aria-selected="true"]')!.getBoundingClientRect()
+    const bounds = list.getBoundingClientRect()
+    if (Math.abs(active.left + active.width / 2 - bounds.left - bounds.width / 2) > 1) throw new Error("Controlled selection must center inside the list")
+    if (getComputedStyle(list).paddingInlineStart !== "16px") throw new Error("List must retain edge padding")
+  },
 }

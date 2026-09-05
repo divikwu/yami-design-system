@@ -10,6 +10,17 @@ Use `ProductList` for a titled, data-driven collection of commerce products:
 Use a dedicated cart, order, or comparison component when rows need quantity,
 fulfillment, or multi-product selection controls.
 
+## Storybook examples
+
+- **Overview**: entry point for the component.
+- **PC**: desktop standard rail, introduction, banner or background with card/plain surfaces, and waterfall.
+- **Centered**: desktop centered-heading variants for standard, background, and banner sections.
+- **Mobile**: mobile surfaces, title sizes, and centered variants.
+- **States**: loading skeletons across layouts.
+
+Story definitions and interaction checks are shared in `ProductList.story-examples.tsx`.
+Contract-only checks remain testable but are hidden from the browsing sidebar.
+
 ## Layouts
 
 The shared section heading supports `mobileTitleSize={20}` (default, 28px line
@@ -126,6 +137,13 @@ Omit `value` and use `defaultValue` for uncontrolled selection.
   `mobileBackgroundColor`; it is used below 1024px and falls back to
   `backgroundColor` when omitted. The component falls back to
   `--surface-secondary` when neither color is provided.
+- `themed-background` keeps the themed `banner` and its responsive background
+  colors, with a full-width square section, white product cards, and standard list
+  spacing (PC 48px horizontal; mobile plain 16px). 中文：保留顶部活动横幅和背景，外层不做圆角卡片，每件商品使用完整白底卡片。
+- `background` adds `backgroundColor` and responsive `backgroundImage` artwork
+  behind the normal list. It keeps white product cards, standard PC spacing,
+  and defaults to the full-width mobile plain layout (16px padding). There is no
+  inset rounded campaign panel. 中文：普通商品列表底层增加背景色和背景图，每件商品使用完整白底卡片。
 - `atmospheric` accepts a precomputed bottom-edge `backgroundColor` for the
   campaign surface and image-to-surface gradient, `backgroundImage` for
   desktop decorative artwork, and an optional
@@ -229,3 +247,7 @@ both set.
 - Composes: `<ProductCard>`, `<Tabs>`, `<Button>`
 - Product anatomy and badge rules: `../ProductCard/usage.md`
 - Rules: `red-usage`, `tap-target`, `focus-style`, `no-custom-radii`
+
+## Centered plain sections
+
+Use `headingAlign="center"` for the plain Standard, Background, and Themed Background layouts. It centers the heading and tabs when they fit; overflowing tabs stay left-aligned and scroll horizontally. View-all links are omitted. On desktop (1024px and wider), rail arrows sit halfway across each collection edge and remain vertically centered on the product image area. Mobile hides the arrows and retains swipe scrolling. Existing layouts default to `headingAlign="start"`.

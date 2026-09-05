@@ -53,10 +53,10 @@
       "description": "Optional editorial content stacked above the mobile product rail and rendered before the first desktop rail product; ThemeProductList uses it to reserve two desktop card slots."
     },
     "appearance": {
-      "type": "\"standard\" | \"themed\" | \"atmospheric\"",
+      "type": "\"standard\" | \"themed\" | \"atmospheric\" | \"background\" | \"themed-background\"",
       "required": false,
       "default": "standard",
-      "description": "Collection surface treatment. Standard uses plain product cards; themed and atmospheric backgrounds use card product surfaces."
+      "description": "Standard uses plain products; all campaign appearances use complete white product cards. Background and themed-background keep full-width square sections with standard spacing and default to mobileSurface plain."
     },
     "layout": {
       "type": "\"rail\" | \"waterfall\"",

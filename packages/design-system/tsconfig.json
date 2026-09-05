@@ -2,5 +2,5 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": { "types": ["node", "vitest/globals"] },
   "include": ["components", "tests", "generated/*.ts", "global.d.ts"],
-  "exclude": ["**/*.stories.tsx", "**/*.figma.tsx", "**/examples.tsx"]
+  "exclude": ["**/*.stories.tsx", "**/*.story-examples.tsx", "**/*.figma.tsx", "**/examples.tsx"]
 }

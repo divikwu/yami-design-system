@@ -75,7 +75,11 @@
   --border-focus: var(--color-black-900);
   --button-secondary: var(--color-black-100);
   --button-secondary-active: var(--color-black-200);
+  --text-disabled: var(--color-black-400);
+}
 
+.root[data-appearance="themed"] .railButton:not([aria-disabled="true"]),
+.root[data-appearance="atmospheric"] .railButton:not([aria-disabled="true"]) {
   color: var(--color-black-900);
 }
 
@@ -93,7 +97,8 @@
   background: transparent;
 }
 
-.root[data-appearance="atmospheric"] .container {
+.root[data-appearance="atmospheric"] .container,
+.root[data-appearance="background"] {
   position: relative;
   /* Stacking context, so the artwork fade below stays behind this panel's own
    * content and cannot escape behind the band. */
@@ -119,11 +124,31 @@
   background-position: top center;
   background-repeat: no-repeat;
   background-size: 100% auto;
-  border-radius: var(--radius-xl);
   overflow: hidden;
 }
 
-.root[data-appearance="atmospheric"] .container::before {
+.root[data-appearance="atmospheric"] .container {
+  border-radius: var(--radius-xl);
+}
+
+.root[data-appearance="background"] {
+  width: 100%;
+  margin-inline: 0;
+  border-radius: 0;
+}
+
+.root[data-appearance="background"] .item,
+.root[data-plain-background="true"] .item {
+  background-color: var(--surface-primary);
+  border-radius: var(--radius-component-default);
+}
+
+.root[data-appearance="background"] [data-slot="product-card-image"] {
+  background-color: var(--color-white-1000);
+}
+
+.root[data-appearance="atmospheric"] .container::before,
+.root[data-appearance="background"]::before {
   position: absolute;
   /* Above the panel's background, below its content. */
   z-index: -1;
@@ -307,6 +332,15 @@
 
 .item {
   min-width: 0;
+}
+
+.root[data-layout="rail"] .item {
+  display: flex;
+  flex-direction: column;
+}
+
+.root[data-layout="rail"] .item > [data-slot="card"] {
+  flex: 1;
 }
 
 .root[data-appearance="themed"] .item,
@@ -591,7 +625,8 @@
     );
   }
 
-  .root[data-appearance="atmospheric"] .container {
+  .root[data-appearance="atmospheric"] .container,
+  .root[data-appearance="background"] {
     background-image: var(
       --product-list-background-image,
       var(--product-list-background-image-mobile, none)
@@ -606,6 +641,9 @@
         )
       )
     );
+  }
+
+  .root[data-appearance="atmospheric"] .container {
     /* The inset the page used to apply. It belongs here: the band spans the
      * page, the panel sits inside it. */
     box-sizing: border-box;
@@ -615,7 +653,8 @@
     margin-inline: auto;
   }
 
-  .root[data-appearance="atmospheric"] .container::before {
+  .root[data-appearance="atmospheric"] .container::before,
+  .root[data-appearance="background"]::before {
     aspect-ratio: 12 / 1;
   }
 
@@ -752,6 +791,19 @@
   }
 }
 
+/* Banner-led background keeps standard section geometry and white product cards. */
+.root[data-plain-background="true"] {
+  width: 100%;
+  margin-inline: 0;
+  border-radius: 0;
+}
+
+@media (min-width: 1024px) {
+  .root[data-plain-background="true"] .container {
+    padding: var(--space-400) var(--space-600);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .banner img {
     transition: none;
@@ -764,4 +816,20 @@
   .skeletonPrice {
     animation: none;
   }
+}
+
+.railFrame { display: contents; }
+.root[data-heading-align="center"] .heading { justify-content: center; padding-inline: 0; text-align: center; }
+.root[data-heading-align="center"] [data-slot="product-list-copy"] { align-items: center; flex-direction: column; }
+.root[data-heading-align="center"] .tabsList { width: max-content; max-width: 100%; margin-inline: auto; justify-content: flex-start; }
+.root[data-heading-align="center"] .railFrame { display: block; position: relative; min-width: 0; width: 100%; }
+@media (min-width: 1024px) {
+  .root[data-heading-align="center"][data-layout="rail"] .list { width: 100%; margin-inline: 0; padding-inline: 0; scroll-padding-inline: 0; }
+}
+.edgeNavigation { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+.edgeNavigation > button { position: absolute; top: var(--rail-arrow-top, 50%); pointer-events: auto; }
+.edgeNavigation > button[data-direction="left"] { left: 0; transform: translate(-50%, -50%); }
+.edgeNavigation > button[data-direction="right"] { right: 0; transform: translate(50%, -50%); }
+@media (max-width: 1023px) {
+  .edgeNavigation { display: none; }
 }

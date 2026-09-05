@@ -221,48 +221,6 @@ export function TopicLandingPage({
 
   useLayoutEffect(() => {
     const primaryTabsElement = primaryTabsRef.current;
-    if (
-      !primaryTabsElement ||
-      !window.matchMedia("(max-width: 1023.98px)").matches
-    ) {
-      return;
-    }
-
-    const tabList = primaryTabsElement.querySelector<HTMLElement>(
-      '[role="tablist"]',
-    );
-    const activeTab = tabList?.querySelector<HTMLElement>(
-      '[role="tab"][data-state="active"]',
-    );
-    if (!tabList || !activeTab || tabList.scrollWidth <= tabList.clientWidth) {
-      return;
-    }
-
-    const animationFrame = window.requestAnimationFrame(() => {
-      const tabRect = activeTab.getBoundingClientRect();
-      const listRect = tabList.getBoundingClientRect();
-      const reducedMotion = window.matchMedia(
-        "(prefers-reduced-motion: reduce)",
-      ).matches;
-      const centeredScrollLeft =
-        tabList.scrollLeft +
-        tabRect.left +
-        tabRect.width / 2 -
-        (listRect.left + listRect.width / 2);
-      tabList.scrollTo({
-        left: Math.min(
-          Math.max(centeredScrollLeft, 0),
-          tabList.scrollWidth - tabList.clientWidth,
-        ),
-        behavior: reducedMotion ? "auto" : "smooth",
-      });
-    });
-
-    return () => window.cancelAnimationFrame(animationFrame);
-  }, [primaryTabValue]);
-
-  useLayoutEffect(() => {
-    const primaryTabsElement = primaryTabsRef.current;
     if (!primaryTabsElement) return;
     const scrollRoot = resolveTopicLandingScrollRoot(primaryTabsElement);
     const scrollTarget: EventTarget = scrollRoot;
@@ -551,6 +509,7 @@ export function TopicLandingPage({
                 onValueChange={selectPrimaryTab}
               >
                 <TabsList
+                  centerActiveTab
                   aria-label={primaryTabs.ariaLabel}
                   variant="primary"
                   styleVariant="a"

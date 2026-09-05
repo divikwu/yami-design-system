@@ -1,0 +1,1639 @@
+{
+  "products": [
+    {
+      "id": 1022712511,
+      "sku": "1022712511",
+      "category": "beauty",
+      "brand": {
+        "ko": "에스케이투",
+        "en": "SK-II"
+      },
+      "name": {
+        "ko": "제놉틱스 어드밴스드 스팟 에센스, 75ml",
+        "en": "Genoptics Advanced Spot Essence, 2.5 fl oz"
+      },
+      "originalPrice": 299.99,
+      "yamiPrice": 219.99,
+      "appPrice": 197.99,
+      "discountPercent": 34,
+      "image": "/app_image/1022712511.jpg",
+      "slug": "p/sk-ii-genoptics-advanced-spot-essence-2-5-fl-oz/1022712511"
+    },
+    {
+      "id": 1022005741,
+      "sku": "1022005741",
+      "category": "beauty",
+      "brand": {
+        "ko": "에스케이투",
+        "en": "SK-II"
+      },
+      "name": {
+        "ko": "피테라 에센스, 230ml",
+        "en": "Pitera Facial Treatment Essence, 230ml"
+      },
+      "originalPrice": 235,
+      "yamiPrice": 161.6,
+      "appPrice": 145.44,
+      "discountPercent": 38,
+      "image": "/app_image/sk2.png",
+      "slug": "p/sk-ii-facial-treatment-essence-230ml-cosme-award/1022005741"
+    },
+    {
+      "id": 1022565451,
+      "sku": "1022565451",
+      "category": "beauty",
+      "brand": {
+        "ko": "설화수",
+        "en": "SULWHASOO"
+      },
+      "name": {
+        "ko": "데일리 루틴 스킨케어 세트 [로즈픽]",
+        "en": "Daily Routine Skincare Set [Rose's Pick]"
+      },
+      "originalPrice": 144.99,
+      "yamiPrice": 138.99,
+      "appPrice": 125.09,
+      "discountPercent": 14,
+      "image": "/app_image/1022565451.jpg",
+      "slug": "p/sulwhasoo-daily-routine-skincare-set-rose-s-pick/1022565451"
+    },
+    {
+      "id": 1022480141,
+      "sku": "1022480141",
+      "category": "beauty",
+      "brand": {
+        "ko": "설화수",
+        "en": "SULWHASOO"
+      },
+      "name": {
+        "ko": "윤조에센스 6세대 기획 세트",
+        "en": "First Care Activating Serum VI Set"
+      },
+      "originalPrice": 124.99,
+      "yamiPrice": 110.99,
+      "appPrice": 99.89,
+      "discountPercent": 20,
+      "image": "/app_image/1022480141.jpg",
+      "slug": "p/sulwhasoo-first-care-activating-serum-vi-set/1022480141"
+    },
+    {
+      "id": 1022633711,
+      "sku": "1022633711",
+      "category": "beauty",
+      "brand": {
+        "ko": "THE WHOO",
+        "en": "THE WHOO"
+      },
+      "name": {
+        "ko": "청기단 활력 광채 스페셜 세트",
+        "en": "Cheongidan Rejuvenating Pro-Radiance Set"
+      },
+      "originalPrice": 219.99,
+      "yamiPrice": 149.99,
+      "appPrice": 134.99,
+      "discountPercent": 39,
+      "image": "/app_image/1022633711.jpg",
+      "slug": "p/the-whoo-cheongidan-rejuvenating-pro-radiance-set/1022633711"
+    },
+    {
+      "id": 1022607591,
+      "sku": "1022607591",
+      "category": "beauty",
+      "brand": {
+        "ko": "THE WHOO",
+        "en": "THE WHOO"
+      },
+      "name": {
+        "ko": "공진향 설 래디언트 화이트 코렉터 세트",
+        "en": "Gongjinhyang Seol Radiant White Corrector Set"
+      },
+      "originalPrice": 109.99,
+      "yamiPrice": 94.99,
+      "appPrice": 85.49,
+      "discountPercent": 22,
+      "image": "/app_image/1022607591.jpg",
+      "slug": "p/the-whoo-gongjinhyang-seol-radiant-white-corrector-set/1022607591"
+    },
+    {
+      "id": 1022689461,
+      "sku": "1022689461",
+      "category": "beauty",
+      "brand": {
+        "ko": "THE WHOO",
+        "en": "THE WHOO"
+      },
+      "name": {
+        "ko": "로얄 레지나 에너제틱 리차징 크림 세트",
+        "en": "Royal Regina Energetic Recharging Cream Set"
+      },
+      "originalPrice": 86.99,
+      "yamiPrice": 56.49,
+      "appPrice": 50.84,
+      "discountPercent": 42,
+      "image": "/app_image/1022689461.png",
+      "slug": "p/the-whoo-royal-regina-energetic-recharging-cream-set/1022689461"
+    },
+    {
+      "id": 1022576951,
+      "sku": "1022576951",
+      "category": "beauty",
+      "brand": {
+        "ko": "THE WHOO",
+        "en": "THE WHOO"
+      },
+      "name": {
+        "ko": "공진향 인텐시브 뉴트리티브 아이크림, 20ml",
+        "en": "Gongjinhyang Intensive Nutritive Eye Cream, 0.67 fl oz"
+      },
+      "originalPrice": 69.99,
+      "yamiPrice": 52.99,
+      "appPrice": 47.69,
+      "discountPercent": 32,
+      "image": "/app_image/1022576951.png",
+      "slug": "p/the-whoo-gongjinhyang-intensive-nutritive-eye-cream-0-67-fl-oz/1022576951"
+    },
+    {
+      "id": 1022232581,
+      "sku": "1022232581",
+      "category": "beauty",
+      "brand": {
+        "ko": "끌레드뽀 보떼 CPB",
+        "en": "Clé de Peau Beauté"
+      },
+      "name": {
+        "ko": "라 크렘 안티에이징 나이트 크림, 30ml",
+        "en": "La Crème Anti-Aging Night Cream, 1 oz"
+      },
+      "originalPrice": 506,
+      "yamiPrice": 505.69,
+      "appPrice": 455.12,
+      "discountPercent": 10,
+      "image": "/app_image/1022232581.png",
+      "slug": "p/cl-de-peau-beaut--la-cr-me-anti-aging-night-cream-1-oz/1022232581"
+    },
+    {
+      "id": 1022418831,
+      "sku": "1022418831",
+      "category": "beauty",
+      "brand": {
+        "ko": "끌레드뽀 보떼 CPB",
+        "en": "Clé de Peau Beauté"
+      },
+      "name": {
+        "ko": "주름개선 세럼 슈프림, 21ml",
+        "en": "Wrinkle Smoothing Serum Supreme, 0.71 oz"
+      },
+      "originalPrice": 319.99,
+      "yamiPrice": 257.59,
+      "appPrice": 231.83,
+      "discountPercent": 28,
+      "image": "/app_image/1022418831.png",
+      "slug": "p/cl-de-peau-beaut--wrinkle-smoothing-serum-supreme-0-71-oz/1022418831"
+    },
+    {
+      "id": 1023585711,
+      "sku": "1023585711",
+      "category": "beauty",
+      "brand": {
+        "ko": "끌레드뽀 보떼 CPB",
+        "en": "Clé de Peau Beauté"
+      },
+      "name": {
+        "ko": "코렉팅 크림 베일 글로우 프라이머, 41g x 2",
+        "en": "Correcting Cream Veil Glow Primer, 41g x2"
+      },
+      "originalPrice": 159.98,
+      "yamiPrice": 105.18,
+      "appPrice": 94.66,
+      "discountPercent": 41,
+      "image": "/app_image/ae05519f8a875dfed752dba1aca61481_300x300.png",
+      "slug": "p/correcting-cream-veil-glow-moisturizing-primer-spf-25-pa-40g-2-2-packs/1023585711"
+    },
+    {
+      "id": 1023124731,
+      "sku": "1023124731",
+      "category": "beauty",
+      "brand": {
+        "ko": "끌레드뽀 보떼 CPB",
+        "en": "Clé de Peau Beauté"
+      },
+      "name": {
+        "ko": "UV 프로텍티브 크림, SPF50+ PA++++, 50g",
+        "en": "UV Protective Cream, SPF50+ PA++++, 50g"
+      },
+      "originalPrice": 135,
+      "yamiPrice": 87.99,
+      "appPrice": 79.19,
+      "discountPercent": 41,
+      "image": "/app_image/828a813a9f476c7a9b51231bd00aea80_300x300.png",
+      "slug": "p/uv-protective-cream-spf-50-pa-50g/1023124731"
+    },
+    {
+      "id": 1023595221,
+      "sku": "1023595221",
+      "category": "beauty",
+      "brand": {
+        "ko": "프라다",
+        "en": "Prada"
+      },
+      "name": {
+        "ko": "리빌 메쉬 쿠션 파운데이션, LN10",
+        "en": "Reveal Mesh Cushion Foundation, LN10"
+      },
+      "originalPrice": 129.99,
+      "yamiPrice": 99.89,
+      "appPrice": 89.9,
+      "discountPercent": 31,
+      "image": "/app_image/03ee1b23d6427fa27d7d9b5ce46dd1aa_300x300.png",
+      "slug": "p/prada-reveal-mesh-cushion-foundation-ln10-12g/1023595221"
+    },
+    {
+      "id": 1023438591,
+      "sku": "1023438591",
+      "category": "beauty",
+      "brand": {
+        "ko": "입생로랑",
+        "en": "Yves Saint Laurent"
+      },
+      "name": {
+        "ko": "뚜쉬 에끌라 글로우 팩트 쿠션, BR20",
+        "en": "Touché Éclat Glow-Pact Cushion, BR20"
+      },
+      "originalPrice": 103.99,
+      "yamiPrice": 87.99,
+      "appPrice": 79.19,
+      "discountPercent": 24,
+      "image": "/app_image/8a9d3b07b7647da7d5f78a033348efab_300x300.png",
+      "slug": "p/touche-eclat-glow-pact-cushion-br20/1023438591"
+    },
+    {
+      "id": 3022298781,
+      "sku": "3022298781",
+      "category": "beauty",
+      "brand": {
+        "ko": "닥터아리보",
+        "en": "Dr.Arrivo"
+      },
+      "name": {
+        "ko": "제우스 3세대 RF 탄력 리프팅기",
+        "en": "Zeus III RF Facial Lifting Device"
+      },
+      "originalPrice": 2199,
+      "yamiPrice": 738.58,
+      "appPrice": 664.72,
+      "discountPercent": 70,
+      "image": "/app_image/b8bb90810f3e59f48400e65896d0a73b_300x300.jpg",
+      "slug": "p/the-zeus-facial-tech-tool-sparkling-black-gold/3022298781"
+    },
+    {
+      "id": 1163001711,
+      "sku": "1163001711",
+      "category": "beauty",
+      "brand": {
+        "ko": "DR. TENGLE",
+        "en": "DR. TENGLE"
+      },
+      "name": {
+        "ko": "고주파 홈케어 마사지기",
+        "en": "High Frequency Vibrating Massager"
+      },
+      "originalPrice": 229.99,
+      "yamiPrice": 199.99,
+      "appPrice": 179.99,
+      "discountPercent": 22,
+      "image": "/app_image/1163001711.jpg",
+      "slug": "p/dr-tengle-high-frequency-vibrating-massager/1163001711"
+    },
+    {
+      "id": 1163003141,
+      "sku": "1163003141",
+      "category": "beauty",
+      "brand": {
+        "ko": "메디큐브",
+        "en": "Medicube"
+      },
+      "name": {
+        "ko": "에이지알 부스터 프로 #블랙",
+        "en": "Age-R Booster Pro #Black"
+      },
+      "originalPrice": 254.29,
+      "yamiPrice": 158.99,
+      "appPrice": 143.09,
+      "discountPercent": 44,
+      "image": "/app_image/771095c6fe696a9bf718e2b10229732f_300x300.png",
+      "slug": "p/age-r-booster-pro-ex-black/1163003141"
+    },
+    {
+      "id": 1023403461,
+      "sku": "1023403461",
+      "category": "beauty",
+      "brand": {
+        "ko": "탬버린즈",
+        "en": "TAMBURINS"
+      },
+      "name": {
+        "ko": "향수 #CHAMO, 50ml",
+        "en": "Perfume #CHAMO, 1.69 fl oz"
+      },
+      "originalPrice": 186.99,
+      "yamiPrice": 186.99,
+      "appPrice": 168.29,
+      "discountPercent": 10,
+      "image": "/app_image/1023403461.jpg",
+      "slug": "p/tamburins-perfume-chamo-1-69-fl-oz/1023403461"
+    },
+    {
+      "id": 1127152131,
+      "sku": "1127152131",
+      "category": "beauty",
+      "brand": {
+        "ko": "메디힐",
+        "en": "MEDIHEAL"
+      },
+      "name": {
+        "ko": "패드 밸류팩 100매 5세트",
+        "en": "Pad Value Pack, 100pads, 5set"
+      },
+      "originalPrice": 120,
+      "yamiPrice": 95.99,
+      "appPrice": 86.39,
+      "discountPercent": 28,
+      "image": "/app_image/1127152131.jpg",
+      "slug": "p/mediheal-pad-value-pack-100pads-5set/1127152131"
+    },
+    {
+      "id": 1029091041,
+      "sku": "1029091041",
+      "category": "kitchen-appliance",
+      "brand": {
+        "ko": "닥터하우스",
+        "en": "Dr.Hows"
+      },
+      "name": {
+        "ko": "도란도란 멀티쿠커, 노란색",
+        "en": "Doran Doran Multi Cooker, Yellow"
+      },
+      "originalPrice": 169.99,
+      "yamiPrice": 128.99,
+      "appPrice": 116.09,
+      "discountPercent": 32,
+      "image": "/app_image/e9774f7850f36faaeab12467b3109458_300x300.png",
+      "slug": "p/dr-hows-doran-doran-multicooker-lead-yellow/1029091041"
+    },
+    {
+      "id": 1183006741,
+      "sku": "1183006741",
+      "category": "kitchen-appliance",
+      "brand": {
+        "ko": "JOYOUNG",
+        "en": "JOYOUNG"
+      },
+      "name": {
+        "ko": "[YAMI 단독] 자동세척 저퓨린 두유제조기, DJ12N-K7G",
+        "en": "[Yami Exclusive] Self-Cleaning Soy Milk Maker, DJ12N-K7G"
+      },
+      "originalPrice": 469.99,
+      "yamiPrice": 389.99,
+      "appPrice": 350.99,
+      "discountPercent": 25,
+      "image": "/app_image/15521bb43fd6148b20e0ccac6175b9e8_300x300.png",
+      "slug": "p/dj12n-k7g/1183006741"
+    },
+    {
+      "id": 1029047881,
+      "sku": "1029047881",
+      "category": "kitchen-appliance",
+      "brand": {
+        "ko": "JOYOUNG",
+        "en": "JOYOUNG"
+      },
+      "name": {
+        "ko": "스마트 오토웍 자동회전 냄비, CJ-A9U",
+        "en": "Smart Auto-Stir Cooking Robot, CJ-A9U"
+      },
+      "originalPrice": 299.99,
+      "yamiPrice": 228.99,
+      "appPrice": 206.09,
+      "discountPercent": 31,
+      "image": "/app_image/54e7906050100a0562b4caca8a935f81_300x300.png",
+      "slug": "p/cj-a9u/1029047881"
+    },
+    {
+      "id": 1029016121,
+      "sku": "1029016121",
+      "category": "kitchen-appliance",
+      "brand": {
+        "ko": "JOYOUNG",
+        "en": "JOYOUNG"
+      },
+      "name": {
+        "ko": "다기능 보온 두유제조기, 1.3L, DJ13U-G91",
+        "en": "Multi-Functional Soy Milk Maker w/ Warming, 1.3L, DJ13U-G91"
+      },
+      "originalPrice": 288,
+      "yamiPrice": 132.99,
+      "appPrice": 119.69,
+      "discountPercent": 58,
+      "image": "/app_image/a9b47a6a9beb12a9c8d53c7406378d0a_300x300.png",
+      "slug": "p/joyoung-multi-functional-intelligent-soy-milk-maker-900-1300ml-dj13u-g91/1029016121"
+    },
+    {
+      "id": 1028012291,
+      "sku": "1028012291",
+      "category": "kitchen-appliance",
+      "brand": {
+        "ko": "ZOJIRUSHI",
+        "en": "ZOJIRUSHI"
+      },
+      "name": {
+        "ko": "유도가열 밥솥+온열기, 5.5컵, NP-HCC10",
+        "en": "Induction Rice Cooker & Warmer, 5.5 Cup, NP-HCC10"
+      },
+      "originalPrice": 419.99,
+      "yamiPrice": 309.99,
+      "appPrice": 278.99,
+      "discountPercent": 34,
+      "image": "/app_image/1028012291.jpg",
+      "slug": "p/zojirushi-induction-rice-cooker-warmer-5-5-cup-np-hcc10/1028012291"
+    },
+    {
+      "id": 1028000591,
+      "sku": "1028000591",
+      "category": "kitchen-appliance",
+      "brand": {
+        "ko": "ZOJIRUSHI",
+        "en": "ZOJIRUSHI"
+      },
+      "name": {
+        "ko": "하이브리드 전기 보온포트, 스테인리스",
+        "en": "VE Hybrid Water Boiler & Warmer, Stainless"
+      },
+      "originalPrice": 246.99,
+      "yamiPrice": 219.99,
+      "appPrice": 197.99,
+      "discountPercent": 20,
+      "image": "/app_image/1028000591.png",
+      "slug": "p/zojirushi-ve-hybrid-water-boiler-warmer-stainless/1028000591"
+    },
+    {
+      "id": 1028000331,
+      "sku": "1028000331",
+      "category": "kitchen-appliance",
+      "brand": {
+        "ko": "ZOJIRUSHI",
+        "en": "ZOJIRUSHI"
+      },
+      "name": {
+        "ko": "다용도 전기냄비, EP-PBC10",
+        "en": "Gourmet Electric Skillet & Hot Pot, EP-PBC10"
+      },
+      "originalPrice": 152.99,
+      "yamiPrice": 123.99,
+      "appPrice": 111.59,
+      "discountPercent": 27,
+      "image": "/app_image/1028000331.png",
+      "slug": "p/zojirushi-gourmet-electric-skillet-hot-pot-ep-pbc10/1028000331"
+    },
+    {
+      "id": 1029078561,
+      "sku": "1029078561",
+      "category": "kitchen-appliance",
+      "brand": {
+        "ko": "TATUNG",
+        "en": "TATUNG"
+      },
+      "name": {
+        "ko": "11컵 다기능 스테인리스 밥솥, TAC-11KN",
+        "en": "11-Cup Multi-Function Rice Cooker, TAC-11KN"
+      },
+      "originalPrice": 289.99,
+      "yamiPrice": 228.79,
+      "appPrice": 205.91,
+      "discountPercent": 29,
+      "image": "/app_image/1029078561.png",
+      "slug": "p/tatung-11-cup-multi-function-rice-cooker-tac-11kn/1029078561"
+    },
+    {
+      "id": 1183003061,
+      "sku": "1183003061",
+      "category": "kitchen-appliance",
+      "brand": {
+        "ko": "SUPOR",
+        "en": "SUPOR"
+      },
+      "name": {
+        "ko": "IH 무코팅 전기밥솥, SF40IH99QUS",
+        "en": "IH Non-Coating Rice Cooker, SF40IH99QUS"
+      },
+      "originalPrice": 279.99,
+      "yamiPrice": 167.99,
+      "appPrice": 151.19,
+      "discountPercent": 46,
+      "image": "/app_image/1183003061.jpg",
+      "slug": "p/supor-ih-non-coating-rice-cooker-sf40ih99qus/1183003061"
+    },
+    {
+      "id": 1029183211,
+      "sku": "1029183211",
+      "category": "kitchen-appliance",
+      "brand": {
+        "ko": "SUPOR",
+        "en": "SUPOR"
+      },
+      "name": {
+        "ko": "가열 블렌더 두유제조기",
+        "en": "Heating Blender Soy Milk Maker"
+      },
+      "originalPrice": 219.99,
+      "yamiPrice": 139.99,
+      "appPrice": 125.99,
+      "discountPercent": 43,
+      "image": "/app_image/1029183211.jpg",
+      "slug": "p/supor-heating-blender-soy-milk-maker/1029183211"
+    },
+    {
+      "id": 1029187781,
+      "sku": "1029187781",
+      "category": "kitchen-appliance",
+      "brand": {
+        "ko": "SUPOR",
+        "en": "SUPOR"
+      },
+      "name": {
+        "ko": "고압솥 스테인리스 냄비",
+        "en": "High Pressure Pot, Stainless"
+      },
+      "originalPrice": 66.99,
+      "yamiPrice": 57.99,
+      "appPrice": 52.19,
+      "discountPercent": 22,
+      "image": "/app_image/1029187781.png",
+      "slug": "p/supor-high-pressure-pot-stainless/1029187781"
+    },
+    {
+      "id": 1183006251,
+      "sku": "1183006251",
+      "category": "kitchen-appliance",
+      "brand": {
+        "ko": "OSLO",
+        "en": "OSLO"
+      },
+      "name": {
+        "ko": "IH 스테인리스 핫팟, 2.6QT",
+        "en": "IH Stainless Hot Pot, 2.6QT"
+      },
+      "originalPrice": 72.39,
+      "yamiPrice": 64.99,
+      "appPrice": 58.49,
+      "discountPercent": 19,
+      "image": "/app_image/1183006251.jpg",
+      "slug": "p/oslo-ih-stainless-hot-pot-2-6qt/1183006251"
+    },
+    {
+      "id": 1029234891,
+      "sku": "1029234891",
+      "category": "kitchen-cookware",
+      "brand": {
+        "ko": "스타우브",
+        "en": "Staub"
+      },
+      "name": {
+        "ko": "라운드 더치오븐, 화이트 트러플, 4QT",
+        "en": "Round Dutch Oven, White Truffle, 4QT"
+      },
+      "originalPrice": 369.99,
+      "yamiPrice": 369.99,
+      "appPrice": 332.99,
+      "discountPercent": 10,
+      "image": "/app_image/1029234891.jpg",
+      "slug": "p/staub-round-dutch-oven-white-truffle-4qt/1029234891"
+    },
+    {
+      "id": 1029234901,
+      "sku": "1029234901",
+      "category": "kitchen-cookware",
+      "brand": {
+        "ko": "스타우브",
+        "en": "Staub"
+      },
+      "name": {
+        "ko": "라운드 더치오븐, 모란 핑크, 4QT",
+        "en": "Round Dutch Oven, Peony Pink, 4QT"
+      },
+      "originalPrice": 369.99,
+      "yamiPrice": 369.99,
+      "appPrice": 332.99,
+      "discountPercent": 10,
+      "image": "/app_image/1029234901.jpg",
+      "slug": "p/staub-round-dutch-oven-peony-pink-4qt/1029234901"
+    },
+    {
+      "id": 1029135281,
+      "sku": "1029135281",
+      "category": "kitchen-cookware",
+      "brand": {
+        "ko": "스타우브",
+        "en": "Staub"
+      },
+      "name": {
+        "ko": "쁘띠 프렌치 오븐, 1.5QT, 화이트",
+        "en": "Petite French Oven, 1.5QT, White"
+      },
+      "originalPrice": 328,
+      "yamiPrice": 139.99,
+      "appPrice": 125.99,
+      "discountPercent": 62,
+      "image": "/app_image/1029135281.jpg",
+      "slug": "p/staub-petite-french-oven-1-5qt-white/1029135281"
+    },
+    {
+      "id": 1029135291,
+      "sku": "1029135291",
+      "category": "kitchen-cookware",
+      "brand": {
+        "ko": "스타우브",
+        "en": "Staub"
+      },
+      "name": {
+        "ko": "쁘띠 프렌치 오븐, 1.5QT, 라일락",
+        "en": "Petite French Oven, 1.5QT, Lilac"
+      },
+      "originalPrice": 328,
+      "yamiPrice": 139.99,
+      "appPrice": 125.99,
+      "discountPercent": 62,
+      "image": "/app_image/1029135291.jpg",
+      "slug": "p/staub-petite-french-oven-1-5qt-lilac/1029135291"
+    },
+    {
+      "id": 1029147661,
+      "sku": "1029147661",
+      "category": "kitchen-cookware",
+      "brand": {
+        "ko": "스타우브",
+        "en": "Staub"
+      },
+      "name": {
+        "ko": "미니 라운드 코코뜨 6종 세트",
+        "en": "Mini Round Cocotte Set, 6pc"
+      },
+      "originalPrice": 257,
+      "yamiPrice": 139.99,
+      "appPrice": 125.99,
+      "discountPercent": 51,
+      "image": "/app_image/1029147661.png",
+      "slug": "p/staub-mini-round-cocotte-set-6pc/1029147661"
+    },
+    {
+      "id": 1029147671,
+      "sku": "1029147671",
+      "category": "kitchen-cookware",
+      "brand": {
+        "ko": "스타우브",
+        "en": "Staub"
+      },
+      "name": {
+        "ko": "직사각 베이킹 접시 세트, 파스텔 핑크 2P",
+        "en": "Rectangular Baking Dish Set, Pastel Pink, 2pc"
+      },
+      "originalPrice": 142,
+      "yamiPrice": 59.99,
+      "appPrice": 53.99,
+      "discountPercent": 62,
+      "image": "/app_image/1029147671.png",
+      "slug": "p/staub-rectangular-baking-dish-set-pastel-pink-2pc/1029147671"
+    },
+    {
+      "id": 1029268391,
+      "sku": "1029268391",
+      "category": "kitchen-cookware",
+      "brand": {
+        "ko": "스타우브",
+        "en": "Staub"
+      },
+      "name": {
+        "ko": "미니 하트 더치오븐 3P 세트",
+        "en": "Mini Heart Dutch Oven Set, 3pc"
+      },
+      "originalPrice": 69.99,
+      "yamiPrice": 69.99,
+      "appPrice": 62.99,
+      "discountPercent": 10,
+      "image": "/app_image/1029268391.png",
+      "slug": "p/staub-mini-heart-dutch-oven-set-3pc/1029268391"
+    },
+    {
+      "id": 1029056781,
+      "sku": "1029056781",
+      "category": "kitchen-cookware",
+      "brand": {
+        "ko": "ZWILLING",
+        "en": "ZWILLING"
+      },
+      "name": {
+        "ko": "식칼 7종 세트, 핑크",
+        "en": "Knife Block Set, Pink, 7pc"
+      },
+      "originalPrice": 229.99,
+      "yamiPrice": 169.99,
+      "appPrice": 152.99,
+      "discountPercent": 33,
+      "image": "/app_image/1029056781.png",
+      "slug": "p/zwilling-knife-block-set-pink-7pc/1029056781"
+    },
+    {
+      "id": 1029079871,
+      "sku": "1029079871",
+      "category": "kitchen-cookware",
+      "brand": {
+        "ko": "닥터하우스",
+        "en": "Dr.Hows"
+      },
+      "name": {
+        "ko": "스팀 그릴 팬(뚜껑 포함), 크림",
+        "en": "Steam Grill Pan with Lid, Cream"
+      },
+      "originalPrice": 179.99,
+      "yamiPrice": 99.99,
+      "appPrice": 89.99,
+      "discountPercent": 50,
+      "image": "/app_image/1029079871.png",
+      "slug": "p/dr-hows-steam-grill-pan-with-lid-cream/1029079871"
+    },
+    {
+      "id": 1029079861,
+      "sku": "1029079861",
+      "category": "kitchen-cookware",
+      "brand": {
+        "ko": "닥터하우스",
+        "en": "Dr.Hows"
+      },
+      "name": {
+        "ko": "스팀 그릴 팬(뚜껑 포함), 블루",
+        "en": "Steam Grill Pan with Lid, Blue"
+      },
+      "originalPrice": 119.99,
+      "yamiPrice": 99.99,
+      "appPrice": 89.99,
+      "discountPercent": 25,
+      "image": "/app_image/1029079861.jpg",
+      "slug": "p/dr-hows-steam-grill-pan-with-lid-blue/1029079861"
+    },
+    {
+      "id": 1029303911,
+      "sku": "1029303911",
+      "category": "kitchen-cookware",
+      "brand": {
+        "ko": "닥터하우스",
+        "en": "Dr.Hows"
+      },
+      "name": {
+        "ko": "멀티팬, 20cm, 머스터드",
+        "en": "Multi Pan, 7.87in, Mustard"
+      },
+      "originalPrice": 29.99,
+      "yamiPrice": 25.99,
+      "appPrice": 23.39,
+      "discountPercent": 22,
+      "image": "/app_image/1029303911.png",
+      "slug": "p/dr-hows-multi-pan-7-87in-mustard/1029303911"
+    },
+    {
+      "id": 1029303901,
+      "sku": "1029303901",
+      "category": "kitchen-cookware",
+      "brand": {
+        "ko": "닥터하우스",
+        "en": "Dr.Hows"
+      },
+      "name": {
+        "ko": "멀티팬, 20cm, 코랄",
+        "en": "Multi Pan, 7.87in, Coral"
+      },
+      "originalPrice": 29.99,
+      "yamiPrice": 25.99,
+      "appPrice": 23.39,
+      "discountPercent": 22,
+      "image": "/app_image/1029303901.png",
+      "slug": "p/dr-hows-multi-pan-7-87in-coral/1029303901"
+    },
+    {
+      "id": 1029303891,
+      "sku": "1029303891",
+      "category": "kitchen-cookware",
+      "brand": {
+        "ko": "닥터하우스",
+        "en": "Dr.Hows"
+      },
+      "name": {
+        "ko": "멀티팬, 20cm, 크림",
+        "en": "Multi Pan, 7.87in, Cream"
+      },
+      "originalPrice": 29.99,
+      "yamiPrice": 25.99,
+      "appPrice": 23.39,
+      "discountPercent": 22,
+      "image": "/app_image/1029303891.png",
+      "slug": "p/dr-hows-multi-pan-7-87in-cream/1029303891"
+    },
+    {
+      "id": 1029093241,
+      "sku": "1029093241",
+      "category": "kitchen-cookware",
+      "brand": {
+        "ko": "RIVER RIGHT",
+        "en": "RIVER RIGHT"
+      },
+      "name": {
+        "ko": "프리미엄 중식 웍, 30cm",
+        "en": "PREMIUM Peking Wok"
+      },
+      "originalPrice": 118.99,
+      "yamiPrice": 97.67,
+      "appPrice": 87.9,
+      "discountPercent": 26,
+      "image": "/app_image/1029093241.png",
+      "slug": "p/river-right-premium-peking-wok/1029093241"
+    },
+    {
+      "id": 1029087611,
+      "sku": "1029087611",
+      "category": "kitchen-cookware",
+      "brand": {
+        "ko": "네오플램",
+        "en": "NEOFLAM"
+      },
+      "name": {
+        "ko": "IH 인덕션 전골냄비, 24cm",
+        "en": "Cast Aluminum Low Oval Casserole Pot, 10in"
+      },
+      "originalPrice": 114.99,
+      "yamiPrice": 97.49,
+      "appPrice": 87.74,
+      "discountPercent": 24,
+      "image": "/app_image/1029087611.png",
+      "slug": "p/neoflam-cast-aluminum-low-oval-casserole-pot-10in/1029087611"
+    },
+    {
+      "id": 1029225761,
+      "sku": "1029225761",
+      "category": "kitchen-cookware",
+      "brand": {
+        "ko": "네오플램",
+        "en": "NEOFLAM"
+      },
+      "name": {
+        "ko": "벌칸 웍, 세라믹 코팅, 28cm",
+        "en": "Vulcan Wok, Ceramic-Coated, 11in"
+      },
+      "originalPrice": 60.99,
+      "yamiPrice": 42.99,
+      "appPrice": 38.69,
+      "discountPercent": 37,
+      "image": "/app_image/1029225761.jpg",
+      "slug": "p/neoflam-vulcan-wok-ceramic-coated-11in/1029225761"
+    },
+    {
+      "id": 1029059931,
+      "sku": "1029059931",
+      "category": "kitchen-cookware",
+      "brand": {
+        "ko": "네오플램",
+        "en": "NEOFLAM"
+      },
+      "name": {
+        "ko": "우드 핸들 웍팬, 26cm",
+        "en": "Wok Pan with Wooden Handle, 10in"
+      },
+      "originalPrice": 56.99,
+      "yamiPrice": 39.99,
+      "appPrice": 35.99,
+      "discountPercent": 37,
+      "image": "/app_image/1029059931.png",
+      "slug": "p/neoflam-wok-pan-with-wooden-handle-10in/1029059931"
+    },
+    {
+      "id": 1029059911,
+      "sku": "1029059911",
+      "category": "kitchen-cookware",
+      "brand": {
+        "ko": "네오플램",
+        "en": "NEOFLAM"
+      },
+      "name": {
+        "ko": "FIKA 우드 핸들 프라이팬, 23cm",
+        "en": "Frypan with Wooden Handle, 9in"
+      },
+      "originalPrice": 54.99,
+      "yamiPrice": 37.99,
+      "appPrice": 34.19,
+      "discountPercent": 38,
+      "image": "/app_image/1029059911.png",
+      "slug": "p/neoflam-frypan-with-wooden-handle-9in/1029059911"
+    },
+    {
+      "id": 1029226051,
+      "sku": "1029226051",
+      "category": "kitchen-cookware",
+      "brand": {
+        "ko": "네오플램",
+        "en": "NEOFLAM"
+      },
+      "name": {
+        "ko": "세라믹 코팅 프라이팬, 24cm",
+        "en": "Ceramic-Coated Flat Pan, 9.4in"
+      },
+      "originalPrice": 44.99,
+      "yamiPrice": 37.99,
+      "appPrice": 34.19,
+      "discountPercent": 24,
+      "image": "/app_image/1029226051.jpg",
+      "slug": "p/neoflam-ceramic-coated-flat-pan-9-4in/1029226051"
+    },
+    {
+      "id": 1029201461,
+      "sku": "1029201461",
+      "category": "kitchen-cookware",
+      "brand": {
+        "ko": "네오플램",
+        "en": "NEOFLAM"
+      },
+      "name": {
+        "ko": "셰프마스터 알루미늄 주물 웍팬, 30cm",
+        "en": "Cast Aluminum Wok, 12in"
+      },
+      "originalPrice": 31.99,
+      "yamiPrice": 22.52,
+      "appPrice": 20.27,
+      "discountPercent": 37,
+      "image": "/app_image/1029201461.jpg",
+      "slug": "p/neoflam-cast-aluminum-wok-12in/1029201461"
+    },
+    {
+      "id": 1028425111,
+      "sku": "1028425111",
+      "category": "home",
+      "brand": {
+        "ko": "Hetras",
+        "en": "Hetras"
+      },
+      "name": {
+        "ko": "프리미엄 디퓨저 500ml 2P 선물세트, 플라워샵",
+        "en": "Premium Reed Diffuser 2pc Set, Flower Shop"
+      },
+      "originalPrice": 33.5,
+      "yamiPrice": 31.88,
+      "appPrice": 28.69,
+      "discountPercent": 14,
+      "image": "/app_image/1028425111.png",
+      "slug": "p/hetras-premium-reed-diffuser-2pc-set-flower-shop/1028425111"
+    },
+    {
+      "id": 1029135321,
+      "sku": "1029135321",
+      "category": "home",
+      "brand": {
+        "ko": "스타우브",
+        "en": "Staub"
+      },
+      "name": {
+        "ko": "12피스 식기 세트, 화이트 트러플",
+        "en": "12-Piece Dinnerware Set, White Truffle"
+      },
+      "originalPrice": 239.99,
+      "yamiPrice": 239.95,
+      "appPrice": 215.95,
+      "discountPercent": 10,
+      "image": "/app_image/1029135321.webp",
+      "slug": "p/staub-12-piece-dinnerware-set-white-truffle/1029135321"
+    },
+    {
+      "id": 1175002501,
+      "sku": "1175002501",
+      "category": "home",
+      "brand": {
+        "ko": "정관장",
+        "en": "JungKwanJang"
+      },
+      "name": {
+        "ko": "홍삼정 에브리타임, 10mL × 30포",
+        "en": "EVERYTIME Red Ginseng Extract, 10mL × 30 Sticks"
+      },
+      "originalPrice": 121.59,
+      "yamiPrice": 121.59,
+      "appPrice": 109.43,
+      "discountPercent": 10,
+      "image": "/app_image/1175002501.jpg",
+      "slug": "everytime-3-000mg-3-pack"
+    },
+    {
+      "id": 1175176591,
+      "sku": "1175176591",
+      "category": "home",
+      "brand": {
+        "ko": "정관장",
+        "en": "JungKwanJang"
+      },
+      "name": {
+        "ko": "GLPro 더블컷 525ml (21병 + 42정)",
+        "en": "GLPro Double Cut 525mL (21 Bottles + 42 Tablets)"
+      },
+      "originalPrice": 129.99,
+      "yamiPrice": 129.99,
+      "appPrice": 116.99,
+      "discountPercent": 10,
+      "image": "/app_image/1175176591.png",
+      "slug": "glpro-double-cut-21bottles-42tablets"
+    },
+    {
+      "id": 1026157881,
+      "sku": "1026157881",
+      "category": "home",
+      "brand": {
+        "ko": "OWNIST",
+        "en": "OWNIST"
+      },
+      "name": {
+        "ko": "트리플 콜라겐 오렌지, 20g × 14포",
+        "en": "Triple Collagen Orange, 20g × 14 Packets"
+      },
+      "originalPrice": 25.19,
+      "yamiPrice": 25.19,
+      "appPrice": 22.67,
+      "discountPercent": 10,
+      "image": "/app_image/1026157881.png",
+      "slug": "ownist-triple-collagen-2-weeks-routine"
+    },
+    {
+      "id": 1029335121,
+      "sku": "1029335121",
+      "category": "home",
+      "brand": {
+        "ko": "ZOJIRUSHI",
+        "en": "ZOJIRUSHI"
+      },
+      "name": {
+        "ko": "스테인리스 쿨 보틀, 86cm, SD-KA100H",
+        "en": "Stainless Cool Bottle, 34 fl oz, SD-KA100H"
+      },
+      "originalPrice": 54.99,
+      "yamiPrice": 48.99,
+      "appPrice": 44.09,
+      "discountPercent": 20,
+      "image": "/app_image/1029335121.png",
+      "slug": "p/zojirushi-stainless-cool-bottle-34-fl-oz-sd-ka100h/1029335121"
+    },
+    {
+      "id": 1029322731,
+      "sku": "1029322731",
+      "category": "home",
+      "brand": {
+        "ko": "ZOJIRUSHI",
+        "en": "ZOJIRUSHI"
+      },
+      "name": {
+        "ko": "스테인리스 보온 텀블러, 41cm, 블루",
+        "en": "Stainless Steel Insulated Mug, 16oz, Blue"
+      },
+      "originalPrice": 45.99,
+      "yamiPrice": 35.19,
+      "appPrice": 31.67,
+      "discountPercent": 31,
+      "image": "/app_image/1029322731.png",
+      "slug": "p/zojirushi-stainless-steel-insulated-mug-16oz-blue/1029322731"
+    },
+    {
+      "id": 1029225801,
+      "sku": "1029225801",
+      "category": "home",
+      "brand": {
+        "ko": "네오플램",
+        "en": "NEOFLAM"
+      },
+      "name": {
+        "ko": "코모도 유리 밀폐용기, 6종 세트",
+        "en": "Comodo Glass Containers, 6-Piece Set"
+      },
+      "originalPrice": 49.99,
+      "yamiPrice": 39.99,
+      "appPrice": 35.99,
+      "discountPercent": 28,
+      "image": "/app_image/1029225801.jpg",
+      "slug": "p/neoflam-comodo-glass-containers-6-piece-set/1029225801"
+    },
+    {
+      "id": 1029118811,
+      "sku": "1029118811",
+      "category": "home",
+      "brand": {
+        "ko": "네오플램",
+        "en": "NEOFLAM"
+      },
+      "name": {
+        "ko": "세라믹 원형 접시, 퍼플, 19cm",
+        "en": "Ceramic Round Small Plate, Purple, 7.48in"
+      },
+      "originalPrice": 24.99,
+      "yamiPrice": 21.49,
+      "appPrice": 19.34,
+      "discountPercent": 23,
+      "image": "/app_image/1029118811.png",
+      "slug": "p/neoflam-ceramic-round-small-plate-purple-7-48in/1029118811"
+    },
+    {
+      "id": 1029255281,
+      "sku": "1029255281",
+      "category": "home",
+      "brand": {
+        "ko": "네오플램",
+        "en": "NEOFLAM"
+      },
+      "name": {
+        "ko": "3칸 유리 도시락통, 1000ml",
+        "en": "3-Compartment Glass Lunch Box, 33.81 fl oz"
+      },
+      "originalPrice": 9.99,
+      "yamiPrice": 8.79,
+      "appPrice": 7.91,
+      "discountPercent": 21,
+      "image": "/app_image/1029255281.jpg",
+      "slug": "p/neoflam-3-compartment-glass-lunch-box-33-81-fl-oz/1029255281"
+    },
+    {
+      "id": 1029255251,
+      "sku": "1029255251",
+      "category": "home",
+      "brand": {
+        "ko": "네오플램",
+        "en": "NEOFLAM"
+      },
+      "name": {
+        "ko": "직사각 유리 도시락통, 1000ml",
+        "en": "Rectangular Glass Lunch Box, 33.81 fl oz"
+      },
+      "originalPrice": 9.99,
+      "yamiPrice": 8.79,
+      "appPrice": 7.91,
+      "discountPercent": 21,
+      "image": "/app_image/1029255251.jpg",
+      "slug": "p/neoflam-rectangular-glass-lunch-box-33-81-fl-oz/1029255251"
+    },
+    {
+      "id": 1028799261,
+      "sku": "1028799261",
+      "category": "home",
+      "brand": {
+        "ko": "Snuggle",
+        "en": "Snuggle"
+      },
+      "name": {
+        "ko": "캡슐 세탁세제, 블루 스파클 플러스 30캡슐",
+        "en": "Capsule Laundry Detergent, Blue Sparkle Plus, 30ct"
+      },
+      "originalPrice": 22.99,
+      "yamiPrice": 15.83,
+      "appPrice": 14.25,
+      "discountPercent": 38,
+      "image": "/app_image/1028799261.png",
+      "slug": "p/snuggle-capsule-laundry-detergent-blue-sparkle-plus-30ct/1028799261"
+    },
+    {
+      "id": 1028799281,
+      "sku": "1028799281",
+      "category": "home",
+      "brand": {
+        "ko": "Snuggle",
+        "en": "Snuggle"
+      },
+      "name": {
+        "ko": "건조기 시트, 블루 스파클 플러스, 40매",
+        "en": "Dryer Sheets, Blue Sparkle Plus, 40ct"
+      },
+      "originalPrice": 6.99,
+      "yamiPrice": 6.15,
+      "appPrice": 5.54,
+      "discountPercent": 21,
+      "image": "/app_image/1028799281.png",
+      "slug": "p/snuggle-dryer-sheets-blue-sparkle-plus-40ct/1028799281"
+    },
+    {
+      "id": 1028506961,
+      "sku": "1028506961",
+      "category": "home",
+      "brand": {
+        "ko": "MUMCHIT",
+        "en": "MUMCHIT"
+      },
+      "name": {
+        "ko": "굿나잇 리드 디퓨저, 팔로산토",
+        "en": "Goodnight Reed Diffuser, Palo Santo"
+      },
+      "originalPrice": 20.99,
+      "yamiPrice": 15.83,
+      "appPrice": 14.25,
+      "discountPercent": 32,
+      "image": "/app_image/1028506961.png",
+      "slug": "p/mumchit-goodnight-reed-diffuser-palo-santo/1028506961"
+    },
+    {
+      "id": 1028506971,
+      "sku": "1028506971",
+      "category": "home",
+      "brand": {
+        "ko": "MUMCHIT",
+        "en": "MUMCHIT"
+      },
+      "name": {
+        "ko": "리드 디퓨저, 잉글리시 페어 & 프리지아",
+        "en": "Reed Diffuser, English Pear & Freesia"
+      },
+      "originalPrice": 14.99,
+      "yamiPrice": 10.55,
+      "appPrice": 9.5,
+      "discountPercent": 37,
+      "image": "/app_image/1028506971.png",
+      "slug": "p/mumchit-reed-diffuser-english-pear-freesia/1028506971"
+    },
+    {
+      "id": 1023634921,
+      "sku": "1023634921",
+      "category": "home",
+      "brand": {
+        "ko": "MUMCHIT",
+        "en": "MUMCHIT"
+      },
+      "name": {
+        "ko": "섬유 탈취제, 소프트 블루 비누향, 100ml",
+        "en": "Perfumed Fabric Fragrance, Soft Blue Soap Scent, 3.4 fl oz"
+      },
+      "originalPrice": 6.69,
+      "yamiPrice": 5.89,
+      "appPrice": 5.3,
+      "discountPercent": 21,
+      "image": "/app_image/1023634921.png",
+      "slug": "p/mumchit-perfumed-fabric-fragrance-soft-blue-soap-scent-3-4-fl-oz/1023634921"
+    },
+    {
+      "id": 1023634941,
+      "sku": "1023634941",
+      "category": "home",
+      "brand": {
+        "ko": "MUMCHIT",
+        "en": "MUMCHIT"
+      },
+      "name": {
+        "ko": "섬유 탈취제, 퍼플머스크, 100ml",
+        "en": "Perfumed Fabric Fragrance, Purple Musk, 3.4 fl oz"
+      },
+      "originalPrice": 6.69,
+      "yamiPrice": 5.89,
+      "appPrice": 5.3,
+      "discountPercent": 21,
+      "image": "/app_image/1023634941.png",
+      "slug": "p/mumchit-perfumed-fabric-fragrance-purple-musk-3-4-fl-oz/1023634941"
+    },
+    {
+      "id": 1028385581,
+      "sku": "1028385581",
+      "category": "home",
+      "brand": {
+        "ko": "위글위글",
+        "en": "wiggle wiggle"
+      },
+      "name": {
+        "ko": "다이어리 노트 스케줄러",
+        "en": "Diary Notebook Scheduler"
+      },
+      "originalPrice": 19.99,
+      "yamiPrice": 15.99,
+      "appPrice": 14.39,
+      "discountPercent": 28,
+      "image": "/app_image/1028385581.jpg",
+      "slug": "p/wiggle-wiggle-diary-notebook-scheduler/1028385581"
+    },
+    {
+      "id": 1028385611,
+      "sku": "1028385611",
+      "category": "home",
+      "brand": {
+        "ko": "위글위글",
+        "en": "wiggle wiggle"
+      },
+      "name": {
+        "ko": "실리콘 키체인",
+        "en": "Soft Silicone Keychain"
+      },
+      "originalPrice": 16.99,
+      "yamiPrice": 12.69,
+      "appPrice": 11.42,
+      "discountPercent": 33,
+      "image": "/app_image/1028385611.png",
+      "slug": "p/wiggle-wiggle-soft-silicone-keychain/1028385611"
+    },
+    {
+      "id": 1028402871,
+      "sku": "1028402871",
+      "category": "home",
+      "brand": {
+        "ko": "데일리라이크",
+        "en": "Dailylike"
+      },
+      "name": {
+        "ko": "욕실 러그 매트, 보리,60 x 40cm",
+        "en": "Bath Rug Mat, Bori, 23.6x15.7in"
+      },
+      "originalPrice": 18.99,
+      "yamiPrice": 12.66,
+      "appPrice": 11.39,
+      "discountPercent": 40,
+      "image": "/app_image/1028402871.png",
+      "slug": "p/dailylike-bath-rug-mat-bori-23-6x15-7in/1028402871"
+    },
+    {
+      "id": 1029132701,
+      "sku": "1029132701",
+      "category": "home",
+      "brand": {
+        "ko": "데일리라이크",
+        "en": "Dailylike"
+      },
+      "name": {
+        "ko": "스테인리스 머그컵 300ml x 2",
+        "en": "Stainless Mug Cup Set, 2pc, My Buddy"
+      },
+      "originalPrice": 16.99,
+      "yamiPrice": 14.39,
+      "appPrice": 12.95,
+      "discountPercent": 24,
+      "image": "/app_image/1029132701.jpg",
+      "slug": "p/dailylike-stainless-mug-cup-set-2pc-my-buddy/1029132701"
+    },
+    {
+      "id": 1029203471,
+      "sku": "1029203471",
+      "category": "home",
+      "brand": {
+        "ko": "HAULSHOME",
+        "en": "HAULSHOME"
+      },
+      "name": {
+        "ko": "한국 머그컵, 옐로우",
+        "en": "Korean Mug, Yellow"
+      },
+      "originalPrice": 15.99,
+      "yamiPrice": 13.49,
+      "appPrice": 12.14,
+      "discountPercent": 24,
+      "image": "/app_image/1029203471.jpg",
+      "slug": "p/haulshome-korean-mug-yellow/1029203471"
+    },
+    {
+      "id": 1029203461,
+      "sku": "1029203461",
+      "category": "home",
+      "brand": {
+        "ko": "HAULSHOME",
+        "en": "HAULSOME"
+      },
+      "name": {
+        "ko": "한국 머그컵, 민트",
+        "en": "Korean Mug, Mint"
+      },
+      "originalPrice": 15.99,
+      "yamiPrice": 13.49,
+      "appPrice": 12.14,
+      "discountPercent": 24,
+      "image": "/app_image/1029203461.jpg",
+      "slug": "p/haulsome-korean-mug-mint/1029203461"
+    },
+    {
+      "id": 1029247861,
+      "sku": "1029247861",
+      "category": "home",
+      "brand": {
+        "ko": "ERATO",
+        "en": "ERATO"
+      },
+      "name": {
+        "ko": "플라워 세라믹 애피타이저 접시, 15cm",
+        "en": "Flower Ceramic Appetizer Plate, 5.9in"
+      },
+      "originalPrice": 9.99,
+      "yamiPrice": 9.99,
+      "appPrice": 8.99,
+      "discountPercent": 10,
+      "image": "/app_image/1029247861.jpg",
+      "slug": "p/erato-flower-ceramic-appetizer-plate-5-9in/1029247861"
+    }
+  ],
+  "featuredIds": [
+    "3022298781",
+    "1022232581",
+    "1022418831",
+    "1022712511",
+    "1183006741",
+    "1028012291",
+    "1029047881",
+    "1029078561",
+    "1029135321",
+    "1029335121",
+    "1029225801",
+    "1029322731"
+  ],
+  "copy": {
+    "ko": {
+      "nav": {
+        "shopNow": "지금 쇼핑하기",
+        "toggleLanguage": "English",
+        "categories": {
+          "welcomeCoupon": "쿠폰팩 혜택",
+          "discountProducts": "앱 전용 혜택 상품",
+          "couponGuide": "쿠폰 적용 방법",
+          "storyCarousel": "베스트 상품",
+          "brandSpecial": "야미의 특별함",
+          "snsTrend": "화제의 트렌드",
+          "customerReviews": "사용자 후기"
+        }
+      },
+      "hero": {
+        "badge": "웰컴 $10 혜택 + 재방문 최대 $840",
+        "headline": "미국 최대 아시안 마켓 Yami",
+        "subheadline": "앱 첫 다운로드 시, 단독 웰컴 쿠폰팩 100% 증정!",
+        "appOnlyNotice": "모든 쿠폰 혜택은 앱 쇼핑 시에만 적용 가능합니다."
+      },
+      "coupon": {
+        "preTitle": "WELCOME COUPON",
+        "title": "야미가 처음인 고객님께",
+        "subtitle": "다음 앱 전용 혜택을 모두 드려요",
+        "first": {
+          "badge": "최소 구매 조건 없이 사용 가능!",
+          "title": "$10 웰컴 혜택",
+          "sub": "APP ONLY",
+          "value": "$10 OFF",
+          "code": "KOREA"
+        },
+        "returning": {
+          "badge": "다시 오시면 더 커지는 혜택",
+          "title": "재방문 최대 $840 혜택",
+          "sub": "APP ONLY",
+          "value": "$840 OFF",
+          "code": "WELCOME26"
+        },
+        "eligibility": "* 대상: 주문 이력이 없는 신규 앱 회원",
+        "details": "* 상세안내: 하단 카테고리별 대상 품목 참고",
+        "notice": "KOREA를 먼저 사용해야 모든 쿠폰 혜택을 받으실 수 있어요"
+      },
+      "calculator": {
+        "tab1Badge": "최소 구매 없이 바로 적용",
+        "tab2Badge": "다시 오면 더 커지는 혜택",
+        "tab1Title": "첫 구매 $10 할인",
+        "tab1Title_combo1010": "$10 웰컴 혜택",
+        "tab2Title": "앱에서 10% 추가 할인",
+        "card1Title": "주문 금액",
+        "card2Title": "선택 상품 합계",
+        "badge1": "최소 구매 없음",
+        "badge2": "앱 전용 할인",
+        "sliderHint": "금액을 움직여 보세요",
+        "selectHint": "상품을 선택해보세요",
+        "selectedCount": "{count}개 선택됨",
+        "carouselInfo": "아래 상품, 앱에서 구매하면 10% 추가 할인돼요"
+      },
+      "bottom": {
+        "badge": "첫 구매 $10 + 재방문 최대 $840",
+        "badge_combo1010": "웰컴 $10 혜택 + 재방문 최대 $840",
+        "title": "망설이지 말고 지금 앱을 다운로드 하세요!",
+        "subtitle": "앱 다운로드 시에만 제공되는 특별 혜택입니다",
+        "qrText": "휴대폰 카메라로 스캔하여 다운로드"
+      }
+    },
+    "en": {
+      "nav": {
+        "shopNow": "Shop Now",
+        "toggleLanguage": "한국어",
+        "categories": {
+          "welcomeCoupon": "Coupon Packs",
+          "discountProducts": "App-Only Deals",
+          "couponGuide": "How to Use",
+          "storyCarousel": "Best Sellers",
+          "brandSpecial": "Why Yami",
+          "snsTrend": "Social Trends",
+          "customerReviews": "Real Customer Reviews"
+        }
+      },
+      "hero": {
+        "badge": "$10 Welcome Offer + Up to $840 Returning",
+        "headline": "Yami, U.S. #1 Asian Market",
+        "subheadline": "Get exclusive welcome coupons in-app!",
+        "appOnlyNotice": "All coupon benefits are available for App shopping only."
+      },
+      "coupon": {
+        "preTitle": "WELCOME COUPON",
+        "title": "For New Yami Customers",
+        "subtitle": "Unlock All of These App-Exclusive Benefits",
+        "first": {
+          "badge": "No minimum spend, claim now!",
+          "title": "$10 Welcome Offer",
+          "sub": "APP ONLY",
+          "value": "$10 OFF",
+          "code": "KOREA"
+        },
+        "returning": {
+          "badge": "Bigger rewards when you return",
+          "title": "Up to $840 Returning Reward",
+          "sub": "APP ONLY",
+          "value": "$840 OFF",
+          "code": "WELCOME26"
+        },
+        "eligibility": "* Eligibility: New app users with no order history",
+        "details": "* Details: Scroll down for eligible items",
+        "notice": "To claim all coupon rewards, use KOREA first before redeeming WELCOME26"
+      },
+      "calculator": {
+        "tab1Badge": "No minimum to unlock",
+        "tab2Badge": "Bigger rewards when you return",
+        "tab1Title": "$10 Off 1st Order",
+        "tab1Title_combo1010": "$10 Welcome Offer",
+        "tab2Title": "Extra 10% in the App",
+        "card1Title": "Order Amount",
+        "card2Title": "Selected Items Total",
+        "badge1": "No Min. Purchase",
+        "badge2": "App-Only Discount",
+        "sliderHint": "Drag to see your savings",
+        "selectHint": "Please select products",
+        "selectedCount": "{count} selected",
+        "carouselInfo": "Get an extra 10% off these items in the app"
+      },
+      "bottom": {
+        "badge": "$10 Off 1st Order + Up to $840 Returning",
+        "badge_combo1010": "$10 Welcome Offer + Up to $840 Returning",
+        "title": "Download the Yami App Now!",
+        "subtitle": "Exclusive benefits, available only in the app",
+        "qrText": "Scan QR with phone camera to download"
+      }
+    }
+  },
+  "footer": [
+    [
+      {
+        "label": "About Us",
+        "href": "https://www.yami.com/en/about-us"
+      },
+      {
+        "label": "Quality Guarantee",
+        "href": "https://www.yami.com/en/article/474099"
+      },
+      {
+        "label": "Contact Us",
+        "href": "https://www.yami.com/en/article/473953"
+      },
+      {
+        "label": "Join Us",
+        "href": "https://www.yami.com/en/article/474043"
+      },
+      {
+        "label": "Selected Collections",
+        "href": "https://www.yami.com/en/collections"
+      }
+    ],
+    [
+      {
+        "label": "Points",
+        "href": "https://www.yami.com/en/article/474098"
+      },
+      {
+        "label": "Rewards",
+        "href": "https://www.yami.com/en/article/1065505"
+      },
+      {
+        "label": "Referral Program",
+        "href": "https://www.yami.com/en/article/474096"
+      }
+    ],
+    [
+      {
+        "label": "FAQ",
+        "href": "https://www.yami.com/en/article/474097"
+      },
+      {
+        "label": "Fulfilled by Yami",
+        "href": "https://www.yami.com/en/article/474092"
+      },
+      {
+        "label": "Yami Marketplace",
+        "href": "https://www.yami.com/en/article/474095"
+      },
+      {
+        "label": "Return Policy",
+        "href": "https://www.yami.com/en/article/474093"
+      },
+      {
+        "label": "Price Protection Policy",
+        "href": "https://www.yami.com/en/article/474100"
+      },
+      {
+        "label": "1-Day Delivery",
+        "href": "https://www.yami.com/en/article/1353886"
+      }
+    ]
+  ]
+}

@@ -89,3 +89,32 @@
     flex-basis: calc((100% - 56px) / 8);
   }
 }
+
+@media (min-width: 1024px) {
+  .frame[data-navigation="sides"] {
+    position: relative;
+  }
+
+  .frame[data-navigation="sides"] .toolbar {
+    position: absolute;
+    inset-inline: var(--space-600);
+    top: var(--navigation-top);
+    margin: 0;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .frame[data-navigation="sides"] .toolbar > div {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .frame[data-navigation="sides"] .toolbar button {
+    pointer-events: auto;
+    transform: translate(-50%, -50%);
+  }
+
+  .frame[data-navigation="sides"] .toolbar button:last-child {
+    transform: translate(50%, -50%);
+  }
+}

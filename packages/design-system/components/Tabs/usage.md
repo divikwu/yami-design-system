@@ -81,3 +81,9 @@ Use `TabsList skeleton` while the tab model is loading. Skeleton lists are `aria
 - Do not mix Primary, Secondary, and Tertiary tabs inside the same `TabsList`.
 - Do not place long sentence labels in tabs. Keep labels short enough to scan and scroll horizontally on mobile.
 - Do not use decorative icons or emoji. Icon slots must use YAMI SVG assets and should clarify the label.
+
+## Scrollable section navigation
+
+Use `<TabsList fullWidth centerActiveTab align="center" edgePadding>` for a full-width navigation strip. `align="center"` centers items when they fit and falls back to start alignment on overflow. `edgePadding` adds 16px leading/trailing gutters. `centerActiveTab` also reveals controlled selection changes (for example, page scroll tracking), respecting reduced motion and scroll boundaries. These options are opt-in; existing layouts retain their defaults.
+
+Keep horizontal scrolling on TabsList itself. Pages own vertical section navigation and active-section tracking; avoid a second horizontal scroll container around TabsList.

@@ -1,3 +1,4 @@
+export * from "../pages/AppDownloadPage";
 export * from "../pages/EcommerceHome";
 export * from "../pages/MobileSearchPage";
 export * from "../pages/ProductDetailPage";

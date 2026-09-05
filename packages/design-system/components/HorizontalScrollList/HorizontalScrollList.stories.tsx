@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { RailNavigation } from "../Button/RailNavigation";
@@ -60,7 +61,9 @@ function Example({
   enabled = true,
   locale,
   surface,
+  navigation = "top",
 }: {
+  navigation?: "top" | "sides";
   enabled?: boolean;
   locale: ProductListLocale;
   surface: "card" | "plain";
@@ -75,8 +78,26 @@ function Example({
       minimumPageDistance: 152,
     });
 
+  const frameRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const frame = frameRef.current;
+    const media = frame?.querySelector<HTMLElement>('[data-slot="product-card-media"]');
+    if (!frame || !media || navigation !== "sides") return;
+    const update = () => {
+      const image = media.getBoundingClientRect();
+      frame.style.setProperty("--navigation-top", `${image.top - frame.getBoundingClientRect().top + image.height / 2}px`);
+    };
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(frame);
+    observer.observe(media);
+    return () => observer.disconnect();
+  }, [navigation]);
+
   return (
     <div
+      ref={frameRef}
+      data-navigation={navigation}
       className={storyStyles.frame}
       data-slot="horizontal-scroll-list-frame"
       data-surface={surface}
@@ -282,6 +303,7 @@ export const WithoutBackground: Story = {
 };
 
 export const PC: Story = {
+  name: "PC · Top right navigation",
   globals: {
     viewport: { value: "yamiDesktopMd", isRotated: false },
   },
@@ -317,5 +339,30 @@ export const Disabled: Story = {
     ) {
       throw new Error("Disabled Horizontal Scroll List must not own scrolling");
     }
+  },
+};
+
+export const PCSideNavigation: Story = {
+  name: "PC · Side navigation",
+  globals: PC.globals,
+  render: (args, { globals }) => (
+    <Example enabled={args.enabled} locale={globals.locale === "en" ? "en" : "zh"} surface={args.surface} navigation="sides" />
+  ),
+  play: async ({ args, canvasElement }) => {
+    assertResponsiveProductRail(canvasElement, args.surface);
+    const image = canvasElement.querySelector<HTMLElement>('[data-slot="product-card-media"]')!;
+    const buttons = canvasElement.querySelectorAll<HTMLButtonElement>('[data-slot="horizontal-scroll-list-toolbar"] button');
+    const rect = image.getBoundingClientRect();
+    for (const button of buttons) {
+      const bounds = button.getBoundingClientRect();
+      if (Math.abs(bounds.top + bounds.height / 2 - rect.top - rect.height / 2) > 1) {
+        throw new Error("Side navigation must align with the product image center");
+      }
+    }
+    if (buttons[0].getAttribute("aria-disabled") !== "true") throw new Error("Previous must start disabled");
+    buttons[1].click();
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    const list = canvasElement.querySelector<HTMLElement>('[data-slot="horizontal-scroll-list"]')!;
+    if (list.scrollLeft <= 0) throw new Error("Next must scroll the product rail");
   },
 };
