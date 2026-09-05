@@ -116,7 +116,7 @@
 .logo {
   display: block;
   width: auto;
-  height: 52px;
+  height: var(--space-600);
 }
 
 /* Separates the lockup from the deliver-to control on storefronts without a
